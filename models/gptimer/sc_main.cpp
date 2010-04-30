@@ -1,7 +1,7 @@
 #include <boost/config.hpp>
 #include <systemc>
 #include <greenreg.h>
-#include <greenreg_socket.h>
+#include <greenreg_ambasocket.h>
 #include <iostream>
 #include <iomanip>
 
@@ -14,6 +14,7 @@
 { std::printf("\n@%-7s /%-4d:", sc_core::sc_time_stamp().to_string().c_str(), (unsigned)sc_core::sc_delta_count());}
 #define REG(name) \
 { std::cout << " "#name << ": 0x" << std::hex << std::setfill('0') << std::setw(2) << bus->read(name, 4); }
+
 #define SET(name, val) \
 { bus->write(name, val, 4); }
 
@@ -21,7 +22,7 @@
 class Testbench : public gs::reg::gr_device {
   public:
     /* IO */
-    gs::reg::greenreg_socket< gs::gp::generic_master> bus;	// TLM Master Port declaration
+    gs::reg::greenreg_socket< gs::amba::amba_master<32> > bus;	// TLM Master Port declaration
 
     sc_core::sc_out<bool>     reset;
     sc_core::sc_out<sc_dt::sc_logic> dhalt;
@@ -32,7 +33,7 @@ class Testbench : public gs::reg::gr_device {
     SC_HAS_PROCESS( Testbench );
 	
     Testbench(sc_core::sc_module_name name)
-      : gr_device(name, gs::reg::INDEXED_ADDRESS, 2, NULL), bus( "dut" ) { // TLM bus master socket
+      : gr_device(name, gs::reg::INDEXED_ADDRESS, 2, NULL), bus( "dut", ::amba::amba_APB, ::amba::amba_LT) { // TLM bus master socket
       SC_THREAD( test_thread );
     }
   
@@ -43,10 +44,10 @@ class Testbench : public gs::reg::gr_device {
       /* Read configuration defaults */
       reset = 1;
       SHOW REG(TIM_SCALER) REG(TIM_VALUE(0)) REG(TIM_VALUE(1));
-      wait(1, sc_core::SC_NS);
+      wait(20, sc_core::SC_NS);
       reset = 0;
       SHOW REG(TIM_SCALER) REG(TIM_VALUE(0)) REG(TIM_VALUE(1));
-      wait(1, sc_core::SC_NS);
+      wait(10, sc_core::SC_NS);
 
       value = bus->read(TIM_CONF, 4);
       std::cout << "Configure: 0x" << std::hex << value << std::endl;
