@@ -1,13 +1,13 @@
 /***********************************************************************/
-/* Project:    Hardware-Software Co-Simulation SoC Validation Platform */
+/* Project:    HW-SW SystenC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
 /* File:       irqmp_tb.tpp                                            */
 /*             stimulus file for the IRQMP module                      */
 /*             can be used for systemc or vhdl simulation w/ modelsim  */
 /*             included by testbench header file                       */
 /*                                                                     */
-/* Date:       18.05.2010                                              */
-/* Revision:   1                                                       */
+/* Date:       $Date$                                                  */
+/* Revision:   $Revision$                                              */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
 /* Maintainer: Dennis Bode                                             */

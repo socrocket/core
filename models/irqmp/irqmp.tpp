@@ -1,12 +1,12 @@
 /***********************************************************************/
-/* Project:    Hardware-Software Co-Simulation SoC Validation Platform */
+/* Project:    HW-SW SystenC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
 /* File:       irqmp.tpp                                               */
 /*             implementation of irqmp module                          */
 /*             is included by irqmp.h template header file             */
 /*                                                                     */
-/* Date:       18.05.2010                                              */
-/* Revision:   1                                                       */
+/* Date:       $Date$                                                  */
+/* Revision:   $Revision$                                              */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
 /* Maintainer: Dennis Bode                                             */

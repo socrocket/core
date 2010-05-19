@@ -1,13 +1,13 @@
 /***********************************************************************/
-/* Project:    Hardware-Software Co-Simulation SoC Validation Platform */
+/* Project:    HW-SW SystenC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
 /* File:       irqmp_tb_tlm.h                                          */
 /*             header file defining the irqmp_tb template              */
 /*             can be used for systemc or vhdl simulation w/ modelsim  */
 /*             includes irqmp_tb.tpp at the bottom                     */
 /*                                                                     */
-/* Date:       18.05.2010                                              */
-/* Revision:   1                                                       */
+/* Date:       $Date$                                                  */
+/* Revision:   $Revision$                                              */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TU Braunschweig              */
 /* Maintainer: Dennis Bode                                             */
