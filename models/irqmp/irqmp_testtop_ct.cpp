@@ -13,17 +13,12 @@
 /* Maintainer: Dennis Bode                                             */
 /***********************************************************************/
 
-#include <vector>
-using std::vector;
-
 #include "amba.h"
 #include "./adapters/AMBA_LT_CT_Adapter.h"
 #include "ct_rtl.h"
 #include "irqmp_tb.h"
 #include "irqmp_sc_wrapper.h"
 #include "irqmpreg.h"
-#include <cstring>
-
 
 int sc_main(int argc, char** argv) {
   //set generics
@@ -58,7 +53,7 @@ int sc_main(int argc, char** argv) {
   irqmp_tb<buswidth, pindex, paddr, pmask, ncpu, eirq> irqmp_tb("irqmp_tb"); //testbench
   amba::AMBA_LT_CT_Adapter<32> lt_ct("LT_CT", amba::amba_APB);               //LT-CT adapter
   ct_rtl ct_rtl("CT_RTL", 0x0, 0x40);                                        //CT-RTL adapter
-  irqmp<> irqmp_inst0("irqmp", "work.irqmp");                                //IRQMP
+  irqmp<> irqmp_inst0("irqmp", "work.irqmp_wrapper");                        //IRQMP
 
   /*  communication between testbench, adapters, and IRQMP instance:
    *  testbench      --> TLM (socket communication)
@@ -104,10 +99,10 @@ int sc_main(int argc, char** argv) {
   irqmp_inst0.clk(clk);
   irqmp_inst0.apbi(apbi);
   irqmp_inst0.apbo(apbo);
-  irqmp_inst0.irqi[0](irqi_0);
-  irqmp_inst0.irqi[1](irqi_1);
-  irqmp_inst0.irqo[0](irqo_0);
-  irqmp_inst0.irqo[1](irqo_1);
+  irqmp_inst0.irqi_0(irqi_0);
+  irqmp_inst0.irqi_1(irqi_1);
+  irqmp_inst0.irqo_0(irqo_0);
+  irqmp_inst0.irqo_1(irqo_1);
 
 /*
   for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {

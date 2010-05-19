@@ -108,8 +108,10 @@ public:
     sc_in<bool> clk;
     sc_in<apb_slv_in_type> apbi;
     sc_out<apb_slv_out_type> apbo;
-    sc_in<l3_irq_out_type> irqi[2];
-    sc_out<l3_irq_in_type> irqo[2];
+    sc_in<l3_irq_out_type> irqi_0;
+    sc_in<l3_irq_out_type> irqi_1;
+    sc_out<l3_irq_in_type> irqo_0;
+    sc_out<l3_irq_in_type> irqo_1;
 
 
     irqmp(sc_module_name nm, const char* hdl_name)
@@ -117,7 +119,11 @@ public:
        rst("rst"),
        clk("clk"),
        apbi("apbi"),
-       apbo("apbo")
+       apbo("apbo"),
+       irqi_0("irqi_0"),
+       irqi_1("irqi_1"),
+       irqo_0("irqo_0"),
+       irqo_1("irqo_1")
     {
         this->add_parameter("pindex", pindex);
         this->add_parameter("paddr", paddr);
