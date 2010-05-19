@@ -6,8 +6,9 @@
 /*             can be used for systemc or vhdl simulation w/ modelsim  */
 /*             includes irqmp_tb.tpp at the bottom                     */
 /*                                                                     */
-/* Date:       $Date$                                                  */
-/* Revision:   $Revision$                                              */
+/* Modified on $Date$   */
+/*          at $Revision$                                          */
+/*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TU Braunschweig              */
 /* Maintainer: Dennis Bode                                             */

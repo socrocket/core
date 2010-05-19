@@ -5,8 +5,9 @@
 /*             implementation of irqmp module                          */
 /*             is included by irqmp.h template header file             */
 /*                                                                     */
-/* Date:       $Date$                                                  */
-/* Revision:   $Revision$                                              */
+/* Modified on $Date$   */
+/*          at $Revision$                                          */
+/*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
 /* Maintainer: Dennis Bode                                             */
@@ -14,15 +15,8 @@
 
 /*  2-DO
 
-- [DONE]special handling for ncpu=0
-    --> ncpu=0 is a brain fart from the manual. Special handling might be useful for ncpu=1.
-    --> only thing to do: deactivate the force / broadcast mechanisms.
-        --> However, the special handling might be slower than just the std. usage with
-            for loops from 0 to 0.
-- DONE: check register addresses (cpu_1 .. cpu_n vs. cpu_0 .. cpu_n-1)
-   --> 0 .. n-1 is aways appropriate. Manual is clumsily written.
 - take care of pindex / pconfig signals (apbo: PnP)
-- take care of pwd and fpen signals (irqi: dunnowhat)
+- take care of pwd and fpen signals (irqi)
 - take care of rst, run, and rstvec signals (irqo)
 
 long term:

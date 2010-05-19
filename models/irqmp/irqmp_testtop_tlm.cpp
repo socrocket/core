@@ -4,8 +4,9 @@
 /* File:       irqmp_testtop_tlm.cpp                                   */
 /*             test file for systemc implementation of irqmp           */
 /*                                                                     */
-/* Date:       $Date$                                                  */
-/* Revision:   $Revision$                                              */
+/* Modified on $Date$   */
+/*          at $Revision$                                          */
+/*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
 /* Maintainer: Dennis Bode                                             */

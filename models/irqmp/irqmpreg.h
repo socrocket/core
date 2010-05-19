@@ -5,8 +5,9 @@
 /*             defines addresses, write masks, and default values of   */
 /*             all registers of the IRQMP interrupt controller         */
 /*                                                                     */
-/* Date:       $Date$                                                  */
-/* Revision:   $Revision$                                              */
+/* Modified on $Date$   */
+/*          at $Revision$                                          */
+/*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
 /* Maintainer: Dennis Bode                                             */

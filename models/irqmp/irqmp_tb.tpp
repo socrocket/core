@@ -6,8 +6,9 @@
 /*             can be used for systemc or vhdl simulation w/ modelsim  */
 /*             included by testbench header file                       */
 /*                                                                     */
-/* Date:       $Date$                                                  */
-/* Revision:   $Revision$                                              */
+/* Modified on $Date$   */
+/*          at $Revision$                                          */
+/*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
 /* Maintainer: Dennis Bode                                             */
