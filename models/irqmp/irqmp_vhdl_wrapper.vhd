@@ -1,5 +1,5 @@
 --/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/--
--- Project:    HW-SW SystenC Co-Simulation SoC Validation Platform     --
+-- Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     --
 --                                                                     --
 -- File:       irqmp_testtop_ct.cpp                                    --
 --             test file for vhdl implementation of irqmp              --

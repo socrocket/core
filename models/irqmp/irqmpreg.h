@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* Project:    HW-SW SystenC Co-Simulation SoC Validation Platform     */
+/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
 /* File:       irqmpreg.h                                              */
 /*             defines addresses, write masks, and default values of   */

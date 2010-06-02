@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* Project:    HW-SW SystenC Co-Simulation SoC Validation Platform     */
+/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
 /* File:       irqmp.h                                                 */
 /*             header file defining the irqmp module template          */
@@ -16,16 +16,16 @@
 #ifndef IRQMP_H
 #define IRQMP_H
 
+#define CLOCK_PERIOD 10
+
 #include <boost/config.hpp>
 #include <systemc.h>
 #include <greenreg.h>
 #include <greenreg_ambasocket.h>
+//#include <greenreg.h>
+//#include <greenreg_socket/greenreg_ambasocket.h>
 
 #include "greencontrol/all.h"
-
-#include <string>
-#include <ostream>
-#include <vector>
 
 /*GRLIB records translated to SC structs by modelsim scgenmod command*/
 
@@ -107,7 +107,12 @@ class Irqmp : public gs::reg::gr_device {
     /*direct processor communication*/
     sc_core::sc_in<l3_irq_out_type>      irqi[ncpu];
     sc_core::sc_out<l3_irq_in_type>      irqo[ncpu];
-
+/*
+    for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
+      sc_core::sc_in<l3_irq_out_type>      gen_unique_name("irqi", false);
+      sc_core::sc_out<l3_irq_in_type>      gen_unique_name("irqo", false);
+    }
+*/
     GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(Irqmp);
 

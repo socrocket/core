@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* Project:    HW-SW SystenC Co-Simulation SoC Validation Platform     */
+/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
 /* File:       irqmp_tb_tlm.h                                          */
 /*             header file defining the irqmp_tb template              */
@@ -29,7 +29,11 @@ class irqmp_tb : public sc_core::sc_module {
     sc_core::sc_out<bool>            rst;
     sc_core::sc_out<sc_uint<32> >    apbi_pirq;
     sc_core::sc_out<l3_irq_out_type> irqi[ncpu];
-
+/*
+    for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
+      sc_core::sc_in<l3_irq_out_type>      gen_unique_name("irqi", false);
+    }
+*/
     SC_HAS_PROCESS(irqmp_tb);
 
     //constructor

@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* Project:    HW-SW SystenC Co-Simulation SoC Validation Platform     */
+/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
 /* File:       irqmp_sc_wrapper.h                                      */
 /*             wrapper around irqmp vhdl module, automatically         */

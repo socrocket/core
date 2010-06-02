@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* Project:    HW-SW SystenC Co-Simulation SoC Validation Platform     */
+/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
 /* File:       irqmp_tb.tpp                                            */
 /*             stimulus file for the IRQMP module                      */
@@ -82,11 +82,11 @@ template<unsigned int BUSWIDTH, int pindex, int paddr, int pmask, int ncpu, int 
     rst = 0;
     wait(30, sc_core::SC_NS);
     rst = 1;
-    wait(20, sc_core::SC_NS);
+    wait(10, sc_core::SC_NS);
 
     SET(IRQMP_PROC_IR_MASK(0),   0x0000000F);
     SET(IRQMP_PROC_IR_MASK(1),   0x0000003C);
-    SET(IRQMP_PROC_IR_MASK(2),   0x000000F1);
+/*    SET(IRQMP_PROC_IR_MASK(2),   0x000000F1);
     SET(IRQMP_PROC_IR_MASK(3),   0x000003C1);
     SET(IRQMP_PROC_IR_MASK(4),   0x00000F01);
     SET(IRQMP_PROC_IR_MASK(5),   0x00003C01);
@@ -100,11 +100,17 @@ template<unsigned int BUSWIDTH, int pindex, int paddr, int pmask, int ncpu, int 
     SET(IRQMP_PROC_IR_MASK(13),  0x3C000001);
     SET(IRQMP_PROC_IR_MASK(14),  0xF0000001);
     SET(IRQMP_PROC_IR_MASK(15),  0xFFFFFFFF);
-
+*/
     SET(IRQMP_IR_LEVEL,  0x000000FF);
     SET(IRQMP_BROADCAST, 0x0000AAAA);
 
-    wait(10, sc_core::SC_NS);
+    cout << endl << "Printing is definitely no trouble at all.";
+
+    wait(50, sc_core::SC_NS);
+    for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
+      SET(IRQMP_PROC_IR_FORCE(i_cpu), 0x0000A0A0);
+    }
+    wait(20, sc_core::SC_NS);
     sc_core::sc_stop();
 }
 

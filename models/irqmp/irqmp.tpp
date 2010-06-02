@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* Project:    HW-SW SystenC Co-Simulation SoC Validation Platform     */
+/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
 /* File:       irqmp.tpp                                               */
 /*             implementation of irqmp module                          */
@@ -26,6 +26,8 @@ long term:
 
 #ifndef IRQMP_TPP
 #define IRQMP_TPP
+
+#define COUT_TIMING
 
 #include "irqmp.h"
 #include "irqmpreg.h"
@@ -152,13 +154,16 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 
   //process registration
   SC_METHOD(reset_registers);
-  sensitive << rst;
+//  dont_initialize();
+  sensitive << rst.neg();
 
   SC_METHOD(register_irq);
+  dont_initialize();
   sensitive << apbi_pirq;
 
   SC_METHOD(clear_acknowledged_irq);
   for (int i_cpu = 0; i_cpu<ncpu; i_cpu++) {
+    dont_initialize();
     sensitive << irqi[i_cpu];
   }
 }
@@ -248,35 +253,57 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 template <int pindex, int paddr, int pmask, int ncpu, int eirq>
   void Irqmp <pindex, paddr, pmask, ncpu, eirq>::reset_registers() {
 
-  //mp status register contains ncpu and eirq at bits 31..28 and 19..16 respectively
-  unsigned int stat_ncpu = ncpu << 28;
-  unsigned int stat_eirq = eirq << 16;
+  static bool delay = true;
 
-  //set function below demands unsigned int. Inline typecast does not do its job.
-  unsigned int set_level =     static_cast<unsigned int>(IRQMP_LEVEL_DEFAULT);
-  unsigned int set_pending =   static_cast<unsigned int>(IRQMP_PENDING_DEFAULT);
-  unsigned int set_force =     static_cast<unsigned int>(IRQMP_FORCE_DEFAULT);
-  unsigned int set_clear =     static_cast<unsigned int>(IRQMP_CLEAR_DEFAULT);
-                                                        //CAUTION: bool value?
-  unsigned int set_mp_stat =   static_cast<unsigned int>(IRQMP_MP_STAT_DEFAULT or stat_ncpu or stat_eirq);
-  unsigned int set_broadcast = static_cast<unsigned int>(IRQMP_BROADCAST_DEFAULT);
-  unsigned int set_mask =      static_cast<unsigned int>(IRQMP_MASK_DEFAULT);
-  unsigned int set_pforce =    static_cast<unsigned int>(IRQMP_PROC_FORCE_DEFAULT);
-  unsigned int set_extir_id =  static_cast<unsigned int>(IRQMP_EXTIR_ID_DEFAULT);
+  //either model the timing
 
-  //initialize registers with values defined above
-  r[LEVEL].set(set_level);
-  r[PENDING].set(set_pending);
-  r[FORCE].set(set_force);
-  r[CLEAR].set(set_clear);
-  r[MP_STAT].set(set_mp_stat);
-  r[BROADCAST].set(set_broadcast);
-  for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
-    r[PROC_IR_MASK(i_cpu)].set(set_mask);
-    r[PROC_IR_FORCE(i_cpu)].set(set_pforce);
-    r[PROC_EXTIR_ID(i_cpu)].set(set_extir_id);
+  if (delay) {
+#ifdef COUT_TIMING
+    cout << endl << "reset_registers called by trigger at:" << sc_time_stamp();
+#endif
+    delay = false;
+    next_trigger(CLOCK_PERIOD, SC_NS);
   }
-  
+  //or model the functionality
+  else {
+
+#ifdef COUT_TIMING
+    cout << endl << "reset_registers called after delay at:" << sc_time_stamp();
+#endif
+
+    //mp status register contains ncpu and eirq at bits 31..28 and 19..16 respectively
+    unsigned int stat_ncpu = ncpu << 28;
+    unsigned int stat_eirq = eirq << 16;
+
+    //set function below demands unsigned int. Inline typecast does not do its job.
+    unsigned int set_level =     static_cast<unsigned int>(IRQMP_LEVEL_DEFAULT);
+    unsigned int set_pending =   static_cast<unsigned int>(IRQMP_PENDING_DEFAULT);
+    unsigned int set_force =     static_cast<unsigned int>(IRQMP_FORCE_DEFAULT);
+    unsigned int set_clear =     static_cast<unsigned int>(IRQMP_CLEAR_DEFAULT);
+                                                        //CAUTION: bool value?
+    unsigned int set_mp_stat =   static_cast<unsigned int>(IRQMP_MP_STAT_DEFAULT or stat_ncpu or stat_eirq);
+    unsigned int set_broadcast = static_cast<unsigned int>(IRQMP_BROADCAST_DEFAULT);
+    unsigned int set_mask =      static_cast<unsigned int>(IRQMP_MASK_DEFAULT);
+    unsigned int set_pforce =    static_cast<unsigned int>(IRQMP_PROC_FORCE_DEFAULT);
+    unsigned int set_extir_id =  static_cast<unsigned int>(IRQMP_EXTIR_ID_DEFAULT);
+
+    //initialize registers with values defined above
+    r[LEVEL].set(set_level);
+    r[PENDING].set(set_pending);
+    if (ncpu == 0) {
+      r[FORCE].set(set_force);
+    }
+    r[CLEAR].set(set_clear);
+    r[MP_STAT].set(set_mp_stat);
+    r[BROADCAST].set(set_broadcast);
+    for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
+      r[PROC_IR_MASK(i_cpu)].set(set_mask);
+      r[PROC_IR_FORCE(i_cpu)].set(set_pforce);
+      r[PROC_EXTIR_ID(i_cpu)].set(set_extir_id);
+    }
+
+    delay = true;
+  } //else
 
 }
 
@@ -290,14 +317,31 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 template <int pindex, int paddr, int pmask, int ncpu, int eirq>
   void Irqmp <pindex, paddr, pmask, ncpu, eirq>::register_irq() {
 
-  //set pending register
-  unsigned int set = static_cast<unsigned int>( apbi_pirq.read() and not r[BROADCAST].get() );
-  r[PENDING].set( set );
+  static bool delay = true;
 
-  //set force registers for broadcasted interrupts
-  for (int i_cpu; i_cpu<ncpu; i_cpu++) {                                                   // EIRs cannot be forced
-    unsigned int set = static_cast<unsigned int>( apbi_pirq.read() and r[BROADCAST].get() and IRQMP_PROC_IR_FORCE_IF );
-    r[PROC_IR_FORCE(i_cpu)].set( set );
+  //either model the timing
+  if (delay) {
+#ifdef COUT_TIMING
+    cout << endl << "register_irq called by trigger at:" << sc_time_stamp();
+#endif
+    delay = false;
+    next_trigger(2*CLOCK_PERIOD, SC_NS);
+  }
+  //or model the functionality
+  else {
+#ifdef COUT_TIMING
+    cout << endl << "register_irq called after delay at:" << sc_time_stamp();
+#endif
+    //set pending register
+    unsigned int set = static_cast<unsigned int>( apbi_pirq.read() and not r[BROADCAST].get() );
+    r[PENDING].set( set );
+
+    //set force registers for broadcasted interrupts
+    for (int i_cpu; i_cpu<ncpu; i_cpu++) {                                                   // EIRs cannot be forced
+      unsigned int set = static_cast<unsigned int>( apbi_pirq.read() and r[BROADCAST].get() and IRQMP_PROC_IR_FORCE_IF );
+      r[PROC_IR_FORCE(i_cpu)].set( set );
+    }
+    delay = true;
   }
 
   /* FIXME:
@@ -385,31 +429,48 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 //process sensitive to irqi
 template <int pindex, int paddr, int pmask, int ncpu, int eirq>
   void Irqmp <pindex, paddr, pmask, ncpu, eirq>::clear_acknowledged_irq() {
-  short int high_ir;
-  sc_uint<32> masked_ir;
+  static bool delay = true;
 
-  for (int i_cpu; i_cpu<ncpu; i_cpu++) {
-    if (irqi[i_cpu].read().intack == 1) {
-      sc_uint<4> cleared_irq = irqi[i_cpu].read().irl;
-
-      //extended IR handling: Identify highest pending EIR and write EIR ID register
-      if (eirq == 0 && cleared_irq == eirq) {
-        masked_ir = ( r[PENDING].get() and r[PROC_IR_MASK(i_cpu)].get() ); //force and level not supported for EIRQs
-        for (high_ir=31; high_ir>=16; high_ir--) {
-          if (masked_ir[high_ir]) continue;
-        }
-        unsigned int set = static_cast<unsigned int>( IRQMP_PROC_EXTIR_ID_EID and high_ir );
-        r[PROC_EXTIR_ID(i_cpu)].set(set);
-      }
-
-      //clear interrupt from pending and force register
-      bool true_var = true;
-      r[PENDING].bit_set( static_cast<unsigned int>(cleared_irq), true_var);
-      if (r[BROADCAST].bit_get(cleared_irq)) {
-        r[PROC_IR_FORCE(i_cpu)].bit_set( static_cast<unsigned int>(cleared_irq), true_var);
-      }
-    }
+  //either model the timing
+  if (delay) {
+#ifdef COUT_TIMING
+    cout << endl << "clear_acknowledged_irq called by trigger at:" << sc_time_stamp();
+#endif
+    delay = false;
+    next_trigger(CLOCK_PERIOD, SC_NS);
   }
+  //or model the functionality
+  else {
+#ifdef COUT_TIMING
+    cout << endl << "clear_acknowledged_irq called after delay at:" << sc_time_stamp();
+#endif
+    short int high_ir;
+    sc_uint<32> masked_ir;
+
+    for (int i_cpu; i_cpu<ncpu; i_cpu++) {
+      if (irqi[i_cpu].read().intack == 1) {
+        sc_uint<4> cleared_irq = irqi[i_cpu].read().irl;
+
+        //extended IR handling: Identify highest pending EIR and write EIR ID register
+        if (eirq == 0 && cleared_irq == eirq) {
+          masked_ir = ( r[PENDING].get() and r[PROC_IR_MASK(i_cpu)].get() ); //force and level not supported for EIRQs
+          for (high_ir=31; high_ir>=16; high_ir--) {
+            if (masked_ir[high_ir]) continue;
+          }
+          unsigned int set = static_cast<unsigned int>( IRQMP_PROC_EXTIR_ID_EID and high_ir );
+          r[PROC_EXTIR_ID(i_cpu)].set(set);
+        }
+
+        //clear interrupt from pending and force register
+        bool true_var = true;
+        r[PENDING].bit_set( static_cast<unsigned int>(cleared_irq), true_var);
+        if (r[BROADCAST].bit_get(cleared_irq)) {
+          r[PROC_IR_FORCE(i_cpu)].bit_set( static_cast<unsigned int>(cleared_irq), true_var);
+        }
+      } //if intack
+    } //for i_cpu
+    delay = true;
+  } //else delay
 }
 
 //reset cpus after write to cpu status register
