@@ -16,7 +16,7 @@
 #ifndef IRQMP_H
 #define IRQMP_H
 
-#define CLOCK_PERIOD 10
+#define CLOCK_PERIOD 2
 
 #include <boost/config.hpp>
 #include <systemc.h>
@@ -27,7 +27,7 @@
 
 #include "greencontrol/all.h"
 
-/*GRLIB records translated to SC structs by modelsim scgenmod command*/
+//GRLIB records translated to SC structs by modelsim scgenmod command
 
 //apb input type
 struct apb_slv_in_type {
@@ -44,9 +44,9 @@ struct apb_slv_in_type {
 };
 
 //operators overloaded for the struct
-inline ostream& operator<<(ostream& os, const apb_slv_in_type& a) {return os;}
+inline ostream& operator << (ostream& os, const apb_slv_in_type& a) {return os;}
 inline void sc_trace(sc_trace_file *, const apb_slv_in_type&, const std::string &) {}
-inline int operator== (const apb_slv_in_type& left, const apb_slv_in_type& right) {return 0;}
+inline int operator == (const apb_slv_in_type& left, const apb_slv_in_type& right) {return 0;}
 
 //apb output type
 struct apb_slv_out_type {
@@ -56,9 +56,9 @@ struct apb_slv_out_type {
     int pindex;
 };
 
-inline ostream& operator<<(ostream& os, const apb_slv_out_type& a) {return os;}
+inline ostream& operator << (ostream& os, const apb_slv_out_type& a) {return os;}
 inline void sc_trace(sc_trace_file *, const apb_slv_out_type&, const std::string &) {}
-inline int operator== (const apb_slv_out_type& left, const apb_slv_out_type& right) {return 0;}
+inline int operator == (const apb_slv_out_type& left, const apb_slv_out_type& right) {return 0;}
 
 //IRQ output type, direct communication with processor
 //   (output from processor's point of view)
@@ -69,9 +69,9 @@ struct l3_irq_out_type {
     bool fpen;
 };
 
-inline ostream& operator<<(ostream& os, const l3_irq_out_type& a) {return os;}
+inline ostream& operator << (ostream& os, const l3_irq_out_type& a) {return os;}
 inline void sc_trace(sc_trace_file *, const l3_irq_out_type&, const std::string &) {}
-inline int operator== (const l3_irq_out_type& left, const l3_irq_out_type& right) {return 0;}
+inline int operator == (const l3_irq_out_type& left, const l3_irq_out_type& right) {return 0;}
 
 //IRQ input type, direct communication with processor
 struct l3_irq_in_type {
@@ -81,51 +81,54 @@ struct l3_irq_in_type {
     sc_uint<20> rstvec;
 };
 
-inline ostream& operator<<(ostream& os, const l3_irq_in_type& a) {return os;}
+inline ostream& operator << (ostream& os, const l3_irq_in_type& a) {return os;}
 inline void sc_trace(sc_trace_file *, const l3_irq_in_type&, const std::string &) {}
-inline int operator== (const l3_irq_in_type& left, const l3_irq_in_type& right) {return 0;}
+inline int operator == (const l3_irq_in_type& left, const l3_irq_in_type& right) {return 0;}
 
 
 template <int pindex = 0, int paddr = 0, int pmask = 0xFFF, int ncpu = 2, int eirq = 1>
 class Irqmp : public gs::reg::gr_device {
   public:
-    /*Slave socket with delayed switch; responsible for all bus communication*/
+    //Slave socket with delayed switch; responsible for all bus communication
     gs::reg::greenreg_socket< gs::amba::amba_slave<32> > bus;
 
-    /***Non-AMBA-Signals***/
+    //Non-AMBA-Signals
 
-    /*reset*/
+    //reset
     sc_core::sc_in<bool>                 rst;
 
-    /*PnP bus signals*/
+    //PnP bus signals
     sc_core::sc_in<sc_uint<32> >         apbi_pirq;
     sc_core::sc_out<sc_dt::sc_uint<32> > apbo_pconfig_0;
     sc_core::sc_out<sc_dt::sc_uint<32> > apbo_pconfig_1;
     sc_core::sc_out<sc_dt::sc_uint<16> > apbo_pindex;
 
 
-    /*direct processor communication*/
+    //direct processor communication
     sc_core::sc_in<l3_irq_out_type>      irqi[ncpu];
     sc_core::sc_out<l3_irq_in_type>      irqo[ncpu];
 /*
+if (0) {
     for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
       sc_core::sc_in<l3_irq_out_type>      gen_unique_name("irqi", false);
       sc_core::sc_out<l3_irq_in_type>      gen_unique_name("irqo", false);
     }
+}
 */
     GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(Irqmp);
 
-    /*constructor takes vhdl generics as parameters*/
+    //constructor takes vhdl generics as parameters
     Irqmp(sc_core::sc_module_name name); // interrupt cascade for extended interrupts
     ~Irqmp();
 
-    /*function prototypes*/    
+    //function prototypes
     void end_of_elaboration();
     void reset_registers();
 
     //bus communication
     void clear_write();               //write to IR clear register
+    void clear_forced_ir();           //write to IFC bits of IR force register
     void mpstat_write();              //write to MP status register
     void register_read();             //one read function for all registers
 
@@ -139,7 +142,6 @@ class Irqmp : public gs::reg::gr_device {
 //    void clk(double &period, sc_core::sc_time_unit &base);
 
 };
-
 
 
 #include "irqmp.tpp"
