@@ -120,10 +120,10 @@ public:
        clk("clk"),
        apbi("apbi"),
        apbo("apbo"),
-       irqi_0("irqi_0"),
-       irqi_1("irqi_1"),
-       irqo_0("irqo_0"),
-       irqo_1("irqo_1")
+       irqi_0("irqi_0"),  //Thanks to the vhdl_wrapper, we've got
+       irqi_1("irqi_1"),  //single structs / records here instead
+       irqo_0("irqo_0"),  //of vectors. Thus, we can use the name
+       irqo_1("irqo_1")   //mapping for error free Modelsim simulation.
     {
         this->add_parameter("pindex", pindex);
         this->add_parameter("paddr", paddr);

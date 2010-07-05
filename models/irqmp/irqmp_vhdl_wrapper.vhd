@@ -1,7 +1,7 @@
 --/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/--
 -- Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     --
 --                                                                     --
--- File:       irqmp_testtop_ct.cpp                                    --
+-- File:       irqmp_vhdl_wrapper.vhd                                    --
 --             test file for vhdl implementation of irqmp              --
 --             needs sc_wrapper around the vhdl module for simulation  --
 --                                                                     --
@@ -40,8 +40,8 @@ entity irqmp_wrapper is
       apbi   : in  apb_slv_in_type;
       apbo   : out apb_slv_out_type;
 
-      irqi_0 : in  l3_irq_out_type;
-      irqi_1 : in  l3_irq_out_type;
+      irqi_0 : in  l3_irq_out_type;  --wrapper interface contains records,
+      irqi_1 : in  l3_irq_out_type;  --but no vectors of records
 
       irqo_0 : out l3_irq_in_type;
       irqo_1 : out l3_irq_in_type
@@ -64,8 +64,8 @@ architecture bhv of irqmp_wrapper is
       clk  : in  std_ulogic;
       apbi : in  apb_slv_in_type;
       apbo : out apb_slv_out_type;
-      irqi : in  irq_out_vector(0 to 1);
-      irqo : out irq_in_vector(0 to 1)
+      irqi : in  irq_out_vector(0 to 1);  --original VHDL module interface
+      irqo : out irq_in_vector(0 to 1)    --contains vectors of records
     );
   end component;
 
@@ -88,9 +88,9 @@ begin --architecture
       clk  => clk,
       apbi => apbi,
       apbo => apbo,
-      irqi(0) => irqi_0,
-      irqi(1) => irqi_1,
-      irqo(0) => irqo_0,
+      irqi(0) => irqi_0,  --Here's the main purpose of this file:
+      irqi(1) => irqi_1,  --Map vectors of records to
+      irqo(0) => irqo_0,  --single records.
       irqo(1) => irqo_1
     );
 

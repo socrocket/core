@@ -132,7 +132,7 @@ if (0) {
     void mpstat_write();              //write to MP status register
     void register_read();             //one read function for all registers
 
-    //processor communicatio
+    //processor communication
     void register_irq();              //bus and processor communication
     void launch_irq();                //processor communication
     void clear_acknowledged_irq();    //processor communication

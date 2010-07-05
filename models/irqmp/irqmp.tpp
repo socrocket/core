@@ -6,7 +6,7 @@
 /*             is included by irqmp.h template header file             */
 /*                                                                     */
 /* Modified on $Date$   */
-/*          at $Revision$                                          */
+/*          at $Revision$                                         */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
@@ -18,9 +18,6 @@
 - take care of pindex / pconfig signals (apbo: PnP)
 - take care of pwd and fpen signals (irqi)
 - take care of rst, run, and rstvec signals (irqo)
-
-long term:
-- add LT / AT timing information
 
 */
 
@@ -78,9 +75,9 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
                       0x00000000,
                    // write mask
                       IRQMP_IR_LEVEL_IL,
-                   // reg width: Maximum register with is 32bit sbit must be less than 32.
+                   // reg width (maximum 32 bit)
                       32,
-                   // lock mask: Not implementet has to be zero.
+                   // lock mask: Not implementet, has to be zero.
                       0x00
                    );
   r.create_register( "pending", "Interrupt Pending Register",
@@ -473,7 +470,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
       if (irqi[i_cpu].read().intack == 1) {
         sc_uint<4> cleared_irq = irqi[i_cpu].read().irl;
 
-        //extended IR handling: Identify highest pending EIR and write EIR ID register
+        //extended IR handling: Identify highest pending EIR
         if (eirq != 0 && cleared_irq == eirq) {
           masked_ir = ( r[PENDING].get() and r[PROC_IR_MASK(i_cpu)].get() ); //force and level not supported for EIRQs
           for (high_ir=31; high_ir>=16; high_ir--) {
@@ -481,8 +478,12 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
               continue;
             }
           }
+          //write EIR ID Register
           unsigned int set = static_cast<unsigned int>( IRQMP_PROC_EXTIR_ID_EID and high_ir );
           r[PROC_EXTIR_ID(i_cpu)].set(set);
+          //clear EIR from pending register
+          bool false_var = false;
+          r[PENDING].bitset(high_ir, false_var);
         }
 
         //clear interrupt from pending and force register
