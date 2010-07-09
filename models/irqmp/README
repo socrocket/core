@@ -1,0 +1,32 @@
+This directory contains a transaction level model of the Gaisler GRIP IRQMP interrupt controller. The model constists of the following files:
+
+irqmp_reg.h
+defines the IRQMP register addresses, write masks, and default values
+
+irqmp.h
+defines the IRQMP model as a template class
+
+irqmp.tpp
+implements the IRQMP model
+
+irqmp_tb.h
+defines a testbench for the IRQMP model as a template class. The testbench can be used for TLM or RTL simulation.
+
+irqmp_tb.tpp
+implements the testbench
+
+irqmp_testtop_tlm.cpp
+implements the top-level of a TLM simulation of the IRQMP model. Instances of the testbench and teh IRQMP model are built and connected.
+
+irqmp_vhdl_wrapper.vhd
+is a wrapper around the original IRQMP VHDL implementation. The wrapper is used to break up vectors of VHDL records into single records for enabling automatic translation of the VHDL entity into an SC_MODULE via the Modelsim builtin command sc_genmod.
+
+irqmp_sc_wrapper.h
+is a systemc_wrapper around the VHDL wrapper. This wrapper is used to connect the VHDL model to the SystemC testbench in a VHDL-SystemC Co-Simulation with Modelsim.
+
+ct_rtl.h
+is a model-specific SystemC adapter that translates socket communication into SystemC signal communication. Using this adapter, the TLM testbench can be used for VHDL simulation.
+
+irqmp_testtop_ct.cpp
+implements the top-level of a TLM-VHDL Co-Simulation of the IRQMP model. Instances of the testbench, the IRQMP TLM model (sc_wrapper), the IRQMP VHDL model (vhdl_wrapper), and the ct-rtl-adapter are built and connected.
+
