@@ -26,7 +26,7 @@
 #include "amba.h"
 #include "ahb_simple_bus.h"
 #include "AMBA_LT_CT_Adapter.h"
-#include "ahb_ct_mem.h"
+#include "ahb_simple_slave.h"
 
 #include <ostream>
 
@@ -34,18 +34,24 @@
 // **********************************************************
 // * Testbed for mmu_cache development:
 
-
-//                                 ---------------------
-//                                 |  mmu_cache (lt)   |                       -------------   
-// --------   TLM2 Generic Payl.   |  ---------------  |     AHB Payload       |           |
-// |      |-----------|------------|  |             |  |-----------|-----------| ahb_lt_ct |
-// |  tb  |m_initiator| icio target|  | ivector     |  | ahb_master|slave_sock | transactor|  ...
-// | (lt) |socket (lt)| socket (lt)|  | cache (c++) |  | (lt)      |(lt)       | (lt -> ct)|  ->
-// |      |-----------|------------|  |             |  |-----------|-----------|           |
-// --------                        |  ---------------  |                       -------------
-//                                 |                   |
-//                                 ---------------------
-
+//
+//
+//
+// 
+// --------   TLM2 Generic Payl.   ---------------------
+// |      |-----------|------------|  mmu_cache (lt)   |                       -------------   
+// |      |instruction|icio target |  ---------------  |     AHB Payload       |           |
+// |      |init.sock  |socket(lt)  |  |ivectorcache |  |-----------|-----------| ahb_lt_ct |
+// |  tb  |-----------|------------|  ---------------  | ahb_master|slave_sock | transactor|  ...
+// | (lt) |-----------|------------|  ---------------  | (lt)      |(lt)       | (lt -> ct)|  ->
+// |      |data       |dcio target |  |idatacache   |  |-----------|-----------|           |
+// |      |init.sock  |socket (lt) |  ---------------  |                       -------------
+// |      |-----------|------------|                   |
+// --------                        ---------------------
+//
+//
+//
+//
 //
 //                                                                   -------------
 //                               |---------|                         |           |
@@ -67,8 +73,15 @@ int sc_main(int argc, char** argv) {
   testbench tb("Testbench");
 
   // create mmu-cache
-  // args: name of sysc module, id of the AHB master, icache delay for read hit, icache delay for read miss
-  mmu_cache<> mmu_cache("mmu_cache", CACHE_MASTER_ID, sc_core::sc_time(0, sc_core::SC_NS), sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS));
+  // args: name of sysc module, id of the AHB master, icache delay for read hit, icache delay for read miss,
+  // dcache delay for read hit, dcache delay for read miss, dcache delay for write (hit and miss)
+  mmu_cache<> mmu_cache("mmu_cache", 
+			CACHE_MASTER_ID, 
+			sc_core::sc_time(0, sc_core::SC_NS), 
+			sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),
+			sc_core::sc_time(0, sc_core::SC_NS),
+			sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),
+			sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS));
 
   // create AHB bus
   ahb_simple_bus<32> ahb_bus("AHB_Bus");
@@ -77,12 +90,14 @@ int sc_main(int argc, char** argv) {
   amba::AMBA_LT_CT_Adapter<32> ahb_lt_ct("AHB_LT_CT",amba::amba_AHB);
 
   // create AHB memory (1MB from address base 0)
-  ahb_ct_mem<32> ahb_mem("AHB_MEM",0, 0x1000);
+  //ahb_ct_mem<32> ahb_mem("AHB_MEM",0, 0x1000);
+  ahb_slave<32> ahb_mem("AHB_MEM",0,0x1000);
 
   // *** BIND SOCKETS
 
   // connect testbench (cpu) to mmu-cache
-  tb.m_initiator_socket(mmu_cache.icio);
+  tb.instruction_initiator_socket(mmu_cache.icio);
+  tb.data_initiator_socket(mmu_cache.dcio);
 
   // connect mmu-cache to LT_CT adapter
   mmu_cache.ahb_master(ahb_lt_ct.slave_sock);

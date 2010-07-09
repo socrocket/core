@@ -1,0 +1,15 @@
+This directory contains the source code of the Cache-Subsystem.
+Following files are currently checked in:
+
+main.cpp		- The main method which assembles the system and starts/stops the simulation.
+testbench.{h,cpp} 	- The monitor/stimuli block which acts as a placeholder for the processor simulator.
+defines.h 		- Various definitions and datatyps. (!! todo: split up in testbench and lib part)
+wscript                 - waf build script
+
+The testbench constructs a system consisting of a stimuli generator/monitor (LT), the actual mmu_cache implementation (LT),
+a LT_CT transactor, a CT AHB bus and a CT main memory.
+
+The testbench has following dependencies to the GreenSocs AMBAKit:
+
+LT_CT_transactor 	- from /amba_socket-src/adapters/
+AHB bus and CT memory   - amba_socket-src/examples/ahb_ct_timing

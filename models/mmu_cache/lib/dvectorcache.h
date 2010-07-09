@@ -1,7 +1,7 @@
 /***********************************************************************/
 /* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
-/* File:       ivectorcache.h - Class definition of an instruction     */
+/* File:       dvectorcache.h - Class definition of a data             */
 /*             cache. The cache can be configured direct mapped or     */
 /*             set associative. Set-size, line-size and replacement    */
 /*             strategy can be defined through constructor arguments.  */
@@ -14,8 +14,8 @@
 /* Maintainer: Thomas Schuster                                         */
 /***********************************************************************/
 
-#ifndef __IVECTORCACHE_H__
-#define __IVECTORCACHE_H__
+#ifndef __DVECTORCACHE_H__
+#define __DVECTORCACHE_H__
 
 #include <vector>
 #include <iostream>
@@ -28,7 +28,7 @@ using namespace std;
 
 // implementation of cache memory and controller
 // ---------------------------------------------
-class ivectorcache : public sc_core::sc_module {
+class dvectorcache : public sc_core::sc_module {
 
  public:
 
@@ -36,6 +36,10 @@ class ivectorcache : public sc_core::sc_module {
   // ----------------------------
   // call to read from cache
   void read(unsigned int address, unsigned int * data, sc_core::sc_time * t);
+
+  // call to write through cache
+  void write(unsigned int address, unsigned int * data, unsigned int * byt, sc_core::sc_time * t); 
+
   // call to flush cache
   void flush(sc_core::sc_time * t);
 
@@ -43,22 +47,23 @@ class ivectorcache : public sc_core::sc_module {
   // -----------------------------
   // reads a cache line from a cache set
   t_cache_line * lookup(unsigned int set, unsigned int idx);
-  // returns number of set to be refilled - depending on replacement strategy
+  // returns number of the set to be refilled - depending on replacement strategy
   unsigned int replacement_selector(unsigned int);
 
   // constructor
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy  
-  ivectorcache(sc_core::sc_module_name name, 
+  dvectorcache(sc_core::sc_module_name name, 
 	       mmu_cache_if &_parent, 
-	       sc_core::sc_time icache_hit_read_response_delay, 
-	       sc_core::sc_time icache_miss_read_response_delay, 
+	       sc_core::sc_time dcache_hit_read_response_delay, 
+	       sc_core::sc_time dcache_miss_read_response_delay, 
+	       sc_core::sc_time dcache_write_response_delay,
 	       int sets, 
 	       int setsize, 
 	       int linesize, 
 	       int repl);
 
   // destructor
-  ~ivectorcache();
+  ~dvectorcache();
 
   // debug and helper functions
   // --------------------------
@@ -100,12 +105,13 @@ class ivectorcache : public sc_core::sc_module {
 
   // delay parameters
   // ----------------
-  sc_core::sc_time m_icache_hit_read_response_delay;
-  sc_core::sc_time m_icache_miss_read_response_delay;
+  sc_core::sc_time m_dcache_hit_read_response_delay;
+  sc_core::sc_time m_dcache_miss_read_response_delay;
+  sc_core::sc_time m_dcache_write_response_delay;
 
 };
 
-#endif // __IVECTORCACHE_H__
+#endif // __DVECTORCACHE_H__
   
 
   
