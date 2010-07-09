@@ -1,0 +1,29 @@
+= This Folder contains the TLM Module of the GPTimer =
+
+gptimer.h          - The GPTimer TLM Header
+gptimer.tpp        - The GPTimer TLM Implementation (Template include)
+
+gptimer-rec.patch  - A patch to make GRLIB records working with Modlsim scgenmod
+ct_rtl.h           - An adapter to connect an GRLIB APB Device to the AMBAKit APB Bus
+
+testbench.h        - A generic LT Testbench to stimulate RTL and TLM Models
+top_LT.cpp         - The Top-Level-File for the TLM Model Test
+top_CT.cpp         - The Top-Level-File for the RTL Model Test
+modelsim.ini       - Modelsim configuration for the GRLIB
+test.sh            - A script to automate a serie of Tests
+
+Makefile           - A simple Makefile to build both Testcases (TLM & RTL)
+
+waf                - Waf 1.6.4
+wscript            - A Waf configuration to build the TLM Model Test, but not the RTL Model Test for now
+find.py            - Some Helperfunctions, might disapear or go into waf
+
+For the AMBAKit you need to have the "extensionPool.h" file out of TLM Examples in your path.
+
+== How to build ==
+The best way to build the TLM Test is to use waf:
+
+./waf configure
+./waf
+
+To build the RTL Test you need to set your environment right with Modelsim. Have a look into the Makefile

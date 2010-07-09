@@ -22,11 +22,12 @@ class testbench : public sc_core::sc_module {
     sc_core::sc_in<sc_dt::sc_uint<32> >  pconfig_1;
     sc_core::sc_in<sc_dt::sc_uint<16> >  pindex;
 
+
     SC_HAS_PROCESS(testbench);
 
     testbench(sc_core::sc_module_name nm)
     : master_sock("socket", amba::amba_APB, amba::amba_LT, false)
-    , reset("RESET"), gpti("GPTIMER_INPUT"), gpto("GPTIMER_OUTPUT"), pirqi("GP_IRQ_TO_TIMER"), pirqo("GP_IRQ_FROM_TIMER"), pconfig_0("PCONFIG_0"), pconfig_1("PCONFIG_1"), pindex("PINDEX")  {
+    , reset("RESET"), gpti("GPTIMER_INPUT"), gpto("GPTIMER_OUTPUT"), pirqi("GP_IRQ_TO_TIMER"), pirqo("GP_IRQ_FROM_TIMER"), pconfig_0("PCONFIG_0"), pconfig_1("PCONFIG_1"), pindex("PINDEX") {
       SC_THREAD(run);
 
       SC_METHOD(ticks);
@@ -76,21 +77,38 @@ class testbench : public sc_core::sc_module {
       reset = 1;
       wait(20, sc_core::SC_NS);
 
-      SET(TIM_SCRELOAD,  0x04);
-      SET(TIM_SCALER  ,  0x04);
+#ifdef SCVAL
+      SET(TIM_SCRELOAD,  SCVAL); // 4 Timer
+      SET(TIM_SCALER  ,  SCVAL);
+#endif
 
-      SET(TIM_RELOAD(0), 0x03);
-      SET(TIM_VALUE(0),  0x01);
-      SET(TIM_CTRL(0) ,  0x4F);
+#ifdef T1VAL
+      // Counter 0
+      SET(TIM_RELOAD(0), T1VAL);
+      SET(TIM_VALUE(0),  T1VAL);
+      SET(TIM_CTRL(0) ,  0x4F); // Unchained
+#endif
 
-      SET(TIM_RELOAD(1), 0x02);
-      SET(TIM_VALUE(1),  0x01);
-      SET(TIM_CTRL(1) ,  0x6F);
+#ifdef T2VAL
+      // Counter 1
+      SET(TIM_RELOAD(1), T2VAL);
+      SET(TIM_VALUE(1),  T2VAL);
+      SET(TIM_CTRL(1) ,  0x4F); // Chained
+#endif
 
-      SET(TIM_RELOAD(2), 0x05);
-      SET(TIM_VALUE(2),  0x01);
-      SET(TIM_CTRL(2) ,  0x4F);
-
+#ifdef T3VAL
+      // Counter 2
+      SET(TIM_RELOAD(2), T3VAL);
+      SET(TIM_VALUE(2),  T3VAL);
+      SET(TIM_CTRL(2) ,  0x4F); // Unchained
+#endif
+      
+#ifdef T4VAL
+      // Counter 2
+      SET(TIM_RELOAD(3), T4VAL);
+      SET(TIM_VALUE(3),  T4VAL);
+      SET(TIM_CTRL(3) ,  0x4F); // Unchained
+#endif
       //SHOW REG(TIM_SCALER) REG(TIM_VALUE(0)) REG(TIM_VALUE(1));
       wait(10, sc_core::SC_NS);
 
@@ -101,24 +119,37 @@ class testbench : public sc_core::sc_module {
         //REG(TIM_VALUE(1));
         wait(10, sc_core::SC_NS);
       }*/
-      wait(400, sc_core::SC_NS);
+#if 0
+      wait(1000, sc_core::SC_NS);
       gptimer_in_type in;
       in.dhalt = 1;
       gpti.write(in);
+#ifdef DEBUG
       SHOW; std::cout <<" DHALT";
-      wait(100, sc_core::SC_NS);
+#endif
+
+      // 300 ns dhalt
+      wait(300, sc_core::SC_NS);
       in.dhalt = 0;
       gpti.write(in);
+#ifdef DEBUG
       SHOW; std::cout <<" !DHALT";
-      wait(400, sc_core::SC_NS);
+#endif
+      wait(700, sc_core::SC_NS);
+#endif
+      wait(1, sc_core::SC_SEC);
+      
+      std::cout << "End of simulation: " << std::endl << sc_core::sc_time_stamp().to_string().c_str() << " simulated!." << std::endl;
 
       sc_core::sc_stop();
     }
 
     void ticks() {
+#ifdef DEBUG
       SHOW;
       gptimer_out_type val = gpto.read();
       std::cout << "Tick: " << std::hex << val.tick;// << std::endl;
+#endif
     }
 };
 

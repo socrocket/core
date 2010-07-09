@@ -10,7 +10,7 @@ clean:
 
 # SystemC #
 
-SOURCES=top_LT.cpp gptimer.cpp
+SOURCES=top_LT.cpp
 OBJECTS=$(patsubst %.cpp,systemc/%.o, $(SOURCES))
 CXX = g++
 CXXFLAGS = -g -Wall -D_REENTRANT -DUSE_STATIC_CASTS -DSC_INCLUDE_DYNAMIC_PROCESSES
@@ -21,25 +21,39 @@ LDFLAGS =
 LIBDIRS = -L. -L.. -L$(SCV_LIB) -L$(SYSTEMC_LIB) -L$(BOOST_LIB) -L$(GREENSOCS_HOME)/greenreg
 LIBRARIES = -lpthread -lm -lscv -lsystemc -lgreenreg
 
+GRSOURCES=$(shell find /home/hwswsim/tools/greensocs-4.0.0/greenreg/ -name *.cpp)
+
 exec: systemc
 	systemc/sim.x
+	vcd2wlf register.vcd register.wlf
+	vcd2wlf signals.vcd signals.wlf
 
 systemc/.dir:
 	mkdir -p systemc
 	@touch $@
 
 systemc/%.o: %.cpp systemc/.dir
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) -c -o $@ $<
 
-systemc/gpimer.o: gptimer.cpp gptimer.h
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -o $@ $<  
+#systemc/gpimer.o: gptimer.cpp gptimer.h
+#	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -o $@ $<  
 
-systemc/top_LT.o: top_LT.cpp testbench.h gptimer.h
+systemc/top_LT.o: top_LT.cpp testbench.h gptimer.h gptimer.tpp
 
 systemc/sim.x: $(OBJECTS)
 	$(CXX) $(LDFLAGS) $(LIBDIRS) -o $@ $(OBJECTS) $(LIBRARIES) 2>&1 | c++filt
 
 # Modelsim #
+
+modelsim/vsys/.dir: modelsim/.dir
+	vlib modelsim/vsys
+	@touch $@
+
+vsys: 
+	vlib modelsim/work
+	sccom -nologo -work work -D_REENTRANT -DUSE_STATIC_CASTS -DSC_INCLUDE_DYNAMIC_PROCESSES -I/opt/tools/modelsim6.6/modeltech/include/systemc -I. -I.. -I/home/hwswsim/tools/include/boost-1_37 -I/home/hwswsim/tools/greensocs-4.0.0 -I/home/hwswsim/tools/greensocs-4.0.0/greensocket -I/home/hwswsim/tools/greensocs-4.0.0/gsgpsocket -I/home/hwswsim/tools/greensocs-4.0.0/greencontrol -I/home/hwswsim/tools/greensocs-4.0.0/greenreg -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/framework/core/analysis -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/framework/core -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/framework/devices -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/framework/registers -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/sysc_ext/kernel -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/sysc_ext/utils -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/sysc_ext/communication -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/internal/device -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/internal/registers/register -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/internal/registers/bit -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/internal/registers/register_data -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/internal/registers/bit_range -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/internal/registers -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/greenreg_socket -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/utils -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/utils/stl_ext -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/utils/patterns -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/utils/storage -I/home/hwswsim/tools/greensocs-4.0.0/greenreg/gs -I/home/hwswsim/tools/amba_socket-modelsim -scv top_LT.cpp
+	sccom -nologo -work work -link -L$(GREENSOCS_HOME)/greenreg -scv -lgreenreg
+	vsim -do 'vsim -voptargs=+acc work.sc_main; add wave -r sim:/sc_main/*; run 1000ns;'
   
 wave: modelsim
 	vsim -do 'vsim -voptargs=+acc work.sc_main; add wave -r sim:/sc_main/*; run 1000ns;'
@@ -91,9 +105,10 @@ modelsim/gptimer.h: modelsim/.gaisler
 	scgenmod -modelsimini modelsim.ini -lib gaisler -bool -map "std_logic_vector=sc_uint" -createtemplate gptimer > $@
 
 modelsim/.testbench: modelsim/work/.dir modelsim/gptimer.h testbench.h top_CT.cpp
-	sccom -nologo -work work -I. -Imodelsim -I/home/hwswsim/tools/amba_socket-modelsim -I/home/hwswsim/tools/greensocs-4.0.0 -scv top_CT.cpp
+	sccom -nologo -work work $(CPPFLAGS) -I. -Imodelsim -I/home/group/socrocket/tools/amba_socket-modelsim -I/home/group/socrocket/tools/greensocs-4.0.0 -scv top_CT.cpp
 	@touch $@
 
 modelsim/.link: modelsim/.grlib modelsim/.techmap modelsim/.gaisler modelsim/.testbench
 	sccom -nologo -work work -link -scv
 	@touch $@
+

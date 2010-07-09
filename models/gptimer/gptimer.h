@@ -17,9 +17,17 @@ struct gptimer_in_type {
     bool extclk;
 };
 
-inline std::ostream& operator<<(std::ostream& os, const gptimer_in_type& a) { return os; }
-inline void sc_trace(sc_core::sc_trace_file *, const gptimer_in_type&, const std::string &) {}
-inline int operator== (const gptimer_in_type& left, const gptimer_in_type& right) { return 0; }
+inline std::ostream& operator<<(std::ostream& os, const gptimer_in_type& a) {
+  os << "( dhalt: " << std::boolalpha << a.dhalt << ", extclk: " << std::boolalpha << a.extclk << ")";
+   return os;
+}
+inline void sc_trace(sc_core::sc_trace_file *file, const gptimer_in_type &a, const std::string &name) {
+  sc_trace(file, a.dhalt, name + ".dhalt");
+  sc_trace(file, a.extclk, name + ".extclk");
+}
+inline int operator== (const gptimer_in_type& left, const gptimer_in_type& right) {
+  return left.dhalt == right.dhalt && left.extclk == right.extclk;
+}
 
 struct gptimer_out_type {
     sc_dt::sc_uint<8> tick;
@@ -28,18 +36,30 @@ struct gptimer_out_type {
     bool wdog;
 };
 
-inline std::ostream& operator<<(std::ostream& os, const gptimer_out_type& a) { return os; }
-inline void sc_trace(sc_core::sc_trace_file *, const gptimer_out_type&, const std::string &) {}
+inline std::ostream& operator<<(std::ostream& os, const gptimer_out_type& a) { 
+  os << "( tick: " << std::hex << a.tick << ", timer1: " << std::hex << a.timer1 
+     << ", wdogn: " << std::boolalpha << a.wdogn 
+     << ", wdog: " << std::boolalpha << a.wdog << ")";
+  return os;
+}
+
+inline void sc_trace(sc_core::sc_trace_file *file, const gptimer_out_type &a, const std::string &name) {
+  sc_trace(file, a.tick, name + ".tick");
+  sc_trace(file, a.timer1, name + ".timer1");
+  sc_trace(file, a.wdogn, name + ".wdogn");
+  sc_trace(file, a.wdog, name + ".wdog");
+}
+
 inline int operator== (const gptimer_out_type& left, const gptimer_out_type& right) { return 0; }
 
-//template <int pindex = 0, int paddr = 0, int pmask = 4095, int pirq = 0, int sepirq = 0, int sbits = 16, int nbits = 32, int wdog = 0>
+template <int gpindex = 0, int gpaddr = 0, int gpmask = 4095, int gpirq = 0, int gsepirq = 0, int gsbits = 16, int gnbits = 32, int gwdog = 0>
 class Timer;
 
-//template <int pindex = 0, int paddr = 0, int pmask = 4095, int pirq = 0, int sepirq = 0, int sbits = 16, int nbits = 32, int wdog = 0>
+template <int gpindex = 0, int gpaddr = 0, int gpmask = 4095, int gpirq = 0, int gsepirq = 0, int gsbits = 16, int gnbits = 32, int gwdog = 0>
 class Counter : public gs::reg::gr_subdevice {
   public:
-    //Timer<pindex, paddr, pmask, pirq, sepirq, sbits, nbits, wdog> &p;
-    Timer &p;
+    Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog> &p;
+    //Timer &p;
     bool m_pirq;
 
     /* Times to calculate value and wait times. */
@@ -55,7 +75,7 @@ class Counter : public gs::reg::gr_subdevice {
     GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(Counter);
 	
-    Counter(Timer &_parent, unsigned int nr, sc_core::sc_module_name name, unsigned int nbits = 32);
+    Counter(Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog> &_parent, unsigned int nr, sc_core::sc_module_name name);
     ~Counter();
   
     void end_of_elaboration();
@@ -67,6 +87,8 @@ class Counter : public gs::reg::gr_subdevice {
     void value_write();
     void chaining();
     void ticking();
+    sc_core::sc_time nextzero();
+    sc_core::sc_time cycletime();
     void calculate();
     void dhalt();
 
@@ -75,7 +97,7 @@ class Counter : public gs::reg::gr_subdevice {
     sc_core::sc_signal<sc_dt::sc_uint<32> > pirq;
 };
 
-//template <int pindex = 0, int paddr = 0, int pmask = 4095, int pirq = 0, int sepirq = 0, int sbits = 16, int nbits = 32, int wdog = 0>
+template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
 class Timer : public gs::reg::gr_device {
   public:
     /* Slave socket with delayed switch*/
@@ -99,8 +121,9 @@ class Timer : public gs::reg::gr_device {
     sc_core::sc_time clockcycle;
     sc_core::sc_event e_tick;
     
-    //std::vector<Counter<pindex, paddr, pmask, pirq, sepirq, sbits, nbits, wdog> *> counter;
-    std::vector<Counter *> counter;
+    typedef Counter<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog> counter_type;
+    std::vector<counter_type *> counter;
+    //std::vector<Counter *> counter;
 
     GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(Timer);
@@ -118,7 +141,7 @@ class Timer : public gs::reg::gr_device {
      *                 at reset. When the timer value reaches 0, the WDOG output
      *                 is driven active.
      */
-    Timer(sc_core::sc_module_name name, unsigned int pirq = 0, bool sepirq = false, unsigned int ntimers = 1, unsigned int nbits = 32, unsigned int sbits = 16, unsigned int wdog = 0);
+    Timer(sc_core::sc_module_name name, unsigned int ntimers = 1);
     ~Timer();
     
     void end_of_elaboration();
@@ -136,12 +159,15 @@ class Timer : public gs::reg::gr_device {
 
     void clk(sc_core::sc_clock &clk);
     void clk(sc_core::sc_time &period);
-    void clk(double &period, sc_core::sc_time_unit &base);
+    void clk(double period, sc_core::sc_time_unit base);
 
-    int valueof(sc_core::sc_time t, int offset = 0);
-    int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter);
+    int valueof(sc_core::sc_time t, int offset, sc_core::sc_time cycletime);
+    int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime);
+#ifdef DEBUGOUT
     sc_core::sc_signal<bool> tick[8];
-    sc_core::sc_trace_file *wave;
+#endif
 };
+
+#include "gptimer.tpp"
 
 #endif // TIMER_H

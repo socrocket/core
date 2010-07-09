@@ -9,6 +9,8 @@
 //# define AMBA_DUMP(name, msg) 
 #endif
 
+#include <sys/time.h>
+#include <time.h>
 #include <boost/tokenizer.hpp>
 #include <systemc>
 #include "amba.h"
@@ -20,26 +22,13 @@
 #include "greencontrol/config.h" 
 #include "greencontrol/analysis_vcd_outputplugin.h"
 
-const char *generics[] = {
-  "gpindex=0",
-  "gpaddr=0",
-  "gpmask=16#fff#",
-  "gpirq=0",
-  "sepirq=0",
-  "sbits=16",
-  "ntimers=4",
-  "nbits=32",
-  "gwdog=0"
-};
-
-typedef sc_core::sc_signal<sc_dt::sc_uint<32> > signal_uint32_t;
+using namespace std;
 
 int sc_main(int argc, char** argv) {
-//  sc_core::sc_report_handler::set_actions(sc_core::SC_ERROR, sc_core::SC_ABORT);    // make a breakpoint in SystemC file sc_stop_here.cpp
-//  sc_core::sc_report_handler::set_actions(sc_core::SC_WARNING, sc_core::SC_ABORT);  // make a breakpoint in SystemC file sc_stop_here.cpp
-//  sc_core::sc_report_handler::set_actions(sc_core::SC_INFO, sc_core::SC_DO_NOTHING);
+  timeval tstart, tend;
+  clock_t cstart, cend;
 
- 
+#ifdef GETREGISTERS
   // GreenControl Core instance
   gs::ctr::GC_Core       core("ControlCore");
 
@@ -48,14 +37,17 @@ int sc_main(int argc, char** argv) {
   gs::cnf::ConfigPlugin configPlugin("ConfigPlugin", &cnfdatabase);
 
   // GreenAV Plugin
-  //gs::av::GAV_Plugin vcd("AnalysisPlugin", gs::av::STDOUT_OUT);
   gs::av::GAV_Plugin vcd_plugin("AnalysisPlugin", gs::av::VCD_FILE_OUT);
-
   gs::cnf::cnf_api* GCF = gs::cnf::GCnf_Api::getApiInstance(NULL);
   boost::shared_ptr<gs::av::GAV_Api>  GAV = gs::av::GAV_Api::getApiInstance(NULL); 
-  gs::av::OutputPlugin_if* vcd = GAV->create_OutputPlugin(gs::av::VCD_FILE_OUT, "gav.vcd");
+  gs::av::OutputPlugin_if* vcd = GAV->create_OutputPlugin(gs::av::VCD_FILE_OUT, "register.vcd");
+#endif
 
-  sc_core::sc_trace_file *wave = sc_core::sc_create_vcd_trace_file("top_LT.vcd");
+#ifdef GETSIGNALS
+  // sc_trace
+  sc_core::sc_trace_file *wave = sc_core::sc_create_vcd_trace_file("signals");
+#endif
+
   sc_core::sc_signal<bool>                reset("reset");
   sc_core::sc_signal<gptimer_in_type>     gpti("GPTIMER_IN");
   sc_core::sc_signal<gptimer_out_type>    gpto("GPTIMER_OUT");
@@ -65,39 +57,49 @@ int sc_main(int argc, char** argv) {
   sc_core::sc_signal<sc_dt::sc_uint<32> > pconfig_1("PCONFIG(1)");
   sc_core::sc_signal<sc_dt::sc_uint<16> > pindex("PINDEX");
 
-  sc_core::sc_clock clk("clock",sc_core::sc_time(10,sc_core::SC_NS));
-  testbench<32> testbench("testbench");
-  amba::AMBA_LT_CT_Adapter<32> lt_ct("LT_CT", amba::amba_APB);
-  amba::AMBA_CT_LT_Adapter<32> ct_lt("CT_LT", amba::amba_APB);
-  Timer timer("timer", 0x0, true, 4);
+  testbench<32>                           tb("testbench");
+#ifdef CTBUS
+  sc_core::sc_clock                       clk("clock",sc_core::sc_time(10,sc_core::SC_NS));
+  amba::AMBA_LT_CT_Adapter<32>            ltct("LT_CT", amba::amba_APB);
+  amba::AMBA_CT_LT_Adapter<32>            ctlt("CT_LT", amba::amba_APB);
+#endif
+  Timer<>                                 dut("timer", 4);
 
-  testbench.master_sock(lt_ct.slave_sock);
-  testbench.reset(reset);
-  testbench.gpti(gpti);
-  testbench.gpto(gpto);
-  testbench.pirqi(pirqi);
-  testbench.pirqo(pirqo);
-  testbench.pconfig_0(pconfig_0);
-  testbench.pconfig_1(pconfig_1);
-  testbench.pindex(pindex);
 
-  lt_ct.master_sock(ct_lt.slave_sock);
-  lt_ct.clk(clk);
+  
+  tb.reset(reset);
+  tb.gpti(gpti);
+  tb.gpto(gpto);
+  tb.pirqi(pirqi);
+  tb.pirqo(pirqo);
+  tb.pconfig_0(pconfig_0);
+  tb.pconfig_1(pconfig_1);
+  tb.pindex(pindex);
 
-  ct_lt.master_sock(timer.bus);
-  ct_lt.clk(clk);
+#ifdef CTBUS
+  tb.master_sock(ltct.slave_sock);
+  ltct.master_sock(ctlt.slave_sock);
+  ltct.clk(clk);
 
-  timer.wave = wave;
-  timer.clk(clk);
-  timer.reset(reset);
-  timer.gpti(gpti);
-  timer.gpto(gpto);
-  timer.pirqi(pirqi);
-  timer.pirqo(pirqo);
-  timer.pconfig_0(pconfig_0);
-  timer.pconfig_1(pconfig_1);
-  timer.pindex(pindex);
+  ctlt.master_sock(dut.bus);
+  ctlt.clk(clk);
 
+  dut.clk(clk);
+#else
+  tb.master_sock(dut.bus);
+  dut.clk(10.0, sc_core::SC_NS);
+#endif
+    
+  dut.reset(reset);
+  dut.gpti(gpti);
+  dut.gpto(gpto);
+  dut.pirqi(pirqi);
+  dut.pirqo(pirqo);
+  dut.pconfig_0(pconfig_0);
+  dut.pconfig_1(pconfig_1);
+  dut.pindex(pindex);
+
+#ifdef GETREGISTERS
   GAV->add_to_output(vcd, GCF->getPar("timer.default_registers.scaler"));
   GAV->add_to_output(vcd, GCF->getPar("timer.default_registers.screload"));
   GAV->add_to_output(vcd, GCF->getPar("timer.default_registers.conf"));
@@ -110,40 +112,31 @@ int sc_main(int argc, char** argv) {
   GAV->add_to_output(vcd, GCF->getPar("timer.default_registers.value_2"));
   GAV->add_to_output(vcd, GCF->getPar("timer.default_registers.reload_2"));
   GAV->add_to_output(vcd, GCF->getPar("timer.default_registers.ctrl_2"));
+  GAV->add_to_output(vcd, GCF->getPar("timer.default_registers.value_3"));
+  GAV->add_to_output(vcd, GCF->getPar("timer.default_registers.reload_3"));
+  GAV->add_to_output(vcd, GCF->getPar("timer.default_registers.ctrl_3"));
+#endif
 
-/*
+#ifdef GETSIGNALS
   sc_core::sc_trace(wave, clk, "clk");
   sc_core::sc_trace(wave, reset, "reset");
   sc_core::sc_trace(wave, pirqi, "pirqi");
   sc_core::sc_trace(wave, pirqo, "pirqo");
-  sc_core::sc_trace(wave, pconfig_0, "pconfig.0");
-  sc_core::sc_trace(wave, pconfig_1, "pconfig.1");
-  sc_core::sc_trace(wave, pindex, "pindex");
-    sc_trace(wave, timer.r[0x00], "gptimer.scale");
-    sc_trace(wave, timer.r[0x04], "gptimer.screload");
-    sc_trace(wave, timer.r[0x08], "gptimer.config");
-    sc_trace(wave, timer.r[0x10], "gptimer.value0");
-    sc_trace(wave, timer.r[0x14], "gptimer.reload0");
-    sc_trace(wave, timer.r[0x18], "gptimer.ctrl0");
-    sc_trace(wave, timer.r[0x20], "gptimer.value1");
-    sc_trace(wave, timer.r[0x24], "gptimer.reload1");
-    sc_trace(wave, timer.r[0x28], "gptimer.ctrl1");
-    sc_trace(wave, timer.r[0x30], "gptimer.value2");
-    sc_trace(wave, timer.r[0x34], "gptimer.reload2");
-    sc_trace(wave, timer.r[0x38], "gptimer.ctrl2");
-*/
+  sc_core::sc_trace(wave, gpto, "gpto");
+  sc_core::sc_trace(wave, gpti, "gpti");
+#endif
+
+  gettimeofday(&tstart, 0);
+  cstart = clock();
   sc_core::sc_start();
-
-//  sc_core::ShowSCObjects::showSCObjects();
-  // ** List of all parameters
-  std::cout << "--------------------------------------------------------" << std::endl;
-  std::cout << "Parameter list: "<< std::endl << std::endl;
-  std::vector<std::string> parlist = GCF->getParamList();
-  for (unsigned int i = 0; i < parlist.size(); i++)
-    std::cout << "  " << parlist[i] << std::endl;
-  std::cout << std::endl << std::endl;
-
-  sc_core::sc_close_vcd_trace_file(wave);
+  cend = clock();
+  gettimeofday(&tend, 0);
+  cout << "Start time: " << dec << tstart.tv_sec << ", " << tstart.tv_usec << "s" << endl;
+  cout << "Clocks: " << dec << setprecision(5) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC) << "s" << endl << endl;
+  cout << "End time: " << dec << tend.tv_sec << ", " << tend.tv_usec << "s" << endl;
+  cout << "Start clocks: " << dec << cstart << endl;
+  cout << "End clocks: " << dec << cend << endl;
+  cout << "Clocks per sec: " << dec << CLOCKS_PER_SEC << endl;
   return 0;
 }
 
