@@ -85,7 +85,7 @@ def configure(ctx):
 def build(bld):
   bld(
     features = ['cxx', 'cprogram'],
-    source= ['testbench.cpp', '../lib/ivectorcache.cpp', '../lib/dvectorcache.cpp', 'main.cpp'],
+    source= ['testbench.cpp', '../lib/mmu.cpp','../lib/ivectorcache.cpp', '../lib/dvectorcache.cpp', 'main.cpp'],
     target='cachetest',
     uselib=['SYSC','TLM2','AMBA','GREENSOCS'],
     includes=['./','../lib','../../../../../../tools/amba_socket-src/adapters/','../../../../../../tools/amba_socket-src/examples/ahb_ct_timing']

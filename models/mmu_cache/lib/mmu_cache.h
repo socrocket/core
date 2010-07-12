@@ -8,8 +8,8 @@
 /*             for connecting the cpu to the caches and an AHB master  */
 /*             interface for connection to the main memory.            */ 
 /*                                                                     */
-/* Modified on $Date$                                                  */
-/*          at $Revision$                                              */
+/* Modified on $Date$   */
+/*          at $Revision$                                         */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
@@ -25,6 +25,7 @@
 #include "amba.h"
 #include "ivectorcache.h"
 #include "dvectorcache.h"
+#include "mmu.h"
 
 #include "mmu_cache_if.h"
 
@@ -33,7 +34,8 @@
 
 template <int dsu=0, int icen=0, int irepl=0, int isets=4, int ilinesize=4, int isetsize=1, int isetlock=0,
 	  int dcen=0, int drepl=0, int dsets=4, int dlinesize=4, int dsetsize=1, int dsetlock=0, int dsnoop=0,
-	  int ilram=0, int ilramsize=1, int ilramstart=0x8f, int dlram=0, int dlramsize=1, int dlramstart=0x8f, int cached=0>
+	  int ilram=0, int ilramsize=1, int ilramstart=0x8f, int dlram=0, int dlramsize=1, int dlramstart=0x8f, int cached=0,
+	  int mmu_en=0, int itlb_num=8, int dtlb_num=8, int tlb_type=1, int tlb_rep=0, int mmupgsz=0>
 class mmu_cache : public mmu_cache_if, public sc_core::sc_module {
 
   public:
@@ -50,14 +52,29 @@ class mmu_cache : public mmu_cache_if, public sc_core::sc_module {
   // amba master socket
   amba::amba_master_socket<32> ahb_master;
 
-  // constructor
-  // args: name of sysc module, id of the AHB master, icache delay for read hit, icache delay for read miss
-  mmu_cache(sc_core::sc_module_name name, unsigned int id, 
+  // constructor args: 
+  // - name of sysc module, 
+  // - id of the AHB master
+  // - icache delay for read hit
+  // - icache delay for read miss
+  // - dcache delay for read hit
+  // - dcache delay for read miss
+  // - dcache delay for write hit/miss (through)
+  // - delay for itlb hit
+  // - delay for itlb miss (per page table lookup)
+  // - delay for dtlb hit
+  // - delay for dtlb miss (per page table lookup)
+  mmu_cache(sc_core::sc_module_name name, 
+	    unsigned int id, 
 	    sc_core::sc_time icache_hit_read_response_delay, 
 	    sc_core::sc_time icache_miss_read_response_delay, 
 	    sc_core::sc_time dcache_hit_read_response_delay, 
 	    sc_core::sc_time dcache_miss_read_response_delay,
-	    sc_core::sc_time dcache_write_response_delay);
+	    sc_core::sc_time dcache_write_response_delay,
+	    sc_core::sc_time itlb_hit_response_delay,
+	    sc_core::sc_time itlb_miss_response_delay,
+	    sc_core::sc_time dtlb_hit_response_delay,
+	    sc_core::sc_time dtlb_miss_response_delay);
 
   // member functions
   // ----------------
@@ -76,6 +93,8 @@ class mmu_cache : public mmu_cache_if, public sc_core::sc_module {
   ivectorcache * icache;
   // data cache
   dvectorcache * dcache;
+  // mmu
+  mmu * srmmu;
 
   private:
 

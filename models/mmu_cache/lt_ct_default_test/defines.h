@@ -52,6 +52,22 @@ typedef struct {
   t_cache_data  entry[4];
 } t_cache_line;
 
+// structure of a tlb entry (page descriptor cache entry)
+// ========================
+// virtual address tag 20bit (for 4 kB page size)
+// 
+// page descriptor cache entry
+// context tag      - ?? bits
+// page table entry - 24bit
+
+// virtual address tag
+typedef unsigned int t_VAT;
+
+// page descriptor cache entry
+typedef struct {
+  unsigned int context;
+  unsigned int pte;
+} t_PTE_context;
 
 // payload pointer
 typedef tlm::tlm_generic_payload *gp_ptr;  

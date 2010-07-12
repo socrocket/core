@@ -13,3 +13,6 @@ mmu_cache_if.h        - Abstraction of mmu_cache. Used to pass pointers
 ivectorcache.{h,cpp}  - C++ implementation of the instruction cache
 dvectorcache.{h,cpp}  - C++ inplementation of the data cache
 
+mmu.{h,cpp}           - C++ implementation of the memory management unit
+mmu_if.h	      - Abstraction of the mmu. Used to pass pointers
+			of the mmu interface functions to the caches.

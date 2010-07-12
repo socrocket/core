@@ -23,8 +23,7 @@
 
 #include "defines.h"
 #include "mmu_cache_if.h"
-
-using namespace std;
+#include "mmu_if.h"
 
 // implementation of cache memory and controller
 // ---------------------------------------------
@@ -53,7 +52,9 @@ class dvectorcache : public sc_core::sc_module {
   // constructor
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy  
   dvectorcache(sc_core::sc_module_name name, 
-	       mmu_cache_if &_parent, 
+	       mmu_cache_if &_parent,
+	       mmu_if * _mmu,
+	       int mmu_en,
 	       sc_core::sc_time dcache_hit_read_response_delay, 
 	       sc_core::sc_time dcache_miss_read_response_delay, 
 	       sc_core::sc_time dcache_write_response_delay,
@@ -77,12 +78,15 @@ class dvectorcache : public sc_core::sc_module {
   // the class with the amba interface
   mmu_cache_if * m_parent;
 
+  // the class with the mmu interface
+  mmu_if * m_mmu;
+
   // the actual cache memory
-  vector<vector<t_cache_line>*> cache_mem;
+  std::vector<std::vector<t_cache_line>*> cache_mem;
 
   // helper for cache handling
   t_cache_line m_default_cacheline;
-  vector<t_cache_line*> m_current_cacheline;
+  std::vector<t_cache_line*> m_current_cacheline;
   
   // cache parameters
   // ----------------
@@ -102,6 +106,11 @@ class dvectorcache : public sc_core::sc_module {
   unsigned int m_tagwidth;
   // replacement strategy
   unsigned int m_repl;
+
+  // other parameters
+  // ----------------
+  // mmu enabled?
+  unsigned int m_mmu_en;
 
   // delay parameters
   // ----------------

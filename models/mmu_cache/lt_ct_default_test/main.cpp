@@ -73,15 +73,29 @@ int sc_main(int argc, char** argv) {
   testbench tb("Testbench");
 
   // create mmu-cache
-  // args: name of sysc module, id of the AHB master, icache delay for read hit, icache delay for read miss,
-  // dcache delay for read hit, dcache delay for read miss, dcache delay for write (hit and miss)
+  // constructor args: 
+  // - name of sysc module
+  // - id of the AHB master
+  // - icache delay for read hit
+  // - icache delay for read miss,
+  // - dcache delay for read hit
+  // - dcache delay for read miss
+  // - dcache delay for write (hit and miss)
+  // - itlb delay on read hit
+  // - itlb delay on read miss
+  // - dtlb delay on read hit
+  // - dtlb delay on read miss
   mmu_cache<> mmu_cache("mmu_cache", 
 			CACHE_MASTER_ID, 
 			sc_core::sc_time(0, sc_core::SC_NS), 
 			sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),
 			sc_core::sc_time(0, sc_core::SC_NS),
 			sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),
-			sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS));
+			sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),
+			sc_core::sc_time(0, sc_core::SC_NS),
+			sc_core::sc_time(2*LOCAL_CLOCK, sc_core::SC_NS),
+			sc_core::sc_time(0, sc_core::SC_NS),
+			sc_core::sc_time(2*LOCAL_CLOCK, sc_core::SC_NS));
 
   // create AHB bus
   ahb_simple_bus<32> ahb_bus("AHB_Bus");
