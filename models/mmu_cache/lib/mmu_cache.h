@@ -22,11 +22,14 @@
 #include <tlm.h>
 #include <tlm_utils/simple_target_socket.h>
 
+#include "icio_payload_extension.h"
+#include "dcio_payload_extension.h"
+
 #include "amba.h"
 #include "ivectorcache.h"
 #include "dvectorcache.h"
-#include "mmu.h"
 
+#include "mmu.h"
 #include "mmu_cache_if.h"
 
 #include <math.h>

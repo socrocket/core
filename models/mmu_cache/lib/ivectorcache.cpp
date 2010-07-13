@@ -93,7 +93,7 @@ ivectorcache::~ivectorcache() {
 // ----------------------------
 
 // call to read from cache
-void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_time *t) {
+void ivectorcache::read(unsigned int address, unsigned int *data, icio_payload_extension * ext, sc_core::sc_time *t) {
 
   int set_select = -1;
   int cache_hit = -1;

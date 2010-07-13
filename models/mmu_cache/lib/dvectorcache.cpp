@@ -86,7 +86,7 @@ dvectorcache::~dvectorcache() {
 // ----------------------------
 
 // read from cache
-void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_time *t) {
+void dvectorcache::read(unsigned int address, unsigned int *data, dcio_payload_extension * ext, sc_core::sc_time *t) {
 
   int set_select = -1;
   int cache_hit = -1;
@@ -208,7 +208,7 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
 //   Subsequent writes to the block will update main memory because Write Through policy is employed. 
 //   So, some time is saved not bringing the block in the cache on a miss because it appears useless anyway.
 
-void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int *byt, sc_core::sc_time * t) {
+void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int *byt, dcio_payload_extension * ext, sc_core::sc_time * t) {
 
   // extract index and tag from address
   unsigned int tag    = (address >> (m_idx_bits+m_offset_bits));

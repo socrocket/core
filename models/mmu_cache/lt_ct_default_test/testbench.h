@@ -20,6 +20,8 @@
 #include <tlm_utils/simple_initiator_socket.h>
 
 #include "defines.h"
+#include "icio_payload_extension.h"
+#include "dcio_payload_extension.h"
 
 class testbench : public sc_core::sc_module {
 
@@ -29,10 +31,16 @@ class testbench : public sc_core::sc_module {
   testbench(sc_core::sc_module_name name);
 
   // member functions
+  // ----------------
+  // the main testbench thread
   void initiator_thread(void);
-  void dwrite(unsigned int addr, unsigned int data, unsigned int length);
-  unsigned int dread(unsigned int addr, unsigned int width);
-  unsigned int iread(unsigned int addr, unsigned int width);
+
+  // issues a data write transaction
+  void dwrite(unsigned int addr, unsigned int data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock);
+  // issues a data read transaction
+  unsigned int dread(unsigned int addr, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock);
+  // issues an instruction read transaction
+  unsigned int iread(unsigned int addr, unsigned int width, unsigned int flush, unsigned int flushl, unsigned int fline);
   
  public:
   // variables and object declaration

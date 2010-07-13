@@ -29,6 +29,7 @@ testbench::testbench(sc_core::sc_module_name name) : sc_module(name),
 // testbench initiator thread
 void testbench::initiator_thread(void) {
 
+  // test vars
   unsigned int data;
 
   while(1) {
@@ -62,28 +63,29 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ********************************************************* ");    
 
     data=0x04030201;
-    dwrite(0x64,data,4);
+    // args: addr, data, length, asi, flush, flushl, lock 
+    dwrite(0x64,data, 4, 0, 0, 0, 0);
 
     DUMP(name()," ********************************************************* ");
     DUMP(name()," * DCACHE write addr 0x464 (cache write miss)              ");
     DUMP(name()," ********************************************************* ");    
 
     data=0x08070605;
-    dwrite(0x464,data,4);
+    dwrite(0x464,data,4, 0, 0, 0, 0);
 
     DUMP(name()," ********************************************************* ");
     DUMP(name()," * DCACHE write addr 0x864 (cache write miss)              ");
     DUMP(name()," ********************************************************* ");    
 
     data=0x0c0b0a09;
-    dwrite(0x864,data,4);
+    dwrite(0x864,data,4, 0, 0, 0, 0);
 
     DUMP(name()," ********************************************************* ");
     DUMP(name()," * DCACHE write addr 0xc64 (cache write miss)              ");
     DUMP(name()," ********************************************************* ");
 
     data=0x100f0e0d;
-    dwrite(0xc64,data,4);
+    dwrite(0xc64,data,4, 0, 0, 0, 0);
 
     // ********************************************************************
     // * Phase 1: The data which has been written in Phase 1 is read back
@@ -97,7 +99,8 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * DCACHE read addr 0x64 (cache miss)         "                    );
     DUMP(name()," ********************************************************* ");
 
-    data = dread(0x64, 4);
+    // args: address, length, asi, flush, flushl, lock
+    data = dread(0x64, 4, 0, 0, 0, 0);
     DUMP(name(), "DCACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
 
@@ -108,7 +111,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * DCACHE read again from 0x64 (cache hit)           "             );
     DUMP(name()," ********************************************************* ");
 
-    data = dread(0x64, 4);
+    data = dread(0x64, 4, 0, 0, 0, 0);
     DUMP(name(), "DCACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
 
@@ -119,7 +122,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * DCACHE read addr 0x464 / same idx, diff tag (cache miss) ");
     DUMP(name()," * should fill one of the empty banks (3 left)              ");
     DUMP(name()," ********************************************************** ");
-    data = dread(0x464, 4);
+    data = dread(0x464, 4, 0, 0, 0, 0);
     DUMP(name(), "DCACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
 
@@ -131,7 +134,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * should fill one of the empty banks (2 left)              ");
     DUMP(name()," ********************************************************** ");
 
-    data = dread(0x864, 4);
+    data = dread(0x864, 4, 0, 0, 0, 0);
     DUMP(name(), "DCACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
 
@@ -143,7 +146,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * should fill the last empty bank                          ");
     DUMP(name()," ********************************************************** ");
 
-    data = dread(0xc64, 4);
+    data = dread(0xc64, 4, 0, 0, 0, 0);
     DUMP(name(), "DCACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
 
@@ -154,7 +157,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * DCACHE read from 0x464 (cache hit) "                    );
     DUMP(name()," ************************************************* ");
 
-    data = dread(0x464, 4);
+    data = dread(0x464, 4, 0, 0, 0, 0);
     DUMP(name(), "DCACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
 
@@ -165,7 +168,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * DCACHE read from 0x864 (cache hit) ");
     DUMP(name()," ************************************************* ");
 
-    data = dread(0x864, 4);
+    data = dread(0x864, 4, 0, 0, 0, 0);
     DUMP(name(), "DCACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
 
@@ -176,7 +179,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * DCACHE read from 0xc64 (cache hit) "                    );
     DUMP(name()," ************************************************* ");
 
-    data = dread(0xc64, 4);
+    data = dread(0xc64, 4, 0, 0, 0, 0);
     DUMP(name(), "DCACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
 
@@ -191,7 +194,8 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * ICACHE read addr 0x64 (cache miss)         "                    );
     DUMP(name()," ********************************************************* ");
 
-    data = iread(0x64, 4);
+    // args: addr, length, flush, flushl, fline
+    data = iread(0x64, 4, 0, 0, 0);
     DUMP(name(), "ICACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
 
@@ -202,7 +206,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * ICACHE read again from 0x64 (cache hit)           "             );
     DUMP(name()," ********************************************************* ");
 
-    data = iread(0x64, 4);
+    data = iread(0x64, 4, 0, 0, 0);
     DUMP(name(), "ICACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
 
@@ -213,7 +217,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * ICACHE read addr 0x464 / same idx, diff tag (cache miss) ");
     DUMP(name()," * should fill one of the empty banks (3 left)              ");
     DUMP(name()," ********************************************************** ");
-    data = iread(0x464, 4);
+    data = iread(0x464, 4, 0, 0, 0);
     DUMP(name(), "ICACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
 
@@ -225,7 +229,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * should fill one of the empty banks (2 left)              ");
     DUMP(name()," ********************************************************** ");
 
-    data = iread(0x864, 4);
+    data = iread(0x864, 4, 0, 0, 0);
     DUMP(name(), "ICACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
 
@@ -237,7 +241,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * should fill the last empty bank                          ");
     DUMP(name()," ********************************************************** ");
 
-    data = iread(0xc64, 4);
+    data = iread(0xc64, 4, 0, 0, 0);
     DUMP(name(), "ICACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
 
@@ -248,7 +252,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * ICACHE read from 0x464 (cache hit) "                    );
     DUMP(name()," ************************************************* ");
 
-    data = iread(0x464, 4);
+    data = iread(0x464, 4, 0, 0, 0);
     DUMP(name(), "ICACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
 
@@ -259,7 +263,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * ICACHE read from 0x864 (cache hit) ");
     DUMP(name()," ************************************************* ");
 
-    data = iread(0x864, 4);
+    data = iread(0x864, 4, 0, 0, 0);
     DUMP(name(), "ICACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
 
@@ -270,7 +274,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * ICACHE read from 0xc64 (cache hit) "                    );
     DUMP(name()," ************************************************* ");
 
-    data = iread(0xc64, 4);
+    data = iread(0xc64, 4, 0, 0, 0);
     DUMP(name(), "ICACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
 
@@ -280,27 +284,36 @@ void testbench::initiator_thread(void) {
     sc_core::sc_stop();
 
   }
-
 }
 
-unsigned int testbench::iread(unsigned int addr, unsigned int width) {
+// issues an instruction read transaction and returns the result
+unsigned int testbench::iread(unsigned int addr, unsigned int width, unsigned int flush, unsigned int flushl, unsigned int fline) {
 
+  // locals
   sc_core::sc_time t;
   unsigned int data;
+  tlm::tlm_generic_payload gp;
+  icio_payload_extension * ext = new icio_payload_extension();
 
-  gp_ptr gp;
+  // attache extension
+  gp.set_extension(ext);
 
   // initialize
-  gp->set_command(tlm::TLM_READ_COMMAND);
-  gp->set_address(addr);
-  gp->set_data_length(width);
-  gp->set_streaming_width(4);
-  gp->set_byte_enable_ptr(NULL);
-  gp->set_data_ptr((unsigned char*)&data);
-  gp->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+  gp.set_command(tlm::TLM_READ_COMMAND);
+  gp.set_address(addr);
+  gp.set_data_length(width);
+  gp.set_streaming_width(4);
+  gp.set_byte_enable_ptr(NULL);
+  gp.set_data_ptr((unsigned char*)&data);
+  gp.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+
+  // attache extensions
+  ext->flush  = flush;
+  ext->flushl = flushl;
+  ext->fline  = fline;
   
   // send
-  instruction_initiator_socket->b_transport(*gp,t);
+  instruction_initiator_socket->b_transport(gp,t);
 
   // suspend and burn the time
   wait(t);
@@ -308,46 +321,67 @@ unsigned int testbench::iread(unsigned int addr, unsigned int width) {
   return(data);
 }
 
-void testbench::dwrite(unsigned int addr, unsigned int data, unsigned int width) {
+// issues a data write transaction
+void testbench::dwrite(unsigned int addr, unsigned int data, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock) {
 
+  // locals
   sc_core::sc_time t;
+  tlm::tlm_generic_payload gp;
+  dcio_payload_extension * ext = new dcio_payload_extension();
 
-  gp_ptr gp;
+  // attache extension
+  gp.set_extension(ext);
 
   // initialize
-  gp->set_command(tlm::TLM_WRITE_COMMAND);
-  gp->set_address(addr);
-  gp->set_data_length(width);
-  gp->set_streaming_width(4);
-  gp->set_byte_enable_ptr(NULL);
-  gp->set_data_ptr((unsigned char*)&data);
+  gp.set_command(tlm::TLM_WRITE_COMMAND);
+  gp.set_address(addr);
+  gp.set_data_length(width);
+  gp.set_streaming_width(4);
+  gp.set_byte_enable_ptr(NULL);
+  gp.set_data_ptr((unsigned char*)&data);
+
+  ext->asi    = asi;
+  ext->flush  = flush;
+  ext->flushl = flushl;
+  ext->lock   = lock;
 
   // send
-  data_initiator_socket->b_transport(*gp,t);
+  data_initiator_socket->b_transport(gp,t);
 
   // suspend and burn the time
   wait(t);
 
 }
 
-unsigned int testbench::dread(unsigned int addr, unsigned int width) {
+// issues a data read transaction
+unsigned int testbench::dread(unsigned int addr, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock) {
 
+  // locals
   sc_core::sc_time t;
   unsigned int data;
+  tlm::tlm_generic_payload gp;
+  dcio_payload_extension * ext = new dcio_payload_extension();
+  
 
-  gp_ptr gp;
+  // attache extension
+  gp.set_extension(ext);
 
   // initialize
-  gp->set_command(tlm::TLM_READ_COMMAND);
-  gp->set_address(addr);
-  gp->set_data_length(width);
-  gp->set_streaming_width(4);
-  gp->set_byte_enable_ptr(NULL);
-  gp->set_data_ptr((unsigned char*)&data);
-  gp->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
-  
+  gp.set_command(tlm::TLM_READ_COMMAND);
+  gp.set_address(addr);
+  gp.set_data_length(width);
+  gp.set_streaming_width(4);
+  gp.set_byte_enable_ptr(NULL);
+  gp.set_data_ptr((unsigned char*)&data);
+  gp.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+
+  ext->asi    = asi;
+  ext->flush  = flush;
+  ext->flushl = flushl;
+  ext->lock   = lock;
+
   // send
-  data_initiator_socket->b_transport(*gp,t);
+  data_initiator_socket->b_transport(gp,t);
 
   // suspend and burn the time
   wait(t);

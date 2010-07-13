@@ -17,6 +17,8 @@
 #ifndef __DVECTORCACHE_H__
 #define __DVECTORCACHE_H__
 
+#include "tlm.h"
+
 #include <vector>
 #include <iostream>
 #include "math.h"
@@ -24,6 +26,8 @@
 #include "defines.h"
 #include "mmu_cache_if.h"
 #include "mmu_if.h"
+
+#include "dcio_payload_extension.h"
 
 // implementation of cache memory and controller
 // ---------------------------------------------
@@ -34,10 +38,10 @@ class dvectorcache : public sc_core::sc_module {
   // external interface functions:
   // ----------------------------
   // call to read from cache
-  void read(unsigned int address, unsigned int * data, sc_core::sc_time * t);
+  void read(unsigned int address, unsigned int * data, dcio_payload_extension * ext, sc_core::sc_time * t);
 
   // call to write through cache
-  void write(unsigned int address, unsigned int * data, unsigned int * byt, sc_core::sc_time * t); 
+  void write(unsigned int address, unsigned int * data, unsigned int * byt, dcio_payload_extension * ext, sc_core::sc_time * t); 
 
   // call to flush cache
   void flush(sc_core::sc_time * t);

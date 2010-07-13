@@ -103,16 +103,20 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 		mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::icio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core::sc_time& delay) {
 
   // extract payload
-  tlm::tlm_command cmd = tran.get_command();
-  sc_dt::uint64    adr = tran.get_address();
-  unsigned char*   ptr = tran.get_data_ptr();
+  tlm::tlm_command   cmd  = tran.get_command();
+  sc_dt::uint64      adr  = tran.get_address();
+  unsigned char*     ptr  = tran.get_data_ptr();
   // unsigned int     len = tran.get_data_length();
   // unsigned char*   byt = tran.get_byte_enable_ptr();
   // unsigned int     wid = tran.get_streaming_width();
 
+  // extract extension
+  icio_payload_extension * iext;
+  tran.get_extension(iext);
+
   if(cmd==tlm::TLM_READ_COMMAND) 
   {
-    icache->read((unsigned int)adr, (unsigned int*)ptr, &delay);
+    icache->read((unsigned int)adr, (unsigned int*)ptr, iext, &delay);
 
     //DUMP(name(),"ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
   }
@@ -141,15 +145,19 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
   unsigned char*   byt = tran.get_byte_enable_ptr();
   // unsigned int     wid = tran.get_streaming_width();
 
+  // extract extension
+  dcio_payload_extension * dext;
+  tran.get_extension(dext);
+
   if(cmd==tlm::TLM_READ_COMMAND) 
   {
-    dcache->read((unsigned int)adr, (unsigned int*)ptr, &delay);
+    dcache->read((unsigned int)adr, (unsigned int*)ptr, dext, &delay);
 
     //DUMP(name(),"DCIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
   }
   else if(cmd==tlm::TLM_WRITE_COMMAND) 
   {
-    dcache->write((unsigned int)adr, (unsigned int*)ptr, (unsigned int*)byt, &delay);
+    dcache->write((unsigned int)adr, (unsigned int*)ptr, (unsigned int*)byt, dext, &delay);
     //DUMP(name(),"DCIO Socket done tlm_write");
   }
 
