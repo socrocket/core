@@ -43,7 +43,7 @@ public:
 
     //Master sockets: Initiate communication with memory modules
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_rom;
-    tlm_utils::simple_initiator_socket<Mctrl> mctrl_stdio;
+    tlm_utils::simple_initiator_socket<Mctrl> mctrl_io;
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_sram;
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_sdram;
 
@@ -56,20 +56,34 @@ public:
     Mctrl(sc_module_name name);
     ~Mctrl();
 
-    //callback function for register read access
+    //proclamation of processes
+    SC_HAS_PROCESS(Mctrl);
+
+    //thread process to initialize MCTRL (set registers, define address spaces, etc.)
+    void initialize_mctrl();
+
+    //define transport functions
+    virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
 
     //processes triggered by slave socket need to implement state machine
                  //read ROM
                  //write ROM
                  //read StdIO
                  //write StdIO
-                 //read SRAM
-                 //write SRAM
+    void read_sram(uint32_t addr, uint32_t width);                  //read SRAM
+    void write_sram(uint32_t addr, uint32_t data, uint32_t width);  //write SRAM
                  //read SDRAM
                  //write SDRAM
 
     //process to be launched regularly
                  //refresh SDRAM
+
+    //address space variables
+    uint32_t rom_bk1_s, rom_bk1_e, rom_bk2_s, rom_bk2_e,
+             io_s, io_e,
+             sram_bk1_s, sram_bk1_e, sram_bk2_s, sram_bk2_e, sram_bk3_s, sram_bk3_e,
+                                     sram_bk4_s, sram_bk4_e, sram_bk5_s, sram_bk5_e,
+             sdram_bk1_s, sdram_bk1_e, sdram_bk2_s, sdram_bk2_e;
 
 };
 

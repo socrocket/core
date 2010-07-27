@@ -33,8 +33,9 @@ class Mctrl_tb : public sc_core::sc_module {
 
     SC_HAS_PROCESS(Mctrl_tb);
 
-    //constructor
+    //constructor and destructor
     Mctrl_tb(sc_core::sc_module_name nm);
+    ~Mctrl_tb();
 
     //define TLM write and read transactions
     void write(uint32_t addr, uint32_t data, uint32_t width);

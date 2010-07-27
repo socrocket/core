@@ -49,6 +49,24 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
   SC_THREAD(run);
 }
 
+//explicit declaration of standard destructor required for linking
+template <int hindex,    int pindex,   int romaddr, int rommask,
+          int ioaddr,    int iomask,   int ramaddr, int rammask,
+          int paddr,     int pmask,    int wprot,   int invclk,
+          int fast,      int romasel,  int sdrasel, int srbanks,
+          int ram8,      int ram16,    int sden,    int sepbus,
+          int sdbits,    int sdlsb,    int oepol,   int syncrst,
+          int pageburst, int scantest, int mobile,  int BUSWIDTH>
+         Mctrl_tb<hindex,    pindex,   romaddr,
+                  rommask,   ioaddr,   iomask,
+                  ramaddr,   rammask,  paddr,
+                  pmask,     wprot,    invclk,
+                  fast,      romasel,  sdrasel,
+                  srbanks,   ram8,     ram16,
+                  sden,      sepbus,   sdbits,
+                  sdlsb,     oepol,    syncrst,
+                  pageburst, scantest, mobile, BUSWIDTH >::~Mctrl_tb() {
+}
 
 //TLM write transaction
 template <int hindex,    int pindex,   int romaddr, int rommask,

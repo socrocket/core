@@ -85,7 +85,7 @@ def configure(ctx):
 def build(bld):
   bld(
     features = ['cxx', 'cprogram'],
-    source='mctrl_testtop_tlm.cpp generic_memory.cpp',
+    source='mctrl_testtop_tlm.cpp',
     target='mctrl.test',
 #    uselib=['BOOST', 'SYSC', 'TLM2', 'SCV', 'AMBA', 'GREENSOCS']
     uselib=['BOOST', 'SYSC', 'TLM2', 'AMBA', 'GREENSOCS']

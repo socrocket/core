@@ -58,24 +58,16 @@ int sc_main(int argc, char** argv) {
             srbanks,   ram8,     ram16,
             sden,      sepbus,   sdbits,
             sdlsb,     oepol,    syncrst,
-            pageburst, scantest, mobile  > mctrl_tb("mctrl_tb");
-  Mctrl< hindex,    pindex,   romaddr,
-         rommask,   ioaddr,   iomask,
-         ramaddr,   rammask,  paddr,
-         pmask,     wprot,    invclk,
-         fast,      romasel,  sdrasel,
-         srbanks,   ram8,     ram16,
-         sden,      sepbus,   sdbits,
-         sdlsb,     oepol,    syncrst,
-         pageburst, scantest, mobile  > mctrl_inst0("mctrl_inst0");
-  Generic_memory generic_memory_inst0("generic_memory_inst0");
+            pageburst, scantest, mobile, BUSWIDTH  > mctrl_tb("mctrl_tb");
+  Mctrl POST_MCTRL mctrl_inst0("mctrl_inst0");
+  Generic_memory POST_MCTRL generic_memory_inst0("generic_memory_inst0");
 
   //bus communication via amba sockets (TLM)
   mctrl_tb.master_sock(mctrl_inst0.bus);
 
   //memory communication via simple TLM sockets
   mctrl_inst0.mctrl_rom(generic_memory_inst0.mem_rom);
-  mctrl_inst0.mctrl_stdio(generic_memory_inst0.mem_stdio);
+  mctrl_inst0.mctrl_io(generic_memory_inst0.mem_io);
   mctrl_inst0.mctrl_sram(generic_memory_inst0.mem_sram);
   mctrl_inst0.mctrl_sdram(generic_memory_inst0.mem_sdram);
 

@@ -21,10 +21,10 @@
 
 #define MCTRL_AMBA_BASE             (0x00000000)
 
-#define MCTRL_MCFG1                 (MCTRL_AMBA_BASE + 0x00)                    // Prioritization                (internal)
-#define MCTRL_MCFG2                 (MCTRL_AMBA_BASE + 0x04)                    // IR Monitoring / Distribution  
-#define MCTRL_MCFG3                 (MCTRL_AMBA_BASE + 0x08)                    // IR Monitoring / Distribution  
-#define MCTRL_MCFG4                 (MCTRL_AMBA_BASE + 0x0C)                    // IR Monitoring                 
+#define MCTRL_MCFG1                 (MCTRL_AMBA_BASE + 0x00)
+#define MCTRL_MCFG2                 (MCTRL_AMBA_BASE + 0x04)
+#define MCTRL_MCFG3                 (MCTRL_AMBA_BASE + 0x08)
+#define MCTRL_MCFG4                 (MCTRL_AMBA_BASE + 0x0C)
 
 
 /***register contents (config bit masks)***/
