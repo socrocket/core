@@ -401,37 +401,4 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
 }
 
 
-
-
-//scope
-PRE_MCTRL void Mctrl POST_MCTRL::
-//write data into SRAM, needs to be triggered by AMBA socket
-write_sram(uint32_t addr, uint32_t data, uint32_t width) {
-  sc_core::sc_time t;
-  tlm::tlm_generic_payload gp;
-    gp.set_command(tlm::TLM_WRITE_COMMAND);
-    gp.set_address(addr);
-    gp.set_data_length(width);
-    gp.set_streaming_width(4);
-    gp.set_byte_enable_ptr(NULL);
-    gp.set_data_ptr((unsigned char*)&data);
-  mctrl_sram->b_transport(gp,t);
-}
-
-//scope
-PRE_MCTRL void Mctrl POST_MCTRL::
-//read data from SRAM, needs to be triggered by AMBA socket
-read_sram(uint32_t addr, uint32_t width) {
-  sc_core::sc_time t;
-  uint32_t data;
-  tlm::tlm_generic_payload gp;
-    gp.set_command(tlm::TLM_READ_COMMAND);
-    gp.set_address(addr);
-    gp.set_data_length(width);
-    gp.set_streaming_width(4);
-    gp.set_byte_enable_ptr(NULL);
-    gp.set_data_ptr((unsigned char*)&data);
-  mctrl_sram->b_transport(gp,t);
-}
-
 #endif

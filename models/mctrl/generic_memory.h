@@ -46,9 +46,10 @@ public:
     ~Generic_memory();
 
     //memory instances (key: int address, value: int data)
-    std::map<uint32_t, uint32_t> rom;
+    //ROM and SRAM words are modelled as 4 single bytes for easier management
+    std::map<uint32_t, uint8_t>  rom;
     std::map<uint32_t, uint32_t> io;
-    std::map<uint32_t, uint32_t> sram;
+    std::map<uint32_t, uint8_t>  sram;
     std::map<uint32_t, uint32_t> sdram;
 
     //blocking transport functions
@@ -59,13 +60,15 @@ public:
 
     //functions for read / write / refresh
     //ROM
-    uint32_t read_rom(uint32_t address, uint8_t width);
+    uint32_t read_rom(uint32_t address);
     //IO
     void write_io(uint32_t address, uint32_t data);
     uint32_t read_io(uint32_t address);
-    //SRAM
-    void write_sram(uint32_t address, uint32_t data, uint8_t width);
-    uint32_t read_sram(uint32_t address, uint8_t width);
+    //SRAM, overloaded write function for 32, 16, and 8 bit access
+    void write_sram(uint32_t address, uint32_t data);
+    void write_sram(uint32_t address, uint16_t data);
+    void write_sram(uint32_t address, uint8_t data);
+    uint32_t read_sram(uint32_t address);
     //SDRAM, overloaded write function for 32 vs 64 bit bus
     void write_sdram(uint32_t address, uint32_t data);
     void write_sdram(uint32_t address, uint64_t data);

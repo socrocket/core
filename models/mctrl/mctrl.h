@@ -65,19 +65,6 @@ public:
     //define transport functions
     virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
 
-    //processes triggered by slave socket need to implement state machine
-                 //read ROM
-                 //write ROM
-                 //read StdIO
-                 //write StdIO
-    void read_sram(uint32_t addr, uint32_t width);                  //read SRAM
-    void write_sram(uint32_t addr, uint32_t data, uint32_t width);  //write SRAM
-                 //read SDRAM
-                 //write SDRAM
-
-    //process to be launched regularly
-                 //refresh SDRAM
-
     //address space variables
     uint32_t rom_bk1_s, rom_bk1_e, rom_bk2_s, rom_bk2_e,
              io_s, io_e,
