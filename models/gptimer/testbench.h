@@ -1,13 +1,51 @@
+// Title:
+//           Testbench for GPTimer Models.
+// ScssId:
+// Origin:
+// Author:   Rolf Meyer <rmeyer@ida.ing.tu-bs.de>
+// Reviewed: Not Reviewd now
+// Purpose:
+// License:  GPL
+//
+
+// Precompiler switches:
+// SCVAL      - The Reload and Value of the Prescaler at start.
+// T1VAL      - The Relaod and Value of the Counter 1.
+// T2VAL      - The Reload and Value of the Counter 2.
+// T3VAL      - The Relaod and Value of the Counter 3.
+// T4VAL      - The Reload and Value of the Counter 4.
+// DEBUG      - Enables debung output (Incomming Ticks)
+// TESTLENGTH - Length of the Simulation in Seconds
+
+
+#ifndef GPTIMER_TESTBENCH_H
+#define GPTIMER_TESTBENCH_H
+
 #include "amba.h"
 #include "timreg.h"
 
-#define SHOW \
-{ std::printf("\n@%-7s /%-4d:", sc_core::sc_time_stamp().to_string().c_str(), (unsigned)sc_core::sc_delta_count());}
-#define REG(name) \
-{ std::cout << " "#name << ": 0x" << std::hex << std::setfill('0') << std::setw(2) << read(name, 4); }
-#define SET(name, val) \
-{ write(name, val, 4); }
+#define SHOW { \
+  std::cout << std::endl \
+            << "@" \
+            << sc_core::sc_time_stamp().to_string().c_str() \
+            << " /" \
+            << (unsigned)sc_core::sc_delta_count(); \
+}
 
+#define REG(name) { \
+  std::cout << " "#name \
+            << ": 0x" \
+            << std::hex \
+            << std::setfill('0') \
+            << std::setw(2) \
+            << read(name, 4); \
+}
+
+#define SET(name, val) { \
+  write(name, val, 4); \
+}
+
+// Testbench for GPTimer Models.
 template<unsigned int BUSWIDTH>
 class testbench : public sc_core::sc_module {
   public:
@@ -137,7 +175,7 @@ class testbench : public sc_core::sc_module {
 #endif
       wait(700, sc_core::SC_NS);
 #endif
-      wait(1, sc_core::SC_SEC);
+      wait(TESTLENGTH, sc_core::SC_SEC);
       
       std::cout << "End of simulation: " << std::endl << sc_core::sc_time_stamp().to_string().c_str() << " simulated!." << std::endl;
 
@@ -153,3 +191,4 @@ class testbench : public sc_core::sc_module {
     }
 };
 
+#endif // GPTIMER_TESTBENCH_H

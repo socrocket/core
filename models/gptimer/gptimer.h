@@ -1,3 +1,20 @@
+/***********************************************************************/
+/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
+/*                                                                     */
+/* File:       gptimer.h                                               */
+/*             header file containing the definition of the gptimer    */
+/*             model. Due to the fact that the gptimer class is a      */
+/*             template class it includes its implementation from      */
+/*             gptimer.tpp                                             */
+/*                                                                     */
+/* Modified on $Date$   */
+/*          at $Revision$                                         */
+/*                                                                     */
+/* Principal:  European Space Agency                                   */
+/* Author:     VLSI working group @ IDA @ TUBS                         */
+/* Maintainer: Rolf Meyer                                              */
+/***********************************************************************/
+
 #ifndef TIMER_H
 #define TIMER_H
 
@@ -7,50 +24,14 @@
 #include <greenreg_ambasocket.h>
 
 #include "greencontrol/all.h"
+#include "multisignalhandler.h"
+
+#include "gptimersignals.h"
+#include "gptimerregisters.h"
 
 #include <string>
 #include <ostream>
 #include <vector>
-
-struct gptimer_in_type {
-    bool dhalt;
-    bool extclk;
-};
-
-inline std::ostream& operator<<(std::ostream& os, const gptimer_in_type& a) {
-  os << "( dhalt: " << std::boolalpha << a.dhalt << ", extclk: " << std::boolalpha << a.extclk << ")";
-   return os;
-}
-inline void sc_trace(sc_core::sc_trace_file *file, const gptimer_in_type &a, const std::string &name) {
-  sc_trace(file, a.dhalt, name + ".dhalt");
-  sc_trace(file, a.extclk, name + ".extclk");
-}
-inline int operator== (const gptimer_in_type& left, const gptimer_in_type& right) {
-  return left.dhalt == right.dhalt && left.extclk == right.extclk;
-}
-
-struct gptimer_out_type {
-    sc_dt::sc_uint<8> tick;
-    sc_dt::sc_uint<32> timer1;
-    bool wdogn;
-    bool wdog;
-};
-
-inline std::ostream& operator<<(std::ostream& os, const gptimer_out_type& a) { 
-  os << "( tick: " << std::hex << a.tick << ", timer1: " << std::hex << a.timer1 
-     << ", wdogn: " << std::boolalpha << a.wdogn 
-     << ", wdog: " << std::boolalpha << a.wdog << ")";
-  return os;
-}
-
-inline void sc_trace(sc_core::sc_trace_file *file, const gptimer_out_type &a, const std::string &name) {
-  sc_trace(file, a.tick, name + ".tick");
-  sc_trace(file, a.timer1, name + ".timer1");
-  sc_trace(file, a.wdogn, name + ".wdogn");
-  sc_trace(file, a.wdog, name + ".wdog");
-}
-
-inline int operator== (const gptimer_out_type& left, const gptimer_out_type& right) { return 0; }
 
 template <int gpindex = 0, int gpaddr = 0, int gpmask = 4095, int gpirq = 0, int gsepirq = 0, int gsbits = 16, int gnbits = 32, int gwdog = 0>
 class Timer;
@@ -85,38 +66,37 @@ class Counter : public gs::reg::gr_subdevice {
     void ctrl_write();
     void value_read();
     void value_write();
+
     void chaining();
     void ticking();
+
     sc_core::sc_time nextzero();
     sc_core::sc_time cycletime();
+
     void calculate();
-    void dhalt();
 
     void start();
     void stop();
-    sc_core::sc_signal<sc_dt::sc_uint<32> > pirq;
+
 };
 
 template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
-class Timer : public gs::reg::gr_device {
+class Timer : public gs::reg::gr_device, public MultiSignalSender, public MultiSignalTarget<Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog> > {
   public:
+    typedef gs::socket::config<gs_generic_signal_protocol_types> target_config;
     /* Slave socket with delayed switch*/
     gs::reg::greenreg_socket< gs::amba::amba_slave<32> > bus; 
-    sc_core::sc_in<bool>                 reset;
     
-    sc_core::sc_in<gptimer_in_type>      gpti;
-    sc_core::sc_out<gptimer_out_type>    gpto;
-
-    sc_core::sc_in<sc_dt::sc_uint<32> >  pirqi;
-    sc_core::sc_out<sc_dt::sc_uint<32> > pirqo;
-    sc_core::sc_out<sc_dt::sc_uint<32> > pconfig_0;
-    sc_core::sc_out<sc_dt::sc_uint<32> > pconfig_1;
-    sc_core::sc_out<sc_dt::sc_uint<16> > pindex;
-
+    gs_generic_signal::target_signal_multi_socket<
+      Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog> > in;
+    gs_generic_signal::initiator_signal_multi_socket                          out;
+    
     unsigned int conf_defaults;
 
     sc_core::sc_time lasttime;
     unsigned int  lastvalue;
+
+    unsigned int ticks;
     
     sc_core::sc_time clockcycle;
     sc_core::sc_event e_tick;
@@ -145,28 +125,35 @@ class Timer : public gs::reg::gr_device {
     ~Timer();
     
     void end_of_elaboration();
+    void tick_calc();
     void ticking();
-    void irqjoin();
-    void tickjoin();
-    void do_dhalt();
+
     void scaler_read();
     void scaler_write();
     void screload_write();
     void conf_read();
-    void do_reset();
-    void tick_calc();
+
+    void do_reset(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay);
+    void do_dhalt(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay);
+
     void diag();
 
     void clk(sc_core::sc_clock &clk);
     void clk(sc_core::sc_time &period);
     void clk(double period, sc_core::sc_time_unit base);
 
-    int valueof(sc_core::sc_time t, int offset, sc_core::sc_time cycletime);
-    int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime);
-#ifdef DEBUGOUT
-    sc_core::sc_signal<bool> tick[8];
-#endif
+    inline int valueof(sc_core::sc_time t, int offset, sc_core::sc_time cycletime) const;
+    inline int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime);
+    
+    inline unsigned char get_dhalt() {
+      return in.get_last_value(dhalt::ID);
+    }
+    
+    inline unsigned char get_rst() {
+      return in.get_last_value(rst::ID);
+    }
 };
+
 
 #include "gptimer.tpp"
 

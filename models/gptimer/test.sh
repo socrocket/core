@@ -1,4 +1,20 @@
 #/bin/bash
+#***********************************************************************#
+#* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *#
+#*                                                                     *#
+#* File:       test.sh                                                 *#
+#*             this file contains a test environment to compare the    *#
+#*             RTL and TLM testbenches with the same parameters to     *#
+#*             compare the length of simulation.                       *#
+#*                                                                     *#
+#* Modified on $Date$   *#
+#*          at $Revision$                                         *#
+#*                                                                     *#
+#* Principal:  European Space Agency                                   *#
+#* Author:     VLSI working group @ IDA @ TUBS                         *#
+#* Maintainer: Rolf Meyer                                              *#
+#***********************************************************************#
+
 
 function runsc() {
   make clean
@@ -18,25 +34,42 @@ function runvsim() {
 
 function runtest() {
   echo "== Process Tests: $@ =========="
-  runsc -DCTBUS=1 $@
-  runsc -DCTBUS=1 -DDEBUGOUT=1 $@
+  #runsc -DCTBUS=1 $@
+  #runsc -DCTBUS=1 -DDEBUGOUT=1 $@
+  #runsc $@
+  runsc -DDEBUGOUT=1 $@
   #runvsim $@
   echo "== End: $@ =========="
   echo
   echo
 }
 
-runtest -DSCVAL=6 -DT1VAL=4 -DT2VAL=3 -DT3VAL=4
-runtest -DSCVAL=10
-runtest -DSCVAL=100
-runtest -DSCVAL=1000
-runtest -DSCVAL=10000
-runtest -DSCVAL=100 -DT1VAL=100
-runtest -DSCVAL=1000 -DT1VAL=1000
-runtest -DSCVAL=10000 -DT1VAL=10000
-runtest -DSCVAL=100 -DT1VAL=100 -DT2VAL=100
-runtest -DSCVAL=1000 -DT1VAL=1000 -DT2VAL=1000
-runtest -DSCVAL=10000 -DT1VAL=10000 -DT2VAL=10000
-runtest -DSCVAL=100 -DT1VAL=100 -DT2VAL=100 -DT3VAL=100
-runtest -DSCVAL=1000 -DT1VAL=1000 -DT2VAL=1000 -DT3VAL=1000
-runtest -DSCVAL=10000 -DT1VAL=10000 -DT2VAL=10000 -DT3VAL=10000
+
+runtest -DSCVAL=100 -DT1VAL=100 -DT2VAL=100 -DTESTLENGTH=1
+exit
+runtest -DSCVAL=1000 -DT1VAL=1000 -DT2VAL=1000 -DTESTLENGTH=2
+runtest -DSCVAL=10000 -DT1VAL=10000 -DT2VAL=10000 -DTESTLENGTH=2
+runtest -DSCVAL=100 -DT1VAL=100 -DT2VAL=100 -DTESTLENGTH=3
+runtest -DSCVAL=1000 -DT1VAL=1000 -DT2VAL=1000 -DTESTLENGTH=3
+runtest -DSCVAL=10000 -DT1VAL=10000 -DT2VAL=10000 -DTESTLENGTH=3
+runtest -DSCVAL=100 -DT1VAL=100 -DT2VAL=100 -DTESTLENGTH=4
+runtest -DSCVAL=1000 -DT1VAL=1000 -DT2VAL=1000 -DTESTLENGTH=4
+runtest -DSCVAL=10000 -DT1VAL=10000 -DT2VAL=10000 -DTESTLENGTH=4
+runtest -DSCVAL=100 -DT1VAL=100 -DT2VAL=100 -DTESTLENGTH=5
+runtest -DSCVAL=1000 -DT1VAL=1000 -DT2VAL=1000 -DTESTLENGTH=5
+runtest -DSCVAL=10000 -DT1VAL=10000 -DT2VAL=10000 -DTESTLENGTH=5
+exit
+runtest -DSCVAL=6 -DT1VAL=4 -DT2VAL=3 -DT3VAL=4 -DTESTLENGTH=1
+runtest -DSCVAL=10 -DTESTLENGTH=1
+runtest -DSCVAL=100 -DTESTLENGTH=1
+runtest -DSCVAL=1000 -DTESTLENGTH=1
+runtest -DSCVAL=10000 -DTESTLENGTH=1
+runtest -DSCVAL=100 -DT1VAL=100 -DTESTLENGTH=1
+runtest -DSCVAL=1000 -DT1VAL=1000 -DTESTLENGTH=1
+runtest -DSCVAL=10000 -DT1VAL=10000 -DTESTLENGTH=1
+runtest -DSCVAL=100 -DT1VAL=100 -DT2VAL=100 -DTESTLENGTH=1
+runtest -DSCVAL=1000 -DT1VAL=1000 -DT2VAL=1000 -DTESTLENGTH=1
+runtest -DSCVAL=10000 -DT1VAL=10000 -DT2VAL=10000 -DTESTLENGTH=1
+runtest -DSCVAL=100 -DT1VAL=100 -DT2VAL=100 -DT3VAL=100 -DTESTLENGTH=1
+runtest -DSCVAL=1000 -DT1VAL=1000 -DT2VAL=1000 -DT3VAL=1000 -DTESTLENGTH=1
+runtest -DSCVAL=10000 -DT1VAL=10000 -DT2VAL=10000 -DT3VAL=10000 -DTESTLENGTH=1

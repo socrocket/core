@@ -4,7 +4,7 @@ gptimer.h          - The GPTimer TLM Header
 gptimer.tpp        - The GPTimer TLM Implementation (Template include)
 
 gptimer-rec.patch  - A patch to make GRLIB records working with Modlsim scgenmod
-ct_rtl.h           - An adapter to connect an GRLIB APB Device to the AMBAKit APB Bus
+APB_CT_RTL.h       - An adapter to connect an GRLIB APB Device to the AMBAKit APB Bus
 
 testbench.h        - A generic LT Testbench to stimulate RTL and TLM Models
 top_LT.cpp         - The Top-Level-File for the TLM Model Test

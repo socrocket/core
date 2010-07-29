@@ -1,3 +1,18 @@
+/***********************************************************************/
+/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
+/*                                                                     */
+/* File:       top_CT.cpp                                              */
+/*             source file containing the top-level instantiation      */
+/*             for all rtl testbenches to test the rtl gptimer model.  */
+/*                                                                     */
+/* Modified on $Date$   */
+/*          at $Revision$                                         */
+/*                                                                     */
+/* Principal:  European Space Agency                                   */
+/* Author:     VLSI working group @ IDA @ TUBS                         */
+/* Maintainer: Rolf Meyer                                              */
+/***********************************************************************/
+
 
 //#define DEBUG_AMBA
 //#define AMBA_DEBUG
@@ -14,7 +29,7 @@
 #include "amba.h"
 #include "adapters/AMBA_LT_CT_Adapter.h"
 #include "modelsim/gptimer.h"
-#include "ct_rtl.h"
+#include "APB_CT_RTL.h"
 #include "timreg.h"
 #include "testbench.h"
 

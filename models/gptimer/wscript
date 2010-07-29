@@ -1,3 +1,18 @@
+#***********************************************************************#
+#* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *#
+#*                                                                     *#
+#* File:       wscript                                                 *#
+#*             this file contains the build system for the gptimer     *#
+#*             tLM model and all its testbenches.                      *#
+#*                                                                     *#
+#* Modified on $Date$   *#
+#*          at $Revision$                                         *#
+#*                                                                     *#
+#* Principal:  European Space Agency                                   *#
+#* Author:     VLSI working group @ IDA @ TUBS                         *#
+#* Maintainer: Rolf Meyer                                              *#
+#***********************************************************************#
+
 top = '.'
 out = 'build'
 
@@ -23,6 +38,8 @@ def configure(ctx):
   from Options import options
   import os.path
   ctx.env['CXXFLAGS'] = ['-g', '-Wall', '-D_REENTRANT', '-DUSE_STATIC_CASTS', '-DSC_INCLUDE_DYNAMIC_PROCESSES']
+  ctx.env['CPPPATH'] = ['.', '..', '../utils']
+  
   ctx.check_tool('compiler_cxx') 
   
 
@@ -35,9 +52,8 @@ def configure(ctx):
   ctx.env["GREENREGROOT"] = os.path.join(options.greensocs_home, 'greenreg')
   print ctx.env["GREENREGROOT"]
   if options.greensocs_home and options.greensocs_home != "":
-    ctx.env["CPPPATH_GREENREG"] = find.getdirs(ctx.env["GREENREGROOT"], ['*test*', '*examples*'])
-
-    ctx.env["CPPPATH_GREENSOCS"] = [os.path.join(options.greensocs_home, n) for n in GREENSOCS_INC]
+    ctx.env["CPPPATH_GREENSOCS"] = [os.path.join(options.greensocs_home, n) for n in GREENSOCS_INC] + find.getdirs(ctx.env["GREENREGROOT"], ['*test*', '*examples*'])
+ 
     ctx.env["LIBPATH_GREENSOCS"] =  os.path.join(options.greensocs_home, "greenreg")
     ctx.env["LIB_GREENSOCS"] = "greenreg"
     
@@ -67,20 +83,13 @@ def configure(ctx):
   if options.amba_home and options.amba_home != "":
     ctx.env["CPPPATH_AMBA"] = options.amba_home
   
-  ctx.find_program('vlib', var='VLIB', mandatory=True)
-  ctx.find_program('vsim', var='VSIM', mandatory=True)
-  ctx.find_program('sccom', var='SCCOM', mandatory=True)
-  ctx.find_program('scgenmod', var='SCGENMOD', mandatory=True)
-  ctx.find_program('vcom', var='VCOM', mandatory=True)
+  #ctx.find_program('vlib', var='VLIB', mandatory=True)
+  #ctx.find_program('vsim', var='VSIM', mandatory=True)
+  #ctx.find_program('sccom', var='SCCOM', mandatory=True)
+  #ctx.find_program('scgenmod', var='SCGENMOD', mandatory=True)
+  #ctx.find_program('vcom', var='VCOM', mandatory=True)
 
 def build(bld):
-  bld(
-    features = ['cxx', 'cstaticlib'],
-    source = find.getfiles(bld.env["GREENREGROOT"], ['*.cpp'], ['*test*', '*examples*']),
-    export_incldirs = find.getdirs(bld.env["GREENREGROOT"], ['*test*', '*examples*']),
-    target = 'greenreg',
-    uselib = ['BOOST', 'SYSC', 'TLM2', 'SCV', 'GREENSOCS']
-  )
   bld(
     features = ['cxx', 'cprogram'],
     source='top_LT.cpp',

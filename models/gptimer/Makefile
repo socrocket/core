@@ -1,3 +1,18 @@
+#***********************************************************************#
+#* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *#
+#*                                                                     *#
+#* File:       Makefile                                                *#
+#*             This Makefile contains the build logic to build the     *#
+#*             RTL and TLM Testbenches.                                *#
+#*                                                                     *#
+#* Modified on $Date$   *#
+#*          at $Revision$                                         *#
+#*                                                                     *#
+#* Principal:  European Space Agency                                   *#
+#* Author:     VLSI working group @ IDA @ TUBS                         *#
+#* Maintainer: Rolf Meyer                                              *#
+#***********************************************************************#
+
 all: modelsim systemc
 
 libs: modelsim/grlib modelsim/techmap modelsim/gaisler modelsim/work
@@ -15,7 +30,7 @@ OBJECTS=$(patsubst %.cpp,systemc/%.o, $(SOURCES))
 CXX = g++
 CXXFLAGS = -g -Wall -D_REENTRANT -DUSE_STATIC_CASTS -DSC_INCLUDE_DYNAMIC_PROCESSES
 GREENREG_DIRS = -I$(GREENSOCS_HOME)/greenreg -I$(GREENSOCS_HOME)/greenreg/framework/core/analysis -I$(GREENSOCS_HOME)/greenreg/framework/core -I$(GREENSOCS_HOME)/greenreg/framework/devices -I$(GREENSOCS_HOME)/greenreg/framework/registers -I$(GREENSOCS_HOME)/greenreg/sysc_ext/kernel -I$(GREENSOCS_HOME)/greenreg/sysc_ext/utils -I$(GREENSOCS_HOME)/greenreg/sysc_ext/communication -I$(GREENSOCS_HOME)/greenreg/internal/device -I$(GREENSOCS_HOME)/greenreg/internal/registers/register -I$(GREENSOCS_HOME)/greenreg/internal/registers/bit -I$(GREENSOCS_HOME)/greenreg/internal/registers/register_data -I$(GREENSOCS_HOME)/greenreg/internal/registers/bit_range -I$(GREENSOCS_HOME)/greenreg/internal/registers -I$(GREENSOCS_HOME)/greenreg/greenreg_socket -I$(GREENSOCS_HOME)/greenreg/utils -I$(GREENSOCS_HOME)/greenreg/utils/stl_ext -I$(GREENSOCS_HOME)/greenreg/utils/patterns -I$(GREENSOCS_HOME)/greenreg/utils/storage -I$(GREENSOCS_HOME)/greenreg/gs
-INCLUDES = -I. -I.. -I$(SYSTEMC_DIR) -I$(TLM2_DIR) -I$(SCV_DIR) -I$(BOOST_DIR) -I$(GREENSOCS_HOME) -I$(GREENSOCS_HOME)/greensocket -I$(GREENSOCS_HOME)/gsgpsocket -I$(GREENSOCS_HOME)/greencontrol $(GREENREG_DIRS) -I$(AMBA_HOME)
+INCLUDES = -I. -I.. -I../utils -I$(SYSTEMC_DIR) -I$(TLM2_DIR) -I$(SCV_DIR) -I$(BOOST_DIR) -I$(GREENSOCS_HOME) -I$(GREENSOCS_HOME)/greensocket -I$(GREENSOCS_HOME)/gsgpsocket -I$(GREENSOCS_HOME)/greencontrol $(GREENREG_DIRS) -I$(AMBA_HOME) -I$(GREENSOCS_HOME)/signalsocket/green-signal-socket/include
 
 LDFLAGS = 
 LIBDIRS = -L. -L.. -L$(SCV_LIB) -L$(SYSTEMC_LIB) -L$(BOOST_LIB) -L$(GREENSOCS_HOME)/greenreg
@@ -25,8 +40,8 @@ GRSOURCES=$(shell find /home/hwswsim/tools/greensocs-4.0.0/greenreg/ -name *.cpp
 
 exec: systemc
 	systemc/sim.x
-	vcd2wlf register.vcd register.wlf
-	vcd2wlf signals.vcd signals.wlf
+	-vcd2wlf register.vcd register.wlf
+	-vcd2wlf signals.vcd signals.wlf
 
 systemc/.dir:
 	mkdir -p systemc

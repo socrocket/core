@@ -1,5 +1,20 @@
-//#include "gptimer.h"
-#include "timreg.h"
+/***********************************************************************/
+/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
+/*                                                                     */
+/* File:       gptimer.tpp                                             */
+/*             source file defining the implementation of the gptimer  */
+/*             model. Due to the fact that the gptimer class is a      */
+/*             template class it gets included by its definition in    */
+/*             gptimer.h                                               */
+/*                                                                     */
+/* Modified on $Date$   */
+/*          at $Revision$                                         */
+/*                                                                     */
+/* Principal:  European Space Agency                                   */
+/* Author:     VLSI working group @ IDA @ TUBS                         */
+/* Maintainer: Rolf Meyer                                              */
+/***********************************************************************/
+
 #include <string>
 
 #define SCALER            (0x00)
@@ -48,16 +63,25 @@ void Counter<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::en
 
 template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
 void Counter<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::ctrl_read() {
-  p.r[CTRL].b[TIM_CTRL_DH] = (p.gpti.read().dhalt == 1);
+  p.r[CTRL].b[TIM_CTRL_DH] = (p.get_dhalt() != 0);
   p.r[CTRL].b[TIM_CTRL_IP] = m_pirq; 
 }
 
 template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
 void Counter<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::ctrl_write() {
-  p.r[CTRL].b[TIM_CTRL_DH] = (p.gpti.read().dhalt == 1);
+  p.r[CTRL].b[TIM_CTRL_DH] = (p.get_dhalt() != 0);
 
   /* Clean irq if desired */
+  bool old_pirq = m_pirq;
+
   m_pirq = p.r[CTRL].b[TIM_CTRL_IP] and m_pirq;
+  if(old_pirq && !m_pirq) {
+    unsigned int irqnr = (p.r[CONF] >> 3) & 0xF;
+    if(p.r[CONF].b[TIM_CONF_SI]) {
+       irqnr += nr;
+    }
+    SIGNAL_SET_SOC(p.out, clr_irq, (1<<irqnr));
+  }
 
   /* Prepare for chainging */
   if(p.r[CTRL].b[TIM_CTRL_CH]) {
@@ -89,13 +113,13 @@ void Counter<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::va
   if(!stopped) {
     sc_core::sc_time now = sc_core::sc_time_stamp();
     int reload = p.r[RELOAD] + 1;
-    int ticks;
+    int dticks;
     if(p.r[CTRL].b[TIM_CTRL_CH]) {
-      ticks = p.numberofticksbetween(lasttime, now, 0, p.counter[nr-1]->cycletime());
+      dticks = p.numberofticksbetween(lasttime, now, 0, p.counter[nr-1]->cycletime());
     } else {
-      ticks = p.numberofticksbetween(lasttime, now, nr+2, p.clockcycle);
+      dticks = p.numberofticksbetween(lasttime, now, nr+2, p.clockcycle);
     }
-    int value = ((int)lastvalue - ticks) % reload;
+    int value = ((int)lastvalue - dticks) % reload;
     
     if(value<0) {
       p.r[VALUE] = reload + value;
@@ -123,7 +147,6 @@ void Counter<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::ch
 
 template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
 void Counter<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::ticking() {
-  bool val;
   while(1) {
     /* calculate sleep time, counter timeout */
     calculate();
@@ -140,33 +163,26 @@ void Counter<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::ti
     if(p.r[CTRL].b[TIM_CTRL_IE]) {
         // p.r[CTRL].b[TIM_CTRL_SI] // seperatet interupts
         // APBIRQ addresse beachten -.-
-      unsigned int irqnr = (p.r[CONF] >> 3) & 0xF, irq;
+      unsigned int irqnr = (p.r[CONF] >> 3) & 0xF;
       #ifdef DEBUG
       std::cout << "IRQ: " << irqnr << " CONF "<< p.r[CONF] << std::endl;
       #endif
       if(p.r[CONF].b[TIM_CONF_SI]) {
         irqnr += nr;
       }
-      irq = pirq.read();
-      irq &= (1<<irqnr);
+      SIGNAL_SET_SOC(p.out, set_irq, irqnr);
 #ifdef DEBUGOUT
-      val = p.tick[nr+1].read();
-      val = true;
-      if(p.reset==1) {
-        p.tick[nr+1].write(val);
-        pirq.write(irqnr);
+      if(p.get_rst() == 1) {
+        p.ticks |= (1<<(nr + 1));
+        SIGNAL_SET_SOC(p.out, tick, p.ticks);
       }
 #endif
       m_pirq = true;
       wait(p.clockcycle);
-      irq = pirq.read();
-      irq &= ~(1<<irqnr);
 #ifdef DEBUGOUT
-      val = p.tick[nr+1].read();
-      val = false;
-      if(p.reset==1) {
-        p.tick[nr+1].write(val);
-        pirq.write(irqnr);
+      if(p.get_rst() == 1) {
+        p.ticks |= ~(1<<(nr + 1));
+        SIGNAL_SET_SOC(p.out, tick, p.ticks);
       }
 #endif
     }
@@ -267,7 +283,7 @@ void Counter<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::ca
 template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
 void Counter<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::start() {
   //std::cout << "start_" << nr << " stopped:" << stopped << "-" << (!p.r[CTRL].b[TIM_CTRL_CH] || (p.r[CTRL].b[TIM_CTRL_CH] && chain_run)) << std::endl;
-  if(stopped && p.r[CTRL].b[TIM_CTRL_EN] && (p.gpti.read().dhalt != 1) && 
+  if(stopped && p.r[CTRL].b[TIM_CTRL_EN] && (p.get_dhalt() == 0) && 
     (!p.r[CTRL].b[TIM_CTRL_CH] || (p.r[CTRL].b[TIM_CTRL_CH] && chain_run))) {
     //std::cout << "start_" << nr << std::endl;
     
@@ -296,8 +312,7 @@ template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbit
 Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::Timer(sc_core::sc_module_name name, unsigned int ntimers)
   : gr_device(name, gs::reg::ALIGNED_ADDRESS, 4*(1+ntimers), NULL)
   , bus( "bus", r, 0x0, 0xFFFFFFFF, ::amba::amba_APB, ::amba::amba_LT, false)
-  , reset("reset"), gpti("GPTIMER_IN"), gpto("GPTIMER_OUT"), pirqi("GPTIMER_IRQ_IN"), pirqo("GPTIMER_IRQ_OUT")
-  , pconfig_0("PCONFIG_0"), pconfig_1("PCONFIG_1"), pindex("PINDEX")
+  , in("IJ"), out("OUT"), ticks(0)
   , conf_defaults((gsepirq << 8) | ((gpirq & 0xF) << 3) | (ntimers & 0x7))
   , lasttime(0, sc_core::SC_NS), lastvalue(0)
   , clockcycle(10.0, sc_core::SC_NS) {
@@ -363,21 +378,21 @@ Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::Timer(sc_
 
   #ifdef DEBUGOUT  
   SC_THREAD(ticking);
-
-  SC_THREAD(tickjoin);
-  sensitive << tick[0] << tick[1] << tick[2] << tick[3] << tick[4] << tick[5] << tick[6] << tick[7];
   #endif
 
-  SC_THREAD(irqjoin);
-  for(unsigned int i=0;i<counter.size();i++) {
-    sensitive << counter[i]->pirq;
-  }
+  sender_config sconf;
+  //conf.use_mandatory_extension<bar>();
+  sconf.use_optional_extension<set_irq>();
+  sconf.use_optional_extension<clr_irq>();
+  register_sender_socket(out, sconf);
 
-  SC_THREAD(do_reset);
-  sensitive << reset.pos(); 
+  target_config tconf;
+  tconf.use_mandatory_extension<rst>();
+  tconf.use_optional_extension<dhalt>();
+  register_target_socket(this, in, tconf);
 
-  SC_THREAD(do_dhalt);
-  sensitive << gpti;
+  CB_HANDLER(rst, Timer, &Timer::do_reset);
+  CB_HANDLER(dhalt, Timer, &Timer::do_dhalt);
 }
 
 template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
@@ -437,70 +452,38 @@ void Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::tick
 
 template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
 void Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::ticking() {
-  bool val;
   while(1) {
     tick_calc();
     wait(e_tick);
-    val = tick[0].read();
-    val = true;
-    if(reset == 1) {
-      tick[0].write(val);
+    if(get_rst() == 1) {
+      ticks |= 1;
+      SIGNAL_SET(tick, ticks);
     }
     wait(clockcycle);
-    val = tick[0].read();
-    val = false;
-    if(reset == 1) {
-      tick[0].write(val);
+    if(get_rst() == 1) {
+      ticks |= ~1;
+      SIGNAL_SET(tick, ticks);
     }
   }   
 }
-
-template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
-void Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::tickjoin() {
-  gptimer_out_type val;
-  while(1) {
-    val = gpto.read();
-    val.tick = 0;
-    for(int i = 0; i < 8; i++) {
-      bool t = tick[i].read();
-      val.tick |= (t<<(7-i));
-    }
-    gpto.write(val);
-    wait();
-  }
-}
 #endif
-
-template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
-void Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::irqjoin() {
-  unsigned int irq = 0;
-  while(1) {
-    for(unsigned int i = 0; i < counter.size(); i++) {
-      irq |= counter[i]->pirq.read();
-    }
-    pirqo.write(irq);
-    wait();
-  }
-}
 
 /* Disable or enable Counter when DHALT arrives 
  * The value will be directly fetched in conf_read to show the right value in the conf registers.
  */
 template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
-void Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::do_dhalt() {
-  while(1) {
-    if(r[TIM_CONF].b[TIM_CONF_DF]) {
-      if(gpti.read().dhalt == 1) {
-        for(typename std::vector<counter_type *>::iterator iter=counter.begin();iter!=counter.end();iter++) {
-          (*iter)->stop();
-        }
-      } else {
-        for(typename std::vector<counter_type *>::iterator iter=counter.begin();iter!=counter.end();iter++) {
-          (*iter)->start();
-        }
+void Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::do_dhalt(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
+  if(r[TIM_CONF].b[TIM_CONF_DF]) {
+    //dhalt_val = in.get_last_value<dhalt>();
+    if(get_dhalt()) {
+      for(typename std::vector<counter_type *>::iterator iter=counter.begin();iter!=counter.end();iter++) {
+        (*iter)->stop();
+      }
+    } else {
+      for(typename std::vector<counter_type *>::iterator iter=counter.begin();iter!=counter.end();iter++) {
+        (*iter)->start();
       }
     }
-    wait();
   }
 }
 
@@ -551,38 +534,31 @@ void Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::conf
 }
 
 template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
-void Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::do_reset() {
-  gptimer_out_type val;
-  while(1) {
-    wait();
-    if(reset==0) {
-      r[SCALER]   = 0xFFFFFFFF;
-      r[SCRELOAD] = 0xFFFFFFFF;
-      r[CONF]   = conf_defaults;
-      lastvalue = 0;
-      val.tick  = 0;
-      val.timer1 = 0;
-      val.wdogn  = true;
-      val.wdog   = false;
-      gpto.write(val);
-      lasttime = sc_core::sc_time_stamp();
-      scaler_write();
-      scaler_read();
-      
-      for(typename std::vector<counter_type *>::iterator iter=counter.begin();iter!=counter.end();iter++) {
-        (*iter)->do_reset();
-      }
+void Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::do_reset(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
+  if(!get_rst()) {
+    r[SCALER]   = 0xFFFFFFFF;
+    r[SCRELOAD] = 0xFFFFFFFF;
+    r[CONF]   = conf_defaults;
+    lastvalue = 0;
+    SIGNAL_SET(tick, 0);
+    SIGNAL_SET(wdog, 0);
+    lasttime = sc_core::sc_time_stamp();
+    scaler_write();
+    scaler_read();
+    
+    for(typename std::vector<counter_type *>::iterator iter=counter.begin();iter!=counter.end();iter++) {
+      (*iter)->do_reset();
     }
   }
 }
 
 template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
-int Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::valueof(sc_core::sc_time t, int offset, sc_core::sc_time cycletime) {
+inline int Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::valueof(sc_core::sc_time t, int offset, sc_core::sc_time cycletime) const {
   return (int)(lastvalue - ((t - lasttime - (1+offset)* cycletime) / cycletime) + 1);
 }
  
 template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
-int Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime) {
+inline int Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime) {
   int reload = r[SCRELOAD] + 1;
   int val_a = valueof(a, 0, cycletime);
   int val_b = valueof(b, counter, cycletime);
