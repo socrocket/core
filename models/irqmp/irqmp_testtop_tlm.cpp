@@ -14,8 +14,8 @@
 
 #include "amba.h"
 #include "irqmp.h"
-#include "irqmpreg.h"
 #include "irqmp_tb.h"
+#include "irqmpsignals.h"
 
 int sc_main(int argc, char** argv) {
   //set generics
@@ -26,51 +26,70 @@ int sc_main(int argc, char** argv) {
   const int ncpu = 2;
   const int eirq = 1;
 
-  //irqmp signals
-  sc_core::sc_signal<bool>                rst("rst");
-  sc_core::sc_signal<l3_irq_out_type>     irqi[ncpu];
-  sc_core::sc_signal<l3_irq_in_type>      irqo[ncpu];
-
-/*
-  for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
-    sc_core::sc_signal<l3_irq_out_type>     gen_unique_name("irqi", false);
-    sc_core::sc_signal<l3_irq_in_type>      gen_unique_name("irqo", false);
-  }
-*/
-
-/*
-  sc_core::sc_signal<l3_irq_out_type>           irqi_0("irqi_0");
-  sc_core::sc_signal<l3_irq_out_type>           irqi_1("irqi_1");
-  sc_core::sc_signal<l3_irq_in_type>            irqo_0("irqo_0");
-  sc_core::sc_signal<l3_irq_in_type>            irqo_1("irqo_1");
-*/
-  sc_core::sc_signal<sc_dt::sc_uint<32> > apbi_pirq("apbi_pirq"),
-                                          apbo_pconfig_0("apbo_pconfig_0"),
-                                          apbo_pconfig_1("apbo_pconfig_1");
-  sc_core::sc_signal<sc_dt::sc_uint<16> > apbo_pindex("pindex");
-
   //instantiate testbench and irqmp
   irqmp_tb<buswidth, pindex, paddr, pmask, ncpu, eirq> irqmp_tb("irqmp_tb");
   Irqmp<pindex, paddr, pmask, ncpu, eirq> irqmp_inst0("irqmp");
 
   //bus communication via sockets (TLM)
   irqmp_tb.master_sock(irqmp_inst0.bus);
-  irqmp_tb.rst(rst);
-  irqmp_tb.apbi_pirq(apbi_pirq);
-  for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
-    irqmp_tb.irqi[i_cpu](irqi[i_cpu]);
-  }
 
-  //direct connection of all other signals
-  irqmp_inst0.rst(rst);
-  irqmp_inst0.apbi_pirq(apbi_pirq);
-  irqmp_inst0.apbo_pindex(apbo_pindex);
-  irqmp_inst0.apbo_pconfig_0(apbo_pconfig_0);
-  irqmp_inst0.apbo_pconfig_1(apbo_pconfig_1);
-  for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
-    irqmp_inst0.irqi[i_cpu](irqi[i_cpu]);
-    irqmp_inst0.irqo[i_cpu](irqo[i_cpu]);
-  }
+  //routing signal communication
+  irqmp.out(irqmp_tb.out);
+  irqmp_tb.out.set_source<irq0>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq1>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq2>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq3>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq4>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq5>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq6>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq7>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq8>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq9>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq10>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq11>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq12>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq13>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq14>(irqmp.out.name());
+  irqmp_tb.out.set_source<irq15>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst0>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst1>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst2>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst3>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst4>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst5>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst6>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst7>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst8>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst9>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst10>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst11>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst12>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst13>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst14>(irqmp.out.name());
+  irqmp_tb.out.set_source<rst15>(irqmp.out.name());
+
+  irqmp_tb.in(irqmp.in);
+  irqmp.in.set_source<rst>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq0>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq1>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq2>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq3>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq4>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq5>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq6>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq7>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq8>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq9>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq10>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq11>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq12>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq13>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq14>(irqmp_tb.in.name());
+  irqmp.in.set_source<irq15>(irqmp_tb.in.name());
+  irqmp.in.set_source<set_irq>(irqmp_tb.in.name());
+  irqmp.in.set_source<clr_irq>(irqmp_tb.in.name());
+
+  //start simulation
   sc_core::sc_start();
   return 0;
 }

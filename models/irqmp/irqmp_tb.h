@@ -17,31 +17,21 @@
 #ifndef IRQMP_TB_H
 #define IRQMP_TB_H
 
-#include "amba.h"
+#include "apbtestbench.h"
+#include "multisignalhandler.h"
 
 template<unsigned int BUSWIDTH, int pindex = 0, int paddr = 0, int pmask = 0xFFF, int ncpu = 2, int eirq = 1>
-class irqmp_tb : public sc_core::sc_module {
+class irqmp_tb : public APBTestbench, MultiSignalSender, MultiSignalTarget<irqmp_tb> {
   public:
-    //bus communication via socket
-    amba::amba_master_socket<BUSWIDTH> master_sock;
-
     //Non-AMBA-Inputs of IRQMP
-    sc_core::sc_out<bool>            rst;
-    sc_core::sc_out<sc_uint<32> >    apbi_pirq;
-    sc_core::sc_out<l3_irq_out_type> irqi[ncpu];
-/*
-    for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
-      sc_core::sc_in<l3_irq_out_type>      gen_unique_name("irqi", false);
-    }
-*/
+    gs_generic_signal::target_signal_multi_socket<
+              irqmp_tb<BUSWIDTH, pindex, paddr, pmask, ncpu, eirq> >  out;
+    gs_generic_signal::initiator_signal_multi_socket                  in;
+
     SC_HAS_PROCESS(irqmp_tb);
 
     //constructor
     irqmp_tb(sc_core::sc_module_name nm);
-
-    //define TLM write and read transactions
-    void write(uint32_t addr, uint32_t data, uint32_t width);
-    uint32_t read(uint32_t addr, uint32_t width);
 
     //stimuli (make use of TLM write / read transaction functions defined above)
     void run();

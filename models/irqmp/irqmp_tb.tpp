@@ -20,58 +20,73 @@
 #include "amba.h"
 #include "irqmpreg.h"
 
-#define SHOW \
-{ std::printf("\n@%-7s /%-4d:", sc_core::sc_time_stamp().to_string().c_str(), (unsigned)sc_core::sc_delta_count());}
-#define REG(name) \
-{ std::cout << " "#name << ": 0x" << std::hex << std::setfill('0') << std::setw(2) << read(name, 4); }
-#define SET(name, val) \
-{ write(name, val, 4); }
-
-
 //constructor
 template<unsigned int BUSWIDTH, int pindex, int paddr, int pmask, int ncpu, int eirq> 
   irqmp_tb<BUSWIDTH, pindex, paddr, pmask, ncpu, eirq>::irqmp_tb(sc_core::sc_module_name nm)
-  : master_sock ("msock", amba::amba_APB, amba::amba_LT, false) {
+  : APB_Testbench(nm), in("irqmp_in"), out("irqmp_out") {
 
   SC_THREAD(run);
-}
+  
+  sender_config sconf;
+  //conf.use_mandatory_extension<bar>();
+  sconf.use_mandatory_extension<rst>();
+  sconf.use_optional_extension<irq0>();
+  sconf.use_optional_extension<irq1>();
+  sconf.use_optional_extension<irq2>();
+  sconf.use_optional_extension<irq3>();
+  sconf.use_optional_extension<irq4>();
+  sconf.use_optional_extension<irq5>();
+  sconf.use_optional_extension<irq6>();
+  sconf.use_optional_extension<irq7>();
+  sconf.use_optional_extension<irq8>();
+  sconf.use_optional_extension<irq9>();
+  sconf.use_optional_extension<irq10>();
+  sconf.use_optional_extension<irq11>();
+  sconf.use_optional_extension<irq12>();
+  sconf.use_optional_extension<irq13>();
+  sconf.use_optional_extension<irq14>();
+  sconf.use_optional_extension<irq15>();
+  sconf.use_optional_extension<set_irq>();
+  //sconf.use_optional_extension<clr_irq>();
+  register_sender_socket(in, sconf);
 
-
-//TLM write transaction
-template<unsigned int BUSWIDTH, int pindex, int paddr, int pmask, int ncpu, int eirq> 
-  void irqmp_tb<BUSWIDTH, pindex, paddr, pmask, ncpu, eirq>::write(uint32_t addr, uint32_t data, uint32_t width) {
-    sc_core::sc_time t;
-    tlm::tlm_generic_payload gp;
-      gp.set_command(tlm::TLM_WRITE_COMMAND);
-      gp.set_address(addr);
-      gp.set_data_length(width);
-      gp.set_streaming_width(4);
-      gp.set_byte_enable_ptr(NULL);
-      gp.set_data_ptr((unsigned char*)&data);
-    master_sock->b_transport(gp,t);
-    SHOW;
-    std::cout << " WRITE " << gp.get_response_string() << ": 0x" << std::hex << std::setfill('0') << std::setw(2) << gp.get_address();
-    wait(t);
-}
-
-//TLM read transaction
-template<unsigned int BUSWIDTH, int pindex, int paddr, int pmask, int ncpu, int eirq>
-  uint32_t irqmp_tb<BUSWIDTH, pindex, paddr, pmask, ncpu, eirq>::read(uint32_t addr, uint32_t width) {
-    sc_core::sc_time t;
-    uint32_t data;
-    tlm::tlm_generic_payload gp;
-      gp.set_command(tlm::TLM_READ_COMMAND);
-      gp.set_address(addr);
-      gp.set_data_length(width);
-      gp.set_streaming_width(4);
-      gp.set_byte_enable_ptr(NULL);
-      gp.set_data_ptr((unsigned char*)&data);
-      gp.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
-    master_sock->b_transport(gp,t);
-    SHOW;
-    std::cout << " READ " << gp.get_response_string() << ": 0x" << std::hex << std::setfill('0') << std::setw(2) << gp.get_address();
-    wait(t);
-    return data;
+  target_config tconf;
+/*
+  tconf.use_optional_extension<irq0>();
+  tconf.use_optional_extension<irq1>();
+  tconf.use_optional_extension<irq2>();
+  tconf.use_optional_extension<irq3>();
+  tconf.use_optional_extension<irq4>();
+  tconf.use_optional_extension<irq5>();
+  tconf.use_optional_extension<irq6>();
+  tconf.use_optional_extension<irq7>();
+  tconf.use_optional_extension<irq8>();
+  tconf.use_optional_extension<irq9>();
+  tconf.use_optional_extension<irq10>();
+  tconf.use_optional_extension<irq11>();
+  tconf.use_optional_extension<irq12>();
+  tconf.use_optional_extension<irq13>();
+  tconf.use_optional_extension<irq14>();
+  tconf.use_optional_extension<irq15>();
+  tconf.use_optional_extension<rst0>();
+  tconf.use_optional_extension<rst1>();
+  tconf.use_optional_extension<rst2>();
+  tconf.use_optional_extension<rst3>();
+  tconf.use_optional_extension<rst4>();
+  tconf.use_optional_extension<rst5>();
+  tconf.use_optional_extension<rst6>();
+  tconf.use_optional_extension<rst7>();
+  tconf.use_optional_extension<rst8>();
+  tconf.use_optional_extension<rst9>();
+  tconf.use_optional_extension<rst10>();
+  tconf.use_optional_extension<rst11>();
+  tconf.use_optional_extension<rst12>();
+  tconf.use_optional_extension<rst13>();
+  tconf.use_optional_extension<rst14>();
+  tconf.use_optional_extension<rst15>();
+*/
+  register_target_socket(this, out, tconf);
+ 
 }
 
 //stimuli
@@ -79,9 +94,9 @@ template<unsigned int BUSWIDTH, int pindex, int paddr, int pmask, int ncpu, int 
   void irqmp_tb<BUSWIDTH, pindex, paddr, pmask, ncpu, eirq>::run() {
     sc_core::sc_time t;
     //trivial one word write
-    rst = 0;
+    SIGNAL_SET(rst, 0);
     wait(30, sc_core::SC_NS);
-    rst = 1;
+    SIGNAL_SET(rst, 1);
     wait(10, sc_core::SC_NS);
 
     SET(IRQMP_PROC_IR_MASK(0),   0x0000000F);
