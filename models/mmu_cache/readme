@@ -1,6 +1,7 @@
 This directory contains following folder:
 
 lib 			- Source code of the mmu_cache implementation.
-lt_ct_default_test	- A testbench for the mmu_cache, featuring a LT testbench, a cycle accurate bus implementation and cycle accurate main memory.
-			  To execute the testbench, change into this directory.
-
+lt_ct_default_test	- A testbed for the default configuration of the mmu_cache, containing a LT testbench, a cycle accurate bus implementation and cycle accurate main memory.
+			  The MMU is disabled. To execute the testbench, change into this directory.
+lt_ct_mmu_test		- A testbed using the same system configuration as described for lt_ct_default_test. 
+			  The MMU is enabled here. To run, change into this directory.

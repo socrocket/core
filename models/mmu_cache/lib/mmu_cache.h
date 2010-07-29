@@ -101,6 +101,22 @@ class mmu_cache : public mmu_cache_if, public sc_core::sc_module {
 
   private:
 
+  // CACHE CONTROL REGISTER
+  // ======================
+  // [1:0] instruction cache state (ICS) - indicates the current instruction cache state
+  // (X0 - disabled, 01 - frozen, 11 - enabled)
+  // [3:2] data cache state (DCS) - indicates the current data cache state
+  // (X0 - disabled, 01 - frozen, 11 - enabled)
+  // [4] instruction cache freeze on interrupt (IF) - if set the instruction cache will automatically be frozen when an asynchronous interrupt is taken
+  // [5] data cache freeze on interrupt (DF) - if set the data cache will automatically be frozen when an asynchronous interrupt is taken
+  // [14] - data cache flush pending (DP) - This bit is set when an data cache flush operation is in progress
+  // [15] - instruction cache flush pending (IP) - This bis is set when an instruction cache flush operation is in progress
+  // [16] - instruction burst fetch (IB) - This bit enables burst fill during instruction fetch
+  // [21] - Flush Instruction cache (FI) - If set, will flush the instruction cache. Always reads as zero.
+  // [22] - Flush data cache (FD)        - If set, will flush the data cache. Always reads as zero.
+  // [23] - Data cache snoop enable (DS) - If set, will enable data cache snooping.
+  unsigned int CACHE_CONTROL_REG;
+
   // amba related
   unsigned int master_id;
   unsigned int m_txn_count;

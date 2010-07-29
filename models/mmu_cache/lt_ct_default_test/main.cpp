@@ -8,8 +8,8 @@
 /*             a testbench (lt) and a cycle timed AHB bus.             */
 /*                                                                     */
 /*                                                                     */
-/* Modified on $Date$                                                  */
-/*          at $Revision$                                              */
+/* Modified on $Date$   */
+/*          at $Revision$                                         */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
@@ -72,7 +72,8 @@ int sc_main(int argc, char** argv) {
   // create testbench
   testbench tb("Testbench");
 
-  // create mmu-cache
+  // CREATE MMU Cache
+  // ----------------
   // constructor args: 
   // - name of sysc module
   // - id of the AHB master
@@ -85,7 +86,13 @@ int sc_main(int argc, char** argv) {
   // - itlb delay on read miss
   // - dtlb delay on read hit
   // - dtlb delay on read miss
-  mmu_cache<> mmu_cache("mmu_cache", 
+  //
+  // template parameters:
+  // <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, int isetlock,
+  //  int dcen, int drepl, int dsets, int dlinesize, int dsetsize, int dsetlock, int dsnoop,
+  //  int ilram, int ilramsize, int ilramstart, int dlram, int dlramsize, int dlramstart, int cached,
+  //  int mmu_en, int itlb_num, int dtlb_num, int tlb_type, int tlb_rep, int mmupgsz>
+  mmu_cache<0,1,3,4,4,1,0,1,3,4,4,1,0,0,0,1,0x0000008f,0,1,0x0000008f,0,0,8,8,1,0,0> mmu_cache("mmu_cache", 
 			CACHE_MASTER_ID, 
 			sc_core::sc_time(0, sc_core::SC_NS), 
 			sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),

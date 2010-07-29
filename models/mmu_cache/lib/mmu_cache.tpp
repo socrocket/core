@@ -90,6 +90,13 @@ mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 			// register forward transport functions for icio and dcio sockets (slave)
 			icio.register_b_transport(this, &mmu_cache::icio_custom_b_transport);
 			dcio.register_b_transport(this, &mmu_cache::dcio_custom_b_transport);
+
+			// initialize cache control registers
+			CACHE_CONTROL_REG = 0;
+
+			CACHE_CONTROL_REG |= (icen == 1) ? 0x3 : 0; 
+			CACHE_CONTROL_REG |= (dcen == 1) ? 0xc : 0;
+			
 }
 
 // TLM forward transport for icio socket
@@ -110,16 +117,11 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
   // unsigned char*   byt = tran.get_byte_enable_ptr();
   // unsigned int     wid = tran.get_streaming_width();
 
-  // extract extension
-  icio_payload_extension * iext;
-  tran.get_extension(iext);
-
   if(cmd==tlm::TLM_READ_COMMAND) 
   {
-    icache->read((unsigned int)adr, (unsigned int*)ptr, iext, &delay);
-
+    icache->read((unsigned int)adr, (unsigned int*)ptr, &delay);
     //DUMP(name(),"ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
-  }
+  } 
   else if(cmd==tlm::TLM_WRITE_COMMAND) 
   {
     //DUMP(name(),"Command not valid for instruction cache (tlm_write)");
@@ -149,18 +151,156 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
   dcio_payload_extension * dext;
   tran.get_extension(dext);
 
-  if(cmd==tlm::TLM_READ_COMMAND) 
-  {
-    dcache->read((unsigned int)adr, (unsigned int*)ptr, dext, &delay);
+  unsigned int asi = dext->asi;
 
-    //DUMP(name(),"DCIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
-  }
-  else if(cmd==tlm::TLM_WRITE_COMMAND) 
-  {
-    dcache->write((unsigned int)adr, (unsigned int*)ptr, (unsigned int*)byt, dext, &delay);
-    //DUMP(name(),"DCIO Socket done tlm_write");
-  }
+  // access system registers
+  if (asi == 2) {
 
+	if (cmd==tlm::TLM_READ_COMMAND) {
+		
+		DUMP(this->name(),"ASI read access system registers - addr:" << std::hex << adr);
+		if (adr == 0) {
+			// cache control register
+			*(unsigned int *)ptr = CACHE_CONTROL_REG;
+		}
+		else if (adr == 8) {
+			// instruction cache configuration register
+			*(unsigned int *)ptr = icache->read_config_reg(&delay);
+		}
+		else if (adr == 0x0c) {
+			// data cache configuration register
+			*(unsigned int *)ptr = dcache->read_config_reg(&delay);
+		}
+		else {
+			*ptr = 0;
+		}
+	} 
+	else if (cmd==tlm::TLM_WRITE_COMMAND) {
+		DUMP(this->name(),"ASI write access system register");
+		if (adr == 0) {
+			// cache control register
+			CACHE_CONTROL_REG = (unsigned int)*ptr;
+		}
+		// TRIGGER DEBUG OUTPUT / NOT A SPARC SYSTEM REGISTER
+		else if (adr == 0xfe) {
+			// icache debug output (arg: line)
+			icache->dbg_out(*ptr);
+		}
+		else if (adr == 0xff) {
+			// dcache debug output (arg: line)
+			dcache->dbg_out(*ptr);
+		}
+		else {
+			// ignore (cache configuration regs (0x8, 0xc) are read only
+		}
+	}
+	else {
+		DUMP(this->name(),"Unvalid TLM Command");
+	}
+  }
+  // access instruction cache tags
+  else if (asi == 0xc) {
+
+	if (cmd==tlm::TLM_READ_COMMAND) {
+		DUMP(this->name(),"ASI read instruction cache tags");
+		icache->read_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);
+	}
+	else if (cmd==tlm::TLM_WRITE_COMMAND) {
+		DUMP(this->name(),"ASI write instruction cache tags");
+		icache->write_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);
+	}
+	else {
+		DUMP(this->name(), "Unvalid TLM Command");
+	}
+  }
+  // access instruction cache data
+  else if (asi == 0xd) {
+
+	if (cmd==tlm::TLM_READ_COMMAND) {
+		DUMP(this->name(),"ASI read instruction cache entry");
+		icache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
+	}
+	else if (cmd==tlm::TLM_WRITE_COMMAND) {
+		DUMP(this->name(),"ASI write instruction cache entry");
+		icache->write_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
+	}
+	else {
+		DUMP(this->name(), "Unvalid TLM Command");
+	}
+  }
+  // access data cache tags
+  else if (asi == 0xe) {
+
+	if (cmd==tlm::TLM_READ_COMMAND) {
+		DUMP(this->name(),"ASI read data cache tags");
+		dcache->read_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);
+	}
+	else if (cmd==tlm::TLM_WRITE_COMMAND) {
+		DUMP(this->name(),"ASI write data cache tags");
+		dcache->write_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);
+	}
+	else {
+		DUMP(this->name(), "Unvalid TLM Command");
+	}
+  }
+  // access data cache data
+  else if (asi == 0xf) {
+	
+	if (cmd==tlm::TLM_READ_COMMAND) {
+		DUMP(this->name(),"ASI read data cache entry");
+		dcache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
+	}
+	else if (cmd==tlm::TLM_WRITE_COMMAND) {
+		DUMP(this->name(),"ASI write data cache entry");
+		dcache->write_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
+	}
+	else {
+		DUMP(this->name(), "Unvalid TLM Command");
+	}
+  }
+  // flush instruction cache
+  else if (asi == 0x10) {
+
+	// icache is flushed on any write with ASI 0x10
+	if (cmd==tlm::TLM_WRITE_COMMAND) {
+		DUMP(this->name(),"ASI flush instruction cache");
+		icache->flush(&delay);
+	}
+	else {
+		DUMP(this->name(), "Unvalid TLM Command");
+	}
+  }
+  // flush data cache
+  else if (asi == 0x11) {
+
+	// dcache is flushed on any write with ASI 0x11
+	if (cmd==tlm::TLM_WRITE_COMMAND) {
+		DUMP(this->name(), "ASI flush data cache");
+		dcache->flush(&delay);
+	}
+	else {
+		DUMP(this->name(), "Unvalid TLM Command");
+	}
+  }
+  // ordinary cache access
+  else if ((asi == 0x8)||(asi == 0x9)||(asi == 0xa)||(asi == 0xb)) {
+
+    if (cmd==tlm::TLM_READ_COMMAND) {
+
+      dcache->read((unsigned int)adr, (unsigned int*)ptr, &delay);
+      //DUMP(name(),"ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
+    }
+    else if(cmd==tlm::TLM_WRITE_COMMAND) 
+    {
+      dcache->write((unsigned int)adr, (unsigned int*)ptr, (unsigned int*)byt, &delay);
+      //DUMP(name(),"DCIO Socket done tlm_write");
+    }
+  }
+  else {
+
+   DUMP(name(),"ASI not recognized: " << std::hex << asi);
+   assert(0);
+  }
 }
 
 // Function for write access to AHB master socket

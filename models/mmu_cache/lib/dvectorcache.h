@@ -37,14 +37,23 @@ class dvectorcache : public sc_core::sc_module {
 
   // external interface functions:
   // ----------------------------
-  // call to read from cache
-  void read(unsigned int address, unsigned int * data, dcio_payload_extension * ext, sc_core::sc_time * t);
-
-  // call to write through cache
-  void write(unsigned int address, unsigned int * data, unsigned int * byt, dcio_payload_extension * ext, sc_core::sc_time * t); 
-
-  // call to flush cache
+  // read from cache
+  void read(unsigned int address, unsigned int * data, sc_core::sc_time * t);
+  // write through cache
+  void write(unsigned int address, unsigned int * data, unsigned int * byt, sc_core::sc_time * t); 
+  // flush cache
   void flush(sc_core::sc_time * t);
+  // read data cache tags (ASI 0xe)
+  void read_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);
+  // write data cache tags (ASI 0xe)
+  void write_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);
+  // read data cache entries/data (ASI 0xf)
+  void read_cache_entry(unsigned int address, unsigned int * data, sc_core::sc_time *t);
+  // write data cache entries/data (ASI 0xf)
+  void write_cache_entry(unsigned int address, unsigned int * data, sc_core::sc_time *t);
+  // read cache configuration register (ASI 0x2)
+  unsigned int read_config_reg(sc_core::sc_time *t);
+
 
   // internal behavioral functions
   // -----------------------------
@@ -73,7 +82,7 @@ class dvectorcache : public sc_core::sc_module {
   // debug and helper functions
   // --------------------------
   // display data from dedicated cache set
-  void dbg_read(unsigned int set, unsigned int start_idx, unsigned int number_of_entries); 
+  void dbg_out(unsigned int line); 
 
  public:
 
@@ -84,6 +93,24 @@ class dvectorcache : public sc_core::sc_module {
 
   // the class with the mmu interface
   mmu_if * m_mmu;
+
+  // cache configuration register (ASI 0x2):
+  // [3]     MMU present - This bit is set to '1' if an MMU is present
+  // [11:4]  Local RAM start address - The 8 MSBs of the local ram start address
+  // [15:12] Local RAM size (LRSZ) - Size in Kbytes of the local scratch pad ram
+  // (local RAM size = 2^LRSZ)
+  // [18:16] Line size (LSIZE) - The size (words) of each cache line
+  // (line size = 2^LSIZE)
+  // [19]    Local RAM (LR) - Set if local scratch pad ram is implemented.
+  // [23:20] Set size (SSIZE) - Size in Kbytes of each cache set.
+  // (set size = 2^SSIZE)
+  // [26:24] Cache associativity (SETS) - Number of sets in the cache
+  // (000 - direct mapped, 001 - 2-way associative, 010 - 3-way associative, 011 - 4-way associative)
+  // [27]    Cache snooping (SN) - Set if snooping is implemented
+  // [29-28] Cache replacement policiy (REPL)
+  // (00 - no repl. (direct mapped), 01 - LRU, 10 - LRR, 11 - RANDOM)
+  // [31]    Cache locking (CL) - Set if cache locking is implemented
+  unsigned int CACHE_CONFIG_REG;
 
   // the actual cache memory
   std::vector<std::vector<t_cache_line>*> cache_mem;
