@@ -18,7 +18,7 @@ APPNAME = 'hwswtlmmodels'
 VERSION = '0.5'
 top = '.'
 out = 'build'
-models = ['gptimer', 'irqmp', 'utils']
+models = ['gptimer', 'irqmp', 'mmu_cache', 'utils']
 
 import os
 import os.path
@@ -33,10 +33,10 @@ def set_options(ctx):
   ctx.tool_options('unittestw')
   ctx.add_option('--onlytests', action='store_true', default=True, help='Exec unit tests only', dest='only_tests')
   ctx.add_option("--greensocs", dest="greensocs_home", help="Basedir of your GreenSoCs instalation", default=environ.get("GREENSOCS_HOME",""))
-  ctx.add_option("--boost", dest="boost_home", help="Basedir of your Boost instalation", default=environ.get("BOOST_HOME",""))
-  ctx.add_option("--boost_inc", dest="boost_inc", help="Include dir of your Boost instalation", default=environ.get("BOOST_DIR",""))
-  ctx.add_option("--boost_lib", dest="boost_lib", help="Library dir of your Boost instalation", default=environ.get("BOOST_LIB",""))
-  ctx.add_option("--systemc", dest="systemc_home", help="Basedir of your SystemC instalation", default=environ.get("SYSTEMC_HOME",""))
+  ctx.add_option("--boost", dest="boost_home", help="Basedir of your Boost installation", default=environ.get("BOOST_HOME",""))
+  ctx.add_option("--boost_inc", dest="boost_inc", help="Include dir of your Boost installation", default=environ.get("BOOST_DIR",""))
+  ctx.add_option("--boost_lib", dest="boost_lib", help="Library dir of your Boost installation", default=environ.get("BOOST_LIB",""))
+  ctx.add_option("--systemc", dest="systemc_home", help="Basedir of your SystemC installation", default=environ.get("SYSTEMC_HOME",""))
   ctx.add_option("--tlm2", dest="tlm2_home", help="Basedir of your TLM-2.0 distribution", default=environ.get("TLM2_HOME",""))
   ctx.add_option("--scv", dest="scv_home", help="Basedir of your SCV distribution", default=environ.get("SCV_HOME",""))
   ctx.add_option("--amba", dest="amba_home", help="Basedir of your AMBAKit distribution", default=environ.get("AMBA_HOME",""))

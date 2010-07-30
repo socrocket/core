@@ -26,7 +26,7 @@
 
 #include "amba.h"
 #include "ahb_simple_bus.h"
-#include "AMBA_LT_CT_Adapter.h"
+#include "adapters/AMBA_LT_CT_Adapter.h"
 #include "ahb_simple_slave.h"
 
 #include <ostream>

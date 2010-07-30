@@ -1,0 +1,71 @@
+#! /usr/bin/env python
+# encoding: utf-8
+#***********************************************************************#
+#* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *#
+#*                                                                     *#
+#* File:       wscript                                                 *#
+#*             this file contains the build system for the gptimer     *#
+#*             tLM model and all its testbenches.                      *#
+#*                                                                     *#
+#* Modified on $Date: 2010-07-30 15:41:55 +0200 (Fri, 30 Jul 2010) $   *#
+#*          at $Revision: 32 $                                         *#
+#*                                                                     *#
+#* Principal:  European Space Agency                                   *#
+#* Author:     VLSI working group @ IDA @ TUBS                         *#
+#* Maintainer: Rolf Meyer                                              *#
+#***********************************************************************#
+
+top = '..'
+
+def set_options(ctx):
+  pass 
+
+def configure(ctx):
+  from Options import options
+  import os.path
+  if options.amba_home and options.amba_home != "":
+    ctx.env["CPPPATH_AMBAMEM"] = os.path.join(options.amba_home, 'examples', 'ahb_ct_timing')
+  else:
+    ctx.env["CPPPATH_AMBAMEM"] = ''
+
+  #ctx.check(
+  #  compiler_mode = 'cxx',
+  #  header_name   = 'ahb_simple_bus.h ahb_simple_slave.h',
+  #  msg           = "Checking for AMBAKit Example Mem",
+  #  mandatory     = True,
+  #  uselib        = 'AMBAMEM AMBA GREENSOCS BOOST SYSC TLM2',
+  #  uselib_store  = 'AMBAMEM',
+  #)
+
+def build(bld):
+  bld(
+    target         = 'mmu_cache',
+    features       = 'cxx cstaticlib',
+    source         = [ 'lib/icio_payload_extension.cpp', 
+                       'lib/dcio_payload_extension.cpp', 
+                       'lib/mmu.cpp', 
+                       'lib/ivectorcache.cpp', 
+                       'lib/dvectorcache.cpp'],
+    export_incdirs = 'lib',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+  )
+
+  bld(
+    target       = 'lt_ct_default.test',
+    features     = 'cxx cprogram test',
+    source       = [ 'lt_ct_default_test/testbench.cpp',
+                     'lt_ct_default_test/main.cpp'],
+    includes     = '.',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
+    uselib_local = 'mmu_cache',
+  )
+
+  bld(
+    target       = 'lt_ct_mmu.test',
+    features     = 'cxx cprogram test',
+    source       = [ 'lt_ct_mmu_test/testbench.cpp',
+                     'lt_ct_mmu_test/main.cpp'],
+    includes     = '.',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
+    uselib_local = 'mmu_cache',
+  )
