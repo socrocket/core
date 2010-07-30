@@ -317,7 +317,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 template <int pindex, int paddr, int pmask, int ncpu, int eirq>
   void Irqmp <pindex, paddr, pmask, ncpu, eirq>::reset_registers(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
 
-  static bool delay = true;
+  //static bool delay = true;
 
   //either model the timing
 #if 0
@@ -331,7 +331,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
   //or model the functionality
   else {
 #endif
-  if(!in.get_last_value<rst>()) {
+  if(!in.get_last_value(rst::ID)) {
 #ifdef COUT_TIMING
     cout << endl << "reset_registers called after delay at:" << sc_time_stamp();
 #endif
@@ -383,7 +383,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 template <int pindex, int paddr, int pmask, int ncpu, int eirq>
   void Irqmp <pindex, paddr, pmask, ncpu, eirq>::register_irq(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
 
-  static bool delay = true;
+  //static bool delay = true;
 
 #if 0
   //either model the timing
@@ -397,11 +397,12 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
   //or model the functionality
   else {
 #endif
+//    delay += 2*CLOCK_PERIOD;
 #ifdef COUT_TIMING
     cout << endl << "register_irq called after delay at:" << sc_time_stamp();
 #endif
     //set pending register
-    unsigned int irq = 1 << in.get_last_value<set_irq>();
+    unsigned int irq = 1 << in.get_last_value(set_irq::ID);
     unsigned int set = static_cast<unsigned int>( irq and not r[BROADCAST].get() );
     r[PENDING].set( set );
 
@@ -434,7 +435,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
   void Irqmp <pindex, paddr, pmask, ncpu, eirq>::launch_irq() {
   short int high_ir;        // highest priority interrupt (to be launched)
   sc_uint<32> masked_ir;    // vector of pending, masked interrupts
-  l3_irq_in_type temp;      // temp var required for write access to single signals inside the struct
+  //l3_irq_in_type temp;      // temp var required for write access to single signals inside the struct
 
   for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
     // process call might be triggered by acknowledge of forced IR by writing to IFC bits of IF register
@@ -479,22 +480,22 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
       }
     }
     switch(i_cpu) {
-      case 0: SIGNAL_SEND(irq0, (0x0000000F and high_ir)); break;
-      case 1: SIGNAL_SEND(irq1, (0x0000000F and high_ir)); break;
-      case 2: SIGNAL_SEND(irq2, (0x0000000F and high_ir)); break;
-      case 3: SIGNAL_SEND(irq3, (0x0000000F and high_ir)); break;
-      case 4: SIGNAL_SEND(irq4, (0x0000000F and high_ir)); break;
-      case 5: SIGNAL_SEND(irq5, (0x0000000F and high_ir)); break;
-      case 6: SIGNAL_SEND(irq6, (0x0000000F and high_ir)); break;
-      case 7: SIGNAL_SEND(irq7, (0x0000000F and high_ir)); break;
-      case 8: SIGNAL_SEND(irq8, (0x0000000F and high_ir)); break;
-      case 9: SIGNAL_SEND(irq9, (0x0000000F and high_ir)); break;
-      case 10: SIGNAL_SEND(irq10, (0x0000000F and high_ir)); break;
-      case 11: SIGNAL_SEND(irq11, (0x0000000F and high_ir)); break;
-      case 12: SIGNAL_SEND(irq12, (0x0000000F and high_ir)); break;
-      case 13: SIGNAL_SEND(irq13, (0x0000000F and high_ir)); break;
-      case 14: SIGNAL_SEND(irq14, (0x0000000F and high_ir)); break;
-      case 15: SIGNAL_SEND(irq15, (0x0000000F and high_ir)); break;
+      case 0: SIGNAL_SET(irq0, (0x0000000F and high_ir)); break;
+      case 1: SIGNAL_SET(irq1, (0x0000000F and high_ir)); break;
+      case 2: SIGNAL_SET(irq2, (0x0000000F and high_ir)); break;
+      case 3: SIGNAL_SET(irq3, (0x0000000F and high_ir)); break;
+      case 4: SIGNAL_SET(irq4, (0x0000000F and high_ir)); break;
+      case 5: SIGNAL_SET(irq5, (0x0000000F and high_ir)); break;
+      case 6: SIGNAL_SET(irq6, (0x0000000F and high_ir)); break;
+      case 7: SIGNAL_SET(irq7, (0x0000000F and high_ir)); break;
+      case 8: SIGNAL_SET(irq8, (0x0000000F and high_ir)); break;
+      case 9: SIGNAL_SET(irq9, (0x0000000F and high_ir)); break;
+      case 10: SIGNAL_SET(irq10, (0x0000000F and high_ir)); break;
+      case 11: SIGNAL_SET(irq11, (0x0000000F and high_ir)); break;
+      case 12: SIGNAL_SET(irq12, (0x0000000F and high_ir)); break;
+      case 13: SIGNAL_SET(irq13, (0x0000000F and high_ir)); break;
+      case 14: SIGNAL_SET(irq14, (0x0000000F and high_ir)); break;
+      case 15: SIGNAL_SET(irq15, (0x0000000F and high_ir)); break;
     }
   } // foreach cpu
 }
@@ -534,7 +535,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 //process sensitive to irqi
 template <int pindex, int paddr, int pmask, int ncpu, int eirq>
   void Irqmp <pindex, paddr, pmask, ncpu, eirq>::clear_acknowledged_irq(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
-  static bool delay = true;
+//  static bool delay = true;
 #if 0
   //either model the timing
   if (delay) {
@@ -555,22 +556,22 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 
     int i_cpu = 0;
     int cleared_irq = 0;
-    if(trans.get_extension<irq0>()) { i_cpu = 0; cleared_irq = in.get_last_value<irq0>();} else 
-    if(trans.get_extension<irq1>()) { i_cpu = 1; cleared_irq = in.get_last_value<irq1>();} else
-    if(trans.get_extension<irq2>()) { i_cpu = 2; cleared_irq = in.get_last_value<irq2>();} else
-    if(trans.get_extension<irq3>()) { i_cpu = 3; cleared_irq = in.get_last_value<irq3>();} else
-    if(trans.get_extension<irq4>()) { i_cpu = 4; cleared_irq = in.get_last_value<irq4>();} else
-    if(trans.get_extension<irq5>()) { i_cpu = 5; cleared_irq = in.get_last_value<irq5>();} else
-    if(trans.get_extension<irq6>()) { i_cpu = 6; cleared_irq = in.get_last_value<irq6>();} else
-    if(trans.get_extension<irq7>()) { i_cpu = 7; cleared_irq = in.get_last_value<irq7>();} else
-    if(trans.get_extension<irq8>()) { i_cpu = 8; cleared_irq = in.get_last_value<irq8>();} else
-    if(trans.get_extension<irq9>()) { i_cpu = 9; cleared_irq = in.get_last_value<irq9>();} else
-    if(trans.get_extension<irq10>()) { i_cpu = 10; cleared_irq = in.get_last_value<irq10>();} else
-    if(trans.get_extension<irq11>()) { i_cpu = 11; cleared_irq = in.get_last_value<irq11>();} else
-    if(trans.get_extension<irq12>()) { i_cpu = 12; cleared_irq = in.get_last_value<irq12>();} else
-    if(trans.get_extension<irq13>()) { i_cpu = 13; cleared_irq = in.get_last_value<irq13>();} else
-    if(trans.get_extension<irq14>()) { i_cpu = 14; cleared_irq = in.get_last_value<irq14>();} else
-    if(trans.get_extension<irq15>()) { i_cpu = 15; cleared_irq = in.get_last_value<irq15>();}
+    if(trans.get_extension<irq0>()) { i_cpu = 0; cleared_irq = in.get_last_value(irq0::ID);} else 
+    if(trans.get_extension<irq1>()) { i_cpu = 1; cleared_irq = in.get_last_value(irq1::ID);} else
+    if(trans.get_extension<irq2>()) { i_cpu = 2; cleared_irq = in.get_last_value(irq2::ID);} else
+    if(trans.get_extension<irq3>()) { i_cpu = 3; cleared_irq = in.get_last_value(irq3::ID);} else
+    if(trans.get_extension<irq4>()) { i_cpu = 4; cleared_irq = in.get_last_value(irq4::ID);} else
+    if(trans.get_extension<irq5>()) { i_cpu = 5; cleared_irq = in.get_last_value(irq5::ID);} else
+    if(trans.get_extension<irq6>()) { i_cpu = 6; cleared_irq = in.get_last_value(irq6::ID);} else
+    if(trans.get_extension<irq7>()) { i_cpu = 7; cleared_irq = in.get_last_value(irq7::ID);} else
+    if(trans.get_extension<irq8>()) { i_cpu = 8; cleared_irq = in.get_last_value(irq8::ID);} else
+    if(trans.get_extension<irq9>()) { i_cpu = 9; cleared_irq = in.get_last_value(irq9::ID);} else
+    if(trans.get_extension<irq10>()) { i_cpu = 10; cleared_irq = in.get_last_value(irq10::ID);} else
+    if(trans.get_extension<irq11>()) { i_cpu = 11; cleared_irq = in.get_last_value(irq11::ID);} else
+    if(trans.get_extension<irq12>()) { i_cpu = 12; cleared_irq = in.get_last_value(irq12::ID);} else
+    if(trans.get_extension<irq13>()) { i_cpu = 13; cleared_irq = in.get_last_value(irq13::ID);} else
+    if(trans.get_extension<irq14>()) { i_cpu = 14; cleared_irq = in.get_last_value(irq14::ID);} else
+    if(trans.get_extension<irq15>()) { i_cpu = 15; cleared_irq = in.get_last_value(irq15::ID);}
 
     //extended IR handling: Identify highest pending EIR
     if (eirq != 0 && cleared_irq == eirq) {
@@ -585,7 +586,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
       r[PROC_EXTIR_ID(i_cpu)].set(set);
       //clear EIR from pending register
       bool false_var = false;
-      r[PENDING].bitset(high_ir, false_var);
+      r[PENDING].bit_set(high_ir, false_var);
     }
 
     //clear interrupt from pending and force register
@@ -604,28 +605,24 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 //callback registered on mp status register
 template <int pindex, int paddr, int pmask, int ncpu, int eirq>
   void Irqmp <pindex, paddr, pmask, ncpu, eirq>::mpstat_write() {
-  l3_irq_in_type temp;
   for (int i_cpu=ncpu-1; i_cpu>=0; i_cpu--) {
-    temp = irqo[i_cpu].read();
-    temp.rst = r[IRQMP_MP_STAT].bit_get(i_cpu);
-    irqo[i_cpu].write(temp);
     switch(i_cpu) {
-      case 0: SIGNAL_SEND(rst0, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 1: SIGNAL_SEND(rst1, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 2: SIGNAL_SEND(rst2, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 3: SIGNAL_SEND(rst3, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 4: SIGNAL_SEND(rst4, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 5: SIGNAL_SEND(rst5, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 6: SIGNAL_SEND(rst6, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 7: SIGNAL_SEND(rst7, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 8: SIGNAL_SEND(rst8, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 9: SIGNAL_SEND(rst9, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 10: SIGNAL_SEND(rst10, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 11: SIGNAL_SEND(rst11, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 12: SIGNAL_SEND(rst12, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 13: SIGNAL_SEND(rst13, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 14: SIGNAL_SEND(rst14, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 15: SIGNAL_SEND(rst15, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 0: SIGNAL_SET(rst0, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 1: SIGNAL_SET(rst1, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 2: SIGNAL_SET(rst2, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 3: SIGNAL_SET(rst3, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 4: SIGNAL_SET(rst4, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 5: SIGNAL_SET(rst5, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 6: SIGNAL_SET(rst6, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 7: SIGNAL_SET(rst7, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 8: SIGNAL_SET(rst8, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 9: SIGNAL_SET(rst9, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 10: SIGNAL_SET(rst10, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 11: SIGNAL_SET(rst11, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 12: SIGNAL_SET(rst12, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 13: SIGNAL_SET(rst13, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 14: SIGNAL_SET(rst14, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
+      case 15: SIGNAL_SET(rst15, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
     }
   }
 }

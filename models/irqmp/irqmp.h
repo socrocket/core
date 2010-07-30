@@ -30,10 +30,15 @@
 #include "multisignalhandler.h"
 #include "irqmpsignals.h"
 
-
 template <int pindex = 0, int paddr = 0, int pmask = 0xFFF, int ncpu = 2, int eirq = 1>
-class Irqmp : public gs::reg::gr_device, public MultiSignalSender, public MultiSignalTarget<Irqmp> {
+class Irqmp;
+
+template <int pindex, int paddr, int pmask, int ncpu, int eirq>
+class Irqmp : public gs::reg::gr_device, public MultiSignalSender, public MultiSignalTarget<Irqmp<pindex, paddr, pmask, ncpu, eirq> > {
   public:
+    //typedef from MultiSignalSockets. 
+    typedef gs::socket::config<gs_generic_signal_protocol_types> target_config;
+    
     //Slave socket with delayed switch; responsible for all bus communication
     gs::reg::greenreg_socket< gs::amba::amba_slave<32> > bus;
     gs_generic_signal::target_signal_multi_socket<
