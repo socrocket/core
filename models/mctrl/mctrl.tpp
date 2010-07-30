@@ -16,7 +16,17 @@
 #ifndef MCTRL_TPP
 #define MCTRL_TPP
 
-#define DECODING_DELAY 42
+//should be defined somewhere else
+#define BUS_CLOCK_CYCLE 10
+
+//delay definitions (in clock cycles)
+#define DECODING_DELAY 1
+#define MCTRL_ROM_READ_DELAY(wstates) 2+wstates
+#define MCTRL_ROM_WRITE_DELAY(wstates) 3+wstates
+#define MCTRL_IO_READ_DELAY(wstates) 2+wstates
+#define MCTRL_IO_WRITE_DELAY(wstates) 3+wstates
+#define MCTRL_SRAM_READ_DELAY(wstates) 2+wstates
+#define MCTRL_SRAM_WRITE_DELAY(wstates) 3+wstates
 
 //macros to enhance readability of function definitions
 #define PRE_MCTRL template <int hindex,    int pindex,   int romaddr, int rommask, \
@@ -47,7 +57,7 @@ Mctrl(sc_core::sc_module_name name) :
             16,                        //dword size (of register file)
             NULL                       //parent module
            ),
-  bus( //greenreg_socket
+  apb( //greenreg_socket
       "bus",            //name
       r,                //register container
       0x0,              // ?
@@ -56,6 +66,7 @@ Mctrl(sc_core::sc_module_name name) :
       ::amba::amba_LT,  // ?communication type / abstraction level?
       false             // ?
      ),
+  ahb("ahb"),
   mctrl_rom("mctrl_rom"),
   mctrl_io("mctrl_io"),
   mctrl_sram("mctrl_sram"),
@@ -63,13 +74,9 @@ Mctrl(sc_core::sc_module_name name) :
   {
 
   // register transport functions to sockets
-  bus.register_b_transport (this, &Mctrl::b_transport);
+  ahb.register_b_transport (this, &Mctrl::b_transport);
 
-      // more to be added
-
-
-
-
+      // nb_transport to be added 
 
 
 #ifdef MONOLITHIC_MODULE
@@ -87,7 +94,7 @@ Mctrl(sc_core::sc_module_name name) :
                    // config
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
                    // init value (to be calculated from the generics for all 4 registers)
-                      0x00000000,
+                      MCTRL_MCFG1_DEFAULT,
                    // write mask
                       MCTRL_MCFG1_WRITE_MASK,
                    // reg width (maximum 32 bit)
@@ -98,7 +105,7 @@ Mctrl(sc_core::sc_module_name name) :
   r.create_register( "MCFG2", "Memory Configuration Register 2",
                       0x04,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      0x00000000,
+                      MCTRL_MCFG2_DEFAULT,
                       MCTRL_MCFG2_WRITE_MASK,
                       32,
                       0x00
@@ -106,7 +113,7 @@ Mctrl(sc_core::sc_module_name name) :
   r.create_register( "MCFG3", "Memory Configuration Register 3", 
                       0x08,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      0x00000000, 
+                      MCTRL_MCFG3_DEFAULT, 
                       MCTRL_MCFG3_WRITE_MASK,
                       32, 
                       0x00
@@ -114,7 +121,7 @@ Mctrl(sc_core::sc_module_name name) :
   r.create_register( "MCFG4", "Power-Saving Configuration Register", 
                       0x0C,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      0x00000000, 
+                      MCTRL_MCFG4_DEFAULT, 
                       MCTRL_MCFG4_WRITE_MASK,
                       32,
                       0x00
@@ -135,12 +142,7 @@ PRE_MCTRL void Mctrl POST_MCTRL::
 //function to initialize registers and memory address spece constants
 initialize_mctrl() {
 
-  // --- 1. set configuration registers
-
-
-
-
-  // --- 2. calculate address spaces of the different memory banks
+  // --- calculate address spaces of the different memory banks
 
   //ROM 
   //FIXME: Size???
@@ -152,7 +154,7 @@ initialize_mctrl() {
   //IO
   //FIXME: size???
   io_s = static_cast<uint32_t>(ioaddr << 20);
-  io_e = static_cast<uint32_t>(ioaddr << 21);
+  io_e = static_cast<uint32_t>(ioaddr << 21) - 1;
 
   // ------- RAM -------
 
@@ -163,10 +165,10 @@ initialize_mctrl() {
   uint32_t sdram_bank_size = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_BANKSZ) >> 23;
 
   //address spaces in case of SRAM only configuration
-  if (r[MCTRL_MCFG2].bit_get(14) == false) {
+  if (!(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE)) {
     //bank 1
     sram_bk1_s = static_cast<uint32_t>(ramaddr << 20);
-    //                                                      1Byte << 13 = 8KB
+    //                                       1Byte << 13 = 8KB
     sram_bk1_e = sram_bk1_s + (1 << (sram_bank_size + 13)) - 1;
     //bank 2 starts right after bank 1
     sram_bk2_s = sram_bk1_e + 1;
@@ -189,7 +191,7 @@ initialize_mctrl() {
 
   }
   //address spaces in case of SDRAM and SRAM (lower 4 SRAM banks only) configuration
-  else if (r[MCTRL_MCFG2].bit_get(13) == false) {
+  else if (!(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SI)) {
     //bank 1
     sram_bk1_s = static_cast<uint32_t>(ramaddr << 20);
     //                                                      1Byte << 13 = 8KB
@@ -235,6 +237,20 @@ initialize_mctrl() {
     sram_bk5_s = 0;
     sram_bk5_e = 0;
   }
+#ifdef DEBUG
+  cout << endl << hex << "--- address space borders ---" << endl
+       << "ROM_1:   " <<   rom_bk1_s << " - " <<   rom_bk1_e << endl
+       << "ROM_2:   " <<   rom_bk2_s << " - " <<   rom_bk2_e << endl
+       << "IO:      " <<        io_s << " - " <<        io_e << endl
+       << "SRAM_1:  " <<  sram_bk1_s << " - " <<  sram_bk1_e << endl
+       << "SRAM_2:  " <<  sram_bk2_s << " - " <<  sram_bk2_e << endl
+       << "SRAM_3:  " <<  sram_bk3_s << " - " <<  sram_bk3_e << endl
+       << "SRAM_4:  " <<  sram_bk4_s << " - " <<  sram_bk4_e << endl
+       << "SRAM_5:  " <<  sram_bk5_s << " - " <<  sram_bk5_e << endl
+       << "SDRAM_1: " << sdram_bk1_s << " - " << sdram_bk1_e << endl
+       << "SDRAM_2: " << sdram_bk2_s << " - " << sdram_bk2_e << endl;
+#endif
+
 }
 
 
@@ -245,120 +261,123 @@ initialize_mctrl() {
 PRE_MCTRL void Mctrl POST_MCTRL::
 //blocking transport function
 b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
-  sc_core::sc_time t(DECODING_DELAY, SC_NS);
+  sc_core::sc_time cycle_time(BUS_CLOCK_CYCLE, SC_NS);
+  uint8_t cycles = 0;
+
+  //timing depends on command
+  tlm::tlm_command cmd = gp.get_command();
 
   //access to ROM adress space
-  if (Mctrl::rom_bk1_s <= gp.get_address() <= Mctrl::rom_bk1_e) {
-    delay += t;
-    if (r[MCTRL_MCFG1].bit_get(9)) {
+  if (Mctrl::rom_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::rom_bk1_e ||
+      Mctrl::rom_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::rom_bk2_e    ) {
+    //determine streaming width by MCFG1[9..8]
+//  if (r[MCTRL_MCFG1].bit_get(9)) {
+    if ( (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH) >> 9) {
       gp.set_streaming_width(32);
     }
-    else if (r[MCTRL_MCFG1].bit_get(8)) {
+//  else if (r[MCTRL_MCFG1].bit_get(8)) {
+    else if (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH) {
       gp.set_streaming_width(16);
     }
     else {
       gp.set_streaming_width(8);
     }
-    mctrl_rom->b_transport(gp,delay);
-  }
-  else if (Mctrl::rom_bk2_s <= gp.get_address() <= Mctrl::rom_bk2_e) {
-    delay += t;
-    if (r[MCTRL_MCFG1].bit_get(9)) {
-      gp.set_streaming_width(32);
+    if (cmd == 1) {
+      //PROM write access must be explicitly allowed
+//    if (!r[MCTRL_MCFG1].bit_get(11)) {
+      if ( !(r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PWEN) ) {
+        //issue error message / failure
+        gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+        //address decoding delay only
+        cycles = DECODING_DELAY;
+      }
+      //calculate delay for write command
+      else {
+        cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WRITE_WS) >> 4;
+        cycles = DECODING_DELAY + MCTRL_ROM_WRITE_DELAY(cycles);
+        //add delay and forward transaction to memory
+        delay += cycle_time * cycles;
+        mctrl_rom->b_transport(gp,delay);
+      }
     }
-    else if (r[MCTRL_MCFG1].bit_get(8)) {
-      gp.set_streaming_width(16);
+    //calculate delay for read command
+    else if (cmd == 0) {
+      cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_READ_WS);
+      cycles = DECODING_DELAY + MCTRL_ROM_READ_DELAY(cycles);
+      //add delay and forward transaction to memory
+      delay += cycle_time * cycles;
+      mctrl_rom->b_transport(gp,delay);
     }
-    else {
-      gp.set_streaming_width(8);
-    }
-    mctrl_rom->b_transport(gp,delay);
   }
   //access to IO adress space
-  else if (Mctrl::io_s <= gp.get_address() <= Mctrl::io_e) {
-    delay += t;
+  else if (Mctrl::io_s <= gp.get_address() and gp.get_address() <= Mctrl::io_e) {
+    cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IO_WAITSTATES) >> 20;
+    //calculate delay for read command
+    if (cmd == 0) {
+      cycles = DECODING_DELAY + MCTRL_IO_READ_DELAY(cycles);
+    }
+    //calculate delay for write command
+    else if (cmd == 1) {
+      cycles = DECODING_DELAY + MCTRL_IO_WRITE_DELAY(cycles);
+    }
+    //add delay and forward transaction to memory
+    delay += cycle_time * cycles;
     mctrl_io->b_transport(gp,delay);
   }
   //access to SRAM adress space
-  else if (Mctrl::sram_bk1_s <= gp.get_address() <= Mctrl::sram_bk1_e) {
-    if (r[MCTRL_MCFG2].bit_get(5)) {
+  else if (Mctrl::sram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk1_e ||
+           Mctrl::sram_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk2_e ||
+           Mctrl::sram_bk3_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk3_e ||
+           Mctrl::sram_bk4_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk4_e ||
+           Mctrl::sram_bk5_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk5_e    ) {
+    //determine streaming width
+//  if (r[MCTRL_MCFG2].bit_get(5)) {
+    if ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WIDTH) >> 5 ) {
       gp.set_streaming_width(32);
     }
-    else if (r[MCTRL_MCFG2].bit_get(4)) {
+//  else if (r[MCTRL_MCFG2].bit_get(4)) {
+    else if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WIDTH) {
       gp.set_streaming_width(16);
     }
     else {
       gp.set_streaming_width(8);
     }
-    delay += t;
-    mctrl_sram->b_transport(gp,delay);
-  }
-  else if (Mctrl::sram_bk2_s <= gp.get_address() <= Mctrl::sram_bk2_e) {
-    if (r[MCTRL_MCFG2].bit_get(5)) {
-      gp.set_streaming_width(32);
+    //calculate delay for read command
+    if (cmd == 0) {
+      cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_READ_WS);
+      cycles = DECODING_DELAY + MCTRL_SRAM_READ_DELAY(cycles);
     }
-    else if (r[MCTRL_MCFG2].bit_get(4)) {
-      gp.set_streaming_width(16);
+    //calculate delay for write command
+    else if (cmd == 1) {
+      cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WRITE_WS >> 2);
+      cycles = DECODING_DELAY + MCTRL_SRAM_WRITE_DELAY(cycles);
     }
-    else {
-      gp.set_streaming_width(8);
-    }
-    delay += t;
-    mctrl_sram->b_transport(gp,delay);
-  }
-  else if (Mctrl::sram_bk3_s <= gp.get_address() <= Mctrl::sram_bk3_e) {
-    if (r[MCTRL_MCFG2].bit_get(5)) {
-      gp.set_streaming_width(32);
-    }
-    else if (r[MCTRL_MCFG2].bit_get(4)) {
-      gp.set_streaming_width(16);
-    }
-    else {
-      gp.set_streaming_width(8);
-    }
-    delay += t;
-    mctrl_sram->b_transport(gp,delay);
-  }
-  else if (Mctrl::sram_bk4_s <= gp.get_address() <= Mctrl::sram_bk4_e) {
-    if (r[MCTRL_MCFG2].bit_get(5)) {
-      gp.set_streaming_width(32);
-    }
-    else if (r[MCTRL_MCFG2].bit_get(4)) {
-      gp.set_streaming_width(16);
-    }
-    else {
-      gp.set_streaming_width(8);
-    }
-    delay += t;
-    mctrl_sram->b_transport(gp,delay);
-  }
-  else if (Mctrl::sram_bk5_s <= gp.get_address() <= Mctrl::sram_bk5_e) {
-    if (r[MCTRL_MCFG2].bit_get(5)) {
-      gp.set_streaming_width(32);
-    }
-    else if (r[MCTRL_MCFG2].bit_get(4)) {
-      gp.set_streaming_width(16);
-    }
-    else {
-      gp.set_streaming_width(8);
-    }
-    delay += t;
+    //add delay and forward transaction to memory
+    delay += cycle_time * cycles;
     mctrl_sram->b_transport(gp,delay);
   }
   //access to SDRAM adress space
-  else if (Mctrl::sdram_bk1_s <= gp.get_address() <= Mctrl::sdram_bk1_e) {
-    if (r[MCTRL_MCFG2].bit_get(18)) {
+  else if (Mctrl::sdram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk1_e ||
+           Mctrl::sdram_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk2_e    ) {
+//  if (r[MCTRL_MCFG2].bit_get(18)) {
+    if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_D64) {
       gp.set_streaming_width(64);
     }
     else {
       gp.set_streaming_width(32);
     }
-    delay += t;
-    mctrl_sdram->b_transport(gp,delay);
-  }
-  else if (Mctrl::sdram_bk2_s <= gp.get_address() <= Mctrl::sdram_bk2_e) {
-
-    delay += t;
+    //read delay = write delay: trcd, tcas, and trp can all be either 2 or 3
+    cycles = 6;
+//  if (r[MCTRL_MCFG2].bit_get(26)) {
+    if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS) {
+      cycles += 2; //trcd = tcas = 3
+    }
+//  if (r[MCTRL_MCFG2].bit_get(30)) {
+    if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) {
+      cycles++; //trp = 3
+    }
+    //add delay and forward transaction to memory
+    delay += cycle_time * cycles;
     mctrl_sdram->b_transport(gp,delay);
   }
 
@@ -386,12 +405,6 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
 // 001 -->   8 MB
 // 010 -->  16 MB
 // 111 --> 512 MB  --> max 2x 512 MB = 1GB
-
-//Analyze generic payload
-
-//Call read / write functions according to generic payload
-
-//Calculate timing
 
 //Modify and return generic payload
 

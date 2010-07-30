@@ -19,23 +19,23 @@
 
 /***AMBA bus addresses (32 bit)***/
 
-#define MCTRL_AMBA_BASE             (0x00000000)
+#define MCTRL_AMBA_BASE             (0xC0000000)
 
-#define MCTRL_MCFG1                 (MCTRL_AMBA_BASE + 0x00)
-#define MCTRL_MCFG2                 (MCTRL_AMBA_BASE + 0x04)
-#define MCTRL_MCFG3                 (MCTRL_AMBA_BASE + 0x08)
-#define MCTRL_MCFG4                 (MCTRL_AMBA_BASE + 0x0C)
+#define MCTRL_MCFG1                 (0x00)
+#define MCTRL_MCFG2                 (0x04)
+#define MCTRL_MCFG3                 (0x08)
+#define MCTRL_MCFG4                 (0x0C)
 
 
 /***register contents (config bit masks)***/
 
 //memory configuration register 1
-#define MCTRL_MCFG1_WRITE_MASK      (0x1FF00BFF)
+#define MCTRL_MCFG1_WRITE_MASK      (0x1EF80BFF)
 #define MCTRL_MCFG1_IOBUSW          (0x18000000)
 #define MCTRL_MCFG1_IBRDY           (0x04000000)
 #define MCTRL_MCFG1_BEXCN           (0x02000000)
-#define MCTRL_MCFG1_IO_WAITSTATES   (0x01E00000)
-#define MCTRL_MCFG1_IOEN            (0x00100000)
+#define MCTRL_MCFG1_IO_WAITSTATES   (0x00F00000)
+#define MCTRL_MCFG1_IOEN            (0x00080000)
 #define MCTRL_MCFG1_PWEN            (0x00000800)
 #define MCTRL_MCFG1_PROM_WIDTH      (0x00000300)
 #define MCTRL_MCFG1_PROM_WRITE_WS   (0x000000F0)
@@ -78,5 +78,54 @@
 
 
 /***register default values***/
+
+//memory configuration register 1
+#define MCTRL_MCFG1_IOBUSW_DEFAULT          (0x10000000)
+#define MCTRL_MCFG1_IBRDY_DEFAULT           (0x00000000)
+#define MCTRL_MCFG1_BEXCN_DEFAULT           (0x00000000)
+#define MCTRL_MCFG1_IO_WAITSTATES_DEFAULT   (0x00F00000)
+#define MCTRL_MCFG1_IOEN_DEFAULT            (0x00080000)
+#define MCTRL_MCFG1_PWEN_DEFAULT            (0x00000800)
+#define MCTRL_MCFG1_PROM_WIDTH_DEFAULT      (0x00000200)
+#define MCTRL_MCFG1_PROM_WRITE_WS_DEFAULT   (0x000000F0)
+#define MCTRL_MCFG1_PROM_READ_WS_DEFAULT    (0x0000000F)
+//                                        +
+#define MCTRL_MCFG1_DEFAULT                 (0x10F80AFF)
+
+//memory configuration register 2
+#define MCTRL_MCFG2_SDRF_DEFAULT            (0x80000000)
+#define MCTRL_MCFG2_TRP_DEFAULT             (0x40000000)
+#define MCTRL_MCFG2_SDRAM_TRFC_DEFAULT      (0x38000000)
+#define MCTRL_MCFG2_TCAS_DEFAULT            (0x04000000)
+#define MCTRL_MCFG2_SDRAM_BANKSZ_DEFAULT    (0x03800000)
+#define MCTRL_MCFG2_SDRAM_COSZ_DEFAULT      (0x00600000)
+#define MCTRL_MCFG2_SDRAM_CMD_DEFAULT       (0x00000000)
+#define MCTRL_MCFG2_D64_DEFAULT             (0x00000000)
+#define MCTRL_MCFG2_MS_DEFAULT              (0x00000000)
+#define MCTRL_MCFG2_SE_DEFAULT              (0x00004000)
+#define MCTRL_MCFG2_SI_DEFAULT              (0x00000000)
+#define MCTRL_MCFG2_RAM_BANK_SIZE_DEFAULT   (0x00001E00)
+#define MCTRL_MCFG2_RBRDY_DEFAULT           (0x00000000)
+#define MCTRL_MCFG2_RMW_DEFAULT             (0x00000000)
+#define MCTRL_MCFG2_RAM_WIDTH_DEFAULT       (0x00000030)
+#define MCTRL_MCFG2_RAM_WRITE_WS_DEFAULT    (0x0000000C)
+#define MCTRL_MCFG2_RAM_READ_WS_DEFAULT     (0x00000003)
+//                                        +
+#define MCTRL_MCFG2_DEFAULT                 (0xFFE05E3F)
+
+//memory configuration register 3
+#define MCTRL_MCFG3_DEFAULT                 (0x07FFF000)
+
+//memory configuration register 4
+#define MCTRL_MCFG4_ME_DEFAULT              (0x00000000)
+#define MCTRL_MCFG4_CE_DEFAULT              (0x00000000)
+#define MCTRL_MCFG4_EM_DEFAULT              (0x00000000)
+#define MCTRL_MCFG4_TXSR_DEFAULT            (0x00F00000)
+#define MCTRL_MCFG4_PMODE_DEFAULT           (0x00000000)
+#define MCTRL_MCFG4_DC_DEFAULT              (0x00000000)
+#define MCTRL_MCFG4_TCSR_DEFAULT            (0x00000018)
+#define MCTRL_MCFG4_PASR_DEFAULT            (0x00000007)
+//                                        +
+#define MCTRL_MCFG4_DEFAULT                 (0x00F0001F)
 
 #endif

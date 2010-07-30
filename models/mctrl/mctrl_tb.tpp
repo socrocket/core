@@ -20,12 +20,15 @@
 #include "amba.h"
 #include "mctrlreg.h"
 
+#define APB true
+#define AHB false
+
 #define SHOW \
 { std::printf("\n@%-7s /%-4d:", sc_core::sc_time_stamp().to_string().c_str(), (unsigned)sc_core::sc_delta_count());}
-#define REG(name) \
-{ std::cout << " "#name << ": 0x" << std::hex << std::setfill('0') << std::setw(2) << read(name, 4); }
-#define SET(name, val) \
-{ write(name, val, 4); }
+#define REG(name, apb) \
+{ std::cout << " "#name << ": 0x" << std::hex << std::setfill('0') << std::setw(2) << read(name, 4, apb); }
+#define SET(name, val, apb) \
+{ write(name, val, 4, apb); }
 
 //constructor
 template <int hindex,    int pindex,   int romaddr, int rommask,
@@ -44,7 +47,8 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
                   sden,      sepbus,   sdbits,
                   sdlsb,     oepol,    syncrst,
                   pageburst, scantest, mobile, BUSWIDTH >::Mctrl_tb(sc_core::sc_module_name name)
-  : master_sock ("msock", amba::amba_APB, amba::amba_LT, false) {
+  : apb_master_sock ("apb_master_sock", amba::amba_APB, amba::amba_LT, false),
+    ahb_master_sock ("ahb_master_sock") {
 
   SC_THREAD(run);
 }
@@ -84,7 +88,7 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
                   srbanks,   ram8,     ram16,
                   sden,      sepbus,   sdbits,
                   sdlsb,     oepol,    syncrst,
-                  pageburst, scantest, mobile, BUSWIDTH >::write(uint32_t addr, uint32_t data, uint32_t width) {
+                  pageburst, scantest, mobile, BUSWIDTH >::write(uint32_t addr, uint32_t data, uint32_t width, bool apb) {
     sc_core::sc_time t;
     tlm::tlm_generic_payload gp;
       gp.set_command(tlm::TLM_WRITE_COMMAND);
@@ -93,7 +97,12 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
       gp.set_streaming_width(4);
       gp.set_byte_enable_ptr(NULL);
       gp.set_data_ptr((unsigned char*)&data);
-    master_sock->b_transport(gp,t);
+    if (apb) {
+      apb_master_sock->b_transport(gp,t);
+    }
+    else {
+      ahb_master_sock->b_transport(gp,t);
+    }
     SHOW;
     std::cout << " WRITE " << gp.get_response_string() << ": 0x" << std::hex << std::setfill('0') << std::setw(2) << gp.get_address();
     wait(t);
@@ -115,7 +124,7 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
                       srbanks,   ram8,     ram16,
                       sden,      sepbus,   sdbits,
                       sdlsb,     oepol,    syncrst,
-                      pageburst, scantest, mobile, BUSWIDTH >::read(uint32_t addr, uint32_t width) {
+                      pageburst, scantest, mobile, BUSWIDTH >::read(uint32_t addr, uint32_t width, bool apb) {
     sc_core::sc_time t;
     //data needs to be a struct containing all information required for the transaction
     uint32_t data;
@@ -127,7 +136,12 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
       gp.set_byte_enable_ptr(NULL);
       gp.set_data_ptr((unsigned char*)&data);
       gp.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
-    master_sock->b_transport(gp,t);
+    if (apb) {
+      apb_master_sock->b_transport(gp,t);
+    }
+    else {
+      ahb_master_sock->b_transport(gp,t);
+    }
     SHOW;
     std::cout << " READ " << gp.get_response_string() << ": 0x" << std::hex << std::setfill('0') << std::setw(2) << gp.get_address();
     wait(t);
@@ -153,8 +167,166 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
                   pageburst, scantest, mobile, BUSWIDTH >::run() {
     sc_core::sc_time t;
 
-//put stimuli here
+  cout << endl << endl << "--------------------------------------------------"
+               << endl << "---------- write and read all memories -----------"
+               << endl << "--------------------------------------------------" << endl;
 
+  //write ROM
+  for (uint32_t i=0x00000000; i<0x0000000A; i+=4) {
+    SET (i, i+0x200, AHB);
+  }
+  //write IO
+  for (uint32_t i=0x20000000; i<0x2000000A; i+=4) {
+    SET (i, i, AHB);
+  }
+  //write SRAM
+  for (uint32_t i=0x40000000; i<0x4000000A; i+=4) {
+    SET (i, i, AHB);
+  }
+  //write SDRAM
+  for (uint32_t i=0x80000000; i<0x8000000A; i+=4) {
+    SET (i, i, AHB);
+  }
+  //read ROM
+  for (uint32_t i=0x00000000; i<0x0000000F; i+=4) {
+    REG (i, AHB);
+  }
+  //read IO
+  for (uint32_t i=0x20000000; i<0x2000000F; i+=4) {
+    REG (i, AHB);
+  }
+  //read SRAM
+  for (uint32_t i=0x40000000; i<0x4000000F; i+=4) {
+    REG (i, AHB);
+  }
+  //read SDRAM
+  for (uint32_t i=0x80000000; i<0x8000000F; i+=4) {
+    REG (i, AHB);
+  }
+
+  cout << endl << endl << "--------------------------------------------------"
+               << endl << "--switching widths to: rom-16, sram-16, sdram-64--"
+               << endl << "--------------------------------------------------" << endl;
+
+  //switch ROM to 16 bit access
+  unsigned int temp = read (MCTRL_MCFG1, 4, APB);
+  cout << endl << "old MCFG1 contents: " << hex << (unsigned int) temp;
+  temp &= ~MCTRL_MCFG1_PROM_WIDTH;
+  cout << endl << "intermediate MCFG1 contents: " << hex << (unsigned int) temp;
+  temp |= (MCTRL_MCFG1_PROM_WIDTH & 0x00000100);
+  cout << endl << "new MCFG1 contents: " << hex << (unsigned int) temp;
+  SET (MCTRL_MCFG1, temp, APB);
+
+  //switch SRAM to 16 bit access
+  temp = read (MCTRL_MCFG2, 4, APB);
+  cout << endl << "old MCFG2 contents: " << hex << (unsigned int) temp;
+  temp &= ~MCTRL_MCFG2_RAM_WIDTH;
+  cout << endl << "intermediate MCFG2 contents: " << hex << (unsigned int) temp;
+  temp |= (MCTRL_MCFG2_RAM_WIDTH & 0x00000010);
+
+  //switch SDRAM to 64 bit access
+  temp |= MCTRL_MCFG2_D64;
+  cout << endl << "new MCFG2 contents: " << hex << (unsigned int) temp;
+  SET (MCTRL_MCFG2, temp, APB);
+
+  cout << endl << endl << "--------------------------------------------------"
+               << endl << "-------- write / read ROM / SRAM / SDRAM ---------"
+               << endl << "--------------------------------------------------" << endl;
+
+  //write ROM
+  uint16_t i16=0;
+  uint64_t i64=0;
+  for (uint32_t i=0x0000000A; i<0x00000010; i+=2) {
+    SET (i, i16, AHB);
+    i16 += 2;
+  }
+  //write SRAM
+  i16 = 0;
+  for (uint32_t i=0x4000000A; i<0x40000010; i+=2) {
+    SET (i, i16, AHB);
+    i16 += 2;
+  }
+  //write SDRAM
+  for (uint32_t i=0x80000010; i<0x80000028; i+=8) {
+    SET (i, i64, AHB);
+    i64 += 8;
+  }
+  //read ROM
+  for (uint32_t i=0x00000008; i<0x00000014; i+=4) {
+    REG (i, AHB);
+  }
+  //read SRAM
+  for (uint32_t i=0x40000008; i<0x40000014; i+=4) {
+    REG (i, AHB);
+  }
+  //read SDRAM
+  for (uint32_t i=0x80000010; i<0x80000030; i+=8) {
+    REG (i, AHB);
+  }
+
+  cout << endl << endl << "--------------------------------------------------"
+               << endl << "------- switching widths to: rom-8, sram-8 -------"
+               << endl << "--------------------------------------------------" << endl;
+
+  //switch ROM to 8 bit access
+  temp = read (MCTRL_MCFG1, 4, APB);
+  cout << endl << "old MCFG1 contents: " << hex << (unsigned int) temp;
+  temp &= ~MCTRL_MCFG1_PROM_WIDTH;
+  cout << endl << "new MCFG1 contents: " << hex << (unsigned int) temp;
+  SET (MCTRL_MCFG1, temp, APB);
+
+  //switch SRAM to 8 bit access
+  temp = read (MCTRL_MCFG2, 4, APB);
+  cout << endl << "old MCFG2 contents: " << hex << (unsigned int) temp;
+  temp &= ~MCTRL_MCFG2_RAM_WIDTH;
+  cout << endl << "new MCFG1 contents: " << hex << (unsigned int) temp;
+  SET (MCTRL_MCFG2, temp, APB);
+
+  cout << endl << endl << "--------------------------------------------------"
+               << endl << "---------- write and read ROM and SRAM -----------"
+               << endl << "--------------------------------------------------" << endl;
+
+  //write ROM
+  uint8_t i8=0;
+  for (uint32_t i=0x00000010; i<0x00000012; i++) {
+    SET (i, i8, AHB);
+    i8++;
+  }
+  //write SRAM
+  i8 = 0;
+  for (uint32_t i=0x40000010; i<0x40000012; i++) {
+    SET (i, i8, AHB);
+    i8++;
+  }
+  //read ROM
+  for (uint32_t i=0x00000008; i<0x00000014; i += 4) {
+    REG (i, AHB);
+  }
+  //read SRAM
+  for (uint32_t i=0x40000008; i<0x40000014; i += 4) {
+    REG (i, AHB);
+  }
+
+  cout << endl << endl << "--------------------------------------------------"
+               << endl << "---------- switch off PROM write enable ----------"
+               << endl << "--------------------------------------------------" << endl;
+
+  //switch off ROM write capability
+  temp = read (MCTRL_MCFG1, 4, APB);
+  temp &= ~MCTRL_MCFG1_PWEN;
+  SET (MCTRL_MCFG1, temp, APB);
+
+  cout << endl << endl << "--------------------------------------------------"
+               << endl << "---------------- write into PROM -----------------"
+               << endl << "--------------------------------------------------" << endl;
+
+  //write ROM
+  i8=0;
+  for (uint32_t i=0x00000010; i<0x00000012; i++) {
+    SET (i, i8, AHB);
+    i8++;
+  }
+  cout << endl;
 }
 
 #endif

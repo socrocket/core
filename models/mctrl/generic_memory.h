@@ -32,7 +32,7 @@ template <int hindex = 0,    int pindex = 0,    int romaddr = 0,    int rommask 
           int ram8 = 0,      int ram16 = 0,     int sden = 0,       int sepbus = 0,
           int sdbits = 32,   int sdlsb = 2,     int oepol = 0,      int syncrst = 0,
           int pageburst = 0, int scantest = 0,  int mobile = 0>
-class Generic_memory
+class Generic_memory : public sc_core::sc_module
 {
 public:
     //Slave sockets: Answer communication with mctrl
@@ -59,7 +59,10 @@ public:
     void b_transport_sdram(tlm::tlm_generic_payload& gp, sc_time& delay);
 
     //functions for read / write / refresh
-    //ROM
+    //ROM, overloaded write function for 32, 16, and 8 bit access
+    void write_rom(uint32_t address, uint32_t data);
+    void write_rom(uint32_t address, uint16_t data);
+    void write_rom(uint32_t address, uint8_t data);
     uint32_t read_rom(uint32_t address);
     //IO
     void write_io(uint32_t address, uint32_t data);

@@ -49,7 +49,9 @@ int sc_main(int argc, char** argv) {
   const int mobile = 0;
   const int BUSWIDTH = 32;
 
-  //instantiate testbench, mctrl, and generic memory
+  //instantiate mctrl, generic memory, and testbench
+  Mctrl POST_MCTRL mctrl_inst0("mctrl_inst0");
+  Generic_memory POST_MCTRL generic_memory_inst0("generic_memory_inst0");
   Mctrl_tb< hindex,    pindex,   romaddr,
             rommask,   ioaddr,   iomask,
             ramaddr,   rammask,  paddr,
@@ -59,11 +61,10 @@ int sc_main(int argc, char** argv) {
             sden,      sepbus,   sdbits,
             sdlsb,     oepol,    syncrst,
             pageburst, scantest, mobile, BUSWIDTH  > mctrl_tb("mctrl_tb");
-  Mctrl POST_MCTRL mctrl_inst0("mctrl_inst0");
-  Generic_memory POST_MCTRL generic_memory_inst0("generic_memory_inst0");
 
   //bus communication via amba sockets (TLM)
-  mctrl_tb.master_sock(mctrl_inst0.bus);
+  mctrl_tb.apb_master_sock(mctrl_inst0.apb);  //config registers
+  mctrl_tb.ahb_master_sock(mctrl_inst0.ahb);  //memory access
 
   //memory communication via simple TLM sockets
   mctrl_inst0.mctrl_rom(generic_memory_inst0.mem_rom);

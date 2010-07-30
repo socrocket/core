@@ -16,7 +16,9 @@
 #ifndef MCTRL_H
 #define MCTRL_H
 
-//#define MONOLITHIC_MODULE 0
+//#define DEBUG
+
+//#define MONOLITHIC_MODULE
 
 #include <boost/config.hpp>
 #include <systemc.h>
@@ -38,8 +40,11 @@ template <int hindex = 0,    int pindex = 0,    int romaddr = 0,    int rommask 
 class Mctrl : public gs::reg::gr_device
 {
 public:
-    //Slave socket with delayed switch; Receives instructions from CPU
-    gs::reg::greenreg_socket< gs::amba::amba_slave<32> > bus;
+    //APB slave socket: connects mctrl config registers to apb
+    gs::reg::greenreg_socket< gs::amba::amba_slave<32> > apb;
+
+    //AHB slave socket: receives instructions (mem access) from CPU
+    tlm_utils::simple_target_socket<Mctrl> ahb;
 
     //Master sockets: Initiate communication with memory modules
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_rom;
@@ -62,8 +67,11 @@ public:
     //thread process to initialize MCTRL (set registers, define address spaces, etc.)
     void initialize_mctrl();
 
-    //define transport functions
+    //define TLM transport functions
     virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
+
+    //define mctrl functions
+    void refresh_sdram();
 
     //address space variables
     uint32_t rom_bk1_s, rom_bk1_e, rom_bk2_s, rom_bk2_e,

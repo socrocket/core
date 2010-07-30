@@ -29,7 +29,8 @@ template <int hindex = 0,    int pindex = 0,    int romaddr = 0,    int rommask 
 class Mctrl_tb : public sc_core::sc_module {
   public:
     //bus communication via socket
-    amba::amba_master_socket<BUSWIDTH> master_sock;
+    amba::amba_master_socket<BUSWIDTH> apb_master_sock;
+    tlm_utils::simple_initiator_socket<Mctrl_tb> ahb_master_sock;
 
     SC_HAS_PROCESS(Mctrl_tb);
 
@@ -38,8 +39,8 @@ class Mctrl_tb : public sc_core::sc_module {
     ~Mctrl_tb();
 
     //define TLM write and read transactions
-    void write(uint32_t addr, uint32_t data, uint32_t width);
-    uint32_t read(uint32_t addr, uint32_t width);
+    void write(uint32_t addr, uint32_t data, uint32_t width, bool apb);
+    uint32_t read(uint32_t addr, uint32_t width, bool apb);
 
     //stimuli (make use of TLM write / read transaction functions defined above)
     void run();
