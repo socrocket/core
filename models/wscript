@@ -18,7 +18,7 @@ APPNAME = 'hwswtlmmodels'
 VERSION = '0.5'
 top = '.'
 out = 'build'
-models = ['gptimer', 'irqmp', 'mmu_cache', 'utils']
+models = ['gptimer', 'irqmp', 'mmu_cache', 'mctrl', 'utils']
 
 import os
 import os.path
