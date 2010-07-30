@@ -25,7 +25,7 @@ clean:
 
 # SystemC #
 
-SOURCES=top_LT.cpp
+SOURCES=tests/top_tlm.cpp
 OBJECTS=$(patsubst %.cpp,systemc/%.o, $(SOURCES))
 CXX = g++
 CXXFLAGS = -g -Wall -D_REENTRANT -DUSE_STATIC_CASTS -DSC_INCLUDE_DYNAMIC_PROCESSES
@@ -48,12 +48,13 @@ systemc/.dir:
 	@touch $@
 
 systemc/%.o: %.cpp systemc/.dir
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) -c -o $@ $<
+	-mkdir -p $(shell dirname $@)
+	$(CXX) $(CXXFLAGS) -DSPEEDTEST $(CPPFLAGS) $(INCLUDES) -c -o $@ $<
 
 #systemc/gpimer.o: gptimer.cpp gptimer.h
 #	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -o $@ $<  
 
-systemc/top_LT.o: top_LT.cpp testbench.h gptimer.h gptimer.tpp
+systemc/top_tlm.o: tests/top_tlm.cpp tests/top_tlm.h gptimer.h gptimer.tpp
 
 systemc/sim.x: $(OBJECTS)
 	$(CXX) $(LDFLAGS) $(LIBDIRS) -o $@ $(OBJECTS) $(LIBRARIES) 2>&1 | c++filt

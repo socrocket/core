@@ -4,10 +4,10 @@
 /* File:       gptimersignals.h                                        */
 /*             header file defining the gptimer signal socket guards   */
 /*             usable by all components and models communicating with  */
-/*             an gptimer model                                        */
+/*             a gptimer model                                         */
 /*                                                                     */
 /* Modified on $Date$   */
-/*          at $Revision$                                          */
+/*          at $Revision$                                         */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TU Braunschweig              */

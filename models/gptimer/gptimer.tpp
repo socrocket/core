@@ -312,9 +312,9 @@ template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbit
 Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::Timer(sc_core::sc_module_name name, unsigned int ntimers)
   : gr_device(name, gs::reg::ALIGNED_ADDRESS, 4*(1+ntimers), NULL)
   , bus( "bus", r, 0x0, 0xFFFFFFFF, ::amba::amba_APB, ::amba::amba_LT, false)
-  , in("IJ"), out("OUT"), ticks(0)
+  , in("IJ"), out("OUT")
   , conf_defaults((gsepirq << 8) | ((gpirq & 0xF) << 3) | (ntimers & 0x7))
-  , lasttime(0, sc_core::SC_NS), lastvalue(0)
+  , lasttime(0, sc_core::SC_NS), lastvalue(0), ticks(0)
   , clockcycle(10.0, sc_core::SC_NS) {
 
   /* create register */
