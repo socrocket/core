@@ -90,6 +90,10 @@ class mmu_cache : public mmu_cache_if, public sc_core::sc_module {
   void amba_write(unsigned int addr, unsigned int * data, unsigned int length);
   void amba_read(unsigned int addr, unsigned int * data, unsigned int length);
 
+  // read/write cache control register
+  void write_ccr(unsigned int * data, sc_core::sc_time *delay);
+  unsigned int read_ccr();
+
   // data members
   // ------------
   // instruction cache

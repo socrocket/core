@@ -161,7 +161,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 		DUMP(this->name(),"ASI read access system registers - addr:" << std::hex << adr);
 		if (adr == 0) {
 			// cache control register
-			*(unsigned int *)ptr = CACHE_CONTROL_REG;
+			*(unsigned int *)ptr = read_ccr();
 		}
 		else if (adr == 8) {
 			// instruction cache configuration register
@@ -179,7 +179,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 		DUMP(this->name(),"ASI write access system register");
 		if (adr == 0) {
 			// cache control register
-			CACHE_CONTROL_REG = (unsigned int)*ptr;
+			write_ccr((unsigned int *)ptr, &delay);
 		}
 		// TRIGGER DEBUG OUTPUT / NOT A SPARC SYSTEM REGISTER
 		else if (adr == 0xfe) {
@@ -364,3 +364,50 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	ahb_master.release_transaction(gp);
 }
 
+// writes the cache control register and handles the commands
+template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, int isetlock,
+	  int dcen, int drepl, int dsets, int dlinesize, int dsetsize, int dsetlock, int dsnoop,
+	  int ilram, int ilramsize, int ilramstart, int dlram, int dlramsize, int dlramstart, int cached,
+	  int mmu_en, int itlb_num, int dtlb_num, int tlb_type, int tlb_rep, int mmupgsz>
+void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
+	  dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
+	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
+	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::write_ccr(unsigned int * data, sc_core::sc_time * delay) {
+
+	// [DS] data cache snoop enable (todo) 
+	if (*data & (1<<23)) {}
+	// [FD] dcache flush (do not set; always reads as zero)
+	if (*data & (1<<22)) { dcache->flush(delay); }
+	// [FI] icache flush (do not set; always reads as zero)
+	if (*data & (1<<21)) { icache->flush(delay); }
+	// [IB] instruction burst fetch (todo)
+	if (*data & (1<<16)) {}
+
+	// [IP] Instruction cache flush pending (bit 15 - read only)
+	// [DP] Data cache flush pending (bit 14 - read only)
+
+	// [DF] data cache freeze on interrupt (todo)
+	if (*data & (1<<5)) {}
+
+	// [IF] instruction cache freeze on interrupt (todo)
+	if (*data & (1<<4)) {}
+
+	// [DCS] data cache state (bits 3:2 - read only)
+	// [ICS] instruction cache state (bits 1:0 - read only)
+
+	// read only masking: 1111 1111 1100 1111 0011 1111 1111 0000
+	CACHE_CONTROL_REG |= (*data & 0xffcf3ff0);
+}
+
+// read the cache control register
+template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, int isetlock,
+	  int dcen, int drepl, int dsets, int dlinesize, int dsetsize, int dsetlock, int dsnoop,
+	  int ilram, int ilramsize, int ilramstart, int dlram, int dlramsize, int dlramstart, int cached,
+	  int mmu_en, int itlb_num, int dtlb_num, int tlb_type, int tlb_rep, int mmupgsz>
+unsigned int mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
+	  dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
+	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
+	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::read_ccr() {
+
+	return(CACHE_CONTROL_REG);
+}

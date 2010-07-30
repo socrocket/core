@@ -56,7 +56,7 @@ void testbench::initiator_thread(void) {
 
     // read cache control register
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * Read CACHE CONTROL REGISTER (ASI 0x2 - addr 0)    ");
+    DUMP(name()," * 1. Read CACHE CONTROL REGISTER (ASI 0x2 - addr 0)    ");
     DUMP(name()," ********************************************************* ");
     
     // args: address, length, asi, flush, flushl, lock 
@@ -69,7 +69,7 @@ void testbench::initiator_thread(void) {
 
     // read icache configuration register
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * Read ICACHE CONFIGURATION REGISTER (ASI 0x2 - addr 8)   ");
+    DUMP(name()," * 2. Read ICACHE CONFIGURATION REGISTER (ASI 0x2 - addr 8)   ");
     DUMP(name()," ********************************************************* ");    
 
     data=dread(0x8, 4, 2, 0, 0, 0);
@@ -83,7 +83,7 @@ void testbench::initiator_thread(void) {
 
     // read icache configuration register
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * Read DCACHE CONFIGURATION REGISTER (ASI 0x2 - addr 0xc)   ");
+    DUMP(name()," * 3. Read DCACHE CONFIGURATION REGISTER (ASI 0x2 - addr 0xc)   ");
     DUMP(name()," ********************************************************* ");    
 
     data=dread(0xc, 4, 2, 0, 0, 0);
@@ -103,7 +103,7 @@ void testbench::initiator_thread(void) {
 
     // write some data to memory (cache write miss)
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * DCACHE write addr 0x64 (cache write miss)               ");
+    DUMP(name()," * 4. DCACHE write addr 0x64 (cache write miss)               ");
     DUMP(name()," ********************************************************* ");    
 
     data=0x04030201;
@@ -113,7 +113,7 @@ void testbench::initiator_thread(void) {
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * DCACHE write addr 0x464 (cache write miss)              ");
+    DUMP(name()," * 5. DCACHE write addr 0x464 (cache write miss)              ");
     DUMP(name()," ********************************************************* ");    
 
     data=0x08070605;
@@ -122,7 +122,7 @@ void testbench::initiator_thread(void) {
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * DCACHE write addr 0x864 (cache write miss)              ");
+    DUMP(name()," * 6. DCACHE write addr 0x864 (cache write miss)              ");
     DUMP(name()," ********************************************************* ");    
 
     data=0x0c0b0a09;
@@ -131,7 +131,7 @@ void testbench::initiator_thread(void) {
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * DCACHE write addr 0xc64 (cache write miss)              ");
+    DUMP(name()," * 7. DCACHE write addr 0xc64 (cache write miss)              ");
     DUMP(name()," ********************************************************* ");
 
     data=0x100f0e0d;
@@ -148,7 +148,7 @@ void testbench::initiator_thread(void) {
   
     // first read (cache miss)
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * DCACHE read addr 0x64 (cache miss)         "                    );
+    DUMP(name()," * 8. DCACHE read addr 0x64 (cache miss)         "                    );
     DUMP(name()," ********************************************************* ");
 
     // args: address, length, asi, flush, flushl, lock
@@ -160,7 +160,7 @@ void testbench::initiator_thread(void) {
 
     // read again (cache hit)
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * DCACHE read again from 0x64 (cache hit)           "             );
+    DUMP(name()," * 9. DCACHE read again from 0x64 (cache hit)           "             );
     DUMP(name()," ********************************************************* ");
 
     data = dread(0x64, 4, 0x8, 0, 0, 0);
@@ -171,7 +171,7 @@ void testbench::initiator_thread(void) {
 
     // same index new tag (cache miss - load next bank)
     DUMP(name()," ********************************************************** ");
-    DUMP(name()," * DCACHE read addr 0x464 / same idx, diff tag (cache miss) ");
+    DUMP(name()," * 10. DCACHE read addr 0x464 / same idx, diff tag (cache miss) ");
     DUMP(name()," * should fill one of the empty banks (3 left)              ");
     DUMP(name()," ********************************************************** ");
     data = dread(0x464, 4, 0x8, 0, 0, 0);
@@ -182,7 +182,7 @@ void testbench::initiator_thread(void) {
 
     // same index new tag (cache miss - load next bank)
     DUMP(name()," ********************************************************** ");
-    DUMP(name()," * DCACHE read addr 0x864 / same idx, diff tag (cache miss) ");
+    DUMP(name()," * 11. DCACHE read addr 0x864 / same idx, diff tag (cache miss) ");
     DUMP(name()," * should fill one of the empty banks (2 left)              ");
     DUMP(name()," ********************************************************** ");
 
@@ -194,7 +194,7 @@ void testbench::initiator_thread(void) {
 
     // same index new tag (cache miss - load the last free bank)
     DUMP(name()," ********************************************************** ");
-    DUMP(name()," * DCACHE read addr 0xc64 / same idx, diff tag (cache miss) ");
+    DUMP(name()," * 12. DCACHE read addr 0xc64 / same idx, diff tag (cache miss) ");
     DUMP(name()," * should fill the last empty bank                          ");
     DUMP(name()," ********************************************************** ");
 
@@ -206,7 +206,7 @@ void testbench::initiator_thread(void) {
 
     // cache hit
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read from 0x464 (cache hit) "             );
+    DUMP(name()," * 13. DCACHE read from 0x464 (cache hit) "             );
     DUMP(name()," ************************************************* ");
 
     data = dread(0x464, 4, 0x8, 0, 0, 0);
@@ -217,7 +217,7 @@ void testbench::initiator_thread(void) {
 
     // cache hit
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read from 0x864 (cache hit) ");
+    DUMP(name()," * 14. DCACHE read from 0x864 (cache hit) ");
     DUMP(name()," ************************************************* ");
 
     data = dread(0x864, 4, 0x8, 0, 0, 0);
@@ -228,7 +228,7 @@ void testbench::initiator_thread(void) {
 
     // cache hit
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read from 0xc64 (cache hit) "             );
+    DUMP(name()," * 15. DCACHE read from 0xc64 (cache hit) "             );
     DUMP(name()," ************************************************* ");
 
     data = dread(0xc64, 4, 0x8, 0, 0, 0);
@@ -243,7 +243,7 @@ void testbench::initiator_thread(void) {
 
     // first read (cache miss)
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * ICACHE read addr 0x64 (cache miss)         "                    );
+    DUMP(name()," * 16. ICACHE read addr 0x64 (cache miss)         "                    );
     DUMP(name()," ********************************************************* ");
 
     // args: addr, length, flush, flushl, fline
@@ -255,7 +255,7 @@ void testbench::initiator_thread(void) {
 
     // read again (cache hit)
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * ICACHE read again from 0x64 (cache hit)           "             );
+    DUMP(name()," * 17. ICACHE read again from 0x64 (cache hit)           "             );
     DUMP(name()," ********************************************************* ");
 
     data = iread(0x64, 4, 0x8, 0, 0);
@@ -266,7 +266,7 @@ void testbench::initiator_thread(void) {
 
     // same index new tag (cache miss - load next bank)
     DUMP(name()," ********************************************************** ");
-    DUMP(name()," * ICACHE read addr 0x464 / same idx, diff tag (cache miss) ");
+    DUMP(name()," * 18. ICACHE read addr 0x464 / same idx, diff tag (cache miss) ");
     DUMP(name()," * should fill one of the empty banks (3 left)              ");
     DUMP(name()," ********************************************************** ");
     data = iread(0x464, 4, 0x8, 0, 0);
@@ -277,7 +277,7 @@ void testbench::initiator_thread(void) {
 
     // same index new tag (cache miss - load next bank)
     DUMP(name()," ********************************************************** ");
-    DUMP(name()," * ICACHE read addr 0x864 / same idx, diff tag (cache miss) ");
+    DUMP(name()," * 19. ICACHE read addr 0x864 / same idx, diff tag (cache miss) ");
     DUMP(name()," * should fill one of the empty banks (2 left)              ");
     DUMP(name()," ********************************************************** ");
 
@@ -289,7 +289,7 @@ void testbench::initiator_thread(void) {
 
     // same index new tag (cache miss - load the last free bank)
     DUMP(name()," ********************************************************** ");
-    DUMP(name()," * ICACHE read addr 0xc64 / same idx, diff tag (cache miss) ");
+    DUMP(name()," * 20. ICACHE read addr 0xc64 / same idx, diff tag (cache miss) ");
     DUMP(name()," * should fill the last empty bank                          ");
     DUMP(name()," ********************************************************** ");
 
@@ -301,7 +301,7 @@ void testbench::initiator_thread(void) {
 
     // cache hit
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read from 0x464 (cache hit) "                    );
+    DUMP(name()," * 21. ICACHE read from 0x464 (cache hit) "                    );
     DUMP(name()," ************************************************* ");
 
     data = iread(0x464, 4, 0x8, 0, 0);
@@ -312,7 +312,7 @@ void testbench::initiator_thread(void) {
 
     // cache hit
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read from 0x864 (cache hit) ");
+    DUMP(name()," * 22. ICACHE read from 0x864 (cache hit) ");
     DUMP(name()," ************************************************* ");
 
     data = iread(0x864, 4, 0x8, 0, 0);
@@ -323,7 +323,7 @@ void testbench::initiator_thread(void) {
 
     // cache hit
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read from 0xc64 (cache hit) "                    );
+    DUMP(name()," * 23. ICACHE read from 0xc64 (cache hit) "                    );
     DUMP(name()," ************************************************* ");
 
     data = iread(0xc64, 4, 0x8, 0, 0);
@@ -333,7 +333,7 @@ void testbench::initiator_thread(void) {
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * Content of ICACHE line 25 (dbg_out)        * ");
+    DUMP(name()," * 24. Content of ICACHE line 25 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
     dwrite(0xfe,25,4,2,0,0,0);
@@ -341,7 +341,7 @@ void testbench::initiator_thread(void) {
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * Content of DCACHE line 25 (dbg_out)        * ");
+    DUMP(name()," * 25. Content of DCACHE line 25 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
     dwrite(0xff,25,4,2,0,0,0);
@@ -352,7 +352,7 @@ void testbench::initiator_thread(void) {
 
     // dtag read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read TAG from set 0 line 25 (ASI 0xE) ");
+    DUMP(name()," * 26. DCACHE read TAG from set 0 line 25 (ASI 0xE) ");
     DUMP(name()," ************************************************* ");
     
     // TAG address = SET & LINE [12-5] & SUBBLOCK [4-2] & "00"
@@ -366,7 +366,7 @@ void testbench::initiator_thread(void) {
 
     // dtag read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read TAG from set 1 line 25 (ASI 0xE) ");
+    DUMP(name()," * 27. DCACHE read TAG from set 1 line 25 (ASI 0xE) ");
     DUMP(name()," ************************************************* ");
     
     //set 0b1 line 0b00011001 0b00000
@@ -379,7 +379,7 @@ void testbench::initiator_thread(void) {
 
     // dtag read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read TAG from set 2 line 25 (ASI 0xE) ");
+    DUMP(name()," * 28. DCACHE read TAG from set 2 line 25 (ASI 0xE) ");
     DUMP(name()," ************************************************* ");
     
     //set 0b2 line 0b00011001 0b00000    
@@ -392,7 +392,7 @@ void testbench::initiator_thread(void) {
 
     // dtag read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read TAG from set 3 line 25 (ASI 0xE) ");
+    DUMP(name()," * 29. DCACHE read TAG from set 3 line 25 (ASI 0xE) ");
     DUMP(name()," ************************************************* ");
     
     //set 0b3 line 0b00011001 0b00000
@@ -405,7 +405,7 @@ void testbench::initiator_thread(void) {
 
     // dcache entry read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read entry 0 from set 0 line 25 (ASI 0xF) ");
+    DUMP(name()," * 30. DCACHE read entry 0 from set 0 line 25 (ASI 0xF) ");
     DUMP(name()," ************************************************* ");
 
     // TAG address = SET & LINE [12-5] & SUBBLOCK [4-2] & "00"
@@ -418,7 +418,7 @@ void testbench::initiator_thread(void) {
 
     // dcache entry read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read entry 0 from set 1 line 25 (ASI 0xF) ");
+    DUMP(name()," * 31. DCACHE read entry 0 from set 1 line 25 (ASI 0xF) ");
     DUMP(name()," ************************************************* ");
 
     //set 0b1 line 0b00011001 subblock 0b000 00
@@ -430,7 +430,7 @@ void testbench::initiator_thread(void) {
 
     // dcache entry read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read entry 0 from set 2 line 25 (ASI 0xF) ");
+    DUMP(name()," * 32. DCACHE read entry 0 from set 2 line 25 (ASI 0xF) ");
     DUMP(name()," ************************************************* ");
 
     //set 0b2 line 0b00011001 subblock 0b000 00    
@@ -440,7 +440,7 @@ void testbench::initiator_thread(void) {
 
     // dcache entry read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read entry 0 from set 3 line 25 (ASI 0xF) ");
+    DUMP(name()," * 33. DCACHE read entry 0 from set 3 line 25 (ASI 0xF) ");
     DUMP(name()," ************************************************* ");
 
     //set 0b3 line 0b00011001 subblock 0b000 00
@@ -450,7 +450,7 @@ void testbench::initiator_thread(void) {
 
     // itag read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read TAG from set 0 line 25 (ASI 0xC) ");
+    DUMP(name()," * 34. ICACHE read TAG from set 0 line 25 (ASI 0xC) ");
     DUMP(name()," ************************************************* ");
 
     // TAG address = SET & LINE [12-5] & SUBBLOCK [4-2] & "00"
@@ -464,7 +464,7 @@ void testbench::initiator_thread(void) {
 
     // itag read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read TAG from set 1 line 25 (ASI 0xC) ");
+    DUMP(name()," * 35. ICACHE read TAG from set 1 line 25 (ASI 0xC) ");
     DUMP(name()," ************************************************* ");
     
     //set 0b1 line 0b00011001 0b00000
@@ -477,7 +477,7 @@ void testbench::initiator_thread(void) {
 
     // itag read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read TAG from set 2 line 25 (ASI 0xC) ");
+    DUMP(name()," * 36. ICACHE read TAG from set 2 line 25 (ASI 0xC) ");
     DUMP(name()," ************************************************* ");
     
     //set 0b2 line 0b00011001 0b00000    
@@ -490,7 +490,7 @@ void testbench::initiator_thread(void) {
 
     // itag read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read TAG from set 3 line 25 (ASI 0xC) ");
+    DUMP(name()," * 37. ICACHE read TAG from set 3 line 25 (ASI 0xC) ");
     DUMP(name()," ************************************************* ");
     
     //set 0b3 line 0b00011001 0b00000
@@ -503,7 +503,7 @@ void testbench::initiator_thread(void) {
 
     // dcache entry read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read entry 0 from set 0 line 25 (ASI 0xD) ");
+    DUMP(name()," * 38. ICACHE read entry 0 from set 0 line 25 (ASI 0xD) ");
     DUMP(name()," ************************************************* ");
 
     // TAG address = SET & LINE [12-5] & SUBBLOCK [4-2] & "00"
@@ -516,7 +516,7 @@ void testbench::initiator_thread(void) {
 
     // icache entry read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read entry 0 from set 1 line 25 (ASI 0xD) ");
+    DUMP(name()," * 39. ICACHE read entry 0 from set 1 line 25 (ASI 0xD) ");
     DUMP(name()," ************************************************* ");
 
     //set 0b1 line 0b00011001 subblock 0b000 00
@@ -528,7 +528,7 @@ void testbench::initiator_thread(void) {
 
     // icache entry read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read entry 0 from set 2 line 25 (ASI 0xD) ");
+    DUMP(name()," * 40. ICACHE read entry 0 from set 2 line 25 (ASI 0xD) ");
     DUMP(name()," ************************************************* ");
 
     //set 0b2 line 0b00011001 subblock 0b000 00    
@@ -540,7 +540,7 @@ void testbench::initiator_thread(void) {
 
     // icache entry read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read entry 0 from set 3 line 25 (ASI 0xD) ");
+    DUMP(name()," * 41. ICACHE read entry 0 from set 3 line 25 (ASI 0xD) ");
     DUMP(name()," ************************************************* ");
 
     //set 0b3 line 0b00011001 subblock 0b000 00
@@ -552,7 +552,7 @@ void testbench::initiator_thread(void) {
 
     // dcache tag write
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE write TAG to set 0 line 26 (ASI 0xE) ");
+    DUMP(name()," * 42. DCACHE write TAG to set 0 line 26 (ASI 0xE) ");
     DUMP(name()," ************************************************* ");
 
     // atag starts from bit 10; entry 0 (bit 0) valid
@@ -566,7 +566,7 @@ void testbench::initiator_thread(void) {
 
     // dcache entry write
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE write entry 0 to set 0 line 26 (ASI 0xF) ");
+    DUMP(name()," * 43. DCACHE write entry 0 to set 0 line 26 (ASI 0xF) ");
     DUMP(name()," ************************************************* ");
 
     // set 0b0 line 0b00011010 subblock 0b000 00
@@ -575,7 +575,7 @@ void testbench::initiator_thread(void) {
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * Content of DCACHE line 26 (dbg_out)        * ");
+    DUMP(name()," * 44. Content of DCACHE line 26 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
     dwrite(0xff,26,4,2,0,0,0);
@@ -584,7 +584,7 @@ void testbench::initiator_thread(void) {
 
     // dcache read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read from Address 0x68 (hit set 0)       ");
+    DUMP(name()," * 45. DCACHE read from Address 0x68 (hit set 0)       ");
     DUMP(name()," ************************************************* ");
 
     data = dread(0x68, 4, 0x8, 0, 0, 0);
@@ -595,7 +595,7 @@ void testbench::initiator_thread(void) {
 
     // icache tag write
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE write TAG to set 3 line 26 (ASI 0xC) ");
+    DUMP(name()," * 46. ICACHE write TAG to set 3 line 26 (ASI 0xC) ");
     DUMP(name()," ************************************************* ");
 
     // atag starts from bit 10; entry 0 (bit 0) valid
@@ -609,7 +609,7 @@ void testbench::initiator_thread(void) {
 
     // icache entry write
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE write entry 0 to set 3 line 26 (ASI 0xD) ");
+    DUMP(name()," * 47. ICACHE write entry 0 to set 3 line 26 (ASI 0xD) ");
     DUMP(name()," ************************************************* ");
 
     // set 0b11 line 0b00011010 subblock 0b000 00
@@ -618,7 +618,7 @@ void testbench::initiator_thread(void) {
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * Content of ICACHE line 26 (dbg_out)        * ");
+    DUMP(name()," * 48. Content of ICACHE line 26 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
     dwrite(0xfe,26,4,2,0,0,0);
@@ -627,7 +627,7 @@ void testbench::initiator_thread(void) {
 
     // icache read
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read from Address 0x468 (hit set 3)       ");
+    DUMP(name()," * 49. ICACHE read from Address 0x468 (hit set 3)       ");
     DUMP(name()," ************************************************* ");
 
     data = iread(0x468, 4, 0, 0, 0);
@@ -642,19 +642,21 @@ void testbench::initiator_thread(void) {
 
     // flush icache
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * Flush instruction cache (write with ASI 0x10)    ");
+    DUMP(name()," * 50. Flush instruction cache (write with ASI 0x10)    ");
     DUMP(name()," ************************************************* ");
 
     // flushing the instruction cache will cause the diagnostic icache write
     // to be transferred to main memory (set 3 line 26 tag 401 address 0x468 data 0x87654321
     dwrite(0x0, 0x0, 4, 0x10, 0, 0, 0);
 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
     // flush dcache
     DUMP(name(),"************************************************* ");
-    DUMP(name()," * Flush data cache (write with ASI 0x11)    ");
+    DUMP(name()," * 51. Flush data cache (write with ASI 0x11)    ");
     DUMP(name()," ************************************************* ");
 
-    // flushing the data cach will cause the diagnostic dcache write
+    // Flushing the data cache will cause the diagnostic dcache write
     // to be transferred to main memory (set 0 line 26 tag 1 address 0x68 data 0x12345678)
     dwrite(0x0, 0x0, 4, 0x11, 0, 0, 0);
 
@@ -665,7 +667,7 @@ void testbench::initiator_thread(void) {
 
     // invalidate
     DUMP(name(),"************************************************** ");
-    DUMP(name()," * invalidate icache address 0x468                 ");
+    DUMP(name()," * 52. invalidate icache address 0x468                 ");
     DUMP(name()," ************************************************* ");
 
     // atag starts from bit 10; entry 0 (bit 0) valid
@@ -679,8 +681,8 @@ void testbench::initiator_thread(void) {
 
     // invalidate
     DUMP(name(),"************************************************** ");
-    DUMP(name()," * invalidate dcache address 0x468                 ");
-    DUMP(name()," ************************************************* ");
+    DUMP(name(),"* 53. invalidate dcache address 0x468                 ");
+    DUMP(name(),"************************************************* ");
 
     // atag starts from bit 10; entry 0 (bit 0) valid
     data = (0 << 10) | 0;
@@ -692,18 +694,18 @@ void testbench::initiator_thread(void) {
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
     // icache read
-    DUMP(name()," ************************************************* ");
-    DUMP(name()," * ICACHE read from Address 0x468 (miss)           ");
-    DUMP(name()," ************************************************* ");
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 54. ICACHE read from Address 0x468 (miss)           ");
+    DUMP(name(),"************************************************* ");
 
     data = iread(0x468, 4, 0, 0, 0);
     DUMP(name(),"ICACHE returned data: " << std::hex << data);
     assert(data==0x87654321);
 
     // dcache read
-    DUMP(name()," ************************************************* ");
-    DUMP(name()," * DCACHE read from Address 0x68 (hit set 0)       ");
-    DUMP(name()," ************************************************* ");
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 55. DCACHE read from Address 0x68 (hit set 0)       ");
+    DUMP(name(),"************************************************* ");
 
     data = dread(0x68, 4, 0x8, 0, 0, 0);
     DUMP(name(),"DCACHE returned data: " << std::hex << data);
@@ -711,8 +713,184 @@ void testbench::initiator_thread(void) {
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
-    sc_core::sc_stop();
+    // The caches can also be flushed by setting the FD/FI bits of
+    // the cache control register.
 
+    // Diagnostic writes are used to write data to the caches
+    // which are not present in memory.
+
+    // icache tag write
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 56. ICACHE write TAG to set 3 line 26 (ASI 0xC) ");
+    DUMP(name(),"************************************************* ");
+
+    // atag starts from bit 10; entry 0 (bit 0) valid
+    data = (2 << 10) | 1;
+    
+    DUMP(name(),"ICACHE write TAG: " << std::hex << data << " Address: 0x6340");
+    // set 0b11 line 0b00011010 subblock 0b000 00
+    dwrite(0x6340, data, 4, 0xc, 0, 0, 0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+
+    // icache entry write
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 57. ICACHE write entry 0 to set 3 line 26 (ASI 0xD) ");
+    DUMP(name(),"************************************************* ");
+
+    // set 0b11 line 0b00011010 subblock 0b000 00
+    dwrite(0x6340, 0x11111111, 4, 0xd, 0, 0, 0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+
+   // dcache tag write
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 58. DCACHE write TAG to set 0 line 26 (ASI 0xE) ");
+    DUMP(name(),"************************************************* ");
+
+    // atag starts from bit 10; entry 0 (bit 0) valid
+    data = (3 << 10) | 1;
+    
+    DUMP(name(),"DCACHE write TAG: " << std::hex << data << " Address: 0x340");
+    // set 0b0 line 0b00011010 subblock 0b000 00
+    dwrite(0x340, data, 4, 0xe, 0, 0, 0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+
+    // dcache entry write
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 59. DCACHE write entry 0 to set 0 line 26 (ASI 0xF) ");
+    DUMP(name(),"************************************************* ");
+
+    // set 0b0 line 0b00011010 subblock 0b000 00
+    dwrite(0x340, 0xffffffff, 4, 0xf, 0, 0, 0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // Now both caches are flushed (diagnostic data -> memory)
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 60. Flush instruction cache with CCR FD/FI (ASI 0x2)");
+    DUMP(name(),"************************************************* ");
+
+    // READ the CCR
+    data=dread(0x0, 4, 2, 0, 0, 0);
+
+    // set FD and FI
+    data |= (3 << 21);
+
+    // write CCR and trigger both caches to flush
+    dwrite(0x0, data, 4, 0x2, 0, 0, 0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // invalidate diagnostic cache data
+    
+    // invalidate
+    DUMP(name(),"************************************************** ");
+    DUMP(name(),"* 61. invalidate icache address 0x868                 ");
+    DUMP(name(),"************************************************* ");
+
+    // atag starts from bit 10; entry 0 (bit 0) valid
+    data = (2 << 10) | 0;
+    
+    DUMP(name(),"ICACHE write TAG: " << std::hex << data << " Address: 0x6340");
+    // set 0b11 line 0b00011010 subblock 0b000 00
+    dwrite(0x6340, data, 4, 0xc, 0, 0, 0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+
+    // invalidate
+    DUMP(name(),"************************************************** ");
+    DUMP(name(),"* 62. invalidate dcache address 0xc68                 ");
+    DUMP(name(),"************************************************* ");
+
+    // atag starts from bit 10; entry 0 (bit 0) valid
+    data = (3 << 10) | 0;
+    
+    DUMP(name(),"DCACHE write TAG: " << std::hex << data << " Address: 0x340");
+    // set 0b0 line 0b00011010 subblock 0b000 00
+    dwrite(0x340, data, 4, 0xe, 0, 0, 0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+
+    // Reading from the addresses of the 'diagnostic' data brings the 
+    // data back to cache.
+
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 63. Content of DCACHE line 26 (dbg_out)         ");
+    DUMP(name(),"************************************************* ");
+
+    dwrite(0xff,26,4,2,0,0,0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 64. Content of ICACHE line 26 (dbg_out)         ");
+    DUMP(name(),"************************************************* ");
+
+    dwrite(0xfe,26,4,2,0,0,0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // icache read
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 65.ICACHE read from Address 0x868 (miss)           ");
+    DUMP(name(),"************************************************* ");
+
+    data = iread(0x868, 4, 0, 0, 0);
+    DUMP(name(),"ICACHE returned data: " << std::hex << data);
+    assert(data==0x11111111 );
+
+    // dcache read
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 66. DCACHE read from Address 0xc68 (miss)            ");
+    DUMP(name(),"************************************************* ");
+
+    data = dread(0xc68, 4, 0x8, 0, 0, 0);
+    DUMP(name(),"DCACHE returned data: " << std::hex << data);
+    assert(data==0xffffffff);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+
+    // *******************************************
+    // * END OF TEST
+    // *******************************************
+
+    DUMP(name()," ************************************************* ");
+    DUMP(name()," * 100. Content of DCACHE line 25 (dbg_out)        * ");
+    DUMP(name()," ************************************************* ");
+
+    dwrite(0xff,25,4,2,0,0,0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    DUMP(name()," ************************************************* ");
+    DUMP(name()," * 101. Content of DCACHE line 26 (dbg_out)        * ");
+    DUMP(name()," ************************************************* ");
+
+    dwrite(0xff,26,4,2,0,0,0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+
+    DUMP(name()," ************************************************* ");
+    DUMP(name()," * 102. Content of ICACHE line 25 (dbg_out)        * ");
+    DUMP(name()," ************************************************* ");
+
+    dwrite(0xfe,25,4,2,0,0,0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    DUMP(name()," ************************************************* ");
+    DUMP(name()," * Content of ICACHE line 26 (dbg_out)        * ");
+    DUMP(name()," ************************************************* ");
+
+    dwrite(0xfe,26,4,2,0,0,0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    sc_core::sc_stop();
   }
 }
 
