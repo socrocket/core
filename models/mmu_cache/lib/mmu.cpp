@@ -84,22 +84,74 @@ mmu::mmu(sc_core::sc_module_name name,
 // instruction read interface
 void mmu::itlb_read(unsigned int addr, unsigned int * data, unsigned int length) {
 
-  DUMP(this->name(),"ITLB READ request virtual address: " << std::hex << addr);
+  // mmu enabled ?
+  if (MMU_CONTROL_REG & 0x1) {
 
+    DUMP(this->name(),"ITLB READ request (active mode) virtual address: " << std::hex << addr);
+
+  }
+  // mmu in bypass mode
+  else {
+
+    DUMP(this->name(),"ITLB READ request (bypass mode)!");
+    // forward request to amba interface
+    m_parent->amba_read(addr, data, length);
+  }
+}
+
+// instruction write interface (for flushing)
+void mmu::itlb_write(unsigned int addr, unsigned int * data, unsigned int length) {
+
+  // mmu enabled ?
+  if (MMU_CONTROL_REG & 0x1) {
+
+    DUMP(this->name(),"ITLB WRITE request (active mode) virtual address: " << std::hex << addr);
+
+  }
+  // mmu in bypass mode
+  else {
+
+    DUMP(this->name(),"ITLB WRITE request (bypass mode)!");
+    // forward request to amba interface
+    m_parent->amba_write(addr, data, length);
+  }
 }
 
 // data write interface
 void mmu::dtlb_write(unsigned int addr, unsigned int * data, unsigned int length) {
 
-  DUMP(this->name(),"DTLB WRITE request virtual address: " << std::hex << addr);
+  // mmu enabled ?
+  if (MMU_CONTROL_REG & 0x1) {
 
+    DUMP(this->name(),"DTLB WRITE request (active mode) virtual address: " << std::hex << addr);
+
+  }
+  // mmu in bypass mode
+  else {
+
+    DUMP(this->name(),"DTLB WRITE request (bypass mode)!");
+    // forward request to amba interface
+    m_parent->amba_write(addr, data, length);
+  }
 }
 
 // data read interface
 void mmu::dtlb_read(unsigned int addr, unsigned int * data, unsigned int length) {
 
-  DUMP(this->name(),"DTLB READ request virtual address: " << std::hex << addr);
+  // mmu enabled ?
+  if (MMU_CONTROL_REG & 0x1) {
+    
+    DUMP(this->name(),"DTLB READ request (active mode) virtual address: " << std::hex << addr);
 
+  }
+  // mmu in bypass mode
+  else {
+
+    DUMP(this->name(),"DTLB READ request (bypass mode)!");
+    // forward request to amba interface
+    m_parent->amba_read(addr, data, length);
+
+  }
 }
 
 // read MMU Control Register

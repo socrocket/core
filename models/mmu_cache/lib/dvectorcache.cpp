@@ -173,7 +173,7 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
 
       // mmu enabled: forward request to mmu
       m_mmu->dtlb_read(address, data, 4);
-      DUMP(this->name(),"Received data from MMU" << std::hex << *data);
+      DUMP(this->name(),"Received data from MMU " << std::hex << *data);
 
     } else {
 
@@ -325,9 +325,17 @@ void dvectorcache::flush(sc_core::sc_time *t) {
 
 	  DUMP(this->name(),"FLUSH set: " << set << " line: " << line << " addr: " << std::hex << adr << " data: " << std::hex << (*m_current_cacheline[set]).entry[entry].i);
 
-	  // and writeback
-	  m_parent->amba_write(adr, &(*m_current_cacheline[set]).entry[entry].i,4);
-	  
+	  // check whether there is a MMU
+	  if (m_mmu_en == 1) {
+
+	    // mmu enabled: forward request to mmu
+	    m_mmu->dtlb_write(adr, &(*m_current_cacheline[set]).entry[entry].i, 4);
+
+	  } else {
+	    // and writeback
+	    m_parent->amba_write(adr, &(*m_current_cacheline[set]).entry[entry].i,4);
+
+	  }
 	}
       }
     }

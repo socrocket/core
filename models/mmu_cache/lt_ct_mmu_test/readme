@@ -1,9 +1,9 @@
-This directory contains the source code of a test for the Cache-Subsystem with MMU disabled.
+This directory contains the source code for a test of the Cache-Subsystem with MMU enabled.
 Following files are currently checked in:
 
 main.cpp		- The main method which assembles the system and starts/stops the simulation.
 testbench.{h,cpp} 	- The monitor/stimuli block which acts as a placeholder for the processor simulator.
-defines.h 		- Defines for local testbench
+locals.h 		- Defines for local testbench
 wscript                 - waf build script
 
 The testbench constructs a system consisting of a stimuli generator/monitor (LT), the actual mmu_cache implementation (LT),

@@ -2,7 +2,7 @@
 /* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
 /* File:       main.cpp - Top level file (sc_main) for                 */
-/*             lt_ct_default_test. Purpose is the assemblence of       */
+/*             lt_ct_mmu_test. Purpose is the assemblence of       */
 /*             a test environment for the mmu_cache module in its      */
 /*             default configuration. The mmu_cache is connected to    */
 /*             a testbench (lt) and a cycle timed AHB bus.             */
@@ -47,10 +47,10 @@
 // | (lt) |-----------|------------|  ---------------  | (lt)      |(lt)       | (lt -> ct)|  ->
 // |      |data       |dcio target |  |idatacache   |  |-----------|-----------|           |
 // |      |init.sock  |socket (lt) |  ---------------  |                       -------------
-// |      |-----------|------------|                   |
-// --------                        ---------------------
-//
-//
+// |      |-----------|------------|  ---------------  |
+// --------                        |  |    srmmu    |  |
+//                                 |  ---------------  |
+//                                 ---------------------
 //
 //
 //
@@ -93,7 +93,7 @@ int sc_main(int argc, char** argv) {
   //  int dcen, int drepl, int dsets, int dlinesize, int dsetsize, int dsetlock, int dsnoop,
   //  int ilram, int ilramsize, int ilramstart, int dlram, int dlramsize, int dlramstart, int cached,
   //  int mmu_en, int itlb_num, int dtlb_num, int tlb_type, int tlb_rep, int mmupgsz>
-  mmu_cache<0,1,3,4,4,1,0,1,3,4,4,1,0,0,0,1,0x0000008f,0,1,0x0000008f,0,0,8,8,1,0,0> mmu_cache("mmu_cache", 
+  mmu_cache<0,1,3,4,4,1,0,1,3,4,4,1,0,0,0,1,0x0000008f,0,1,0x0000008f,0,1,8,8,1,0,0> mmu_cache("mmu_cache", 
 			CACHE_MASTER_ID, 
 			sc_core::sc_time(0, sc_core::SC_NS), 
 			sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),

@@ -4,8 +4,8 @@
 /* File:       testbench.h - Class definition of the                   */
 /*             stimuli generator/monitor for the current testbench.    */
 /*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
+/* Modified on $Date$                                                  */
+/*          at $Revision$                                              */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
@@ -21,7 +21,6 @@
 
 #include "defines.h"
 #include "locals.h"
-
 #include "icio_payload_extension.h"
 #include "dcio_payload_extension.h"
 

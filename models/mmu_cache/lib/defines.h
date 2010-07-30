@@ -3,8 +3,8 @@
 /*                                                                     */
 /* File:       defines.h - Header file with global defines             */
 /*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
+/* Modified on $Date$                                                  */
+/*          at $Revision$                                              */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
@@ -17,9 +17,6 @@
 #include "tlm.h"
 
 #define DUMP(name, msg) std::cout<<"@"<<sc_core::sc_time_stamp()<<" /"<<(unsigned)sc_core::sc_delta_count()<<" ("<<name  <<"): "<<msg<<std::endl
-
-#define LOCAL_CLOCK 10
-#define CACHE_MASTER_ID 1
 
 // structure of a cache tag
 // ========================

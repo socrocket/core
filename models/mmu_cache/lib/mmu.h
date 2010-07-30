@@ -62,6 +62,7 @@ class mmu : public mmu_if, public sc_core::sc_module {
   // In case the MMU is enabled, the bus accesses of the i/d cache are diverted
   // using the interface functions below (mmu_cache_if).
   void itlb_read(unsigned int addr, unsigned int * data, unsigned int length);
+  void itlb_write(unsigned int addr, unsigned int * data, unsigned int length);
   void dtlb_write(unsigned int addr, unsigned int * data, unsigned int length);
   void dtlb_read(unsigned int addr, unsigned int * data, unsigned int length);
   // read mmu internal registers (ASI 0x19)
