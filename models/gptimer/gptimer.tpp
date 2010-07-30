@@ -330,7 +330,7 @@ Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::Timer(sc_
          /* offset */ 0x04,
          /* config */ gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
      /* init value */ 0xFFFFFFFF, 
-     /* write mask */ (2<<(gsbits))-1, /* sbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s. */ 
+     /* write mask */ static_cast<unsigned int>((1ULL<<gsbits)-1), /* sbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s. */ 
       /* reg width */ 32, 
       /* lock mask */ 0x00
                    );
@@ -350,7 +350,7 @@ Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::Timer(sc_
           /* offset */ TIM_VALUE(i),
           /* config */ gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
       /* init value */ 0x00000000, 
-      /* write mask */ (2<<(gnbits+1))-1, /* nbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s. */ 
+      /* write mask */ static_cast<unsigned int>((1ULL<<gnbits)-1), /* nbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s. */ 
        /* reg width */ 32, 
        /* lock mask */ 0x00
                      );
@@ -358,7 +358,7 @@ Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog>::Timer(sc_
           /* offset */ TIM_RELOAD(i),
           /* config */ gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
       /* init value */ 0x00000001, 
-      /* write mask */ (2<<(gnbits+1))-1, /* nbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s. */ 
+      /* write mask */ static_cast<unsigned int>((1ULL<<gnbits)-1), /* nbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s. */ 
        /* reg width */ 32, 
        /* lock mask */ 0x00
                      );

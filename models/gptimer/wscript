@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+# encoding: utf-8
 #***********************************************************************#
 #* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *#
 #*                                                                     *#
@@ -13,120 +15,40 @@
 #* Maintainer: Rolf Meyer                                              *#
 #***********************************************************************#
 
-top = '.'
-out = 'build'
+top = '..'
 
-import os
-import os.path
-import fnmatch
-import find
-
-def set_options(ctx): 
-  from os import environ
-  ctx.tool_options('compiler_cxx')     
-  ctx.add_option("--greensocs", dest="greensocs_home", help="Basedir of your GreenSoCs instalation", default=environ.get("GREENSOCS_HOME",""))
-  ctx.add_option("--boost", dest="boost_home", help="Basedir of your Boost instalation", default=environ.get("BOOST_HOME",""))
-  ctx.add_option("--boost_inc", dest="boost_inc", help="Include dir of your Boost instalation", default=environ.get("BOOST_DIR",""))
-  ctx.add_option("--boost_lib", dest="boost_lib", help="Library dir of your Boost instalation", default=environ.get("BOOST_LIB",""))
-  ctx.add_option("--systemc", dest="systemc_home", help="Basedir of your SystemC instalation", default=environ.get("SYSTEMC_HOME",""))
-  ctx.add_option("--tlm2", dest="tlm2_home", help="Basedir of your TLM-2.0 distribution", default=environ.get("TLM2_HOME",""))
-  ctx.add_option("--scv", dest="scv_home", help="Basedir of your SCV distribution", default=environ.get("SCV_HOME",""))
-  ctx.add_option("--amba", dest="amba_home", help="Basedir of your AMBAKit distribution", default=environ.get("AMBA_HOME",""))
-  ctx.add_option("--grlib", dest="grlib_home", help="Basedir of your grlib distribution", default=environ.get("GRLIB",""))
-  ctx.add_option("--cxxflags", dest="cxxflags", help="C++ compiler flags", default=environ.get("CXXFLAGS",""))
+def set_options(ctx):
+  pass 
 
 def configure(ctx):
-  from Options import options
-  import os.path
-  ctx.env['CXXFLAGS'] = ['-g', 
-                         '-Wall', 
-                         '-D_REENTRANT', 
-                         '-DUSE_STATIC_CASTS', 
-                         '-DSC_INCLUDE_DYNAMIC_PROCESSES'] + options.cxxflags.split()
-  #ctx.env['CPPPATH'] = ['.', '..', '../utils']
-  
-  ctx.check_tool('compiler_cxx') 
-  
-
-  GREENSOCS_INC = [".",
-                   "greensocket",
-                   "gsgpsocket",
-                   "greencontrol",
-                   os.path.join("signalsocket","green-signal-socket","include"),
-                   "greenreg"]
-           
-  ctx.env["GREENREGROOT"] = os.path.join(options.greensocs_home, 'greenreg')
-  print ctx.env["GREENREGROOT"]
-  if options.greensocs_home and options.greensocs_home != "":
-    ctx.env["CPPPATH_GREENSOCS"] = [os.path.join(options.greensocs_home, n) 
-      for n in GREENSOCS_INC] + find.getdirs(ctx.env["GREENREGROOT"], ['*test*', '*examples*'])
- 
-    ctx.env["LIBPATH_GREENSOCS"] =  os.path.join(options.greensocs_home, "greenreg")
-    ctx.env["LIB_GREENSOCS"] = "greenreg"
-    
-  if options.boost_home and options.boost_home != "":
-    #ctx.env["CXXFLAGS_BOOST"]
-    ctx.env["CPPPATH_BOOST"] = os.path.join(options.boost_home, "include")
-    ctx.env["LIBPATH_BOOST"] =  os.path.join(options.boost_home, "lib")
-    #ctx.env["LIB_BOOST"] = "boost"
-  elif options.boost_inc and options.boost_lib and options.boost_inc != "" and options.boost_inc != "":
-    ctx.env["CPPPATH_BOOST"] = options.boost_inc
-    ctx.env["LIBPATH_BOOST"] =  options.boost_lib
-    #ctx.env["LIB_BOOST"] = "boost"
-  
-  if options.systemc_home and options.systemc_home != "":
-    ctx.env["CPPPATH_SYSC"] = os.path.join(options.systemc_home, "include")
-    ctx.env["LIBPATH_SYSC"] =  os.path.join(options.systemc_home, "lib-linux")
-    ctx.env["LIB_SYSC"] = "systemc"
-    
-  if options.tlm2_home and options.tlm2_home != "":
-    ctx.env["CPPPATH_TLM2"] = os.path.join(options.tlm2_home, "include/tlm")
-    
-  if options.scv_home and options.scv_home != "":
-    ctx.env["CPPPATH_SCV"] = os.path.join(options.scv_home, "include")
-    ctx.env["LIBPATH_SCV"] =  os.path.join(options.scv_home, "lib-linux")
-    ctx.env["LIB_SCV"] = "scv"
-    
-  if options.amba_home and options.amba_home != "":
-    ctx.env["CPPPATH_AMBA"] = options.amba_home
-  
-  #ctx.find_program('vlib', var='VLIB', mandatory=True)
-  #ctx.find_program('vsim', var='VSIM', mandatory=True)
-  #ctx.find_program('sccom', var='SCCOM', mandatory=True)
-  #ctx.find_program('scgenmod', var='SCGENMOD', mandatory=True)
-  #ctx.find_program('vcom', var='VCOM', mandatory=True)
-
-def build(bld):
-  bld(
-    features = ['cxx', 'cprogram'],
-    source='tests/top_tlm.cpp',
-    target='gptimer.test',
-    includes='. ../utils',
-    uselib=['BOOST', 'SYSC', 'TLM2', 'AMBA', 'GREENSOCS'],
-  )
-  
-  bld(
-    features = ['cxx', 'cprogram'],
-    source='tests/top_tlm.cpp',
-    target='gptimer.speedtest',
-    cxxflags='-DSPEEDTEST',
-    includes='. ../utils',
-    uselib=['BOOST', 'SYSC', 'TLM2', 'AMBA', 'GREENSOCS'],
-  )
-  
-  bld(
-    features = ['cxx', 'cprogram'],
-    source='tests/top_tlm.cpp',
-    target='gptimer.functiontest',
-    cxxflags='-DFUNCTIONTEST',
-    includes='. ../utils',
-    uselib=['BOOST', 'SYSC', 'TLM2', 'AMBA', 'GREENSOCS'],
-  )
-
-
-
-def vsim(ctx):
   pass
 
-
+def build(bld):
+  #bld(
+  #  features = ['cxx', 'cprogram'],
+  #  source='tests/top_tlm.cpp',
+  #  target='gptimer.test',
+  #  includes='. ../utils',
+  #  uselib=['BOOST', 'SYSC', 'TLM2', 'AMBA', 'GREENSOCS'],
+  #)
+  
+  bld(
+    target       = 'gptimer.speedtest',
+    features     = 'cxx cprogram test',
+    source       = 'tests/top_tlm.cpp',
+    cxxflags     = '-DSPEEDTEST',
+    includes     = '.',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib_local = 'utils',
+  )
+  
+  bld(
+    target       = 'gptimer.functiontest',
+    features     = ['cxx', 'cprogram', 'test'],
+    source       = ['tests/top_tlm.cpp'],
+    cxxflags     = ['-DFUNCTIONTEST'],
+    includes     = ['.'],
+    uselib       = ['BOOST', 'SYSC', 'TLM2', 'AMBA', 'GREENSOCS'],
+    uselib_local = ['utils'],
+  )
 
