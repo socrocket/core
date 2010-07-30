@@ -158,7 +158,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 
 	if (cmd==tlm::TLM_READ_COMMAND) {
 		
-		DUMP(this->name(),"ASI read access system registers - addr:" << std::hex << adr);
+		DUMP(this->name(),"System Registers read with ASI 0x2 - addr:" << std::hex << adr);
 		if (adr == 0) {
 			// cache control register
 			*(unsigned int *)ptr = read_ccr();
@@ -172,11 +172,13 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 			*(unsigned int *)ptr = dcache->read_config_reg(&delay);
 		}
 		else {
+			DUMP(this->name(),"Address not valid for read with ASI 0x2");
 			*ptr = 0;
 		}
 	} 
 	else if (cmd==tlm::TLM_WRITE_COMMAND) {
-		DUMP(this->name(),"ASI write access system register");
+
+		DUMP(this->name(),"System Register write with ASI 0x2 - addr:" << std::hex << adr);
 		if (adr == 0) {
 			// cache control register
 			write_ccr((unsigned int *)ptr, &delay);
@@ -191,6 +193,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 			dcache->dbg_out(*ptr);
 		}
 		else {
+			DUMP(this->name(),"Address not valid for write with ASI 0x2 (or read only)");
 			// ignore (cache configuration regs (0x8, 0xc) are read only
 		}
 	}
@@ -280,6 +283,60 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	}
 	else {
 		DUMP(this->name(), "Unvalid TLM Command");
+	}
+  }
+  // access MMU internal registers
+  // (only allowed if mmu present)
+  else if ((asi == 0x19)&&(mmu_en == 0x1)) {
+
+    	if (cmd==tlm::TLM_READ_COMMAND) {
+      
+		DUMP(this->name(),"MMU register read with ASI 0x19 - addr:" << std::hex << adr);
+      		if (adr==0x000) {
+			// MMU Control Register
+			*(unsigned int *)ptr = srmmu->read_mcr();
+     		}
+      		else if (adr == 0x100) {
+			// Context Pointer Register
+			*(unsigned int *)ptr = srmmu->read_mctpr();
+      		}
+      		else if (adr == 0x200) {
+			// Context Register
+			*(unsigned int *)ptr = srmmu->read_mctxr();
+      		}
+      		else if (adr == 0x300) {
+			// Fault Status Register
+			*(unsigned int *)ptr = srmmu->read_mfsr();
+      		}
+      		else if (adr == 0x400) {
+			// Fault Address Register
+			*(unsigned int *)ptr = srmmu->read_mfar();
+      		}
+      		else {
+			DUMP(this->name(),"Address not valid for read with ASI 0x19");
+			*(unsigned int *)ptr = 0;
+      		}
+	
+    	}
+    	else if (cmd==tlm::TLM_WRITE_COMMAND) {
+
+		DUMP(this->name(),"MMU register write with ASI 0x19 - addr:" << std::hex << adr);
+      		if (adr==0x000) {
+			// MMU Control Register
+			srmmu->write_mcr((unsigned int *)ptr);
+      		}
+     		else if (adr==0x100) {
+			// Context Table Pointer Register
+			srmmu->write_mctpr((unsigned int*)ptr);
+		}
+      		else if (adr==0x200) {
+			// Context Register
+			srmmu->write_mctxr((unsigned int*)ptr);
+      		}
+		else {
+			DUMP(this->name(),"Address not valid for write with ASI 0x19 (or read-only)");
+			// ignore
+      		}
 	}
   }
   // ordinary cache access

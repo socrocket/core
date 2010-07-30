@@ -51,6 +51,13 @@ mmu::mmu(sc_core::sc_module_name name,
 			     m_dtlb_miss_response_delay(dtlb_miss_response_delay)
 {
 
+  // initialize internal registers
+  MMU_CONTROL_REG = 0;
+  MMU_CONTEXT_TABLE_POINTER_REG = 0;
+  MMU_CONTEXT_REG = 0;
+  MMU_FAULT_STATUS_REG = 0;
+  MMU_FAULT_ADDRESS_REG = 0;
+
   // generate associative memory (map) for instruction tlb
   itlb = new std::map<t_VAT, t_PTE_context>;
 
@@ -92,5 +99,62 @@ void mmu::dtlb_write(unsigned int addr, unsigned int * data, unsigned int length
 void mmu::dtlb_read(unsigned int addr, unsigned int * data, unsigned int length) {
 
   DUMP(this->name(),"DTLB READ request virtual address: " << std::hex << addr);
+
+}
+
+// read MMU Control Register
+unsigned int mmu::read_mcr() {
+
+  return(MMU_CONTROL_REG);
+
+}
+
+// write MMU Control Register
+void mmu::write_mcr(unsigned int * data) {
+
+  // only PSO [7], NF [1] and E [0] are writable
+  MMU_CONTROL_REG = (*data & 0x00000083);
+
+}
+
+// read MMU Context Pointer Register
+unsigned int mmu::read_mctpr() {
+
+  return(MMU_CONTEXT_TABLE_POINTER_REG);
+
+}
+
+void mmu::write_mctpr(unsigned int * data) {
+
+  // [1-0] reserved, must read as zero
+  MMU_CONTEXT_TABLE_POINTER_REG = (*data & 0xfffffffc);
+
+}
+
+// read MMU Context Register
+unsigned int mmu::read_mctxr() {
+
+  return(MMU_CONTEXT_REG);
+
+}
+
+// write MMU Context Register
+void mmu::write_mctxr(unsigned int * data) {
+
+  MMU_CONTEXT_REG = *data;
+
+}
+
+// read MMU Fault Status Register
+unsigned int mmu::read_mfsr() {
+
+  return(MMU_FAULT_STATUS_REG);
+
+}
+
+// read MMU Fault Address Register
+unsigned int mmu::read_mfar() {
+
+  return(MMU_FAULT_ADDRESS_REG);
 
 }
