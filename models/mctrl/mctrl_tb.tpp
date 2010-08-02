@@ -26,7 +26,7 @@
 #define SHOW \
 { std::printf("\n@%-7s /%-4d:", sc_core::sc_time_stamp().to_string().c_str(), (unsigned)sc_core::sc_delta_count());}
 #define REG(name, apb) \
-{ std::cout << " "#name << ": 0x" << std::hex << std::setfill('0') << std::setw(2) << read(name, 4, apb); }
+{ std::cout << " "#name << ": 0x" << std::hex << std::setfill('0') << std::setw(8) << read(name, 4, apb); }
 #define SET(name, val, apb) \
 { write(name, val, 4, apb); }
 
@@ -127,7 +127,10 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
                       pageburst, scantest, mobile, BUSWIDTH >::read(uint32_t addr, uint32_t width, bool apb) {
     sc_core::sc_time t;
     //data needs to be a struct containing all information required for the transaction
-    uint32_t data;
+    //uint32_t is not sufficient for the 64 bit transaction of sdram.
+    //using the testbench like this will overwrite the timing information with
+    //memory contents in the 64 bit read function.
+    uint64_t data;
     tlm::tlm_generic_payload gp;
       gp.set_command(tlm::TLM_READ_COMMAND);
       gp.set_address(addr);
@@ -143,7 +146,7 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
       ahb_master_sock->b_transport(gp,t);
     }
     SHOW;
-    std::cout << " READ " << gp.get_response_string() << ": 0x" << std::hex << std::setfill('0') << std::setw(2) << gp.get_address();
+    std::cout << " READ " << gp.get_response_string() << ": 0x" << std::hex << std::setfill('0') << std::setw(8) << gp.get_address();
     wait(t);
     return data;
 }

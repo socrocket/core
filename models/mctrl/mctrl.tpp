@@ -79,14 +79,6 @@ Mctrl(sc_core::sc_module_name name) :
       // nb_transport to be added 
 
 
-#ifdef MONOLITHIC_MODULE
-  //connect sockets to memory module
-  mem.mem_rom(mctrl_rom);
-  mem.mem_io(mctrl_io);
-  mem.mem_sram(mctrl_sram);
-  mem.mem_sdram(mctrl_sdram);
-#endif
-
   // create register | name + description
   r.create_register( "MCFG1", "Memory Configuration Register 1",
                    // offset
@@ -322,6 +314,7 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
     }
     //add delay and forward transaction to memory
     delay += cycle_time * cycles;
+    gp.set_streaming_width(32);
     mctrl_io->b_transport(gp,delay);
   }
   //access to SRAM adress space

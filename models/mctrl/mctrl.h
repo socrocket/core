@@ -52,11 +52,6 @@ public:
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_sram;
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_sdram;
 
-#ifdef MONOLITHIC_MODULE
-    //instantiate memory
-    Generic_memory ("mem");
-#endif
-
     //constructor / destructor
     Mctrl(sc_module_name name);
     ~Mctrl();

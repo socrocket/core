@@ -51,7 +51,10 @@ int sc_main(int argc, char** argv) {
 
   //instantiate mctrl, generic memory, and testbench
   Mctrl POST_MCTRL mctrl_inst0("mctrl_inst0");
-  Generic_memory POST_MCTRL generic_memory_inst0("generic_memory_inst0");
+  Generic_memory POST_GENERIC_MEMORY(uint8_t ) generic_memory_rom("generic_memory_rom");
+  Generic_memory POST_GENERIC_MEMORY(uint32_t) generic_memory_io("generic_memory_io");
+  Generic_memory POST_GENERIC_MEMORY(uint8_t ) generic_memory_sram("generic_memory_sram");
+  Generic_memory POST_GENERIC_MEMORY(uint32_t) generic_memory_sdram("generic_memory_sdram");
   Mctrl_tb< hindex,    pindex,   romaddr,
             rommask,   ioaddr,   iomask,
             ramaddr,   rammask,  paddr,
@@ -67,10 +70,10 @@ int sc_main(int argc, char** argv) {
   mctrl_tb.ahb_master_sock(mctrl_inst0.ahb);  //memory access
 
   //memory communication via simple TLM sockets
-  mctrl_inst0.mctrl_rom(generic_memory_inst0.mem_rom);
-  mctrl_inst0.mctrl_io(generic_memory_inst0.mem_io);
-  mctrl_inst0.mctrl_sram(generic_memory_inst0.mem_sram);
-  mctrl_inst0.mctrl_sdram(generic_memory_inst0.mem_sdram);
+  mctrl_inst0.mctrl_rom(generic_memory_rom.slave_socket);
+  mctrl_inst0.mctrl_io(generic_memory_io.slave_socket);
+  mctrl_inst0.mctrl_sram(generic_memory_sram.slave_socket);
+  mctrl_inst0.mctrl_sdram(generic_memory_sdram.slave_socket);
 
   sc_core::sc_start();
   return 0;
