@@ -18,24 +18,42 @@
 top = '..'
 
 def set_options(ctx):
-  pass 
+  from os import environ
+  gso = ctx.add_option_group("GreenSoCs Options")
+  gso.add_option("--ambaexamples", dest="amba_examples", help="Basedir of your AMBAKit Examples", default=environ.get("AMBA_EXAMPLES",""))
 
 def configure(ctx):
   from Options import options
   import os.path
-  if options.amba_home and options.amba_home != "":
+  if options.amba_examples and options.amba_examples != "":
+    ctx.env["CPPPATH_AMBAMEM"] = os.path.join(options.amba_examples, 'ahb_ct_timing')
+  elif options.amba_home and options.amba_home != "":
     ctx.env["CPPPATH_AMBAMEM"] = os.path.join(options.amba_home, 'examples', 'ahb_ct_timing')
   else:
     ctx.env["CPPPATH_AMBAMEM"] = ''
 
-  #ctx.check(
-  #  compiler_mode = 'cxx',
-  #  header_name   = 'ahb_simple_bus.h ahb_simple_slave.h',
-  #  msg           = "Checking for AMBAKit Example Mem",
-  #  mandatory     = True,
-  #  uselib        = 'AMBAMEM AMBA GREENSOCS BOOST SYSC TLM2',
-  #  uselib_store  = 'AMBAMEM',
-  #)
+  ctx.check_cxx(
+    header_name  = 'ahb_simple_bus.h ahb_simple_slave.h',
+    msg          = "Checking for AMBAKit Example Mem",
+    mandatory    = True,
+    uselib       = 'AMBAMEM AMBA GREENSOCS BOOST SYSC TLM2',
+    uselib_store = 'AMBAMEM',
+    fragment     = """
+                   #ifdef DEBUG_AMBA
+                   # define DUMP(name, msg) std::cout<<"@"<<sc_core::sc_time_stamp()<<" /"<<(unsigned)sc_core::sc_delta_count()<<" ("<<name  <<"): "<<msg<<std::endl
+                   #else
+                   # define DUMP(name, msg)
+                   #endif
+
+                   #include <ahb_simple_bus.h>
+                   #include <ahb_simple_slave.h>
+                   
+                   int main(int argc, char *argv) {
+                     return 0;
+                   }
+    """,
+    execute      = False
+  )
 
 def build(bld):
   bld(
@@ -47,7 +65,7 @@ def build(bld):
                        'lib/ivectorcache.cpp', 
                        'lib/dvectorcache.cpp'],
     export_incdirs = 'lib',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
   )
 
   bld(
