@@ -57,14 +57,14 @@ typedef struct {
 // context tag      - ?? bits
 // page table entry - 24bit
 
-// virtual address tag
-typedef unsigned int t_VAT;
-
 // page descriptor cache entry
 typedef struct {
   unsigned int context;
   unsigned int pte;
 } t_PTE_context;
+
+// virtual address tag
+typedef unsigned int t_VAT;
 
 // payload pointer
 typedef tlm::tlm_generic_payload *gp_ptr;  

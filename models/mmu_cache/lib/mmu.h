@@ -65,6 +65,8 @@ class mmu : public mmu_if, public sc_core::sc_module {
   void itlb_write(unsigned int addr, unsigned int * data, unsigned int length);
   void dtlb_write(unsigned int addr, unsigned int * data, unsigned int length);
   void dtlb_read(unsigned int addr, unsigned int * data, unsigned int length);
+  // page descriptor cache (PDC) lookup
+  unsigned int tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size);
   // read mmu internal registers (ASI 0x19)
   unsigned int read_mcr();
   unsigned int read_mctpr();
@@ -87,6 +89,12 @@ class mmu : public mmu_if, public sc_core::sc_module {
   // (depending on configuration may point to a shared tlb implementation)
   std::map<t_VAT, t_PTE_context> * itlb;
   std::map<t_VAT, t_PTE_context> * dtlb;
+
+  // iterator for PDC lookup
+  std::map<t_VAT, t_PTE_context>::iterator pdciter;
+
+  // helpers for tlb handling
+  t_PTE_context * m_current_PTE_context;
 
   // mmu internal registers
   // ----------------------

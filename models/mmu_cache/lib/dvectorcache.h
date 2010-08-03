@@ -115,7 +115,7 @@ class dvectorcache : public sc_core::sc_module {
   // the actual cache memory
   std::vector<std::vector<t_cache_line>*> cache_mem;
 
-  // helper for cache handling
+  // helpers for cache handling
   t_cache_line m_default_cacheline;
   std::vector<t_cache_line*> m_current_cacheline;
   
