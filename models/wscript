@@ -22,7 +22,7 @@ models = [
   'gptimer', 
   'irqmp', 
   'mmu_cache', 
-#  'mctrl', 
+  'mctrl', 
   'utils'
 ]
 

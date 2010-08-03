@@ -63,12 +63,12 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
   if (cmd == 0) {
     switch (streaming_width) {
       //64 bit --> SDRAM
-      case 64:
+      case 64: {
         uint64_t *data_ptr64 = reinterpret_cast<uint64_t *>( gp.get_data_ptr() );
         *data_ptr64 = read_2x32( gp.get_address() );
-        break;
+      } break;
       //32 bit --> SRAM / ROM or SDRAM / IO --> 4x8 or 1x32
-      case 32:
+      case 32: {
         uint32_t* data_ptr32 = reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
         //SDRAM or IO: map of uint32_t type
         if (sizeof( memory[gp.get_address()] ) == 4) {
@@ -78,16 +78,17 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
         else if (sizeof( memory[gp.get_address()] ) == 1) {
           *data_ptr32 = read_4x8( gp.get_address() );
         }
-        break;
+      } break;
       //16 bit --> SRAM or ROM --> 4x8
-      case 16:
+      case 16: {
         uint32_t* data_ptr16 = reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
         *data_ptr16 = read_4x8( gp.get_address() );
-        break;
+      } break;
       //8 bit --> SRAM or ROM --> 4x8
-      case 8:
+      case 8: {
         uint32_t* data_ptr8 = reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
         *data_ptr8 = read_4x8( gp.get_address() );
+      }
     }
 
     //update response status
@@ -95,11 +96,11 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
   }
   else if (cmd == 1) {
     switch (streaming_width) {
-      case 64:
+      case 64: {
         uint64_t data64 = *reinterpret_cast<uint64_t *>( gp.get_data_ptr() );
         write_2x32(gp.get_address(), data64);
-        break;
-      case 32:
+      } break;
+      case 32: {
         //SDRAM or IO: map of uint32_t type
         if (sizeof( memory[gp.get_address()] ) == 4) {
           uint32_t data32 = *reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
@@ -110,14 +111,15 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
           uint32_t data4x8 = *reinterpret_cast<uint32_t *>(gp.get_data_ptr());
           write_4x8( gp.get_address(), data4x8 );
         }
-        break;
-      case 16:
+      } break;
+      case 16: {
         uint16_t data16 = *reinterpret_cast<uint16_t *>(gp.get_data_ptr());
         write_2x8( gp.get_address(), data16 );
-        break;
-      case 8:
+      } break;
+      case 8: {
         uint8_t data8 = *reinterpret_cast<uint8_t *>(gp.get_data_ptr());
         write_1x8( gp.get_address(), data8 );
+      }
     }
 
     //update response status
