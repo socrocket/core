@@ -1,0 +1,43 @@
+#! /usr/bin/env python
+# encoding: utf-8
+#***********************************************************************#
+#* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *#
+#*                                                                     *#
+#* File:       wscript                                                 *#
+#*             this file contains the build system for the gptimer     *#
+#*             tLM model and all its testbenches.                      *#
+#*                                                                     *#
+#* Modified on $Date: 2010-07-30 15:41:55 +0200 (Fri, 30 Jul 2010) $   *#
+#*          at $Revision: 32 $                                         *#
+#*                                                                     *#
+#* Principal:  European Space Agency                                   *#
+#* Author:     VLSI working group @ IDA @ TUBS                         *#
+#* Maintainer: Rolf Meyer                                              *#
+#***********************************************************************#
+
+top = '..'
+
+def set_options(ctx):
+  pass 
+
+def configure(ctx):
+  pass
+
+def build(bld):
+  bld(
+    target       = 'simpletest',
+    features     = 'cxx cprogram test',
+    source       = 'tests/simple.cpp',
+    includes     = '.',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib_local = 'utils',
+  )
+  
+  bld(
+    target       = 'ambatest',
+    features     = 'cxx cprogram test',
+    source       = 'tests/amba.cpp',
+    includes     = '.',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib_local = 'utils',
+  )

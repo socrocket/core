@@ -23,6 +23,7 @@ models = [
   'irqmp', 
   'mmu_cache', 
   'mctrl', 
+  'pnp',
   'utils'
 ]
 
