@@ -95,6 +95,149 @@ void testbench::initiator_thread(void) {
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * Phase 1: Setup Demo Page Table ");
+    DUMP(name()," ************************************************************");    
+
+    // -----------------------
+    // Level 1 - Table
+    // -----------------------
+    // 0x1000
+    // 0x1004 0x00001401 (PTD: PTP 0x1400 >> 2, ET 0b01)
+    // ...
+    // 0x13ff
+    // -----------------------
+    // Level 2 - Table
+    // -----------------------
+    // 0x1400
+    // 0x1404 0x00001501 (PTD: PTP 0x1500 >> 2, ET 0b01)
+    // ...
+    // 0x14ff
+    // -----------------------
+    // Level 3 - Table
+    // -----------------------
+    // 0x1500
+    // 0x1504 0x00000402 (PTE: 0x4, ET 0x2 (Phy: 0x4000 - 0x5000)
+    // 0x1508 0x00000502 (PTE: 0x5, ET 0x2)(Phy: 0x5000 - 0x5fff)
+    // 0x150c 0x00000602 (PTE: 0x6, ET 0x2)(Phy: 0x6000 - 0x6fff)
+    // 0x1510 0x00000702 (PTE: 0x7, ET 0x2)(Phy: 0x7000 - 0x7fff)
+    // 0x1514 0x00000802 (PTE: 0x8, ET 0x2)(Phy: 0x8000 - 0x8fff)
+    // 0x1518 0x00000902 (PTE: 0x9, ET 0x2)(Phy: 0x9000 - 0x9fff)
+    // 0x151c 0x00000a02 (PTE: 0xa, ET 0x2)(Phy: 0xa000 - 0xafff)
+    // 0x1520 0x00000b02 (PTE: 0xb, ET 0x2)(Phy: 0xb000 - 0xbfff)
+    // ..
+    // 0x15ff
+    // -----------------------
+
+    // !! PTP points to the base of the next-level page table.
+    // !! The page tables themselve are indexed by the vpn indices (idx1,2,3)
+
+    // demo entry to table 1 (PTD)
+    dwrite(0x1004, 0x00001401, 4, 8, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // demo entry to table 2 (PTD)
+    dwrite(0x1404, 0x00001501, 4, 8, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // demo entry to table 3 (PTE)
+    dwrite(0x1504, 0x0000402, 4, 8, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // demo entry to table 3 (PTE)
+    dwrite(0x1508, 0x0000502, 4, 8, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // demo entry to table 3 (PTE)
+    dwrite(0x150c, 0x0000602, 4, 8, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // demo entry to table 3 (PTE)
+    dwrite(0x1510, 0x0000702, 4, 8, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // demo entry to table 3 (PTE)
+    dwrite(0x1514, 0x0000802, 4, 8, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // demo entry to table 3 (PTE)
+    dwrite(0x1518, 0x0000902, 4, 8, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // demo entry to table 3 (PTE)
+    dwrite(0x151c, 0x0000a02, 4, 8, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // demo entry to table 3 (PTE)
+    dwrite(0x1520, 0x0000b02, 4, 8, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * Phase 2: Activate MMU ");
+    DUMP(name()," ************************************************************");
+
+    // set MMU_CONTEXT_TABLE_POINTER to root of page table (ASI 0x19)
+    dwrite(0x100, 0x1000, 4, 0x19, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // set MMU_CONTEXT_REGISTER to zero (ASI 0x19)
+    dwrite(0x200, 0x0, 4, 0x19, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);   
+
+    // The context register (process id) indexes
+    // the context table pointer. Each process has its own page table.
+
+    // read MMU_CONTROL_REGISTER
+    data = dread(0x0, 4, 0x19, 0, 0, 0); 
+
+    // activate MMU by writing the control register
+    data |= 0x1;
+    dwrite(0x000, data, 4, 0x19, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * Phase 3: write data with virtual addressing ");
+    DUMP(name()," ************************************************************");
+
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * DTLB Virtual Address TAG miss ");
+    DUMP(name()," * Write to VADDR: 0x01041000, MMU will map to PADDR: 0x00004000" );
+    DUMP(name()," ************************************************************ ");
+
+    // vaddr 0x01041000 (idx1=1, idx2=1, idx3=1)
+    dwrite(0x01041000, 0x00000001, 4, 8, 0, 0, 0);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * DTLB hit ");
+    DUMP(name()," * Write to VADDR: 0x01041000 - 0x01041ffc" );
+    DUMP(name()," * -> fill physical page: 0x4000 - 0x4ffc" );
+    DUMP(name()," ************************************************************ ");
+
+    for(int i=4; i<4096; i+=4) {
+
+      dwrite(0x1041000+i, i, 4, 8, 0, 0, 0);
+      wait(LOCAL_CLOCK,sc_core::SC_NS);      
+
+    }
+
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * Write to 7 more memory pages ");
+    DUMP(name()," * This will completely fill the 8 entry DTLB ");
+    DUMP(name()," * Write to VADDR: 0x01042000 - 0x01048ffc" );
+    DUMP(name()," * -> fill physical mem: 0x5000 - 0xbffc" );
+    DUMP(name()," ************************************************************ ");
+
+    for(int i=4100; i<32768; i+=4) {
+
+      dwrite(0x1041000+i, i, 4, 8, 0, 0, 0);
+      wait(LOCAL_CLOCK,sc_core::SC_NS);      
+
+    }
+
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS); 
     sc_core::sc_stop();
   }
 }

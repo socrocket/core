@@ -134,7 +134,7 @@ void mmu::itlb_write(unsigned int addr, unsigned int * data, unsigned int length
   }
 
   // forward request to amba interface
-  m_parent->amba_write(addr, data, length);
+  m_parent->amba_write(paddr, data, length);
 }
 
 // data read interface
@@ -163,7 +163,7 @@ void mmu::dtlb_read(unsigned int addr, unsigned int * data, unsigned int length)
   }
 
   // forward request to amba interface
-  m_parent->amba_read(addr, data, length);
+  m_parent->amba_read(paddr, data, length);
 }
 
 // data write interface
@@ -192,7 +192,7 @@ void mmu::dtlb_write(unsigned int addr, unsigned int * data, unsigned int length
   }
 
   // forward request to amba interface
-  m_parent->amba_write(addr, data, length);
+  m_parent->amba_write(paddr, data, length);
 }
 
 // look up a tlb (page descriptor cache)
@@ -219,12 +219,15 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   bool context_miss = false;
 
   // search virtual address tag in ipdc (associative)
+  DUMP(this->name(),"lookup with VPN: " << std::hex << vpn << " and OFFSET: " << std::hex << offset); 
   pdciter = tlb->find(vpn);
 
-  // tlb hit
-  if (pdciter != itlb->end()) {
+  DUMP(this->name(),"pdciter->first: " << std::hex << pdciter->first << " pdciter->second: " << std::hex << (pdciter->second).pte);
 
-    DUMP(this->name(),"PDC hit on address: " << std::hex << addr);
+  // tlb hit
+  if (pdciter != tlb->end()) {
+
+    DUMP(this->name(),"Virtual Address Tag hit on address: " << std::hex << addr);
 
     // read the PDC entry
     tmp = pdciter->second;
@@ -245,6 +248,11 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
       context_miss = true;
 
     }
+  }
+  else {
+
+    DUMP(this->name(),"Virtual Address Tag miss");
+
   }
 
   // COMPONSITON OF A PAGE TABLE DESCRIPTOR (PTD)
@@ -280,9 +288,9 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   m_parent->amba_read(MMU_CONTEXT_TABLE_POINTER_REG+idx1, data, 4);
 
   // page table entry (PTE) or page table descriptor (PTD) (to level 2)
-  if (*data & 0x3 == 0x2) {
+  if ((*data & 0x3) == 0x2) {
 
-    DUMP(this->name(),"1-Level Page Table returned PTE: " << std::hex << *data);
+    DUMP(name(),"1-Level Page Table returned PTE: " << std::hex << *data);
 
     // In case of a virtual address tag miss a new PDC entry is created.
     // For context miss the existing entry will be replaced.
@@ -295,31 +303,33 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
 
     // add to PDC
     tmp.context = MMU_CONTEXT_REG;
-    tmp.pte     = *data;
+    tmp.pte     = (*data>>8);
 
     (*tlb)[vpn] = tmp; 
 
     // build physical address from PTE and offset
-    paddr = (((*data) << 4)|offset);
+    paddr = ((tmp.pte << 12)|offset);
 
+    DUMP(this->name(),"Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr);
     return(paddr);
   }
   else if ((*data & 0x3) == 0x1) { 
 
-    DUMP(this->name(),"1-Level Page Table returned PTD: " << std::hex << *data);
+    DUMP(this->name(),"1st-Level Page Table returned PTD: " << std::hex << *data);
 
   }
   else {
 
-    DUMP(this->name(),"Error in 1-Level Page Table / Entry type not valid");
+    DUMP(this->name(),"Error in 1st-Level Page Table / Entry type not valid");
+    assert(false);
     return(0);
   }
 
   // 2. load from 2nd-level page table
-  m_parent->amba_read((((*data)>>2)<<6)+idx2, data, 4);
+  m_parent->amba_read((((*data)>>2)<<2)+idx2, data, 4);
 
   // page table entry (PTE) or page table descriptor (PTD) (to level 3)
-  if (*data & 0x3 == 0x2) {
+  if ((*data & 0x3) == 0x2) {
 
     DUMP(this->name(),"2-Level Page Table returned PTE: " << std::hex << *data);
 
@@ -334,13 +344,14 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
 
     // add to PDC
     tmp.context = MMU_CONTEXT_REG;
-    tmp.pte     = *data;
+    tmp.pte     = (*data>>8);
 
     (*tlb)[vpn] = tmp; 
 
     // build physical address from PTE and offset
-    paddr = (((*data) << 4)|offset);
+    paddr = ((tmp.pte << 12)|offset);
 
+    DUMP(this->name(),"Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr);
     return(paddr);
   }
   else if ((*data & 0x3) == 0x1) { 
@@ -351,14 +362,15 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   else {
 
     DUMP(this->name(),"Error in 2-Level Page Table / Entry type not valid");
+    assert(false);
     return(0);
   }
 
   // 3. load from 3rd-level page table
-  m_parent->amba_read((((*data)>>2)<<6)+idx3, data, 4);
+  m_parent->amba_read((((*data)>>2)<<2)+idx3, data, 4);
 
   // 3rd-level page table must contain PTE (PTD not allowed)
-  if (*data & 0x3 == 0x2) {
+  if ((*data & 0x3) == 0x2) {
 
     DUMP(this->name(),"3-Level Page Table returned PTE: " << std::hex << *data);
 
@@ -373,18 +385,20 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
 
     // add to PDC
     tmp.context = MMU_CONTEXT_REG;
-    tmp.pte     = *data;
+    tmp.pte     = (*data)>>8;
 
     (*tlb)[vpn] = tmp; 
 
     // build physical address from PTE and offset
-    paddr = (((*data) << 4)|offset);
+    paddr = ((tmp.pte << 12)|offset);
 
+    DUMP(this->name(),"Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr);
     return(paddr);
   }
   else {
 
     DUMP(this->name(),"Error in 3-Level Page Table / Entry type not valid");
+    assert(false);
     return(0);
   }
 }

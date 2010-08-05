@@ -112,8 +112,8 @@ int sc_main(int argc, char** argv) {
   amba::AMBA_LT_CT_Adapter<32> ahb_lt_ct("AHB_LT_CT",amba::amba_AHB);
 
   // create AHB memory (1MB from address base 0)
-  //ahb_ct_mem<32> ahb_mem("AHB_MEM",0, 0x1000);
-  ahb_slave<32> ahb_mem("AHB_MEM",0,0x1000);
+  //ahb_ct_mem<32> ahb_mem("AHB_MEM",0, 0x10000);
+  ahb_slave<32> ahb_mem("AHB_MEM",0,0x10000);
 
   // *** BIND SOCKETS
 
