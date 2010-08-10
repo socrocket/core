@@ -35,6 +35,34 @@
 #include <math.h>
 #include <ostream>
 
+/// @brief         Top-level class of the memory sub-system for the TrapGen LEON3 simulator
+/// @param         dsu
+/// @icen          instruction cache enable
+/// @irepl         instruction cache replacement strategy
+/// @isets         number of instruction cache sets
+/// @ilinesize     instruction cache line size (in bytes)
+/// @isetsize      size of an instruction cache set (in kbytes)
+/// @isetlock      enable instruction cache locking
+/// @dcen          data cache enable
+/// @drepl         data cache replacement strategy
+/// @dsets         number of data cache sets
+/// @dlinesize     data cache line size (in bytes)
+/// @dsetsize      size of a data cache set (in kbytes)
+/// @dsetlock      enable data cache locking
+/// @dsnoop        enable data cache snooping
+/// @ilram         enable instruction scratch pad
+/// @ilramsize     size of the instruction scratch pad (in kbytes)
+/// @ilramstart    start address of the instruction scratch pad
+/// @dlram         enable data scratch pad
+/// @dlramsize     size of the data scratch pad (in kbytes)
+/// @dlramstart    start address of the data scratch pad
+/// @cached
+/// @mmu_en        mmu enable
+/// @itlb_num      number of instruction TLBs
+/// @dtlb_num      number of data TLBs
+/// @tlb_type      split or shared instruction and data TLBs
+/// @tlb_rep       TLB replacement strategy
+/// @mmupgsz       MMU page size
 template <int dsu=0, int icen=0, int irepl=0, int isets=4, int ilinesize=4, int isetsize=1, int isetlock=0,
 	  int dcen=0, int drepl=0, int dsets=4, int dlinesize=4, int dsetsize=1, int dsetlock=0, int dsnoop=0,
 	  int ilram=0, int ilramsize=1, int ilramstart=0x8f, int dlram=0, int dlramsize=1, int dlramstart=0x8f, int cached=0,
@@ -55,18 +83,18 @@ class mmu_cache : public mmu_cache_if, public sc_core::sc_module {
   // amba master socket
   amba::amba_master_socket<32> ahb_master;
 
-  // constructor args: 
-  // - name of sysc module, 
-  // - id of the AHB master
-  // - icache delay for read hit
-  // - icache delay for read miss
-  // - dcache delay for read hit
-  // - dcache delay for read miss
-  // - dcache delay for write hit/miss (through)
-  // - delay for itlb hit
-  // - delay for itlb miss (per page table lookup)
-  // - delay for dtlb hit
-  // - delay for dtlb miss (per page table lookup)
+  /// @brief Constructor of the top-level class of the memory sub-system (caches and mmu).
+  /// @param name                               SystemC module name 
+  /// @param id                                 ID of the AHB master
+  /// @param icache_hit_read_response_delay     Delay on an instruction cache hit
+  /// @param icache_miss_read_response_delay    Delay on an instruction cache miss
+  /// @param dcache_hit_read_response_delay     Delay on a data cache read hit
+  /// @param dcache_miss_read_response_delay    Delay on a data cache read miss
+  /// @param dcache_write_response_delay        Delay on a data cache write (hit/miss)
+  /// @param itlb_hit_response_delay            Delay on an instruction TLB hit
+  /// @param itlb_miss_response_delay           Delay on an instruction TLB miss
+  /// @param dtlb_hit_response_delay            Delay on a data TLB hit
+  /// @param dtlb_miss_response_delay           Delay on a data TLB miss
   mmu_cache(sc_core::sc_module_name name, 
 	    unsigned int id, 
 	    sc_core::sc_time icache_hit_read_response_delay, 

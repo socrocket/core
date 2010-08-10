@@ -69,4 +69,16 @@ typedef unsigned int t_VAT;
 // payload pointer
 typedef tlm::tlm_generic_payload *gp_ptr;  
 
+// Structure of the debug extension for the dcio and icio payload extensions.
+// ==========================================================================
+// [3-0] These bits relate to the different cache sets.
+// If a set has a hit the respective bit is set to one.
+
+// debug constants
+
+#define SET0             0x00000001
+#define SET1             0x00000002
+#define SET2             0x00000004
+#define SET3             0x00000008
+
 #endif // __DEFINES_H__

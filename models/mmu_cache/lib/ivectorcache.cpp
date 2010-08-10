@@ -104,7 +104,7 @@ ivectorcache::~ivectorcache() {
 // ----------------------------
 
 // call to read from cache
-void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_time *t) {
+void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_time *t, unsigned int * debug) {
 
   int set_select = -1;
   int cache_hit = -1;
@@ -132,7 +132,8 @@ void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
       if ((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2))) != 0) {
 
 	DUMP(this->name(),"Cache Hit in Set " << i);
-	
+	*debug |= (1 << i);
+
 	// write data pointer
 	*data = (*m_current_cacheline[i]).entry[offset >> 2].i;
 	
@@ -153,6 +154,7 @@ void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
     else {
       
       DUMP(this->name(),"Cache miss in set " << i);
+      *debug &= ~(1 << i);
 
     }
   }

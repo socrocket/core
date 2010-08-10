@@ -97,7 +97,7 @@ dvectorcache::~dvectorcache() {
 // ----------------------------
 
 // read from cache
-void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_time *t) {
+void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_time *t, unsigned int * debug) {
 
   int set_select = -1;
   int cache_hit = -1;
@@ -131,7 +131,8 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
         if ((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2))) != 0) {
 
           DUMP(this->name(),"Cache Hit in Set " << i);
-	
+	  *debug |= (1 << i);
+
           // write data pointer
           *data = (*m_current_cacheline[i]).entry[offset >> 2].i;
 	
@@ -150,11 +151,13 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
       else {
       
         DUMP(this->name(),"Cache miss in set " << i);
+        *debug &= ~(1 << i);
       }
     }
     else {
       
       DUMP(this->name(),"ASI force cache miss");
+      *debug &= ~0xf;
     
     }
   }
@@ -227,7 +230,7 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
 //   Subsequent writes to the block will update main memory because Write Through policy is employed. 
 //   So, some time is saved not bringing the block in the cache on a miss because it appears useless anyway.
 
-void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int *byt, sc_core::sc_time * t) {
+void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int *byt, sc_core::sc_time * t, unsigned int * debug) {
 
   // extract index and tag from address
   unsigned int tag    = (address >> (m_idx_bits+m_offset_bits));
@@ -252,6 +255,7 @@ void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int
       if ((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2))) != 0) {
 
 	DUMP(this->name(),"Cache Hit in Set " << i);
+	*debug |= (1 << i);
 	
 	// write data to cache (todo: impl. byte access)
 	(*m_current_cacheline[i]).entry[offset >> 2].i = *data;
@@ -272,6 +276,7 @@ void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int
     else {
       
       DUMP(this->name(),"Cache miss in set " << i);
+      *debug &= ~(1 << i);
 
     }
   }

@@ -31,8 +31,13 @@ void testbench::initiator_thread(void) {
 
   // test vars
   unsigned int data;
+  unsigned int tmp;
+  //unsigned int last;
+  unsigned int * debug;
 
   while(1) {
+
+    debug = &tmp;
 
     // *******************************************
     // * Test for default i/d cache configuration
@@ -59,8 +64,8 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 1. Read CACHE CONTROL REGISTER (ASI 0x2 - addr 0)    ");
     DUMP(name()," ********************************************************* ");
     
-    // args: address, length, asi, flush, flushl, lock 
-    data=dread(0x0, 4, 2, 0, 0, 0);
+    // args: address, length, asi, flush, flushl, lock, debug 
+    data=dread(0x0, 4, 2, 0, 0, 0, debug);
     // [3:2] == 0b11; [1:0] = 0b11 -> dcache and icache enabled
     DUMP(name(),"cache_contr_reg: " << std::hex << data);
     assert(data==0xf);
@@ -72,7 +77,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 2. Read ICACHE CONFIGURATION REGISTER (ASI 0x2 - addr 8)   ");
     DUMP(name()," ********************************************************* ");    
 
-    data=dread(0x8, 4, 2, 0, 0, 0);
+    data=dread(0x8, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b100, [23:20] ssize == 0b0001 (1kb)
     // [18:16] lsize == 0b001 (1 word per line)
     //assert(data==0b0011 0 100 0001 0 001 00000000000000000);
@@ -86,7 +91,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 3. Read DCACHE CONFIGURATION REGISTER (ASI 0x2 - addr 0xc)   ");
     DUMP(name()," ********************************************************* ");    
 
-    data=dread(0xc, 4, 2, 0, 0, 0);
+    data=dread(0xc, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b100, [23:20] ssize == 0b0001 (1kb)
     // [18:16] lsize == 0b001 (1 word per line)
     //assert(data==0b0011 0 100 0001 0 001 00000000000000000);
@@ -108,7 +113,9 @@ void testbench::initiator_thread(void) {
 
     data=0x04030201;
     // args: address, data, length, asi, flush, flushl, lock 
-    dwrite(0x64,data, 4, 0x8, 0, 0, 0);
+    dwrite(0x64,data, 4, 0x8, 0, 0, 0, debug);
+    // cache miss
+    assert(((*debug)&0xf)==0);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -117,7 +124,9 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ********************************************************* ");    
 
     data=0x08070605;
-    dwrite(0x464,data,4, 0x8, 0, 0, 0);
+    dwrite(0x464,data,4, 0x8, 0, 0, 0, debug);
+    // cache miss
+    assert(((*debug)&0xf)==0);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -126,7 +135,9 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ********************************************************* ");    
 
     data=0x0c0b0a09;
-    dwrite(0x864,data,4, 0x8, 0, 0, 0);
+    dwrite(0x864,data,4, 0x8, 0, 0, 0, debug);
+    // cache miss
+    assert(((*debug)&0xf)==0);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -135,7 +146,9 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ********************************************************* ");
 
     data=0x100f0e0d;
-    dwrite(0xc64,data,4, 0x8, 0, 0, 0);
+    dwrite(0xc64,data,4, 0x8, 0, 0, 0, debug);
+    // cache miss
+    assert(((*debug)&0xf)==0);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -152,9 +165,11 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ********************************************************* ");
 
     // args: address, length, asi, flush, flushl, lock
-    data = dread(0x64, 4, 0x8, 0, 0, 0);
+    data = dread(0x64, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
+    // cache miss
+    assert(((*debug)&0xf)==0);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -163,10 +178,12 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 9. DCACHE read again from 0x64 (cache hit)           "             );
     DUMP(name()," ********************************************************* ");
 
-    data = dread(0x64, 4, 0x8, 0, 0, 0);
+    data = dread(0x64, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
-
+    // cache hit (one of the sets)
+    assert(((*debug)&0xf)!=0);
+ 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // same index new tag (cache miss - load next bank)
@@ -174,9 +191,11 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 10. DCACHE read addr 0x464 / same idx, diff tag (cache miss) ");
     DUMP(name()," * should fill one of the empty banks (3 left)              ");
     DUMP(name()," ********************************************************** ");
-    data = dread(0x464, 4, 0x8, 0, 0, 0);
+    data = dread(0x464, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
+    // cache miss
+    assert(((*debug)&0xf)==0);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -186,9 +205,11 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * should fill one of the empty banks (2 left)              ");
     DUMP(name()," ********************************************************** ");
 
-    data = dread(0x864, 4, 0x8, 0, 0, 0);
+    data = dread(0x864, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
+    // cache miss
+    assert(((*debug)&0xf)==0);    
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -198,9 +219,11 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * should fill the last empty bank                          ");
     DUMP(name()," ********************************************************** ");
 
-    data = dread(0xc64, 4, 0x8, 0, 0, 0);
+    data = dread(0xc64, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
+    // cache miss
+    assert(((*debug)&0xf)==0);    
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -209,10 +232,10 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 13. DCACHE read from 0x464 (cache hit) "             );
     DUMP(name()," ************************************************* ");
 
-    data = dread(0x464, 4, 0x8, 0, 0, 0);
+    data = dread(0x464, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
-
+    
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // cache hit
@@ -220,7 +243,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 14. DCACHE read from 0x864 (cache hit) ");
     DUMP(name()," ************************************************* ");
 
-    data = dread(0x864, 4, 0x8, 0, 0, 0);
+    data = dread(0x864, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
 
@@ -231,7 +254,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 15. DCACHE read from 0xc64 (cache hit) "             );
     DUMP(name()," ************************************************* ");
 
-    data = dread(0xc64, 4, 0x8, 0, 0, 0);
+    data = dread(0xc64, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
 
@@ -247,7 +270,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ********************************************************* ");
 
     // args: addr, length, flush, flushl, fline
-    data = iread(0x64, 4, 0x8, 0, 0);
+    data = iread(0x64, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
 
@@ -258,7 +281,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 17. ICACHE read again from 0x64 (cache hit)           "             );
     DUMP(name()," ********************************************************* ");
 
-    data = iread(0x64, 4, 0x8, 0, 0);
+    data = iread(0x64, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
 
@@ -269,7 +292,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 18. ICACHE read addr 0x464 / same idx, diff tag (cache miss) ");
     DUMP(name()," * should fill one of the empty banks (3 left)              ");
     DUMP(name()," ********************************************************** ");
-    data = iread(0x464, 4, 0x8, 0, 0);
+    data = iread(0x464, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
 
@@ -281,7 +304,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * should fill one of the empty banks (2 left)              ");
     DUMP(name()," ********************************************************** ");
 
-    data = iread(0x864, 4, 0x8, 0, 0);
+    data = iread(0x864, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
 
@@ -293,7 +316,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * should fill the last empty bank                          ");
     DUMP(name()," ********************************************************** ");
 
-    data = iread(0xc64, 4, 0x8, 0, 0);
+    data = iread(0xc64, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
 
@@ -304,7 +327,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 21. ICACHE read from 0x464 (cache hit) "                    );
     DUMP(name()," ************************************************* ");
 
-    data = iread(0x464, 4, 0x8, 0, 0);
+    data = iread(0x464, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
 
@@ -315,7 +338,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 22. ICACHE read from 0x864 (cache hit) ");
     DUMP(name()," ************************************************* ");
 
-    data = iread(0x864, 4, 0x8, 0, 0);
+    data = iread(0x864, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
 
@@ -326,7 +349,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 23. ICACHE read from 0xc64 (cache hit) "                    );
     DUMP(name()," ************************************************* ");
 
-    data = iread(0xc64, 4, 0x8, 0, 0);
+    data = iread(0xc64, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
 
@@ -336,7 +359,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 24. Content of ICACHE line 25 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
-    dwrite(0xfe,25,4,2,0,0,0);
+    dwrite(0xfe,25,4,2,0,0,0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -344,7 +367,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 25. Content of DCACHE line 25 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
-    dwrite(0xff,25,4,2,0,0,0);
+    dwrite(0xff,25,4,2,0,0,0, debug);
    
     DUMP(name()," ******************************************************************** ");
     DUMP(name()," * Phase 4: Test diagnostic read/write of caches ");
@@ -357,7 +380,7 @@ void testbench::initiator_thread(void) {
     
     // TAG address = SET & LINE [12-5] & SUBBLOCK [4-2] & "00"
     //set 0b0 line 0b00011001 0b00000
-    data = dread(0x320, 4, 0xe, 0, 0, 0);
+    data = dread(0x320, 4, 0xe, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned TAG: " << std::hex << data);
     // [] = atag == 0, [9] lrr = 0, [8] lock = 0, LSBs valid = 1
     assert(data==0x00000001);
@@ -370,7 +393,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
     
     //set 0b1 line 0b00011001 0b00000
-    data = dread(0x2320, 4, 0xe, 0, 0, 0);
+    data = dread(0x2320, 4, 0xe, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned TAG: " << std::hex << data);
     // [31:10] = atag == 1, [9] lrr = 0, [8] lock = 0, LSBs valid = 1
     assert(data==0x00000401);
@@ -383,7 +406,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
     
     //set 0b2 line 0b00011001 0b00000    
-    data = dread(0x4320, 4, 0xe, 0, 0, 0);
+    data = dread(0x4320, 4, 0xe, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned TAG: " << std::hex << data);
     // [31:10] = atag == 1, [9] lrr = 0, [8] lock = 0, LSBs valid = 1
     assert(data==0x00000801);
@@ -396,7 +419,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
     
     //set 0b3 line 0b00011001 0b00000
-    data = dread(0x6320, 4, 0xe, 0, 0, 0);
+    data = dread(0x6320, 4, 0xe, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned TAG: " << std::hex << data);
     // [31:10] = atag == 1, [9] lrr = 0, [8] lock = 0, LSBs valid = 1
     assert(data==0x00000c01);
@@ -410,7 +433,7 @@ void testbench::initiator_thread(void) {
 
     // TAG address = SET & LINE [12-5] & SUBBLOCK [4-2] & "00"
     //set 0b0 line 0b00011001 subblock 0b000 00
-    data = dread(0x320, 4, 0xf, 0, 0, 0);
+    data = dread(0x320, 4, 0xf, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned DATA: " << std::hex << data);
     assert(data==0x04030201);
 
@@ -422,7 +445,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
 
     //set 0b1 line 0b00011001 subblock 0b000 00
-    data = dread(0x2320, 4, 0xf, 0, 0, 0);
+    data = dread(0x2320, 4, 0xf, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned DATA: " << std::hex << data);
     assert(data==0x08070605);
 
@@ -434,7 +457,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
 
     //set 0b2 line 0b00011001 subblock 0b000 00    
-    data = dread(0x4320, 4, 0xf, 0, 0, 0);
+    data = dread(0x4320, 4, 0xf, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned DATA: " << std::hex << data);
     assert(data==0x0c0b0a09);
 
@@ -444,7 +467,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
 
     //set 0b3 line 0b00011001 subblock 0b000 00
-    data = dread(0x6320, 4, 0xf, 0, 0, 0);
+    data = dread(0x6320, 4, 0xf, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned DATA: " << std::hex << data);
     assert(data==0x100f0e0d);
 
@@ -455,7 +478,7 @@ void testbench::initiator_thread(void) {
 
     // TAG address = SET & LINE [12-5] & SUBBLOCK [4-2] & "00"
     //set 0b0 line 0b00011001 0b00000
-    data = dread(0x320, 4, 0xc, 0, 0, 0);
+    data = dread(0x320, 4, 0xc, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned TAG: " << std::hex << data);
     // [] = atag == 0, [9] lrr = 0, [8] lock = 0, LSBs valid = 1
     assert(data==0x00000001);
@@ -468,7 +491,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
     
     //set 0b1 line 0b00011001 0b00000
-    data = dread(0x2320, 4, 0xc, 0, 0, 0);
+    data = dread(0x2320, 4, 0xc, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned TAG: " << std::hex << data);
     // [31:10] = atag == 1, [9] lrr = 0, [8] lock = 0, LSBs valid = 1
     assert(data==0x00000401);
@@ -481,7 +504,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
     
     //set 0b2 line 0b00011001 0b00000    
-    data = dread(0x4320, 4, 0xc, 0, 0, 0);
+    data = dread(0x4320, 4, 0xc, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned TAG: " << std::hex << data);
     // [31:10] = atag == 1, [9] lrr = 0, [8] lock = 0, LSBs valid = 1
     assert(data==0x00000801);
@@ -494,7 +517,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
     
     //set 0b3 line 0b00011001 0b00000
-    data = dread(0x6320, 4, 0xc, 0, 0, 0);
+    data = dread(0x6320, 4, 0xc, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned TAG: " << std::hex << data);
     // [31:10] = atag == 1, [9] lrr = 0, [8] lock = 0, LSBs valid = 1
     assert(data==0x00000c01);
@@ -508,7 +531,7 @@ void testbench::initiator_thread(void) {
 
     // TAG address = SET & LINE [12-5] & SUBBLOCK [4-2] & "00"
     //set 0b0 line 0b00011001 subblock 0b000 00
-    data = dread(0x320, 4, 0xd, 0, 0, 0);
+    data = dread(0x320, 4, 0xd, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned DATA: " << std::hex << data);
     assert(data==0x04030201);
 
@@ -520,7 +543,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
 
     //set 0b1 line 0b00011001 subblock 0b000 00
-    data = dread(0x2320, 4, 0xd, 0, 0, 0);
+    data = dread(0x2320, 4, 0xd, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned DATA: " << std::hex << data);
     assert(data==0x08070605);
 
@@ -532,7 +555,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
 
     //set 0b2 line 0b00011001 subblock 0b000 00    
-    data = dread(0x4320, 4, 0xd, 0, 0, 0);
+    data = dread(0x4320, 4, 0xd, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned DATA: " << std::hex << data);
     assert(data==0x0c0b0a09);
 
@@ -544,7 +567,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
 
     //set 0b3 line 0b00011001 subblock 0b000 00
-    data = dread(0x6320, 4, 0xd, 0, 0, 0);
+    data = dread(0x6320, 4, 0xd, 0, 0, 0, debug);
     DUMP(name(), "DCACHE returned DATA: " << std::hex << data);
     assert(data==0x100f0e0d);
 
@@ -560,7 +583,7 @@ void testbench::initiator_thread(void) {
     
     DUMP(name(),"DCACHE write TAG: " << std::hex << data << " Address: 0x340");
     // set 0b0 line 0b00011010 subblock 0b000 00
-    dwrite(0x340, data, 4, 0xe, 0, 0, 0);
+    dwrite(0x340, data, 4, 0xe, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -570,7 +593,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
 
     // set 0b0 line 0b00011010 subblock 0b000 00
-    dwrite(0x340, 0x12345678, 4, 0xf, 0, 0, 0);
+    dwrite(0x340, 0x12345678, 4, 0xf, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -578,7 +601,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 44. Content of DCACHE line 26 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
-    dwrite(0xff,26,4,2,0,0,0);
+    dwrite(0xff,26,4,2,0,0,0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -587,7 +610,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 45. DCACHE read from Address 0x68 (hit set 0)       ");
     DUMP(name()," ************************************************* ");
 
-    data = dread(0x68, 4, 0x8, 0, 0, 0);
+    data = dread(0x68, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(),"DCACHE returned data: " << std::hex << data);
     assert(data==0x12345678);
 
@@ -603,7 +626,7 @@ void testbench::initiator_thread(void) {
     
     DUMP(name(),"ICACHE write TAG: " << std::hex << data << " Address: 0x6340");
     // set 0b11 line 0b00011010 subblock 0b000 00
-    dwrite(0x6340, data, 4, 0xc, 0, 0, 0);
+    dwrite(0x6340, data, 4, 0xc, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -613,7 +636,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************* ");
 
     // set 0b11 line 0b00011010 subblock 0b000 00
-    dwrite(0x6340, 0x87654321, 4, 0xd, 0, 0, 0);
+    dwrite(0x6340, 0x87654321, 4, 0xd, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -621,7 +644,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 48. Content of ICACHE line 26 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
-    dwrite(0xfe,26,4,2,0,0,0);
+    dwrite(0xfe,26,4,2,0,0,0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -630,7 +653,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 49. ICACHE read from Address 0x468 (hit set 3)       ");
     DUMP(name()," ************************************************* ");
 
-    data = iread(0x468, 4, 0, 0, 0);
+    data = iread(0x468, 4, 0, 0, 0, debug);
     DUMP(name(),"ICACHE returned data: " << std::hex << data);
     assert(data==0x87654321);
 
@@ -647,7 +670,7 @@ void testbench::initiator_thread(void) {
 
     // flushing the instruction cache will cause the diagnostic icache write
     // to be transferred to main memory (set 3 line 26 tag 401 address 0x468 data 0x87654321
-    dwrite(0x0, 0x0, 4, 0x10, 0, 0, 0);
+    dwrite(0x0, 0x0, 4, 0x10, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -658,7 +681,7 @@ void testbench::initiator_thread(void) {
 
     // Flushing the data cache will cause the diagnostic dcache write
     // to be transferred to main memory (set 0 line 26 tag 1 address 0x68 data 0x12345678)
-    dwrite(0x0, 0x0, 4, 0x11, 0, 0, 0);
+    dwrite(0x0, 0x0, 4, 0x11, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -675,7 +698,7 @@ void testbench::initiator_thread(void) {
     
     DUMP(name(),"ICACHE write TAG: " << std::hex << data << " Address: 0x6340");
     // set 0b11 line 0b00011010 subblock 0b000 00
-    dwrite(0x6340, data, 4, 0xc, 0, 0, 0);
+    dwrite(0x6340, data, 4, 0xc, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);    
 
@@ -689,7 +712,7 @@ void testbench::initiator_thread(void) {
     
     DUMP(name(),"DCACHE write TAG: " << std::hex << data << " Address: 0x340");
     // set 0b0 line 0b00011010 subblock 0b000 00
-    dwrite(0x340, data, 4, 0xe, 0, 0, 0);
+    dwrite(0x340, data, 4, 0xe, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -698,7 +721,7 @@ void testbench::initiator_thread(void) {
     DUMP(name(),"* 54. ICACHE read from Address 0x468 (miss)           ");
     DUMP(name(),"************************************************* ");
 
-    data = iread(0x468, 4, 0, 0, 0);
+    data = iread(0x468, 4, 0, 0, 0, debug);
     DUMP(name(),"ICACHE returned data: " << std::hex << data);
     assert(data==0x87654321);
 
@@ -707,7 +730,7 @@ void testbench::initiator_thread(void) {
     DUMP(name(),"* 55. DCACHE read from Address 0x68 (hit set 0)       ");
     DUMP(name(),"************************************************* ");
 
-    data = dread(0x68, 4, 0x8, 0, 0, 0);
+    data = dread(0x68, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(),"DCACHE returned data: " << std::hex << data);
     assert(data==0x12345678);
 
@@ -729,7 +752,7 @@ void testbench::initiator_thread(void) {
     
     DUMP(name(),"ICACHE write TAG: " << std::hex << data << " Address: 0x6340");
     // set 0b11 line 0b00011010 subblock 0b000 00
-    dwrite(0x6340, data, 4, 0xc, 0, 0, 0);
+    dwrite(0x6340, data, 4, 0xc, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -739,7 +762,7 @@ void testbench::initiator_thread(void) {
     DUMP(name(),"************************************************* ");
 
     // set 0b11 line 0b00011010 subblock 0b000 00
-    dwrite(0x6340, 0x11111111, 4, 0xd, 0, 0, 0);
+    dwrite(0x6340, 0x11111111, 4, 0xd, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -753,7 +776,7 @@ void testbench::initiator_thread(void) {
     
     DUMP(name(),"DCACHE write TAG: " << std::hex << data << " Address: 0x340");
     // set 0b0 line 0b00011010 subblock 0b000 00
-    dwrite(0x340, data, 4, 0xe, 0, 0, 0);
+    dwrite(0x340, data, 4, 0xe, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -763,7 +786,7 @@ void testbench::initiator_thread(void) {
     DUMP(name(),"************************************************* ");
 
     // set 0b0 line 0b00011010 subblock 0b000 00
-    dwrite(0x340, 0xffffffff, 4, 0xf, 0, 0, 0);
+    dwrite(0x340, 0xffffffff, 4, 0xf, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -773,13 +796,13 @@ void testbench::initiator_thread(void) {
     DUMP(name(),"************************************************* ");
 
     // READ the CCR
-    data=dread(0x0, 4, 2, 0, 0, 0);
+    data=dread(0x0, 4, 2, 0, 0, 0, debug);
 
     // set FD and FI
     data |= (3 << 21);
 
     // write CCR and trigger both caches to flush
-    dwrite(0x0, data, 4, 0x2, 0, 0, 0);
+    dwrite(0x0, data, 4, 0x2, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -795,7 +818,7 @@ void testbench::initiator_thread(void) {
     
     DUMP(name(),"ICACHE write TAG: " << std::hex << data << " Address: 0x6340");
     // set 0b11 line 0b00011010 subblock 0b000 00
-    dwrite(0x6340, data, 4, 0xc, 0, 0, 0);
+    dwrite(0x6340, data, 4, 0xc, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);    
 
@@ -809,7 +832,7 @@ void testbench::initiator_thread(void) {
     
     DUMP(name(),"DCACHE write TAG: " << std::hex << data << " Address: 0x340");
     // set 0b0 line 0b00011010 subblock 0b000 00
-    dwrite(0x340, data, 4, 0xe, 0, 0, 0);
+    dwrite(0x340, data, 4, 0xe, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -820,7 +843,7 @@ void testbench::initiator_thread(void) {
     DUMP(name(),"* 63. Content of DCACHE line 26 (dbg_out)         ");
     DUMP(name(),"************************************************* ");
 
-    dwrite(0xff,26,4,2,0,0,0);
+    dwrite(0xff,26,4,2,0,0,0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -828,7 +851,7 @@ void testbench::initiator_thread(void) {
     DUMP(name(),"* 64. Content of ICACHE line 26 (dbg_out)         ");
     DUMP(name(),"************************************************* ");
 
-    dwrite(0xfe,26,4,2,0,0,0);
+    dwrite(0xfe,26,4,2,0,0,0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -837,7 +860,7 @@ void testbench::initiator_thread(void) {
     DUMP(name(),"* 65.ICACHE read from Address 0x868 (miss)           ");
     DUMP(name(),"************************************************* ");
 
-    data = iread(0x868, 4, 0, 0, 0);
+    data = iread(0x868, 4, 0, 0, 0, debug);
     DUMP(name(),"ICACHE returned data: " << std::hex << data);
     assert(data==0x11111111 );
 
@@ -846,7 +869,7 @@ void testbench::initiator_thread(void) {
     DUMP(name(),"* 66. DCACHE read from Address 0xc68 (miss)            ");
     DUMP(name(),"************************************************* ");
 
-    data = dread(0xc68, 4, 0x8, 0, 0, 0);
+    data = dread(0xc68, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(),"DCACHE returned data: " << std::hex << data);
     assert(data==0xffffffff);
 
@@ -862,7 +885,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 100. Content of DCACHE line 25 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
-    dwrite(0xff,25,4,2,0,0,0);
+    dwrite(0xff,25,4,2,0,0,0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -870,7 +893,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 101. Content of DCACHE line 26 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
-    dwrite(0xff,26,4,2,0,0,0);
+    dwrite(0xff,26,4,2,0,0,0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -878,7 +901,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 102. Content of ICACHE line 25 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
-    dwrite(0xfe,25,4,2,0,0,0);
+    dwrite(0xfe,25,4,2,0,0,0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -886,7 +909,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * Content of ICACHE line 26 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
-    dwrite(0xfe,26,4,2,0,0,0);
+    dwrite(0xfe,26,4,2,0,0,0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -894,14 +917,17 @@ void testbench::initiator_thread(void) {
   }
 }
 
-// issues an instruction read transaction and returns the result
-unsigned int testbench::iread(unsigned int addr, unsigned int width, unsigned int flush, unsigned int flushl, unsigned int fline) {
+/// issues an instruction read transaction and returns the result
+unsigned int testbench::iread(unsigned int addr, unsigned int width, unsigned int flush, unsigned int flushl, unsigned int fline, unsigned int * debug) {
 
   // locals
   sc_core::sc_time t;
   unsigned int data;
   tlm::tlm_generic_payload gp;
   icio_payload_extension * ext = new icio_payload_extension();
+
+  // clear debug pointer for new transaction
+  *debug = 0;
 
   // attache extension
   gp.set_extension(ext);
@@ -919,6 +945,7 @@ unsigned int testbench::iread(unsigned int addr, unsigned int width, unsigned in
   ext->flush  = flush;
   ext->flushl = flushl;
   ext->fline  = fline;
+  ext->debug  = debug;
   
   // send
   instruction_initiator_socket->b_transport(gp,t);
@@ -929,13 +956,16 @@ unsigned int testbench::iread(unsigned int addr, unsigned int width, unsigned in
   return(data);
 }
 
-// issues a data write transaction
-void testbench::dwrite(unsigned int addr, unsigned int data, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock) {
+/// issues a data write transaction
+void testbench::dwrite(unsigned int addr, unsigned int data, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int * debug) {
 
   // locals
   sc_core::sc_time t;
   tlm::tlm_generic_payload gp;
   dcio_payload_extension * ext = new dcio_payload_extension();
+
+  // clear debug pointer for new transaction
+  *debug = 0;
 
   // attache extension
   gp.set_extension(ext);
@@ -952,6 +982,7 @@ void testbench::dwrite(unsigned int addr, unsigned int data, unsigned int width,
   ext->flush  = flush;
   ext->flushl = flushl;
   ext->lock   = lock;
+  ext->debug  = debug;
 
   // send
   data_initiator_socket->b_transport(gp,t);
@@ -962,7 +993,7 @@ void testbench::dwrite(unsigned int addr, unsigned int data, unsigned int width,
 }
 
 // issues a data read transaction
-unsigned int testbench::dread(unsigned int addr, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock) {
+unsigned int testbench::dread(unsigned int addr, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int * debug) {
 
   // locals
   sc_core::sc_time t;
@@ -970,6 +1001,8 @@ unsigned int testbench::dread(unsigned int addr, unsigned int width, unsigned in
   tlm::tlm_generic_payload gp;
   dcio_payload_extension * ext = new dcio_payload_extension();
   
+  // clear debug pointer for new transaction
+  *debug = 0;
 
   // attache extension
   gp.set_extension(ext);
@@ -987,6 +1020,7 @@ unsigned int testbench::dread(unsigned int addr, unsigned int width, unsigned in
   ext->flush  = flush;
   ext->flushl = flushl;
   ext->lock   = lock;
+  ext->debug  = debug;
 
   // send
   data_initiator_socket->b_transport(gp,t);

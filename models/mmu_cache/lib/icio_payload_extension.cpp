@@ -27,6 +27,7 @@ void icio_payload_extension::copy_from(const tlm_extension_base &extension) {
   flush  = static_cast<icio_payload_extension const &>(extension).flush;
   flushl = static_cast<icio_payload_extension const &>(extension).flushl;
   fline  = static_cast<icio_payload_extension const &>(extension).fline;
+  debug  = static_cast<icio_payload_extension const &>(extension).debug;
 }
 
 // override virtual clone method

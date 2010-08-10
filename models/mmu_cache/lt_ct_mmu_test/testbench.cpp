@@ -1,16 +1,16 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       testbench.cpp - Implementation of the                   */
-/*             stimuli generator/monitor for the current testbench.    */
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Thomas Schuster                                         */
-/***********************************************************************/
+// ***********************************************************************
+// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
+// *                                                                     *
+// * File:       testbench.cpp - Implementation of the                   *
+// *             stimuli generator/monitor for the current testbench.    *
+// *                                                                     *
+// * Modified on $Date$   *
+// *          at $Revision$                                         *
+// *                                                                     *
+// * Principal:  European Space Agency                                   *
+// * Author:     VLSI working group @ IDA @ TUBS                         *
+// * Maintainer: Thomas Schuster                                         *
+// ***********************************************************************
 
 #include "testbench.h"
 
@@ -26,13 +26,18 @@ testbench::testbench(sc_core::sc_module_name name) : sc_module(name),
 
 }
 
-// testbench initiator thread
+/// testbench initiator thread
 void testbench::initiator_thread(void) {
 
   // test vars
   unsigned int data;
+  unsigned int tmp;
+  //unsigned int last;
+  unsigned int * debug;
 
   while(1) {
+
+    debug = &tmp;
 
     // *******************************************
     // * Test for default i/d cache configuration
@@ -60,7 +65,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ********************************************************* ");
     
     // args: address, length, asi, flush, flushl, lock 
-    data=dread(0x0, 4, 2, 0, 0, 0);
+    data=dread(0x0, 4, 2, 0, 0, 0, debug);
     // [3:2] == 0b11; [1:0] = 0b11 -> dcache and icache enabled
     DUMP(name(),"cache_contr_reg: " << std::hex << data);
     assert(data==0xf);
@@ -72,7 +77,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 2. Read ICACHE CONFIGURATION REGISTER (ASI 0x2 - addr 8)   ");
     DUMP(name()," ********************************************************* ");    
 
-    data=dread(0x8, 4, 2, 0, 0, 0);
+    data=dread(0x8, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b100, [23:20] ssize == 0b0001 (1kb)
     // [18:16] lsize == 0b001 (1 word per line), [3] mmu present = 1
     //assert(data==0b0011 0 100 0001 0 001 00000000000000000);
@@ -86,7 +91,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 3. Read DCACHE CONFIGURATION REGISTER (ASI 0x2 - addr 0xc)   ");
     DUMP(name()," ********************************************************* ");    
 
-    data=dread(0xc, 4, 2, 0, 0, 0);
+    data=dread(0xc, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b100, [23:20] ssize == 0b0001 (1kb)
     // [18:16] lsize == 0b001 (1 word per line), [3] mmu present = 1
     //assert(data==0b0011 0 100 0001 0 001 00000000000000000);
@@ -133,43 +138,43 @@ void testbench::initiator_thread(void) {
     // !! The page tables themselve are indexed by the vpn indices (idx1,2,3)
 
     // demo entry to table 1 (PTD)
-    dwrite(0x1004, 0x00001401, 4, 8, 0, 0, 0);
+    dwrite(0x1004, 0x00001401, 4, 8, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // demo entry to table 2 (PTD)
-    dwrite(0x1404, 0x00001501, 4, 8, 0, 0, 0);
+    dwrite(0x1404, 0x00001501, 4, 8, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // demo entry to table 3 (PTE)
-    dwrite(0x1504, 0x0000402, 4, 8, 0, 0, 0);
+    dwrite(0x1504, 0x0000402, 4, 8, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // demo entry to table 3 (PTE)
-    dwrite(0x1508, 0x0000502, 4, 8, 0, 0, 0);
+    dwrite(0x1508, 0x0000502, 4, 8, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // demo entry to table 3 (PTE)
-    dwrite(0x150c, 0x0000602, 4, 8, 0, 0, 0);
+    dwrite(0x150c, 0x0000602, 4, 8, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // demo entry to table 3 (PTE)
-    dwrite(0x1510, 0x0000702, 4, 8, 0, 0, 0);
+    dwrite(0x1510, 0x0000702, 4, 8, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // demo entry to table 3 (PTE)
-    dwrite(0x1514, 0x0000802, 4, 8, 0, 0, 0);
+    dwrite(0x1514, 0x0000802, 4, 8, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // demo entry to table 3 (PTE)
-    dwrite(0x1518, 0x0000902, 4, 8, 0, 0, 0);
+    dwrite(0x1518, 0x0000902, 4, 8, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // demo entry to table 3 (PTE)
-    dwrite(0x151c, 0x0000a02, 4, 8, 0, 0, 0);
+    dwrite(0x151c, 0x0000a02, 4, 8, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // demo entry to table 3 (PTE)
-    dwrite(0x1520, 0x0000b02, 4, 8, 0, 0, 0);
+    dwrite(0x1520, 0x0000b02, 4, 8, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
 
@@ -178,22 +183,22 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************************");
 
     // set MMU_CONTEXT_TABLE_POINTER to root of page table (ASI 0x19)
-    dwrite(0x100, 0x1000, 4, 0x19, 0, 0, 0);
+    dwrite(0x100, 0x1000, 4, 0x19, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // set MMU_CONTEXT_REGISTER to zero (ASI 0x19)
-    dwrite(0x200, 0x0, 4, 0x19, 0, 0, 0);
+    dwrite(0x200, 0x0, 4, 0x19, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);   
 
     // The context register (process id) indexes
     // the context table pointer. Each process has its own page table.
 
     // read MMU_CONTROL_REGISTER
-    data = dread(0x0, 4, 0x19, 0, 0, 0); 
+    data = dread(0x0, 4, 0x19, 0, 0, 0, debug); 
 
     // activate MMU by writing the control register
     data |= 0x1;
-    dwrite(0x000, data, 4, 0x19, 0, 0, 0);
+    dwrite(0x000, data, 4, 0x19, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);    
 
     DUMP(name()," ************************************************************ ");
@@ -206,7 +211,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************************ ");
 
     // vaddr 0x01041000 (idx1=1, idx2=1, idx3=1)
-    dwrite(0x01041000, 0x00000001, 4, 8, 0, 0, 0);
+    dwrite(0x01041000, 0x00000001, 4, 8, 0, 0, 0, debug);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     DUMP(name()," ************************************************************ ");
@@ -217,7 +222,7 @@ void testbench::initiator_thread(void) {
 
     for(int i=4; i<4096; i+=4) {
 
-      dwrite(0x1041000+i, i, 4, 8, 0, 0, 0);
+      dwrite(0x1041000+i, i, 4, 8, 0, 0, 0, debug);
       wait(LOCAL_CLOCK,sc_core::SC_NS);      
 
     }
@@ -231,7 +236,7 @@ void testbench::initiator_thread(void) {
 
     for(int i=4100; i<32768; i+=4) {
 
-      dwrite(0x1041000+i, i, 4, 8, 0, 0, 0);
+      dwrite(0x1041000+i, i, 4, 8, 0, 0, 0, debug);
       wait(LOCAL_CLOCK,sc_core::SC_NS);      
 
     }
@@ -242,14 +247,17 @@ void testbench::initiator_thread(void) {
   }
 }
 
-// issues an instruction read transaction and returns the result
-unsigned int testbench::iread(unsigned int addr, unsigned int width, unsigned int flush, unsigned int flushl, unsigned int fline) {
+/// issues an instruction read transaction and returns the result
+unsigned int testbench::iread(unsigned int addr, unsigned int width, unsigned int flush, unsigned int flushl, unsigned int fline, unsigned int * debug) {
 
   // locals
   sc_core::sc_time t;
   unsigned int data;
   tlm::tlm_generic_payload gp;
   icio_payload_extension * ext = new icio_payload_extension();
+
+  // clear debug pointer for new transaction
+  *debug = 0;
 
   // attache extension
   gp.set_extension(ext);
@@ -267,6 +275,7 @@ unsigned int testbench::iread(unsigned int addr, unsigned int width, unsigned in
   ext->flush  = flush;
   ext->flushl = flushl;
   ext->fline  = fline;
+  ext->debug  = debug;
   
   // send
   instruction_initiator_socket->b_transport(gp,t);
@@ -277,13 +286,16 @@ unsigned int testbench::iread(unsigned int addr, unsigned int width, unsigned in
   return(data);
 }
 
-// issues a data write transaction
-void testbench::dwrite(unsigned int addr, unsigned int data, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock) {
+/// issues a data write transaction
+void testbench::dwrite(unsigned int addr, unsigned int data, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int * debug) {
 
   // locals
   sc_core::sc_time t;
   tlm::tlm_generic_payload gp;
   dcio_payload_extension * ext = new dcio_payload_extension();
+
+  // clear debug pointer for new transaction
+  *debug = 0;
 
   // attache extension
   gp.set_extension(ext);
@@ -300,6 +312,7 @@ void testbench::dwrite(unsigned int addr, unsigned int data, unsigned int width,
   ext->flush  = flush;
   ext->flushl = flushl;
   ext->lock   = lock;
+  ext->debug  = debug;
 
   // send
   data_initiator_socket->b_transport(gp,t);
@@ -310,7 +323,7 @@ void testbench::dwrite(unsigned int addr, unsigned int data, unsigned int width,
 }
 
 // issues a data read transaction
-unsigned int testbench::dread(unsigned int addr, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock) {
+unsigned int testbench::dread(unsigned int addr, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int * debug) {
 
   // locals
   sc_core::sc_time t;
@@ -318,6 +331,8 @@ unsigned int testbench::dread(unsigned int addr, unsigned int width, unsigned in
   tlm::tlm_generic_payload gp;
   dcio_payload_extension * ext = new dcio_payload_extension();
   
+  // clear debug pointer for new transaction
+  *debug = 0;
 
   // attache extension
   gp.set_extension(ext);
@@ -335,6 +350,7 @@ unsigned int testbench::dread(unsigned int addr, unsigned int width, unsigned in
   ext->flush  = flush;
   ext->flushl = flushl;
   ext->lock   = lock;
+  ext->debug  = debug;
 
   // send
   data_initiator_socket->b_transport(gp,t);
@@ -344,3 +360,4 @@ unsigned int testbench::dread(unsigned int addr, unsigned int width, unsigned in
 
   return(data);
 }
+

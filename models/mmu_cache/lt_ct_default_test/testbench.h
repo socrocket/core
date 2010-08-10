@@ -38,11 +38,11 @@ class testbench : public sc_core::sc_module {
   void initiator_thread(void);
 
   // issues a data write transaction
-  void dwrite(unsigned int addr, unsigned int data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock);
+  void dwrite(unsigned int addr, unsigned int data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int * debug);
   // issues a data read transaction
-  unsigned int dread(unsigned int addr, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock);
+  unsigned int dread(unsigned int addr, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int * debug);
   // issues an instruction read transaction
-  unsigned int iread(unsigned int addr, unsigned int width, unsigned int flush, unsigned int flushl, unsigned int fline);
+  unsigned int iread(unsigned int addr, unsigned int width, unsigned int flush, unsigned int flushl, unsigned int fline, unsigned int * debug);
   
  public:
   // variables and object declaration

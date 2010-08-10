@@ -1,20 +1,20 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       mmu.h - Class definition of a memory management unit.   */
-/*             The mmu can be configured to have split or combined     */
-/*             TLBs for instructions and data. The TLB size can be     */
-/*             configured as well. The memory page size is currently   */
-/*             currently fixed to 4kB.                                 */
-/*                                                                     */
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                              */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Thomas Schuster                                         */
-/***********************************************************************/
+// ***********************************************************************
+// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
+// *                                                                     *
+// * File:       mmu.h - Class definition of a memory management unit.   *
+// *             The mmu can be configured to have split or combined     *
+// *             TLBs for instructions and data. The TLB size can be     *
+// *             configured as well. The memory page size is currently   *
+// *             currently fixed to 4kB.                                 *
+// *                                                                     *
+// *                                                                     *
+// * Modified on $Date$   *
+// *          at $Revision$                                         *
+// *                                                                     *
+// * Principal:  European Space Agency                                   *
+// * Author:     VLSI working group @ IDA @ TUBS                         *
+// * Maintainer: Thomas Schuster                                         *
+// ***********************************************************************
 
 #ifndef __MMU_H__
 #define __MMU_H__
@@ -29,21 +29,23 @@
 
 // implementation of a memory management unit
 // ------------------------------------------
+
+/// @brief Memory Management Unit (MMU) for TrapGen LEON3 simulator 
 class mmu : public mmu_if, public sc_core::sc_module {
 
   public:
 
-  // constructor args:
-  // - sysc module name,
-  // - delay on an instruction tlb hit
-  // - delay on an instruction tlb miss (per page table lookup)
-  // - delay on a data tlb hit
-  // - delay on a data tlb miss (per page table lookup)
-  // - number of instruction tlbs
-  // - number of data tlbs
-  // - tlb type
-  // - tlb replacement strategy
-  // - tlb mmu page size (default 4kB)
+  /// @brief Constructor of the Memory Management Unit
+  /// @param name                       SystemC module name,
+  /// @param itlb_hit_response_delay    Delay on an instruction TLB hit
+  /// @param itlb_miss_response_delay   Delay on an instruction TLB miss (per page table lookup)
+  /// @param dtlb_hit_response_delay    Delay on a data TLB hit
+  /// @param dtlb_miss_response_delay   Delay on a data TLB miss (per page table lookup)
+  /// @param itlbnum                    Number of instruction TLBs
+  /// @param dtlbnum                    Number of data TLBs
+  /// @param tlb_type                   Type of TLB (shared or distinct)
+  /// @param tlb_rep                    TLB replacement strategy
+  /// @param mmupgsz                    MMU page size (default 4kB)
   mmu(sc_core::sc_module_name name,
       mmu_cache_if &_parent,
       sc_core::sc_time itlb_hit_response_delay,
@@ -82,129 +84,131 @@ class mmu : public mmu_if, public sc_core::sc_module {
 
   // data members
   // ------------
-  // pointer to mmu_cache module (ahb interface functions)
+  /// pointer to mmu_cache module (ahb interface functions)
   mmu_cache_if * m_parent;
 
   // instruction and data tlb pointers
   // (depending on configuration may point to a shared tlb implementation)
+  /// associative memory for instruction TLB (eventually also data tlb in shared mode)
   std::map<t_VAT, t_PTE_context> * itlb;
+  /// associative memory for data TLB (not used in shared mode) 
   std::map<t_VAT, t_PTE_context> * dtlb;
 
-  // iterator for PDC lookup
+  /// iterator for PDC lookup
   std::map<t_VAT, t_PTE_context>::iterator pdciter;
 
-  // helpers for tlb handling
+  /// helper for tlb handling
   t_PTE_context * m_current_PTE_context;
 
   // mmu internal registers
   // ----------------------
 
-  // MMU Control Register (Page 253 Sparc Ref Manual):
-  // -------------------------------------------------
-  // [31-28] IMPL - Identifies the specific implementation of the MMU.
-  // It is hardwired into the implementation and is read only.
-  // [27-24] VER  - Version of the MMU implementation (read-only)
-  // [23-8]  SC   - The System Control bits are implementation defined.
-  // The may be reflected in a variable number of signals external to 
-  // the MMU and need not all be implemented. If a bit is not implemented,
-  // it reads as zero and writes to it are ignored.
-  // [7] PSO - The PSO bit controls whether the memory model seen by the
-  // processor is Partial Store Ordering (PSO=1) or Total Store Ordering (PSO=0).
-  // [1] NF  - The "No Fault" bit. When NF=0, any fault detected by the MMU
-  // causes FSR and FAR to be updated and causes a fault to be generated to
-  // the processor. When NF=1, a fault on an access to ASI 9 is handled as
-  // when NF=0; a fault on an access to any other ASI causes FSR and FAR
-  // to be updated but no fault is generated to the processor. If a fault on
-  // access to an ASI other than 9 occurs while NF=1, subsequently resetting
-  // NF from 1 to 0 does not cause a fault to the processor 
-  // (even though FSR.FT != 0 at that time). A change in value of the NF bit 
-  // takes effect as soon as the bit is written; a subsequent access to ASI 9
-  // will be evaluated according to the new value of the NF bit.
-  // [0] E - The Enable bit enables (1) or disables (0) the MMU.
-  // When the MMU is disabled:
-  // - All virtual addresses pass through the MMU untranslated and appear as
-  // physical addresses.
-  // - The upper 4 of the 36 bits of the physical address are zero.
-  // - The MMU indicates that all virtual addresses are non-cacheable
+  /// MMU Control Register (Page 253 Sparc Ref Manual):<br>
+  /// -------------------------------------------------<br>
+  /// [31-28] IMPL - Identifies the specific implementation of the MMU.
+  /// It is hardwired into the implementation and is read only.<br>
+  /// [27-24] VER  - Version of the MMU implementation (read-only)<br>
+  /// [23-8]  SC   - The System Control bits are implementation defined.
+  /// The may be reflected in a variable number of signals external to
+  /// the MMU and need not all be implemented. If a bit is not implemented,
+  /// it reads as zero and writes to it are ignored.<br>
+  /// [7] PSO - The PSO bit controls whether the memory model seen by the
+  /// processor is Partial Store Ordering (PSO=1) or Total Store Ordering (PSO=0).<br>
+  /// [1] NF  - The "No Fault" bit. When NF=0, any fault detected by the MMU
+  /// causes FSR and FAR to be updated and causes a fault to be generated to
+  /// the processor. When NF=1, a fault on an access to ASI 9 is handled as
+  /// when NF=0; a fault on an access to any other ASI causes FSR and FAR
+  /// to be updated but no fault is generated to the processor. If a fault on
+  /// access to an ASI other than 9 occurs while NF=1, subsequently resetting
+  /// NF from 1 to 0 does not cause a fault to the processor
+  /// (even though FSR.FT != 0 at that time). A change in value of the NF bit
+  /// takes effect as soon as the bit is written; a subsequent access to ASI 9
+  /// will be evaluated according to the new value of the NF bit.<br>
+  /// [0] E - The Enable bit enables (1) or disables (0) the MMU.
+  /// When the MMU is disabled:<br>
+  /// - All virtual addresses pass through the MMU untranslated and appear as
+  /// physical addresses.<br>
+  /// - The upper 4 of the 36 bits of the physical address are zero.<br>
+  /// - The MMU indicates that all virtual addresses are non-cacheable<br>
   unsigned int MMU_CONTROL_REG;
 
-  // MMU Context Table Pointer (Page 254 Sparc Ref Manual):
-  // ------------------------------------------------------
-  // The Context Table Pointer points to the Context Table in physical memory.
-  // The table is indexed by the contents of the Context Register. The Context
-  // Table Pointer appears on bits 35 through 6 of the physical address bus during 
-  // the first fetch occurring during miss processing. The context table pointed
-  // to by the Context Table Pointer must be aligned on a boundary equal to the 
-  // size of the table.
-  // [31-2] Context Table Pointer
+  /// MMU Context Table Pointer (Page 254 Sparc Ref Manual):<br>
+  /// ------------------------------------------------------<br>
+  /// The Context Table Pointer points to the Context Table in physical memory.
+  /// The table is indexed by the contents of the Context Register. The Context
+  /// Table Pointer appears on bits 35 through 6 of the physical address bus during 
+  /// the first fetch occurring during miss processing. The context table pointed
+  /// to by the Context Table Pointer must be aligned on a boundary equal to the 
+  /// size of the table.<br>
+  /// [31-2] Context Table Pointer<br>
   unsigned int MMU_CONTEXT_TABLE_POINTER_REG;
 
-  // MMU Context Number (Page 255 Sparc Ref Manual):
-  // -----------------------------------------------
-  // The Context Register defines which of the possible process virtual address
-  // spaces is considered the current address space. Subsequently accesses to
-  // memory through the MMU are translated for the current address space, until
-  // the Context Register is changed. Each MMU implementation may specify a maximum
-  // context number, which must be one less than a power of 2.
-  // [31-0] Context Number
+  /// MMU Context Number (Page 255 Sparc Ref Manual):<br>
+  /// -----------------------------------------------<br>
+  /// The Context Register defines which of the possible process virtual address
+  /// spaces is considered the current address space. Subsequently accesses to
+  /// memory through the MMU are translated for the current address space, until
+  /// the Context Register is changed. Each MMU implementation may specify a maximum
+  /// context number, which must be one less than a power of 2.<br>
+  /// [31-0] Context Number<br>
   unsigned int MMU_CONTEXT_REG;
 
-  // MMU Fault Status Register (Page 256 Sparc Ref Manual):
-  // ------------------------------------------------------
-  // The Fault Status Register provides information on exceptions (faults) issued
-  // by the MMU. Since the CPU is pipelined, several faults may occur before a
-  // trap is taken. The faults are grouped into three classes:
-  // - instruction access faults
-  // - data access faults
-  // - translation table access faults
-  // If another instruction access fault occurs before the fault status of a 
-  // previous instruction access fault has been read by the CPU, the MMU 
-  // writes the status of the latest fault into the Fault Status Register,writes
-  // the faulting address into the Fault Address Register, and sets the OW bit
-  // to indicate that the previous fault status has been lost. The MMU and CPU
-  // must ensure that if multiple data access faults can occur, only the status
-  // of the one taken by the CPU is latched into the Fault Status Register.
-  // If data fault status overwrites previous instruciton fault status, the
-  // overwrite bit (OW) is cleared, since the fault status is represented correctly.
-  // An instruciton access fault may not overwrite a data access fault.
-  // A translation table access fault occurs if an MMU page table access causes an
-  // external system error. If a translation table access fault overwrites a previous
-  // instruction or data access fault, the OW bit is cleared. An instruction or
-  // data access fault may not overwrite a translation table access fault.
-  // [17-10] EBE - External Bus Error field bits are set when a system error occurs
-  // during memory access. The meaning of the individual bits are implementation-dependent.
-  // [9-8] L - The Level field is set to the page table level of the entry which caused the
-  // fault (0 - Context Table, 1 - Level 1 Page Table, 2 - Level 2, 3 - Level 3).
-  // [7-5] AT - The Access Type field defines the taype of access which cause the fault.
-  // (see Page 257 of Sparc Ref Manual)
-  // [4-2] FT - Defines the Fault Type of the current fault. (see Page 257 of Sparc Ref Man.)
-  // [1] FAV - The Fault Address Valid bit is set to one if the contents of the Fault
-  // Address Register are valid.
-  // [0] OW - The Overwrite bit is set to one if the Fault Status Register has been 
-  // written more than once by faults of the same class since the last time it was read.
+  /// MMU Fault Status Register (Page 256 Sparc Ref Manual):<br>
+  /// ------------------------------------------------------<br>
+  /// The Fault Status Register provides information on exceptions (faults) issued
+  /// by the MMU. Since the CPU is pipelined, several faults may occur before a
+  /// trap is taken. The faults are grouped into three classes:<br>
+  /// - instruction access faults<br>
+  /// - data access faults<br>
+  /// - translation table access faults<br>
+  /// If another instruction access fault occurs before the fault status of a 
+  /// previous instruction access fault has been read by the CPU, the MMU 
+  /// writes the status of the latest fault into the Fault Status Register,writes
+  /// the faulting address into the Fault Address Register, and sets the OW bit
+  /// to indicate that the previous fault status has been lost. The MMU and CPU
+  /// must ensure that if multiple data access faults can occur, only the status
+  /// of the one taken by the CPU is latched into the Fault Status Register.
+  /// If data fault status overwrites previous instruciton fault status, the
+  /// overwrite bit (OW) is cleared, since the fault status is represented correctly.
+  /// An instruciton access fault may not overwrite a data access fault.
+  /// A translation table access fault occurs if an MMU page table access causes an
+  /// external system error. If a translation table access fault overwrites a previous
+  /// instruction or data access fault, the OW bit is cleared. An instruction or
+  /// data access fault may not overwrite a translation table access fault.<br>
+  /// [17-10] EBE - External Bus Error field bits are set when a system error occurs
+  /// during memory access. The meaning of the individual bits are implementation-dependent.<br>
+  /// [9-8] L - The Level field is set to the page table level of the entry which caused the
+  /// fault (0 - Context Table, 1 - Level 1 Page Table, 2 - Level 2, 3 - Level 3).<br>
+  /// [7-5] AT - The Access Type field defines the taype of access which cause the fault.
+  /// (see Page 257 of Sparc Ref Manual)<br>
+  /// [4-2] FT - Defines the Fault Type of the current fault. (see Page 257 of Sparc Ref Man.)<br>
+  /// [1] FAV - The Fault Address Valid bit is set to one if the contents of the Fault
+  /// Address Register are valid.<br>
+  /// [0] OW - The Overwrite bit is set to one if the Fault Status Register has been 
+  /// written more than once by faults of the same class since the last time it was read.<br>
   unsigned int MMU_FAULT_STATUS_REG;
 
-  // MMU Fault Address Register (Page 258 Sparc Ref Manual):
-  // -------------------------------------------------------
-  // The Fault Address Register contains the virtual memory address of the fault
-  // recorded in the Fault Status Register. Fault addresses are overwritten
-  // according to the same priority used for the Fault Status Register. Writes to the
-  // Fault Address Register are ignored.
-  // [31-0] Fault Address
+  /// MMU Fault Address Register (Page 258 Sparc Ref Manual):<br>
+  /// -------------------------------------------------------<br>
+  /// The Fault Address Register contains the virtual memory address of the fault
+  /// recorded in the Fault Status Register. Fault addresses are overwritten
+  /// according to the same priority used for the Fault Status Register. Writes to the
+  /// Fault Address Register are ignored.<br>
+  /// [31-0] Fault Address<br>
 
   unsigned int MMU_FAULT_ADDRESS_REG;
 
   // mmu parameters
   // --------------
-  // number of instruction tlbs
+  /// number of instruction tlbs
   unsigned int m_itlbnum;
-  // number of data tlbs
+  /// number of data tlbs
   unsigned int m_dtlbnum;
-  // tlb type (bit0 - split/combined, bit1 - standard/fast write buffer)
+  /// tlb type (bit0 - split/combined, bit1 - standard/fast write buffer)
   unsigned int m_tlb_type;
-  // tlb replacment strategy (no inform. found yet - tmp use random)
+  /// tlb replacment strategy (no inform. found yet - tmp use random)
   unsigned int m_tlb_rep;
-  // mmu page size
+  /// mmu page size
   unsigned int m_mmupgsz;
 
   // delay parameters

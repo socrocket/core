@@ -117,9 +117,15 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
   // unsigned char*   byt = tran.get_byte_enable_ptr();
   // unsigned int     wid = tran.get_streaming_width();
 
+  // extract extension
+  icio_payload_extension * iext;
+  tran.get_extension(iext);
+
+  unsigned int * debug = iext->debug;
+
   if(cmd==tlm::TLM_READ_COMMAND) 
   {
-    icache->read((unsigned int)adr, (unsigned int*)ptr, &delay);
+    icache->read((unsigned int)adr, (unsigned int*)ptr, &delay, debug);
     //DUMP(name(),"ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
   } 
   else if(cmd==tlm::TLM_WRITE_COMMAND) 
@@ -151,7 +157,8 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
   dcio_payload_extension * dext;
   tran.get_extension(dext);
 
-  unsigned int asi = dext->asi;
+  unsigned int asi     = dext->asi;
+  unsigned int * debug = dext->debug;
 
   // access system registers
   if (asi == 2) {
@@ -344,12 +351,12 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 
     if (cmd==tlm::TLM_READ_COMMAND) {
 
-      dcache->read((unsigned int)adr, (unsigned int*)ptr, &delay);
-      //DUMP(name(),"ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
+      dcache->read((unsigned int)adr, (unsigned int*)ptr, &delay, debug);
+      //DUMP(name(),"DCIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
     }
     else if(cmd==tlm::TLM_WRITE_COMMAND) 
     {
-      dcache->write((unsigned int)adr, (unsigned int*)ptr, (unsigned int*)byt, &delay);
+      dcache->write((unsigned int)adr, (unsigned int*)ptr, (unsigned int*)byt, &delay, debug);
       //DUMP(name(),"DCIO Socket done tlm_write");
     }
   }

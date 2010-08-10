@@ -29,6 +29,7 @@ void dcio_payload_extension::copy_from(const tlm_extension_base &extension) {
   flush  = static_cast<dcio_payload_extension const &>(extension).flush;
   flushl = static_cast<dcio_payload_extension const &>(extension).flushl;
   lock   = static_cast<dcio_payload_extension const &>(extension).lock;
+  debug  = static_cast<dcio_payload_extension const &>(extension).debug;
 }
 
 // override virtual clone method
