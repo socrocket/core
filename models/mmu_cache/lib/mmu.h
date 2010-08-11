@@ -31,7 +31,7 @@
 // ------------------------------------------
 
 /// @brief Memory Management Unit (MMU) for TrapGen LEON3 simulator 
-class mmu : public mmu_if, public sc_core::sc_module {
+class mmu : public sc_core::sc_module, public mmu_if {
 
   public:
 
@@ -63,12 +63,12 @@ class mmu : public mmu_if, public sc_core::sc_module {
   // mmu interface functions:
   // In case the MMU is enabled, the bus accesses of the i/d cache are diverted
   // using the interface functions below (mmu_cache_if).
-  void itlb_read(unsigned int addr, unsigned int * data, unsigned int length);
-  void itlb_write(unsigned int addr, unsigned int * data, unsigned int length);
-  void dtlb_write(unsigned int addr, unsigned int * data, unsigned int length);
-  void dtlb_read(unsigned int addr, unsigned int * data, unsigned int length);
+  void itlb_read(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug);
+  void itlb_write(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug);
+  void dtlb_write(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug);
+  void dtlb_read(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug);
   // page descriptor cache (PDC) lookup
-  unsigned int tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size);
+  unsigned int tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size, unsigned int * debug);
   // read mmu internal registers (ASI 0x19)
   unsigned int read_mcr();
   unsigned int read_mctpr();
@@ -79,6 +79,12 @@ class mmu : public mmu_if, public sc_core::sc_module {
   void write_mcr(unsigned int * data);
   void write_mctpr(unsigned int * data);
   void write_mctxr(unsigned int * data);
+  // diagnostic read/write of instruction PDC (ASI 0x5)
+  void diag_read_itlb(unsigned int addr, unsigned int * data);
+  void diag_write_itlb(unsigned int addr, unsigned int * data);
+  // diagnostic read/write of data PDC or shared instruction and data PDC (ASI 0x6)
+  void diag_read_dctlb(unsigned int addr, unsigned int * data);
+  void diag_write_dctlb(unsigned int addr, unsigned int * data);
 
   public:
 

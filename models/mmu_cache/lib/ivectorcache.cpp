@@ -132,7 +132,9 @@ void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
       if ((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2))) != 0) {
 
 	DUMP(this->name(),"Cache Hit in Set " << i);
-	*debug |= (1 << i);
+
+	// update debug information
+	CACHEREADHIT_SET(*debug,i); 
 
 	// write data pointer
 	*data = (*m_current_cacheline[i]).entry[offset >> 2].i;
@@ -154,7 +156,6 @@ void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
     else {
       
       DUMP(this->name(),"Cache miss in set " << i);
-      *debug &= ~(1 << i);
 
     }
   }
@@ -169,7 +170,7 @@ void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
     if (m_mmu_en == 1) {
 
       // mmu enabled: forward request to mmu
-      m_mmu->itlb_read(address, data, 4);
+      m_mmu->itlb_read(address, data, 4, debug);
 
     } else {
     
@@ -203,6 +204,9 @@ void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
       
     }
 
+    // update debug information
+    CACHEREADMISS_SET(*debug, set_select);
+
     // fill in the new data
     (*m_current_cacheline[set_select]).entry[offset >> 2].i = *data;
 
@@ -218,7 +222,7 @@ void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
 }
 
 // call to flush cache
-void ivectorcache::flush(sc_core::sc_time *t) {
+void ivectorcache::flush(sc_core::sc_time *t, unsigned int * debug) {
 
   unsigned int adr;
 
@@ -243,9 +247,17 @@ void ivectorcache::flush(sc_core::sc_time *t) {
 
 	  DUMP(this->name(),"FLUSH set: " << set << " line: " << line << " addr: " << std::hex << adr << " data: " << std::hex << (*m_current_cacheline[set]).entry[entry].i);
 
-	  // and writeback
-	  m_parent->amba_write(adr, &(*m_current_cacheline[set]).entry[entry].i,4);
-	  
+	  // check whether there is a MMU
+	  if (m_mmu_en == 1) {
+	    
+	    // mmu enabled: forward request to mmu
+	    m_mmu->itlb_write(adr, &(*m_current_cacheline[set]).entry[entry].i, 4, debug);
+
+	  } else {
+	    // and writeback
+	    m_parent->amba_write(adr, &(*m_current_cacheline[set]).entry[entry].i,4);
+
+	  }
 	}
       }
     }

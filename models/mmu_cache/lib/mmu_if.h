@@ -22,9 +22,10 @@ class mmu_if {
   public:
 
   // mmu interface functions
-  virtual void itlb_read(unsigned int addr, unsigned int * data, unsigned int length) {};
-  virtual void dtlb_write(unsigned int addr, unsigned int * data, unsigned int length) {};
-  virtual void dtlb_read(unsigned int addr, unsigned int * data, unsigned int length) {};
+  virtual void itlb_read(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug) {};
+  virtual void itlb_write(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug) {};
+  virtual void dtlb_write(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug) {};
+  virtual void dtlb_read(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug) {};
 
   virtual ~mmu_if() {};
 

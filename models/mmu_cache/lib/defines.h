@@ -71,14 +71,33 @@ typedef tlm::tlm_generic_payload *gp_ptr;
 
 // Structure of the debug extension for the dcio and icio payload extensions.
 // ==========================================================================
-// [3-0] These bits relate to the different cache sets.
-// If a set has a hit the respective bit is set to one.
+// [21]    MMU state   - 0 tlb hit, 1 tlb miss 
+// [20-16] TLB         - for tlb hit:  number of the tlb that delivered the hit  (!!! not implemented yet !!!) 
+//                     - for tlb miss: number of the tlb that delivered the miss
+// [15-4]  Reserved
+// [3-2]   Cache State - 00 read hit, 01, read miss, 10, write hit, 11 write miss
+// [1-0]   Cache Set   - for read hit:  contains number of set that delivered the hit
+//                       for read miss: number of set containing the new data
+//                       for write hit: number of set that delivered the hit
+//                       write miss:    0b00 (no update on write miss)
 
-// debug constants
 
-#define SET0             0x00000001
-#define SET1             0x00000002
-#define SET2             0x00000004
-#define SET3             0x00000008
+// MACROS for updating debug information:
+#define CACHEREADHIT_SET(debug, cache_set)  ((debug  &= 0xfffffff0)  |= (cache_set & 0x3))
+#define CACHEREADMISS_SET(debug, cache_set) (((debug &= 0xfffffff0)  |= 0x4) |= (cache_set & 0x3))
+#define CACHEWRITEHIT_SET(debug, cache_set) (((debug &= 0xfffffff0)  |= 0x8) |= (cache_set & 0x3))
+#define CACHEWRITEMISS_SET(debug)           ((debug  &= 0xfffffff0)  |= 0xc)
+
+#define TLBHIT_SET(debug) (debug &= ~(1 << 21));
+#define TLBMISS_SET(debug) (debug |= (1 << 21));
+
+// MACROS for evaluating debug information
+#define CACHEREADHIT_CHECK(debug)    ((debug & 0xc) == 0)
+#define CACHEREADMISS_CHECK(debug)   ((debug & 0xc) == 4)
+#define CACHEWRITEHIT_CHECK(debug)   ((debug & 0xc) == 8)
+#define CACHEWRITEMISS_CHECK(debug)  (((debug & 0xc) == 0xc) && ((debug & 0x3) == 0))
+
+#define TLBHIT_CHECK(debug) ((debug & (1 << 21)) == 0)
+#define TLBMISS_CHECK(debug) ((debug & (1 << 21)) != 0)
 
 #endif // __DEFINES_H__

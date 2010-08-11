@@ -206,6 +206,35 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	}
 	else {
 		DUMP(this->name(),"Unvalid TLM Command");
+		assert(false);
+	}
+  }
+  // diagnostic access to instruction PDC
+  else if (asi == 0x5) {
+
+	if (cmd==tlm::TLM_READ_COMMAND) {
+	
+		DUMP(this->name(),"Diagnostic read from instruction PDC (ASI 0x5)");
+		srmmu->diag_read_itlb(adr, (unsigned int *)ptr);
+	}
+	else if (cmd==tlm::TLM_WRITE_COMMAND) {
+
+		DUMP(this->name(),"Diagnostic write to instruction PDC (ASI 0x5)");
+		srmmu->diag_write_itlb(adr, (unsigned int *)ptr);
+	}	
+  }
+  // diagnostic access to data or shared instruction and data PDC
+  else if (asi == 0x6) {
+
+	if (cmd==tlm::TLM_READ_COMMAND) {
+	
+		DUMP(this->name(),"Diagnostic read from data (or shared) PDC (ASI 0x6)");
+		srmmu->diag_read_dctlb(adr, (unsigned int *)ptr);
+	}
+	else if (cmd==tlm::TLM_WRITE_COMMAND) {
+
+		DUMP(this->name(),"Diagnostic write to data (or shared) PDC (ASI 0x6)");
+		srmmu->diag_write_dctlb(adr, (unsigned int *)ptr);
 	}
   }
   // access instruction cache tags
@@ -274,7 +303,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	// icache is flushed on any write with ASI 0x10
 	if (cmd==tlm::TLM_WRITE_COMMAND) {
 		DUMP(this->name(),"ASI flush instruction cache");
-		icache->flush(&delay);
+		icache->flush(&delay, debug);
 	}
 	else {
 		DUMP(this->name(), "Unvalid TLM Command");
@@ -286,7 +315,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	// dcache is flushed on any write with ASI 0x11
 	if (cmd==tlm::TLM_WRITE_COMMAND) {
 		DUMP(this->name(), "ASI flush data cache");
-		dcache->flush(&delay);
+		dcache->flush(&delay, debug);
 	}
 	else {
 		DUMP(this->name(), "Unvalid TLM Command");
@@ -438,12 +467,14 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
 	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::write_ccr(unsigned int * data, sc_core::sc_time * delay) {
 
+	unsigned int dummy;
+
 	// [DS] data cache snoop enable (todo) 
 	if (*data & (1<<23)) {}
 	// [FD] dcache flush (do not set; always reads as zero)
-	if (*data & (1<<22)) { dcache->flush(delay); }
+	if (*data & (1<<22)) { dcache->flush(delay, &dummy); }
 	// [FI] icache flush (do not set; always reads as zero)
-	if (*data & (1<<21)) { icache->flush(delay); }
+	if (*data & (1<<21)) { icache->flush(delay, &dummy); }
 	// [IB] instruction burst fetch (todo)
 	if (*data & (1<<16)) {}
 

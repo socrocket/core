@@ -41,7 +41,7 @@ class ivectorcache : public sc_core::sc_module {
   /// read from cache
   void read(unsigned int address, unsigned int * data, sc_core::sc_time * t, unsigned int * debug);
   /// flush cache
-  void flush(sc_core::sc_time * t);
+  void flush(sc_core::sc_time * t, unsigned int * debug);
   /// read instruction cache tags (ASI 0xc)
   void read_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);
   /// write instruction cache tags (ASI 0xc)

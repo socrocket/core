@@ -131,7 +131,9 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
         if ((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2))) != 0) {
 
           DUMP(this->name(),"Cache Hit in Set " << i);
-	  *debug |= (1 << i);
+	  
+	  // update debug information
+	  CACHEREADHIT_SET(*debug,i);
 
           // write data pointer
           *data = (*m_current_cacheline[i]).entry[offset >> 2].i;
@@ -151,13 +153,12 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
       else {
       
         DUMP(this->name(),"Cache miss in set " << i);
-        *debug &= ~(1 << i);
+
       }
     }
     else {
       
       DUMP(this->name(),"ASI force cache miss");
-      *debug &= ~0xf;
     
     }
   }
@@ -175,7 +176,7 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
     if (m_mmu_en == 1) {
 
       // mmu enabled: forward request to mmu
-      m_mmu->dtlb_read(address, data, 4);
+      m_mmu->dtlb_read(address, data, 4, debug);
       DUMP(this->name(),"Received data from MMU " << std::hex << *data);
 
     } else {
@@ -209,6 +210,9 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
       
     }
 
+    // update debug information
+    CACHEREADMISS_SET(*debug, set_select);
+
     // fill in the new data
     (*m_current_cacheline[set_select]).entry[offset >> 2].i = *data;
 
@@ -237,6 +241,8 @@ void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int
   unsigned int idx    = ((address << m_tagwidth) >> (m_tagwidth+m_offset_bits));
   unsigned int offset = ((address << (32-m_offset_bits)) >> (32-m_offset_bits));
 
+  bool is_hit = false;
+
   DUMP(this->name(),"WRITE ACCESS with idx: " << std::hex << idx << " tag: " << std::hex << tag << " offset: " << std::hex << offset);
 
   // lookup all cachesets
@@ -255,7 +261,10 @@ void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int
       if ((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2))) != 0) {
 
 	DUMP(this->name(),"Cache Hit in Set " << i);
-	*debug |= (1 << i);
+	
+	// update debug information
+	CACHEWRITEHIT_SET(*debug, i);
+	is_hit = true;
 	
 	// write data to cache (todo: impl. byte access)
 	(*m_current_cacheline[i]).entry[offset >> 2].i = *data;
@@ -276,10 +285,11 @@ void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int
     else {
       
       DUMP(this->name(),"Cache miss in set " << i);
-      *debug &= ~(1 << i);
-
     }
   }
+
+  // update debug information
+  if(!is_hit) CACHEWRITEMISS_SET(*debug);
 
   // write data to main memory
   // todo: - implement byte access
@@ -294,7 +304,7 @@ void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int
   if (m_mmu_en == 1) {
 
     // mmu enabled: forward request to mmu
-    m_mmu->dtlb_write(address, data, 4);
+    m_mmu->dtlb_write(address, data, 4, debug);
 
   } else {
 
@@ -305,7 +315,7 @@ void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int
 }
 
 // call to flush cache
-void dvectorcache::flush(sc_core::sc_time *t) {
+void dvectorcache::flush(sc_core::sc_time *t, unsigned int * debug) {
 
   unsigned int adr;
 
@@ -334,7 +344,7 @@ void dvectorcache::flush(sc_core::sc_time *t) {
 	  if (m_mmu_en == 1) {
 
 	    // mmu enabled: forward request to mmu
-	    m_mmu->dtlb_write(adr, &(*m_current_cacheline[set]).entry[entry].i, 4);
+	    m_mmu->dtlb_write(adr, &(*m_current_cacheline[set]).entry[entry].i, 4, debug);
 
 	  } else {
 	    // and writeback

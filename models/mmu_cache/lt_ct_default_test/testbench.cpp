@@ -114,8 +114,7 @@ void testbench::initiator_thread(void) {
     data=0x04030201;
     // args: address, data, length, asi, flush, flushl, lock 
     dwrite(0x64,data, 4, 0x8, 0, 0, 0, debug);
-    // cache miss
-    assert(((*debug)&0xf)==0);
+    assert(CACHEWRITEMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -125,8 +124,7 @@ void testbench::initiator_thread(void) {
 
     data=0x08070605;
     dwrite(0x464,data,4, 0x8, 0, 0, 0, debug);
-    // cache miss
-    assert(((*debug)&0xf)==0);
+    assert(CACHEWRITEMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -136,8 +134,7 @@ void testbench::initiator_thread(void) {
 
     data=0x0c0b0a09;
     dwrite(0x864,data,4, 0x8, 0, 0, 0, debug);
-    // cache miss
-    assert(((*debug)&0xf)==0);
+    assert(CACHEWRITEMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -147,8 +144,7 @@ void testbench::initiator_thread(void) {
 
     data=0x100f0e0d;
     dwrite(0xc64,data,4, 0x8, 0, 0, 0, debug);
-    // cache miss
-    assert(((*debug)&0xf)==0);
+    assert(CACHEWRITEMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -168,8 +164,8 @@ void testbench::initiator_thread(void) {
     data = dread(0x64, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
-    // cache miss
-    assert(((*debug)&0xf)==0);
+    DUMP(this->name(),"debug: " << std::hex << *debug);
+    assert(CACHEREADMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -181,8 +177,7 @@ void testbench::initiator_thread(void) {
     data = dread(0x64, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
-    // cache hit (one of the sets)
-    assert(((*debug)&0xf)!=0);
+    assert(CACHEREADHIT_CHECK(*debug));
  
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -194,8 +189,7 @@ void testbench::initiator_thread(void) {
     data = dread(0x464, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
-    // cache miss
-    assert(((*debug)&0xf)==0);
+    assert(CACHEREADMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -208,8 +202,7 @@ void testbench::initiator_thread(void) {
     data = dread(0x864, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
-    // cache miss
-    assert(((*debug)&0xf)==0);    
+    assert(CACHEREADMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -222,8 +215,7 @@ void testbench::initiator_thread(void) {
     data = dread(0xc64, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
-    // cache miss
-    assert(((*debug)&0xf)==0);    
+    assert(CACHEREADMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -235,6 +227,7 @@ void testbench::initiator_thread(void) {
     data = dread(0x464, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
+    assert(CACHEREADHIT_CHECK(*debug));
     
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -246,6 +239,7 @@ void testbench::initiator_thread(void) {
     data = dread(0x864, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
+    assert(CACHEREADHIT_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -257,6 +251,7 @@ void testbench::initiator_thread(void) {
     data = dread(0xc64, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(), "DCACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
+    assert(CACHEREADHIT_CHECK(*debug));
 
     DUMP(name()," ******************************************************************** ");
     DUMP(name()," * Phase 3: Similar to Phase 2, the same data is now loaded through ");
@@ -273,6 +268,7 @@ void testbench::initiator_thread(void) {
     data = iread(0x64, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
+    assert(CACHEREADMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -284,6 +280,7 @@ void testbench::initiator_thread(void) {
     data = iread(0x64, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
+    assert(CACHEREADHIT_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -295,6 +292,7 @@ void testbench::initiator_thread(void) {
     data = iread(0x464, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
+    assert(CACHEREADMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -307,6 +305,7 @@ void testbench::initiator_thread(void) {
     data = iread(0x864, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
+    assert(CACHEREADMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -319,6 +318,7 @@ void testbench::initiator_thread(void) {
     data = iread(0xc64, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
+    assert(CACHEREADMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -330,6 +330,7 @@ void testbench::initiator_thread(void) {
     data = iread(0x464, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
+    assert(CACHEREADHIT_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -341,6 +342,7 @@ void testbench::initiator_thread(void) {
     data = iread(0x864, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
+    assert(CACHEREADHIT_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -352,6 +354,7 @@ void testbench::initiator_thread(void) {
     data = iread(0xc64, 4, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
+    assert(CACHEREADHIT_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -613,6 +616,7 @@ void testbench::initiator_thread(void) {
     data = dread(0x68, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(),"DCACHE returned data: " << std::hex << data);
     assert(data==0x12345678);
+    assert(CACHEREADHIT_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
@@ -656,6 +660,7 @@ void testbench::initiator_thread(void) {
     data = iread(0x468, 4, 0, 0, 0, debug);
     DUMP(name(),"ICACHE returned data: " << std::hex << data);
     assert(data==0x87654321);
+    assert(CACHEREADHIT_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS); 
     
@@ -724,6 +729,7 @@ void testbench::initiator_thread(void) {
     data = iread(0x468, 4, 0, 0, 0, debug);
     DUMP(name(),"ICACHE returned data: " << std::hex << data);
     assert(data==0x87654321);
+    assert(CACHEREADMISS_CHECK(*debug));
 
     // dcache read
     DUMP(name(),"************************************************* ");
@@ -733,6 +739,7 @@ void testbench::initiator_thread(void) {
     data = dread(0x68, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(),"DCACHE returned data: " << std::hex << data);
     assert(data==0x12345678);
+    assert(CACHEREADMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -863,6 +870,7 @@ void testbench::initiator_thread(void) {
     data = iread(0x868, 4, 0, 0, 0, debug);
     DUMP(name(),"ICACHE returned data: " << std::hex << data);
     assert(data==0x11111111 );
+    assert(CACHEREADMISS_CHECK(*debug));
 
     // dcache read
     DUMP(name(),"************************************************* ");
@@ -872,10 +880,9 @@ void testbench::initiator_thread(void) {
     data = dread(0xc68, 4, 0x8, 0, 0, 0, debug);
     DUMP(name(),"DCACHE returned data: " << std::hex << data);
     assert(data==0xffffffff);
+    assert(CACHEREADMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
-
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
 
     // *******************************************
     // * END OF TEST

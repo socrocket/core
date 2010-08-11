@@ -58,6 +58,9 @@ mmu::mmu(sc_core::sc_module_name name,
   MMU_FAULT_STATUS_REG = 0;
   MMU_FAULT_ADDRESS_REG = 0;
 
+  // todo: the dtlb should actually be the shared one?
+  // does this have any impact here?
+
   // generate associative memory (map) for instruction tlb
   itlb = new std::map<t_VAT, t_PTE_context>;
 
@@ -82,7 +85,7 @@ mmu::mmu(sc_core::sc_module_name name,
 }
  
 // instruction read interface
-void mmu::itlb_read(unsigned int addr, unsigned int * data, unsigned int length) {
+void mmu::itlb_read(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug) {
 
   // Pages are always aligned on 4K-byte boundaries; hence, the lower-order
   // 12 bits of a physical address are always the same as the low-order 12 bits of
@@ -94,7 +97,7 @@ void mmu::itlb_read(unsigned int addr, unsigned int * data, unsigned int length)
 
     DUMP(this->name(),"ITLB READ request (active mode) virtual address: " << std::hex << addr);
     // virtual address translation
-    paddr=tlb_lookup(addr, itlb, m_itlbnum);
+    paddr=tlb_lookup(addr, itlb, m_itlbnum, debug);
  
   }
   // mmu in bypass mode
@@ -110,7 +113,7 @@ void mmu::itlb_read(unsigned int addr, unsigned int * data, unsigned int length)
 }
 
 // instruction write interface (for flushing)
-void mmu::itlb_write(unsigned int addr, unsigned int * data, unsigned int length) {
+void mmu::itlb_write(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug) {
 
   // Pages are always aligned on 4K-byte boundaries; hence, the lower-order
   // 12 bits of a physical address are always the same as the low-order 12 bits of
@@ -122,7 +125,7 @@ void mmu::itlb_write(unsigned int addr, unsigned int * data, unsigned int length
 
     DUMP(this->name(),"ITLB WRITE request (active mode) virtual address: " << std::hex << addr);
     // virtual address translation
-    paddr=tlb_lookup(addr, itlb, m_itlbnum);
+    paddr=tlb_lookup(addr, itlb, m_itlbnum, debug);
 
   }
   // mmu in bypass mode
@@ -138,7 +141,7 @@ void mmu::itlb_write(unsigned int addr, unsigned int * data, unsigned int length
 }
 
 // data read interface
-void mmu::dtlb_read(unsigned int addr, unsigned int * data, unsigned int length) {
+void mmu::dtlb_read(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug) {
 
   // Pages are always aligned on 4K-byte boundaries; hence, the lower-order
   // 12 bits of a physical address are always the same as the low-order 12 bits of
@@ -150,7 +153,7 @@ void mmu::dtlb_read(unsigned int addr, unsigned int * data, unsigned int length)
     
     DUMP(this->name(),"DTLB READ request (active mode) virtual address: " << std::hex << addr);
     // virtual address translation
-    paddr=tlb_lookup(addr, dtlb, m_dtlbnum);    
+    paddr=tlb_lookup(addr, dtlb, m_dtlbnum, debug);    
 
   }
   // mmu in bypass mode
@@ -167,7 +170,7 @@ void mmu::dtlb_read(unsigned int addr, unsigned int * data, unsigned int length)
 }
 
 // data write interface
-void mmu::dtlb_write(unsigned int addr, unsigned int * data, unsigned int length) {
+void mmu::dtlb_write(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug) {
 
   // Pages are always aligned on 4K-byte boundaries; hence, the lower-order
   // 12 bits of a physical address are always the same as the low-order 12 bits of
@@ -179,7 +182,7 @@ void mmu::dtlb_write(unsigned int addr, unsigned int * data, unsigned int length
 
     DUMP(this->name(),"DTLB WRITE request (active mode) virtual address: " << std::hex << addr);
     // virtual address translation
-    paddr=tlb_lookup(addr, dtlb, m_dtlbnum);    
+    paddr=tlb_lookup(addr, dtlb, m_dtlbnum, debug);    
 
   }
   // mmu in bypass mode
@@ -197,7 +200,7 @@ void mmu::dtlb_write(unsigned int addr, unsigned int * data, unsigned int length
 
 // look up a tlb (page descriptor cache)
 // and return physical address
-unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size) {
+unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size, unsigned int * debug) {
 
   // Pages are always aligned on 4K-byte boundaries; hence, the lower-order
   // 12 bits of a physical address are always the same as the low-order 12 bits of
@@ -238,13 +241,20 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
       DUMP(this->name(),"CONTEXT hit");
 
       // build physical address from PTE and offset, and return
-      paddr = ((tmp.pte<<12)|offset);
+      paddr = (((tmp.pte>>8)<< 12)|offset);
+
+      // update debug information
+      TLBHIT_SET(*debug);
+
       return(paddr);
 
     }
     else {
 
       DUMP(this->name(),"CONTEXT miss");
+      
+      // update debug information
+      TLBMISS_SET(*debug);
       context_miss = true;
 
     }
@@ -252,6 +262,9 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   else {
 
     DUMP(this->name(),"Virtual Address Tag miss");
+
+    // update debug information
+    TLBMISS_SET(*debug);
 
   }
 
@@ -283,14 +296,16 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   // ***************************************
 
   // todo: should we wrap this in a function ??
-  
+
   // 1. load from 1st-level page table
   m_parent->amba_read(MMU_CONTEXT_TABLE_POINTER_REG+idx1, data, 4);
+
+  // !!!! todo: why is is it always loosing the sc_module_name here ????
 
   // page table entry (PTE) or page table descriptor (PTD) (to level 2)
   if ((*data & 0x3) == 0x2) {
 
-    DUMP(name(),"1-Level Page Table returned PTE: " << std::hex << *data);
+    DUMP(this->name(),"1-Level Page Table returned PTE: " << std::hex << *data);
 
     // In case of a virtual address tag miss a new PDC entry is created.
     // For context miss the existing entry will be replaced.
@@ -303,12 +318,12 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
 
     // add to PDC
     tmp.context = MMU_CONTEXT_REG;
-    tmp.pte     = (*data>>8);
+    tmp.pte     = *data;
 
     (*tlb)[vpn] = tmp; 
 
     // build physical address from PTE and offset
-    paddr = ((tmp.pte << 12)|offset);
+    paddr = (((tmp.pte >> 8) << 12)|offset);
 
     DUMP(this->name(),"Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr);
     return(paddr);
@@ -344,12 +359,12 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
 
     // add to PDC
     tmp.context = MMU_CONTEXT_REG;
-    tmp.pte     = (*data>>8);
+    tmp.pte     = *data;
 
     (*tlb)[vpn] = tmp; 
 
     // build physical address from PTE and offset
-    paddr = ((tmp.pte << 12)|offset);
+    paddr = (((tmp.pte >> 8) << 12)|offset);
 
     DUMP(this->name(),"Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr);
     return(paddr);
@@ -385,12 +400,12 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
 
     // add to PDC
     tmp.context = MMU_CONTEXT_REG;
-    tmp.pte     = (*data)>>8;
+    tmp.pte     = *data;
 
     (*tlb)[vpn] = tmp; 
 
     // build physical address from PTE and offset
-    paddr = ((tmp.pte << 12)|offset);
+    paddr = (((tmp.pte >> 8) << 12)|offset);
 
     DUMP(this->name(),"Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr);
     return(paddr);
@@ -403,14 +418,14 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   }
 }
 
-// read MMU Control Register
+/// Read MMU Control Register
 unsigned int mmu::read_mcr() {
 
   return(MMU_CONTROL_REG);
 
 }
 
-// write MMU Control Register
+/// Write MMU Control Register
 void mmu::write_mcr(unsigned int * data) {
 
   // only PSO [7], NF [1] and E [0] are writable
@@ -418,13 +433,14 @@ void mmu::write_mcr(unsigned int * data) {
 
 }
 
-// read MMU Context Pointer Register
+/// Read MMU Context Table Pointer Register
 unsigned int mmu::read_mctpr() {
 
   return(MMU_CONTEXT_TABLE_POINTER_REG);
 
 }
 
+/// Write MMU Context Table Pointer Register
 void mmu::write_mctpr(unsigned int * data) {
 
   // [1-0] reserved, must read as zero
@@ -432,30 +448,107 @@ void mmu::write_mctpr(unsigned int * data) {
 
 }
 
-// read MMU Context Register
+/// Read MMU Context Register
 unsigned int mmu::read_mctxr() {
 
   return(MMU_CONTEXT_REG);
 
 }
 
-// write MMU Context Register
+/// Write MMU Context Register
 void mmu::write_mctxr(unsigned int * data) {
 
   MMU_CONTEXT_REG = *data;
 
 }
 
-// read MMU Fault Status Register
+/// Read MMU Fault Status Register
 unsigned int mmu::read_mfsr() {
 
   return(MMU_FAULT_STATUS_REG);
 
 }
 
-// read MMU Fault Address Register
+/// Read MMU Fault Address Register
 unsigned int mmu::read_mfar() {
 
   return(MMU_FAULT_ADDRESS_REG);
 
+}
+
+// Diagnostic PDC access (Page 255 SparcV8 Man):
+// =============================================
+// VA[31-12] Virtual address
+// VA[11-4]  PDC entry
+// VA[3-2]   Register Selector
+
+// Register Selector:
+// ==================
+// 0 - D[31-20] context, D[19-0] address tag
+// 1 - PTE
+// 2 - control bits (e.g. V, Level, LRU) ???
+// 3 - Read:  Start compare in every PDC entry
+//            if hit, return the PTE; if miss, return 0.
+//     Write: For each PDC entry: if the contents of its
+//            LRU counter is less than the stored data
+//            value, increment its counter. Otherwise,
+//            leave the LRU counter unchanged. In any
+//            case, zero the LRU counter of the addressed 
+//            PDC entry.
+ 
+
+/// Diagnostic read of instruction PDC (ASI 0x5)
+void mmu::diag_read_itlb(unsigned int addr, unsigned int * data) {
+
+  t_VAT vpn = (addr >> 12);
+
+  // diagnostic ITLB lookup (without bus access)
+  if ((addr & 0x3)==0x3) {
+
+    pdciter = itlb->find(vpn);
+    
+    // found something ?
+    if (pdciter != itlb->end()) {
+
+      // hit
+      *data = ((pdciter->second).pte);
+
+    } else {
+
+      // miss
+      *data = 0;
+    }
+  }
+}
+
+/// Diagnostic write of instruction PDC (ASI 0x5)
+void mmu::diag_write_itlb(unsigned int addr, unsigned int * data) {
+}
+
+/// Diagnostic read of data or shared instruction and data PDC (ASI 0x6)
+void mmu::diag_read_dctlb(unsigned int addr, unsigned int * data) {
+
+  t_VAT vpn = (addr >> 12);
+
+  // diagnostic ITLB lookup (without bus access)
+  if ((addr & 0x3)==0x3) {
+
+    pdciter = dtlb->find(vpn);
+    
+    // found something ?
+    if (pdciter != dtlb->end()) {
+
+      // hit
+      *data = ((pdciter->second).pte);
+
+    } else {
+
+      // miss
+      *data = 0;
+    }
+  }
+}
+
+/// Diagnostic write of data or shared instruction and data PDC (ASI 0x6)
+void mmu::diag_write_dctlb(unsigned int addr, unsigned int * data) {
 }

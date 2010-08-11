@@ -43,7 +43,7 @@ class dvectorcache : public sc_core::sc_module {
   /// write through cache
   void write(unsigned int address, unsigned int * data, unsigned int * byt, sc_core::sc_time * t, unsigned int * debug); 
   /// flush cache
-  void flush(sc_core::sc_time * t);
+  void flush(sc_core::sc_time * t, unsigned int * debug);
   /// read data cache tags (ASI 0xe)
   void read_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);
   /// write data cache tags (ASI 0xe)
