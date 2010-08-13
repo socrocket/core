@@ -1,20 +1,20 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       main.cpp - Top level file (sc_main) for                 */
-/*             lt_ct_mmu_test. Purpose is the assemblence of       */
-/*             a test environment for the mmu_cache module in its      */
-/*             default configuration. The mmu_cache is connected to    */
-/*             a testbench (lt) and a cycle timed AHB bus.             */
-/*                                                                     */
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Thomas Schuster                                         */
-/***********************************************************************/
+// ***********************************************************************/
+// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
+// *                                                                     */
+// * File:       main.cpp - Top level file (sc_main) for                 */
+// *             lt_ct_localram_test. The mmu_cache is connected         */
+// *             to a testbench (lt) and a cycle timed AHB bus.          */
+// *	         The configuration under test has ilram and dlram        */
+// *	         scratchpads of 512 kByte. The mmu is disabled.          */
+// *                                                                     */
+// *                                                                     */
+// * Modified on $Date$   */
+// *          at $Revision$                                         */
+// *                                                                     */
+// * Principal:  European Space Agency                                   */
+// * Author:     VLSI working group @ IDA @ TUBS                         */
+// * Maintainer: Thomas Schuster                                         */
+// ***********************************************************************/
 
 
 #include "tlm.h"
@@ -34,23 +34,23 @@
 
 // **********************************************************
 // * Testbed for mmu_cache development:
-
 //
 //
-//
-// 
-// --------   TLM2 Generic Payl.   ---------------------
-// |      |-----------|------------|  mmu_cache (lt)   |                       -------------   
-// |      |instruction|icio target |  ---------------  |     AHB Payload       |           |
-// |      |init.sock  |socket(lt)  |  |ivectorcache |  |-----------|-----------| ahb_lt_ct |
-// |  tb  |-----------|------------|  ---------------  | ahb_master|slave_sock | transactor|  ...
-// | (lt) |-----------|------------|  ---------------  | (lt)      |(lt)       | (lt -> ct)|  ->
-// |      |data       |dcio target |  |idatacache   |  |-----------|-----------|           |
-// |      |init.sock  |socket (lt) |  ---------------  |                       -------------
-// |      |-----------|------------|  ---------------  |
-// --------                        |  |    srmmu    |  |
-//                                 |  ---------------  |
 //                                 ---------------------
+//                                 |  mmu_cache (lt)   |
+//                                 | ----------------- |
+// --------   TLM2 Generic Payl.   | | ivectorcache  | |
+// |      |-----------|------------| ----------------- |                       -------------   
+// |      |instruction|icio target | ----------------- |     AHB Payload       |           |
+// |      |init.sock  |socket(lt)  | | dvectorcache  | |-----------|-----------| ahb_lt_ct |
+// |  tb  |-----------|------------| ----------------- | ahb_master|slave_sock | transactor|  ...
+// | (lt) |-----------|------------| -------   ------- | (lt)      |(lt)       | (lt -> ct)|  ->
+// |      |data       |dcio target | |ilram|   |dlram| |-----------|-----------|           |
+// |      |init.sock  |socket (lt) | -------   - ----- |                       -------------
+// |      |-----------|------------|                   |
+// --------                        ---------------------
+//
+//
 //
 //
 //
@@ -92,35 +92,35 @@ int sc_main(int argc, char** argv) {
   // <int dsu = 0, 
   //  int icen = 1 (icache enabled)
   //  int irepl = 3 (icache random replacement)
-  //  int isets = 3 (4 instruction cache sets)
+  //  int isets = 1 (2 instruction cache sets)
   //  int ilinesize = 0 (1 word per icache line)
-  //  int isetsize = 0 (1kB per icache set)
+  //  int isetsize = 8 (256kB per icache set)
   //  int isetlock = 0 (no icache locking)
 
   //  int dcen = 1 (dcache enabled)
   //  int drepl = 3 (dcache random replacement)
-  //  int dsets = 3 (4 data cache sets)
+  //  int dsets = 1 (2 data cache sets)
   //  int dlinesize = 0 (1 word per dcache line)
-  //  int dsetsize = 0 (1kB per dcache set)
+  //  int dsetsize = 8 (256kB per dcache set)
   //  int dsetlock = 0 (no dcache locking)
   //  int dsnoop = 0 (no cache snooping)
 
-  //  int ilram = 0 (instr. localram disable)
-  //  int ilramsize = 0 (1kB ilram size)
+  //  int ilram = 1 (instr. localram disable)
+  //  int ilramsize = 9 (1kB ilram size)
   //  int ilramstart = 8e (0x8e000000 default ilram start address)
 
-  //  int dlram = 0 (data localram disable)
-  //  int dlramsize = 0 (1kB dlram size)
+  //  int dlram = 1 (data localram disable)
+  //  int dlramsize = 9 (1kB dlram size)
   //  int dlramstart = 8f (0x8f000000 default dlram start address)
 
   //  int cached = 0 (fixed cacheability mask)
-  //  int mmu_en = 1 (mmu present)
-  //  int itlb_num = 3 (8 itlbs)
-  //  int dtlb_num = 3 (8 dtlbs)
-  //  int tlb_type = 0 (split tlb mode)
+  //  int mmu_en = 0 (mmu not present)
+  //  int itlb_num = 3 (8 itlbs - not present)
+  //  int dtlb_num = 3 (8 dtlbs - not present)
+  //  int tlb_type = 0 (split tlb mode - not present)
   //  int tlb_rep = 1 (random replacement)
   //  int mmupgsz = 0 (4kB mmu page size)>
-  mmu_cache<0,1,3,3,0,0,0,1,3,3,0,0,0,0,0,0,0x0000008e,0,0,0x0000008f,0,1,3,3,0,1,0> mmu_cache("mmu_cache", 
+  mmu_cache<0,1,3,1,0,8,0,1,3,1,0,8,0,0,1,9,0x0000008e,1,9,0x0000008f,0,0,3,3,0,1,0> mmu_cache("mmu_cache", 
 			CACHE_MASTER_ID, 
 			sc_core::sc_time(0, sc_core::SC_NS), 
 			sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),
@@ -139,8 +139,8 @@ int sc_main(int argc, char** argv) {
   amba::AMBA_LT_CT_Adapter<32> ahb_lt_ct("AHB_LT_CT",amba::amba_AHB);
 
   // create AHB memory (1MB from address base 0)
-  //ahb_ct_mem<32> ahb_mem("AHB_MEM",0, 0x10000);
-  ahb_slave<32> ahb_mem("AHB_MEM",0,0x10000);
+  //ahb_ct_mem<32> ahb_mem("AHB_MEM",0, 0x1000);
+  ahb_slave<32> ahb_mem("AHB_MEM",0,0x100000);
 
   // *** BIND SOCKETS
 

@@ -32,6 +32,8 @@
 #include "mmu.h"
 #include "mmu_cache_if.h"
 
+#include "localram.h"
+
 #include <math.h>
 #include <ostream>
 
@@ -124,12 +126,16 @@ class mmu_cache : public mmu_cache_if, public sc_core::sc_module {
 
   // data members
   // ------------
-  // instruction cache
+  /// instruction cache pointer
   ivectorcache * icache;
-  // data cache
+  /// data cache pointer
   dvectorcache * dcache;
-  // mmu
+  /// mmu poiner
   mmu * srmmu;
+  /// instruction scratchpad pointer
+  localram * ilocalram;
+  /// data scratchpad pointer
+  localram * dlocalram;
 
   private:
 

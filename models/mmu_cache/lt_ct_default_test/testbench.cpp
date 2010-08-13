@@ -78,11 +78,11 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ********************************************************* ");    
 
     data=dread(0x8, 4, 2, 0, 0, 0, debug);
-    // [29:28] repl == 0b11, [26:24] sets == 0b100, [23:20] ssize == 0b0001 (1kb)
-    // [18:16] lsize == 0b001 (1 word per line)
-    //assert(data==0b0011 0 100 0001 0 001 00000000000000000);
+    // [29:28] repl == 0b11, [26:24] sets == 0b011, [23:20] ssize == 0b0000 (1kb)
+    // [19] lram == 0, [18:16] lsize == 0b000 (1 word per line)
+    // [15:12] lramsize == 0, [11:4] lramstart == 0x8e, [3] mmu == 0
     DUMP(name(),"icache_config_reg: " << std::hex << data);
-    assert(data==0x34110000);
+    assert(data==0x330008e0);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -93,10 +93,10 @@ void testbench::initiator_thread(void) {
 
     data=dread(0xc, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b100, [23:20] ssize == 0b0001 (1kb)
-    // [18:16] lsize == 0b001 (1 word per line)
-    //assert(data==0b0011 0 100 0001 0 001 00000000000000000);
+    // [19] lram == 0, [18:16], lsize == 0b001 (1 word per line)
+    // [15:12] lramsize == 1, [11:4] lramstart == 0x8f, [3] mmu == 0
     DUMP(name(),"dcache_config_reg: " << std:: hex << data);
-    assert(data==0x34110000);
+    assert(data==0x330008f0);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 

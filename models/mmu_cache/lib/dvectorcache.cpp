@@ -29,29 +29,41 @@ dvectorcache::dvectorcache(sc_core::sc_module_name name,
 			   int sets, 
 			   int setsize, 
 			   int linesize, 
-			   int repl) : sc_module(name),
+			   int repl,
+			   unsigned int lram,
+			   unsigned int lramstart,
+			   unsigned int lramsize) : sc_module(name),
 				       m_sets(sets),
 				       m_setsize(setsize),
 				       m_linesize(linesize),
-				       m_offset_bits((unsigned int)log2(linesize)),
-				       m_number_of_vectors((m_setsize << 10) / linesize),
-				       m_idx_bits((unsigned int)log2(m_number_of_vectors)),
+				       m_wordsperline((unsigned int)pow(2,linesize)),
+ 				       m_bytesperline((unsigned int)pow(2,linesize+2)),		    
+ 				       m_offset_bits(linesize + 2),
+				       m_number_of_vectors((unsigned int)pow(2,setsize+8-linesize)),
+ 				       m_idx_bits(setsize+8-linesize),
 				       m_tagwidth(32-m_idx_bits-m_offset_bits),
 				       m_repl(repl),
 				       m_mmu_en(mmu_en),
+				       m_lram(lram),
+  				       m_lramstart(lramstart),
+				       m_lramsize(lramsize),
 				       m_dcache_hit_read_response_delay(dcache_hit_read_response_delay),
 				       m_dcache_miss_read_response_delay(dcache_miss_read_response_delay),
 				       m_dcache_write_response_delay(dcache_write_response_delay)
   
 {
 
-  // todo: assertions on parameters
+  // parameter checks
+  // ----------------
+  assert(setsize < 10);
+  // linesize <= 32 bytes
+  assert(linesize < 5);
 
   // initialize cache line allocator
   memset(&m_default_cacheline, 0, sizeof(t_cache_line));
 
   // create the cache sets
-  for (unsigned int i=0; i < m_sets; i++) {
+  for (unsigned int i=0; i <= m_sets; i++) {
 
     DUMP(this->name(),"Create cache set " << i);
     std::vector<t_cache_line> *cache_set = new std::vector<t_cache_line>(m_number_of_vectors , m_default_cacheline);
@@ -65,9 +77,9 @@ dvectorcache::dvectorcache(sc_core::sc_module_name name,
 
   DUMP(this->name(), " ******************************************************************************* ");
   DUMP(this->name(), " * Created cache memory with following parameters:                               ");
-  DUMP(this->name(), " * number of cache sets " << m_sets);
-  DUMP(this->name(), " * size of each cache set " << m_setsize << " kb");
-  DUMP(this->name(), " * bytes per line " << m_linesize << " (offset bits: " << m_offset_bits << ")");
+  DUMP(this->name(), " * number of cache sets " << (m_sets+1));
+  DUMP(this->name(), " * size of each cache set " << (unsigned int)pow(2,m_setsize) << " kb");
+  DUMP(this->name(), " * bytes per line " << m_bytesperline << " (offset bits: " << m_offset_bits << ")");
   DUMP(this->name(), " * number of cache lines per set " << m_number_of_vectors << " (index bits: " << m_idx_bits << ")");
   DUMP(this->name(), " * Width of cache tag in bits " << m_tagwidth);
   DUMP(this->name(), " * Replacement strategy: " << m_repl);
@@ -76,10 +88,13 @@ dvectorcache::dvectorcache(sc_core::sc_module_name name,
   // set up configuration register
   CACHE_CONFIG_REG = (m_mmu_en << 3);
   // config register contains linesize in words
-  CACHE_CONFIG_REG |= ((m_linesize >> 2) << 16);
-  CACHE_CONFIG_REG |= (m_setsize << 20);
-  CACHE_CONFIG_REG |= (m_sets << 24);
-  CACHE_CONFIG_REG |= (m_repl << 28);
+  CACHE_CONFIG_REG |= ((m_lramstart & 0xff) << 4);
+  CACHE_CONFIG_REG |= ((m_lramsize & 0xf) << 12);
+  CACHE_CONFIG_REG |= ((m_linesize & 0x7) << 16);
+  CACHE_CONFIG_REG |= ((m_lram & 0x1) << 19);
+  CACHE_CONFIG_REG |= ((m_setsize & 0xf) << 20);
+  CACHE_CONFIG_REG |= ((m_sets & 0x7) << 24);
+  CACHE_CONFIG_REG |= ((m_repl & 0x3) << 28);
 
   // hook up to top level (amba if)
   m_parent = &_parent;
@@ -96,7 +111,7 @@ dvectorcache::~dvectorcache() {
 // external interface functions
 // ----------------------------
 
-// read from cache
+/// read from cache
 void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_time *t, unsigned int * debug) {
 
   int set_select = -1;
@@ -113,7 +128,7 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
   DUMP(this->name(),"READ ACCESS idx: " << std::hex << idx << " tag: " << std::hex << tag << " offset: " << std::hex << offset);
 
   // lookup all cachesets
-  for (unsigned int i=0; i < m_sets; i++){
+  for (unsigned int i=0; i <= m_sets; i++){
 
     m_current_cacheline[i] = lookup(i, idx);
 
@@ -190,7 +205,7 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
     // This is only a first shot.
 
     // check for unvalid data which can be replaced without harm
-    for (unsigned int i=0; i<m_sets; i++){
+    for (unsigned int i = 0; i <= m_sets; i++){
 
       if (((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2)))) == 0) {
 
@@ -246,7 +261,7 @@ void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int
   DUMP(this->name(),"WRITE ACCESS with idx: " << std::hex << idx << " tag: " << std::hex << tag << " offset: " << std::hex << offset);
 
   // lookup all cachesets
-  for (unsigned int i=0; i < m_sets; i++){
+  for (unsigned int i = 0; i <= m_sets; i++){
 
     m_current_cacheline[i] = lookup(i, idx);
 
@@ -320,7 +335,7 @@ void dvectorcache::flush(sc_core::sc_time *t, unsigned int * debug) {
   unsigned int adr;
 
   // for all cache sets
-  for (unsigned int set=0; set < m_sets; set++){
+  for (unsigned int set=0; set <= m_sets; set++){
 
     // and all cache lines
     for (unsigned int line=0; line<m_number_of_vectors; line++) { 
@@ -328,7 +343,7 @@ void dvectorcache::flush(sc_core::sc_time *t, unsigned int * debug) {
       m_current_cacheline[set] = lookup(set, line);
 
       // and all cache line entries
-      for (unsigned int entry=0; entry < (m_linesize >> 2); entry++) {
+      for (unsigned int entry=0; entry < m_wordsperline; entry++) {
 
 	// check for valid data
 	if ((*m_current_cacheline[set]).tag.valid & (1 << entry)) {
@@ -513,10 +528,10 @@ t_cache_line * dvectorcache::lookup(unsigned int set, unsigned int idx) {
 unsigned int dvectorcache::replacement_selector(unsigned int mode) {
   
   // random replacement
-  if (mode == 0) {
+  if (mode == 3) {
 
     // todo: check RTL for implementation details
-    return(rand() % m_sets);
+    return(rand() % (m_sets+1));
   } 
   else {
 
@@ -535,7 +550,7 @@ void dvectorcache::dbg_out(unsigned int line) {
 
   t_cache_line dbg_cacheline;
 
-  for(unsigned int i=0; i<m_sets;i++) {
+  for(unsigned int i = 0; i <= m_sets;i++) {
 
     // read the cacheline from set
     dbg_cacheline = (*cache_mem[i])[line];
@@ -544,7 +559,7 @@ void dvectorcache::dbg_out(unsigned int line) {
     DUMP(this->name(), "SET: " << i << " ATAG: 0x" << std::hex << dbg_cacheline.tag.atag << " VALID: 0x" << std::hex << dbg_cacheline.tag.valid);
 
     // display all entries
-    for (unsigned int j = 0; j < (m_linesize >> 2); j++) {
+    for (unsigned int j = 0; j < m_wordsperline; j++) {
 
       DUMP(this->name(), "Entry: " << j << " - " << std::hex << dbg_cacheline.entry[j].i);
 

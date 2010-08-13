@@ -60,7 +60,8 @@ def build(bld):
     target         = 'mmu_cache',
     features       = 'cxx cstaticlib',
     source         = [ 'lib/icio_payload_extension.cpp', 
-                       'lib/dcio_payload_extension.cpp', 
+                       'lib/dcio_payload_extension.cpp',
+		       'lib/localram.cpp', 
                        'lib/mmu.cpp', 
                        'lib/ivectorcache.cpp', 
                        'lib/dvectorcache.cpp'],
@@ -87,3 +88,14 @@ def build(bld):
     uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
     uselib_local = 'mmu_cache',
   )
+
+  bld(
+    target       = 'lt_ct_localram.test',
+    features     = 'cxx cprogram test',
+    source       = [ 'lt_ct_localram_test/testbench.cpp',
+                     'lt_ct_localram_test/main.cpp'],
+    includes     = '.',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
+    uselib_local = 'mmu_cache',
+  )
+

@@ -89,11 +89,38 @@ int sc_main(int argc, char** argv) {
   // - dtlb delay on read miss
   //
   // template parameters:
-  // <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, int isetlock,
-  //  int dcen, int drepl, int dsets, int dlinesize, int dsetsize, int dsetlock, int dsnoop,
-  //  int ilram, int ilramsize, int ilramstart, int dlram, int dlramsize, int dlramstart, int cached,
-  //  int mmu_en, int itlb_num, int dtlb_num, int tlb_type, int tlb_rep, int mmupgsz>
-  mmu_cache<0,1,3,4,4,1,0,1,3,4,4,1,0,0,0,1,0x0000008f,0,1,0x0000008f,0,0,8,8,1,0,0> mmu_cache("mmu_cache", 
+  // <int dsu = 0, 
+  //  int icen = 1 (icache enabled)
+  //  int irepl = 3 (icache random replacement)
+  //  int isets = 3 (4 instruction cache sets)
+  //  int ilinesize = 0 (1 word per icache line)
+  //  int isetsize = 0 (1kB per icache set)
+  //  int isetlock = 0 (no icache locking)
+
+  //  int dcen = 1 (dcache enabled)
+  //  int drepl = 3 (dcache random replacement)
+  //  int dsets = 3 (4 data cache sets)
+  //  int dlinesize = 0 (1 word per dcache line)
+  //  int dsetsize = 0 (1kB per dcache set)
+  //  int dsetlock = 0 (no dcache locking)
+  //  int dsnoop = 0 (no cache snooping)
+
+  //  int ilram = 0 (instr. localram disable)
+  //  int ilramsize = 0 (1kB ilram size)
+  //  int ilramstart = 8e (0x8e000000 default ilram start address)
+
+  //  int dlram = 0 (data localram disable)
+  //  int dlramsize = 0 (1kB dlram size)
+  //  int dlramstart = 8f (0x8f000000 default dlram start address)
+
+  //  int cached = 0 (fixed cacheability mask)
+  //  int mmu_en = 0 (mmu not present)
+  //  int itlb_num = 3 (8 itlbs - not present)
+  //  int dtlb_num = 3 (8 dtlbs - not present)
+  //  int tlb_type = 0 (split tlb mode - not present)
+  //  int tlb_rep = 1 (random replacement)
+  //  int mmupgsz = 0 (4kB mmu page size)>
+  mmu_cache<0,1,3,3,0,0,0,1,3,3,0,0,0,0,0,0,0x0000008e,0,0,0x0000008f,0,0,3,3,0,1,0> mmu_cache("mmu_cache", 
 			CACHE_MASTER_ID, 
 			sc_core::sc_time(0, sc_core::SC_NS), 
 			sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),

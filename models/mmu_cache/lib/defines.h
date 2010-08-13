@@ -74,7 +74,9 @@ typedef tlm::tlm_generic_payload *gp_ptr;
 // [21]    MMU state   - 0 tlb hit, 1 tlb miss 
 // [20-16] TLB         - for tlb hit:  number of the tlb that delivered the hit  (!!! not implemented yet !!!) 
 //                     - for tlb miss: number of the tlb that delivered the miss
-// [15-4]  Reserved
+// [15-13] Reserved
+// [12]                - Set to 1 for scratchpad access
+// [11-4]  Reserved
 // [3-2]   Cache State - 00 read hit, 01, read miss, 10, write hit, 11 write miss
 // [1-0]   Cache Set   - for read hit:  contains number of set that delivered the hit
 //                       for read miss: number of set containing the new data
@@ -83,15 +85,19 @@ typedef tlm::tlm_generic_payload *gp_ptr;
 
 
 // MACROS for updating debug information:
-#define CACHEREADHIT_SET(debug, cache_set)  ((debug  &= 0xfffffff0)  |= (cache_set & 0x3))
-#define CACHEREADMISS_SET(debug, cache_set) (((debug &= 0xfffffff0)  |= 0x4) |= (cache_set & 0x3))
-#define CACHEWRITEHIT_SET(debug, cache_set) (((debug &= 0xfffffff0)  |= 0x8) |= (cache_set & 0x3))
-#define CACHEWRITEMISS_SET(debug)           ((debug  &= 0xfffffff0)  |= 0xc)
+#define SCRATCHPAD_SET(debug) (debug |= 0x800)
+
+#define CACHEREADHIT_SET(debug, cache_set)  ((debug  &= 0xfffff7f0)  |= (cache_set & 0x3))
+#define CACHEREADMISS_SET(debug, cache_set) (((debug &= 0xfffff7f0)  |= 0x4) |= (cache_set & 0x3))
+#define CACHEWRITEHIT_SET(debug, cache_set) (((debug &= 0xfffff7f0)  |= 0x8) |= (cache_set & 0x3))
+#define CACHEWRITEMISS_SET(debug)           ((debug  &= 0xfffff7f0)  |= 0xc)
 
 #define TLBHIT_SET(debug) (debug &= ~(1 << 21));
 #define TLBMISS_SET(debug) (debug |= (1 << 21));
 
 // MACROS for evaluating debug information
+#define SCRATCHPAD_CHECK(debug) ((debug & 0x800) == 0x800) 
+
 #define CACHEREADHIT_CHECK(debug)    ((debug & 0xc) == 0)
 #define CACHEREADMISS_CHECK(debug)   ((debug & 0xc) == 4)
 #define CACHEWRITEHIT_CHECK(debug)   ((debug & 0xc) == 8)

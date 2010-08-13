@@ -73,6 +73,9 @@ class ivectorcache : public sc_core::sc_module {
   /// @param setsize                            Size of an instruction cache set (in kbytes)
   /// @param linesize                           Size of an instruction cache line (in bytes)
   /// @param repl                               Instruction cache replacement strategy
+  /// @param lram                               Local RAM configured
+  /// @param lramstart                          The 8 MSBs of the local ram start address (16MB segment)
+  /// @param lramsize                           Size of local ram (size in kbyte = 2^lramsize)
   ivectorcache(sc_core::sc_module_name name, 
 	       mmu_cache_if &_parent,
 	       mmu_if * _mmu,
@@ -82,7 +85,10 @@ class ivectorcache : public sc_core::sc_module {
 	       int sets, 
 	       int setsize,
 	       int linesize,
-	       int repl);
+	       int repl,
+	       unsigned int lram,
+	       unsigned int lramstart,
+	       unsigned int lramsize);
 
   // destructor
   ~ivectorcache();
@@ -129,27 +135,41 @@ class ivectorcache : public sc_core::sc_module {
   
   // cache parameters
   // ----------------
-  /// number of cache sets
+  /// number of cache sets (000 - direct mapped, 001 - 2x, 010 - 3x, 011 -4x
   unsigned int m_sets;
-  /// size in kb
+  /// indicates size of cacheset in kb = 2^m_setsize
   unsigned int m_setsize;
-  /// number of bytes per line
+  /// indicates size of cacheline in words = 2^m_linesize
   unsigned int m_linesize;
+  /// number of words per cacheline
+  unsigned int m_wordsperline;
+  /// number of bytes per cacheline
+  unsigned int m_bytesperline;
   /// number of bits for addressing the line offset
   unsigned int m_offset_bits;
   /// number of lines in the cache
   unsigned int m_number_of_vectors;
   /// address-bits used for index
   unsigned int m_idx_bits;
-  /// address-bits used for index
+  /// address-bits used for tag
   unsigned int m_tagwidth;
   /// replacement strategy
   unsigned int m_repl;
-  
+
   // other parameters
   // ----------------
   /// mmu enabled
   unsigned int m_mmu_en;
+
+  // !!! The actual localram is instantiated in class mmu_cache.
+  // !!! Settings are only needed for configuration register.
+
+  /// local ram present
+  unsigned int m_lram;
+  /// start address of localram (8 MSBs)
+  unsigned int m_lramstart;
+  /// size of localram
+  unsigned int m_lramsize;
 
   // delay parameters
   // ----------------

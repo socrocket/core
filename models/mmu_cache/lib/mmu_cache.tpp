@@ -47,55 +47,77 @@ mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 			m_request_pending(false),
 			m_data_pending(false),
 			m_bus_req_pending(false),
-			m_restart_pending_req(false){
+			m_restart_pending_req(false)
+{
+  // parameter checks
+  // ----------------
+  // todo
 
-			// create mmu (if required)
-			srmmu = (mmu_en==1)? new mmu("mmu", 
-					*this,
-					itlb_hit_response_delay,
-					itlb_miss_response_delay,
-					dtlb_hit_response_delay,
-					dtlb_miss_response_delay,
-					itlb_num,
-					dtlb_num,
-					tlb_type,
-					tlb_rep,
-					mmupgsz) : NULL;
+  // create mmu (if required)
+  srmmu = (mmu_en==1)? new mmu("mmu", 
+		*this,
+		itlb_hit_response_delay,
+		itlb_miss_response_delay,
+		dtlb_hit_response_delay,
+		dtlb_miss_response_delay,
+		itlb_num,
+		dtlb_num,
+		tlb_type,
+		tlb_rep,
+		mmupgsz) : NULL;
 
-			// create icache
-			icache = new ivectorcache("ivectorcache",
-					*this,
-					srmmu,
-					mmu_en,
-					icache_hit_read_response_delay,
-					icache_miss_read_response_delay, 
-					isets, 
-					isetsize, 
-					ilinesize,
-					irepl);
+  // create icache
+  icache = new ivectorcache("ivectorcache",
+		*this,
+		srmmu,
+		mmu_en,
+		icache_hit_read_response_delay,
+		icache_miss_read_response_delay, 
+		isets, 
+		isetsize, 
+		ilinesize,
+		irepl,
+		ilram,
+		ilramstart,
+		ilramsize);
 
-			// create dcache
-			dcache = new dvectorcache("dvectorcache",
-					*this,
-					srmmu,
-				 	mmu_en,
-					dcache_hit_read_response_delay,
-					dcache_miss_read_response_delay,
-					dcache_write_response_delay,
-					dsets,
-					dsetsize,
-					dlinesize,
-					drepl);
+  // create dcache
+  dcache = new dvectorcache("dvectorcache",
+		*this,
+		srmmu,
+	 	mmu_en,
+		dcache_hit_read_response_delay,
+		dcache_miss_read_response_delay,
+		dcache_write_response_delay,
+		dsets,
+		dsetsize,
+		dlinesize,
+		drepl,
+		dlram,
+		dlramstart,
+		dlramsize);
 
-			// register forward transport functions for icio and dcio sockets (slave)
-			icio.register_b_transport(this, &mmu_cache::icio_custom_b_transport);
-			dcio.register_b_transport(this, &mmu_cache::dcio_custom_b_transport);
+  // create instruction scratchpad
+  // (! only allowed with mmu disabled !)
+  ilocalram = ((ilram == 1)&&(mmu_en==0)) ? new localram("ilocalram",
+		ilramsize,
+		ilramstart) :NULL;
 
-			// initialize cache control registers
-			CACHE_CONTROL_REG = 0;
+  // create data scratchpad
+  // (! only allowed with mmu disabled !)
+  dlocalram = ((dlram == 1)&&(mmu_en==0)) ? new localram("dlocalram",
+		dlramsize,
+		dlramstart) : NULL;
 
-			CACHE_CONTROL_REG |= (icen == 1) ? 0x3 : 0; 
-			CACHE_CONTROL_REG |= (dcen == 1) ? 0xc : 0;
+  // register forward transport functions for icio and dcio sockets (slave)
+  icio.register_b_transport(this, &mmu_cache::icio_custom_b_transport);
+  dcio.register_b_transport(this, &mmu_cache::dcio_custom_b_transport);
+
+  // initialize cache control registers
+  CACHE_CONTROL_REG = 0;
+
+  CACHE_CONTROL_REG |= (icen == 1) ? 0x3 : 0; 
+  CACHE_CONTROL_REG |= (dcen == 1) ? 0xc : 0;
 			
 }
 
@@ -125,8 +147,16 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 
   if(cmd==tlm::TLM_READ_COMMAND) 
   {
-    icache->read((unsigned int)adr, (unsigned int*)ptr, &delay, debug);
-    //DUMP(name(),"ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
+    // instruction scratchpad enabled && address points into selecte 16MB region 
+    if(ilram && (((adr >> 24) & 0xff)==ilramstart)) {
+
+	ilocalram->read((unsigned int)adr, (unsigned int*)ptr, &delay, debug); 
+
+    } else {
+
+    	icache->read((unsigned int)adr, (unsigned int*)ptr, &delay, debug);
+    	//DUMP(name(),"ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
+    }
   } 
   else if(cmd==tlm::TLM_WRITE_COMMAND) 
   {
@@ -375,18 +405,46 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
       		}
 	}
   }
-  // ordinary cache access
+  // ordinary access
   else if ((asi == 0x8)||(asi == 0x9)||(asi == 0xa)||(asi == 0xb)) {
 
     if (cmd==tlm::TLM_READ_COMMAND) {
 
-      dcache->read((unsigned int)adr, (unsigned int*)ptr, &delay, debug);
-      //DUMP(name(),"DCIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
+	// instruction scratchpad enabled && address points into selected 16 MB region 
+	if (ilram && (((adr >> 24) & 0xff)==ilramstart)) {
+		
+	   ilocalram->read((unsigned int)adr, (unsigned int *)ptr, &delay, debug);
+
+	// data scratchpad enabled && address points into selected 16MB region
+	} else if (dlram && (((adr >> 24) & 0xff)==dlramstart)) {
+
+	   dlocalram->read((unsigned int)adr, (unsigned int *)ptr, &delay, debug);
+	
+	// cache access
+	} else {
+
+	   dcache->read((unsigned int)adr, (unsigned int*)ptr, &delay, debug);
+      	   //DUMP(name(),"DCIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
+	}
     }
     else if(cmd==tlm::TLM_WRITE_COMMAND) 
     {
-      dcache->write((unsigned int)adr, (unsigned int*)ptr, (unsigned int*)byt, &delay, debug);
-      //DUMP(name(),"DCIO Socket done tlm_write");
+	// instruction scratchpad enabled && address points into selected 16 MB region
+	if (ilram && (((adr >> 24) & 0xff)==ilramstart)) {
+
+	   ilocalram->write((unsigned int)adr, (unsigned int *)ptr, &delay, debug);
+
+	// data scratchpad enabled && address points into selected 16MB region
+	} else if (dlram && (((adr >> 24) & 0xff)==dlramstart)) {
+
+	   dlocalram->write((unsigned int)adr, (unsigned int *)ptr, &delay, debug);
+
+	// cache access (write through)
+	} else {
+
+       	   dcache->write((unsigned int)adr, (unsigned int*)ptr, (unsigned int*)byt, &delay, debug);
+	   //DUMP(name(),"DCIO Socket done tlm_write");
+	}
     }
   }
   else {
