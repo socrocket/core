@@ -5,3 +5,6 @@ lt_ct_default_test	- A testbed for the default configuration of the mmu_cache, c
 			  The MMU is disabled. To execute the testbench, change into this directory.
 lt_ct_mmu_test		- A testbed using the same system configuration as described for lt_ct_default_test. 
 			  The MMU is enabled here. To run, change into this directory.
+lt_ct_localram_test	- A testbed build on the same system configuration as lt_ct_default_test.
+			  The caches have two sets with a size of 256kbyte each. Scratchpad RAMs for
+			  instructions and data are enabled (512kbyte) each.

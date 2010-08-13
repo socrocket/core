@@ -64,7 +64,7 @@ def build(bld):
 		       'lib/localram.cpp', 
                        'lib/mmu.cpp', 
                        'lib/ivectorcache.cpp', 
-                       'lib/dvectorcache.cpp'],
+                       'lib/dvectorcache.cpp' ],
     export_incdirs = 'lib',
     uselib         = 'SYSC TLM2 AMBA GREENSOCS',
   )
