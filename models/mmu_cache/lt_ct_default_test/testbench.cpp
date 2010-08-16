@@ -806,7 +806,7 @@ void testbench::initiator_thread(void) {
     
     // invalidate
     DUMP(name(),"************************************************** ");
-    DUMP(name(),"* 61. invalidate icache address 0x868                 ");
+    DUMP(name(),"* 61. Invalidate icache address 0x868                 ");
     DUMP(name(),"************************************************* ");
 
     // atag starts from bit 10; entry 0 (bit 0) valid
@@ -820,7 +820,7 @@ void testbench::initiator_thread(void) {
 
     // invalidate
     DUMP(name(),"************************************************** ");
-    DUMP(name(),"* 62. invalidate dcache address 0xc68                 ");
+    DUMP(name(),"* 62. Invalidate dcache address 0xc68                 ");
     DUMP(name(),"************************************************* ");
 
     // atag starts from bit 10; entry 0 (bit 0) valid

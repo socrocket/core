@@ -99,3 +99,13 @@ def build(bld):
     uselib_local = 'mmu_cache',
   )
 
+  bld(
+    target       = 'lt_ct_cacheline.test',
+    features     = 'cxx cprogram test',
+    source       = [ 'lt_ct_cacheline_test/testbench.cpp',
+                     'lt_ct_cacheline_test/main.cpp'],
+    includes     = '.',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
+    uselib_local = 'mmu_cache',
+  )
+

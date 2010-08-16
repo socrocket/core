@@ -43,10 +43,10 @@ typedef union {
   unsigned char c[4];
 } t_cache_data;
 
-// cacheline consists of tag and up to 4 entries (depending on configuration)
+// cacheline consists of tag and up to 8 entries (depending on configuration)
 typedef struct {
   t_cache_tag   tag;
-  t_cache_data  entry[4];
+  t_cache_data  entry[8];
 } t_cache_line;
 
 // structure of a tlb entry (page descriptor cache entry)

@@ -8,3 +8,6 @@ lt_ct_mmu_test		- A testbed using the same system configuration as described for
 lt_ct_localram_test	- A testbed build on the same system configuration as lt_ct_default_test.
 			  The caches have two sets with a size of 256kbyte each. Scratchpad RAMs for
 			  instructions and data are enabled (512kbyte) each.
+lt_ct_cacheline_test	- Test of access to caches with more then one word per line.
+			  Cachelines of i/d cache are configured to maximum size (32bytes/line).
+			  The remainder of the test setup stays the same.

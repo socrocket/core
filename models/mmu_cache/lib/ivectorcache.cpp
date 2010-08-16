@@ -145,7 +145,7 @@ void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
       //DUMP(this->name(),"Correct atag found in set " << i);
      
       // check the valid bit (math.h pow is mapped to the coproc, hence it should be pretty fast)
-      if ((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2))) != 0) {
+      if ((((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2)))) != 0)) {
 
 	DUMP(this->name(),"Cache Hit in Set " << i);
 
@@ -226,14 +226,23 @@ void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
     // fill in the new data
     (*m_current_cacheline[set_select]).entry[offset >> 2].i = *data;
 
-    // fill in the new atag
-    (*m_current_cacheline[set_select]).tag.atag  = tag;
+    // has the tag changed?
+    if ((*m_current_cacheline[set_select]).tag.atag != tag) {
+
+      // fill in the new atag
+      (*m_current_cacheline[set_select]).tag.atag  = tag;
+
+      // switch of all the valid bits except the one for the new entry
+      (*m_current_cacheline[set_select]).tag.valid = (unsigned int)(pow((double)2,(double)(offset >> 2)));
+
+    } else {
  
-    // switch on the valid bit
-    (*m_current_cacheline[set_select]).tag.valid |= (unsigned int)(pow((double)2,(double)(offset >> 2)));
+      // switch on the valid bit
+      (*m_current_cacheline[set_select]).tag.valid |= (unsigned int)(pow((double)2,(double)(offset >> 2)));
+
+    }
 
     //DUMP(this->name(),"Updated entry: " << std::hex << (*m_current_cacheline[set_select]).entry[offset >> 2].i << " valid bits: " << std::hex << (*m_current_cacheline[set_select]).tag.valid);
-
    }
 }
 
