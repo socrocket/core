@@ -135,7 +135,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
   tlm::tlm_command   cmd  = tran.get_command();
   sc_dt::uint64      adr  = tran.get_address();
   unsigned char*     ptr  = tran.get_data_ptr();
-  // unsigned int     len = tran.get_data_length();
+  unsigned int       len = tran.get_data_length();
   // unsigned char*   byt = tran.get_byte_enable_ptr();
   // unsigned int     wid = tran.get_streaming_width();
 
@@ -150,7 +150,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
     // instruction scratchpad enabled && address points into selecte 16MB region 
     if(ilram && (((adr >> 24) & 0xff)==ilramstart)) {
 
-	ilocalram->read((unsigned int)adr, (unsigned int*)ptr, &delay, debug); 
+	ilocalram->read((unsigned int)adr, ptr, len, &delay, debug); 
 
     } else {
 
@@ -179,8 +179,8 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
   tlm::tlm_command cmd = tran.get_command();
   sc_dt::uint64    adr = tran.get_address();
   unsigned char*   ptr = tran.get_data_ptr();
-  // unsigned int     len = tran.get_data_length();
-  unsigned char*   byt = tran.get_byte_enable_ptr();
+  unsigned int     len = tran.get_data_length();
+  // unsigned char*   byt = tran.get_byte_enable_ptr();
   // unsigned int     wid = tran.get_streaming_width();
 
   // extract extension
@@ -413,18 +413,18 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	// instruction scratchpad enabled && address points into selected 16 MB region 
 	if (ilram && (((adr >> 24) & 0xff)==ilramstart)) {
 		
-	   ilocalram->read((unsigned int)adr, (unsigned int *)ptr, &delay, debug);
+	   ilocalram->read((unsigned int)adr, ptr, len, &delay, debug);
 
 	// data scratchpad enabled && address points into selected 16MB region
 	} else if (dlram && (((adr >> 24) & 0xff)==dlramstart)) {
 
-	   dlocalram->read((unsigned int)adr, (unsigned int *)ptr, &delay, debug);
+	   dlocalram->read((unsigned int)adr, ptr, len, &delay, debug);
 	
 	// cache access
 	} else {
 
-	   dcache->read((unsigned int)adr, (unsigned int*)ptr, &delay, debug);
-      	   //DUMP(name(),"DCIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
+	   dcache->read((unsigned int)adr, ptr, len, &delay, debug);
+      	   //DUMP(name(),"DCIO Socket data received (tlm_read): " << std::hex << *(unsigned int*)ptr);    
 	}
     }
     else if(cmd==tlm::TLM_WRITE_COMMAND) 
@@ -432,17 +432,17 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	// instruction scratchpad enabled && address points into selected 16 MB region
 	if (ilram && (((adr >> 24) & 0xff)==ilramstart)) {
 
-	   ilocalram->write((unsigned int)adr, (unsigned int *)ptr, &delay, debug);
+	   ilocalram->write((unsigned int)adr, ptr, len, &delay, debug);
 
 	// data scratchpad enabled && address points into selected 16MB region
 	} else if (dlram && (((adr >> 24) & 0xff)==dlramstart)) {
 
-	   dlocalram->write((unsigned int)adr, (unsigned int *)ptr, &delay, debug);
+	   dlocalram->write((unsigned int)adr, ptr, len, &delay, debug);
 
 	// cache access (write through)
 	} else {
 
-       	   dcache->write((unsigned int)adr, (unsigned int*)ptr, (unsigned int*)byt, &delay, debug);
+       	   dcache->write((unsigned int)adr, ptr, len, &delay, debug);
 	   //DUMP(name(),"DCIO Socket done tlm_write");
 	}
     }
@@ -462,7 +462,7 @@ template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, 
 void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	  dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
 	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
-	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::amba_write(unsigned int addr, unsigned int * data, unsigned int length) {
+	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::amba_write(unsigned int addr, unsigned char * data, unsigned int length) {
 
 	sc_core::sc_time t;
 
@@ -471,14 +471,18 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	gp->set_command(tlm::TLM_WRITE_COMMAND);
 	gp->set_address(addr);
 	gp->set_data_length(length);
-	gp->set_streaming_width(4);
+	//gp->set_streaming_width(1);
 	gp->set_byte_enable_ptr(NULL);
-	gp->set_data_ptr((unsigned char*)data);
+	//gp->set_byte_enable_length(4);
+	gp->set_data_ptr(data);
 
+	amba::burst_size* size_ext;
+	ahb_master.template validate_extension<amba::burst_size>(*gp);
+	ahb_master.template get_extension<amba::burst_size>(size_ext, *gp);
+	size_ext->value=length;
+	
 	// issue transaction
 	ahb_master->b_transport(*gp,t);
-
-	//cout << "WRITE " << gp->get_response_string() << ": 0x" << hex << gp->get_address();
 
 	// burn the time
 	wait(t);
@@ -493,7 +497,7 @@ template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, 
 void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	  dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
 	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
-	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::amba_read(unsigned int addr, unsigned int * data, unsigned int length) {
+	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::amba_read(unsigned int addr, unsigned char * data, unsigned int length) {
 
 	sc_core::sc_time t;
 
@@ -502,15 +506,20 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	gp->set_command(tlm::TLM_READ_COMMAND);
 	gp->set_address(addr);
 	gp->set_data_length(length);
-	gp->set_streaming_width(4);
+	//gp->set_streaming_width(1);
 	gp->set_byte_enable_ptr(NULL);
-	gp->set_data_ptr((unsigned char*)data);
+	gp->set_data_ptr(data);
 	gp->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+
+	amba::burst_size* size_ext;
+	ahb_master.template validate_extension<amba::burst_size>(*gp);
+	ahb_master.template get_extension<amba::burst_size>(size_ext, *gp);
+	size_ext->value=length;
 
 	// issue transaction
 	ahb_master->b_transport(*gp,t);
 	
-	// burn the time (do here or better leaf to master ?)
+	// burn the time
 	wait(t);
 	ahb_master.release_transaction(gp);
 }

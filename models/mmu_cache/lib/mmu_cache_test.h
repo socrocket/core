@@ -48,11 +48,11 @@ class mmu_cache_test : public sc_core::sc_module {
   virtual void initiator_thread(void) = 0;
 
   /// issues an instruction read transaction and returns the result
-  unsigned int iread(unsigned int addr, unsigned int width, unsigned int flush, unsigned int flushl, unsigned int fline, unsigned int * debug) {
+  unsigned int iread(unsigned int addr, unsigned int flush, unsigned int flushl, unsigned int fline, unsigned int * debug) {
 
     // locals
     sc_core::sc_time t;
-    unsigned int data;
+    unsigned int data=0;
     tlm::tlm_generic_payload gp;
     icio_payload_extension * ext = new icio_payload_extension();
 
@@ -65,7 +65,7 @@ class mmu_cache_test : public sc_core::sc_module {
     // initialize
     gp.set_command(tlm::TLM_READ_COMMAND);
     gp.set_address(addr);
-    gp.set_data_length(width);
+    gp.set_data_length(4); // data length always 4 byte for instr. interface
     gp.set_streaming_width(4);
     gp.set_byte_enable_ptr(NULL);
     gp.set_data_ptr((unsigned char*)&data);
@@ -87,11 +87,11 @@ class mmu_cache_test : public sc_core::sc_module {
   }
 
   /// issues a data read transaction
-  unsigned int dread(unsigned int addr, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int * debug) {
+  unsigned int dread(unsigned int addr, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int * debug) {
 
     // locals
     sc_core::sc_time t;
-    unsigned int data;
+    unsigned int data=0;
     tlm::tlm_generic_payload gp;
     dcio_payload_extension * ext = new dcio_payload_extension();
   
@@ -104,10 +104,10 @@ class mmu_cache_test : public sc_core::sc_module {
     // initialize
     gp.set_command(tlm::TLM_READ_COMMAND);
     gp.set_address(addr);
-    gp.set_data_length(width);
+    gp.set_data_length(length);
     gp.set_streaming_width(4);
     gp.set_byte_enable_ptr(NULL);
-    gp.set_data_ptr((unsigned char*)&data);
+    gp.set_data_ptr((unsigned char *)&data);
     gp.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
     ext->asi    = asi;
@@ -126,7 +126,7 @@ class mmu_cache_test : public sc_core::sc_module {
   }
 
   /// issues a data write transaction
-  void dwrite(unsigned int addr, unsigned int data, unsigned int width, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int * debug) {
+  void dwrite(unsigned int addr, unsigned int data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int * debug) {
 
     // locals
     sc_core::sc_time t;
@@ -142,7 +142,7 @@ class mmu_cache_test : public sc_core::sc_module {
     // initialize
     gp.set_command(tlm::TLM_WRITE_COMMAND);
     gp.set_address(addr);
-    gp.set_data_length(width);
+    gp.set_data_length(length);
     gp.set_streaming_width(4);
     gp.set_byte_enable_ptr(NULL);
     gp.set_data_ptr((unsigned char*)&data);

@@ -38,9 +38,9 @@ class localram : public sc_core::sc_module {
   // external interface functions:
   // -----------------------------
   /// read from scratchpad
-  void read(unsigned int address, unsigned int *data, sc_core::sc_time *t, unsigned int *debug);
+  void read(unsigned int address, unsigned char *data, unsigned int len, sc_core::sc_time *t, unsigned int *debug);
   /// write to scratchpad
-  void write(unsigned int address, unsigned int *data, sc_core::sc_time *t, unsigned int *debug);
+  void write(unsigned int address, unsigned char *data, unsigned int len, sc_core::sc_time *t, unsigned int *debug);
 
   // constructor
   /// @brief Constructor of scratchpad RAM implementation (localram)
@@ -53,11 +53,11 @@ class localram : public sc_core::sc_module {
   ~localram();
 
   // the actual local ram
-  std::vector<unsigned int> *scratchpad;
+  std::vector<t_cache_data> *scratchpad;
 
   // helpers
   // -------
-  unsigned int m_default_entry;
+  t_cache_data m_default_entry;
 
   // local ram parameters
   // --------------------

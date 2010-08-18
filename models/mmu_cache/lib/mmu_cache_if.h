@@ -22,8 +22,8 @@ class mmu_cache_if {
   public:
 
   // amba master interface functions
-  virtual void amba_write(unsigned int addr, unsigned int * data, unsigned int length) {};
-  virtual void amba_read(unsigned int addr, unsigned int * data, unsigned int length) {};
+  virtual void amba_write(unsigned int addr, unsigned char * data, unsigned int length) {};
+  virtual void amba_read(unsigned int addr, unsigned char * data, unsigned int length) {};
 
   virtual ~mmu_cache_if() {};
 

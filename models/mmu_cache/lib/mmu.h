@@ -63,10 +63,10 @@ class mmu : public sc_core::sc_module, public mmu_if {
   // mmu interface functions:
   // In case the MMU is enabled, the bus accesses of the i/d cache are diverted
   // using the interface functions below (mmu_cache_if).
-  void itlb_read(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug);
-  void itlb_write(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug);
-  void dtlb_write(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug);
-  void dtlb_read(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug);
+  void itlb_read(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug);
+  void itlb_write(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug);
+  void dtlb_write(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug);
+  void dtlb_read(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug);
   // page descriptor cache (PDC) lookup
   unsigned int tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size, unsigned int * debug);
   // read mmu internal registers (ASI 0x19)

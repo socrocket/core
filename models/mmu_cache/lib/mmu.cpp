@@ -85,7 +85,7 @@ mmu::mmu(sc_core::sc_module_name name,
 }
  
 // instruction read interface
-void mmu::itlb_read(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug) {
+void mmu::itlb_read(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug) {
 
   // Pages are always aligned on 4K-byte boundaries; hence, the lower-order
   // 12 bits of a physical address are always the same as the low-order 12 bits of
@@ -113,7 +113,7 @@ void mmu::itlb_read(unsigned int addr, unsigned int * data, unsigned int length,
 }
 
 // instruction write interface (for flushing)
-void mmu::itlb_write(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug) {
+void mmu::itlb_write(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug) {
 
   // Pages are always aligned on 4K-byte boundaries; hence, the lower-order
   // 12 bits of a physical address are always the same as the low-order 12 bits of
@@ -141,7 +141,7 @@ void mmu::itlb_write(unsigned int addr, unsigned int * data, unsigned int length
 }
 
 // data read interface
-void mmu::dtlb_read(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug) {
+void mmu::dtlb_read(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug) {
 
   // Pages are always aligned on 4K-byte boundaries; hence, the lower-order
   // 12 bits of a physical address are always the same as the low-order 12 bits of
@@ -170,7 +170,7 @@ void mmu::dtlb_read(unsigned int addr, unsigned int * data, unsigned int length,
 }
 
 // data write interface
-void mmu::dtlb_write(unsigned int addr, unsigned int * data, unsigned int length, unsigned int * debug) {
+void mmu::dtlb_write(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug) {
 
   // Pages are always aligned on 4K-byte boundaries; hence, the lower-order
   // 12 bits of a physical address are always the same as the low-order 12 bits of
@@ -298,7 +298,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   // todo: should we wrap this in a function ??
 
   // 1. load from 1st-level page table
-  m_parent->amba_read(MMU_CONTEXT_TABLE_POINTER_REG+idx1, data, 4);
+  m_parent->amba_read(MMU_CONTEXT_TABLE_POINTER_REG+idx1, (unsigned char *) data, 4);
 
   // !!!! todo: why is is it always loosing the sc_module_name here ????
 
@@ -341,7 +341,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   }
 
   // 2. load from 2nd-level page table
-  m_parent->amba_read((((*data)>>2)<<2)+idx2, data, 4);
+  m_parent->amba_read((((*data)>>2)<<2)+idx2, (unsigned char *)data, 4);
 
   // page table entry (PTE) or page table descriptor (PTD) (to level 3)
   if ((*data & 0x3) == 0x2) {
@@ -382,7 +382,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   }
 
   // 3. load from 3rd-level page table
-  m_parent->amba_read((((*data)>>2)<<2)+idx3, data, 4);
+  m_parent->amba_read((((*data)>>2)<<2)+idx3, (unsigned char *)data, 4);
 
   // 3rd-level page table must contain PTE (PTD not allowed)
   if ((*data & 0x3) == 0x2) {

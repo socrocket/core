@@ -112,7 +112,7 @@ dvectorcache::~dvectorcache() {
 // ----------------------------
 
 /// read from cache
-void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_time *t, unsigned int * debug) {
+void dvectorcache::read(unsigned int address, unsigned char *data, unsigned int len, sc_core::sc_time *t, unsigned int * debug) {
 
   int set_select = -1;
   int cache_hit = -1;
@@ -124,7 +124,11 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
   unsigned int tag    = (address >> (m_idx_bits+m_offset_bits));
   unsigned int idx    = ((address << m_tagwidth) >> (m_tagwidth+m_offset_bits));
   unsigned int offset = ((address << (32-m_offset_bits)) >> (32-m_offset_bits));
+  unsigned int byt    = (address & 0x3);
 
+  // space for data to refill a cache line of maximum size
+  unsigned char ahb_data[32];
+  
   DUMP(this->name(),"READ ACCESS idx: " << std::hex << idx << " tag: " << std::hex << tag << " offset: " << std::hex << offset);
 
   // lookup all cachesets
@@ -151,7 +155,7 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
 	  CACHEREADHIT_SET(*debug,i);
 
           // write data pointer
-          *data = (*m_current_cacheline[i]).entry[offset >> 2].i;
+	  for(unsigned int j=0; j<len; j++) { *(data+j) = (*m_current_cacheline[i]).entry[offset>>2].c[byt+j]; }
 	
           // increment time
           *t+=m_dcache_hit_read_response_delay;
@@ -190,15 +194,19 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
     // do we have a mmu
     if (m_mmu_en == 1) {
 
-      // mmu enabled: forward request to mmu
-      m_mmu->dtlb_read(address, data, 4, debug);
-      DUMP(this->name(),"Received data from MMU " << std::hex << *data);
+      // MMU enabled: forward request to mmu:
+      // The whole word is loaded into the cache, not only the byte/short addressed
+      // by the processor.
+      m_mmu->dtlb_read(((address >> 2) << 2), ahb_data, 4, debug);
+      //DUMP(this->name(),"Received data from MMU " << std::hex << *data);
 
     } else {
 
-      // direct access to ahb interface
-      m_parent->amba_read(address, data, 4);
-      DUMP(this->name(),"Received data from main memory " << std::hex << *data);
+      // Direct access to ahb interface:
+      // The whole word is loaded into the cache, not only the byte/short addressed
+      // by the processor.
+      m_parent->amba_read(((address >> 2) << 2), ahb_data, 4);
+      //DUMP(this->name(),"Received data from main memory " << std::hex << *data);
     }
 
     // !!!! The replacement mechanism still needs to be verified.
@@ -228,8 +236,8 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
     // update debug information
     CACHEREADMISS_SET(*debug, set_select);
 
-    // fill in the new data
-    (*m_current_cacheline[set_select]).entry[offset >> 2].i = *data;
+    // fill in the new data (always the complete word)
+    for (unsigned int j=0; j<4;j++) { (*m_current_cacheline[set_select]).entry[offset >> 2].c[j] = *(ahb_data+j); }
 
     // has the tag changed?
     if ((*m_current_cacheline[set_select]).tag.atag != tag) {
@@ -247,6 +255,9 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
 
     }
 
+    // copy the data requested by the processor
+    for (unsigned int j=0; j<len; j++) { data[j] = ahb_data[byt+j]; };
+
     //DUMP(this->name(),"Updated entry: " << std::hex << (*m_current_cacheline[set_select]).entry[offset >> 2].i << " valid bits: " << std::hex << (*m_current_cacheline[set_select]).tag.valid);
   }
 }
@@ -259,12 +270,13 @@ void dvectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
 //   Subsequent writes to the block will update main memory because Write Through policy is employed. 
 //   So, some time is saved not bringing the block in the cache on a miss because it appears useless anyway.
 
-void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int *byt, sc_core::sc_time * t, unsigned int * debug) {
+void dvectorcache::write(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
 
   // extract index and tag from address
   unsigned int tag    = (address >> (m_idx_bits+m_offset_bits));
   unsigned int idx    = ((address << m_tagwidth) >> (m_tagwidth+m_offset_bits));
   unsigned int offset = ((address << (32-m_offset_bits)) >> (32-m_offset_bits));
+  unsigned int byt    = (address & 0x3);
 
   bool is_hit = false;
 
@@ -291,8 +303,8 @@ void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int
 	CACHEWRITEHIT_SET(*debug, i);
 	is_hit = true;
 	
-	// write data to cache (todo: impl. byte access)
-	(*m_current_cacheline[i]).entry[offset >> 2].i = *data;
+	// write data to cache
+	for(unsigned int j=0; j<len; j++) { (*m_current_cacheline[i]).entry[offset >> 2].c[byt+j] = *(data+j); }
 	
 	// valid is already set
 	
@@ -329,12 +341,12 @@ void dvectorcache::write(unsigned int address, unsigned int * data, unsigned int
   if (m_mmu_en == 1) {
 
     // mmu enabled: forward request to mmu
-    m_mmu->dtlb_write(address, data, 4, debug);
+    m_mmu->dtlb_write(address, data, len, debug);
 
   } else {
 
     // direct access to ahb interface
-    m_parent->amba_write(address, data, 4);
+    m_parent->amba_write(address, data, len);
   }
 
 }
@@ -369,11 +381,11 @@ void dvectorcache::flush(sc_core::sc_time *t, unsigned int * debug) {
 	  if (m_mmu_en == 1) {
 
 	    // mmu enabled: forward request to mmu
-	    m_mmu->dtlb_write(adr, &(*m_current_cacheline[set]).entry[entry].i, 4, debug);
+	    m_mmu->dtlb_write(adr, (unsigned char *)&(*m_current_cacheline[set]).entry[entry].i, 4, debug);
 
 	  } else {
 	    // and writeback
-	    m_parent->amba_write(adr, &(*m_current_cacheline[set]).entry[entry].i,4);
+	    m_parent->amba_write(adr, (unsigned char *)&(*m_current_cacheline[set]).entry[entry].i,4);
 
 	  }
 	}

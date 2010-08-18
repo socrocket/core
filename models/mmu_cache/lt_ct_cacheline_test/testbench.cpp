@@ -136,7 +136,7 @@ void testbench::initiator_thread(void) {
     for(unsigned int i = 0; i < 8; i++) {
 
       // args: address, length, asi, flush, flushl, lock
-      data = dread((0x00010000 + (i<<2)), i, 0x8, 0, 0, 0, debug);
+      data = dread((0x00010000 + (i<<2)), 4, 0x8, 0, 0, 0, debug);
       assert(CACHEREADMISS_CHECK(*debug));
 
     }
@@ -147,7 +147,7 @@ void testbench::initiator_thread(void) {
     
     for(unsigned int i = 0; i < 8; i++) {
 
-      data = dread((0x00010000 + (i<<2)), i, 0x8, 0, 0, 0, debug);
+      data = dread((0x00010000 + (i<<2)), 4, 0x8, 0, 0, 0, debug);
       assert(CACHEREADHIT_CHECK(*debug));
       assert(data==i);
     }
@@ -251,7 +251,7 @@ void testbench::initiator_thread(void) {
     for(unsigned int i = 0; i < 8; i++) {
 
       // args: address, length, flush, flushl, lock
-      data = iread((0x00010000 + (i<<2)), i, 0, 0, 0, debug);
+      data = iread((0x00010000 + (i<<2)), 0, 0, 0, debug);
       assert(CACHEREADMISS_CHECK(*debug));
 
     }
@@ -262,7 +262,7 @@ void testbench::initiator_thread(void) {
     
     for(unsigned int i = 0; i < 8; i++) {
 
-      data = iread((0x00010000 + (i<<2)), i, 0, 0, 0, debug);
+      data = iread((0x00010000 + (i<<2)), 0, 0, 0, debug);
       assert(CACHEREADHIT_CHECK(*debug));
       assert(data==i);
     }
@@ -303,7 +303,7 @@ void testbench::initiator_thread(void) {
 
     for(unsigned int i = 0; i < 8; i++) {
 
-      data = iread((0x00020000 + (i<<2)), 4, 0, 0, 0, debug);
+      data = iread((0x00020000 + (i<<2)), 0, 0, 0, debug);
       assert(CACHEREADMISS_CHECK(*debug));
       assert(data==i);
 
@@ -327,7 +327,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * and invalidate the old data (all entries except subblock 3).");
     DUMP(name()," ************************************************************");    
     
-    data = iread((0x00030000 + (3<<2)), 4, 0, 0, 0, debug);
+    data = iread((0x00030000 + (3<<2)), 0, 0, 0, debug);
     assert(CACHEREADMISS_CHECK(*debug));
     assert(data==3);
 

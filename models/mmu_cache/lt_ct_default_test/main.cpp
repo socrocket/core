@@ -140,7 +140,7 @@ int sc_main(int argc, char** argv) {
 
   // create AHB memory (1MB from address base 0)
   //ahb_ct_mem<32> ahb_mem("AHB_MEM",0, 0x1000);
-  ahb_slave<32> ahb_mem("AHB_MEM",0,0x1000);
+  ahb_slave<32> ahb_mem("AHB_MEM",0,0x3000);
 
   // *** BIND SOCKETS
 

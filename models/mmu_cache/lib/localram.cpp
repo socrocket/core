@@ -29,10 +29,10 @@ localram::localram(sc_core::sc_module_name name,
   assert(m_lrsize < 131073);
 
   // initialize allocator
-  m_default_entry = 0;
+  m_default_entry.i = 0;
 
   // create the actual ram
-  scratchpad = new std::vector<unsigned int>(m_lrsize, m_default_entry);
+  scratchpad = new std::vector<t_cache_data>(m_lrsize, m_default_entry);
 
   DUMP(this->name(), " ******************************************************************************* ");
   DUMP(this->name(), " * Created local ram with following parameters:                                  ");
@@ -51,29 +51,37 @@ localram::~localram() {
 }
 
 /// read from scratchpad
-void localram::read(unsigned int addr, unsigned int *data, sc_core::sc_time *t, unsigned int *debug) {
+void localram::read(unsigned int addr, unsigned char *data, unsigned int len, sc_core::sc_time *t, unsigned int *debug) {
 
   assert(addr - m_lrstart < (m_lrsize << 2));
+  
+  // byte offset
+  unsigned int byt = addr & 0x3;
 
-  *data = (*scratchpad)[(addr - m_lrstart) >> 2];
+  // memcpy ??
+  for(unsigned int i=0; i<len; i++) { *(data+i) = (*scratchpad)[(addr - m_lrstart) >> 2].c[byt+i]; }
+
   DUMP(this->name(),"Read from address: " << std::hex << addr);
  
   // update debug information
   SCRATCHPAD_SET(*debug);
 
-  // todo: sub-word access
 }
 
 // write to scratchpad
-void localram::write(unsigned int addr, unsigned int *data, sc_core::sc_time *t, unsigned int *debug) {
+void localram::write(unsigned int addr, unsigned char *data, unsigned int len, sc_core::sc_time *t, unsigned int *debug) {
 
   assert(addr - m_lrstart < (m_lrsize << 2));
 
-  (*scratchpad)[(addr - m_lrstart) >> 2] = *data;
-  DUMP(this->name(),"Write to address: " << std::hex << addr << " data: " << std::hex << *data);
+  // byte offset
+  unsigned int byt = addr & 0x3;
+
+  // memcpy ??
+  for(unsigned int i=0; i<len; i++) { (*scratchpad)[(addr - m_lrstart) >> 2].c[byt+i] = *(data + i); }
+
+  DUMP(this->name(),"Write to address: " << std::hex << addr);
 
   // update debug information
   SCRATCHPAD_SET(*debug);
 
-  // todo: sub-word access
 }

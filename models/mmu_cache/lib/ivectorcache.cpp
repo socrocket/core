@@ -186,12 +186,12 @@ void ivectorcache::read(unsigned int address, unsigned int *data, sc_core::sc_ti
     if (m_mmu_en == 1) {
 
       // mmu enabled: forward request to mmu
-      m_mmu->itlb_read(address, data, 4, debug);
+      m_mmu->itlb_read(address, (unsigned char*)data, 4, debug);
 
     } else {
     
       // no mmu: access ahb interface directly
-      m_parent->amba_read(address, data, 4);
+      m_parent->amba_read(address, (unsigned char *)data, 4);
       DUMP(this->name(),"Received data from main memory " << std::hex << *data);
 
     }
@@ -276,11 +276,11 @@ void ivectorcache::flush(sc_core::sc_time *t, unsigned int * debug) {
 	  if (m_mmu_en == 1) {
 	    
 	    // mmu enabled: forward request to mmu
-	    m_mmu->itlb_write(adr, &(*m_current_cacheline[set]).entry[entry].i, 4, debug);
+	    m_mmu->itlb_write(adr,(unsigned char *)&(*m_current_cacheline[set]).entry[entry].i, 4, debug);
 
 	  } else {
 	    // and writeback
-	    m_parent->amba_write(adr, &(*m_current_cacheline[set]).entry[entry].i,4);
+	    m_parent->amba_write(adr,(unsigned char *)&(*m_current_cacheline[set]).entry[entry].i,4);
 
 	  }
 	}

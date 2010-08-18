@@ -151,10 +151,15 @@ void testbench::initiator_thread(void) {
 
     // args: address, length, asi, flush, flushl, lock
     data = dread(0x64, 4, 0x8, 0, 0, 0, debug);
+    std::cout << "1";
     DUMP(name(), "DCACHE read from 0x64 returned " << std::hex << data);
+    std::cout << "2";
     assert(data==0x04030201);
+    std::cout << "3";
     DUMP(this->name(),"debug: " << std::hex << *debug);
+    std::cout << "4";
     assert(CACHEREADMISS_CHECK(*debug));
+    std::cout << "5";
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -253,8 +258,8 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 16. ICACHE read addr 0x64 (cache miss)         "                    );
     DUMP(name()," ********************************************************* ");
 
-    // args: addr, length, flush, flushl, fline
-    data = iread(0x64, 4, 0x8, 0, 0, debug);
+    // args: addr, flush, flushl, fline
+    data = iread(0x64, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
     assert(CACHEREADMISS_CHECK(*debug));
@@ -266,7 +271,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 17. ICACHE read again from 0x64 (cache hit)           "             );
     DUMP(name()," ********************************************************* ");
 
-    data = iread(0x64, 4, 0x8, 0, 0, debug);
+    data = iread(0x64, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x64 returned " << std::hex << data);
     assert(data==0x04030201);
     assert(CACHEREADHIT_CHECK(*debug));
@@ -278,7 +283,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 18. ICACHE read addr 0x464 / same idx, diff tag (cache miss) ");
     DUMP(name()," * should fill one of the empty banks (3 left)              ");
     DUMP(name()," ********************************************************** ");
-    data = iread(0x464, 4, 0x8, 0, 0, debug);
+    data = iread(0x464, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
     assert(CACHEREADMISS_CHECK(*debug));
@@ -291,7 +296,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * should fill one of the empty banks (2 left)              ");
     DUMP(name()," ********************************************************** ");
 
-    data = iread(0x864, 4, 0x8, 0, 0, debug);
+    data = iread(0x864, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
     assert(CACHEREADMISS_CHECK(*debug));
@@ -304,7 +309,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * should fill the last empty bank                          ");
     DUMP(name()," ********************************************************** ");
 
-    data = iread(0xc64, 4, 0x8, 0, 0, debug);
+    data = iread(0xc64, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
     assert(CACHEREADMISS_CHECK(*debug));
@@ -316,7 +321,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 21. ICACHE read from 0x464 (cache hit) "                    );
     DUMP(name()," ************************************************* ");
 
-    data = iread(0x464, 4, 0x8, 0, 0, debug);
+    data = iread(0x464, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x464 returned " << std::hex << data);
     assert(data==0x08070605);
     assert(CACHEREADHIT_CHECK(*debug));
@@ -328,7 +333,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 22. ICACHE read from 0x864 (cache hit) ");
     DUMP(name()," ************************************************* ");
 
-    data = iread(0x864, 4, 0x8, 0, 0, debug);
+    data = iread(0x864, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0x864 returned " << std::hex << data);
     assert(data==0x0c0b0a09);
     assert(CACHEREADHIT_CHECK(*debug));
@@ -340,7 +345,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 23. ICACHE read from 0xc64 (cache hit) "                    );
     DUMP(name()," ************************************************* ");
 
-    data = iread(0xc64, 4, 0x8, 0, 0, debug);
+    data = iread(0xc64, 0x8, 0, 0, debug);
     DUMP(name(), "ICACHE read from 0xc64 returned " << std::hex << data);
     assert(data==0x100f0e0d);
     assert(CACHEREADHIT_CHECK(*debug));
@@ -646,7 +651,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * 49. ICACHE read from Address 0x468 (hit set 3)       ");
     DUMP(name()," ************************************************* ");
 
-    data = iread(0x468, 4, 0, 0, 0, debug);
+    data = iread(0x468, 0, 0, 0, debug);
     DUMP(name(),"ICACHE returned data: " << std::hex << data);
     assert(data==0x87654321);
     assert(CACHEREADHIT_CHECK(*debug));
@@ -715,7 +720,7 @@ void testbench::initiator_thread(void) {
     DUMP(name(),"* 54. ICACHE read from Address 0x468 (miss)           ");
     DUMP(name(),"************************************************* ");
 
-    data = iread(0x468, 4, 0, 0, 0, debug);
+    data = iread(0x468, 0, 0, 0, debug);
     DUMP(name(),"ICACHE returned data: " << std::hex << data);
     assert(data==0x87654321);
     assert(CACHEREADMISS_CHECK(*debug));
@@ -856,7 +861,7 @@ void testbench::initiator_thread(void) {
     DUMP(name(),"* 65.ICACHE read from Address 0x868 (miss)           ");
     DUMP(name(),"************************************************* ");
 
-    data = iread(0x868, 4, 0, 0, 0, debug);
+    data = iread(0x868, 0, 0, 0, debug);
     DUMP(name(),"ICACHE returned data: " << std::hex << data);
     assert(data==0x11111111 );
     assert(CACHEREADMISS_CHECK(*debug));
@@ -872,6 +877,138 @@ void testbench::initiator_thread(void) {
     assert(CACHEREADMISS_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* Phase 6: Sub-word access            ");
+    DUMP(name(),"************************************************* ");    
+
+    // dcache write
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 67. Store 4 bytes to tag 5 line 0 (miss)  ");
+    DUMP(name(),"************************************************* ");    
+
+    // 1 -> 0x1400
+    dwrite(0x1400,1,1,8,0,0,0,debug);
+    assert(CACHEWRITEMISS_CHECK(*debug));
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // 2 -> 0x1401
+    dwrite(0x1401,2,1,8,0,0,0,debug);
+    assert(CACHEWRITEMISS_CHECK(*debug));
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // 3 -> 0x1402
+    dwrite(0x1402,3,1,8,0,0,0,debug);
+    assert(CACHEWRITEMISS_CHECK(*debug));
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // 4 -> 0x1403
+    dwrite(0x1403,4,1,8,0,0,0,debug);
+    assert(CACHEWRITEMISS_CHECK(*debug));
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);   
+
+    // dcache read
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 68. Read 1 word and check result (miss)  ");
+    DUMP(name(),"************************************************* ");        
+
+    data = dread(0x1400,4,8,0,0,0,debug);
+    assert(CACHEREADMISS_CHECK(*debug));
+    assert(data=0x04030201);
+    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // dcache read
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 69. Read 2 shorts and check result (hit)   ");
+    DUMP(name(),"************************************************* ");
+
+    data = dread(0x1400,2,8,0,0,0,debug);
+    assert(CACHEREADHIT_CHECK(*debug));
+    assert(data=0x0201);
+    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+
+    data = dread(0x1402,2,8,0,0,0,debug);
+    assert(CACHEREADHIT_CHECK(*debug));
+    assert(data=0x0403);
+    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // dcache read
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 70. Read 4 bytes and check result (hit)  ");
+    DUMP(name(),"************************************************* ");
+
+    data = dread(0x1400,1,8,0,0,0,debug);
+    assert(CACHEREADHIT_CHECK(*debug));
+    assert(data=0x01);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    data = dread(0x1401,1,8,0,0,0,debug);
+    assert(CACHEREADHIT_CHECK(*debug));
+    assert(data=0x02);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    data = dread(0x1402,1,8,0,0,0,debug);
+    assert(CACHEREADHIT_CHECK(*debug));
+    assert(data=0x03);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    data = dread(0x1403,1,8,0,0,0,debug);
+    assert(CACHEREADHIT_CHECK(*debug));
+    assert(data=0x04);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // dcache write
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 71. Store 2 shorts to tag 5 line 1 (miss)  ");
+    DUMP(name(),"************************************************* ");
+
+    // 0x8765 -> 0x1404
+    dwrite(0x1404,0x8765,2,8,0,0,0,debug);
+    assert(CACHEWRITEMISS_CHECK(*debug));
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // 0xcba9 -> 0x1406
+    dwrite(0x1406,0xcba9,2,8,0,0,0,debug);
+    assert(CACHEWRITEMISS_CHECK(*debug));
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // dcache write
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 72. Read 1 byte from tag 5 line 1 (miss)  ");
+    DUMP(name(),"* The miss on the byte should cause the complete ");
+    DUMP(name(),"* word to be cached. ");
+    DUMP(name(),"************************************************* "); 
+
+    data = dread(0x1405,1,8,0,0,0,debug);
+    assert(CACHEREADMISS_CHECK(*debug));
+    assert(data=0x87);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // dcache write
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 73. Read the two shorts with one word access (hit)  ");
+    DUMP(name(),"************************************************* ");   
+
+    data = dread(0x1404,4,8,0,0,0,debug);
+    assert(CACHEREADHIT_CHECK(*debug));
+    assert(data=0xcba98765);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
 
     // *******************************************
     // * END OF TEST

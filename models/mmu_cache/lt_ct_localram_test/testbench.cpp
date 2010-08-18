@@ -98,11 +98,14 @@ void testbench::initiator_thread(void) {
 
     for (int i = 0; i < 0xc0000; i+=4) {
 
-      dwrite(i,i,4,8,0,0,0,debug);
-      assert(CACHEWRITEMISS_CHECK(*debug));
+      // write only beginning and end of cache page
+      if(((i&0x3ffff)<0x100)||((i&0x3ffff)>0x3ff00)) {
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS);
+	dwrite(i,i,4,8,0,0,0,debug);
+	assert(CACHEWRITEMISS_CHECK(*debug));
 
+	wait(LOCAL_CLOCK,sc_core::SC_NS);
+      }
     }
 
     DUMP(name()," ************************************************************ ");
@@ -113,12 +116,14 @@ void testbench::initiator_thread(void) {
     // tags 0 and 1
     for (unsigned int i = 0; i < 0x80000; i+=4) {
 
-      data=dread(i, 4, 8, 0, 0, 0, debug);
-      assert(data==i);
-      assert(CACHEREADMISS_CHECK(*debug));
+      // read only beginning and end
+      if((i<0x100)||(i>0x7ff00)) {
+	data=dread(i, 4, 8, 0, 0, 0, debug);
+	assert(data==i);
+	assert(CACHEREADMISS_CHECK(*debug));
  
-      wait(LOCAL_CLOCK,sc_core::SC_NS);   
-
+	wait(LOCAL_CLOCK,sc_core::SC_NS);   
+      }
     }
 
     DUMP(name()," ************************************************************ ");
@@ -128,12 +133,14 @@ void testbench::initiator_thread(void) {
     // tags 0 and 1
     for (unsigned int i = 0; i < 0x80000; i+=4) {
 
-      data=dread(i, 4, 8, 0, 0, 0, debug);
-      assert(data==i);
-      assert(CACHEREADHIT_CHECK(*debug));
+      // read only beginning and end
+      if((i<0x100)||(i>0x7ff00)) {
+	data=dread(i, 4, 8, 0, 0, 0, debug);
+	assert(data==i);
+	assert(CACHEREADHIT_CHECK(*debug));
  
-      wait(LOCAL_CLOCK,sc_core::SC_NS);   
-
+	wait(LOCAL_CLOCK,sc_core::SC_NS);   
+      }
     }
 
     DUMP(name()," ************************************************************ ");
@@ -143,11 +150,14 @@ void testbench::initiator_thread(void) {
     // tag 2
     for (unsigned int i = 0x80000; i < 0xc0000; i+=4) {
 
-      data=dread(i, 4, 8, 0, 0, 0, debug);
-      assert(data==i);
-      assert(CACHEREADMISS_CHECK(*debug));
+      // read only beginning and end
+      if((i<0x80100)||(i>0xbff00)) {
+	data=dread(i, 4, 8, 0, 0, 0, debug);
+	assert(data==i);
+	assert(CACHEREADMISS_CHECK(*debug));
  
-      wait(LOCAL_CLOCK,sc_core::SC_NS);   
+	wait(LOCAL_CLOCK,sc_core::SC_NS);   
+      }
     }
 
     DUMP(name()," ************************************************************ ");
@@ -157,11 +167,14 @@ void testbench::initiator_thread(void) {
     // tag 2
     for (unsigned int i = 0x80000; i < 0xc0000; i+=4) {
 
-      data=dread(i, 4, 8, 0, 0, 0, debug);
-      assert(data==i);
-      assert(CACHEREADHIT_CHECK(*debug));
+      // read only beginning and end
+      if((i<0x80100)||(i>0xbff00)) {
+	data=dread(i, 4, 8, 0, 0, 0, debug);
+	assert(data==i);
+	assert(CACHEREADHIT_CHECK(*debug));
  
-      wait(LOCAL_CLOCK,sc_core::SC_NS);   
+	wait(LOCAL_CLOCK,sc_core::SC_NS);   
+      }
     }
 
     DUMP(name()," ************************************************************ ");
@@ -175,10 +188,13 @@ void testbench::initiator_thread(void) {
     // start of scratchpad segment
     for (unsigned int i = 0x8e000000; i < 0x8e080000; i+=4) {
 
-      dwrite(i, i, 4, 8, 0, 0, 0, debug);
-      assert(SCRATCHPAD_CHECK(*debug));
+      // write only beginning and end
+      if((i<0x8e000100)||(i>0x8e07ff00)) {
+	dwrite(i, i, 4, 8, 0, 0, 0, debug);
+	assert(SCRATCHPAD_CHECK(*debug));
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS);  
+	wait(LOCAL_CLOCK,sc_core::SC_NS);  
+      }
     }
 
     DUMP(name()," ************************************************************ ");
@@ -188,11 +204,15 @@ void testbench::initiator_thread(void) {
     // start of scratchpad segment
     for (unsigned int i = 0x8e000000; i < 0x8e080000; i+=4) {
 
-      data=iread(i, 4, 0, 0, 0, debug);
-      assert(data==i);
-      assert(SCRATCHPAD_CHECK(*debug));
+      // read only beginning and end
+      if((i<0x8e000100)||(i>0x8e07ff00)) {
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS);
+	data=iread(i, 0, 0, 0, debug);
+	assert(data==i);
+	assert(SCRATCHPAD_CHECK(*debug));
+
+	wait(LOCAL_CLOCK,sc_core::SC_NS);
+      }
     }
 
     DUMP(name()," ************************************************************ ");
@@ -201,10 +221,13 @@ void testbench::initiator_thread(void) {
 
     for (unsigned int i = 0x8f000000; i < 0x8f080000; i+=4) {
 
-      dwrite(i, i, 4, 8, 0, 0, 0, debug);
-      assert(SCRATCHPAD_CHECK(*debug));
+      // write only beginning and end
+      if((i<0x8f000100)||(i>0x8f07ff00)) {
+	dwrite(i, i, 4, 8, 0, 0, 0, debug);
+	assert(SCRATCHPAD_CHECK(*debug));
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS);  
+	wait(LOCAL_CLOCK,sc_core::SC_NS);  
+      }
     }
 
     DUMP(name()," ************************************************************ ");
@@ -213,14 +236,77 @@ void testbench::initiator_thread(void) {
 
     for (unsigned int i = 0x8f000000; i < 0x8f080000; i+=4) {
 
-      data=dread(i, 4, 8, 0, 0, 0, debug);
-      assert(SCRATCHPAD_CHECK(*debug));
+      // read only beginning and end
+      if((i<0x8f000100)||(i>0x8f07ff00)) {
+	data=dread(i, 4, 8, 0, 0, 0, debug);
+	assert(SCRATCHPAD_CHECK(*debug));
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS);  
+	wait(LOCAL_CLOCK,sc_core::SC_NS);  
+      }
     }
 
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * 13. Test byte store for data scratchpad ");
+    DUMP(name()," ************************************************************");    
+
+    for (unsigned int i = 0; i < 4; i++) {
+
+      dwrite(0x8f000000+i, i+1, 1, 8, 0, 0, 0, debug);
+      assert(SCRATCHPAD_CHECK(*debug));
+
+      wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    }
+
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * 14. Test byte load for data scratchpad ");
+    DUMP(name()," ************************************************************");     
+
+    for (unsigned int i = 0; i < 4; i++) {
+
+      data=dread(0x8f000000+i, 1, 8, 0, 0, 0, debug);
+      assert(data==(i+1));
+      assert(SCRATCHPAD_CHECK(*debug));
+
+      wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    }
+
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * 15. Test half-word read for data scratchpad ");
+    DUMP(name()," ************************************************************");     
+
+    data=dread(0x8f000000, 2, 8, 0, 0, 0, debug);
+    assert(data==0x0201);
+    assert(SCRATCHPAD_CHECK(*debug));
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+
+    data=dread(0x8f000002, 2, 8, 0, 0, 0, debug);
+    assert(data==0x0403);
+    assert(SCRATCHPAD_CHECK(*debug));
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * 16. Test half-word write for data scratchpad ");
+    DUMP(name()," ************************************************************");   
+
+    dwrite(0x8f000004, 0x0b0a, 2, 8, 0, 0, 0, debug);
+    assert(SCRATCHPAD_CHECK(*debug));
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    dwrite(0x8f000006, 0x0d0c, 2, 8, 0, 0, 0, debug);
+    assert(SCRATCHPAD_CHECK(*debug));
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // read back and check
+    data=dread(0x8f000004, 4, 8, 0, 0, 0, debug);
+    assert(data==0x0d0c0b0a);
+    assert(SCRATCHPAD_CHECK(*debug));
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
     sc_core::sc_stop();
   }
 }

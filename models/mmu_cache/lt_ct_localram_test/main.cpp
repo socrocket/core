@@ -1,20 +1,20 @@
-in// ***********************************************************************/
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-// *                                                                     */
-// * File:       main.cpp - Top level file (sc_main) for                 */
-// *             lt_ct_localram_test. The mmu_cache is connected         */
-// *             to a testbench (lt) and a cycle timed AHB bus.          */
-// *	         The configuration under test has ilram and dlram        */
-// *	         scratchpads of 512 kByte. The mmu is disabled.          */
-// *                                                                     */
-// *                                                                     */
-// * Modified on $Date$   */
-// *          at $Revision$                                         */
-// *                                                                     */
-// * Principal:  European Space Agency                                   */
-// * Author:     VLSI working group @ IDA @ TUBS                         */
-// * Maintainer: Thomas Schuster                                         */
-// ***********************************************************************/
+// ***********************************************************************
+// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
+// *                                                                     *
+// * File:       main.cpp - Top level file (sc_main) for                 *
+// *             lt_ct_localram_test. The mmu_cache is connected         *
+// *             to a testbench (lt) and a cycle timed AHB bus.          *
+// *	         The configuration under test has ilram and dlram        *
+// *	         scratchpads of 512 kByte. The mmu is disabled.          *
+// *                                                                     *
+// *                                                                     *
+// * Modified on $Date$   *
+// *          at $Revision$                                         *
+// *                                                                     *
+// * Principal:  European Space Agency                                   *
+// * Author:     VLSI working group @ IDA @ TUBS                         *
+// * Maintainer: Thomas Schuster                                         *
+// ***********************************************************************
 
 
 #include "tlm.h"
