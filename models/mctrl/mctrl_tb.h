@@ -6,8 +6,8 @@
 /*             can be used for systemc or vhdl simulation w/ modelsim  */
 /*             includes mctrl_tb.tpp at the bottom                     */
 /*                                                                     */
-/* Modified on $Date: 2010-06-02 13:16:10 +0200 (Wed, 02 Jun 2010) $   */
-/*          at $Revision: 9 $                                          */
+/* Modified on $Date$   */
+/*          at $Revision$                                          */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TU Braunschweig              */
@@ -39,7 +39,7 @@ class Mctrl_tb : public sc_core::sc_module {
     ~Mctrl_tb();
 
     //define TLM write and read transactions
-    void write(uint32_t addr, uint32_t data, uint32_t width, bool apb);
+    void write(uint32_t addr, uint64_t data, uint32_t width, bool apb);
     uint32_t read(uint32_t addr, uint32_t width, bool apb);
 
     //stimuli (make use of TLM write / read transaction functions defined above)

@@ -5,8 +5,8 @@
 /*             defines addresses, write masks, and default values of   */
 /*             all registers of the MCTRL memory controller            */
 /*                                                                     */
-/* Modified on $Date: 2010-06-02 13:16:10 +0200 (Wed, 02 Jun 2010) $   */
-/*          at $Revision: 9 $                                          */
+/* Modified on $Date$   */
+/*          at $Revision$                                          */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */

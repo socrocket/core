@@ -5,8 +5,8 @@
 /*             implementation of the mctrl module                      */
 /*             is included by mctrl.h template header file             */
 /*                                                                     */
-/* Modified on $Date: 2010-06-09 10:30:16 +0200 (Wed, 09 Jun 2010) $   */
-/*          at $Revision: 10 $                                         */
+/* Modified on $Date$   */
+/*          at $Revision$                                         */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
@@ -131,7 +131,7 @@ PRE_MCTRL Mctrl POST_MCTRL::~Mctrl() {
 
 //scope
 PRE_MCTRL void Mctrl POST_MCTRL::
-//function to initialize registers and memory address spece constants
+//function to initialize memory address space constants
 initialize_mctrl() {
 
   // --- calculate address spaces of the different memory banks
@@ -186,7 +186,7 @@ initialize_mctrl() {
   else if (!(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SI)) {
     //bank 1
     sram_bk1_s = static_cast<uint32_t>(ramaddr << 20);
-    //                                                      1Byte << 13 = 8KB
+    //                                       1Byte << 13 = 8KB
     sram_bk1_e = sram_bk1_s + (1 << (sram_bank_size + 13)) - 1;
     //bank 2 starts right after bank 1
     sram_bk2_s = sram_bk1_e + 1;
@@ -229,6 +229,7 @@ initialize_mctrl() {
     sram_bk5_s = 0;
     sram_bk5_e = 0;
   }
+
 #ifdef DEBUG
   cout << endl << hex << "--- address space borders ---" << endl
        << "ROM_1:   " <<   rom_bk1_s << " - " <<   rom_bk1_e << endl
@@ -265,16 +266,16 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
     //determine streaming width by MCFG1[9..8]
 //  if (r[MCTRL_MCFG1].bit_get(9)) {
     if ( (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH) >> 9) {
-      gp.set_streaming_width(32);
+      gp.set_streaming_width(4);
     }
 //  else if (r[MCTRL_MCFG1].bit_get(8)) {
     else if (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH) {
-      gp.set_streaming_width(16);
+      gp.set_streaming_width(2);
     }
     else {
-      gp.set_streaming_width(8);
+      gp.set_streaming_width(1);
     }
-    if (cmd == 1) {
+    if (cmd == tlm::TLM_WRITE_COMMAND) {
       //PROM write access must be explicitly allowed
 //    if (!r[MCTRL_MCFG1].bit_get(11)) {
       if ( !(r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PWEN) ) {
@@ -286,16 +287,18 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
       //calculate delay for write command
       else {
         cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WRITE_WS) >> 4;
-        cycles = DECODING_DELAY + MCTRL_ROM_WRITE_DELAY(cycles);
+        cycles = DECODING_DELAY + MCTRL_ROM_WRITE_DELAY(cycles) + 
+                 gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
         //add delay and forward transaction to memory
         delay += cycle_time * cycles;
         mctrl_rom->b_transport(gp,delay);
       }
     }
     //calculate delay for read command
-    else if (cmd == 0) {
+    else if (cmd == tlm::TLM_READ_COMMAND) {
       cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_READ_WS);
-      cycles = DECODING_DELAY + MCTRL_ROM_READ_DELAY(cycles);
+      cycles = DECODING_DELAY + MCTRL_ROM_READ_DELAY(cycles) + 
+               gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
       //add delay and forward transaction to memory
       delay += cycle_time * cycles;
       mctrl_rom->b_transport(gp,delay);
@@ -305,16 +308,18 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
   else if (Mctrl::io_s <= gp.get_address() and gp.get_address() <= Mctrl::io_e) {
     cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IO_WAITSTATES) >> 20;
     //calculate delay for read command
-    if (cmd == 0) {
-      cycles = DECODING_DELAY + MCTRL_IO_READ_DELAY(cycles);
+    if (cmd == tlm::TLM_READ_COMMAND) {
+      cycles = DECODING_DELAY + MCTRL_IO_READ_DELAY(cycles) + 
+               gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
     }
     //calculate delay for write command
-    else if (cmd == 1) {
-      cycles = DECODING_DELAY + MCTRL_IO_WRITE_DELAY(cycles);
+    else if (cmd == tlm::TLM_WRITE_COMMAND) {
+      cycles = DECODING_DELAY + MCTRL_IO_WRITE_DELAY(cycles) + 
+               gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
     }
     //add delay and forward transaction to memory
     delay += cycle_time * cycles;
-    gp.set_streaming_width(32);
+    gp.set_streaming_width(4);
     mctrl_io->b_transport(gp,delay);
   }
   //access to SRAM adress space
@@ -323,27 +328,27 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
            Mctrl::sram_bk3_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk3_e ||
            Mctrl::sram_bk4_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk4_e ||
            Mctrl::sram_bk5_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk5_e    ) {
-    //determine streaming width
-//  if (r[MCTRL_MCFG2].bit_get(5)) {
+    //determine streaming width (below bit mask contains bits 5 and 4, so shift is required)
     if ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WIDTH) >> 5 ) {
-      gp.set_streaming_width(32);
+      gp.set_streaming_width(4);
     }
-//  else if (r[MCTRL_MCFG2].bit_get(4)) {
     else if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WIDTH) {
-      gp.set_streaming_width(16);
+      gp.set_streaming_width(2);
     }
     else {
-      gp.set_streaming_width(8);
+      gp.set_streaming_width(1);
     }
     //calculate delay for read command
-    if (cmd == 0) {
+    if (cmd == tlm::TLM_READ_COMMAND) {
       cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_READ_WS);
-      cycles = DECODING_DELAY + MCTRL_SRAM_READ_DELAY(cycles);
+      cycles = DECODING_DELAY + MCTRL_SRAM_READ_DELAY(cycles) + 
+               gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
     }
     //calculate delay for write command
-    else if (cmd == 1) {
+    else if (cmd == tlm::TLM_WRITE_COMMAND) {
       cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WRITE_WS >> 2);
-      cycles = DECODING_DELAY + MCTRL_SRAM_WRITE_DELAY(cycles);
+      cycles = DECODING_DELAY + MCTRL_SRAM_WRITE_DELAY(cycles) + 
+               gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
     }
     //add delay and forward transaction to memory
     delay += cycle_time * cycles;
@@ -352,20 +357,18 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
   //access to SDRAM adress space
   else if (Mctrl::sdram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk1_e ||
            Mctrl::sdram_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk2_e    ) {
-//  if (r[MCTRL_MCFG2].bit_get(18)) {
     if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_D64) {
-      gp.set_streaming_width(64);
+      gp.set_streaming_width(8);
     }
     else {
-      gp.set_streaming_width(32);
+      gp.set_streaming_width(4);
     }
     //read delay = write delay: trcd, tcas, and trp can all be either 2 or 3
-    cycles = 6;
-//  if (r[MCTRL_MCFG2].bit_get(26)) {
+    cycles = 6 + 
+             gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access;
     if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS) {
       cycles += 2; //trcd = tcas = 3
     }
-//  if (r[MCTRL_MCFG2].bit_get(30)) {
     if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) {
       cycles++; //trp = 3
     }

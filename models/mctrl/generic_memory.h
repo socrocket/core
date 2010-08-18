@@ -5,8 +5,8 @@
 /*             memory module modeling all types of memory supported by */
 /*             mctrl: RAM, std I/O, SRAM, SDRAM                        */
 /*                                                                     */
-/* Modified on $Date: 2010-06-09 10:30:16 +0200 (Wed, 09 Jun 2010) $   */
-/*          at $Revision: 10 $                                         */
+/* Modified on $Date$   */
+/*          at $Revision$                                         */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
@@ -51,22 +51,16 @@ public:
     void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
 
     //write into memory
-      //ROM, SRAM: 32 bit, 16 bit, and 8 bit access
-      void write_4x8(uint32_t address, uint32_t data);
-      void write_2x8(uint32_t address, uint16_t data);
-      void write_1x8(uint32_t address, uint8_t data);
-      //IO, SDRAM: 32 bit access
-      void write_1x32(uint32_t address, uint32_t data);
-      //SDRAM: 64 bit access
-      void write_2x32(uint32_t address, uint64_t data);
+      //ROM, SRAM: byte addressable
+      void write_8(uint32_t address, unsigned char* data, uint8_t length);
+      //IO, SDRAM: word addressable
+      void write_32(uint32_t address, uint32_t* data, uint8_t length);
 
     //read from memory
-      //ROM, SRAM: 32 bit access
-      uint32_t read_4x8(uint32_t address);
-      //IO, SDRAM: 32 bit access
-      uint32_t read_1x32(uint32_t address);
-      //SDRAM: 64 bit access
-      uint64_t read_2x32(uint32_t address);
+      //ROM, SRAM: byte addressable
+      void read_8(uint32_t address, unsigned char* data_ptr, uint8_t length);
+      //IO, SDRAM: word addressable
+      void read_32(uint32_t address, uint32_t* data_ptr, uint8_t length);
 
 };
 

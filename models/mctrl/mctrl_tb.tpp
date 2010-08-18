@@ -6,8 +6,8 @@
 /*             can be used for systemc or vhdl simulation w/ modelsim  */
 /*             included by testbench header file                       */
 /*                                                                     */
-/* Modified on $Date: 2010-06-02 13:16:10 +0200 (Wed, 02 Jun 2010) $   */
-/*          at $Revision: 9 $                                          */
+/* Modified on $Date$   */
+/*          at $Revision$                                          */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
@@ -25,10 +25,10 @@
 
 #define SHOW \
 { std::printf("\n@%-7s /%-4d:", sc_core::sc_time_stamp().to_string().c_str(), (unsigned)sc_core::sc_delta_count());}
-#define REG(name, apb) \
-{ std::cout << " "#name << ": 0x" << std::hex << std::setfill('0') << std::setw(8) << read(name, 4, apb); }
-#define SET(name, val, apb) \
-{ write(name, val, 4, apb); }
+#define REG(name, length, apb) \
+{ std::cout << " "#name << ": 0x" << std::hex << std::setfill('0') << std::setw(8) << read(name, length, apb); }
+#define SET(name, val, length, apb) \
+{ write(name, val, length, apb); }
 
 //constructor
 template <int hindex,    int pindex,   int romaddr, int rommask,
@@ -88,7 +88,7 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
                   srbanks,   ram8,     ram16,
                   sden,      sepbus,   sdbits,
                   sdlsb,     oepol,    syncrst,
-                  pageburst, scantest, mobile, BUSWIDTH >::write(uint32_t addr, uint32_t data, uint32_t width, bool apb) {
+                  pageburst, scantest, mobile, BUSWIDTH >::write(uint32_t addr, uint64_t data, uint32_t width, bool apb) {
     sc_core::sc_time t;
     tlm::tlm_generic_payload gp;
       gp.set_command(tlm::TLM_WRITE_COMMAND);
@@ -176,35 +176,35 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
 
   //write ROM
   for (uint32_t i=0x00000000; i<0x0000000A; i+=4) {
-    SET (i, i+0x200, AHB);
+    SET (i, i+0x200, 4, AHB);
   }
   //write IO
   for (uint32_t i=0x20000000; i<0x2000000A; i+=4) {
-    SET (i, i, AHB);
+    SET (i, i, 4, AHB);
   }
   //write SRAM
   for (uint32_t i=0x40000000; i<0x4000000A; i+=4) {
-    SET (i, i, AHB);
+    SET (i, i, 4, AHB);
   }
   //write SDRAM
   for (uint32_t i=0x80000000; i<0x8000000A; i+=4) {
-    SET (i, i, AHB);
+    SET (i, i, 4, AHB);
   }
   //read ROM
   for (uint32_t i=0x00000000; i<0x0000000F; i+=4) {
-    REG (i, AHB);
+    REG (i, 4, AHB);
   }
   //read IO
   for (uint32_t i=0x20000000; i<0x2000000F; i+=4) {
-    REG (i, AHB);
+    REG (i, 4, AHB);
   }
   //read SRAM
   for (uint32_t i=0x40000000; i<0x4000000F; i+=4) {
-    REG (i, AHB);
+    REG (i, 4, AHB);
   }
   //read SDRAM
   for (uint32_t i=0x80000000; i<0x8000000F; i+=4) {
-    REG (i, AHB);
+    REG (i, 4, AHB);
   }
 
   cout << endl << endl << "--------------------------------------------------"
@@ -218,7 +218,7 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
   cout << endl << "intermediate MCFG1 contents: " << hex << (unsigned int) temp;
   temp |= (MCTRL_MCFG1_PROM_WIDTH & 0x00000100);
   cout << endl << "new MCFG1 contents: " << hex << (unsigned int) temp;
-  SET (MCTRL_MCFG1, temp, APB);
+  SET (MCTRL_MCFG1, temp, 4, APB);
 
   //switch SRAM to 16 bit access
   temp = read (MCTRL_MCFG2, 4, APB);
@@ -230,41 +230,43 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
   //switch SDRAM to 64 bit access
   temp |= MCTRL_MCFG2_D64;
   cout << endl << "new MCFG2 contents: " << hex << (unsigned int) temp;
-  SET (MCTRL_MCFG2, temp, APB);
+  SET (MCTRL_MCFG2, temp, 4, APB);
 
   cout << endl << endl << "--------------------------------------------------"
                << endl << "-------- write / read ROM / SRAM / SDRAM ---------"
                << endl << "--------------------------------------------------" << endl;
 
   //write ROM
-  uint16_t i16=0;
+//  uint16_t i16=0;
   uint64_t i64=0;
-  for (uint32_t i=0x0000000A; i<0x00000010; i+=2) {
-    SET (i, i16, AHB);
-    i16 += 2;
+  for (uint32_t i=0x0000000A; i<0x00000010; i+=4) {
+    SET (i, i, 4, AHB);
+//    SET (i, i16, AHB);
+//    i16 += 2;
   }
   //write SRAM
-  i16 = 0;
-  for (uint32_t i=0x4000000A; i<0x40000010; i+=2) {
-    SET (i, i16, AHB);
-    i16 += 2;
+//  i16 = 0;
+  for (uint32_t i=0x4000000A; i<0x40000010; i+=4) {
+    SET (i, i, 4, AHB);
+//    SET (i, i16, AHB);
+//    i16 += 2;
   }
   //write SDRAM
   for (uint32_t i=0x80000010; i<0x80000028; i+=8) {
-    SET (i, i64, AHB);
+    SET (i, i64, 8, AHB);
     i64 += 8;
   }
   //read ROM
   for (uint32_t i=0x00000008; i<0x00000014; i+=4) {
-    REG (i, AHB);
+    REG (i, 4, AHB);
   }
   //read SRAM
   for (uint32_t i=0x40000008; i<0x40000014; i+=4) {
-    REG (i, AHB);
+    REG (i, 4, AHB);
   }
   //read SDRAM
   for (uint32_t i=0x80000010; i<0x80000030; i+=8) {
-    REG (i, AHB);
+    REG (i, 8, AHB);
   }
 
   cout << endl << endl << "--------------------------------------------------"
@@ -276,14 +278,14 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
   cout << endl << "old MCFG1 contents: " << hex << (unsigned int) temp;
   temp &= ~MCTRL_MCFG1_PROM_WIDTH;
   cout << endl << "new MCFG1 contents: " << hex << (unsigned int) temp;
-  SET (MCTRL_MCFG1, temp, APB);
+  SET (MCTRL_MCFG1, temp, 4, APB);
 
   //switch SRAM to 8 bit access
   temp = read (MCTRL_MCFG2, 4, APB);
   cout << endl << "old MCFG2 contents: " << hex << (unsigned int) temp;
   temp &= ~MCTRL_MCFG2_RAM_WIDTH;
   cout << endl << "new MCFG1 contents: " << hex << (unsigned int) temp;
-  SET (MCTRL_MCFG2, temp, APB);
+  SET (MCTRL_MCFG2, temp, 4, APB);
 
   cout << endl << endl << "--------------------------------------------------"
                << endl << "---------- write and read ROM and SRAM -----------"
@@ -292,22 +294,22 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
   //write ROM
   uint8_t i8=0;
   for (uint32_t i=0x00000010; i<0x00000012; i++) {
-    SET (i, i8, AHB);
+    SET (i, i8, 4, AHB);
     i8++;
   }
   //write SRAM
   i8 = 0;
   for (uint32_t i=0x40000010; i<0x40000012; i++) {
-    SET (i, i8, AHB);
+    SET (i, i8, 4, AHB);
     i8++;
   }
   //read ROM
   for (uint32_t i=0x00000008; i<0x00000014; i += 4) {
-    REG (i, AHB);
+    REG (i, 4, AHB);
   }
   //read SRAM
   for (uint32_t i=0x40000008; i<0x40000014; i += 4) {
-    REG (i, AHB);
+    REG (i, 4, AHB);
   }
 
   cout << endl << endl << "--------------------------------------------------"
@@ -317,7 +319,7 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
   //switch off ROM write capability
   temp = read (MCTRL_MCFG1, 4, APB);
   temp &= ~MCTRL_MCFG1_PWEN;
-  SET (MCTRL_MCFG1, temp, APB);
+  SET (MCTRL_MCFG1, temp, 4, APB);
 
   cout << endl << endl << "--------------------------------------------------"
                << endl << "---------------- write into PROM -----------------"
@@ -326,9 +328,10 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
   //write ROM
   i8=0;
   for (uint32_t i=0x00000010; i<0x00000012; i++) {
-    SET (i, i8, AHB);
+    SET (i, i8, 4, AHB);
     i8++;
   }
+
   cout << endl;
 }
 

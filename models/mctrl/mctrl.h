@@ -5,8 +5,8 @@
 /*             header file defining the mctrl module template          */
 /*             includes implementation file mctrl.tpp at the bottom    */
 /*                                                                     */
-/* Modified on $Date: 2010-06-09 10:30:16 +0200 (Wed, 09 Jun 2010) $   */
-/*          at $Revision: 10 $                                         */
+/* Modified on $Date$   */
+/*          at $Revision$                                         */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
@@ -64,9 +64,6 @@ public:
 
     //define TLM transport functions
     virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
-
-    //define mctrl functions
-    void refresh_sdram();
 
     //address space variables
     uint32_t rom_bk1_s, rom_bk1_e, rom_bk2_s, rom_bk2_e,

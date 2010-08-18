@@ -4,8 +4,8 @@
 /* File:       mctrl_testtop_tlm.cpp                                   */
 /*             test file for systemc implementation of mctrl + memory  */
 /*                                                                     */
-/* Modified on $Date: 2010-06-02 13:16:10 +0200 (Wed, 02 Jun 2010) $   */
-/*          at $Revision: 9 $                                          */
+/* Modified on $Date$   */
+/*          at $Revision$                                          */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
