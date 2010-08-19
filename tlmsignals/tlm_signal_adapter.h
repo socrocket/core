@@ -51,6 +51,7 @@ public:
     , in("IN") {
       
     SC_THREAD(oninput);
+    dont_initialize();
     sensitive << in;
   }
 
@@ -76,6 +77,7 @@ public:
     , tlm(this, &tlmsc_inout_adapter::ontlm, "TLM")
     , sc("SC") {
     SC_THREAD(onsc);
+    dont_initialize();
     sensitive << sc;
   }
 
