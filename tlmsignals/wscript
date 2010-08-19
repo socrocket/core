@@ -1,0 +1,40 @@
+#! /usr/bin/env python
+# encoding: utf-8
+#***********************************************************************#
+#* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *#
+#*                                                                     *#
+#* File:       wscript                                                 *#
+#*             this file contains the build system for the tlmsignal   *#
+#*             library and all its testbenches.                        *#
+#*                                                                     *#
+#* Modified on $Date$   *#
+#*          at $Revision$                                         *#
+#*                                                                     *#
+#* Principal:  European Space Agency                                   *#
+#* Author:     VLSI working group @ IDA @ TUBS                         *#
+#* Maintainer: Rolf Meyer                                              *#
+#***********************************************************************#
+top = '..'
+
+def set_options(ctx):
+  pass 
+
+def configure(ctx):
+  pass
+  
+def build(bld):
+  bld(
+    name           = 'tlmsignals',
+    export_incdirs = '.',
+    uselib         = 'BOOST SYSC',
+  )
+ 
+  bld(
+    target       = 'simpletest',
+    features     = 'cxx cprogram test',
+    source       = 'tests/simple.cpp',
+    includes     = '.',
+    uselib       = 'BOOST SYSC',
+    uselib_local = 'tlmsignals'
+  )
+ 

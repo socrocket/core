@@ -4,11 +4,11 @@
 #* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *#
 #*                                                                     *#
 #* File:       wscript                                                 *#
-#*             this file contains the build system for the gptimer     *#
-#*             tLM model and all its testbenches.                      *#
+#*             this file contains the build system for the TLM library *#
+#*             $ ./waf configure; ./waf # to build it                  *#
 #*                                                                     *#
-#* Modified on $Date$   *#
-#*          at $Revision$                                         *#
+#* Modified on $Date: 2010-08-04 15:07:28 +0200 (Wed, 04 Aug 2010) $   *#
+#*          at $Revision: 40 $                                         *#
 #*                                                                     *#
 #* Principal:  European Space Agency                                   *#
 #* Author:     VLSI working group @ IDA @ TUBS                         *#
@@ -18,14 +18,7 @@ APPNAME = 'hwswtlmmodels'
 VERSION = '0.5'
 top = '.'
 out = 'build'
-models = [
-  'gptimer', 
-  'irqmp', 
-  'mmu_cache', 
-  'mctrl', 
-  'pnp',
-  'utils'
-]
+dirs = ['tlmsignals', 'models']
 
 import os
 import os.path
@@ -56,7 +49,7 @@ def set_options(ctx):
   gso.add_option("--amba", dest="amba_home", help="Basedir of your AMBAKit distribution", default=environ.get("AMBA_HOME",""))
   gso.add_option("--grlib", dest="grlib_home", help="Basedir of your grlib distribution", default=environ.get("GRLIB",""))
 
-  ctx.recurse(models)
+  ctx.recurse(dirs)
 
 def configure(ctx):
   from Options import options
@@ -205,17 +198,17 @@ def configure(ctx):
     uselib        = 'GREENSOCS SYSC TLM2',
   )
   
-  ctx.recurse(models)
+  ctx.recurse(dirs)
 
 def build(bld):
-  bld.add_subdirs(models)
+  bld.add_subdirs(dirs)
   bld.add_post_fun(unittestw.summary)
 
-def docs(bld):
-  import subprocess
+#def docs(bld):
+#  import subprocess
   #sources = find.getfiles(
   #    '.',
   #    ['*.c', '*.cpp', '*.cxx', '*.h', '*.hpp', '*.tpp'], 
   #    ['.hg', '.svn', 'build']
   #)
-  subprocess.call(["doxygen", "Doxyfile"])  
+#  subprocess.call(["doxygen", "Doxyfile"])  
