@@ -7,8 +7,8 @@
 #*             this file contains the build system for the TLM library *#
 #*             $ ./waf configure; ./waf # to build it                  *#
 #*                                                                     *#
-#* Modified on $Date: 2010-08-04 15:07:28 +0200 (Wed, 04 Aug 2010) $   *#
-#*          at $Revision: 40 $                                         *#
+#* Modified on $Date$   *#
+#*          at $Revision$                                         *#
 #*                                                                     *#
 #* Principal:  European Space Agency                                   *#
 #* Author:     VLSI working group @ IDA @ TUBS                         *#
@@ -212,3 +212,7 @@ def build(bld):
   #    ['.hg', '.svn', 'build']
   #)
 #  subprocess.call(["doxygen", "Doxyfile"])  
+
+## Nice to have to set svn props:
+## It's maybe wothy to make a target out of it
+# grep --exclude=**.svn** -rn '\$Date\$' tlmsignals models | cut -f1 -d: | xargs -I {} svn propset svn:keywords "Date Revision" {}

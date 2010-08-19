@@ -1,7 +1,22 @@
 /***********************************************************************/
 /* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
-/* File:       tlm_signal.h -                                          */
+/* File:       tlm_signal.h - An alternative signal implementation.    */
+/*             This signal implementation is not routet through the    */
+/*             systemc kernel and does not need any sheeduling.        */
+/*             It is designed with a LT TLM Modeling in mind. Due to   */
+/*             some important toplevel signals it's sometimes needet   */
+/*             to provide the ability to route single signals.         */
+/*             Normaly TLM abstractions would route them as a          */
+/*             Bus extension or use C++ Function calls insteed. But    */
+/*             this is undynamic and complicated to use                */
+/*             Other solutiions like green-signal-sockets build on top */
+/*             Of TLM Sockets. This archieves the same goal but is     */
+/*             complicated to use and heavy in weight.                 */
+/*             This implementation relyes on C++ Callbacks and         */
+/*             therefor it's very light weight. It's interface is      */
+/*             designed to be very close to the systemc signal IO      */
+/*             interface.                                              */
 /*                                                                     */
 /* Modified on $Date$   */
 /*          at $Revision$                                         */

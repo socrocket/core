@@ -39,7 +39,7 @@ def build(bld):
     cxxflags     = '-DSPEEDTEST',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'utils',
+    uselib_local = 'utils tlmsignals',
   )
   
   bld(
@@ -49,6 +49,6 @@ def build(bld):
     cxxflags     = ['-DFUNCTIONTEST'],
     includes     = ['.'],
     uselib       = ['BOOST', 'SYSC', 'TLM2', 'AMBA', 'GREENSOCS'],
-    uselib_local = ['utils'],
+    uselib_local = ['utils', 'tlmsignals'],
   )
 

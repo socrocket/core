@@ -37,4 +37,22 @@ def build(bld):
     uselib       = 'BOOST SYSC',
     uselib_local = 'tlmsignals'
   )
- 
+  
+  bld(
+    target       = 'systemctest',
+    features     = 'cxx cprogram test',
+    source       = 'tests/systemc.cpp',
+    includes     = '.',
+    uselib       = 'BOOST SYSC',
+    uselib_local = 'tlmsignals'
+  )
+  
+  bld(
+    target       = 'datatypemapping',
+    features     = 'cxx cprogram test',
+    source       = 'tests/datatypemapping.cpp',
+    includes     = '.',
+    uselib       = 'BOOST SYSC',
+    uselib_local = 'tlmsignals'
+  )
+   

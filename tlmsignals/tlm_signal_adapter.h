@@ -1,3 +1,17 @@
+/***********************************************************************/
+/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
+/*                                                                     */
+/* File:       tlm_signal_adapter.h - This file provides adapter to    */
+/*             connect tlm_signals with SystemC signals.               */
+/*                                                                     */
+/* Modified on $Date$   */
+/*          at $Revision$                                         */
+/*                                                                     */
+/* Principal:  European Space Agency                                   */
+/* Author:     VLSI working group @ IDA @ TUBS                         */
+/* Maintainer: Rolf Meyer                                              */
+/***********************************************************************/
+
 #ifndef TLM_SIGNAL_ADAPTER
 #define TLM_SIGNAL_ADAPTER
 

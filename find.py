@@ -5,8 +5,8 @@
 #*             python file containing filesystem search helpers        *#
 #*             to easiefy the wscript configuration routine.           *#
 #*                                                                     *#
-#* Modified on $Date: 2010-07-29 17:09:36 +0200 (Thu, 29 Jul 2010) $   *#
-#*          at $Revision: 22 $                                         *#
+#* Modified on $Date$   *#
+#*          at $Revision$                                         *#
 #*                                                                     *#
 #* Principal:  European Space Agency                                   *#
 #* Author:     VLSI working group @ IDA @ TUBS                         *#
