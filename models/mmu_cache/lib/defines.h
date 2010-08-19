@@ -71,20 +71,27 @@ typedef tlm::tlm_generic_payload *gp_ptr;
 
 // Structure of the debug extension for the dcio and icio payload extensions.
 // ==========================================================================
-// [21]    MMU state   - 0 tlb hit, 1 tlb miss 
-// [20-16] TLB         - for tlb hit:  number of the tlb that delivered the hit  (!!! not implemented yet !!!) 
-//                     - for tlb miss: number of the tlb that delivered the miss
-// [15-13] Reserved
-// [12]                - Set to 1 for scratchpad access
+// [21]    MMU state    - 0 tlb hit, 1 tlb miss 
+// [20-16] TLB          - for tlb hit:  number of the tlb that delivered the hit  (!!! not implemented yet !!!) 
+//                      - for tlb miss: number of the tlb that delivered the miss
+// [15]    Reserved
+// [14]    Frozen Miss  - If the cache is frozen, no new lines are allocated on a read miss.
+//                        However, unvalid data will be replaced as long the tag of the
+//                        line does not change. The FM bit is switch on, when the
+//                        result of a read miss is not cached.
+// [13]    Cache Bypass - Is set to 1 if cache bypass was used (cache disabled in ccr)
+// [12]    Scratchpad   - Is set to 1 for scratchpad access
 // [11-4]  Reserved
-// [3-2]   Cache State - 00 read hit, 01, read miss, 10, write hit, 11 write miss
-// [1-0]   Cache Set   - for read hit:  contains number of set that delivered the hit
+// [3-2]   Cache State  - 00 read hit, 01, read miss, 10, write hit, 11 write miss
+// [1-0]   Cache Set    - for read hit:  contains number of set that delivered the hit
 //                       for read miss: number of set containing the new data
 //                       for write hit: number of set that delivered the hit
 //                       write miss:    0b00 (no update on write miss)
 
 
 // MACROS for updating debug information:
+#define FROZENMISS_SET(debug) (debug |= 0x2000)
+#define CACHEBYPASS_SET(debug) (debug |= 0x1000)
 #define SCRATCHPAD_SET(debug) (debug |= 0x800)
 
 #define CACHEREADHIT_SET(debug, cache_set)  ((debug  &= 0xfffff7f0)  |= (cache_set & 0x3))
@@ -96,7 +103,9 @@ typedef tlm::tlm_generic_payload *gp_ptr;
 #define TLBMISS_SET(debug) (debug |= (1 << 21));
 
 // MACROS for evaluating debug information
-#define SCRATCHPAD_CHECK(debug) ((debug & 0x800) == 0x800) 
+#define FROZENMISS_CHECK(debug) (debug & 0x2000)
+#define CACHEBYPASS_CHECK(debug) (debug & 0x1000)
+#define SCRATCHPAD_CHECK(debug) (debug & 0x800) 
 
 #define CACHEREADHIT_CHECK(debug)    ((debug & 0xc) == 0)
 #define CACHEREADMISS_CHECK(debug)   ((debug & 0xc) == 4)

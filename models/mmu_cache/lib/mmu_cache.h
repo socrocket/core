@@ -121,8 +121,8 @@ class mmu_cache : public mmu_cache_if, public sc_core::sc_module {
   void amba_read(unsigned int addr, unsigned char * data, unsigned int length);
 
   // read/write cache control register
-  void write_ccr(unsigned int * data, sc_core::sc_time *delay);
-  unsigned int read_ccr();
+  void write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time *delay);
+  virtual unsigned int read_ccr();
 
   // data members
   // ------------

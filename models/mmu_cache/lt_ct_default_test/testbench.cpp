@@ -48,16 +48,24 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * Phase 0: Read system registers (ASI 0x2) ");
     DUMP(name()," ************************************************************");
 
-    // read cache control register
+    // read/write cache control register
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * 1. Read CACHE CONTROL REGISTER (ASI 0x2 - addr 0)    ");
+    DUMP(name()," * 1. ACTIVATE CACHES by writing the CONTROL REGISTER ");
+    DUMP(name()," * (ASI 0x2 - addr 0)    ");
     DUMP(name()," ********************************************************* ");
-    
+
+    // read cache control register !
     // args: address, length, asi, flush, flushl, lock, debug 
     data=dread(0x0, 4, 2, 0, 0, 0, debug);
-    // [3:2] == 0b11; [1:0] = 0b11 -> dcache and icache enabled
+    // CCR [3:2] == 0b00; [1:0] = 0b00 -> dcache and icache disabled
     DUMP(name(),"cache_contr_reg: " << std::hex << data);
-    assert(data==0xf);
+    assert(data==0x0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // activate caches:
+    // CCR [3-2] = 0b11 enable dcache, CCR [1-0] = 0b11 enable icache
+    dwrite(0x0, 0xf, 4, 2, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -151,15 +159,10 @@ void testbench::initiator_thread(void) {
 
     // args: address, length, asi, flush, flushl, lock
     data = dread(0x64, 4, 0x8, 0, 0, 0, debug);
-    std::cout << "1";
     DUMP(name(), "DCACHE read from 0x64 returned " << std::hex << data);
-    std::cout << "2";
     assert(data==0x04030201);
-    std::cout << "3";
     DUMP(this->name(),"debug: " << std::hex << *debug);
-    std::cout << "4";
     assert(CACHEREADMISS_CHECK(*debug));
-    std::cout << "5";
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
@@ -878,6 +881,43 @@ void testbench::initiator_thread(void) {
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
+    // *******************************************
+    // * END OF TEST
+    // *******************************************
+
+    DUMP(name()," ************************************************* ");
+    DUMP(name()," * Content of DCACHE line 25 (dbg_out)        * ");
+    DUMP(name()," ************************************************* ");
+
+    dwrite(0xff,25,4,2,0,0,0, debug);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    DUMP(name()," ************************************************* ");
+    DUMP(name()," * Content of DCACHE line 26 (dbg_out)        * ");
+    DUMP(name()," ************************************************* ");
+
+    dwrite(0xff,26,4,2,0,0,0, debug);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+
+    DUMP(name()," ************************************************* ");
+    DUMP(name()," * Content of ICACHE line 25 (dbg_out)        * ");
+    DUMP(name()," ************************************************* ");
+
+    dwrite(0xfe,25,4,2,0,0,0, debug);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    DUMP(name()," ************************************************* ");
+    DUMP(name()," * Content of ICACHE line 26 (dbg_out)        * ");
+    DUMP(name()," ************************************************* ");
+
+    dwrite(0xfe,26,4,2,0,0,0, debug);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+
     DUMP(name(),"************************************************* ");
     DUMP(name(),"* Phase 6: Sub-word access            ");
     DUMP(name(),"************************************************* ");    
@@ -1009,40 +1049,390 @@ void testbench::initiator_thread(void) {
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* Phase 7: Disable caches and test bypass mode!  ");
+    DUMP(name(),"************************************************* ");   
 
-    // *******************************************
-    // * END OF TEST
-    // *******************************************
+    // read/write cache control register
+    DUMP(name()," ********************************************************* ");
+    DUMP(name()," * 80. DEACTIVATE CACHES by writing the CONTROL REGISTER ");
+    DUMP(name()," * (ASI 0x2 - addr 0)    ");
+    DUMP(name()," ********************************************************* ");
+
+    // read cache control register !
+    data=dread(0x0, 4, 2, 0, 0, 0, debug);
+    // CCR [3:2] == 0b11; [1:0] = 0b11 -> dcache and icache enabled
+    DUMP(name(),"cache_contr_reg: " << std::hex << data);
+    assert(data==0xf);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // dactivate caches:
+    // CCR [3-2] = 0b00 disable dcache, CCR [1-0] = 0b00 disable icache
+    dwrite(0x0, 0x0, 4, 2, 0, 0, 0, debug);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+    
+    // bypass write word
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 81. Write word through data interface (bypass) ");
+    DUMP(name(),"************************************************* ");
+
+    // write word in bypass mode
+    dwrite(0x0, 0xeeeeffff, 4, 8, 0, 0, 0, debug);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    // bypass write short
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 82. Write shorts through data interface (bypass) ");
+    DUMP(name(),"************************************************* ");    
+    
+    // write shorts in bypass mode
+    dwrite(0x4, 0xaaaa, 2, 8, 0, 0, 0, debug);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    // write shorts in bypass mode
+    dwrite(0x6, 0xbbbb, 2, 8, 0, 0, 0, debug);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    // bypass write byte
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 83. Write bytes through data interface (bypass) ");
+    DUMP(name(),"************************************************* ");
+
+    // write shorts in bypass mode
+    dwrite(0x8, 0xcc, 1, 8, 0, 0, 0, debug);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    // write shorts in bypass mode
+    dwrite(0x9, 0xdd, 1, 8, 0, 0, 0, debug);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    // write shorts in bypass mode
+    dwrite(0xa, 0xee, 1, 8, 0, 0, 0, debug);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    // write shorts in bypass mode
+    dwrite(0xb, 0xff, 1, 8, 0, 0, 0, debug);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+     // bypass read word
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 84. Read word through data interface (bypass) ");
+    DUMP(name(),"************************************************* ");
+   
+    data = dread(0x8, 4, 8, 0, 0, 0, debug);
+    assert(data==0xffeeddcc);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+     // bypass read shorts
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 85. Read shorts through data interface (bypass) ");
+    DUMP(name(),"************************************************* ");    
+
+    data = dread(0x0,2,8,0,0,0,debug);
+    assert(data==0xffff);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+
+    data = dread(0x2,2,8,0,0,0,debug);
+    assert(data==0xeeee);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+     // bypass read bytes
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 86. Read shorts through data interface (bypass) ");
+    DUMP(name(),"************************************************* ");    
+
+    data = dread(0x4, 1, 8, 0, 0, 0, debug);
+    assert(data==0xaa);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    data = dread(0x1, 1, 8, 0, 0, 0, debug);
+    assert(data==0xff);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    data = dread(0x6, 1, 8, 0, 0, 0, debug);
+    assert(data==0xbb);
+    assert(CACHEBYPASS_CHECK(*debug));    
+
+    data = dread(0x3, 1, 8, 0, 0, 0, debug);
+    assert(data==0xee);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+     // bypass read word
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 87. Read word through instr. interface (bypass) ");
+    DUMP(name(),"************************************************* ");
+   
+    data = iread(0x8, 0, 0, 0, debug);
+    assert(data==0xffeeddcc);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* Phase 8: Test cache freeze  ");
+    DUMP(name(),"************************************************* ");
+
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 88. Invalidate line 0 in all sets of i/d cache. ");
+    DUMP(name(),"* The atag of set 0 - 3 is set to 0 - 3.  ");
+    DUMP(name(),"* This will allow unvalid entries to be replaced ");
+    DUMP(name(),"* by new data with the same tag in frozen mode.");
+    DUMP(name(),"************************************************* ");
+
+    // !! in write data atag always starts from bit 10 !!
+
+    // write tag: icache set 0 line 0
+    // addr: set 0b00 line 0b00000000 subblock 0b000 00
+    dwrite(0x0000, 0 << 10, 4, 0xc, 0, 0, 0, debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+
+    // write tag: icache set 1 line 0
+    // addr: set 0b01 line 0b00000000 subblock 0b000 00
+    dwrite(0x2000, 1 << 10, 4, 0xc, 0, 0, 0, debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // write tag: icache set 2 line 0
+    // addr: set 0b10 line 0b00000000 subblock 0b000 00
+    dwrite(0x4000, 2 << 10, 4, 0xc, 0, 0, 0, debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // write tag: icache set 3 line 0
+    // addr: set 0b11 line 0b00000000 subblock 0b000 00
+    dwrite(0x6000, 3 << 10, 4, 0xc, 0, 0, 0, debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // write tag: dcache set 0 line 0
+    // addr: set 0b00 line 0b00000000 subblock 0b000 00
+    dwrite(0x0000, 0 << 10, 4, 0xe, 0, 0, 0, debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+
+    // write tag: dcache set 1 line 0
+    // addr: set 0b01 line 0b00000000 subblock 0b000 00
+    dwrite(0x2000, 1 << 10, 4, 0xe, 0, 0, 0, debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // write tag: dcache set 2 line 0
+    // addr: set 0b10 line 0b00000000 subblock 0b000 00
+    dwrite(0x4000, 2 << 10, 4, 0xe, 0, 0, 0, debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // write tag: dcache set 3 line 0
+    // addr: set 0b11 line 0b00000000 subblock 0b000 00
+    dwrite(0x6000, 3 << 10, 4, 0xe, 0, 0, 0, debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    DUMP(name(),"************************************************* ");
+    DUMP(name(),"* 89. Fill mem with data for tag 0 - 5 (line 0)  ");
+    DUMP(name(),"************************************************* ");
+
+    dwrite(0x0000,0x11223344,4,8,0,0,0,debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    dwrite(0x0400,0x55667788,4,8,0,0,0,debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    dwrite(0x0800,0x99aabbcc,4,8,0,0,0,debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    dwrite(0x0c00,0xddeeff11,4,8,0,0,0,debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    dwrite(0x1000,0x22334455,4,8,0,0,0,debug);
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+    assert(CACHEBYPASS_CHECK(*debug));
+
+    // read/write cache control register
+    DUMP(name()," ********************************************************* ");
+    DUMP(name()," * 90. ACTIVATE CACHES by writing the CONTROL REGISTER ");
+    DUMP(name()," * (ASI 0x2 - addr 0)    ");
+    DUMP(name()," ********************************************************* ");
+
+    // read cache control register !
+    data=dread(0x0, 4, 2, 0, 0, 0, debug);
+    // CCR [3:2] == 0b00; [1:0] = 0b00 -> dcache and icache disabled
+    DUMP(name(),"cache_contr_reg: " << std::hex << data);
+    assert(data==0x0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // activate caches:
+    // CCR [3-2] = 0b11 enable dcache, CCR [1-0] = 0b11 enable icache
+    dwrite(0x0, 0xf, 4, 2, 0, 0, 0, debug);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // read miss
+    DUMP(name()," ********************************************************* ");
+    DUMP(name()," * 91. Fill one of the four sets with data (tag 0, line 0) ");
+    DUMP(name()," ********************************************************* ");
+
+    data=dread(0x0, 4, 8, 0, 0, 0, debug);
+    assert(data==0x11223344);
+    assert(CACHEREADMISS_CHECK(*debug));
+    assert(!(FROZENMISS_CHECK(*debug)));
+
+    data=iread(0x0, 0, 0, 0, debug);
+    assert(data==0x11223344);
+    assert(CACHEREADMISS_CHECK(*debug));
+    assert(!(FROZENMISS_CHECK(*debug)));
+
+    // read/write cache control register
+    DUMP(name()," ********************************************************* ");
+    DUMP(name()," * 92. FREEZE CACHES by writing the CONTROL REGISTER ");
+    DUMP(name()," * (ASI 0x2 - addr 0)    ");
+    DUMP(name()," ********************************************************* ");
+    
+     // read cache control register !
+    data=dread(0x0, 4, 2, 0, 0, 0, debug);
+    // CCR [3:2] == 0b11; [1:0] = 0b11 -> dcache and icache enabled
+    DUMP(name(),"cache_contr_reg: " << std::hex << data);
+    assert(data==0xf);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // freeze caches:
+    // CCR [3-2] = 0b01  freeze dcache, CCR [1-0] = 0b01 freeze icache
+    dwrite(0x0, 0x5, 4, 2, 0, 0, 0, debug);
+   
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // read miss - freeze no effect
+    DUMP(name()," ********************************************************* ");
+    DUMP(name()," * 93. Read from tag 1, 2 and 3. This should fill line 0 ");
+    DUMP(name()," * of the remaining 3 sets ");
+    DUMP(name()," * The data is cached despite the fact that the cache is");
+    DUMP(name()," * frozen, because no preexisting valid data is destroyed.");
+    DUMP(name()," ********************************************************* ");
+
+    data=dread(0x0400, 4, 8, 0, 0, 0, debug);
+    assert(data==0x55667788);
+    assert(CACHEREADMISS_CHECK(*debug));
+    assert(!(FROZENMISS_CHECK(*debug)));
+
+    data=dread(0x0800, 4, 8, 0, 0, 0, debug);
+    assert(data==0x99aabbcc);
+    assert(CACHEREADMISS_CHECK(*debug));
+    assert(!(FROZENMISS_CHECK(*debug)));
+
+    data=dread(0x0c00, 4, 8, 0, 0, 0, debug);
+    assert(data==0xddeeff11);
+    assert(CACHEREADMISS_CHECK(*debug));
+    assert(!(FROZENMISS_CHECK(*debug)));
+
+    data=iread(0x0400, 0, 0, 0, debug);
+    assert(data==0x55667788);
+    assert(CACHEREADMISS_CHECK(*debug));
+    assert(!(FROZENMISS_CHECK(*debug)));
+
+    data=iread(0x0800, 0, 0, 0, debug);
+    assert(data==0x99aabbcc);
+    assert(CACHEREADMISS_CHECK(*debug));
+    assert(!(FROZENMISS_CHECK(*debug)));
+
+    data=iread(0x0c00, 0, 0, 0, debug);
+    assert(data==0xddeeff11);
+    assert(CACHEREADMISS_CHECK(*debug));
+    assert(!(FROZENMISS_CHECK(*debug)));
+
+    // read miss - frozen data !!
+    DUMP(name()," ********************************************************* ");
+    DUMP(name()," * 94. Line 0 has been filled with valid data, in all four");
+    DUMP(name()," * cache sets. Reading again from line 0 (with another tag)");
+    DUMP(name()," * prevents the new data from being cached due to the freeze.");
+    DUMP(name()," ********************************************************* ");
+
+    data=dread(0x1000, 4, 8, 0, 0, 0, debug);
+    assert(data==0x22334455);
+    assert(CACHEREADMISS_CHECK(*debug));
+    assert(FROZENMISS_CHECK(*debug));
+
+    data=iread(0x1000, 0, 0, 0, debug);
+    assert(data==0x22334455);
+    assert(CACHEREADMISS_CHECK(*debug));
+    assert(FROZENMISS_CHECK(*debug));
+
+    // read hit
+    DUMP(name()," ********************************************************* ");
+    DUMP(name()," * 95. Check whether the four original tags are still ");
+    DUMP(name()," * cached and valid (read hit) ");
+    DUMP(name()," ********************************************************* ");   
+
+    data=dread(0x0000, 4, 8, 0, 0, 0, debug);
+    assert(data==0x11223344);
+    assert(CACHEREADHIT_CHECK(*debug));
+
+    data=dread(0x0400, 4, 8, 0, 0, 0, debug);
+    assert(data==0x55667788);
+    assert(CACHEREADHIT_CHECK(*debug));
+
+    data=dread(0x0800, 4, 8, 0, 0, 0, debug);
+    assert(data==0x99aabbcc);
+    assert(CACHEREADHIT_CHECK(*debug));
+
+    data=dread(0x0c00, 4, 8, 0, 0, 0, debug);
+    assert(data==0xddeeff11);
+    assert(CACHEREADHIT_CHECK(*debug));
+
+    data=iread(0x0000, 0, 0, 0, debug);
+    assert(data==0x11223344);
+    assert(CACHEREADHIT_CHECK(*debug));
+
+    data=iread(0x0400, 0, 0, 0, debug);
+    assert(data==0x55667788);
+    assert(CACHEREADHIT_CHECK(*debug));
+
+    data=iread(0x0800, 0, 0, 0, debug);
+    assert(data==0x99aabbcc);
+    assert(CACHEREADHIT_CHECK(*debug));
+
+    data=iread(0x0c00, 0, 0, 0, debug);
+    assert(data==0xddeeff11);
+    assert(CACHEREADHIT_CHECK(*debug));
 
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * 100. Content of DCACHE line 25 (dbg_out)        * ");
-    DUMP(name()," ************************************************* ");
+    DUMP(name()," * Content of DCACHE line 0 (dbg_out)        * ");
+    DUMP(name()," ************************************************ ");
 
-    dwrite(0xff,25,4,2,0,0,0, debug);
+    dwrite(0xff,0,4,2,0,0,0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * 101. Content of DCACHE line 26 (dbg_out)        * ");
+    DUMP(name()," * Content of ICACHE line 0 (dbg_out)        * ");
     DUMP(name()," ************************************************* ");
 
-    dwrite(0xff,26,4,2,0,0,0, debug);
+    dwrite(0xfe,0,4,2,0,0,0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
-    DUMP(name()," ************************************************* ");
-    DUMP(name()," * 102. Content of ICACHE line 25 (dbg_out)        * ");
-    DUMP(name()," ************************************************* ");
+    // read/write cache control register
+    DUMP(name()," ********************************************************* ");
+    DUMP(name()," * 96. ACTIVATE CACHES by writing the CONTROL REGISTER ");
+    DUMP(name()," * (ASI 0x2 - addr 0)    ");
+    DUMP(name()," ********************************************************* ");
 
-    dwrite(0xfe,25,4,2,0,0,0, debug);
+    // read cache control register !
+    data=dread(0x0, 4, 2, 0, 0, 0, debug);
+    // CCR [3:2] == 0b01; [1:0] = 0b01 -> dcache and icache frozen
+    DUMP(name(),"cache_contr_reg: " << std::hex << data);
+    assert(data==0x5);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // freeze caches:
+    // CCR [3-2] = 0b11 enable dcache, CCR [1-0] = 0b11 enable icache
+    dwrite(0x0, 0xf, 4, 2, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     DUMP(name()," ************************************************* ");
-    DUMP(name()," * Content of ICACHE line 26 (dbg_out)        * ");
+    DUMP(name()," * End of test      ");
     DUMP(name()," ************************************************* ");
-
-    dwrite(0xfe,26,4,2,0,0,0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 

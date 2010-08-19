@@ -47,16 +47,24 @@ void testbench::initiator_thread(void) {
     DUMP(name()," * Phase 0: Read system registers (ASI 0x2) ");
     DUMP(name()," ************************************************************");
 
-    // read cache control register
+    // read/write cache control register
     DUMP(name()," ********************************************************* ");
-    DUMP(name()," * 1. Read CACHE CONTROL REGISTER (ASI 0x2 - addr 0)    ");
+    DUMP(name()," * 1. ACTIVATE CACHES by writing the CONTROL REGISTER ");
+    DUMP(name()," * (ASI 0x2 - addr 0)    ");
     DUMP(name()," ********************************************************* ");
     
+    // read cache control register !
     // args: address, length, asi, flush, flushl, lock, debug 
     data=dread(0x0, 4, 2, 0, 0, 0, debug);
     // [3:2] == 0b11; [1:0] = 0b11 -> dcache and icache enabled
     DUMP(name(),"cache_contr_reg: " << std::hex << data);
-    assert(data==0xf);
+    assert(data==0x0);
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
+    // activate caches:
+    // CCR [3-2] = 11 enable dcache, CCR [1-0] enable icache
+    dwrite(0x0, data |= 0xf, 4, 2, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 

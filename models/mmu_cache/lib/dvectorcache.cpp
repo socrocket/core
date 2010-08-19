@@ -120,145 +120,191 @@ void dvectorcache::read(unsigned int address, unsigned char *data, unsigned int 
   // todo: handle cached/uncached access
   unsigned int asi = 0;
 
-  // extract index and tag from address
-  unsigned int tag    = (address >> (m_idx_bits+m_offset_bits));
-  unsigned int idx    = ((address << m_tagwidth) >> (m_tagwidth+m_offset_bits));
-  unsigned int offset = ((address << (32-m_offset_bits)) >> (32-m_offset_bits));
-  unsigned int byt    = (address & 0x3);
+  // is the dcache enabled (0b11xx) or frozen (0b01xx)
+  if (m_parent->read_ccr() & 0x4) {
 
-  // space for data to refill a cache line of maximum size
-  unsigned char ahb_data[32];
+    // extract index and tag from address
+    unsigned int tag    = (address >> (m_idx_bits+m_offset_bits));
+    unsigned int idx    = ((address << m_tagwidth) >> (m_tagwidth+m_offset_bits));
+    unsigned int offset = ((address << (32-m_offset_bits)) >> (32-m_offset_bits));
+    unsigned int byt    = (address & 0x3);
+
+    // space for data to refill a cache line of maximum size
+    unsigned char ahb_data[32];
   
-  DUMP(this->name(),"READ ACCESS idx: " << std::hex << idx << " tag: " << std::hex << tag << " offset: " << std::hex << offset);
+    DUMP(this->name(),"READ ACCESS idx: " << std::hex << idx << " tag: " << std::hex << tag << " offset: " << std::hex << offset);
 
-  // lookup all cachesets
-  for (unsigned int i=0; i <= m_sets; i++){
+    // lookup all cachesets
+    for (unsigned int i=0; i <= m_sets; i++){
 
-    m_current_cacheline[i] = lookup(i, idx);
+      m_current_cacheline[i] = lookup(i, idx);
 
-    //DUMP(this->name(), "Set :" << i << " atag: " << (*m_current_cacheline[i]).tag.atag << " valid: " << (*m_current_cacheline[i]).tag.valid << " entry: " << (*m_current_cacheline[i]).entry[offset>>2].i);
+      //DUMP(this->name(), "Set :" << i << " atag: " << (*m_current_cacheline[i]).tag.atag << " valid: " << (*m_current_cacheline[i]).tag.valid << " entry: " << (*m_current_cacheline[i]).entry[offset>>2].i);
 
-    // asi == 1 forces cache miss
-    if (asi != 1) {
+      // asi == 1 forces cache miss
+      if (asi != 1) {
 
-      // check the cache tag
-      if ((*m_current_cacheline[i]).tag.atag == tag) {
+	// check the cache tag
+	if ((*m_current_cacheline[i]).tag.atag == tag) {
 
-        //DUMP(this->name(), "Correct atag found in set " << i);
+	  //DUMP(this->name(), "Correct atag found in set " << i);
      
-        // check the valid bit (math.h pow is mapped to the coproc, hence it should be pretty fast)
-        if (((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2)))) != 0) {
+	  // check the valid bit (math.h pow is mapped to the coproc, hence it should be pretty fast)
+	  if (((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2)))) != 0) {
 
-          DUMP(this->name(),"Cache Hit in Set " << i);
+	    DUMP(this->name(),"Cache Hit in Set " << i);
 	  
-	  // update debug information
-	  CACHEREADHIT_SET(*debug,i);
+	    // update debug information
+	    CACHEREADHIT_SET(*debug,i);
 
-          // write data pointer
-	  for(unsigned int j=0; j<len; j++) { *(data+j) = (*m_current_cacheline[i]).entry[offset>>2].c[byt+j]; }
+	    // write data pointer
+	    memcpy(data, &(*m_current_cacheline[i]).entry[offset>>2].c[byt],len);
+	    //for(unsigned int j=0; j<len; j++) { *(data+j) = (*m_current_cacheline[i]).entry[offset>>2].c[byt+j]; }
 	
-          // increment time
-          *t+=m_dcache_hit_read_response_delay;
+	    // increment time
+	    *t+=m_dcache_hit_read_response_delay;
 
-          // valid data in set i
-          cache_hit = i;
-          break;
-        }	
-        else {
+	    // valid data in set i
+	    cache_hit = i;
+	    break;
+	  }	
+	  else {
 	
-          DUMP(this->name(),"Tag Hit but data not valid in set " << i);
-        }
+	    DUMP(this->name(),"Tag Hit but data not valid in set " << i);
+	  }
+	}
+	else {
+      
+	  DUMP(this->name(),"Cache miss in set " << i);
+
+	}
       }
       else {
       
-        DUMP(this->name(),"Cache miss in set " << i);
-
-      }
-    }
-    else {
-      
-      DUMP(this->name(),"ASI force cache miss");
+	DUMP(this->name(),"ASI force cache miss");
     
-    }
-  }
-  
-  // in case no matching tag was found or data is not valid:
-  // -------------------------------------------------------
-  // read miss - On a data cache read miss to a cachable location 4 bytes of data
-  // are loaded into the cache from main memory.
-  if (cache_hit==-1) {
-
-    // increment time
-    *t += m_dcache_miss_read_response_delay; 
-
-    // do we have a mmu
-    if (m_mmu_en == 1) {
-
-      // MMU enabled: forward request to mmu:
-      // The whole word is loaded into the cache, not only the byte/short addressed
-      // by the processor.
-      m_mmu->dtlb_read(((address >> 2) << 2), ahb_data, 4, debug);
-      //DUMP(this->name(),"Received data from MMU " << std::hex << *data);
-
-    } else {
-
-      // Direct access to ahb interface:
-      // The whole word is loaded into the cache, not only the byte/short addressed
-      // by the processor.
-      m_parent->amba_read(((address >> 2) << 2), ahb_data, 4);
-      //DUMP(this->name(),"Received data from main memory " << std::hex << *data);
-    }
-
-    // !!!! The replacement mechanism still needs to be verified.
-    // This is only a first shot.
-
-    // check for unvalid data which can be replaced without harm
-    for (unsigned int i = 0; i <= m_sets; i++){
-
-      if (((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2)))) == 0) {
-
-	// select unvalid data for replacement
-	set_select = i;
-	DUMP(this->name(), "Set " << set_select << " has no valid data - will use for refill.");
-	break;
       }
     }
+  
+    // in case no matching tag was found or data is not valid:
+    // -------------------------------------------------------
+    // read miss - On a data cache read miss to a cachable location 4 bytes of data
+    // are loaded into the cache from main memory.
+    if (cache_hit==-1) {
 
-    // in case there is no free set anymore
-    if (set_select == -1) {
+      // increment time
+      *t += m_dcache_miss_read_response_delay; 
 
-      // select set according to replacement strategy
-      set_select = replacement_selector(m_repl);
-      DUMP(this->name(),"Set " << set_select << " selected for refill by replacement selector.");
+      // do we have a mmu
+      if (m_mmu_en == 1) {
+
+	// MMU enabled: forward request to mmu:
+	// The whole word is loaded into the cache, not only the byte/short addressed
+	// by the processor.
+	m_mmu->dtlb_read(((address >> 2) << 2), ahb_data, 4, debug);
+	//DUMP(this->name(),"Received data from MMU " << std::hex << *data);
+
+      } else {
+
+	// Direct access to ahb interface:
+	// The whole word is loaded into the cache, not only the byte/short addressed
+	// by the processor.
+	m_parent->amba_read(((address >> 2) << 2), ahb_data, 4);
+	//DUMP(this->name(),"Received data from main memory " << std::hex << *data);
+      }
+
+      // check for unvalid data which can be replaced without harm
+      for (unsigned int i = 0; i <= m_sets; i++){
+
+	if (((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2)))) == 0) {
+
+	  // select unvalid data for replacement
+	  set_select = i;
+	  DUMP(this->name(), "Set " << set_select << " has no valid data - will use for refill.");
+	  break;
+	}
+      }
+
+      // Check for cache freeze
+      if (m_parent->read_ccr() & 0x8) {
+
+	// Cache not frozen !!
+
+	// in case there is no free set anymore
+	if (set_select == -1) {
+
+	  // select set according to replacement strategy
+	  set_select = replacement_selector(m_repl);
+	  DUMP(this->name(),"Set " << set_select << " selected for refill by replacement selector.");
       
+	}
+
+	// fill in the new data (always the complete word)
+	memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, 4);
+	//for (unsigned int j=0; j<4;j++) {(*m_current_cacheline[set_select]).entry[offset >> 2].c[j] = *(ahb_data+j);}
+
+	// has the tag changed?
+	if ((*m_current_cacheline[set_select]).tag.atag != tag) {
+
+	  // fill in the new tag
+	  (*m_current_cacheline[set_select]).tag.atag  = tag;
+
+	  // switch of all the valid bits except the one for the new entry
+	  (*m_current_cacheline[set_select]).tag.valid = (unsigned int)(pow((double)2,(double)(offset >> 2)));
+
+	} else {
+      
+	  // switch on the valid bit for the new entry
+	  (*m_current_cacheline[set_select]).tag.valid |= (unsigned int)(pow((double)2,(double)(offset >> 2)));
+
+	}
+      }
+      else {
+	
+	// Cache is frozen !!
+	
+	// Purpose of a cache freeze is to prevent data that is in the cache from being evicted:
+	// The new data will only be filled in as long there is unvalid data in one of the sets (set_select != -1)
+	// && the new data does not change the atag, because this would invalidate all the other entries
+	// in the line (tag.atag == tag).
+	if ((set_select != -1) && ((*m_current_cacheline[set_select]).tag.atag == tag)) {
+
+	  // fill in the new data (always the complete word)
+	  memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, 4);
+	  
+	  // switch on the valid bit
+	  (*m_current_cacheline[set_select]).tag.valid |= (unsigned int)(pow((double)2,(double)(offset >> 2)));
+	    
+	} else {
+
+	  // update debug information
+	  FROZENMISS_SET(*debug);
+
+	}
+
+      }
+
+      // update debug information
+      CACHEREADMISS_SET(*debug, set_select);
+
+      // copy the data requested by the processor
+      memcpy(data, ahb_data+byt, len);
+      //for (unsigned int j=0; j<len; j++) { data[j] = ahb_data[byt+j]; };
+
+      //DUMP(this->name(),"Updated entry: " << std::hex << (*m_current_cacheline[set_select]).entry[offset >> 2].i << " valid bits: " << std::hex << (*m_current_cacheline[set_select]).tag.valid);
     }
+
+  } else {
+    
+    DUMP(this->name(),"BYPASS read from address: " << std::hex << address);
+
+    // dcache is disabled
+    // forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
+    m_parent->amba_read(address, data, len);
 
     // update debug information
-    CACHEREADMISS_SET(*debug, set_select);
+    CACHEBYPASS_SET(*debug);
 
-    // fill in the new data (always the complete word)
-    for (unsigned int j=0; j<4;j++) { (*m_current_cacheline[set_select]).entry[offset >> 2].c[j] = *(ahb_data+j); }
-
-    // has the tag changed?
-    if ((*m_current_cacheline[set_select]).tag.atag != tag) {
-
-      // fill in the new tag
-      (*m_current_cacheline[set_select]).tag.atag  = tag;
-
-      // switch of all the valid bits except the one for the new entry
-      (*m_current_cacheline[set_select]).tag.valid = (unsigned int)(pow((double)2,(double)(offset >> 2)));
-
-    } else {
-      
-      // switch on the valid bit for the new entry
-      (*m_current_cacheline[set_select]).tag.valid |= (unsigned int)(pow((double)2,(double)(offset >> 2)));
-
-    }
-
-    // copy the data requested by the processor
-    for (unsigned int j=0; j<len; j++) { data[j] = ahb_data[byt+j]; };
-
-    //DUMP(this->name(),"Updated entry: " << std::hex << (*m_current_cacheline[set_select]).entry[offset >> 2].i << " valid bits: " << std::hex << (*m_current_cacheline[set_select]).tag.valid);
   }
 }
 
@@ -272,83 +318,97 @@ void dvectorcache::read(unsigned int address, unsigned char *data, unsigned int 
 
 void dvectorcache::write(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
 
-  // extract index and tag from address
-  unsigned int tag    = (address >> (m_idx_bits+m_offset_bits));
-  unsigned int idx    = ((address << m_tagwidth) >> (m_tagwidth+m_offset_bits));
-  unsigned int offset = ((address << (32-m_offset_bits)) >> (32-m_offset_bits));
-  unsigned int byt    = (address & 0x3);
+  // is the dcache enabled (0x11xx) or frozen (0x01xx)
+  if (m_parent->read_ccr() & 0x4) {
 
-  bool is_hit = false;
+    // extract index and tag from address
+    unsigned int tag    = (address >> (m_idx_bits+m_offset_bits));
+    unsigned int idx    = ((address << m_tagwidth) >> (m_tagwidth+m_offset_bits));
+    unsigned int offset = ((address << (32-m_offset_bits)) >> (32-m_offset_bits));
+    unsigned int byt    = (address & 0x3);
 
-  DUMP(this->name(),"WRITE ACCESS with idx: " << std::hex << idx << " tag: " << std::hex << tag << " offset: " << std::hex << offset);
+    bool is_hit = false;
 
-  // lookup all cachesets
-  for (unsigned int i = 0; i <= m_sets; i++){
+    DUMP(this->name(),"WRITE ACCESS with idx: " << std::hex << idx << " tag: " << std::hex << tag << " offset: " << std::hex << offset);
 
-    m_current_cacheline[i] = lookup(i, idx);
+    // lookup all cachesets
+    for (unsigned int i = 0; i <= m_sets; i++){
 
-    //DUMP(this->name(), "Set :" << i << " atag: " << (*m_current_cacheline[i]).tag.atag << " valid: " << (*m_current_cacheline[i]).tag.valid << " entry: " << (*m_current_cacheline[i]).entry[offset>>2].i);
+      m_current_cacheline[i] = lookup(i, idx);
 
-    // check the cache tag
-    if ((*m_current_cacheline[i]).tag.atag == tag) {
+      //DUMP(this->name(), "Set :" << i << " atag: " << (*m_current_cacheline[i]).tag.atag << " valid: " << (*m_current_cacheline[i]).tag.valid << " entry: " << (*m_current_cacheline[i]).entry[offset>>2].i);
 
-      //DUMP(this->name(),"Correct atag found in set " << i);
+      // check the cache tag
+      if ((*m_current_cacheline[i]).tag.atag == tag) {
+
+	//DUMP(this->name(),"Correct atag found in set " << i);
      
-      // check the valid bit (math.h pow is mapped to the coproc, hence it should be pretty fast)
-      if ((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2))) != 0) {
+	// check the valid bit (math.h pow is mapped to the coproc, hence it should be pretty fast)
+	if ((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2))) != 0) {
 
-	DUMP(this->name(),"Cache Hit in Set " << i);
+	  DUMP(this->name(),"Cache Hit in Set " << i);
 	
-	// update debug information
-	CACHEWRITEHIT_SET(*debug, i);
-	is_hit = true;
+	  // update debug information
+	  CACHEWRITEHIT_SET(*debug, i);
+	  is_hit = true;
 	
-	// write data to cache
-	for(unsigned int j=0; j<len; j++) { (*m_current_cacheline[i]).entry[offset >> 2].c[byt+j] = *(data+j); }
+	  // write data to cache
+	  for(unsigned int j=0; j<len; j++) { (*m_current_cacheline[i]).entry[offset >> 2].c[byt+j] = *(data+j); }
 	
-	// valid is already set
+	  // valid is already set
 	
-	// increment time
-	*t+=m_dcache_write_response_delay;
+	  // increment time
+	  *t+=m_dcache_write_response_delay;
 
-	break;
-      }	
-      else {
+	  break;
+	}	
+	else {
 	
-	DUMP(this->name(),"Tag Hit but data not valid in set " << i);
+	  DUMP(this->name(),"Tag Hit but data not valid in set " << i);
+	}
+
       }
-
-    }
-    else {
+      else {
       
-      DUMP(this->name(),"Cache miss in set " << i);
+	DUMP(this->name(),"Cache miss in set " << i);
+      }
     }
-  }
 
-  // update debug information
-  if(!is_hit) CACHEWRITEMISS_SET(*debug);
+    // update debug information
+    if(!is_hit) CACHEWRITEMISS_SET(*debug);
+    
+    // write data to main memory
+    // todo: - implement byte access
+    //       - implement write buffer
 
-  // write data to main memory
-  // todo: - implement byte access
-  //       - implement write buffer
+    // The write buffer (WRB) consists of 3x32bit registers. It is used to temporarily
+    // hold store data until it is sent to the destination device. For half-word
+    // or byte stores, the data has to be properly aligned for writing to word-
+    // addressed device, before writing the WRB.
 
-  // The write buffer (WRB) consists of 3x32bit registers. It is used to temporarily
-  // hold store data until it is sent to the destination device. For half-word
-  // or byte stores, the data has to be properly aligned for writing to word-
-  // addressed device, before writing the WRB.
+    // check whether there is a MMU
+    if (m_mmu_en == 1) {
 
-  // check whether there is a MMU
-  if (m_mmu_en == 1) {
+      // mmu enabled: forward request to mmu
+      m_mmu->dtlb_write(address, data, len, debug);
 
-    // mmu enabled: forward request to mmu
-    m_mmu->dtlb_write(address, data, len, debug);
+    } else {
+
+      // direct access to ahb interface
+      m_parent->amba_write(address, data, len);
+    }
 
   } else {
 
-    // direct access to ahb interface
-    m_parent->amba_write(address, data, len);
-  }
+    DUMP(this->name(),"BYPASS write to address: " << std::hex << address);
 
+    // dcache is disabled
+    // forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
+    m_parent->amba_write(address, data, len);
+    
+    // update debug information
+    CACHEBYPASS_SET(*debug); 
+  }
 }
 
 // call to flush cache

@@ -67,7 +67,7 @@ mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 		mmupgsz) : NULL;
 
   // create icache
-  icache = new ivectorcache("ivectorcache",
+  icache = (icen==1)? new ivectorcache("ivectorcache",
 		*this,
 		srmmu,
 		mmu_en,
@@ -79,10 +79,10 @@ mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 		irepl,
 		ilram,
 		ilramstart,
-		ilramsize);
+		ilramsize) : NULL;
 
   // create dcache
-  dcache = new dvectorcache("dvectorcache",
+  dcache = (dcen==1)? new dvectorcache("dvectorcache",
 		*this,
 		srmmu,
 	 	mmu_en,
@@ -95,7 +95,7 @@ mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 		drepl,
 		dlram,
 		dlramstart,
-		dlramsize);
+		dlramsize) : NULL;
 
   // create instruction scratchpad
   // (! only allowed with mmu disabled !)
@@ -115,10 +115,7 @@ mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 
   // initialize cache control registers
   CACHE_CONTROL_REG = 0;
-
-  CACHE_CONTROL_REG |= (icen == 1) ? 0x3 : 0; 
-  CACHE_CONTROL_REG |= (dcen == 1) ? 0xc : 0;
-			
+	
 }
 
 // TLM forward transport for icio socket
@@ -154,7 +151,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 
     } else {
 
-    	icache->read((unsigned int)adr, (unsigned int*)ptr, &delay, debug);
+    	icache->read((unsigned int)adr, ptr, len, &delay, debug);
     	//DUMP(name(),"ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
     }
   } 
@@ -218,7 +215,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 		DUMP(this->name(),"System Register write with ASI 0x2 - addr:" << std::hex << adr);
 		if (adr == 0) {
 			// cache control register
-			write_ccr((unsigned int *)ptr, &delay);
+			write_ccr(ptr, len, &delay);
 		}
 		// TRIGGER DEBUG OUTPUT / NOT A SPARC SYSTEM REGISTER
 		else if (adr == 0xfe) {
@@ -532,33 +529,36 @@ template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, 
 void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	  dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
 	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
-	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::write_ccr(unsigned int * data, sc_core::sc_time * delay) {
+	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time * delay) {
 
+	unsigned int tmp = 0;
 	unsigned int dummy;
 
+	memcpy(&tmp, data, len);
+
 	// [DS] data cache snoop enable (todo) 
-	if (*data & (1<<23)) {}
+	if (tmp & (1<<23)) {}
 	// [FD] dcache flush (do not set; always reads as zero)
-	if (*data & (1<<22)) { dcache->flush(delay, &dummy); }
+	if (tmp & (1<<22)) { dcache->flush(delay, &dummy); }
 	// [FI] icache flush (do not set; always reads as zero)
-	if (*data & (1<<21)) { icache->flush(delay, &dummy); }
+	if (tmp & (1<<21)) { icache->flush(delay, &dummy); }
 	// [IB] instruction burst fetch (todo)
-	if (*data & (1<<16)) {}
+	if (tmp & (1<<16)) {}
 
 	// [IP] Instruction cache flush pending (bit 15 - read only)
 	// [DP] Data cache flush pending (bit 14 - read only)
 
 	// [DF] data cache freeze on interrupt (todo)
-	if (*data & (1<<5)) {}
+	if (tmp & (1<<5)) {}
 
 	// [IF] instruction cache freeze on interrupt (todo)
-	if (*data & (1<<4)) {}
+	if (tmp & (1<<4)) {}
 
 	// [DCS] data cache state (bits 3:2 - read only)
 	// [ICS] instruction cache state (bits 1:0 - read only)
 
-	// read only masking: 1111 1111 1100 1111 0011 1111 1111 0000
-	CACHE_CONTROL_REG |= (*data & 0xffcf3ff0);
+	// read only masking: 1111 1111 1001 1111 0011 1111 1111 1111
+	CACHE_CONTROL_REG = (tmp & 0xff9f3fff);
 }
 
 // read the cache control register
