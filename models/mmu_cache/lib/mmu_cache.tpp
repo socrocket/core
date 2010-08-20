@@ -1,20 +1,20 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       mmu_cache.cpp - Class definition of a cache-subsystem.  */
-/*             The cache-subsystem envelopes an instruction cache,     */
-/*             a data cache and a memory management unit.              */
-/*             The mmu_cache class provides two TLM slave interfaces   */
-/*             for connecting the cpu to the caches and an AHB master  */
-/*             interface for connection to the main memory.            */ 
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Thomas Schuster                                         */
-/***********************************************************************/
+// ***********************************************************************
+// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
+// *                                                                     *
+// * File:       mmu_cache.cpp - Class definition of a cache-subsystem.  *
+// *             The cache-subsystem envelopes an instruction cache,     *
+// *             a data cache and a memory management unit.              *
+// *             The mmu_cache class provides two TLM slave interfaces   *
+// *             for connecting the cpu to the caches and an AHB master  *
+// *             interface for connection to the main memory.            * 
+// *                                                                     *
+// * Modified on $Date$   *
+// *          at $Revision$                                         *
+// *                                                                     *
+// * Principal:  European Space Agency                                   *
+// * Author:     VLSI working group @ IDA @ TUBS                         *
+// * Maintainer: Thomas Schuster                                         *
+// ***********************************************************************
 
 
 // Constructor
@@ -54,8 +54,8 @@ mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
   // todo
 
   // create mmu (if required)
-  srmmu = (mmu_en==1)? new mmu("mmu", 
-		*this,
+  m_mmu = (mmu_en==1)? new mmu("mmu", 
+		(mmu_cache_if *)this,
 		itlb_hit_response_delay,
 		itlb_miss_response_delay,
 		dtlb_hit_response_delay,
@@ -68,11 +68,11 @@ mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 
   // create icache
   icache = (icen==1)? new ivectorcache("ivectorcache",
-		*this,
-		srmmu,
+		(mmu_cache_if *)this,
+		(mmu_en) ? (mem_if *)m_mmu->get_itlb_if() : (mem_if *)this,
 		mmu_en,
 		icache_hit_read_response_delay,
-		icache_miss_read_response_delay, 
+		icache_miss_read_response_delay,
 		isets, 
 		isetsize, 
 		ilinesize,
@@ -83,9 +83,9 @@ mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 
   // create dcache
   dcache = (dcen==1)? new dvectorcache("dvectorcache",
-		*this,
-		srmmu,
-	 	mmu_en,
+		(mmu_cache_if *)this,
+		(mmu_en) ? (mem_if *)m_mmu->get_dtlb_if() : (mem_if *) this,
+		mmu_en,
 		dcache_hit_read_response_delay,
 		dcache_miss_read_response_delay,
 		dcache_write_response_delay,
@@ -242,12 +242,12 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	if (cmd==tlm::TLM_READ_COMMAND) {
 	
 		DUMP(this->name(),"Diagnostic read from instruction PDC (ASI 0x5)");
-		srmmu->diag_read_itlb(adr, (unsigned int *)ptr);
+		m_mmu->diag_read_itlb(adr, (unsigned int *)ptr);
 	}
 	else if (cmd==tlm::TLM_WRITE_COMMAND) {
 
 		DUMP(this->name(),"Diagnostic write to instruction PDC (ASI 0x5)");
-		srmmu->diag_write_itlb(adr, (unsigned int *)ptr);
+		m_mmu->diag_write_itlb(adr, (unsigned int *)ptr);
 	}	
   }
   // diagnostic access to data or shared instruction and data PDC
@@ -256,12 +256,12 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	if (cmd==tlm::TLM_READ_COMMAND) {
 	
 		DUMP(this->name(),"Diagnostic read from data (or shared) PDC (ASI 0x6)");
-		srmmu->diag_read_dctlb(adr, (unsigned int *)ptr);
+		m_mmu->diag_read_dctlb(adr, (unsigned int *)ptr);
 	}
 	else if (cmd==tlm::TLM_WRITE_COMMAND) {
 
 		DUMP(this->name(),"Diagnostic write to data (or shared) PDC (ASI 0x6)");
-		srmmu->diag_write_dctlb(adr, (unsigned int *)ptr);
+		m_mmu->diag_write_dctlb(adr, (unsigned int *)ptr);
 	}
   }
   // access instruction cache tags
@@ -357,23 +357,23 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 		DUMP(this->name(),"MMU register read with ASI 0x19 - addr:" << std::hex << adr);
       		if (adr==0x000) {
 			// MMU Control Register
-			*(unsigned int *)ptr = srmmu->read_mcr();
+			*(unsigned int *)ptr = m_mmu->read_mcr();
      		}
       		else if (adr == 0x100) {
 			// Context Pointer Register
-			*(unsigned int *)ptr = srmmu->read_mctpr();
+			*(unsigned int *)ptr = m_mmu->read_mctpr();
       		}
       		else if (adr == 0x200) {
 			// Context Register
-			*(unsigned int *)ptr = srmmu->read_mctxr();
+			*(unsigned int *)ptr = m_mmu->read_mctxr();
       		}
       		else if (adr == 0x300) {
 			// Fault Status Register
-			*(unsigned int *)ptr = srmmu->read_mfsr();
+			*(unsigned int *)ptr = m_mmu->read_mfsr();
       		}
       		else if (adr == 0x400) {
 			// Fault Address Register
-			*(unsigned int *)ptr = srmmu->read_mfar();
+			*(unsigned int *)ptr = m_mmu->read_mfar();
       		}
       		else {
 			DUMP(this->name(),"Address not valid for read with ASI 0x19");
@@ -386,15 +386,15 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 		DUMP(this->name(),"MMU register write with ASI 0x19 - addr:" << std::hex << adr);
       		if (adr==0x000) {
 			// MMU Control Register
-			srmmu->write_mcr((unsigned int *)ptr);
+			m_mmu->write_mcr((unsigned int *)ptr);
       		}
      		else if (adr==0x100) {
 			// Context Table Pointer Register
-			srmmu->write_mctpr((unsigned int*)ptr);
+			m_mmu->write_mctpr((unsigned int*)ptr);
 		}
       		else if (adr==0x200) {
 			// Context Register
-			srmmu->write_mctxr((unsigned int*)ptr);
+			m_mmu->write_mctxr((unsigned int*)ptr);
       		}
 		else {
 			DUMP(this->name(),"Address not valid for write with ASI 0x19 (or read-only)");
@@ -459,30 +459,27 @@ template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, 
 void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	  dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
 	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
-	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::amba_write(unsigned int addr, unsigned char * data, unsigned int length) {
+	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::mem_write(unsigned int addr, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
 
-	sc_core::sc_time t;
+	sc_core::sc_time delay;
 
 	// init transaction
 	tlm::tlm_generic_payload *gp = ahb_master.get_transaction();
 	gp->set_command(tlm::TLM_WRITE_COMMAND);
 	gp->set_address(addr);
-	gp->set_data_length(length);
-	//gp->set_streaming_width(1);
-	gp->set_byte_enable_ptr(NULL);
-	//gp->set_byte_enable_length(4);
+	gp->set_data_length(len);
 	gp->set_data_ptr(data);
 
 	amba::burst_size* size_ext;
 	ahb_master.template validate_extension<amba::burst_size>(*gp);
 	ahb_master.template get_extension<amba::burst_size>(size_ext, *gp);
-	size_ext->value=length;
+	size_ext->value=len;
 	
 	// issue transaction
-	ahb_master->b_transport(*gp,t);
+	ahb_master->b_transport(*gp, delay);
 
 	// burn the time
-	wait(t);
+	wait(delay);
 	ahb_master.release_transaction(gp);
 }
 
@@ -494,30 +491,28 @@ template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, 
 void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	  dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
 	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
-	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::amba_read(unsigned int addr, unsigned char * data, unsigned int length) {
+	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::mem_read(unsigned int addr, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
 
-	sc_core::sc_time t;
+	sc_core::sc_time delay;
 
 	// init transaction
 	tlm::tlm_generic_payload *gp = ahb_master.get_transaction();
 	gp->set_command(tlm::TLM_READ_COMMAND);
 	gp->set_address(addr);
-	gp->set_data_length(length);
-	//gp->set_streaming_width(1);
-	gp->set_byte_enable_ptr(NULL);
+	gp->set_data_length(len);
 	gp->set_data_ptr(data);
 	gp->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
 	amba::burst_size* size_ext;
 	ahb_master.template validate_extension<amba::burst_size>(*gp);
 	ahb_master.template get_extension<amba::burst_size>(size_ext, *gp);
-	size_ext->value=length;
+	size_ext->value=len;
 
 	// issue transaction
-	ahb_master->b_transport(*gp,t);
+	ahb_master->b_transport(*gp, delay);
 	
 	// burn the time
-	wait(t);
+	wait(delay);
 	ahb_master.release_transaction(gp);
 }
 

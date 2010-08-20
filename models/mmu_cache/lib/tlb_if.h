@@ -1,36 +1,38 @@
 // ***********************************************************************
 // * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
 // *                                                                     *
-// * File:       mmu_cache_if.h - MMU cache interface class for passing  *
-// *             pointers to the AHB interface to the components of      *
-// *             mmu_cache (ivectorcache, dvectorcache).                 * 
+// * File:       tlb_if.h - Provides access to instruction and data tlb  *
+// *             through unified interface functions                     * 
 // *                                                                     *
 // * Modified on $Date$   *
-// *          at $Revision$                                         *
+// *          at $Revision $                                         *
 // *                                                                     *
 // * Principal:  European Space Agency                                   *
 // * Author:     VLSI working group @ IDA @ TUBS                         *
 // * Maintainer: Thomas Schuster                                         *
 // ***********************************************************************
 
+#ifndef __TLB_IF_H__
+#define __TLB_IF_H__
 
-#ifndef __MMU_CACHE_IF_H__
-#define __MMU_CACHE_IF_H__
+class tlb_if : public mem_if {
 
-#include "mem_if.h"
+ public:
 
-class mmu_cache_if : public mem_if {
+  /// constructor
+  tlb_if(std::map<t_VAT, t_PTE_context> * tlb) {
 
-  public:
+    m_tlb = tlb;
+
+  }
+
+  virtual void mem_write(unsigned int addr, unsigned char * data, unsigned int length, sc_core::sc_time * t)
+
+ privat:
+
+  std::map<t_VAT, t_PTE_context> * m_tlb;
+
+}
 
 
-  // read cache control register
-  virtual unsigned int read_ccr() { return(0);};
-  virtual void write_ccr(unsigned char *data, unsigned int len, sc_core::sc_time *delay) {};
-  
-
-  virtual ~mmu_cache_if() {};
-
-};
-
-#endif // __MMU_CACHE_IF_H__
+#endif // __TLB_IF_H__

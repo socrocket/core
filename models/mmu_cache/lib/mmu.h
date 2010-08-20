@@ -20,11 +20,12 @@
 #define __MMU_H__
 
 #include <tlm.h>
-#include <iostream>
 #include <map>
 
-#include "mmu_cache_if.h"
 #include "mmu_if.h"
+#include "tlb_adaptor.h"
+#include "mmu_cache_if.h"
+
 #include "defines.h"
 
 // implementation of a memory management unit
@@ -47,7 +48,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// @param tlb_rep                    TLB replacement strategy
   /// @param mmupgsz                    MMU page size (default 4kB)
   mmu(sc_core::sc_module_name name,
-      mmu_cache_if &_parent,
+      mmu_cache_if * _mmu_cache,
       sc_core::sc_time itlb_hit_response_delay,
       sc_core::sc_time itlb_miss_response_delay,
       sc_core::sc_time dtlb_hit_response_delay,
@@ -60,15 +61,9 @@ class mmu : public sc_core::sc_module, public mmu_if {
 
   // member functions
   // ----------------
-  // mmu interface functions:
-  // In case the MMU is enabled, the bus accesses of the i/d cache are diverted
-  // using the interface functions below (mmu_cache_if).
-  void itlb_read(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug);
-  void itlb_write(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug);
-  void dtlb_write(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug);
-  void dtlb_read(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug);
+
   // page descriptor cache (PDC) lookup
-  unsigned int tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size, unsigned int * debug);
+  unsigned int tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size, sc_core::sc_time * t, unsigned int * debug);
   // read mmu internal registers (ASI 0x19)
   unsigned int read_mcr();
   unsigned int read_mctpr();
@@ -86,12 +81,22 @@ class mmu : public sc_core::sc_module, public mmu_if {
   void diag_read_dctlb(unsigned int addr, unsigned int * data);
   void diag_write_dctlb(unsigned int addr, unsigned int * data);
 
+  // return pointer to tlb interface objects
+  tlb_adaptor * get_itlb_if();
+  tlb_adaptor * get_dtlb_if();
+
   public:
 
   // data members
   // ------------
   /// pointer to mmu_cache module (ahb interface functions)
-  mmu_cache_if * m_parent;
+  mmu_cache_if * m_mmu_cache;
+
+  /// pointer to instruction tlb adaptor
+  tlb_adaptor * itlb_adaptor;
+  
+  /// pointer to data tlb adaptor
+  tlb_adaptor * dtlb_adaptor;
 
   // instruction and data tlb pointers
   // (depending on configuration may point to a shared tlb implementation)

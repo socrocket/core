@@ -17,15 +17,37 @@
 #ifndef __MMU_IF_H__
 #define __MMU_IF_H__
 
+#include <tlm.h>
+#include <map>
+
+#include "defines.h"
+
 class mmu_if {
 
   public:
 
-  // mmu interface functions
-  virtual void itlb_read(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug) {};
-  virtual void itlb_write(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug) {};
-  virtual void dtlb_write(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug) {};
-  virtual void dtlb_read(unsigned int addr, unsigned char * data, unsigned int length, unsigned int * debug) {};
+  // page descriptor cache (PDC) lookup
+  virtual unsigned int tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size, sc_core::sc_time * t, unsigned int * debug) = 0;
+
+  // read mmu internal registers (ASI 0x19)
+  virtual unsigned int read_mcr() = 0;
+  virtual unsigned int read_mctpr() = 0;
+  virtual unsigned int read_mctxr() = 0;
+  virtual unsigned int read_mfsr() = 0;
+  virtual unsigned int read_mfar() = 0;
+  
+  // write mmu internal registers (ASI 0x19)
+  virtual void write_mcr(unsigned int * data) = 0;
+  virtual void write_mctpr(unsigned int * data) = 0;
+  virtual void write_mctxr(unsigned int * data) = 0;
+
+  // diagnostic read/write of instruction PDC (ASI 0x5)
+  virtual void diag_read_itlb(unsigned int addr, unsigned int * data) = 0;
+  virtual void diag_write_itlb(unsigned int addr, unsigned int * data) = 0;
+  
+  // diagnostic read/write of data PDC or shared instruction and data PDC (ASI 0x6)
+  virtual void diag_read_dctlb(unsigned int addr, unsigned int * data) = 0;
+  virtual void diag_write_dctlb(unsigned int addr, unsigned int * data) = 0;
 
   virtual ~mmu_if() {};
 

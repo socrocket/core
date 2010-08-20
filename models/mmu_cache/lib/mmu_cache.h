@@ -26,14 +26,12 @@
 #include "dcio_payload_extension.h"
 
 #include "amba.h"
+
 #include "ivectorcache.h"
 #include "dvectorcache.h"
-
-#include "mmu.h"
 #include "mmu_cache_if.h"
-
+#include "mmu.h"
 #include "localram.h"
-
 #include <math.h>
 #include <ostream>
 
@@ -69,7 +67,7 @@ template <int dsu=0, int icen=0, int irepl=0, int isets=4, int ilinesize=4, int 
 	  int dcen=0, int drepl=0, int dsets=4, int dlinesize=4, int dsetsize=1, int dsetlock=0, int dsnoop=0,
 	  int ilram=0, int ilramsize=1, int ilramstart=0x8f, int dlram=0, int dlramsize=1, int dlramstart=0x8f, int cached=0,
 	  int mmu_en=0, int itlb_num=8, int dtlb_num=8, int tlb_type=1, int tlb_rep=0, int mmupgsz=0>
-class mmu_cache : public mmu_cache_if, public sc_core::sc_module {
+class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
 
   public:
 
@@ -116,9 +114,9 @@ class mmu_cache : public mmu_cache_if, public sc_core::sc_module {
   // forward transport functtion for dcio socket
   void dcio_custom_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay_time);
 
-  // interface to AMBA master socket
-  void amba_write(unsigned int addr, unsigned char * data, unsigned int length);
-  void amba_read(unsigned int addr, unsigned char * data, unsigned int length);
+  // interface to AMBA master socket (impl. mem_if)
+  virtual void mem_write(unsigned int addr, unsigned char * data, unsigned int length, sc_core::sc_time * t, unsigned int * t);
+  virtual void mem_read(unsigned int addr, unsigned char * data, unsigned int length, sc_core::sc_time * t, unsigned int * t);
 
   // read/write cache control register
   void write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time *delay);
@@ -131,7 +129,7 @@ class mmu_cache : public mmu_cache_if, public sc_core::sc_module {
   /// data cache pointer
   dvectorcache * dcache;
   /// mmu poiner
-  mmu * srmmu;
+  mmu * m_mmu;
   /// instruction scratchpad pointer
   localram * ilocalram;
   /// data scratchpad pointer

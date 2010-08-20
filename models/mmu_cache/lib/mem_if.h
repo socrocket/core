@@ -1,9 +1,8 @@
 // ***********************************************************************
 // * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
 // *                                                                     *
-// * File:       mmu_cache_if.h - MMU cache interface class for passing  *
-// *             pointers to the AHB interface to the components of      *
-// *             mmu_cache (ivectorcache, dvectorcache).                 * 
+// * File:       mem_if.h - To be implemented by classes which           *
+// *             provide a memory interface for public use.              * 
 // *                                                                     *
 // * Modified on $Date$   *
 // *          at $Revision$                                         *
@@ -14,23 +13,19 @@
 // ***********************************************************************
 
 
-#ifndef __MMU_CACHE_IF_H__
-#define __MMU_CACHE_IF_H__
+#ifndef __MEM_IF_H__
+#define __MEM_IF_H__
 
-#include "mem_if.h"
+class mem_if {
 
-class mmu_cache_if : public mem_if {
+ public:
 
-  public:
+  // amba master interface functions
+  virtual void mem_write(unsigned int addr, unsigned char * data, unsigned int length, sc_core::sc_time * t, unsigned int * debug) {};
+  virtual void mem_read(unsigned int addr, unsigned char * data, unsigned int length, sc_core::sc_time * t, unsigned int * debug) {};
 
-
-  // read cache control register
-  virtual unsigned int read_ccr() { return(0);};
-  virtual void write_ccr(unsigned char *data, unsigned int len, sc_core::sc_time *delay) {};
-  
-
-  virtual ~mmu_cache_if() {};
+  virtual ~mem_if() {}
 
 };
 
-#endif // __MMU_CACHE_IF_H__
+#endif // __MEM_IF_H__
