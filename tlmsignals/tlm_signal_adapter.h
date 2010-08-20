@@ -18,6 +18,8 @@
 #include "tlm_signal.h"
 #include <systemc.h>
 
+namespace tlm_signal {
+
 template<class INTYPE, class OUTTYPE = INTYPE>
 class tlmin_scout_adapter : public tlm_module<tlmin_scout_adapter<INTYPE, OUTTYPE> >, public sc_core::sc_module {
   public:
@@ -95,7 +97,7 @@ private:
 };
 
 template<class INTYPE, class OUTTYPE, class MODULE>
-sc_core::sc_module *signal_connect(tlm_signal_out<INTYPE, MODULE> &in, sc_core::sc_signal<OUTTYPE> &out) {
+sc_core::sc_module *connect(tlm_signal_out<INTYPE, MODULE> &in, sc_core::sc_signal<OUTTYPE> &out) {
   tlmin_scout_adapter<INTYPE, OUTTYPE> *result = new tlmin_scout_adapter<INTYPE, OUTTYPE>(sc_core::sc_gen_unique_name("adapter"));
   in(result->in);
   result->out(out);
@@ -103,15 +105,14 @@ sc_core::sc_module *signal_connect(tlm_signal_out<INTYPE, MODULE> &in, sc_core::
 }
 
 template<class INTYPE, class OUTTYPE, class MODULE>
-sc_core::sc_module *signal_connect(sc_core::sc_signal<INTYPE> &in, tlm_signal_in<OUTTYPE, MODULE> &out) {
+sc_core::sc_module *connect(sc_core::sc_signal<INTYPE> &in, tlm_signal_in<OUTTYPE, MODULE> &out) {
   scin_tlmout_adapter<INTYPE, OUTTYPE> *result = new scin_tlmout_adapter<INTYPE, OUTTYPE>(sc_core::sc_gen_unique_name("adapter"));
   result->in(in);
   result->out(out);
   return result;
 }
-// namespace tlm_signals
 
-// } // tlm_signals
+} // tlm_signals
 
 #endif // TLM_SIGNAL_ADAPTER
 

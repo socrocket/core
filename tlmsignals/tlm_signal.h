@@ -266,11 +266,11 @@ class tlm_signal_infield : public tlm_signal_base<TYPE, MODULE>, public tlm_sign
       }
     }
 
-    TYPE operator [](const unsigned int &channel) const {
+    TYPE operator[](const unsigned int &channel) const {
       return read(channel);
     }
 
-    void operator ()(tlm_signal_out_if<TYPE> &sender, unsigned int channel) {
+    void operator()(tlm_signal_out_if<TYPE> &sender, unsigned int channel) {
       TYPE t;
       m_channel.insert(std::make_pair(&sender, channel));
       m_value.insert(std::make_pair(channel, t));
