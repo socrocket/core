@@ -25,10 +25,11 @@ def configure(ctx):
 
 def build(bld):
   bld(
-    features = ['cxx', 'cprogram', 'test'],
-    source='tests/top_tlm.cpp',
-    target='irqmp.test',
-    includes='. ../utils',
-    uselib=['BOOST', 'SYSC', 'TLM2', 'AMBA', 'GREENSOCS'],
+    features     = 'cxx cprogram test',
+    source       = 'tests/top_tlm.cpp',
+    target       = 'irqmp.test',
+    includes     = '.',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib_local = 'utils signalkit'
   )
   

@@ -16,6 +16,7 @@
 
 #include "signalkit_h/base.h"
 #include "signalkit_h/ifs.h"
+#include <map>
 
 namespace signalkit {
 
@@ -31,11 +32,14 @@ class signal_infield : public signal_base<TYPE, MODULE>, public signal_in_if<TYP
       : signal_base<TYPE, MODULE>::signal_base(module, mn), m_callback(callback) {}
 
     virtual ~signal_infield() {}
-    
-    virtual void bind(signal_out_bind_if<TYPE> &t, const unsigned int channel = 0) {
+    virtual void bind(signal_out_bind_if<TYPE> &sender, const unsigned int &channel = 0) {
+      // TODO: Make it work with multible sender per channel
       TYPE v;
-      m_channel.insert(std::make_pair(&t, channel));
-      m_value.insert(std::make_pair(channel, v));
+      signal_out_if<TYPE> *out = static_cast<signal_out_if<TYPE> *>(&sender);
+      if(out) {
+        m_channel.insert(std::make_pair(out, channel));
+        m_value.insert(std::make_pair(channel, v));
+      }
     }
     
     virtual void update(signal_out_if<TYPE> *sender, const sc_core::sc_time &time) {

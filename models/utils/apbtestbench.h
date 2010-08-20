@@ -22,7 +22,7 @@
 
 //macro to brint a time stamp
 #define SHOW { \
-  std::cout << std::endl \
+  std::cout /*<< std::endl*/ \
             << "@" \
             << sc_core::sc_time_stamp().to_string().c_str() \
             << " /" \

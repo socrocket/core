@@ -46,7 +46,7 @@ def build(bld):
     target       = 'function.test',
     features     = 'cxx cprogram test',
     source       = 'tests/top_tlm.cpp',
-    defines      = 'FUNCTIONTEST SCVAL=100 T1VAL=100 T2VAL=1000 TVAL3=10000 TVAL4=100 TESTLENGTH=1 DEBUGOUT=1',
+    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
     uselib_local = 'utils signalkit',

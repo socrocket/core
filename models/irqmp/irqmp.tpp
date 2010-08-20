@@ -58,7 +58,11 @@ Irqmp::Irqmp(sc_core::sc_module_name name, int _pindex, int _paddr, int _pmask, 
       ::amba::amba_LT,  // communication type / abstraction level
       false             // not used
      ),
-  in("IN"), out("out"), // signal naming
+  rst(this, &Irqmp::reset_registers, "RESET"),
+  cpu_rst(this, "CPU_RESET"),
+  irq_req(this, "CPU_REQUEST"),
+  irq_ack(this, &Irqmp::clear_acknowledged_irq, "IRQ_ACKNOWLEDGE"),
+  irq_in(this, &Irqmp::register_irq, "IRQ_INPUT"),
   ncpu(_ncpu), eirq(_eirq)
 //  pindex("PINDEX"),
 //  conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)),
@@ -153,85 +157,6 @@ Irqmp::Irqmp(sc_core::sc_module_name name, int _pindex, int _paddr, int _pmask, 
                        0x00
                      );
   }
-
-  //process registration
-  sender_config sconf;
-  //conf.use_mandatory_extension<bar>();
-  sconf.use_optional_extension<irq0>();
-  sconf.use_optional_extension<irq1>();
-  sconf.use_optional_extension<irq2>();
-  sconf.use_optional_extension<irq3>();
-  sconf.use_optional_extension<irq4>();
-  sconf.use_optional_extension<irq5>();
-  sconf.use_optional_extension<irq6>();
-  sconf.use_optional_extension<irq7>();
-  sconf.use_optional_extension<irq8>();
-  sconf.use_optional_extension<irq9>();
-  sconf.use_optional_extension<irq10>();
-  sconf.use_optional_extension<irq11>();
-  sconf.use_optional_extension<irq12>();
-  sconf.use_optional_extension<irq13>();
-  sconf.use_optional_extension<irq14>();
-  sconf.use_optional_extension<irq15>();
-  sconf.use_optional_extension<rst0>();
-  sconf.use_optional_extension<rst1>();
-  sconf.use_optional_extension<rst2>();
-  sconf.use_optional_extension<rst3>();
-  sconf.use_optional_extension<rst4>();
-  sconf.use_optional_extension<rst5>();
-  sconf.use_optional_extension<rst6>();
-  sconf.use_optional_extension<rst7>();
-  sconf.use_optional_extension<rst8>();
-  sconf.use_optional_extension<rst9>();
-  sconf.use_optional_extension<rst10>();
-  sconf.use_optional_extension<rst11>();
-  sconf.use_optional_extension<rst12>();
-  sconf.use_optional_extension<rst13>();
-  sconf.use_optional_extension<rst14>();
-  sconf.use_optional_extension<rst15>();
-  register_sender_socket(out, sconf);
-
-  target_config tconf;
-  tconf.use_mandatory_extension<rst>();
-  tconf.use_optional_extension<irq0>();
-  tconf.use_optional_extension<irq1>();
-  tconf.use_optional_extension<irq2>();
-  tconf.use_optional_extension<irq3>();
-  tconf.use_optional_extension<irq4>();
-  tconf.use_optional_extension<irq5>();
-  tconf.use_optional_extension<irq6>();
-  tconf.use_optional_extension<irq7>();
-  tconf.use_optional_extension<irq8>();
-  tconf.use_optional_extension<irq9>();
-  tconf.use_optional_extension<irq10>();
-  tconf.use_optional_extension<irq11>();
-  tconf.use_optional_extension<irq12>();
-  tconf.use_optional_extension<irq13>();
-  tconf.use_optional_extension<irq14>();
-  tconf.use_optional_extension<irq15>();
-  tconf.use_optional_extension<set_irq>();
-  //tconf.use_optional_extension<clr_irq>();
-  register_target_socket(this, in, tconf);
-
-  CB_HANDLER(rst, Irqmp, &Irqmp::reset_registers);
-  CB_HANDLER(set_irq, Irqmp, &Irqmp::register_irq);
-  //CB_HANDLER(clr_irq, Irqmp, &Irqmp::clrirq);
-  CB_HANDLER(irq0, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq1, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq2, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq3, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq4, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq5, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq6, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq7, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq8, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq9, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq10, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq11, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq12, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq13, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq14, Irqmp, &Irqmp::clear_acknowledged_irq); 
-  CB_HANDLER(irq15, Irqmp, &Irqmp::clear_acknowledged_irq);  
 }
 
 //destructor
@@ -312,23 +237,14 @@ void Irqmp::end_of_elaboration() {
 
 //reset registers to default values
 //process sensitive to reset signal
-void Irqmp::reset_registers(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
-
-  //static bool delay = true;
-
-  //either model the timing
+void Irqmp::reset_registers(const bool &value, signalkit::signal_in_if<bool> *signal, signalkit::signal_out_if<bool> *sender, const sc_core::sc_time &time) {
 #if 0
-  if (delay) {
 #ifdef COUT_TIMING
     cout << endl << "reset_registers called by trigger at:" << sc_time_stamp();
 #endif
-    delay = false;
     next_trigger(CLOCK_PERIOD, SC_NS);
-  }
-  //or model the functionality
-  else {
 #endif
-  if(!in.get_last_value(rst::ID)) {
+  if(!value) {
 #ifdef COUT_TIMING
     cout << endl << "reset_registers called after delay at:" << sc_time_stamp();
 #endif
@@ -363,10 +279,6 @@ void Irqmp::reset_registers(unsigned int &id, gs_generic_signal_payload& trans, 
       r[PROC_IR_FORCE(i_cpu)].set(set_pforce);
       r[PROC_EXTIR_ID(i_cpu)].set(set_extir_id);
     }
-#if 0
-    delay = true;
-  } //else
-#endif
   }
 }
 
@@ -377,7 +289,7 @@ void Irqmp::reset_registers(unsigned int &id, gs_generic_signal_payload& trans, 
 //  o write incoming interrupts into pending or force registers
 //
 //process sensitive to apbi.pirq
-void Irqmp::register_irq(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
+void Irqmp::register_irq(const uint32_t &value, const unsigned int &channel, signalkit::signal_in_if<uint32_t> *signal, signalkit::signal_out_if<uint32_t> *sender, const sc_core::sc_time &time) {
 
   //static bool delay = true;
 
@@ -398,13 +310,13 @@ void Irqmp::register_irq(unsigned int &id, gs_generic_signal_payload& trans, sc_
     cout << endl << "register_irq called after delay at:" << sc_time_stamp();
 #endif
     //set pending register
-    unsigned int irq = 1 << in.get_last_value(set_irq::ID);
-    unsigned int set = static_cast<unsigned int>( irq and not r[BROADCAST].get() );
+    unsigned int irq = value;
+    unsigned int set = static_cast<unsigned int>( irq & !r[BROADCAST].get() );
     r[PENDING].set( set );
 
     //set force registers for broadcasted interrupts
     for (int i_cpu; i_cpu<ncpu; i_cpu++) {                                                   // EIRs cannot be forced
-      unsigned int set = static_cast<unsigned int>( irq and r[BROADCAST].get() and IRQMP_PROC_IR_FORCE_IF );
+      unsigned int set = static_cast<unsigned int>( irq & r[BROADCAST].get() & IRQMP_PROC_IR_FORCE_IF );
       r[PROC_IR_FORCE(i_cpu)].set( set );
     }
 #if 0
@@ -440,11 +352,11 @@ void Irqmp::launch_irq() {
     r[PROC_IR_FORCE(i_cpu)].set(cleared_force_reg);
 
     // masked = (pending || force) && mask
-    masked_ir = (r[PENDING].get() or r[PROC_IR_FORCE(i_cpu)].get() ) and r[PROC_IR_MASK(i_cpu)].get();
+    masked_ir = (r[PENDING].get() | r[PROC_IR_FORCE(i_cpu)].get() ) & r[PROC_IR_MASK(i_cpu)].get();
 
     // any pending extended interrupts?
     if (eirq != 0) {
-      sc_uint<32> eirq_pending = masked_ir and IRQMP_IR_PENDING_EIP;
+      sc_uint<32> eirq_pending = masked_ir & IRQMP_IR_PENDING_EIP;
       bool eirq_pending_bool = eirq_pending.or_reduce();
       r[PENDING].bit_set(eirq, eirq_pending_bool);
     }
@@ -474,24 +386,7 @@ void Irqmp::launch_irq() {
         }
       }
     }
-    switch(i_cpu) {
-      case 0: SIGNAL_SET(irq0, (0x0000000F and high_ir)); break;
-      case 1: SIGNAL_SET(irq1, (0x0000000F and high_ir)); break;
-      case 2: SIGNAL_SET(irq2, (0x0000000F and high_ir)); break;
-      case 3: SIGNAL_SET(irq3, (0x0000000F and high_ir)); break;
-      case 4: SIGNAL_SET(irq4, (0x0000000F and high_ir)); break;
-      case 5: SIGNAL_SET(irq5, (0x0000000F and high_ir)); break;
-      case 6: SIGNAL_SET(irq6, (0x0000000F and high_ir)); break;
-      case 7: SIGNAL_SET(irq7, (0x0000000F and high_ir)); break;
-      case 8: SIGNAL_SET(irq8, (0x0000000F and high_ir)); break;
-      case 9: SIGNAL_SET(irq9, (0x0000000F and high_ir)); break;
-      case 10: SIGNAL_SET(irq10, (0x0000000F and high_ir)); break;
-      case 11: SIGNAL_SET(irq11, (0x0000000F and high_ir)); break;
-      case 12: SIGNAL_SET(irq12, (0x0000000F and high_ir)); break;
-      case 13: SIGNAL_SET(irq13, (0x0000000F and high_ir)); break;
-      case 14: SIGNAL_SET(irq14, (0x0000000F and high_ir)); break;
-      case 15: SIGNAL_SET(irq15, (0x0000000F and high_ir)); break;
-    }
+    irq_req.write(1<<i_cpu, 0xF & high_ir);
   } // foreach cpu
 }
 
@@ -526,47 +421,22 @@ void Irqmp::clear_forced_ir() {
 
 
 //process sensitive to irqi
-void Irqmp::clear_acknowledged_irq(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
-//  static bool delay = true;
+void Irqmp::clear_acknowledged_irq(const uint32_t &cleared_irq, const unsigned int &i_cpu, signalkit::signal_in_if<uint32_t> *signal, signalkit::signal_out_if<uint32_t> *sender, const sc_core::sc_time &time) {
 #if 0
-  //either model the timing
-  if (delay) {
 #ifdef COUT_TIMING
     cout << endl << "clear_acknowledged_irq called by trigger at:" << sc_time_stamp();
 #endif
-    delay = false;
-    next_trigger(CLOCK_PERIOD, SC_NS);
-  }
-  //or model the functionality
-  else {
+    t += sc_core::sc_time(CLOCK_PERIOD, SC_NS);
 #endif
+    
 #ifdef COUT_TIMING
     cout << endl << "clear_acknowledged_irq called after delay at:" << sc_time_stamp();
 #endif
     short int high_ir;
     unsigned int masked_ir;
 
-    int i_cpu = 0;
-    int cleared_irq = 0;
-    if(trans.get_extension<irq0>()) { i_cpu = 0; cleared_irq = in.get_last_value(irq0::ID);} else 
-    if(trans.get_extension<irq1>()) { i_cpu = 1; cleared_irq = in.get_last_value(irq1::ID);} else
-    if(trans.get_extension<irq2>()) { i_cpu = 2; cleared_irq = in.get_last_value(irq2::ID);} else
-    if(trans.get_extension<irq3>()) { i_cpu = 3; cleared_irq = in.get_last_value(irq3::ID);} else
-    if(trans.get_extension<irq4>()) { i_cpu = 4; cleared_irq = in.get_last_value(irq4::ID);} else
-    if(trans.get_extension<irq5>()) { i_cpu = 5; cleared_irq = in.get_last_value(irq5::ID);} else
-    if(trans.get_extension<irq6>()) { i_cpu = 6; cleared_irq = in.get_last_value(irq6::ID);} else
-    if(trans.get_extension<irq7>()) { i_cpu = 7; cleared_irq = in.get_last_value(irq7::ID);} else
-    if(trans.get_extension<irq8>()) { i_cpu = 8; cleared_irq = in.get_last_value(irq8::ID);} else
-    if(trans.get_extension<irq9>()) { i_cpu = 9; cleared_irq = in.get_last_value(irq9::ID);} else
-    if(trans.get_extension<irq10>()) { i_cpu = 10; cleared_irq = in.get_last_value(irq10::ID);} else
-    if(trans.get_extension<irq11>()) { i_cpu = 11; cleared_irq = in.get_last_value(irq11::ID);} else
-    if(trans.get_extension<irq12>()) { i_cpu = 12; cleared_irq = in.get_last_value(irq12::ID);} else
-    if(trans.get_extension<irq13>()) { i_cpu = 13; cleared_irq = in.get_last_value(irq13::ID);} else
-    if(trans.get_extension<irq14>()) { i_cpu = 14; cleared_irq = in.get_last_value(irq14::ID);} else
-    if(trans.get_extension<irq15>()) { i_cpu = 15; cleared_irq = in.get_last_value(irq15::ID);}
-
     //extended IR handling: Identify highest pending EIR
-    if (eirq != 0 && cleared_irq == eirq) {
+    if (eirq != 0 && cleared_irq == (unsigned int)eirq) {
       masked_ir = ( r[PENDING].get() and r[PROC_IR_MASK(i_cpu)].get() ); //force and level not supported for EIRQs
       for (high_ir=31; high_ir>=16; high_ir--) {
         if (masked_ir & (1 << high_ir)) {
@@ -587,35 +457,12 @@ void Irqmp::clear_acknowledged_irq(unsigned int &id, gs_generic_signal_payload& 
     if (r[BROADCAST].bit_get(cleared_irq)) {
       r[PROC_IR_FORCE(i_cpu)].bit_set( static_cast<unsigned int>(cleared_irq), false_var);
     }
-#if 0
-    delay = true;
-  } //else delay
-#endif
 }
 
 //reset cpus after write to cpu status register
 //callback registered on mp status register
 void Irqmp::mpstat_write() {
-  for (int i_cpu=ncpu-1; i_cpu>=0; i_cpu--) {
-    switch(i_cpu) {
-      case 0: SIGNAL_SET(rst0, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 1: SIGNAL_SET(rst1, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 2: SIGNAL_SET(rst2, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 3: SIGNAL_SET(rst3, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 4: SIGNAL_SET(rst4, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 5: SIGNAL_SET(rst5, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 6: SIGNAL_SET(rst6, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 7: SIGNAL_SET(rst7, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 8: SIGNAL_SET(rst8, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 9: SIGNAL_SET(rst9, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 10: SIGNAL_SET(rst10, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 11: SIGNAL_SET(rst11, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 12: SIGNAL_SET(rst12, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 13: SIGNAL_SET(rst13, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 14: SIGNAL_SET(rst14, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-      case 15: SIGNAL_SET(rst15, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
-    }
-  }
+  cpu_rst.write(0xFFFFFFFF, true);
 }
 
 //

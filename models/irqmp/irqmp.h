@@ -27,18 +27,18 @@
 
 #include "greencontrol/all.h"
 
-#include "multisignalhandler.h"
-#include "irqmpsignals.h"
+#include "signalkit.h"
 
-class Irqmp : public gs::reg::gr_device, public MultiSignalSender, public MultiSignalTarget<Irqmp> {
+class Irqmp : public gs::reg::gr_device, public signalkit::signal_module<Irqmp> {
   public:
-    //typedef from MultiSignalSockets. 
-    typedef gs::socket::config<gs_generic_signal_protocol_types> target_config;
-    
     //Slave socket with delayed switch; responsible for all bus communication
     gs::reg::greenreg_socket< gs::amba::amba_slave<32> > bus;
-    gs_generic_signal::target_signal_multi_socket<Irqmp>  in;
-    gs_generic_signal::initiator_signal_multi_socket     out;
+
+    signal<bool>::in           rst;
+    signal<bool>::selector     cpu_rst;
+    signal<uint32_t>::selector irq_req;
+    signal<uint32_t>::infield  irq_ack;
+    signal<uint32_t>::infield  irq_in;
 
     //Non-AMBA-Signals
 
@@ -51,7 +51,7 @@ class Irqmp : public gs::reg::gr_device, public MultiSignalSender, public MultiS
 
     //function prototypes
     void end_of_elaboration();
-    void reset_registers(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay);
+    void reset_registers(const bool &value, signalkit::signal_in_if<bool> *signal, signalkit::signal_out_if<bool> *sender, const sc_core::sc_time &time);
 
     //bus communication
     void clear_write();               //write to IR clear register
@@ -60,9 +60,11 @@ class Irqmp : public gs::reg::gr_device, public MultiSignalSender, public MultiS
     void register_read();             //one read function for all registers
 
     //processor communication
-    void register_irq(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay);              //bus and processor communication
+    void register_irq(const uint32_t &cleared_irq, const unsigned int &i_cpu, signalkit::signal_in_if<uint32_t> *signal, signalkit::signal_out_if<uint32_t> *sender, const sc_core::sc_time &time);
+                                      //bus and processor communication
     void launch_irq();                //processor communication
-    void clear_acknowledged_irq(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay);    //processor communication
+    void clear_acknowledged_irq(const uint32_t &cleared_irq, const unsigned int &i_cpu, signalkit::signal_in_if<uint32_t> *signal, signalkit::signal_out_if<uint32_t> *sender, const sc_core::sc_time &time);
+                                      //processor communication
 
 //    void clk(sc_core::sc_clock &clk);
 //    void clk(sc_core::sc_time &period);

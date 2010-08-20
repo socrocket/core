@@ -28,26 +28,33 @@ class signal_selector : public signal_base<TYPE, MODULE>, public signal_out_bind
       : signal_base<TYPE, MODULE>::signal_base(module, mn) {}
       
     virtual void bind(signal_in_if<TYPE> &receiver, const unsigned int &channel) {
-      typename t_map::iterator item = outs.insert( std::make_pair(channel, signal_out<TYPE, MODULE>(this->m_module, sc_core::sc_gen_unique_name("port", true))));
-      item->second(receiver);
+      // TODO: Make it work with multible sender per channel
+      // TODO: Make it work with all directions of bind requests. At the moment this bind must be called first.
+      signal_out<TYPE, MODULE> *item = new signal_out<TYPE, MODULE>(this->m_module, sc_core::sc_gen_unique_name("port", true));
+      outs.insert( std::make_pair(channel, item));
+      item->bind(receiver);
     }
       
-    virtual void write(const unsigned long long &mask, const TYPE &value, const sc_core::sc_time &time = sc_core::SC_ZERO_TIME) {
+    virtual void write(const unsigned int &mask, const TYPE &value, const sc_core::sc_time &time = sc_core::SC_ZERO_TIME) {
       for(typename t_map::iterator i = outs.begin(); i != outs.end(); i++) {
         if(mask&(1<<i->first)) {
-          i->second.write(value, time);
+          i->second->write(value, time);
         }
       }
     }
+   
+    /* 
+    void operator[](const unsigned int &mask, const TYPE &value) {
+      this->write(mask, value)
+    }*/
     
-    //TYPE operator[](const unsigned int &mask, const TYPE &t);
     void operator()(signal_in_if<TYPE> &receiver, const unsigned int &channel) {
       this->bind(receiver, channel);
       receiver.bind(*this);
     }
     
   private:
-    typedef std::map<unsigned int, signal_out<TYPE, MODULE> > t_map;
+    typedef std::map<unsigned int, signal_out<TYPE, MODULE> *> t_map;
     t_map outs;
 };
 
