@@ -41,25 +41,25 @@
 #define PROC_EXTIR_ID(CPU_INDEX) (0xC0 + 0x4 * CPU_INDEX)
 
 //constructor
-template <int pindex, int paddr, int pmask, int ncpu, int eirq>
-         Irqmp<pindex, paddr, pmask, ncpu, eirq>::Irqmp(sc_core::sc_module_name name)
+Irqmp::Irqmp(sc_core::sc_module_name name, int _pindex, int _paddr, int _pmask, int _ncpu, int _eirq)
   :
   gr_device(
             name,                      //sc_module name
             gs::reg::ALIGNED_ADDRESS,  //address mode (options: aligned / indexed)
-            48 + 4*ncpu,               //dword size (of register file)
+            48 + 4*_ncpu,               //dword size (of register file)
             NULL                       //parent module
            ),
   bus( //greenreg_socket
       "bus",            //name
       r,                //register container
-      0x0,              // ?
-      0xFFFFFFFF,       // ?
-      ::amba::amba_APB, // ?bus type?
-      ::amba::amba_LT,  // ?communication type / abstraction level?
-      false             // ?
+      0x0,              // start address
+      0xFFFFFFFF,       // register space length
+      ::amba::amba_APB, // bus type
+      ::amba::amba_LT,  // communication type / abstraction level
+      false             // not used
      ),
-  in("IN"), out("out") // signal naming
+  in("IN"), out("out"), // signal naming
+  ncpu(_ncpu), eirq(_eirq)
 //  pindex("PINDEX"),
 //  conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)),
 //  clockcycle(10.0, sc_core::SC_NS)
@@ -127,7 +127,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
                       0x00
                    );
 
-  for(unsigned int i=0; i<ncpu; ++i) {
+  for(int i=0; i<ncpu; ++i) {
     r.create_register( gen_unique_name("mask", false), "Interrupt Mask Register", 
                        0x40 + 0x4 * i,
                        gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
@@ -235,15 +235,13 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 }
 
 //destructor
-template <int pindex, int paddr, int pmask, int ncpu, int eirq>
-   Irqmp <pindex, paddr, pmask, ncpu, eirq>::~Irqmp() {
+Irqmp::~Irqmp() {
   GC_UNREGISTER_CALLBACKS();
 }
 
 
 //Hook up callback functions to registers
-template <int pindex, int paddr, int pmask, int ncpu, int eirq>
-  void Irqmp <pindex, paddr, pmask, ncpu, eirq>::end_of_elaboration() {   
+void Irqmp::end_of_elaboration() {   
 
   // send interrupts to processors after write to pending / force regs
   GR_FUNCTION(Irqmp, launch_irq);                         // args: module name, callback function name
@@ -314,8 +312,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 
 //reset registers to default values
 //process sensitive to reset signal
-template <int pindex, int paddr, int pmask, int ncpu, int eirq>
-  void Irqmp <pindex, paddr, pmask, ncpu, eirq>::reset_registers(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
+void Irqmp::reset_registers(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
 
   //static bool delay = true;
 
@@ -380,8 +377,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 //  o write incoming interrupts into pending or force registers
 //
 //process sensitive to apbi.pirq
-template <int pindex, int paddr, int pmask, int ncpu, int eirq>
-  void Irqmp <pindex, paddr, pmask, ncpu, eirq>::register_irq(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
+void Irqmp::register_irq(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
 
   //static bool delay = true;
 
@@ -431,8 +427,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 //
 //callback registered on IR pending register,
 //                       IR force registers
-template <int pindex, int paddr, int pmask, int ncpu, int eirq>
-  void Irqmp <pindex, paddr, pmask, ncpu, eirq>::launch_irq() {
+void Irqmp::launch_irq() {
   short int high_ir;        // highest priority interrupt (to be launched)
   sc_uint<32> masked_ir;    // vector of pending, masked interrupts
   //l3_irq_in_type temp;      // temp var required for write access to single signals inside the struct
@@ -510,16 +505,14 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 //  o in case of eirq, release eirq ID in eirq ID register
 //
 // callback registered on interrupt clear register
-template <int pindex, int paddr, int pmask, int ncpu, int eirq>
-    void Irqmp<pindex, paddr, pmask, ncpu, eirq>::clear_write() {
+void Irqmp::clear_write() {
   // pending reg only: forced IRs are cleared in the next function
   unsigned int cleared_vector = r[PENDING].get() and not r[CLEAR].get();
   r[PENDING].set(cleared_vector);
 }
 
 // callback registered on interrupt force registers
-template <int pindex, int paddr, int pmask, int ncpu, int eirq>
-    void Irqmp<pindex, paddr, pmask, ncpu, eirq>::clear_forced_ir() {
+void Irqmp::clear_forced_ir() {
 
   for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
     unsigned int ir_force_reg = r[IRQMP_PROC_IR_FORCE(i_cpu)].get();
@@ -533,8 +526,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 
 
 //process sensitive to irqi
-template <int pindex, int paddr, int pmask, int ncpu, int eirq>
-  void Irqmp <pindex, paddr, pmask, ncpu, eirq>::clear_acknowledged_irq(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
+void Irqmp::clear_acknowledged_irq(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay) {
 //  static bool delay = true;
 #if 0
   //either model the timing
@@ -603,8 +595,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 
 //reset cpus after write to cpu status register
 //callback registered on mp status register
-template <int pindex, int paddr, int pmask, int ncpu, int eirq>
-  void Irqmp <pindex, paddr, pmask, ncpu, eirq>::mpstat_write() {
+void Irqmp::mpstat_write() {
   for (int i_cpu=ncpu-1; i_cpu>=0; i_cpu--) {
     switch(i_cpu) {
       case 0: SIGNAL_SET(rst0, r[IRQMP_MP_STAT].bit_get(i_cpu)); break;
@@ -633,8 +624,7 @@ template <int pindex, int paddr, int pmask, int ncpu, int eirq>
 // Prior to a read access, no changes to the registers are necessary.
 //
 //callback registered on all registers
-template <int pindex, int paddr, int pmask, int ncpu, int eirq>
-  void Irqmp <pindex, paddr, pmask, ncpu, eirq>::register_read() {
+void Irqmp::register_read() {
 
 }
 

@@ -28,5 +28,6 @@ def build(bld):
     name           = 'utils',
     export_incdirs = '.',
     uselib         = '',
+    uselib_local   = 'signalkit'
   )
   

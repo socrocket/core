@@ -24,35 +24,35 @@ def configure(ctx):
   
 def build(bld):
   bld(
-    name           = 'tlmsignals',
+    name           = 'signalkit',
     export_incdirs = '.',
     uselib         = 'BOOST SYSC',
   )
  
   bld(
-    target       = 'simpletest',
+    target       = 'simple.test',
     features     = 'cxx cprogram test',
     source       = 'tests/simple.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC',
-    uselib_local = 'tlmsignals'
+    uselib_local = 'signalkit'
   )
   
   bld(
-    target       = 'systemctest',
+    target       = 'systemc.test',
     features     = 'cxx cprogram test',
     source       = 'tests/systemc.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC',
-    uselib_local = 'tlmsignals'
+    uselib_local = 'signalkit'
   )
   
   bld(
-    target       = 'datatypemapping',
+    target       = 'datatypemapping.test',
     features     = 'cxx cprogram test',
     source       = 'tests/datatypemapping.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC',
-    uselib_local = 'tlmsignals'
+    uselib_local = 'signalkit'
   )
    

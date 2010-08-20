@@ -15,7 +15,7 @@
 #* Maintainer: Rolf Meyer                                              *#
 #***********************************************************************#
 
-top = '..'
+top = '../..'
 
 def set_options(ctx):
   pass 
@@ -33,22 +33,22 @@ def build(bld):
   #)
   
   bld(
-    target       = 'gptimer.speedtest',
+    target       = 'speed.test',
     features     = 'cxx cprogram test',
     source       = 'tests/top_tlm.cpp',
-    cxxflags     = '-DSPEEDTEST',
+    defines      = 'SPEEDTEST',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'utils tlmsignals',
+    uselib_local = 'utils signalkit',
   )
   
   bld(
-    target       = 'gptimer.functiontest',
-    features     = ['cxx', 'cprogram', 'test'],
-    source       = ['tests/top_tlm.cpp'],
-    cxxflags     = ['-DFUNCTIONTEST'],
-    includes     = ['.'],
-    uselib       = ['BOOST', 'SYSC', 'TLM2', 'AMBA', 'GREENSOCS'],
-    uselib_local = ['utils', 'tlmsignals'],
+    target       = 'function.test',
+    features     = 'cxx cprogram test',
+    source       = 'tests/top_tlm.cpp',
+    defines      = 'FUNCTIONTEST SCVAL=100 T1VAL=100 T2VAL=1000 TVAL3=10000 TVAL4=100 TESTLENGTH=1 DEBUGOUT=1',
+    includes     = '.',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib_local = 'utils signalkit',
   )
 

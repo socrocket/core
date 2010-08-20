@@ -30,19 +30,14 @@
 #include "multisignalhandler.h"
 #include "irqmpsignals.h"
 
-template <int pindex = 0, int paddr = 0, int pmask = 0xFFF, int ncpu = 2, int eirq = 1>
-class Irqmp;
-
-template <int pindex, int paddr, int pmask, int ncpu, int eirq>
-class Irqmp : public gs::reg::gr_device, public MultiSignalSender, public MultiSignalTarget<Irqmp<pindex, paddr, pmask, ncpu, eirq> > {
+class Irqmp : public gs::reg::gr_device, public MultiSignalSender, public MultiSignalTarget<Irqmp> {
   public:
     //typedef from MultiSignalSockets. 
     typedef gs::socket::config<gs_generic_signal_protocol_types> target_config;
     
     //Slave socket with delayed switch; responsible for all bus communication
     gs::reg::greenreg_socket< gs::amba::amba_slave<32> > bus;
-    gs_generic_signal::target_signal_multi_socket<
-              Irqmp<pindex, paddr, pmask, ncpu, eirq> >  in;
+    gs_generic_signal::target_signal_multi_socket<Irqmp>  in;
     gs_generic_signal::initiator_signal_multi_socket     out;
 
     //Non-AMBA-Signals
@@ -51,7 +46,7 @@ class Irqmp : public gs::reg::gr_device, public MultiSignalSender, public MultiS
     SC_HAS_PROCESS(Irqmp);
 
     //constructor takes vhdl generics as parameters
-    Irqmp(sc_core::sc_module_name name); // interrupt cascade for extended interrupts
+    Irqmp(sc_core::sc_module_name name, int _pindex = 0, int _paddr = 0, int _pmask = 0xFFF, int _ncpu = 2, int _eirq = 1); // interrupt cascade for extended interrupts
     ~Irqmp();
 
     //function prototypes
@@ -72,6 +67,9 @@ class Irqmp : public gs::reg::gr_device, public MultiSignalSender, public MultiS
 //    void clk(sc_core::sc_clock &clk);
 //    void clk(sc_core::sc_time &period);
 //    void clk(double &period, sc_core::sc_time_unit &base);
+  private:
+    const int ncpu;
+    const int eirq;
 
 };
 

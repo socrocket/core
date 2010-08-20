@@ -34,12 +34,3 @@ def configure(ctx):
 
 def build(bld):
   bld.add_subdirs(models)
-
-def docs(bld):
-  import subprocess
-  #sources = find.getfiles(
-  #    '.',
-  #    ['*.c', '*.cpp', '*.cxx', '*.h', '*.hpp', '*.tpp'], 
-  #    ['.hg', '.svn', 'build']
-  #)
-  subprocess.call(["doxygen", "Doxyfile"])  

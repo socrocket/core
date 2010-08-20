@@ -1,26 +1,21 @@
 /***********************************************************************/
 /* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
-/* File:       gptimersignals.h                                        */
-/*             header file defining the gptimer signal socket guards   */
-/*             usable by all components and models communicating with  */
-/*             a gptimer model                                         */
+/* File:       signalkit_h/adapter.h:                                  */
 /*                                                                     */
 /* Modified on $Date$   */
 /*          at $Revision$                                         */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TU Braunschweig              */
+/* Author:     VLSI working group @ IDA @ TUBS                         */
 /* Maintainer: Rolf Meyer                                              */
 /***********************************************************************/
 
-#ifndef TIMER_SIGNALS_H
-#define TIMER_SIGNALS_H
+#ifndef SIGNALKIT_ADAPTER_H
+#define SIGNALKIT_ADAPTER_H
 
-#include "globalsignals.h"
-
-GS_GUARD_ONLY_EXTENSION(dhalt);
-GS_GUARD_ONLY_EXTENSION(tick);
-GS_GUARD_ONLY_EXTENSION(wdog);
+#include "signalkit_h/adapter_h/tlmin_scout_adapter.h"
+#include "signalkit_h/adapter_h/scin_tlmout_adapter.h"
+#include "signalkit_h/adapter_h/tlmsc_inout_adapter.h"
 
 #endif

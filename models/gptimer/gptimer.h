@@ -24,16 +24,14 @@
 #include <greenreg_ambasocket.h>
 
 #include "greencontrol/all.h"
-#include "multisignalhandler.h"
+#include "signalkit.h"
 
-#include "gptimersignals.h"
 #include "gptimerregisters.h"
 
 #include <string>
 #include <ostream>
 #include <vector>
 
-template <int gpindex = 0, int gpaddr = 0, int gpmask = 4095, int gpirq = 0, int gsepirq = 0, int gsbits = 16, int gnbits = 32, int gwdog = 0>
 class Timer;
 
 /// @brief This class implements an internal counter of a gptimer.
@@ -49,12 +47,11 @@ class Timer;
 ///                last timer will be enabled and pre-loaded with this value
 ///                at reset. When the timer value reaches 0, the WDOG output
 ///                is driven active.
-template <int gpindex = 0, int gpaddr = 0, int gpmask = 4095, int gpirq = 0, int gsepirq = 0, int gsbits = 16, int gnbits = 32, int gwdog = 0>
 class Counter : public gs::reg::gr_subdevice {
   public:
     
     /// A pointer to the parent GPTimer. This is needed to acces common functions and register.
-    Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog> &p;
+    Timer &p;
     //Timer &p;
 
     /// The interrupt state of the counter. Might be get deprecated
@@ -92,7 +89,7 @@ class Counter : public gs::reg::gr_subdevice {
     GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(Counter);
 	
-    Counter(Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog> &_parent, unsigned int nr, sc_core::sc_module_name name);
+    Counter(Timer &_parent, unsigned int nr, sc_core::sc_module_name name);
     ~Counter();
   
     /// Execute the callback registering when systemc reaches the end of elaboration.
@@ -157,20 +154,16 @@ class Counter : public gs::reg::gr_subdevice {
 ///                last timer will be enabled and pre-loaded with this value
 ///                at reset. When the timer value reaches 0, the WDOG output
 ///                is driven active.
-template <int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog>
-class Timer : public gs::reg::gr_device, public MultiSignalSender, public MultiSignalTarget<Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog> > {
+class Timer : public gs::reg::gr_device, public signalkit::signal_module<Timer> {
   public:
-    /// Typedef from MultiSignalTarget. The templates hides the inhireted decleration.
-    typedef gs::socket::config<gs_generic_signal_protocol_types> target_config;
-    
     /// Slave socket with delayed switchi
     gs::reg::greenreg_socket< gs::amba::amba_slave<32> > bus; 
     
-    /// Signal Sockets which transports all in going Signals.
-    gs_generic_signal::target_signal_multi_socket<
-      Timer<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog> > in;
-    /// Signal Sockets which transports all out going Signals.
-    gs_generic_signal::initiator_signal_multi_socket                          out;
+    signal<bool>::in      rst;
+    signal<bool>::in      dhalt;
+    signal<uint8_t>::out  tick;
+    signal<uint32_t>::out irq;
+    signal<uint32_t>::out wdog;
    
     /// Stores the default config register value 
     /// TODO: Might be deprecated.
@@ -209,11 +202,8 @@ class Timer : public gs::reg::gr_device, public MultiSignalSender, public MultiS
     ///
     sc_core::sc_event e_tick;
     
-    /// Defining a shorter name for the counter type.
-    typedef Counter<gpindex, gpaddr, gpmask, gpirq, gsepirq, gsbits, gnbits, gwdog> counter_type;
-
     /// A vector of Counter classes, each representate an internal counter.
-    std::vector<counter_type *> counter;
+    std::vector<Counter *> counter;
 
     GC_HAS_CALLBACKS(); 
     SC_HAS_PROCESS(Timer);
@@ -222,7 +212,7 @@ class Timer : public gs::reg::gr_device, public MultiSignalSender, public MultiS
     ///
     /// @param name    The name of the instance. It's needed for debunging.
     /// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
-    Timer(sc_core::sc_module_name name, unsigned int ntimers = 1);
+    Timer(sc_core::sc_module_name name, unsigned int ntimers = 1, int gpindex = 0, int gpaddr = 0, int gpmask = 4095, int gpirq = 0, int gsepirq = 0, int gsbits = 16, int gnbits = 32, int gwdog = 0);
 
     /// Free all counter and unregister all callbacks.
     ~Timer();
@@ -249,10 +239,10 @@ class Timer : public gs::reg::gr_device, public MultiSignalSender, public MultiS
     void conf_read();
 
     /// Execute a reset on the timer when the rst signal arrives.
-    void do_reset(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay);
+    void do_reset(const bool &value, signalkit::signal_in_if<bool> *signal, signalkit::signal_out_if<bool> *sender, const sc_core::sc_time &time);
 
     /// Performs the stopping and starting of all counter when dhalt arrives.
-    void do_dhalt(unsigned int &id, gs_generic_signal_payload& trans, sc_core::sc_time& delay);
+    void do_dhalt(const bool &value, signalkit::signal_in_if<bool> *signal, signalkit::signal_out_if<bool> *sender, const sc_core::sc_time &time);
 
     /// Diagnostic SC_THREAD
     ///
@@ -309,27 +299,6 @@ class Timer : public gs::reg::gr_device, public MultiSignalSender, public MultiS
     /// @brief
     ///
     inline int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime);
-    
-    /// Returns the current value of the dhalt signal.
-    ///
-    ///  All signals are replaced by a tlm socket. This signal socket has one guard which represents the dhalt signal.
-    ///  The last value of this signal is stored in the socket and gets read by this function.
-    ///
-    /// @return the current value of the dhalt signal.
-    inline unsigned char get_dhalt() {
-      return in.get_last_value(dhalt::ID);
-    }
-    
-    /// Returns the current value of the rst signal.
-    ///
-    ///  All signals are replaced by a tlm socket. This signal socket has one guard which represents the rst signal.
-    ///  The last value of this signal is stored in the socket and gets read by this function.
-    ///  This signal is the reset trigger. The reset is negative active. Like the reset signal of the vhdl model.
-    ///
-    /// @return the current value of the rst signal.
-    inline unsigned char get_rst() {
-      return in.get_last_value(rst::ID);
-    }
 };
 
 

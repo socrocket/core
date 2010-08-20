@@ -18,7 +18,7 @@ APPNAME = 'hwswtlmmodels'
 VERSION = '0.5'
 top = '.'
 out = 'build'
-dirs = ['tlmsignals', 'models']
+dirs = ['signalkit', 'models']
 
 import os
 import os.path
@@ -204,14 +204,14 @@ def build(bld):
   bld.add_subdirs(dirs)
   bld.add_post_fun(unittestw.summary)
 
-#def docs(bld):
-#  import subprocess
+def docs(bld):
+  import subprocess
   #sources = find.getfiles(
   #    '.',
   #    ['*.c', '*.cpp', '*.cxx', '*.h', '*.hpp', '*.tpp'], 
   #    ['.hg', '.svn', 'build']
   #)
-#  subprocess.call(["doxygen", "Doxyfile"])  
+  subprocess.call(["doxygen", "Doxyfile"])  
 
 ## Nice to have to set svn props:
 ## It's maybe wothy to make a target out of it
