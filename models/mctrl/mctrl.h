@@ -56,11 +56,19 @@ public:
     Mctrl(sc_module_name name);
     ~Mctrl();
 
-    //proclamation of processes
+    //proclamation of processes and callbacks
     SC_HAS_PROCESS(Mctrl);
+    GC_HAS_CALLBACKS();
+
+    //function prototypes
+    void end_of_elaboration();
 
     //thread process to initialize MCTRL (set registers, define address spaces, etc.)
     void initialize_mctrl();
+
+    //callbacks reacting on register access
+    void launch_sdram_command ();
+    void configure_sdram();
 
     //define TLM transport functions
     virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
@@ -71,6 +79,9 @@ public:
              sram_bk1_s, sram_bk1_e, sram_bk2_s, sram_bk2_e, sram_bk3_s, sram_bk3_e,
                                      sram_bk4_s, sram_bk4_e, sram_bk5_s, sram_bk5_e,
              sdram_bk1_s, sdram_bk1_e, sdram_bk2_s, sdram_bk2_e;
+
+private:
+  sc_core::sc_time callback_delay;
 
 };
 

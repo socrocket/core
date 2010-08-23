@@ -131,8 +131,39 @@ PRE_MCTRL Mctrl POST_MCTRL::~Mctrl() {
 
 //scope
 PRE_MCTRL void Mctrl POST_MCTRL::
+//register GreenReg callback after elaboration
+end_of_elaboration() {
+  // create bit accessors for green registers
+  r[MCTRL_MCFG2].br.create("lmr", 26, 26);        // tcas needs LMR command
+  r[MCTRL_MCFG4].br.create("emr", 0, 6);      // DS, TCSR, PASR need EMR command
+  r[MCTRL_MCFG2].br.create("launch", 19, 20); // SDRAM command field
+
+  GR_FUNCTION(Mctrl, configure_sdram);                  // args: module name, callback function name
+  GR_SENSITIVE(r[MCTRL_MCFG2].br["lmr"].add_rule(
+                                        gs::reg::POST_WRITE,  // function to be called after register write
+                                        "configure_sdram",    // function name
+                                        gs::reg::NOTIFY));    // notification on every register access
+  GR_SENSITIVE(r[MCTRL_MCFG4].br["emr"].add_rule(
+                                        gs::reg::POST_WRITE,
+                                        "configure_sdram",
+                                        gs::reg::NOTIFY));
+
+  GR_FUNCTION(Mctrl, launch_sdram_command);
+  GR_SENSITIVE(r[MCTRL_MCFG2].br["launch"].add_rule(
+                                        gs::reg::POST_WRITE,     // function to be called after register write
+                                        "launch_sdram_command",  // function name
+                                        gs::reg::NOTIFY));       // notification on every register access
+
+}
+
+
+//scope
+PRE_MCTRL void Mctrl POST_MCTRL::
 //function to initialize memory address space constants
 initialize_mctrl() {
+
+  //reset callback delay
+  callback_delay = SC_ZERO_TIME;
 
   // --- calculate address spaces of the different memory banks
 
@@ -254,21 +285,25 @@ initialize_mctrl() {
 PRE_MCTRL void Mctrl POST_MCTRL::
 //blocking transport function
 b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
+  //add delay from previously activated callbacks
+  delay += callback_delay;
+  callback_delay = SC_ZERO_TIME;
+
+  //prepare further delay calculation
   sc_core::sc_time cycle_time(BUS_CLOCK_CYCLE, SC_NS);
   uint8_t cycles = 0;
 
-  //timing depends on command
+  //gp parameters required for delay calculation
   tlm::tlm_command cmd = gp.get_command();
+  uint8_t data_length = data_length;
 
   //access to ROM adress space
   if (Mctrl::rom_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::rom_bk1_e ||
       Mctrl::rom_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::rom_bk2_e    ) {
     //determine streaming width by MCFG1[9..8]
-//  if (r[MCTRL_MCFG1].bit_get(9)) {
     if ( (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH) >> 9) {
       gp.set_streaming_width(4);
     }
-//  else if (r[MCTRL_MCFG1].bit_get(8)) {
     else if (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH) {
       gp.set_streaming_width(2);
     }
@@ -277,18 +312,17 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
     }
     if (cmd == tlm::TLM_WRITE_COMMAND) {
       //PROM write access must be explicitly allowed
-//    if (!r[MCTRL_MCFG1].bit_get(11)) {
       if ( !(r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PWEN) ) {
         //issue error message / failure
         gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
         //address decoding delay only
-        cycles = DECODING_DELAY;
+        delay += cycle_time;
       }
       //calculate delay for write command
       else {
         cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WRITE_WS) >> 4;
         cycles = DECODING_DELAY + MCTRL_ROM_WRITE_DELAY(cycles) + 
-                 gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
+                 data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
         //add delay and forward transaction to memory
         delay += cycle_time * cycles;
         mctrl_rom->b_transport(gp,delay);
@@ -298,7 +332,7 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
     else if (cmd == tlm::TLM_READ_COMMAND) {
       cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_READ_WS);
       cycles = DECODING_DELAY + MCTRL_ROM_READ_DELAY(cycles) + 
-               gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
+               data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
       //add delay and forward transaction to memory
       delay += cycle_time * cycles;
       mctrl_rom->b_transport(gp,delay);
@@ -306,21 +340,31 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
   }
   //access to IO adress space
   else if (Mctrl::io_s <= gp.get_address() and gp.get_address() <= Mctrl::io_e) {
-    cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IO_WAITSTATES) >> 20;
-    //calculate delay for read command
-    if (cmd == tlm::TLM_READ_COMMAND) {
-      cycles = DECODING_DELAY + MCTRL_IO_READ_DELAY(cycles) + 
-               gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
+    //IO enable bit set?
+    if (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IOEN) {
+      cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IO_WAITSTATES) >> 20;
+      //calculate delay for read command
+      if (cmd == tlm::TLM_READ_COMMAND) {
+        cycles = DECODING_DELAY + MCTRL_IO_READ_DELAY(cycles) + 
+                 data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
+      }
+      //calculate delay for write command
+      else if (cmd == tlm::TLM_WRITE_COMMAND) {
+        cycles = DECODING_DELAY + MCTRL_IO_WRITE_DELAY(cycles) + 
+                 data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
+      }
+      //add delay and forward transaction to memory
+      delay += cycle_time * cycles;
+      gp.set_streaming_width(4);
+      mctrl_io->b_transport(gp,delay);
+
     }
-    //calculate delay for write command
-    else if (cmd == tlm::TLM_WRITE_COMMAND) {
-      cycles = DECODING_DELAY + MCTRL_IO_WRITE_DELAY(cycles) + 
-               gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
+    else {
+      //IO enable not set: issue error message / failure
+      gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+      //address decoding delay only
+      delay += cycle_time;
     }
-    //add delay and forward transaction to memory
-    delay += cycle_time * cycles;
-    gp.set_streaming_width(4);
-    mctrl_io->b_transport(gp,delay);
   }
   //access to SRAM adress space
   else if (Mctrl::sram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk1_e ||
@@ -331,9 +375,19 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
     //determine streaming width (below bit mask contains bits 5 and 4, so shift is required)
     if ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WIDTH) >> 5 ) {
       gp.set_streaming_width(4);
+      //data length must match streaming width unless read-modify-write is enabled
+      if (data_length < 4 && !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RMW) ) {
+        gp.set_response_status(tlm::TLM_BYTE_ENABLE_ERROR_RESPONSE);
+        return;
+      }
     }
     else if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WIDTH) {
       gp.set_streaming_width(2);
+      //data length must match streaming width unless read-modify-write is enabled
+      if (data_length < 2 && !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RMW) ) {
+        gp.set_response_status(tlm::TLM_BYTE_ENABLE_ERROR_RESPONSE);
+        return;
+      }
     }
     else {
       gp.set_streaming_width(1);
@@ -342,13 +396,13 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
     if (cmd == tlm::TLM_READ_COMMAND) {
       cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_READ_WS);
       cycles = DECODING_DELAY + MCTRL_SRAM_READ_DELAY(cycles) + 
-               gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
+               data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
     }
     //calculate delay for write command
     else if (cmd == tlm::TLM_WRITE_COMMAND) {
       cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WRITE_WS >> 2);
       cycles = DECODING_DELAY + MCTRL_SRAM_WRITE_DELAY(cycles) + 
-               gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
+               data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
     }
     //add delay and forward transaction to memory
     delay += cycle_time * cycles;
@@ -363,16 +417,56 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
     else {
       gp.set_streaming_width(4);
     }
-    //read delay = write delay: trcd, tcas, and trp can all be either 2 or 3
-    cycles = 6 + 
-             gp.get_data_length() / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access;
-    if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS) {
-      cycles += 2; //trcd = tcas = 3
+    //calculate read delay: trcd, tcas, and trp can all be either 2 or 3
+    if (cmd == tlm::TLM_READ_COMMAND) {
+      cycles = 6;
+      if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS) {
+        cycles += 2; //trcd = tcas = 3
+      }
+      if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) {
+        cycles++; //trp = 3
+      }
+      //calculate number of activated rows during burst access:
+      // 1. calculate row length from bank size and column size
+      uint32_t sdram_row_length;
+              //bank size of 512MB activates col-sz field of MCFG2; any other bank size causes default col-sz of 2048
+      switch ( (sdram_bk1_e - sdram_bk1_s + 1) | (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_COSZ) ) {
+        case 0x20030000:
+          // divide bank size by 4 bytes per word (>>2) and by 4096 columns (>>12) to get words per row
+          sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 14;
+          break;
+        case 0x20020000:                                     // bank / 4 / 1024
+          sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 12;
+          break;
+        case 0x20010000:                                     // bank / 4 / 512
+          sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 11;
+          break;
+        case 0x20000000:                                     // bank / 4 / 256
+          sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 10;
+          break;
+        default:                                             // bank / 4 / 2048
+          sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 13;
+      }
+      // 2. get number of activated rows from data address, data length, and row length
+      uint8_t additional_rows = (gp.get_address() + data_length / sdram_row_length) - (gp.get_address() / sdram_row_length);
+      cycles += cycles * (additional_rows);
+      //In addition to opening and closing rows, the words must be transmitted. Word 1 was transmitted within CAS delay.
+      cycles += data_length / gp.get_streaming_width() - 1;
     }
-    if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) {
-      cycles++; //trp = 3
+    //calculate write delay (bus write burst is transformed into burst of writes)
+    else if (cmd == tlm::TLM_WRITE_COMMAND) {
+      cycles = 6;
+      if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS) {
+        cycles += 2; //trcd = tcas = 3
+      }
+      if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) {
+        cycles++; //trp = 3
+      }
+      //every write transaction needs the entire write access time
+      cycles *= data_length / gp.get_streaming_width();
     }
     //add delay and forward transaction to memory
+    cycles += DECODING_DELAY;
     delay += cycle_time * cycles;
     mctrl_sdram->b_transport(gp,delay);
   }
@@ -409,5 +503,47 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
 
 }
 
+
+//--------------CALLBACK--FUNCTIONS--------------//
+
+//scope
+PRE_MCTRL void Mctrl POST_MCTRL::
+//write into SDRAM_CMD field of MCFG2
+launch_sdram_command() {
+  uint8_t cmd = ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_CMD >> 19) & 0x000000FF);
+  switch (cmd) {
+    // LMR / EMR
+   case 3:
+      // LMR / EMR commands are assumed to be issued right after changes of TCAS, DS, TCSR, PASR.
+      // The delay has already been added in the according callback (configure_sdram).
+      break;
+    // Auto-Refresh: Forces a refresh, which needs idle state! How can that be guaranteed?
+    //               Refresh asap, i.e. right after termination of active command? Always send a precharge before Refresh?
+    //               Whatever, for LT it's as simple as waiting for exactly one refresh cycle:
+    //           --> The previous transaction will always have finished before the Sim Kernel takes note of this callback.
+    case 2:
+        callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + MCTRL_MCFG2_SDRAM_TRFC_DEFAULT >> 30), SC_NS);
+      break;
+    // Precharge: Terminate current burst transaction (no effect in LT) --> wait for tRP
+    case 1:
+      callback_delay += sc_time(BUS_CLOCK_CYCLE * (2 + MCTRL_MCFG2_TRP_DEFAULT >> 29), SC_NS);
+      break;
+  }
+  //clear command bits
+  unsigned int set = static_cast<unsigned int> (r[MCTRL_MCFG2].get() & ~MCTRL_MCFG2_SDRAM_CMD);
+  r[MCTRL_MCFG2].set( set );
+}
+
+//scope
+PRE_MCTRL void Mctrl POST_MCTRL::
+//change of TCAS, DS, TCSR, or PASR
+configure_sdram() {
+  //The reaction on the changes to these register fields is a command with a functionality 
+  //transparent to the TLM memory system. However, the delay induced by this command can be modeled here.
+
+  //one cycle to write the register + tRP (2+0 or 2+1) to let the changes take effect
+  callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + MCTRL_MCFG2_TRP_DEFAULT >> 30), SC_NS);
+
+} 
 
 #endif

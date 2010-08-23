@@ -72,7 +72,7 @@
 #define MCTRL_MCFG4_EM              (0x20000000)
 #define MCTRL_MCFG4_TXSR            (0x00F00000)
 #define MCTRL_MCFG4_PMODE           (0x000E0000)
-#define MCTRL_MCFG4_DC              (0x00000060)
+#define MCTRL_MCFG4_DS              (0x00000060)
 #define MCTRL_MCFG4_TCSR            (0x00000018)
 #define MCTRL_MCFG4_PASR            (0x00000007)
 
@@ -122,7 +122,7 @@
 #define MCTRL_MCFG4_EM_DEFAULT              (0x00000000)
 #define MCTRL_MCFG4_TXSR_DEFAULT            (0x00F00000)
 #define MCTRL_MCFG4_PMODE_DEFAULT           (0x00000000)
-#define MCTRL_MCFG4_DC_DEFAULT              (0x00000000)
+#define MCTRL_MCFG4_DS_DEFAULT              (0x00000000)
 #define MCTRL_MCFG4_TCSR_DEFAULT            (0x00000018)
 #define MCTRL_MCFG4_PASR_DEFAULT            (0x00000007)
 //                                        +
