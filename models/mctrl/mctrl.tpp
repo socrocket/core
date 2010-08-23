@@ -70,7 +70,8 @@ Mctrl(sc_core::sc_module_name name) :
   mctrl_rom("mctrl_rom"),
   mctrl_io("mctrl_io"),
   mctrl_sram("mctrl_sram"),
-  mctrl_sdram("mctrl_sdram")
+  mctrl_sdram("mctrl_sdram"),
+  pmode(0)
   {
 
   // register transport functions to sockets
@@ -118,7 +119,6 @@ Mctrl(sc_core::sc_module_name name) :
                       32,
                       0x00
                    );
-
   //process registration
   SC_THREAD(initialize_mctrl);
 
@@ -134,9 +134,10 @@ PRE_MCTRL void Mctrl POST_MCTRL::
 //register GreenReg callback after elaboration
 end_of_elaboration() {
   // create bit accessors for green registers
-  r[MCTRL_MCFG2].br.create("lmr", 26, 26);        // tcas needs LMR command
+  r[MCTRL_MCFG2].br.create("lmr", 26, 26);    // tcas needs LMR command
   r[MCTRL_MCFG4].br.create("emr", 0, 6);      // DS, TCSR, PASR need EMR command
   r[MCTRL_MCFG2].br.create("launch", 19, 20); // SDRAM command field
+  r[MCTRL_MCFG4].br.create("pmode", 16, 18);  // SDRAM power saving mode field
 
   GR_FUNCTION(Mctrl, configure_sdram);                  // args: module name, callback function name
   GR_SENSITIVE(r[MCTRL_MCFG2].br["lmr"].add_rule(
@@ -154,6 +155,11 @@ end_of_elaboration() {
                                         "launch_sdram_command",  // function name
                                         gs::reg::NOTIFY));       // notification on every register access
 
+  GR_FUNCTION(Mctrl, erase_sdram);
+  GR_SENSITIVE(r[MCTRL_MCFG4].br["pmode"].add_rule(
+                                        gs::reg::POST_WRITE,  // function to be called after register write
+                                        "erase_sdram",        // function name
+                                        gs::reg::NOTIFY));    // notification on every register access
 }
 
 
@@ -164,6 +170,27 @@ initialize_mctrl() {
 
   //reset callback delay
   callback_delay = SC_ZERO_TIME;
+
+  //set default values of mobile SDRAM
+  unsigned int mcfg;
+  switch (mobile) {
+    //case 0 is default value (set by initialization)
+    case 1:
+      //enable mobile SDRAM support
+      mcfg = static_cast<unsigned int> (r[MCTRL_MCFG2].get() | MCTRL_MCFG2_MS);
+      r[MCTRL_MCFG2].set( mcfg );
+      break;
+    case 2:
+      //enable mobile SDRAM support
+      mcfg = static_cast<unsigned int> (r[MCTRL_MCFG2].get() | MCTRL_MCFG2_MS);
+      r[MCTRL_MCFG2].set( mcfg );
+      //enable mobile SDRAM
+      mcfg = static_cast<unsigned int> (r[MCTRL_MCFG4].get() | MCTRL_MCFG4_ME);
+      r[MCTRL_MCFG4].set( mcfg );
+    //Case 3 would be the same as 2 here, the difference being that 3 disables std SDRAM,
+    //i.e. mobile cannot be disabled. This will be implemented wherever someone tries to
+    //disable mobile SDRAM.
+  }
 
   // --- calculate address spaces of the different memory banks
 
@@ -411,66 +438,81 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
   //access to SDRAM adress space
   else if (Mctrl::sdram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk1_e ||
            Mctrl::sdram_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk2_e    ) {
-    if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_D64) {
-      gp.set_streaming_width(8);
-    }
-    else {
-      gp.set_streaming_width(4);
-    }
-    //calculate read delay: trcd, tcas, and trp can all be either 2 or 3
-    if (cmd == tlm::TLM_READ_COMMAND) {
-      cycles = 6;
-      if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS) {
-        cycles += 2; //trcd = tcas = 3
-      }
-      if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) {
-        cycles++; //trp = 3
-      }
-      //calculate number of activated rows during burst access:
-      // 1. calculate row length from bank size and column size
-      uint32_t sdram_row_length;
-              //bank size of 512MB activates col-sz field of MCFG2; any other bank size causes default col-sz of 2048
-      switch ( (sdram_bk1_e - sdram_bk1_s + 1) | (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_COSZ) ) {
-        case 0x20030000:
-          // divide bank size by 4 bytes per word (>>2) and by 4096 columns (>>12) to get words per row
-          sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 14;
-          break;
-        case 0x20020000:                                     // bank / 4 / 1024
-          sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 12;
-          break;
-        case 0x20010000:                                     // bank / 4 / 512
-          sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 11;
-          break;
-        case 0x20000000:                                     // bank / 4 / 256
-          sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 10;
-          break;
-        default:                                             // bank / 4 / 2048
-          sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 13;
-      }
-      // 2. get number of activated rows from data address, data length, and row length
-      uint8_t additional_rows = (gp.get_address() + data_length / sdram_row_length) - (gp.get_address() / sdram_row_length);
-      cycles += cycles * (additional_rows);
-      //In addition to opening and closing rows, the words must be transmitted. Word 1 was transmitted within CAS delay.
-      cycles += data_length / gp.get_streaming_width() - 1;
-    }
-    //calculate write delay (bus write burst is transformed into burst of writes)
-    else if (cmd == tlm::TLM_WRITE_COMMAND) {
-      cycles = 6;
-      if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS) {
-        cycles += 2; //trcd = tcas = 3
-      }
-      if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) {
-        cycles++; //trp = 3
-      }
-      //every write transaction needs the entire write access time
-      cycles *= data_length / gp.get_streaming_width();
-    }
-    //add delay and forward transaction to memory
-    cycles += DECODING_DELAY;
-    delay += cycle_time * cycles;
-    mctrl_sdram->b_transport(gp,delay);
-  }
 
+    //deep power down: memory is inactive and cannot be accessed
+    //self refresh: system is powered down and should not even try to access memory
+    if ( mobile && (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME) && (pmode == 5 || pmode == 2) ) {
+      gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+    }
+    //no power down status, so regular access is possible
+    else {
+      if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_D64) {
+        gp.set_streaming_width(8);
+      }
+      else {
+        gp.set_streaming_width(4);
+      }
+      //calculate read delay: trcd, tcas, and trp can all be either 2 or 3
+      if (cmd == tlm::TLM_READ_COMMAND) {
+        cycles = 6;
+        if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS) {
+          cycles += 2; //trcd = tcas = 3
+        }
+        if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) {
+          cycles++; //trp = 3
+        }
+        //calculate number of activated rows during burst access:
+        // 1. calculate row length from bank size and column size
+        uint32_t sdram_row_length;
+                //bank size of 512MB activates col-sz field of MCFG2; any other bank size causes default col-sz of 2048
+        switch ( (sdram_bk1_e - sdram_bk1_s + 1) | (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_COSZ) ) {
+          case 0x20030000:
+            // divide bank size by 4 bytes per word (>>2) and by 4096 columns (>>12) to get words per row
+            sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 14;
+            break;
+          case 0x20020000:                                     // bank / 4 / 1024
+            sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 12;
+            break;
+          case 0x20010000:                                     // bank / 4 / 512
+            sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 11;
+            break;
+          case 0x20000000:                                     // bank / 4 / 256
+            sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 10;
+            break;
+          default:                                             // bank / 4 / 2048
+            sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 13;
+        }
+        // 2. get number of activated rows from data address, data length, and row length
+        uint8_t additional_rows = (gp.get_address() + data_length / sdram_row_length) - (gp.get_address() / sdram_row_length);
+        cycles += cycles * (additional_rows);
+        //In addition to opening and closing rows, the words must be transmitted. Word 1 was transmitted within CAS delay.
+        cycles += data_length / gp.get_streaming_width() - 1;
+      }
+      //calculate write delay (bus write burst is transformed into burst of writes)
+      else if (cmd == tlm::TLM_WRITE_COMMAND) {
+        cycles = 6;
+        if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS) {
+          cycles += 2; //trcd = tcas = 3
+        }
+        if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) {
+          cycles++; //trp = 3
+        }
+        //every write transaction needs the entire write access time
+        cycles *= data_length / gp.get_streaming_width();
+      }
+      //if in power down mode, each access will take +1 clock cycle
+                  //is mobile SDRAM enabled?
+      cycles += ( (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME >> 15) & 
+                 //is mobile SDRAM allowed?
+                 r[MCTRL_MCFG2].get() & 
+                 //power down mode?    --> shift to LSB (=1)
+                 r[MCTRL_MCFG4].get() ) >> 16;
+      //add delay and forward transaction to memory
+      cycles += DECODING_DELAY;
+      delay += cycle_time * cycles;
+      mctrl_sdram->b_transport(gp,delay);
+    }
+  }
 
 //Address decoding depends on the address spaces of the different memories.
 //The sizes and address spaces are summarized in the following.
@@ -545,5 +587,54 @@ configure_sdram() {
   callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + MCTRL_MCFG2_TRP_DEFAULT >> 30), SC_NS);
 
 } 
+
+//scope
+PRE_MCTRL void Mctrl POST_MCTRL::
+//change of PMODE
+erase_sdram() {
+  //prepare transaction, including erase extension
+  sc_core::sc_time t;
+  unsigned char* data_ptr;
+  uint32_t data = sdram_bk1_e;
+  ext_erase* erase = new ext_erase;
+  tlm::tlm_generic_payload gp;
+    gp.set_command(tlm::TLM_WRITE_COMMAND);
+    gp.set_streaming_width(4);
+    gp.set_data_length(4);
+    gp.set_data_ptr((unsigned char*) &data);
+    gp.set_extension (erase);
+
+  switch (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_PMODE) {
+    case 0x00000000:
+      pmode = 0;
+      break;
+    //deep power down: erase entire SDRAM
+    case 0x00050000:
+      pmode = 5;
+      //erase bank 1
+      gp.set_address(sdram_bk1_s);
+      mctrl_sdram->b_transport(gp,t);
+      //erase bank 2
+      gp.set_address(sdram_bk2_s);
+      data = sdram_bk2_e;
+      mctrl_sdram->b_transport(gp,t);
+      break;
+    //partial array self refresh: partially erase SDRAM
+    case 0x00020000:
+      pmode = 2;
+      uint8_t pasr = r[MCTRL_MCFG4].get() & MCTRL_MCFG4_PASR;
+      if (pasr) {
+        //pasr enabled --> half array max --> always erase bank 2
+        gp.set_address(sdram_bk2_s);
+        data = sdram_bk2_e;
+        mctrl_sdram->b_transport(gp,t);
+        //partially erase lower bank according to PASR bits 
+        gp.set_address(sdram_bk1_s);
+        data = Mctrl::sdram_bk1_e >> (pasr-1);
+        mctrl_sdram->b_transport(gp,t);
+      }
+  }
+
+}
 
 #endif

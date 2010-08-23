@@ -104,7 +104,7 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
       ahb_master_sock->b_transport(gp,t);
     }
     SHOW;
-    std::cout << " WRITE " << gp.get_response_string() << ": 0x" << std::hex << std::setfill('0') << std::setw(2) << gp.get_address();
+    std::cout << " WRITE " << gp.get_response_string() << ": 0x" << std::hex << std::setfill('0') << std::setw(8) << gp.get_address();
     wait(t);
 }
 
@@ -330,6 +330,26 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
   for (uint32_t i=0x00000010; i<0x00000012; i++) {
     SET (i, i8, 4, AHB);
     i8++;
+  }
+
+  cout << endl << endl << "--------------------------------------------------"
+               << endl << "------- send SDRAM to deep power down mode -------"
+               << endl << "--------------------------------------------------" << endl;
+
+  //send SDRAM to deep power down mode
+  temp = read (MCTRL_MCFG4, 4, APB);
+  cout << endl << "old MCFG4 contents: " << hex << (unsigned int) temp;
+  temp |= MCTRL_MCFG4_PMODE & 0x00050000;
+  cout << endl << "modified MCFG4 contents: " << hex << (unsigned int) temp;
+  SET (MCTRL_MCFG4, temp, 4, APB);
+
+  cout << endl << endl << "--------------------------------------------------"
+               << endl << "---------------- read from SDRAM -----------------"
+               << endl << "--------------------------------------------------" << endl;
+
+  //read SDRAM
+  for (uint32_t i=0x80000010; i<=0x80000020; i+=8) {
+    REG (i, 8, AHB);
   }
 
   cout << endl;

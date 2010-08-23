@@ -69,6 +69,7 @@ public:
     //callbacks reacting on register access
     void launch_sdram_command ();
     void configure_sdram();
+    void erase_sdram();
 
     //define TLM transport functions
     virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
@@ -80,8 +81,26 @@ public:
                                      sram_bk4_s, sram_bk4_e, sram_bk5_s, sram_bk5_e,
              sdram_bk1_s, sdram_bk1_e, sdram_bk2_s, sdram_bk2_e;
 
+    //simple payload extension for erasing memory
+    struct ext_erase : public tlm::tlm_extension<ext_erase> {
+    public:
+      ext_erase() {erase_flag = 0;}
+      bool erase_flag;
+      //must_override pure virtual clone method
+      virtual tlm::tlm_extension_base* clone() const {
+        ext_erase* t = new ext_erase;
+        t->erase_flag = this->erase_flag;
+        return t;
+      }
+      //must override pure virtual copy_from method
+      virtual void copy_from (tlm::tlm_extension_base const &ext) {
+        erase_flag = static_cast<ext_erase const &>(ext).erase_flag;
+      }
+    };
+
 private:
   sc_core::sc_time callback_delay;
+  uint8_t pmode;
 
 };
 

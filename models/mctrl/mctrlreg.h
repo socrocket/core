@@ -66,12 +66,12 @@
 #define MCTRL_MCFG3_SDRAM_RLD_VAL   (0x07FFF000)
 
 //memory configuration register 4
-#define MCTRL_MCFG4_WRITE_MASK      (0xE0FE007F)
+#define MCTRL_MCFG4_WRITE_MASK      (0xE0F7007F)
 #define MCTRL_MCFG4_ME              (0x80000000)
 #define MCTRL_MCFG4_CE              (0x40000000)
 #define MCTRL_MCFG4_EM              (0x20000000)
 #define MCTRL_MCFG4_TXSR            (0x00F00000)
-#define MCTRL_MCFG4_PMODE           (0x000E0000)
+#define MCTRL_MCFG4_PMODE           (0x00070000)
 #define MCTRL_MCFG4_DS              (0x00000060)
 #define MCTRL_MCFG4_TCSR            (0x00000018)
 #define MCTRL_MCFG4_PASR            (0x00000007)
@@ -123,9 +123,9 @@
 #define MCTRL_MCFG4_TXSR_DEFAULT            (0x00F00000)
 #define MCTRL_MCFG4_PMODE_DEFAULT           (0x00000000)
 #define MCTRL_MCFG4_DS_DEFAULT              (0x00000000)
-#define MCTRL_MCFG4_TCSR_DEFAULT            (0x00000018)
-#define MCTRL_MCFG4_PASR_DEFAULT            (0x00000007)
+#define MCTRL_MCFG4_TCSR_DEFAULT            (0x00000000)
+#define MCTRL_MCFG4_PASR_DEFAULT            (0x00000000)
 //                                        +
-#define MCTRL_MCFG4_DEFAULT                 (0x00F0001F)
+#define MCTRL_MCFG4_DEFAULT                 (0x00F00000)
 
 #endif

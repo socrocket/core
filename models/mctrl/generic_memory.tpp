@@ -60,100 +60,111 @@ PRE_GENERIC_MEMORY void Generic_memory POST_GENERIC_MEMORY(T)::
 b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
   sc_core::sc_time cycle_time(BUS_CLOCK_CYCLE, SC_NS);
 
-  unsigned int streaming_width = gp.get_streaming_width();
-  //check TLM COMMAND field
-  tlm::tlm_command cmd = gp.get_command();
-  if (cmd == tlm::TLM_READ_COMMAND) {
-    switch (streaming_width) {
-      //64 bit --> SDRAM
-      case 8:
-      {
-        uint8_t length = gp.get_data_length();
-        uint32_t *data_ptr64 = reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
-        read_32( gp.get_address(), data_ptr64, length );
-        break;
-      }
-      //32 bit --> SRAM / ROM or SDRAM / IO --> 4x8 or 1x32
-      case 4:
-      {
-        //SDRAM or IO: map of uint32_t type
-        if (sizeof( memory[gp.get_address()] ) == 4) {
-          uint8_t length = gp.get_data_length();
-          uint32_t* data_ptr32 = reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
-          read_32( gp.get_address(), data_ptr32, length );
-        }
-        //SRAM or ROM: map of uint8_t type
-        else if (sizeof( memory[gp.get_address()] ) == 1) {
-          uint8_t length = gp.get_data_length();
-          unsigned char* data_ptr32 = reinterpret_cast<unsigned char *>( gp.get_data_ptr() );
-          read_8( gp.get_address(), data_ptr32, length );
-        }
-        break;
-      }
-      //16 bit --> SRAM or ROM --> 4x8
-      case 2:
-      {
-        uint8_t length = gp.get_data_length();
-        unsigned char* data_ptr16 = reinterpret_cast<unsigned char *>( gp.get_data_ptr() );
-        gp.set_streaming_width(4);
-        read_8( gp.get_address(), data_ptr16, length );
-        break;
-      }
-      //8 bit --> SRAM or ROM --> 4x8
-      case 1:
-      {
-        uint8_t length = gp.get_data_length();
-        unsigned char* data_ptr8 = reinterpret_cast<unsigned char *>( gp.get_data_ptr() );
-        gp.set_streaming_width(4);
-        read_8( gp.get_address(), data_ptr8, length );
-      }
-    }
-
-    //update response status
+  //check erase extension first
+  typename Mctrl POST_MCTRL::ext_erase* e;
+  gp.get_extension(e);
+  if ( e ) {
+    uint32_t data = *reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
+    erase_sdram( gp.get_address(), data, gp.get_streaming_width() );
     gp.set_response_status(tlm::TLM_OK_RESPONSE);
   }
-  else if (cmd == tlm::TLM_WRITE_COMMAND) {
+  //process regular read / write transactions
+  else {
+    unsigned int streaming_width = gp.get_streaming_width();
+    //check TLM COMMAND field
+    tlm::tlm_command cmd = gp.get_command();
+    if (cmd == tlm::TLM_READ_COMMAND) {
     switch (streaming_width) {
-      case 8:
-      {
-        uint8_t length = gp.get_data_length();
-        uint32_t* data64 = reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
-        write_32(gp.get_address(), data64, length);
-        break;
-      }
-      case 4:
-      {
-        //SDRAM or IO: map of uint32_t type
-        if (sizeof( memory[gp.get_address()] ) == 4) {
+        //64 bit --> SDRAM
+        case 8:
+        {
           uint8_t length = gp.get_data_length();
-          uint32_t* data32 = reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
-          write_32( gp.get_address(), data32, length );
+          uint32_t *data_ptr64 = reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
+          read_32( gp.get_address(), data_ptr64, length );
+          break;
         }
-        //SRAM or ROM: map of uint8_t type
-        else if (sizeof( memory[gp.get_address()] ) == 1) {
-        uint8_t length = gp.get_data_length();
-        unsigned char* data8 = reinterpret_cast<unsigned char *>(gp.get_data_ptr());
-        write_8( gp.get_address(), data8, length );
+        //32 bit --> SRAM / ROM or SDRAM / IO --> 4x8 or 1x32
+        case 4:
+        {
+          //SDRAM or IO: map of uint32_t type
+          if (sizeof( memory[gp.get_address()] ) == 4) {
+            uint8_t length = gp.get_data_length();
+            uint32_t* data_ptr32 = reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
+            read_32( gp.get_address(), data_ptr32, length );
+          }
+          //SRAM or ROM: map of uint8_t type
+          else if (sizeof( memory[gp.get_address()] ) == 1) {
+            uint8_t length = gp.get_data_length();
+            unsigned char* data_ptr32 = reinterpret_cast<unsigned char *>( gp.get_data_ptr() );
+            read_8( gp.get_address(), data_ptr32, length );
+          }
+          break;
         }
-        break;
+        //16 bit --> SRAM or ROM --> 4x8
+        case 2:
+        {
+          uint8_t length = gp.get_data_length();
+          unsigned char* data_ptr16 = reinterpret_cast<unsigned char *>( gp.get_data_ptr() );
+          gp.set_streaming_width(4);
+          read_8( gp.get_address(), data_ptr16, length );
+          break;
+        }
+        //8 bit --> SRAM or ROM --> 4x8
+        case 1:
+        {
+          uint8_t length = gp.get_data_length();
+          unsigned char* data_ptr8 = reinterpret_cast<unsigned char *>( gp.get_data_ptr() );
+          gp.set_streaming_width(4);
+          read_8( gp.get_address(), data_ptr8, length );
+        }
       }
-      case 2:
-      {
-        uint8_t length = gp.get_data_length();
-        unsigned char* data8 = reinterpret_cast<unsigned char *>(gp.get_data_ptr());
-        write_8( gp.get_address(), data8, length );
-        break;
-      }
-      case 1:
-      {
-        uint8_t length = gp.get_data_length();
-        unsigned char* data8 = reinterpret_cast<unsigned char *>(gp.get_data_ptr());
-        write_8( gp.get_address(), data8, length );
-      }
-    }
 
-    //update response status
-    gp.set_response_status(tlm::TLM_OK_RESPONSE);
+      //update response status
+      gp.set_response_status(tlm::TLM_OK_RESPONSE);
+    }
+    else if (cmd == tlm::TLM_WRITE_COMMAND) {
+      switch (streaming_width) {
+        case 8:
+        {
+          uint8_t length = gp.get_data_length();
+          uint32_t* data64 = reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
+          write_32(gp.get_address(), data64, length);
+          break;
+        }
+        case 4:
+        {
+          //SDRAM or IO: map of uint32_t type
+          if (sizeof( memory[gp.get_address()] ) == 4) {
+            uint8_t length = gp.get_data_length();
+            uint32_t* data32 = reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
+            write_32( gp.get_address(), data32, length );
+          }
+          //SRAM or ROM: map of uint8_t type
+          else if (sizeof( memory[gp.get_address()] ) == 1) {
+            uint8_t length = gp.get_data_length();
+            unsigned char* data8 = reinterpret_cast<unsigned char *>(gp.get_data_ptr());
+            write_8( gp.get_address(), data8, length );
+          }
+          break;
+        }
+        case 2:
+        {
+          uint8_t length = gp.get_data_length();
+          unsigned char* data8 = reinterpret_cast<unsigned char *>(gp.get_data_ptr());
+          write_8( gp.get_address(), data8, length );
+          break;
+        }
+        case 1:
+        {
+          uint8_t length = gp.get_data_length();
+          unsigned char* data8 = reinterpret_cast<unsigned char *>(gp.get_data_ptr());
+          write_8( gp.get_address(), data8, length );
+        }
+      }
+
+      //update response status
+      gp.set_response_status(tlm::TLM_OK_RESPONSE);
+    }
   }
 
 }
@@ -212,4 +223,17 @@ read_32(uint32_t address, uint32_t* data_ptr, uint8_t length) {
 }
 
 
+//-------------SDRAM--ERASE--FUNCTION--------------//
+
+//scope
+PRE_GENERIC_MEMORY void Generic_memory POST_GENERIC_MEMORY(T)::
+//erase sdram
+erase_sdram(uint32_t start_address, uint32_t end_address, unsigned int length) {
+  for (unsigned int i=start_address; i <= end_address; i+=length) {
+    memory.erase(i);
+  }
+}
+
+//for (i=0, i<8, i++) {
+//  c2 |= c1 << 1
 
