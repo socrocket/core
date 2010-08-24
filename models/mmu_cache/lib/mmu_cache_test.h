@@ -161,6 +161,21 @@ class mmu_cache_test : public sc_core::sc_module {
 
   }
   
+  /// read the icache configuration register
+  unsigned int read_iconfig_reg(unsigned int * debug) {
+	
+	unsigned int tmp;
+	
+	tmp=dread(0x8, 4, 2, 0, 0, 0, debug);
+	
+	DUMP(this->name," ************************************************************* ");
+	DUMP(this->name," * Configuration of the Instruction Cache: ");
+	DUMP(this->name," *  MMU enabled [3]: " << std::hex << ((tmp << 29) >> 32));
+	DUMP(this->name," * lramstart [11:4]: " << std::hex << ((tmp << 21) >> 25));
+	DUMP(this->name," * lramsize [15:12]: " << std::hex << ((tmp << 17) >> 21));
+	DUMP(this->name," * lsize    [18:16]: " << std::hex << ((tmp << 14) >> 17
+  }
+  
 };
 
 #endif // __MMU_CACHE_TEST_H__
