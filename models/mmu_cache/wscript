@@ -63,7 +63,8 @@ def build(bld):
                        'lib/dcio_payload_extension.cpp',
 		       'lib/localram.cpp', 
                        'lib/mmu.cpp', 
-                       'lib/vectorcache.cpp' ],
+                       'lib/vectorcache.cpp',
+		       'lib/mmu_cache.cpp' ],
     export_incdirs = 'lib',
     uselib         = 'SYSC TLM2 AMBA GREENSOCS',
   )

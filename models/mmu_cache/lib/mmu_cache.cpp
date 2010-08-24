@@ -16,29 +16,56 @@
 // * Maintainer: Thomas Schuster                                         *
 // ***********************************************************************
 
+#include "mmu_cache.h"
 
-// Constructor
-SC_HAS_PROCESS(mmu_cache<>);
-template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, int isetlock,
-	  int dcen, int drepl, int dsets, int dlinesize, int dsetsize, int dsetlock, int dsnoop,
-	  int ilram, int ilramsize, int ilramstart, int dlram, int dlramsize, int dlramstart, int cached,
-  	  int mmu_en, int itlb_num, int dtlb_num, int tlb_type, int tlb_rep, int mmupgsz>
-mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
-	  dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
-	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
-	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::mmu_cache(sc_core::sc_module_name name, 
-		unsigned int id, 
-		sc_core::sc_time icache_hit_read_response_delay, 
-		sc_core::sc_time icache_miss_read_response_delay,
-		sc_core::sc_time dcache_hit_read_response_delay,
-		sc_core::sc_time dcache_miss_read_response_delay,
-		sc_core::sc_time dcache_write_response_delay,
-		sc_core::sc_time itlb_hit_response_delay,
-		sc_core::sc_time itlb_miss_response_delay,
-		sc_core::sc_time dtlb_hit_response_delay,
-		sc_core::sc_time dtlb_miss_response_delay) : sc_module(name), 
+//SC_HAS_PROCESS(mmu_cache<>);
+/// Constructor
+mmu_cache::mmu_cache(unsigned int dsu, 
+		     unsigned int icen,
+		     unsigned int irepl,
+		     unsigned int isets,
+		     unsigned int ilinesize,
+		     unsigned int isetsize,
+		     unsigned int isetlock,
+		     unsigned int dcen,
+		     unsigned int drepl,
+		     unsigned int dsets,
+		     unsigned int dlinesize,
+		     unsigned int dsetsize,
+		     unsigned int dsetlock,
+		     unsigned int dsnoop,
+		     unsigned int ilram,
+		     unsigned int ilramsize,
+		     unsigned int ilramstart,
+		     unsigned int dlram,
+		     unsigned int dlramsize,
+		     unsigned int dlramstart,
+		     unsigned int cached,
+		     unsigned int mmu_en,
+		     unsigned int itlb_num,
+		     unsigned int dtlb_num,
+		     unsigned int tlb_type,
+		     unsigned int tlb_rep,
+		     unsigned int mmupgsz,   
+		     sc_core::sc_module_name name, 
+		     unsigned int id, 
+		     sc_core::sc_time icache_hit_read_response_delay, 
+		     sc_core::sc_time icache_miss_read_response_delay,
+		     sc_core::sc_time dcache_hit_read_response_delay,
+		     sc_core::sc_time dcache_miss_read_response_delay,
+		     sc_core::sc_time dcache_write_response_delay,
+		     sc_core::sc_time itlb_hit_response_delay,
+		     sc_core::sc_time itlb_miss_response_delay,
+		     sc_core::sc_time dtlb_hit_response_delay,
+		     sc_core::sc_time dtlb_miss_response_delay) : sc_module(name), 
 			icio("icio"), 
+			dcio("dcio"),
 			ahb_master("ahb_master_socket", amba::amba_AHB, amba::amba_LT, false), 
+			m_ilram(ilram),
+                        m_ilramstart(ilramstart),
+			m_dlram(dlram),
+                        m_dlramstart(dlramstart),
+			m_mmu_en(mmu_en),
 			master_id(id), 
 			m_txn_count(0), 
 			m_data_count(0),
@@ -118,15 +145,8 @@ mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	
 }
 
-// TLM forward transport for icio socket
-template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, int isetlock,
-	  int dcen, int drepl, int dsets, int dlinesize, int dsetsize, int dsetlock, int dsnoop,
-	  int ilram, int ilramsize, int ilramstart, int dlram, int dlramsize, int dlramstart, int cached,
-	  int mmu_en, int itlb_num, int dtlb_num, int tlb_type, int tlb_rep, int mmupgsz> 
-void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
-	  	dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
-		ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
-		mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::icio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core::sc_time& delay) {
+/// TLM forward transport for icio socket
+void mmu_cache::icio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core::sc_time& delay) {
 
   // extract payload
   tlm::tlm_command   cmd  = tran.get_command();
@@ -145,7 +165,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
   if(cmd==tlm::TLM_READ_COMMAND) 
   {
     // instruction scratchpad enabled && address points into selecte 16MB region 
-    if(ilram && (((adr >> 24) & 0xff)==ilramstart)) {
+    if(m_ilram && (((adr >> 24) & 0xff)==m_ilramstart)) {
 
 	ilocalram->read((unsigned int)adr, ptr, len, &delay, debug); 
 
@@ -162,15 +182,8 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 
 }
 
-// TLM forward transport for dcio socket
-template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, int isetlock,
-	  int dcen, int drepl, int dsets, int dlinesize, int dsetsize, int dsetlock, int dsnoop,
-	  int ilram, int ilramsize, int ilramstart, int dlram, int dlramsize, int dlramstart, int cached,
-	  int mmu_en, int itlb_num, int dtlb_num, int tlb_type, int tlb_rep, int mmupgsz>
-void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
-	  	dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
-		ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
-		mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core::sc_time& delay) {
+/// TLM forward transport for dcio socket
+void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core::sc_time& delay) {
  
   // extract payload
   tlm::tlm_command cmd = tran.get_command();
@@ -350,7 +363,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
   }
   // access MMU internal registers
   // (only allowed if mmu present)
-  else if ((asi == 0x19)&&(mmu_en == 0x1)) {
+  else if ((asi == 0x19)&&(m_mmu_en == 0x1)) {
 
     	if (cmd==tlm::TLM_READ_COMMAND) {
       
@@ -408,12 +421,12 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
     if (cmd==tlm::TLM_READ_COMMAND) {
 
 	// instruction scratchpad enabled && address points into selected 16 MB region 
-	if (ilram && (((adr >> 24) & 0xff)==ilramstart)) {
+	if (m_ilram && (((adr >> 24) & 0xff)==m_ilramstart)) {
 		
 	   ilocalram->read((unsigned int)adr, ptr, len, &delay, debug);
 
 	// data scratchpad enabled && address points into selected 16MB region
-	} else if (dlram && (((adr >> 24) & 0xff)==dlramstart)) {
+	} else if (m_dlram && (((adr >> 24) & 0xff)==m_dlramstart)) {
 
 	   dlocalram->read((unsigned int)adr, ptr, len, &delay, debug);
 	
@@ -427,12 +440,12 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
     else if(cmd==tlm::TLM_WRITE_COMMAND) 
     {
 	// instruction scratchpad enabled && address points into selected 16 MB region
-	if (ilram && (((adr >> 24) & 0xff)==ilramstart)) {
+	if (m_ilram && (((adr >> 24) & 0xff)==m_ilramstart)) {
 
 	   ilocalram->write((unsigned int)adr, ptr, len, &delay, debug);
 
 	// data scratchpad enabled && address points into selected 16MB region
-	} else if (dlram && (((adr >> 24) & 0xff)==dlramstart)) {
+	} else if (m_dlram && (((adr >> 24) & 0xff)==m_dlramstart)) {
 
 	   dlocalram->write((unsigned int)adr, ptr, len, &delay, debug);
 
@@ -451,15 +464,8 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
   }
 }
 
-// Function for write access to AHB master socket
-template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, int isetlock,
-	  int dcen, int drepl, int dsets, int dlinesize, int dsetsize, int dsetlock, int dsnoop,
-	  int ilram, int ilramsize, int ilramstart, int dlram, int dlramsize, int dlramstart, int cached,
-	  int mmu_en, int itlb_num, int dtlb_num, int tlb_type, int tlb_rep, int mmupgsz>
-void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
-	  dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
-	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
-	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::mem_write(unsigned int addr, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
+/// Function for write access to AHB master socket
+void mmu_cache::mem_write(unsigned int addr, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
 
 	sc_core::sc_time delay;
 
@@ -471,8 +477,8 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	gp->set_data_ptr(data);
 
 	amba::burst_size* size_ext;
-	ahb_master.template validate_extension<amba::burst_size>(*gp);
-	ahb_master.template get_extension<amba::burst_size>(size_ext, *gp);
+	ahb_master.validate_extension<amba::burst_size>(*gp);
+	ahb_master.get_extension<amba::burst_size>(size_ext, *gp);
 	size_ext->value=len;
 	
 	// issue transaction
@@ -483,15 +489,8 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	ahb_master.release_transaction(gp);
 }
 
-// Function for read access to AHB master socket
-template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, int isetlock,
-	  int dcen, int drepl, int dsets, int dlinesize, int dsetsize, int dsetlock, int dsnoop,
-	  int ilram, int ilramsize, int ilramstart, int dlram, int dlramsize, int dlramstart, int cached,
-	  int mmu_en, int itlb_num, int dtlb_num, int tlb_type, int tlb_rep, int mmupgsz>
-void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
-	  dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
-	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
-	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::mem_read(unsigned int addr, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
+/// Function for read access to AHB master socket
+void mmu_cache::mem_read(unsigned int addr, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
 
 	sc_core::sc_time delay;
 
@@ -504,8 +503,8 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	gp->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
 	amba::burst_size* size_ext;
-	ahb_master.template validate_extension<amba::burst_size>(*gp);
-	ahb_master.template get_extension<amba::burst_size>(size_ext, *gp);
+	ahb_master.validate_extension<amba::burst_size>(*gp);
+	ahb_master.get_extension<amba::burst_size>(size_ext, *gp);
 	size_ext->value=len;
 
 	// issue transaction
@@ -516,15 +515,8 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 	ahb_master.release_transaction(gp);
 }
 
-// writes the cache control register and handles the commands
-template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, int isetlock,
-	  int dcen, int drepl, int dsets, int dlinesize, int dsetsize, int dsetlock, int dsnoop,
-	  int ilram, int ilramsize, int ilramstart, int dlram, int dlramsize, int dlramstart, int cached,
-	  int mmu_en, int itlb_num, int dtlb_num, int tlb_type, int tlb_rep, int mmupgsz>
-void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
-	  dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
-	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
-	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time * delay) {
+/// writes the cache control register and handles the commands
+void mmu_cache::write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time * delay) {
 
 	unsigned int tmp = 0;
 	unsigned int dummy;
@@ -557,14 +549,7 @@ void mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
 }
 
 // read the cache control register
-template <int dsu, int icen, int irepl, int isets, int ilinesize, int isetsize, int isetlock,
-	  int dcen, int drepl, int dsets, int dlinesize, int dsetsize, int dsetlock, int dsnoop,
-	  int ilram, int ilramsize, int ilramstart, int dlram, int dlramsize, int dlramstart, int cached,
-	  int mmu_en, int itlb_num, int dtlb_num, int tlb_type, int tlb_rep, int mmupgsz>
-unsigned int mmu_cache<dsu, icen, irepl, isets, ilinesize, isetsize, isetlock,
-	  dcen, drepl, dsets, dlinesize, dsetsize, dsetlock, dsnoop,
-	  ilram, ilramsize, ilramstart, dlram, dlramsize, dlramstart, cached,
-	  mmu_en, itlb_num, dtlb_num, tlb_type, tlb_rep, mmupgsz>::read_ccr() {
+unsigned int mmu_cache::read_ccr() {
 
 	return(CACHE_CONTROL_REG);
 }

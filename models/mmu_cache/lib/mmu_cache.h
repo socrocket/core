@@ -1,20 +1,20 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       mmu_cache.h - Class definition of a cache-subsystem.    */
-/*             The cache-subsystem envelopes an instruction cache,     */
-/*             a data cache and a memory management unit.              */
-/*             The mmu_cache class provides two TLM slave interfaces   */
-/*             for connecting the cpu to the caches and an AHB master  */
-/*             interface for connection to the main memory.            */ 
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Thomas Schuster                                         */
-/***********************************************************************/
+// ***********************************************************************
+// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
+// *                                                                     *
+// * File:       mmu_cache.h - Class definition of a cache-subsystem.    *
+// *             The cache-subsystem envelopes an instruction cache,     *
+// *             a data cache and a memory management unit.              *
+// *             The mmu_cache class provides two TLM slave interfaces   *
+// *             for connecting the cpu to the caches and an AHB master  *
+// *             interface for connection to the main memory.            * 
+// *                                                                     *
+// * Modified on $Date$   *
+// *          at $Revision$                                         *
+// *                                                                     *
+// * Principal:  European Space Agency                                   *
+// * Author:     VLSI working group @ IDA @ TUBS                         *
+// * Maintainer: Thomas Schuster                                         *
+// ***********************************************************************
 
 #ifndef __MMU_CACHE_H__
 #define __MMU_CACHE_H__
@@ -35,38 +35,7 @@
 #include <math.h>
 #include <ostream>
 
-/// @brief         Top-level class of the memory sub-system for the TrapGen LEON3 simulator
-/// @param         dsu
-/// @icen          instruction cache enable
-/// @irepl         instruction cache replacement strategy
-/// @isets         number of instruction cache sets
-/// @ilinesize     instruction cache line size (in bytes)
-/// @isetsize      size of an instruction cache set (in kbytes)
-/// @isetlock      enable instruction cache locking
-/// @dcen          data cache enable
-/// @drepl         data cache replacement strategy
-/// @dsets         number of data cache sets
-/// @dlinesize     data cache line size (in bytes)
-/// @dsetsize      size of a data cache set (in kbytes)
-/// @dsetlock      enable data cache locking
-/// @dsnoop        enable data cache snooping
-/// @ilram         enable instruction scratch pad
-/// @ilramsize     size of the instruction scratch pad (in kbytes)
-/// @ilramstart    start address of the instruction scratch pad
-/// @dlram         enable data scratch pad
-/// @dlramsize     size of the data scratch pad (in kbytes)
-/// @dlramstart    start address of the data scratch pad
-/// @cached
-/// @mmu_en        mmu enable
-/// @itlb_num      number of instruction TLBs
-/// @dtlb_num      number of data TLBs
-/// @tlb_type      split or shared instruction and data TLBs
-/// @tlb_rep       TLB replacement strategy
-/// @mmupgsz       MMU page size
-template <int dsu=0, int icen=0, int irepl=0, int isets=4, int ilinesize=4, int isetsize=1, int isetlock=0,
-	  int dcen=0, int drepl=0, int dsets=4, int dlinesize=4, int dsetsize=1, int dsetlock=0, int dsnoop=0,
-	  int ilram=0, int ilramsize=1, int ilramstart=0x8f, int dlram=0, int dlramsize=1, int dlramstart=0x8f, int cached=0,
-	  int mmu_en=0, int itlb_num=8, int dtlb_num=8, int tlb_type=1, int tlb_rep=0, int mmupgsz=0>
+/// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
 class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
 
   public:
@@ -84,18 +53,72 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
   amba::amba_master_socket<32> ahb_master;
 
   /// @brief Constructor of the top-level class of the memory sub-system (caches and mmu).
-  /// @param name                               SystemC module name 
-  /// @param id                                 ID of the AHB master
-  /// @param icache_hit_read_response_delay     Delay on an instruction cache hit
-  /// @param icache_miss_read_response_delay    Delay on an instruction cache miss
-  /// @param dcache_hit_read_response_delay     Delay on a data cache read hit
-  /// @param dcache_miss_read_response_delay    Delay on a data cache read miss
-  /// @param dcache_write_response_delay        Delay on a data cache write (hit/miss)
-  /// @param itlb_hit_response_delay            Delay on an instruction TLB hit
-  /// @param itlb_miss_response_delay           Delay on an instruction TLB miss
-  /// @param dtlb_hit_response_delay            Delay on a data TLB hit
-  /// @param dtlb_miss_response_delay           Delay on a data TLB miss
-  mmu_cache(sc_core::sc_module_name name, 
+  /// @param         dsu
+  /// @icen          instruction cache enable
+  /// @irepl         instruction cache replacement strategy
+  /// @isets         number of instruction cache sets
+  /// @ilinesize     instruction cache line size (in bytes)
+  /// @isetsize      size of an instruction cache set (in kbytes)
+  /// @isetlock      enable instruction cache locking
+  /// @dcen          data cache enable
+  /// @drepl         data cache replacement strategy
+  /// @dsets         number of data cache sets
+  /// @dlinesize     data cache line size (in bytes)
+  /// @dsetsize      size of a data cache set (in kbytes)
+  /// @dsetlock      enable data cache locking
+  /// @dsnoop        enable data cache snooping
+  /// @ilram         enable instruction scratch pad
+  /// @ilramsize     size of the instruction scratch pad (in kbytes)
+  /// @ilramstart    start address of the instruction scratch pad
+  /// @dlram         enable data scratch pad
+  /// @dlramsize     size of the data scratch pad (in kbytes)
+  /// @dlramstart    start address of the data scratch pad
+  /// @cached
+  /// @mmu_en        mmu enable
+  /// @itlb_num      number of instruction TLBs
+  /// @dtlb_num      number of data TLBs
+  /// @tlb_type      split or shared instruction and data TLBs
+  /// @tlb_rep       TLB replacement strategy
+  /// @mmupgsz       MMU page size
+  /// @name                               SystemC module name 
+  /// @id                                 ID of the AHB master
+  /// @icache_hit_read_response_delay     Delay on an instruction cache hit
+  /// @icache_miss_read_response_delay    Delay on an instruction cache miss
+  /// @dcache_hit_read_response_delay     Delay on a data cache read hit
+  /// @dcache_miss_read_response_delay    Delay on a data cache read miss
+  /// @dcache_write_response_delay        Delay on a data cache write (hit/miss)
+  /// @itlb_hit_response_delay            Delay on an instruction TLB hit
+  /// @itlb_miss_response_delay           Delay on an instruction TLB miss
+  /// @dtlb_hit_response_delay            Delay on a data TLB hit
+  /// @dtlb_miss_response_delay           Delay on a data TLB miss
+  mmu_cache(unsigned int dsu,
+	    unsigned int icen,
+	    unsigned int irepl,
+	    unsigned int isets,
+	    unsigned int ilinesize,
+	    unsigned int isetsize,
+	    unsigned int isetlock,
+	    unsigned int dcen,
+	    unsigned int drepl,
+	    unsigned int dsets,
+	    unsigned int dlinesize,
+	    unsigned int dsetsize,
+	    unsigned int dsetlock,
+	    unsigned int dsnoop,
+	    unsigned int ilram,
+	    unsigned int ilramsize,
+	    unsigned int ilramstart,
+	    unsigned int dlram,
+	    unsigned int dlramsize,
+	    unsigned int dlramstart,
+	    unsigned int cached,
+	    unsigned int mmu_en,
+	    unsigned int itlb_num,
+	    unsigned int dtlb_num,
+	    unsigned int tlb_type,
+	    unsigned int tlb_rep,
+	    unsigned int mmupgsz,
+	    sc_core::sc_module_name name, 
 	    unsigned int id, 
 	    sc_core::sc_time icache_hit_read_response_delay, 
 	    sc_core::sc_time icache_miss_read_response_delay, 
@@ -153,10 +176,19 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
   // [23] - Data cache snoop enable (DS) - If set, will enable data cache snooping.
   unsigned int CACHE_CONTROL_REG;
 
+  unsigned int m_ilram;
+  unsigned int m_ilramstart;
+
+  unsigned int m_dlram;
+  unsigned int m_dlramstart;
+
+  unsigned int m_mmu_en;
+
   // amba related
   unsigned int master_id;
   unsigned int m_txn_count;
   unsigned int m_data_count;
+
   bool m_bus_granted;
   tlm::tlm_generic_payload *current_trans;
   bool m_request_pending;
@@ -165,7 +197,5 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
   bool m_restart_pending_req;
 
 };
-
-#include "mmu_cache.tpp"
 
 #endif //__MMU_CACHE_H__
