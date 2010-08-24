@@ -50,10 +50,10 @@ int sc_main(int argc, char** argv) {
 
   //instantiate mctrl, generic memory, and testbench
   Mctrl mctrl_inst0("mctrl_inst0", hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
-                                              ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
-                                              fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
-                                              sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
-                                              pageburst, scantest, mobile);
+                                   ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
+                                   fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
+                                   sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
+                                   pageburst, scantest, mobile);
   Generic_memory POST_GENERIC_MEMORY(uint8_t ) generic_memory_rom("generic_memory_rom",
                                 hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
                                 ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
