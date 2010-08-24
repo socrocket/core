@@ -314,7 +314,10 @@ PRE_MCTRL void Mctrl POST_MCTRL::
 b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
   //add delay from previously activated callbacks
   delay += callback_delay;
-  callback_delay = SC_ZERO_TIME;
+  callback_delay = sc_core::SC_ZERO_TIME;
+
+  //capture current system time for idle time calculation (required in power down mode)
+  sc_core::sc_time t_trans = sc_core::sc_time_stamp();
 
   //prepare further delay calculation
   sc_core::sc_time cycle_time(BUS_CLOCK_CYCLE, SC_NS);
@@ -444,7 +447,7 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
     if ( mobile && (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME) && (pmode == 5 || pmode == 2) ) {
       gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
     }
-    //no power down status, so regular access is possible
+    //no deep power down status, so regular access is possible
     else {
       if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_D64) {
         gp.set_streaming_width(8);
@@ -462,25 +465,17 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
           cycles++; //trp = 3
         }
         //calculate number of activated rows during burst access:
-        // 1. calculate row length from bank size and column size
+        // 1. calculate row length from bank size and 'column size' field (which in 
+        //    fact determines the number of column address bits, i.e. the row length)
         uint32_t sdram_row_length;
                 //bank size of 512MB activates col-sz field of MCFG2; any other bank size causes default col-sz of 2048
-        switch ( (sdram_bk1_e - sdram_bk1_s + 1) | (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_COSZ) ) {
-          case 0x20030000:
-            // divide bank size by 4 bytes per word (>>2) and by 4096 columns (>>12) to get words per row
-            sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 14;
+        switch ( sdram_bk1_e - sdram_bk1_s + 1 ) {
+          case 0x20000000:
+            sdram_row_length = 256 << (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_COSZ >> 21);
+            sdram_row_length *= (sdram_row_length == 2048) ? (2 * gp.get_streaming_width()) : (gp.get_streaming_width());
             break;
-          case 0x20020000:                                     // bank / 4 / 1024
-            sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 12;
-            break;
-          case 0x20010000:                                     // bank / 4 / 512
-            sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 11;
-            break;
-          case 0x20000000:                                     // bank / 4 / 256
-            sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 10;
-            break;
-          default:                                             // bank / 4 / 2048
-            sdram_row_length = (sdram_bk1_e - sdram_bk1_s + 1) >> 13;
+          default:
+            sdram_row_length = 2048 * gp.get_streaming_width();
         }
         // 2. get number of activated rows from data address, data length, and row length
         uint8_t additional_rows = (gp.get_address() + data_length / sdram_row_length) - (gp.get_address() / sdram_row_length);
@@ -501,15 +496,18 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
         cycles *= data_length / gp.get_streaming_width();
       }
       //if in power down mode, each access will take +1 clock cycle
-                  //is mobile SDRAM enabled?
-      cycles += ( (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME >> 15) & 
-                 //is mobile SDRAM allowed?
-                 r[MCTRL_MCFG2].get() & 
-                 //power down mode?    --> shift to LSB (=1)
-                 r[MCTRL_MCFG4].get() ) >> 16;
+      if (mobile>0 && sc_core::sc_time_stamp() - start_idle >=16 * cycle_time) {
+                    //is mobile SDRAM enabled?
+        cycles += ( (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME >> 15) & 
+                   //is mobile SDRAM allowed?
+                   r[MCTRL_MCFG2].get() & 
+                   //power down mode?    --> shift to LSB (=1)
+                   r[MCTRL_MCFG4].get() ) >> 16;
+      }
       //add delay and forward transaction to memory
       cycles += DECODING_DELAY;
       delay += cycle_time * cycles;
+      start_idle = t_trans + cycle_time * cycles;
       mctrl_sdram->b_transport(gp,delay);
     }
   }
@@ -580,11 +578,11 @@ launch_sdram_command() {
 PRE_MCTRL void Mctrl POST_MCTRL::
 //change of TCAS, DS, TCSR, or PASR
 configure_sdram() {
-  //The reaction on the changes to these register fields is a command with a functionality 
+  //The reaction to the changes to these register fields is a command with a functionality 
   //transparent to the TLM memory system. However, the delay induced by this command can be modeled here.
 
   //one cycle to write the register + tRP (2+0 or 2+1) to let the changes take effect
-  callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + MCTRL_MCFG2_TRP_DEFAULT >> 30), SC_NS);
+  callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30), SC_NS);
 
 } 
 
@@ -594,7 +592,6 @@ PRE_MCTRL void Mctrl POST_MCTRL::
 erase_sdram() {
   //prepare transaction, including erase extension
   sc_core::sc_time t;
-  unsigned char* data_ptr;
   uint32_t data = sdram_bk1_e;
   ext_erase* erase = new ext_erase;
   tlm::tlm_generic_payload gp;
@@ -606,8 +603,25 @@ erase_sdram() {
 
   switch (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_PMODE) {
     case 0x00000000:
+    { 
+      //check previous power down mode
+      uint8_t cycles = 0;
+      switch (pmode) {
+        //leaving self refresh: tXSR + Auto Refresh period (tRFC)
+        case 2:
+          cycles = (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_TXSR >> 20) +          //tXSR
+                   (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC >> 27) + 3; //tRFC
+          break;
+        //leaving deep power down mode: Precharge, 2x Auto-Refresh, LMR, EMR
+        case 5:
+          cycles = 2 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30            +  //precharge (tRP)
+                   2 * (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC >> 27) + 3 +  //2 * tRFC
+                   2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;       //LMR + EMR
+      }
+      callback_delay += sc_time(BUS_CLOCK_CYCLE * cycles, SC_NS);
       pmode = 0;
       break;
+    }
     //deep power down: erase entire SDRAM
     case 0x00050000:
       pmode = 5;

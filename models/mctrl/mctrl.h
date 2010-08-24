@@ -99,8 +99,9 @@ public:
     };
 
 private:
-  sc_core::sc_time callback_delay;
-  uint8_t pmode;
+  sc_core::sc_time callback_delay; //count time elapsing in callbacks (to be added in next transaction)
+  sc_core::sc_time start_idle;     //capture end time of last transaction to calculate sdram idle time
+  uint8_t pmode;                   //capture current state of power mode
 
 };
 
