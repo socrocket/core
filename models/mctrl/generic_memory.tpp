@@ -17,32 +17,50 @@
 
 
 //macros to enhance readability of function definitions
-#define PRE_GENERIC_MEMORY template <int hindex,    int pindex,   int romaddr, int rommask, \
-                                     int ioaddr,    int iomask,   int ramaddr, int rammask, \
-                                     int paddr,     int pmask,    int wprot,   int invclk,  \
-                                     int fast,      int romasel,  int sdrasel, int srbanks, \
-                                     int ram8,      int ram16,    int sden,    int sepbus,  \
-                                     int sdbits,    int sdlsb,    int oepol,   int syncrst, \
-                                     int pageburst, int scantest, int mobile,  typename T>
-
-#define POST_GENERIC_MEMORY(TYPE) <hindex,    pindex,   romaddr, \
-                                   rommask,   ioaddr,   iomask,  \
-                                   ramaddr,   rammask,  paddr,   \
-                                   pmask,     wprot,    invclk,  \
-                                   fast,      romasel,  sdrasel, \
-                                   srbanks,   ram8,     ram16,   \
-                                   sden,      sepbus,   sdbits,  \
-                                   sdlsb,     oepol,    syncrst, \
-                                   pageburst, scantest, mobile, TYPE >
+#define PRE_GENERIC_MEMORY template <typename T>
+#define POST_GENERIC_MEMORY(TYPE) <TYPE >
 
 
 //scope
 PRE_GENERIC_MEMORY Generic_memory POST_GENERIC_MEMORY(T)::
 //constructor
-Generic_memory(sc_core::sc_module_name name) :
-       // construct and name socket
-       slave_socket("slave_socket") {
-
+Generic_memory(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _romaddr,
+                               int _rommask,  int _ioaddr,    int _iomask,   int _ramaddr,
+                               int _rammask,  int _paddr,     int _pmask,    int _wprot,
+                               int _invclk,   int _fast,      int _romasel,  int _sdrasel,
+                               int _srbanks,  int _ram8,      int _ram16,    int _sden,
+                               int _sepbus,   int _sdbits,    int _sdlsb,    int _oepol,
+                               int _syncrst,  int _pageburst, int _scantest, int _mobile) :
+      // construct and name socket
+      slave_socket("slave_socket"),
+      hindex   (_hindex),
+      pindex   (_pindex),
+      romaddr  (_romaddr),
+      rommask  (_rommask),
+      ioaddr   (_ioaddr),
+      iomask   (_iomask),
+      ramaddr  (_ramaddr),
+      rammask  (_rammask),
+      paddr    (_paddr),
+      pmask    (_pmask),
+      wprot    (_wprot),
+      invclk   (_invclk),
+      fast     (_fast),
+      romasel  (_romasel),
+      sdrasel  (_sdrasel),
+      srbanks  (_srbanks),
+      ram8     (_ram8),
+      ram16    (_ram16),
+      sden     (_sden),
+      sepbus   (_sepbus),
+      sdbits   (_sdbits),
+      sdlsb    (_sdlsb),
+      oepol    (_oepol),
+      syncrst  (_syncrst),
+      pageburst(_pageburst),
+      scantest (_scantest),
+      mobile   (_mobile)
+  {
   // register transport functions to sockets
   slave_socket.register_b_transport (this, &Generic_memory::b_transport);
 }
@@ -61,7 +79,7 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
   sc_core::sc_time cycle_time(BUS_CLOCK_CYCLE, SC_NS);
 
   //check erase extension first
-  typename Mctrl POST_MCTRL::ext_erase* e;
+  typename Mctrl::ext_erase* e;
   gp.get_extension(e);
   if ( e ) {
     uint32_t data = *reinterpret_cast<uint32_t *>( gp.get_data_ptr() );

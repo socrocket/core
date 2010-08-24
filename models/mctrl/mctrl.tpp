@@ -28,29 +28,14 @@
 #define MCTRL_SRAM_READ_DELAY(wstates) 2+wstates
 #define MCTRL_SRAM_WRITE_DELAY(wstates) 3+wstates
 
-//macros to enhance readability of function definitions
-#define PRE_MCTRL template <int hindex,    int pindex,   int romaddr, int rommask, \
-                            int ioaddr,    int iomask,   int ramaddr, int rammask, \
-                            int paddr,     int pmask,    int wprot,   int invclk,  \
-                            int fast,      int romasel,  int sdrasel, int srbanks, \
-                            int ram8,      int ram16,    int sden,    int sepbus,  \
-                            int sdbits,    int sdlsb,    int oepol,   int syncrst, \
-                            int pageburst, int scantest, int mobile>
-
-#define POST_MCTRL <hindex,    pindex,   romaddr, \
-                    rommask,   ioaddr,   iomask,  \
-                    ramaddr,   rammask,  paddr,   \
-                    pmask,     wprot,    invclk,  \
-                    fast,      romasel,  sdrasel, \
-                    srbanks,   ram8,     ram16,   \
-                    sden,      sepbus,   sdbits,  \
-                    sdlsb,     oepol,    syncrst, \
-                    pageburst, scantest, mobile >
-
-//scope
-PRE_MCTRL Mctrl POST_MCTRL::
 //constructor
-Mctrl(sc_core::sc_module_name name) :
+Mctrl::Mctrl(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _romaddr,
+                      int _rommask,  int _ioaddr,    int _iomask,   int _ramaddr,
+                      int _rammask,  int _paddr,     int _pmask,    int _wprot,
+                      int _invclk,   int _fast,      int _romasel,  int _sdrasel,
+                      int _srbanks,  int _ram8,      int _ram16,    int _sden,
+                      int _sepbus,   int _sdbits,    int _sdlsb,    int _oepol,
+                      int _syncrst,  int _pageburst, int _scantest, int _mobile) :
   gr_device(
             name,                      //sc_module name
             gs::reg::ALIGNED_ADDRESS,  //address mode (options: aligned / indexed)
@@ -71,7 +56,34 @@ Mctrl(sc_core::sc_module_name name) :
   mctrl_io("mctrl_io"),
   mctrl_sram("mctrl_sram"),
   mctrl_sdram("mctrl_sdram"),
-  pmode(0)
+  pmode(0),
+  hindex   (_hindex),
+  pindex   (_pindex),
+  romaddr  (_romaddr),
+  rommask  (_rommask),
+  ioaddr   (_ioaddr),
+  iomask   (_iomask),
+  ramaddr  (_ramaddr),
+  rammask  (_rammask),
+  paddr    (_paddr),
+  pmask    (_pmask),
+  wprot    (_wprot),
+  invclk   (_invclk),
+  fast     (_fast),
+  romasel  (_romasel),
+  sdrasel  (_sdrasel),
+  srbanks  (_srbanks),
+  ram8     (_ram8),
+  ram16    (_ram16),
+  sden     (_sden),
+  sepbus   (_sepbus),
+  sdbits   (_sdbits),
+  sdlsb    (_sdlsb),
+  oepol    (_oepol),
+  syncrst  (_syncrst),
+  pageburst(_pageburst),
+  scantest (_scantest),
+  mobile   (_mobile)
   {
 
   // register transport functions to sockets
@@ -125,14 +137,12 @@ Mctrl(sc_core::sc_module_name name) :
 }
 
 //explicit declaration of standard destructor required for linking
-PRE_MCTRL Mctrl POST_MCTRL::~Mctrl() {
+Mctrl::~Mctrl() {
 }
 
 
-//scope
-PRE_MCTRL void Mctrl POST_MCTRL::
 //register GreenReg callback after elaboration
-end_of_elaboration() {
+void Mctrl::end_of_elaboration() {
   // create bit accessors for green registers
   r[MCTRL_MCFG2].br.create("lmr", 26, 26);    // tcas needs LMR command
   r[MCTRL_MCFG4].br.create("emr", 0, 6);      // DS, TCSR, PASR need EMR command
@@ -163,10 +173,8 @@ end_of_elaboration() {
 }
 
 
-//scope
-PRE_MCTRL void Mctrl POST_MCTRL::
 //function to initialize memory address space constants
-initialize_mctrl() {
+void Mctrl::initialize_mctrl() {
 
   //reset callback delay
   callback_delay = SC_ZERO_TIME;
@@ -308,10 +316,8 @@ initialize_mctrl() {
 
 //-----------TLM--TRANSPORT--FUNCTIONS-----------//
 
-//scope
-PRE_MCTRL void Mctrl POST_MCTRL::
 //blocking transport function
-b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
+void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
   //add delay from previously activated callbacks
   delay += callback_delay;
   callback_delay = sc_core::SC_ZERO_TIME;
@@ -377,6 +383,7 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
       if (cmd == tlm::TLM_READ_COMMAND) {
         cycles = DECODING_DELAY + MCTRL_IO_READ_DELAY(cycles) + 
                  data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
+        //FIXME: add dynamic waitstates for IO access here
       }
       //calculate delay for write command
       else if (cmd == tlm::TLM_WRITE_COMMAND) {
@@ -546,10 +553,8 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
 
 //--------------CALLBACK--FUNCTIONS--------------//
 
-//scope
-PRE_MCTRL void Mctrl POST_MCTRL::
 //write into SDRAM_CMD field of MCFG2
-launch_sdram_command() {
+void Mctrl::launch_sdram_command() {
   uint8_t cmd = ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_CMD >> 19) & 0x000000FF);
   switch (cmd) {
     // LMR / EMR
@@ -574,10 +579,8 @@ launch_sdram_command() {
   r[MCTRL_MCFG2].set( set );
 }
 
-//scope
-PRE_MCTRL void Mctrl POST_MCTRL::
 //change of TCAS, DS, TCSR, or PASR
-configure_sdram() {
+void Mctrl::configure_sdram() {
   //The reaction to the changes to these register fields is a command with a functionality 
   //transparent to the TLM memory system. However, the delay induced by this command can be modeled here.
 
@@ -586,10 +589,8 @@ configure_sdram() {
 
 } 
 
-//scope
-PRE_MCTRL void Mctrl POST_MCTRL::
 //change of PMODE
-erase_sdram() {
+void Mctrl::erase_sdram() {
   //prepare transaction, including erase extension
   sc_core::sc_time t;
   uint32_t data = sdram_bk1_e;

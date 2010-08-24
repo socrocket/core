@@ -47,23 +47,42 @@ int sc_main(int argc, char** argv) {
   const int pageburst = 0;
   const int scantest = 0;
   const int mobile = 0;
-  const int BUSWIDTH = 32;
 
   //instantiate mctrl, generic memory, and testbench
-  Mctrl POST_MCTRL mctrl_inst0("mctrl_inst0");
-  Generic_memory POST_GENERIC_MEMORY(uint8_t ) generic_memory_rom("generic_memory_rom");
-  Generic_memory POST_GENERIC_MEMORY(uint32_t) generic_memory_io("generic_memory_io");
-  Generic_memory POST_GENERIC_MEMORY(uint8_t ) generic_memory_sram("generic_memory_sram");
-  Generic_memory POST_GENERIC_MEMORY(uint32_t) generic_memory_sdram("generic_memory_sdram");
-  Mctrl_tb< hindex,    pindex,   romaddr,
-            rommask,   ioaddr,   iomask,
-            ramaddr,   rammask,  paddr,
-            pmask,     wprot,    invclk,
-            fast,      romasel,  sdrasel,
-            srbanks,   ram8,     ram16,
-            sden,      sepbus,   sdbits,
-            sdlsb,     oepol,    syncrst,
-            pageburst, scantest, mobile, BUSWIDTH  > mctrl_tb("mctrl_tb");
+  Mctrl mctrl_inst0("mctrl_inst0", hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
+                                              ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
+                                              fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
+                                              sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
+                                              pageburst, scantest, mobile);
+  Generic_memory POST_GENERIC_MEMORY(uint8_t ) generic_memory_rom("generic_memory_rom",
+                                hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
+                                ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
+                                fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
+                                sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
+                                pageburst, scantest, mobile);
+  Generic_memory POST_GENERIC_MEMORY(uint32_t) generic_memory_io("generic_memory_io",
+                                hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
+                                ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
+                                fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
+                                sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
+                                pageburst, scantest, mobile);
+  Generic_memory POST_GENERIC_MEMORY(uint8_t ) generic_memory_sram("generic_memory_sram",
+                                hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
+                                ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
+                                fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
+                                sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
+                                pageburst, scantest, mobile);
+  Generic_memory POST_GENERIC_MEMORY(uint32_t) generic_memory_sdram("generic_memory_sdram",
+                                hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
+                                ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
+                                fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
+                                sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
+                                pageburst, scantest, mobile);
+  Mctrl_tb mctrl_tb("mctrl_tb", hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
+                                ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
+                                fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
+                                sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
+                                pageburst, scantest, mobile);
 
   //bus communication via amba sockets (TLM)
   mctrl_tb.apb_master_sock(mctrl_inst0.apb);  //config registers

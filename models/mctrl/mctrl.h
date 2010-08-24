@@ -30,13 +30,6 @@
 #include "mctrlreg.h"
 #include "generic_memory.h"
 
-template <int hindex = 0,    int pindex = 0,    int romaddr = 0,    int rommask = 3584,
-          int ioaddr = 512,  int iomask = 3584, int ramaddr = 1024, int rammask = 3072,
-          int paddr = 0,     int pmask = 4095,  int wprot = 0,      int invclk = 0,
-          int fast = 0,      int romasel = 28,  int sdrasel = 29,   int srbanks = 4,
-          int ram8 = 0,      int ram16 = 0,     int sden = 0,       int sepbus = 0,
-          int sdbits = 32,   int sdlsb = 2,     int oepol = 0,      int syncrst = 0,
-          int pageburst = 0, int scantest = 0,  int mobile = 0>
 class Mctrl : public gs::reg::gr_device
 {
 public:
@@ -53,7 +46,13 @@ public:
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_sdram;
 
     //constructor / destructor
-    Mctrl(sc_module_name name);
+    Mctrl(sc_module_name name, int _hindex = 0,    int _pindex = 0,     int _romaddr = 0,    int _rommask = 3584,
+           int _ioaddr = 512,  int _iomask = 3584, int _ramaddr = 1024, int _rammask = 3072,
+           int _paddr = 0,     int _pmask = 4095,  int _wprot = 0,      int _invclk = 0,
+           int _fast = 0,      int _romasel = 28,  int _sdrasel = 29,   int _srbanks = 4,
+           int _ram8 = 0,      int _ram16 = 0,     int _sden = 0,       int _sepbus = 0,
+           int _sdbits = 32,   int _sdlsb = 2,     int _oepol = 0,      int _syncrst = 0,
+           int _pageburst = 0, int _scantest = 0,  int _mobile = 0);
     ~Mctrl();
 
     //proclamation of processes and callbacks
@@ -98,11 +97,39 @@ public:
       }
     };
 
-private:
-  sc_core::sc_time callback_delay; //count time elapsing in callbacks (to be added in next transaction)
-  sc_core::sc_time start_idle;     //capture end time of last transaction to calculate sdram idle time
-  uint8_t pmode;                   //capture current state of power mode
+  private:
+    sc_core::sc_time callback_delay; //count time elapsing in callbacks (to be added in next transaction)
+    sc_core::sc_time start_idle;     //capture end time of last transaction to calculate sdram idle time
+    uint8_t pmode;                   //capture current state of power mode
 
+    //constructor parameters (modeling VHDL generics)
+    const int hindex;
+    const int pindex;
+    const int romaddr;
+    const int rommask;
+    const int ioaddr;
+    const int iomask;
+    const int ramaddr;
+    const int rammask;
+    const int paddr;
+    const int pmask;
+    const int wprot;
+    const int invclk;
+    const int fast;
+    const int romasel;
+    const int sdrasel;
+    const int srbanks;
+    const int ram8;
+    const int ram16;
+    const int sden;
+    const int sepbus;
+    const int sdbits;
+    const int sdlsb;
+    const int oepol;
+    const int syncrst;
+    const int pageburst;
+    const int scantest;
+    const int mobile;
 };
 
 #include "mctrl.tpp"

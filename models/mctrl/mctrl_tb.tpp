@@ -31,64 +31,52 @@
 { write(name, val, length, apb); }
 
 //constructor
-template <int hindex,    int pindex,   int romaddr, int rommask,
-          int ioaddr,    int iomask,   int ramaddr, int rammask,
-          int paddr,     int pmask,    int wprot,   int invclk,
-          int fast,      int romasel,  int sdrasel, int srbanks,
-          int ram8,      int ram16,    int sden,    int sepbus,
-          int sdbits,    int sdlsb,    int oepol,   int syncrst,
-          int pageburst, int scantest, int mobile,  int BUSWIDTH>
-         Mctrl_tb<hindex,    pindex,   romaddr,
-                  rommask,   ioaddr,   iomask,
-                  ramaddr,   rammask,  paddr,
-                  pmask,     wprot,    invclk,
-                  fast,      romasel,  sdrasel,
-                  srbanks,   ram8,     ram16,
-                  sden,      sepbus,   sdbits,
-                  sdlsb,     oepol,    syncrst,
-                  pageburst, scantest, mobile, BUSWIDTH >::Mctrl_tb(sc_core::sc_module_name name)
+Mctrl_tb::Mctrl_tb(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _romaddr,
+                                   int _rommask,  int _ioaddr,    int _iomask,   int _ramaddr,
+                                   int _rammask,  int _paddr,     int _pmask,    int _wprot,
+                                   int _invclk,   int _fast,      int _romasel,  int _sdrasel,
+                                   int _srbanks,  int _ram8,      int _ram16,    int _sden,
+                                   int _sepbus,   int _sdbits,    int _sdlsb,    int _oepol,
+                                   int _syncrst,  int _pageburst, int _scantest, int _mobile)
   : apb_master_sock ("apb_master_sock", amba::amba_APB, amba::amba_LT, false),
-    ahb_master_sock ("ahb_master_sock") {
+    ahb_master_sock ("ahb_master_sock"),
+  hindex   (_hindex),
+  pindex   (_pindex),
+  romaddr  (_romaddr),
+  rommask  (_rommask),
+  ioaddr   (_ioaddr),
+  iomask   (_iomask),
+  ramaddr  (_ramaddr),
+  rammask  (_rammask),
+  paddr    (_paddr),
+  pmask    (_pmask),
+  wprot    (_wprot),
+  invclk   (_invclk),
+  fast     (_fast),
+  romasel  (_romasel),
+  sdrasel  (_sdrasel),
+  srbanks  (_srbanks),
+  ram8     (_ram8),
+  ram16    (_ram16),
+  sden     (_sden),
+  sepbus   (_sepbus),
+  sdbits   (_sdbits),
+  sdlsb    (_sdlsb),
+  oepol    (_oepol),
+  syncrst  (_syncrst),
+  pageburst(_pageburst),
+  scantest (_scantest),
+  mobile   (_mobile) {
 
-  SC_THREAD(run);
+    SC_THREAD(run);
 }
 
 //explicit declaration of standard destructor required for linking
-template <int hindex,    int pindex,   int romaddr, int rommask,
-          int ioaddr,    int iomask,   int ramaddr, int rammask,
-          int paddr,     int pmask,    int wprot,   int invclk,
-          int fast,      int romasel,  int sdrasel, int srbanks,
-          int ram8,      int ram16,    int sden,    int sepbus,
-          int sdbits,    int sdlsb,    int oepol,   int syncrst,
-          int pageburst, int scantest, int mobile,  int BUSWIDTH>
-         Mctrl_tb<hindex,    pindex,   romaddr,
-                  rommask,   ioaddr,   iomask,
-                  ramaddr,   rammask,  paddr,
-                  pmask,     wprot,    invclk,
-                  fast,      romasel,  sdrasel,
-                  srbanks,   ram8,     ram16,
-                  sden,      sepbus,   sdbits,
-                  sdlsb,     oepol,    syncrst,
-                  pageburst, scantest, mobile, BUSWIDTH >::~Mctrl_tb() {
+Mctrl_tb::~Mctrl_tb() {
 }
 
 //TLM write transaction
-template <int hindex,    int pindex,   int romaddr, int rommask,
-          int ioaddr,    int iomask,   int ramaddr, int rammask,
-          int paddr,     int pmask,    int wprot,   int invclk,
-          int fast,      int romasel,  int sdrasel, int srbanks,
-          int ram8,      int ram16,    int sden,    int sepbus,
-          int sdbits,    int sdlsb,    int oepol,   int syncrst,
-          int pageburst, int scantest, int mobile,  int BUSWIDTH>
-    void Mctrl_tb<hindex,    pindex,   romaddr,
-                  rommask,   ioaddr,   iomask,
-                  ramaddr,   rammask,  paddr,
-                  pmask,     wprot,    invclk,
-                  fast,      romasel,  sdrasel,
-                  srbanks,   ram8,     ram16,
-                  sden,      sepbus,   sdbits,
-                  sdlsb,     oepol,    syncrst,
-                  pageburst, scantest, mobile, BUSWIDTH >::write(uint32_t addr, uint64_t data, uint32_t width, bool apb) {
+void Mctrl_tb::write(uint32_t addr, uint64_t data, uint32_t width, bool apb) {
     sc_core::sc_time t;
     tlm::tlm_generic_payload gp;
       gp.set_command(tlm::TLM_WRITE_COMMAND);
@@ -109,22 +97,7 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
 }
 
 //TLM read transaction
-template <int hindex,    int pindex,   int romaddr, int rommask,
-          int ioaddr,    int iomask,   int ramaddr, int rammask,
-          int paddr,     int pmask,    int wprot,   int invclk,
-          int fast,      int romasel,  int sdrasel, int srbanks,
-          int ram8,      int ram16,    int sden,    int sepbus,
-          int sdbits,    int sdlsb,    int oepol,   int syncrst,
-          int pageburst, int scantest, int mobile,  int BUSWIDTH>
-    uint32_t Mctrl_tb<hindex,    pindex,   romaddr,
-                      rommask,   ioaddr,   iomask,
-                      ramaddr,   rammask,  paddr,
-                      pmask,     wprot,    invclk,
-                      fast,      romasel,  sdrasel,
-                      srbanks,   ram8,     ram16,
-                      sden,      sepbus,   sdbits,
-                      sdlsb,     oepol,    syncrst,
-                      pageburst, scantest, mobile, BUSWIDTH >::read(uint32_t addr, uint32_t width, bool apb) {
+uint32_t Mctrl_tb::read(uint32_t addr, uint32_t width, bool apb) {
     sc_core::sc_time t;
     //data needs to be a struct containing all information required for the transaction
     //uint32_t is not sufficient for the 64 bit transaction of sdram.
@@ -152,23 +125,8 @@ template <int hindex,    int pindex,   int romaddr, int rommask,
 }
 
 //stimuli
-template <int hindex,    int pindex,   int romaddr, int rommask,
-          int ioaddr,    int iomask,   int ramaddr, int rammask,
-          int paddr,     int pmask,    int wprot,   int invclk,
-          int fast,      int romasel,  int sdrasel, int srbanks,
-          int ram8,      int ram16,    int sden,    int sepbus,
-          int sdbits,    int sdlsb,    int oepol,   int syncrst,
-          int pageburst, int scantest, int mobile,  int BUSWIDTH>
-    void Mctrl_tb<hindex,    pindex,   romaddr,
-                  rommask,   ioaddr,   iomask,
-                  ramaddr,   rammask,  paddr,
-                  pmask,     wprot,    invclk,
-                  fast,      romasel,  sdrasel,
-                  srbanks,   ram8,     ram16,
-                  sden,      sepbus,   sdbits,
-                  sdlsb,     oepol,    syncrst,
-                  pageburst, scantest, mobile, BUSWIDTH >::run() {
-    sc_core::sc_time t;
+void Mctrl_tb::run() {
+  sc_core::sc_time t;
 
   cout << endl << endl << "--------------------------------------------------"
                << endl << "---------- write and read all memories -----------"
