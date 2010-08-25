@@ -109,3 +109,13 @@ def build(bld):
     uselib_local = 'mmu_cache',
   )
 
+  bld(
+    target       = 'lt_ct_lock.test',
+    features     = 'cxx cprogram test',
+    source       = [ 'lt_ct_lock_test/testbench.cpp',
+                     'lt_ct_lock_test/main.cpp'],
+    includes     = '.',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
+    uselib_local = 'mmu_cache',
+  )
+

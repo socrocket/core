@@ -21,21 +21,24 @@
 vectorcache::vectorcache(sc_core::sc_module_name name, 
 			   mmu_cache_if * _mmu_cache,
 			   mem_if *_tlb_adaptor,
-			   int mmu_en,
+			   unsigned int mmu_en,
 			   sc_core::sc_time hit_read_response_delay, 
 			   sc_core::sc_time miss_read_response_delay, 
 			   sc_core::sc_time write_response_delay,
-			   int sets, 
-			   int setsize, 
-			   int linesize, 
-			   int repl,
+			   unsigned int sets, 
+			   unsigned int setsize, 
+			   unsigned int setlock,
+			   unsigned int linesize, 
+			   unsigned int repl,
 			   unsigned int lram,
 			   unsigned int lramstart,
 			   unsigned int lramsize) : sc_module(name),
 						    m_mmu_cache(_mmu_cache),
 						    m_tlb_adaptor(_tlb_adaptor),
+						    m_pseudo_rand(0),
 						    m_sets(sets),
 						    m_setsize(setsize),
+						    m_setlock(setlock),
 						    m_linesize(linesize),
 						    m_wordsperline((unsigned int)pow(2,linesize)),
 						    m_bytesperline((unsigned int)pow(2,linesize+2)),		    
@@ -78,8 +81,21 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
   DUMP(this->name(), " * number of cache lines per set " << m_number_of_vectors << " (index bits: " << m_idx_bits << ")");
   DUMP(this->name(), " * Width of cache tag in bits " << m_tagwidth);
   DUMP(this->name(), " * Replacement strategy: " << m_repl);
+  DUMP(this->name(), " * Line Locking: " << m_setlock);
   DUMP(this->name(), " ******************************************************************************* ");
-  
+
+  // lru counter saturation
+  switch (m_sets) {
+
+    case 1: m_max_lru = 1;
+            break;
+    case 2: m_max_lru = 7;
+            break;
+    case 3: m_max_lru = 31;
+            break;
+    default: m_max_lru = 0;
+  }
+
   // set up configuration register
   CACHE_CONFIG_REG = (m_mmu_en << 3);
   // config register contains linesize in words
@@ -146,6 +162,9 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 	    // update debug information
 	    CACHEREADHIT_SET(*debug,i);
 
+	    // update lru history
+	    if (m_repl==1) {lru_update(i);}
+
 	    // write data pointer
 	    memcpy(data, &(*m_current_cacheline[i]).entry[offset>>2].c[byt],len);
 	    //for(unsigned int j=0; j<len; j++) { *(data+j) = (*m_current_cacheline[i]).entry[offset>>2].c[byt+j]; }
@@ -206,7 +225,7 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 	// in case there is no free set anymore
 	if (set_select == -1) {
 
-	  // select set according to replacement strategy
+	  // select set according to replacement strategy (todo: late binding)
 	  set_select = replacement_selector(m_repl);
 	  DUMP(this->name(),"Set " << set_select << " selected for refill by replacement selector.");
       
@@ -214,7 +233,6 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 
 	// fill in the new data (always the complete word)
 	memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, 4);
-	//for (unsigned int j=0; j<4;j++) {(*m_current_cacheline[set_select]).entry[offset >> 2].c[j] = *(ahb_data+j);}
 
 	// has the tag changed?
 	if ((*m_current_cacheline[set_select]).tag.atag != tag) {
@@ -225,12 +243,18 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 	  // switch of all the valid bits except the one for the new entry
 	  (*m_current_cacheline[set_select]).tag.valid = (unsigned int)(pow((double)2,(double)(offset >> 2)));
 
+	  // reset lru
+	  (*m_current_cacheline[set_select]).tag.lru = m_max_lru;
+
+	  // update lrr history
+	  if (m_repl==2) {lrr_update(set_select);};
+
 	} else {
       
 	  // switch on the valid bit for the new entry
 	  (*m_current_cacheline[set_select]).tag.valid |= (unsigned int)(pow((double)2,(double)(offset >> 2)));
-
 	}
+
       }
       else {
 	
@@ -321,6 +345,9 @@ void vectorcache::write(unsigned int address, unsigned char * data, unsigned int
 
 	  DUMP(this->name(),"Cache Hit in Set " << i);
 	
+	  // update lru history
+	  if (m_repl==1) { lru_update(i);}
+
 	  // update debug information
 	  CACHEWRITEHIT_SET(*debug, i);
 	  is_hit = true;
@@ -481,7 +508,9 @@ void vectorcache::write_cache_tag(unsigned int address, unsigned int * data, sc_
   // (! The atag field is expected to start at bit 10. Not MSB aligned as in tag layout.)
   (*m_current_cacheline[set]).tag.atag  = *data >> 10;
   (*m_current_cacheline[set]).tag.lrr   = ((*data & 0x100) >> 9);
-  (*m_current_cacheline[set]).tag.lock  = ((*data & 0x080) >> 8);
+  // lock bit can only be set, if line locking is enabled
+  // locking only works in multi-set configurations. the last set may never be locked.
+  (*m_current_cacheline[set]).tag.lock = ((m_setlock) && (set != m_sets)) ? ((*data & 0x080) >> 8) : 0;
   (*m_current_cacheline[set]).tag.valid = (*data & 0xff);
 
   DUMP(this->name(),"Diagnostic tag write set: " << std::hex << set << " idx: " << std::hex << idx << " atag: " 
@@ -517,7 +546,7 @@ void vectorcache::read_cache_entry(unsigned int address, unsigned int * data, sc
 
 }
 
-// write data cache entry/data (ASI 0xd)
+/// write data cache entry/data (ASI 0xd)
 // --------------------------------------------
 // A data sub-block can be directly written by executing a STA instruction with ASI = 0xD for the
 // instruction cache data and ASI = 0xF for the data cache data. The sub-block to be read in 
@@ -554,30 +583,133 @@ unsigned int vectorcache::read_config_reg(sc_core::sc_time *t) {
 // internal behavioral functions
 // -----------------------------
 
-// reads a cache line from a cache set
-t_cache_line * vectorcache::lookup(unsigned int set, unsigned int idx) {
+/// reads a cache line from a cache set
+inline t_cache_line * vectorcache::lookup(unsigned int set, unsigned int idx) {
 
   // return the cache line from the selected set
   return (&(*cache_mem[set])[idx]);
 
 }
 
+/// select cache line to be replaced according to replacement policy
 unsigned int vectorcache::replacement_selector(unsigned int mode) {
-  
-  // random replacement
-  if (mode == 3) {
 
-    // todo: check RTL for implementation details
-    return(rand() % (m_sets+1));
-  } 
-  else {
+  unsigned int set_select;
+  int min_lru;
 
-    DUMP(this->name(),"LRU not implemented yet!!");
+  // LRU - least recently used
+  switch (mode) {
+    
+    // direct mapped
+    case 0:
+
+      // There is only one set
+      set_select = 0;
+      break;
+
+    // LRU - least recently used
+    case 1:
+
+      // LRU replaces the line which hasn't been used for the longest time.
+
+      // The LRU algorithm needs extra "flip-flops"
+      // per cache line to store access history.
+      // Within the TLM model the LRU bits will be 
+      // attached to tag ram.
+
+      // find the line with the lowest lru
+      min_lru = m_max_lru;
+
+      for(unsigned int i = 0; i <= m_sets; i++) {
+
+	DUMP(this->name(),"LRU Replacer Check Set: " << i);
+
+	// the last set will never be locked
+	if (((*m_current_cacheline[i]).tag.lru <= min_lru) && ((*m_current_cacheline[i]).tag.lock == 0)) { 
+
+	  DUMP(this->name(),"LRU Replacer Select Set: " << i);
+	  min_lru = (*m_current_cacheline[i]).tag.lru; 
+	  set_select = i;
+
+	}
+      }
+
+      break;
+
+    // LRR - least recently replaced
+    case 2:
+      
+      // The LRR algorithm uses one extra bit in tag rams
+      // to store replacement history. Supossed to work
+      // only for 2-way associative caches.
+
+      // default: set 1 (the highest) can not be locked
+      set_select = 1;
+      
+      for(unsigned int i = 0; i < 2; i++) {
+
+	DUMP(this->name(),"LRR Replacer Check Set: " << i);
+
+	if (((*m_current_cacheline[i]).tag.lrr == 0) && ((*m_current_cacheline[i]).tag.lock == 0)) {
+
+	  DUMP(this->name(),"LRR Replacer Select Set: " << i);
+	  set_select = i;
+	  break;
+	}
+      }
+
+      break;
+
+    // pseudo - random
+    default:
+
+      // Random replacement is implemented through
+      // modulo-N counter that selects the line to be
+      // evicted on cache miss.
+
+      do {
+ 
+	set_select = m_pseudo_rand % (m_sets + 1); 
+        m_pseudo_rand ++; 
+
+      } 
+
+      // check line lock: the last sets will never be locked!!
+      while ((*m_current_cacheline[set_select]).tag.lock != 0);
+	
   }
 
-  return 0;
+
+  return set_select;
+
 }
 
+/// LRR replacement history updater
+void vectorcache::lrr_update(unsigned int set_select) {
+
+  // ! LRR may only be used for 2-way
+  for(unsigned int i = 0; i < 2; i++) {
+
+    // switch on lrr bit off selected set, switch off the other one
+    (*m_current_cacheline[i]).tag.lrr = (i == set_select) ? 1 : 0;
+    DUMP(this->name(),"Set " << i << " lrr: " << (*m_current_cacheline[i]).tag.lrr);
+
+  }
+
+}
+
+/// LRU replacement history updater
+void vectorcache::lru_update(unsigned int set_select) {
+
+  for(unsigned int i = 0; i <= m_sets; i++) {
+
+    // LRU: Counter for each line of a set
+    // (2 way - 1 bit, 3 way - 3 bit, 4 way - 5 bit)
+    (*m_current_cacheline[i]).tag.lru = (i == set_select) ? m_max_lru : (*m_current_cacheline[i]).tag.lru - 1;
+    DUMP(this->name(),"Set " << i << " lru: " << (*m_current_cacheline[i]).tag.lru);
+
+  }
+}
 
 // debug and helper functions
 // --------------------------

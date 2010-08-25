@@ -65,9 +65,13 @@ class vectorcache : public sc_core::sc_module, public mem_if {
   // internal behavioral functions
   // -----------------------------
   /// reads a cache line from a cache set
-  t_cache_line * lookup(unsigned int set, unsigned int idx);
+  inline t_cache_line * lookup(unsigned int set, unsigned int idx);
   /// returns number of the set to be refilled - depending on replacement strategy
   unsigned int replacement_selector(unsigned int);
+  /// updates the lru counters for every cache hit
+  void lru_update(unsigned int set_select);
+  /// updates the lrr bits for every line replacement
+  void lrr_update(unsigned int set_select);
 
  public:
   // constructor
@@ -90,14 +94,15 @@ class vectorcache : public sc_core::sc_module, public mem_if {
   vectorcache(sc_core::sc_module_name name, 
  	       mmu_cache_if * _mmu_cache,
 	       mem_if * _tlb_adaptor,
-	       int mmu_en,
+	       unsigned int mmu_en,
 	       sc_core::sc_time hit_read_response_delay, 
 	       sc_core::sc_time miss_read_response_delay, 
 	       sc_core::sc_time write_response_delay,
-	       int sets, 
-	       int setsize, 
-	       int linesize, 
-	       int repl,
+	       unsigned int sets, 
+	       unsigned int setsize, 
+  	       unsigned int setlock,
+	       unsigned int linesize, 
+	       unsigned int repl,
 	       unsigned int lram,
 	       unsigned int lramstart,
 	       unsigned int lramsize);
@@ -138,6 +143,9 @@ class vectorcache : public sc_core::sc_module, public mem_if {
   // helpers for cache handling
   t_cache_line m_default_cacheline;
   std::vector<t_cache_line*> m_current_cacheline;
+
+  /// pseudo random pointer
+  unsigned int m_pseudo_rand;
   
   // cache parameters
   // ----------------
@@ -145,6 +153,8 @@ class vectorcache : public sc_core::sc_module, public mem_if {
   unsigned int m_sets;
   /// indicates size of cacheset in kb = 2^m_setsize
   unsigned int m_setsize;
+  /// cache line locking
+  unsigned int m_setlock;
   /// indicates size of cacheline in words = 2^m_linesize
   unsigned int m_linesize;
   /// number of words per cacheline
@@ -166,6 +176,9 @@ class vectorcache : public sc_core::sc_module, public mem_if {
   // ----------------
   /// mmu enabled
   unsigned int m_mmu_en;
+
+  // lru counter maximum
+  int m_max_lru;
 
   // !!! The actual localram is instantiated in class mmu_cache.
   // !!! Settings are only needed for configuration register.

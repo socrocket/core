@@ -33,6 +33,7 @@
 typedef struct {
   unsigned int atag;
   unsigned int lrr;
+  int lru;
   unsigned int lock;
   unsigned int valid;
 } t_cache_tag;

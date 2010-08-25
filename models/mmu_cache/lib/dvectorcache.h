@@ -70,6 +70,7 @@ class dvectorcache : public vectorcache {
   /// @param write_response_delay              Delay for a cache write access (hit/miss)
   /// @param sets                              Number of cache sets
   /// @param setsize                           Size of a cache set (in kbytes)
+  /// @param setlock                           Enable cache line locking
   /// @param linesize                          Size of a cache line (in bytes)
   /// @param repl                              Cache replacement strategy
   /// @param lram                              Local RAM configured
@@ -78,14 +79,15 @@ class dvectorcache : public vectorcache {
   dvectorcache(sc_core::sc_module_name name, 
  	       mmu_cache_if * _mmu_cache,
 	       mem_if * _tlb_adaptor,
-	       int mmu_en,
+	       unsigned int mmu_en,
 	       sc_core::sc_time dcache_hit_read_response_delay, 
 	       sc_core::sc_time dcache_miss_read_response_delay, 
 	       sc_core::sc_time dcache_write_response_delay,
-	       int sets, 
-	       int setsize, 
-	       int linesize, 
-	       int repl,
+	       unsigned int sets, 
+	       unsigned int setsize,
+	       unsigned int setlock,
+	       unsigned int linesize, 
+	       unsigned int repl,
 	       unsigned int lram,
 	       unsigned int lramstart,
 	       unsigned int lramsize) : vectorcache(name, 
@@ -94,9 +96,10 @@ class dvectorcache : public vectorcache {
 						    mmu_en, 
 						    dcache_hit_read_response_delay,
 						    dcache_miss_read_response_delay,
-						    sc_core::sc_time(0,sc_core::SC_NS),
+						    dcache_write_response_delay,
 						    sets,
 						    setsize,
+						    setlock,
 						    linesize,
 						    repl,
 						    lram,

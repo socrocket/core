@@ -20,7 +20,7 @@ void testbench::initiator_thread(void) {
   // test vars
   unsigned int data;
   unsigned int tmp;
-  //unsigned int last;
+  unsigned int seta, setb, setc;
   unsigned int * debug;
 
   while(1) {
@@ -106,7 +106,8 @@ void testbench::initiator_thread(void) {
 
     // 0x00010000 (tag == 1)
 
-    for(unsigned int i = 0; i < 8; i++) {
+    // init 10 lines
+    for(unsigned int i = 0; i < 8*10; i++) {
 
       // args: address, data, length, asi, flush, flushl, lock
       dwrite((0x00010000 + (i<<2)), i, 4, 0x8, 0, 0, 0, debug);
@@ -117,7 +118,8 @@ void testbench::initiator_thread(void) {
 
     // 0x00020000 (tag == 2)
 
-    for(unsigned int i = 0; i < 8; i++) {
+    // init 10 lines
+    for(unsigned int i = 0; i < 8*10; i++) {
 
       // args: address, data, length, asi, flush, flushl, lock
       dwrite((0x00020000 + (i<<2)), i, 4, 0x8, 0, 0, 0, debug);
@@ -128,7 +130,8 @@ void testbench::initiator_thread(void) {
 
     // 0x00030000 (tag == 3)
 
-    for(unsigned int i = 0; i < 8; i++) {
+    // init 10 lines
+    for(unsigned int i = 0; i < 8*10; i++) {
 
       // args: address, data, length, asi, flush, flushl, lock
       dwrite((0x00030000 + (i<<2)), i, 4, 0x8, 0, 0, 0, debug);
@@ -363,9 +366,71 @@ void testbench::initiator_thread(void) {
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * Phase 3: Test random replacement ");
+    DUMP(name()," ************************************************************"); 
+
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * 23. Load data to line 5 of both cache sets (tag 1, tag2) ");
+    DUMP(name()," ************************************************************");
+
+    // | 31 - 16 (16 bit tag) | 15 - 5 (11 bit index) | 4 - 0 (5 bit offset) |
+    data = dread(0x000100a0, 4, 8, 0, 0, 0, debug);
+    DUMP(this->name(),"Data: " << std::hex << data);
+    assert(data==40);
+    assert(CACHEREADMISS_CHECK(*debug));
+    // number of set that contains the new data
+    seta = (*debug & 0x3);
+
+    data = dread(0x000200a0, 4, 8, 0, 0, 0, debug);
+    assert(data==40);
+    assert(CACHEREADMISS_CHECK(*debug));
+    setb = (*debug & 0x3);
+    // the other set shall be used to cache the data
+    assert(seta != setb);
+    
+    DUMP(name()," ************************************************************ ");
+    DUMP(name()," * 24. Test line replacement ");
+    DUMP(name()," ************************************************************");   
+
+    // reading with tag 3 should replace seta or setb
+    data = dread(0x000300a0, 4, 8, 0, 0, 0, debug);
+    assert(data==40);
+    assert(CACHEREADMISS_CHECK(*debug));
+    setc = (*debug & 0x3);
+
+    // reading again from the same address will produce a hit in the same set
+    data = dread(0x000300a0, 4, 8, 0, 0, 0, debug);
+    assert(data==40);
+    assert(CACHEREADHIT_CHECK(*debug));
+    assert(setc == (*debug & 0x3));
+
+    // read the tag which has just been replaced (bring back to cache)
+    if (setc == seta) {
+    
+      // tag 1 was removed from cache
+      data = dread(0x000100a0, 4, 8, 0, 0, 0, debug);
+      assert(data==40);
+      assert(CACHEREADMISS_CHECK(*debug));
+
+      data = dread(0x000100a0, 4, 8, 0, 0, 0, debug);
+      assert(CACHEREADHIT_CHECK(*debug));
+
+    } else {
+
+      // tag 2 was removed from cache
+      data = dread(0x000200a0, 4, 8, 0, 0, 0, debug);
+      assert(data==40);
+      assert(CACHEREADMISS_CHECK(*debug));
+
+      data = dread(0x000200a0, 4, 8, 0, 0, 0, debug);
+      assert(CACHEREADHIT_CHECK(*debug));
+
+    }
+
     /*
     DUMP(name()," ************************************************************ ");
-    DUMP(name()," * Phase 3: Test instruction burst-fetch mode ");
+    DUMP(name()," * Phase 4: Test instruction burst-fetch mode ");
     DUMP(name()," ************************************************************");
 
     DUMP(name()," ************************************************************ ");
