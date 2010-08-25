@@ -203,16 +203,16 @@ void Mctrl::initialize_mctrl() {
   // --- calculate address spaces of the different memory banks
 
   //ROM 
-  //FIXME: Size???
-  rom_bk1_s = static_cast<uint32_t>(romaddr << 20);            // 's' --> 'start'
-  rom_bk1_e = static_cast<uint32_t>((ioaddr + romaddr) << 19); // 'e' --> 'end'
+  uint32_t size = (4096 - rommask) << 20;
+  rom_bk1_s = static_cast<uint32_t>(romaddr << 20); //   's' --> 'start'
+  rom_bk2_e = rom_bk1_s + size - 1; //add full rom size: 'e' --> 'end'
+  rom_bk1_e = rom_bk2_e >> 1;       //bk1 ends at half of address space, rounding fits
   rom_bk2_s = rom_bk1_e + 1;
-  rom_bk2_e = static_cast<uint32_t>(ioaddr << 20) - 1;
 
   //IO
-  //FIXME: size???
+  size = (4096 - iomask) << 20;
   io_s = static_cast<uint32_t>(ioaddr << 20);
-  io_e = static_cast<uint32_t>(ioaddr << 21) - 1;
+  io_e = io_s + size - 1;
 
   // ------- RAM -------
 

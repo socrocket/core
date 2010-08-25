@@ -33,13 +33,7 @@ public:
     tlm_utils::simple_target_socket<Generic_memory> slave_socket;
 
     //constructor / destructor
-    Generic_memory(sc_module_name name, int _hindex = 0,    int _pindex = 0,     int _romaddr = 0,    int _rommask = 3584,
-                    int _ioaddr = 512,  int _iomask = 3584, int _ramaddr = 1024, int _rammask = 3072,
-                    int _paddr = 0,     int _pmask = 4095,  int _wprot = 0,      int _invclk = 0,
-                    int _fast = 0,      int _romasel = 28,  int _sdrasel = 29,   int _srbanks = 4,
-                    int _ram8 = 0,      int _ram16 = 0,     int _sden = 0,       int _sepbus = 0,
-                    int _sdbits = 32,   int _sdlsb = 2,     int _oepol = 0,      int _syncrst = 0,
-                    int _pageburst = 0, int _scantest = 0,  int _mobile = 0);
+    Generic_memory(sc_module_name name, int _wprot = 0, int _fast = 0);
     ~Generic_memory();
 
     //memory instance (key: int address, value: int data)
@@ -68,33 +62,8 @@ public:
 
   private:
     //constructor parameters (modeling VHDL generics)
-    const int hindex;
-    const int pindex;
-    const int romaddr;
-    const int rommask;
-    const int ioaddr;
-    const int iomask;
-    const int ramaddr;
-    const int rammask;
-    const int paddr;
-    const int pmask;
     const int wprot;
-    const int invclk;
     const int fast;
-    const int romasel;
-    const int sdrasel;
-    const int srbanks;
-    const int ram8;
-    const int ram16;
-    const int sden;
-    const int sepbus;
-    const int sdbits;
-    const int sdlsb;
-    const int oepol;
-    const int syncrst;
-    const int pageburst;
-    const int scantest;
-    const int mobile;
 };
 
 #include "generic_memory.tpp"

@@ -54,30 +54,10 @@ int sc_main(int argc, char** argv) {
                                    fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
                                    sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
                                    pageburst, scantest, mobile);
-  Generic_memory POST_GENERIC_MEMORY(uint8_t ) generic_memory_rom("generic_memory_rom",
-                                hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
-                                ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
-                                fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
-                                sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
-                                pageburst, scantest, mobile);
-  Generic_memory POST_GENERIC_MEMORY(uint32_t) generic_memory_io("generic_memory_io",
-                                hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
-                                ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
-                                fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
-                                sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
-                                pageburst, scantest, mobile);
-  Generic_memory POST_GENERIC_MEMORY(uint8_t ) generic_memory_sram("generic_memory_sram",
-                                hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
-                                ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
-                                fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
-                                sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
-                                pageburst, scantest, mobile);
-  Generic_memory POST_GENERIC_MEMORY(uint32_t) generic_memory_sdram("generic_memory_sdram",
-                                hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
-                                ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
-                                fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
-                                sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
-                                pageburst, scantest, mobile);
+  Generic_memory POST_GENERIC_MEMORY(uint8_t ) generic_memory_rom("generic_memory_rom", wprot, fast);
+  Generic_memory POST_GENERIC_MEMORY(uint32_t) generic_memory_io("generic_memory_io", wprot, fast);
+  Generic_memory POST_GENERIC_MEMORY(uint8_t ) generic_memory_sram("generic_memory_sram", wprot, fast);
+  Generic_memory POST_GENERIC_MEMORY(uint32_t) generic_memory_sdram("generic_memory_sdram", wprot, fast);
   Mctrl_tb mctrl_tb("mctrl_tb", hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
                                 ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
                                 fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,

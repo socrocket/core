@@ -16,9 +16,7 @@
 #ifndef MCTRL_H
 #define MCTRL_H
 
-//#define DEBUG
-
-//#define MONOLITHIC_MODULE
+#define DEBUG
 
 #include <boost/config.hpp>
 #include <systemc.h>

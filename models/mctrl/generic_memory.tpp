@@ -24,42 +24,11 @@
 //scope
 PRE_GENERIC_MEMORY Generic_memory POST_GENERIC_MEMORY(T)::
 //constructor
-Generic_memory(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _romaddr,
-                               int _rommask,  int _ioaddr,    int _iomask,   int _ramaddr,
-                               int _rammask,  int _paddr,     int _pmask,    int _wprot,
-                               int _invclk,   int _fast,      int _romasel,  int _sdrasel,
-                               int _srbanks,  int _ram8,      int _ram16,    int _sden,
-                               int _sepbus,   int _sdbits,    int _sdlsb,    int _oepol,
-                               int _syncrst,  int _pageburst, int _scantest, int _mobile) :
+Generic_memory(sc_core::sc_module_name name,  int _wprot, int _fast) :
       // construct and name socket
       slave_socket("slave_socket"),
-      hindex   (_hindex),
-      pindex   (_pindex),
-      romaddr  (_romaddr),
-      rommask  (_rommask),
-      ioaddr   (_ioaddr),
-      iomask   (_iomask),
-      ramaddr  (_ramaddr),
-      rammask  (_rammask),
-      paddr    (_paddr),
-      pmask    (_pmask),
       wprot    (_wprot),
-      invclk   (_invclk),
-      fast     (_fast),
-      romasel  (_romasel),
-      sdrasel  (_sdrasel),
-      srbanks  (_srbanks),
-      ram8     (_ram8),
-      ram16    (_ram16),
-      sden     (_sden),
-      sepbus   (_sepbus),
-      sdbits   (_sdbits),
-      sdlsb    (_sdlsb),
-      oepol    (_oepol),
-      syncrst  (_syncrst),
-      pageburst(_pageburst),
-      scantest (_scantest),
-      mobile   (_mobile)
+      fast     (_fast)
   {
   // register transport functions to sockets
   slave_socket.register_b_transport (this, &Generic_memory::b_transport);
