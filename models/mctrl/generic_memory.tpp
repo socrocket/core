@@ -222,5 +222,5 @@ erase_sdram(uint32_t start_address, uint32_t end_address, unsigned int length) {
 }
 
 //for (i=0, i<8, i++) {
-//  c2 |= c1 << 1
-
+//  c2 |= (c1 & (1 << i) << (7-i));
+//}

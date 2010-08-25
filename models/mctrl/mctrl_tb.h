@@ -25,7 +25,7 @@ class Mctrl_tb : public sc_core::sc_module {
     Mctrl_tb(sc_core::sc_module_name nm, int _hindex = 0,    int _pindex = 0,    int _romaddr = 0,    int _rommask = 3584,
                                          int _ioaddr = 512,  int _iomask = 3584, int _ramaddr = 1024, int _rammask = 3072,
                                          int _paddr = 0,     int _pmask = 4095,  int _wprot = 0,      int _invclk = 0,
-                                         int _fast = 0,      int _romasel = 28,  int _sdrasel = 29,   int _srbanks = 4,
+                                         int _fast = 0,      int _srbanks = 4,
                                          int _ram8 = 0,      int _ram16 = 0,     int _sden = 0,       int _sepbus = 0,
                                          int _sdbits = 32,   int _sdlsb = 2,     int _oepol = 0,      int _syncrst = 0,
                                          int _pageburst = 0, int _scantest = 0,  int _mobile = 0);
@@ -60,8 +60,6 @@ class Mctrl_tb : public sc_core::sc_module {
     const int wprot;
     const int invclk;
     const int fast;
-    const int romasel;
-    const int sdrasel;
     const int srbanks;
     const int ram8;
     const int ram16;

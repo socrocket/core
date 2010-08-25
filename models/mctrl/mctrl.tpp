@@ -32,7 +32,7 @@
 Mctrl::Mctrl(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _romaddr,
                       int _rommask,  int _ioaddr,    int _iomask,   int _ramaddr,
                       int _rammask,  int _paddr,     int _pmask,    int _wprot,
-                      int _invclk,   int _fast,      int _romasel,  int _sdrasel,
+                      int _invclk,   int _fast,
                       int _srbanks,  int _ram8,      int _ram16,    int _sden,
                       int _sepbus,   int _sdbits,    int _sdlsb,    int _oepol,
                       int _syncrst,  int _pageburst, int _scantest, int _mobile) :
@@ -70,8 +70,6 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _
   wprot    (_wprot),
   invclk   (_invclk),
   fast     (_fast),
-  romasel  (_romasel),
-  sdrasel  (_sdrasel),
   srbanks  (_srbanks),
   ram8     (_ram8),
   ram16    (_ram16),
@@ -148,6 +146,10 @@ void Mctrl::end_of_elaboration() {
   r[MCTRL_MCFG4].br.create("emr", 0, 6);      // DS, TCSR, PASR need EMR command
   r[MCTRL_MCFG2].br.create("launch", 19, 20); // SDRAM command field
   r[MCTRL_MCFG4].br.create("pmode", 16, 18);  // SDRAM power saving mode field
+  r[MCTRL_MCFG2].br.create("si", 13, 13);     // tcas needs LMR command
+  r[MCTRL_MCFG2].br.create("se", 14, 14);     // DS, TCSR, PASR need EMR command
+  r[MCTRL_MCFG2].br.create("sr_bk", 9, 12);   // SDRAM command field
+  r[MCTRL_MCFG2].br.create("sdr_bk", 23, 25); // SDRAM power saving mode field
 
   GR_FUNCTION(Mctrl, configure_sdram);                  // args: module name, callback function name
   GR_SENSITIVE(r[MCTRL_MCFG2].br["lmr"].add_rule(
@@ -167,9 +169,34 @@ void Mctrl::end_of_elaboration() {
 
   GR_FUNCTION(Mctrl, erase_sdram);
   GR_SENSITIVE(r[MCTRL_MCFG4].br["pmode"].add_rule(
-                                        gs::reg::POST_WRITE,  // function to be called after register write
-                                        "erase_sdram",        // function name
-                                        gs::reg::NOTIFY));    // notification on every register access
+                                        gs::reg::POST_WRITE,      // function to be called after register write
+                                        "erase_sdram",            // function name
+                                        gs::reg::NOTIFY));        // notification on every register access
+
+  GR_FUNCTION(Mctrl, sram_disable);
+  GR_SENSITIVE(r[MCTRL_MCFG2].br["si"].add_rule(
+                                        gs::reg::POST_WRITE,      // function to be called after register write
+                                        "sram_disable",           // function name
+                                        gs::reg::NOTIFY));        // notification on every register access
+
+  GR_FUNCTION(Mctrl, sdram_enable);
+  GR_SENSITIVE(r[MCTRL_MCFG2].br["se"].add_rule(
+                                        gs::reg::POST_WRITE,      // function to be called after register write
+                                        "sdram_enable",           // function name
+                                        gs::reg::NOTIFY));        // notification on every register access
+
+  GR_FUNCTION(Mctrl, sram_change_bank_size);
+  GR_SENSITIVE(r[MCTRL_MCFG2].br["sr_bk"].add_rule(
+                                        gs::reg::POST_WRITE,      // function to be called after register write
+                                        "sram_change_bank_size",  // function name
+                                        gs::reg::NOTIFY));        // notification on every register access
+
+  GR_FUNCTION(Mctrl, sdram_change_bank_size);
+  GR_SENSITIVE(r[MCTRL_MCFG2].br["sdr_bk"].add_rule(
+                                        gs::reg::POST_WRITE,      // function to be called after register write
+                                        "sdram_change_bank_size", // function name
+                                        gs::reg::NOTIFY));        // notification on every register access
+
 }
 
 
@@ -216,32 +243,42 @@ void Mctrl::initialize_mctrl() {
 
   // ------- RAM -------
 
-  //SRAM bank size can be 8KB, 16KB, 32KB, ... 256MB
-  uint32_t sram_bank_size = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_BANK_SIZE) >> 9;
+  //SRAM bank size: lower half of RAM address space divided by #banks
+  uint32_t sram_bank_size;
+  if (srbanks == 5) {              //max 4 banks in lower half
+    sram_bank_size = ((4096 - rammask) / 8) << 20;
+  }
+  else {
+    sram_bank_size = ((4096 - rammask) / (2*srbanks)) << 20;
+  }
 
-  //SDRAM bank size can be 4 MB, 8MB, 16MB, ... 512MB
-  uint32_t sdram_bank_size = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_BANKSZ) >> 23;
+  //SDRAM bank size: upper half of RAM address space divided by 2 banks
+  uint32_t sdram_bank_size = ((4096 - rammask) / 4) << 20;
+
+  //write calculated bank sizes into MCFG2
+  uint32_t i_sr  = log( sram_bank_size)/log(2) + 7;
+  uint32_t i_sdr = log(sdram_bank_size)/log(2) - 3;
+  unsigned int set = (MCTRL_MCFG2_DEFAULT & ~MCTRL_MCFG2_RAM_BANK_SIZE & ~MCTRL_MCFG2_SDRAM_BANKSZ)
+                      | (i_sr << 9 & MCTRL_MCFG2_RAM_BANK_SIZE) | (i_sdr << 23 & MCTRL_MCFG2_SDRAM_BANKSZ);
+  r[MCTRL_MCFG2].set( set );
 
   //address spaces in case of SRAM only configuration
   if (!(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE)) {
-    //bank 1
-    sram_bk1_s = static_cast<uint32_t>(ramaddr << 20);
-    //                                       1Byte << 13 = 8KB
-    sram_bk1_e = sram_bk1_s + (1 << (sram_bank_size + 13)) - 1;
-    //bank 2 starts right after bank 1
-    sram_bk2_s = sram_bk1_e + 1;
-    sram_bk2_e = sram_bk2_s + (1 << (sram_bank_size + 13)) - 1;
-    //bank 3 ...
-    sram_bk3_s = sram_bk2_e + 1;
-    sram_bk3_e = sram_bk3_s + (1 << (sram_bank_size + 13)) - 1;
+    //potentially unused banks
+    sram_bk2_s = 0;
+    sram_bk2_e = 0;
+    sram_bk3_s = 0;
+    sram_bk3_e = 0;
+    sram_bk4_s = 0;
+    sram_bk4_e = 0;
+    sram_bk5_s = 0;
+    sram_bk5_e = 0;
 
-    sram_bk4_s = sram_bk3_e + 1;
-    sram_bk4_e = sram_bk4_s + (1 << (sram_bank_size + 13)) - 1;
+    //call function that calculates the SRAM bank addresses
+    //This (lengthy) operation is required several times in the code.
+    sram_calculate_bank_addresses( sram_bank_size );
 
-    sram_bk5_s = sram_bk4_e + 1;
-    sram_bk5_e = sram_bk5_s + (1 << (sram_bank_size + 13)) - 1;
-
-    //unused banks, sdram1 and sdram2
+    //unused banks, sdram1 and sdram2: constants need to be defined, but range must be empty
     sdram_bk1_s = 0;
     sdram_bk1_e = 0;
     sdram_bk2_s = 0;
@@ -250,25 +287,24 @@ void Mctrl::initialize_mctrl() {
   }
   //address spaces in case of SDRAM and SRAM (lower 4 SRAM banks only) configuration
   else if (!(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SI)) {
-    //bank 1
-    sram_bk1_s = static_cast<uint32_t>(ramaddr << 20);
-    //                                       1Byte << 13 = 8KB
-    sram_bk1_e = sram_bk1_s + (1 << (sram_bank_size + 13)) - 1;
-    //bank 2 starts right after bank 1
-    sram_bk2_s = sram_bk1_e + 1;
-    sram_bk2_e = sram_bk2_s + (1 << (sram_bank_size + 13)) - 1;
-    //bank 3 ...
-    sram_bk3_s = sram_bk2_e + 1;
-    sram_bk3_e = sram_bk3_s + (1 << (sram_bank_size + 13)) - 1;
+    //potentially unused banks: constants need to be defined, but range must be empty
+    sram_bk2_s = 0;
+    sram_bk2_e = 0;
+    sram_bk3_s = 0;
+    sram_bk3_e = 0;
+    sram_bk4_s = 0;
+    sram_bk4_e = 0;
 
-    sram_bk4_s = sram_bk3_e + 1;
-    sram_bk4_e = sram_bk4_s + (1 << (sram_bank_size + 13)) - 1;
+    //call function that calculates the SRAM bank addresses
+    sram_calculate_bank_addresses( sram_bank_size );
+
+    //calculate SDRAM bank addresses
     //SDRAM bank 1 starts at upper half of RAM area
-    sdram_bk1_s = static_cast<uint32_t>(ramaddr << 21);
-    sdram_bk1_e = sdram_bk1_s + (1 << (sdram_bank_size + 22)) - 1;
+    sdram_bk1_s = static_cast<uint32_t>( (ramaddr + (4096 - rammask) / 2) << 20 );
+    sdram_bk1_e = sdram_bk1_s + sdram_bank_size - 1;
     //SDRAM bank 2
     sdram_bk2_s = sdram_bk1_e + 1;
-    sdram_bk2_e = sdram_bk2_s + (1 << (sdram_bank_size + 22)) - 1;
+    sdram_bk2_e = sdram_bk2_s + sdram_bank_size - 1;
 
     //unused bank sram5: constants need to be defined, but range must be empty
     sram_bk5_s = 0;
@@ -278,10 +314,10 @@ void Mctrl::initialize_mctrl() {
   else {
     //SDRAM bank 1 starts at lower half of RAM area
     sdram_bk1_s = static_cast<uint32_t>(ramaddr << 20);
-    sdram_bk1_e = sdram_bk1_s + (1 << (sdram_bank_size + 22)) - 1;
+    sdram_bk1_e = sdram_bk1_s + sdram_bank_size - 1;
     //SDRAM bank 2
     sdram_bk2_s = sdram_bk1_e + 1;
-    sdram_bk2_e = sdram_bk2_s + (1 << (sdram_bank_size + 22)) - 1;
+    sdram_bk2_e = sdram_bk2_s + sdram_bank_size - 1;
 
     //unused banks, sram1 ... sram5
     sram_bk1_s = 0;
@@ -652,4 +688,135 @@ void Mctrl::erase_sdram() {
 
 }
 
+// --------- Address space calculation --------- //
+
+//recalculate start / end addresses of ram banks after sram enable / disable
+void Mctrl::sram_disable() {
+  //changes only take effect if sdram enable bit is set
+  if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE) {
+    //SRAM has been disabled --> SDRAM needs to be mapped into lower half of RAM area
+    if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SI) {
+      sdram_bk1_s -= ((4096 - rammask) / 2) << 20;
+      sdram_bk1_e -= ((4096 - rammask) / 2) << 20;
+      sdram_bk2_s -= ((4096 - rammask) / 2) << 20;
+      sdram_bk2_e -= ((4096 - rammask) / 2) << 20;
+      //in addition, the SRAM ranges need to be deleted
+      sram_bk1_s = sram_bk1_e = 0;
+      sram_bk2_s = sram_bk2_e = 0;
+      sram_bk3_s = sram_bk3_e = 0;
+      sram_bk4_s = sram_bk4_e = 0;
+      sram_bk5_s = sram_bk5_e = 0;
+    }
+    //SRAM has been enabled --> SDRAM needs to be mapped into upper half of RAM area
+    else {
+      sdram_bk1_s += ((4096 - rammask) / 2) << 20;
+      sdram_bk1_e += ((4096 - rammask) / 2) << 20;
+      sdram_bk2_s += ((4096 - rammask) / 2) << 20;
+      sdram_bk2_e += ((4096 - rammask) / 2) << 20;
+
+      //calculate SRAM bank addresses based on MCFG2 bank size field
+      //the GR callback is somehow misused for this pupose
+      sram_change_bank_size();
+    }
+  }
+}
+
+//recalculate start / end addresses of ram banks after sdram enable / disable
+void Mctrl::sdram_enable() {
+  //SDRAM has just been enabled (SRAM cannot be disabled) 
+  if(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE) {
+    sram_bk5_s = 0;
+    sram_bk5_e = 0;
+
+    //calculate SDRAM bank addresses based on MCFG2 bank size field
+    //the GR callback is somehow misused for this pupose
+    sdram_change_bank_size();
+  }
+  //SDRAM has just been disabled
+  else {
+    sdram_bk1_s = 0;
+    sdram_bk1_e = 0;
+    sdram_bk2_s = 0;
+    sdram_bk2_e = 0;
+
+    //enable SRAM if it is disabled
+    if(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SI) {
+      unsigned int set = r[MCTRL_MCFG2].get() | MCTRL_MCFG2_SI;
+      r[MCTRL_MCFG2].set( set );
+      //calculate SRAM bank addresses based on MCFG2 bank size field
+      sram_change_bank_size();
+    }
+  }
+}
+
+//recalculate start / end addresses of sram banks after change of sram bank size
+void Mctrl::sram_change_bank_size() {
+  //calculate sram bank size from MCFG2 register
+  // 8KB = 1B << 13
+  //16KB = 1B << 13 + b'0001
+  //32KB = 1B << 13 + b'0010 ...
+  uint32_t sram_bank_size = 1 << ( 13 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_BANK_SIZE >> 9) );
+  //calculate new bank addresses
+  sram_calculate_bank_addresses( sram_bank_size );
+}
+
+//recalculate start / end addresses of sdram banks after change of sdram bank size
+void Mctrl::sdram_change_bank_size() {
+  //calculate sdram bank size from MCFG2 register
+  // 4MB = 1B << 22
+  // 8MB = 1B << 22 + b'001
+  //16MB = 1B << 22 + b'010 ...
+  uint32_t sdram_bank_size = 1 << ( 22 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_BANKSZ >> 23) );
+
+  //calculate new bank addresses
+  sdram_bk1_s = sram_bk1_s + ((4096 - rammask) / 2) << 20;
+  sdram_bk1_e = sdram_bk1_s + sdram_bank_size - 1;
+  sdram_bk2_s = sdram_bk1_e + 1;
+  sdram_bk2_e = sdram_bk2_s + sdram_bank_size - 1;
+}
+
+void Mctrl::sram_calculate_bank_addresses(uint32_t sram_bank_size) {
+  //calculate bank 1 address from generics and bank size
+  sram_bk1_s = static_cast<uint32_t>(ramaddr << 20);
+  sram_bk1_e = sram_bk1_s + sram_bank_size - 1;
+
+  //calculate remaining bank addresses if banks are present
+  switch (srbanks) {
+    //banks 2 - 4
+    case 4:
+      sram_bk4_s = sram_bk1_s + 3 * sram_bank_size;
+      sram_bk4_e = sram_bk4_s + sram_bank_size - 1;
+      sram_bk3_s = sram_bk1_s + 2 * sram_bank_size;
+      sram_bk3_e = sram_bk3_s + sram_bank_size - 1;
+      sram_bk2_s = sram_bk1_s + sram_bank_size;
+      sram_bk2_e = sram_bk2_s + sram_bank_size - 1;
+      break;
+    //banks 2 and 3
+    case 3:
+      sram_bk3_s = sram_bk1_s + 2 * sram_bank_size;
+      sram_bk3_e = sram_bk3_s + sram_bank_size - 1;
+      sram_bk2_s = sram_bk1_s + sram_bank_size;
+      sram_bk2_e = sram_bk2_s + sram_bank_size - 1;
+      break;
+    //bank 2
+    case 2:
+      sram_bk2_s = sram_bk1_s + sram_bank_size;
+      sram_bk2_e = sram_bk2_s + sram_bank_size - 1;
+  }
+
+  //set bank 5 values only if SDRAM is disabled
+  if(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE == 0) {
+    sram_bk5_s = sram_bk1_s + ((4096 - rammask) / 2) << 20;
+    sram_bk5_s = sram_bk1_s - 1 + (4096 - rammask) << 20;
+  }
+
+}
+
+
 #endif
+
+
+
+
+
+

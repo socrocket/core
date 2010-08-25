@@ -33,8 +33,6 @@ int sc_main(int argc, char** argv) {
   const int wprot = 0;
   const int invclk = 0;
   const int fast = 0;
-  const int romasel = 28;
-  const int sdrasel = 29;
   const int srbanks = 4;
   const int ram8 = 0;
   const int ram16 = 0;
@@ -51,7 +49,7 @@ int sc_main(int argc, char** argv) {
   //instantiate mctrl, generic memory, and testbench
   Mctrl mctrl_inst0("mctrl_inst0", hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
                                    ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
-                                   fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
+                                   fast,      srbanks,  ram8,    ram16,
                                    sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
                                    pageburst, scantest, mobile);
   Generic_memory POST_GENERIC_MEMORY(uint8_t ) generic_memory_rom("generic_memory_rom", wprot, fast);
@@ -60,7 +58,7 @@ int sc_main(int argc, char** argv) {
   Generic_memory POST_GENERIC_MEMORY(uint32_t) generic_memory_sdram("generic_memory_sdram", wprot, fast);
   Mctrl_tb mctrl_tb("mctrl_tb", hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
                                 ramaddr,   rammask,  paddr,   pmask,     wprot,    invclk,
-                                fast,      romasel,  sdrasel, srbanks,   ram8,     ram16,
+                                fast,      srbanks,  ram8,    ram16,
                                 sden,      sepbus,   sdbits,  sdlsb,     oepol,    syncrst,
                                 pageburst, scantest, mobile);
 
