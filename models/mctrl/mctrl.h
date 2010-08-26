@@ -28,6 +28,7 @@
 #include "tlm_utils/simple_initiator_socket.h"
 #include "mctrlreg.h"
 #include "generic_memory.h"
+#include "grlibdevice.h"
 
 class Mctrl : public gs::reg::gr_device
 {
@@ -99,7 +100,11 @@ public:
       virtual void copy_from (tlm::tlm_extension_base const &ext) {
         erase_flag = static_cast<ext_erase const &>(ext).erase_flag;
       }
+
     };
+
+    GrlibDevice pnpahb, pnpapb;
+
 
   private:
     sc_core::sc_time callback_delay; //count time elapsing in callbacks (to be added in next transaction)

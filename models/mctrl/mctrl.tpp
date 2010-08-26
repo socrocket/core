@@ -42,6 +42,26 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _
             16,                        //dword size (of register file)
             NULL                       //parent module
            ),
+  pnpahb(
+         (uint8_t) 0x04, //vendor: ESA
+         (uint16_t) 0x0F, //device: MCTRL
+         (uint8_t) 0,
+         (uint8_t) 0,    //irq
+         GrlibBAR(AHBMEM, rommask, true, true, romaddr),
+         GrlibBAR(AHBMEM, iomask, false, false, ioaddr),
+         GrlibBAR(AHBMEM, rammask, true, true, ramaddr),
+         (uint32_t) 0
+         ),
+  pnpapb(
+         (uint8_t) 0x04, //vendor: ESA
+         (uint16_t) 0x0F, //device: MCTRL
+         (uint8_t) 0,
+         (uint8_t) 0,    //irq
+         GrlibBAR(APBIO, pmask, 0, 0, paddr),
+         (uint32_t) 0,
+         (uint32_t) 0,
+         (uint32_t) 0
+        ),
   apb( //greenreg_socket
       "bus",            //name
       r,                //register container
@@ -396,6 +416,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
         cycles = DECODING_DELAY + MCTRL_ROM_WRITE_DELAY(cycles) + 
                  data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
         //add delay and forward transaction to memory
+        start_idle = t_trans + cycle_time * cycles;
         delay += cycle_time * cycles;
         mctrl_rom->b_transport(gp,delay);
       }
@@ -406,6 +427,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
       cycles = DECODING_DELAY + MCTRL_ROM_READ_DELAY(cycles) + 
                data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
       //add delay and forward transaction to memory
+      start_idle = t_trans + cycle_time * cycles;
       delay += cycle_time * cycles;
       mctrl_rom->b_transport(gp,delay);
     }
@@ -427,6 +449,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
                  data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
       }
       //add delay and forward transaction to memory
+      start_idle = t_trans + cycle_time * cycles;
       delay += cycle_time * cycles;
       gp.set_streaming_width(4);
       mctrl_io->b_transport(gp,delay);
@@ -478,6 +501,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
                data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
     }
     //add delay and forward transaction to memory
+    start_idle = t_trans + cycle_time * cycles;
     delay += cycle_time * cycles;
     mctrl_sram->b_transport(gp,delay);
   }
@@ -554,36 +578,9 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
       mctrl_sdram->b_transport(gp,delay);
     }
   }
-
-//Address decoding depends on the address spaces of the different memories.
-//The sizes and address spaces are summarized in the following.
-
-//start of rom address space: romaddr << 20 (default: 0x0)
-//start of io address space: ioaddr << 20   (default: 512 << 20 = 0x200 << 20 = 0x20000000)
-//start of ram address space: ramaddr << 20 (default: 1024 --> 0x40000000)
-
-//SRAM: 
-//Bank size of lower 4 banks is determined by MCFG2[12..9]
-// 0000 -->   8 KB
-// 0001 -->  16 KB
-// 0010 -->  32 KB
-// 1111 --> 256 MB  --> max 4x 256 MB = 1GB 
-//Bank 5 size is calculated by sdrasel generic (max 512MB for sdrasel = 29)
-//Bank 5 address space size is 2^(sdrasel + 1)
-//Bank 5 cannot be used simultaneously with sdram
-
-//SDRAM
-//Bank size is determined by SDRAM BANKSZ bits (25..23) of MCFG2 register
-// 000 -->   4 MB
-// 001 -->   8 MB
-// 010 -->  16 MB
-// 111 --> 512 MB  --> max 2x 512 MB = 1GB
-
-//Modify and return generic payload
-
-//State Machine management? Transaction can only be initialized
-//in idle state.
-
+  if (mobile>0 && sc_core::sc_time_stamp() - start_idle >= (r[MCTRL_MCFG3].get() >> 11) * cycle_time) {
+    start_idle = sc_core::sc_time_stamp();
+  }
 }
 
 
@@ -644,7 +641,7 @@ void Mctrl::erase_sdram() {
       //check previous power down mode
       uint8_t cycles = 0;
       switch (pmode) {
-        //leaving self refresh: tXSR + Auto Refresh period (tRFC)
+        //leaving self refresh: tXSR + Auto Refresh cycle (tRFC)
         case 2:
           cycles = (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_TXSR >> 20) +          //tXSR
                    (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC >> 27) + 3; //tRFC

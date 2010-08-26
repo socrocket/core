@@ -27,8 +27,7 @@ def build(bld):
     features = 'cxx cprogram test',
     source   = 'mctrl_testtop_tlm.cpp',
     target   = 'mctrl.test',
-    uselib   = 'BOOST SYSC TLM2 AMBA GREENSOCS'#,
-#    uselib   = 'signalkit',
-#    uselib   = 'models/utils'
+    uselib   = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib_local = 'utils signalkit'
   )
 
