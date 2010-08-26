@@ -39,7 +39,7 @@ Mctrl_tb::Mctrl_tb(sc_core::sc_module_name name,  int _hindex,    int _pindex,  
                                    int _sepbus,   int _sdbits,    int _sdlsb,    int _oepol,
                                    int _syncrst,  int _pageburst, int _scantest, int _mobile)
   : apb_master_sock ("apb_master_sock", amba::amba_APB, amba::amba_LT, false),
-    ahb_master_sock ("ahb_master_sock"),
+    ahb_master_sock ("ahb_master_sock", amba::amba_AHB, amba::amba_LT, false),
   hindex   (_hindex),
   pindex   (_pindex),
   romaddr  (_romaddr),

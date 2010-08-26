@@ -34,7 +34,7 @@ class Mctrl_tb : public sc_core::sc_module {
   public:
     //bus communication via socket
     amba::amba_master_socket<32> apb_master_sock;
-    tlm_utils::simple_initiator_socket<Mctrl_tb> ahb_master_sock;
+    amba::amba_master_socket<32> ahb_master_sock;
 
     SC_HAS_PROCESS(Mctrl_tb);
 

@@ -33,11 +33,14 @@
 class Mctrl : public gs::reg::gr_device
 {
 public:
+    //plug and play devices for AHB and APB
+    GrlibDevice pnpahb, pnpapb;
+
     //APB slave socket: connects mctrl config registers to apb
     gs::reg::greenreg_socket< gs::amba::amba_slave<32> > apb;
 
     //AHB slave socket: receives instructions (mem access) from CPU
-    tlm_utils::simple_target_socket<Mctrl> ahb;
+    ::amba::amba_slave_socket<32> ahb;
 
     //Master sockets: Initiate communication with memory modules
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_rom;
@@ -78,13 +81,6 @@ public:
     //define TLM transport functions
     virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
 
-    //address space variables
-    uint32_t rom_bk1_s, rom_bk1_e, rom_bk2_s, rom_bk2_e,
-             io_s, io_e,
-             sram_bk1_s, sram_bk1_e, sram_bk2_s, sram_bk2_e, sram_bk3_s, sram_bk3_e,
-                                     sram_bk4_s, sram_bk4_e, sram_bk5_s, sram_bk5_e,
-             sdram_bk1_s, sdram_bk1_e, sdram_bk2_s, sdram_bk2_e;
-
     //simple payload extension for erasing memory
     struct ext_erase : public tlm::tlm_extension<ext_erase> {
     public:
@@ -103,10 +99,14 @@ public:
 
     };
 
-    GrlibDevice pnpahb, pnpapb;
-
-
   private:
+    //address space variables
+    uint32_t rom_bk1_s, rom_bk1_e, rom_bk2_s, rom_bk2_e,
+             io_s, io_e,
+             sram_bk1_s, sram_bk1_e, sram_bk2_s, sram_bk2_e, sram_bk3_s, sram_bk3_e,
+                                     sram_bk4_s, sram_bk4_e, sram_bk5_s, sram_bk5_e,
+             sdram_bk1_s, sdram_bk1_e, sdram_bk2_s, sdram_bk2_e;
+
     sc_core::sc_time callback_delay; //count time elapsing in callbacks (to be added in next transaction)
     sc_core::sc_time start_idle;     //capture end time of last transaction to calculate sdram idle time
     uint8_t pmode;                   //capture current state of power mode

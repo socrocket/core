@@ -63,7 +63,7 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _
          (uint32_t) 0
         ),
   apb( //greenreg_socket
-      "bus",            //name
+      "apb",            //name
       r,                //register container
       0x0,              // ?
       0xFFFFFFFF,       // ?
@@ -71,7 +71,11 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _
       ::amba::amba_LT,  // ?communication type / abstraction level?
       false             // ?
      ),
-  ahb("ahb"),
+  ahb("ahb",
+      ::amba::amba_AHB, // ?bus type?
+      ::amba::amba_LT,  // ?communication type / abstraction level?
+      false             // ?
+     ),
   mctrl_rom("mctrl_rom"),
   mctrl_io("mctrl_io"),
   mctrl_sram("mctrl_sram"),
@@ -154,8 +158,9 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _
 
 }
 
-//explicit declaration of standard destructor required for linking
+//destructor unregisters callbacks
 Mctrl::~Mctrl() {
+  GC_UNREGISTER_CALLBACKS();
 }
 
 
@@ -276,8 +281,8 @@ void Mctrl::initialize_mctrl() {
   uint32_t sdram_bank_size = ((4096 - rammask) / 4) << 20;
 
   //write calculated bank sizes into MCFG2
-  uint32_t i_sr  = log( sram_bank_size)/log(2) + 7;
-  uint32_t i_sdr = log(sdram_bank_size)/log(2) - 3;
+  uint32_t i_sr  = static_cast<uint32_t>( log( sram_bank_size)/log(2) + 7 );
+  uint32_t i_sdr = static_cast<uint32_t>( log(sdram_bank_size)/log(2) - 3 );
   unsigned int set = (MCTRL_MCFG2_DEFAULT & ~MCTRL_MCFG2_RAM_BANK_SIZE & ~MCTRL_MCFG2_SDRAM_BANKSZ)
                       | (i_sr << 9 & MCTRL_MCFG2_RAM_BANK_SIZE) | (i_sdr << 23 & MCTRL_MCFG2_SDRAM_BANKSZ);
   r[MCTRL_MCFG2].set( set );
@@ -669,6 +674,15 @@ void Mctrl::erase_sdram() {
       break;
     //partial array self refresh: partially erase SDRAM
     case 0x00020000:
+    {
+      //leaving deep power down mode: Precharge, 2x Auto-Refresh, LMR, EMR
+      uint8_t cycles = 0;
+      if (pmode == 5) {
+        cycles = 2 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30            +  //precharge (tRP)
+                 2 * (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC >> 27) + 3 +  //2 * tRFC
+                 2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;       //LMR + EMR
+      }
+      callback_delay += sc_time(BUS_CLOCK_CYCLE * cycles, SC_NS);
       pmode = 2;
       uint8_t pasr = r[MCTRL_MCFG4].get() & MCTRL_MCFG4_PASR;
       if (pasr) {
@@ -681,6 +695,7 @@ void Mctrl::erase_sdram() {
         data = Mctrl::sdram_bk1_e >> (pasr-1);
         mctrl_sdram->b_transport(gp,t);
       }
+    }
   }
 
 }
