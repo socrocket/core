@@ -428,7 +428,6 @@ void testbench::initiator_thread(void) {
 
     }
 
-    /*
     DUMP(name()," ************************************************************ ");
     DUMP(name()," * Phase 4: Test instruction burst-fetch mode ");
     DUMP(name()," ************************************************************");
@@ -444,7 +443,7 @@ void testbench::initiator_thread(void) {
     assert(data==0xf);
 
     // switch on bit 16 - Instruction Burst Fetch (IB)
-    dwrite(0x0, *data |= (1 << 16), 4, 2, 0, 0, 0, debug); 
+    dwrite(0x0, data |= (1 << 16), 4, 2, 0, 0, 0, debug); 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // check new status of cache control
@@ -471,7 +470,7 @@ void testbench::initiator_thread(void) {
     DUMP(name()," ************************************************************");
     
     // The read from the cache line causes a read miss.
-    data=iread(0x00010008, 4, 0, 0, 0, debug);
+    data=iread(0x00010008, 0, 0, 0, debug);
     assert(CACHEREADMISS_CHECK(*debug));
     assert(data==2);
 
@@ -481,14 +480,12 @@ void testbench::initiator_thread(void) {
     // the following reads will be hits.
     for (unsigned int i=3; i < 8; i++) {
 
-      data=iread((0x00010000 + (i<<2)), 4, 0, 0, 0, debug);
+      data=iread((0x00010000 + (i<<2)), 0, 0, 0, debug);
       assert(CACHEREADHIT_CHECK(*debug));
       assert(data==i);
 
       wait(LOCAL_CLOCK,sc_core::SC_NS);
     }
-
-    */
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
     sc_core::sc_stop();

@@ -94,6 +94,7 @@ class dvectorcache : public vectorcache {
 						    _mmu_cache, 
 						    _tlb_adaptor, 
 						    mmu_en, 
+						    0, // burst fetch forbidden
 						    dcache_hit_read_response_delay,
 						    dcache_miss_read_response_delay,
 						    dcache_write_response_delay,

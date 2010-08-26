@@ -22,6 +22,7 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
 			   mmu_cache_if * _mmu_cache,
 			   mem_if *_tlb_adaptor,
 			   unsigned int mmu_en,
+			   unsigned int burst_en,
 			   sc_core::sc_time hit_read_response_delay, 
 			   sc_core::sc_time miss_read_response_delay, 
 			   sc_core::sc_time write_response_delay,
@@ -35,6 +36,7 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
 			   unsigned int lramsize) : sc_module(name),
 						    m_mmu_cache(_mmu_cache),
 						    m_tlb_adaptor(_tlb_adaptor),
+						    m_burst_en(burst_en),
 						    m_pseudo_rand(0),
 						    m_sets(sets),
 						    m_setsize(setsize),
@@ -122,6 +124,9 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
   int set_select = -1;
   int cache_hit = -1;
 
+  unsigned int burst_len;
+  unsigned int replacer_limit;
+
   // todo: handle cached/uncached access
   unsigned int asi = 0;
 
@@ -203,7 +208,23 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
       // increment time
       *t += m_miss_read_response_delay; 
 
-      m_tlb_adaptor->mem_read(((address >> 2) << 2), ahb_data, 4, t, debug);
+      // Set length of bus transfer depending on mode:
+      // ---------------------------------------------
+      // If burst fetch is enabled, the cache line is filled starting at the missed address
+      // until the end of the line. At the same time the instructions are forwarded to the IU (todo AT ??).
+      if (m_burst_en && (m_mmu_cache->read_ccr() & 0x10000)) {
+	
+	burst_len = m_bytesperline - ((offset >> 2) << 2);
+	replacer_limit = m_bytesperline-4;
+
+      } else {
+
+	burst_len = 4;
+	replacer_limit = offset;
+
+      }
+
+      m_tlb_adaptor->mem_read(((address >> 2) << 2), ahb_data, burst_len, t, debug);
 
       // check for unvalid data which can be replaced without harm
       for (unsigned int i = 0; i <= m_sets; i++){
@@ -232,7 +253,7 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 	}
 
 	// fill in the new data (always the complete word)
-	memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, 4);
+	memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, burst_len);
 
 	// has the tag changed?
 	if ((*m_current_cacheline[set_select]).tag.atag != tag) {
@@ -240,8 +261,15 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 	  // fill in the new tag
 	  (*m_current_cacheline[set_select]).tag.atag  = tag;
 
-	  // switch of all the valid bits except the one for the new entry
-	  (*m_current_cacheline[set_select]).tag.valid = (unsigned int)(pow((double)2,(double)(offset >> 2)));
+	  // switch off all the valid bits ...
+	  (*m_current_cacheline[set_select]).tag.valid = 0;
+
+	  // .. and switch on the ones for the new entries
+	  for (unsigned int i = offset; i <= replacer_limit; i+=4) {
+	    
+	    (*m_current_cacheline[set_select]).tag.valid |= (unsigned int)(pow((double)2,(double)(i >> 2)));
+
+	  }
 
 	  // reset lru
 	  (*m_current_cacheline[set_select]).tag.lru = m_max_lru;
@@ -251,8 +279,12 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 
 	} else {
       
-	  // switch on the valid bit for the new entry
-	  (*m_current_cacheline[set_select]).tag.valid |= (unsigned int)(pow((double)2,(double)(offset >> 2)));
+	  // switch on the valid bits for the new entries
+	  for (unsigned int i = offset; i <= replacer_limit; i+=4) {
+ 
+	    (*m_current_cacheline[set_select]).tag.valid |= (unsigned int)(pow((double)2,(double)(i >> 2)));
+
+	  }
 	}
 
       }
@@ -267,10 +299,14 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 	if ((set_select != -1) && ((*m_current_cacheline[set_select]).tag.atag == tag)) {
 
 	  // fill in the new data (always the complete word)
-	  memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, 4);
+	  memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, burst_len);
 	  
-	  // switch on the valid bit
-	  (*m_current_cacheline[set_select]).tag.valid |= (unsigned int)(pow((double)2,(double)(offset >> 2)));
+	  // switch on the valid bits for the new entries
+	  for (unsigned int i = offset; i <= replacer_limit; i+=4) {
+
+	    (*m_current_cacheline[set_select]).tag.valid |= (unsigned int)(pow((double)2,(double)(i >> 2)));
+
+	  }
 	    
 	} else {
 

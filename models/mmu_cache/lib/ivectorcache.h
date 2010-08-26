@@ -83,7 +83,8 @@ class ivectorcache : public vectorcache {
 	       unsigned int lramsize) : vectorcache(name, 
 						    _mmu_cache, 
 						    _tlb_adaptor, 
-						    mmu_en, 
+						    mmu_en,
+						    1, // burst fetch allowed
 						    icache_hit_read_response_delay,
 						    icache_miss_read_response_delay,
 						    sc_core::sc_time(0, sc_core::SC_NS),

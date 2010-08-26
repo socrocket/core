@@ -78,9 +78,9 @@ class vectorcache : public sc_core::sc_module, public mem_if {
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
   /// @brief Constructor of data cache
   /// @param name                              SystemC module name
-  /// @param cache_type                        0-icache, 1-dcache
-  /// @param mmu_cache                         Pointer to top-level class of cache subsystem (mmu_cache) for access to AHB bus interface
-  /// @param tlb_adaptor                       Pointer to memory management unit
+  /// @param _mmu_cache                        Pointer to top-level class of cache subsystem (mmu_cache) for access to AHB bus interface
+  /// @param _tlb_adaptor                      Pointer to memory management unit
+  /// @param burst_en                          Allows the cache to be switched in burst fetch mode (by CCR setting)
   /// @param hit_read_response_delay           Delay for a cache read hit
   /// @param miss_read_response_delay          Delay for a cache read miss
   /// @param write_response_delay              Delay for a cache write access (hit/miss)
@@ -95,6 +95,7 @@ class vectorcache : public sc_core::sc_module, public mem_if {
  	       mmu_cache_if * _mmu_cache,
 	       mem_if * _tlb_adaptor,
 	       unsigned int mmu_en,
+  	       unsigned int burst_en,
 	       sc_core::sc_time hit_read_response_delay, 
 	       sc_core::sc_time miss_read_response_delay, 
 	       sc_core::sc_time write_response_delay,
@@ -144,6 +145,8 @@ class vectorcache : public sc_core::sc_module, public mem_if {
   t_cache_line m_default_cacheline;
   std::vector<t_cache_line*> m_current_cacheline;
 
+  /// indicates whether the cache can be put in burst mode or not
+  unsigned int m_burst_en;
   /// pseudo random pointer
   unsigned int m_pseudo_rand;
   
