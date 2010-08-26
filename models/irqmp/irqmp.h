@@ -22,14 +22,14 @@
 #include <systemc.h>
 #include <greenreg.h>
 #include <greenreg_ambasocket.h>
-//#include <greenreg.h>
-//#include <greenreg_socket/greenreg_ambasocket.h>
 
 #include "greencontrol/all.h"
 
 #include "signalkit.h"
 
-class Irqmp : public gs::reg::gr_device, public signalkit::signal_module<Irqmp> {
+class Irqmp
+    : public gs::reg::gr_device
+    , public signalkit::signal_module<Irqmp> {
   public:
     //Slave socket with delayed switch; responsible for all bus communication
     gs::reg::greenreg_socket< gs::amba::amba_slave<32> > bus;

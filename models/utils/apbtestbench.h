@@ -8,7 +8,7 @@
 /*             maximum inline optiisatzion                             */
 /*                                                                     */
 /* Modified on $Date$   */
-/*          at $Revision$                                          */
+/*          at $Revision$                                         */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TU Braunschweig              */
@@ -20,7 +20,7 @@
 
 #include "amba.h"
 
-//macro to brint a time stamp
+///macro to print a time stamp
 #define SHOW { \
   std::cout /*<< std::endl*/ \
             << "@" \
@@ -30,7 +30,19 @@
             << (unsigned)sc_core::sc_delta_count(); \
 }
 
-//macro to print a register value
+///macro to print a time stamp and a msg
+#define PRINT(msg) { \
+  std::cout \
+            << "@" \
+            << sc_core::sc_time_stamp().to_string().c_str() \
+            << " /" \
+            << std::dec \
+            << (unsigned)sc_core::sc_delta_count() \
+            << " " << msg << std::endl; \
+}
+
+
+///macro to print a register value
 #define REG(name) { \
   std::cout << " "#name \
             << ": 0x" \
@@ -40,7 +52,7 @@
             << read(name, 4); \
 }
 
-//macro to set a register
+///macro to set a register
 #define SET(name, val) { \
   write(name, val, 4); \
 }

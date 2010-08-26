@@ -65,6 +65,7 @@ void Counter::ctrl_read() {
 
 void Counter::ctrl_write() {
   p.r[CTRL].b[TIM_CTRL_DH] = (p.dhalt.read() != 0);
+  std::cout << " Timer " << nr << " write " << std::endl;
 
   /* Clean irq if desired */
   bool old_pirq = m_pirq;
@@ -95,10 +96,10 @@ void Counter::ctrl_write() {
   /* Enable */
   //std::cout << "StartStop_" << nr << std::endl;
   if(p.r[CTRL].b[TIM_CTRL_EN] && stopped) {
-  //std::cout << "Start_" << nr << std::endl;
+    std::cout << "Start_" << nr << std::endl;
     start();
   } else if((!p.r[CTRL].b[TIM_CTRL_EN])&&!stopped) {
-    //std::cout << "Stop_" << nr << std::endl;
+    std::cout << "Stop_" << nr << std::endl;
     stop();
   }
 }
@@ -162,22 +163,23 @@ void Counter::ticking() {
         irqnr += nr;
       }
       p.irq.write(p.irq.read() | (1<<irqnr));
-#ifdef DEBUGOUT
-      if(p.rst) {
-        p.tick.write(p.tick.read() | (1<<(nr + 1)));
-      }
-#endif
-      m_pirq = true;
-      wait(p.clockcycle);
-#ifdef DEBUGOUT
-      if(p.rst) {
-        p.tick.write(p.tick.read() & ~(1<<(nr + 1)));
-      }
-#endif
     }
+#ifdef DEBUGOUT
+    if(p.rst) {
+      p.tick.write(p.tick.read() | (1<<(nr + 1)));
+    }
+#endif
+    m_pirq = true;
+    wait(p.clockcycle);
+#ifdef DEBUGOUT
+    if(p.rst) {
+      p.tick.write(p.tick.read() & ~(1<<(nr + 1)));
+    }
+#endif
     
-    if(p.r[TIM_CTRL(nr+1)].b[TIM_CTRL_CH]) {
-      p.counter[(nr+1) % p.counter.size()]->chaining();
+    unsigned int nrn = (nr+1<p.counter.size())? nr+1 : 0;
+    if(p.r[TIM_CTRL(nrn)].b[TIM_CTRL_CH]) {
+      p.counter[(nrn) % p.counter.size()]->chaining();
     }
 
     // Enable value becomes restart value
@@ -237,9 +239,11 @@ sc_core::sc_time Counter::cycletime() {
   } else 
   { /* We only depend on the prescaler */
     t = p.clockcycle;
-    m = 1;
+    m = p.r[TIM_SCRELOAD];
+    //m = 1;
   }
   return t * (m + 1);
+  //return t * (m + 1);
 }
 
 /* Recalculate sleeptime and send notification */
@@ -250,11 +254,13 @@ void Counter::calculate() {
   sc_core::sc_time time;
   // Calculate with currentime, and lastvalue updates
   if(p.r[CTRL].b[TIM_CTRL_EN]) {
+    sc_core::sc_time zero = this->nextzero();
+    sc_core::sc_time cycle = this->cycletime();
     #ifdef DEBUG
-    std::cout << " calc_" << nr << ": " << time << std::endl;
+    std::cout << " calc_" << nr << " Zero: " << zero << " Cycle: " << cycle << " Value: " << value << std::endl;
     #endif
-    time = this->nextzero();
-    time += (this->cycletime() * value);
+    time = zero;
+    time += (cycle * value) + (nr + 1) * p.clockcycle;
     #ifdef DEBUG
     std::cout << " calc_" << nr << ": " << time << std::endl;
     #endif
@@ -266,10 +272,15 @@ void Counter::calculate() {
  * For example for enable, !dhalt, e_chain
  */
 void Counter::start() {
-  //std::cout << "start_" << nr << " stopped:" << stopped << "-" << (!p.r[CTRL].b[TIM_CTRL_CH] || (p.r[CTRL].b[TIM_CTRL_CH] && chain_run)) << std::endl;
-  if(stopped && p.r[CTRL].b[TIM_CTRL_EN] && (!p.dhalt) && 
+  std::cout << "start_" << nr << " stopped: " 
+            << stopped << "-" 
+            << p.r[CTRL].b[TIM_CTRL_EN] << "-" 
+            << (p.dhalt.read()!=0) << "-" 
+            << (!p.r[CTRL].b[TIM_CTRL_CH] || (p.r[CTRL].b[TIM_CTRL_CH] && chain_run)) 
+            << std::endl;
+  if(stopped && p.r[CTRL].b[TIM_CTRL_EN] /*&& (p.dhalt.read()!=0)*/ && 
     (!p.r[CTRL].b[TIM_CTRL_CH] || (p.r[CTRL].b[TIM_CTRL_CH] && chain_run))) {
-    //std::cout << "start_" << nr << std::endl;
+    std::cout << "startnow_" << nr << std::endl;
     
     lasttime  = sc_core::sc_time_stamp();
     calculate();
@@ -293,6 +304,7 @@ void Counter::stop() {
 
 Timer::Timer(sc_core::sc_module_name name, unsigned int ntimers, int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog)
   : gr_device(name, gs::reg::ALIGNED_ADDRESS, 4*(1+ntimers), NULL)
+  , GrlibDevice(0x1, 0x11, 0, 0, gpirq, GrlibBAR(APBIO, gpmask, false, false, gpaddr))
   , bus( "bus", r, 0x0, 0xFFFFFFFF, ::amba::amba_APB, ::amba::amba_LT, false)
   , rst(this, &Timer::do_reset, "RESET")
   , dhalt(this, &Timer::do_dhalt, "DHALT")

@@ -27,6 +27,7 @@
 #include "signalkit.h"
 
 #include "gptimerregisters.h"
+#include "grlibdevice.h"
 
 #include <string>
 #include <ostream>
@@ -143,18 +144,10 @@ class Counter : public gs::reg::gr_subdevice {
 
 /// @brief This class is a tlm model of the gaisler aeroflex grlib gptimer.
 ///   
-/// @param pirq    Defines which APB interupt the timers will generate. Default is 0.
-/// @param sepirq  If set to 1, each timer will drive an individual interrupt line, 
-///                starting with interrupt irq. If set to 0, all timers will drive 
-///                the same interrupt line (irq).
-/// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
-/// @param nbits   Defines the number of bits in the timers. Default is 32.
-/// @param sbits   Defines the number of bits in the scaler. Default is 16.
-/// @param wdog    Watchdog reset value. When set to a non-zero value, the
-///                last timer will be enabled and pre-loaded with this value
-///                at reset. When the timer value reaches 0, the WDOG output
-///                is driven active.
-class Timer : public gs::reg::gr_device, public signalkit::signal_module<Timer> {
+class Timer
+    : public gs::reg::gr_device
+    , public signalkit::signal_module<Timer>
+    , public GrlibDevice {
   public:
     /// Slave socket with delayed switchi
     gs::reg::greenreg_socket< gs::amba::amba_slave<32> > bus; 
@@ -212,6 +205,17 @@ class Timer : public gs::reg::gr_device, public signalkit::signal_module<Timer> 
     ///
     /// @param name    The name of the instance. It's needed for debunging.
     /// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
+    /// @param pirq    Defines which APB interupt the timers will generate. Default is 0.
+    /// @param sepirq  If set to 1, each timer will drive an individual interrupt line, 
+    ///                starting with interrupt irq. If set to 0, all timers will drive 
+    ///                the same interrupt line (irq).
+    /// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
+    /// @param nbits   Defines the number of bits in the timers. Default is 32.
+    /// @param sbits   Defines the number of bits in the scaler. Default is 16.
+    /// @param wdog    Watchdog reset value. When set to a non-zero value, the
+    ///                last timer will be enabled and pre-loaded with this value
+    ///                at reset. When the timer value reaches 0, the WDOG output
+    ///                is driven active.
     Timer(sc_core::sc_module_name name, unsigned int ntimers = 1, int gpindex = 0, int gpaddr = 0, int gpmask = 4095, int gpirq = 0, int gsepirq = 0, int gsbits = 16, int gnbits = 32, int gwdog = 0);
 
     /// Free all counter and unregister all callbacks.

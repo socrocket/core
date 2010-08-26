@@ -25,29 +25,41 @@ def configure(ctx):
 
 def build(bld):
   #bld(
-  #  features = ['cxx', 'cprogram'],
-  #  source='tests/top_tlm.cpp',
-  #  target='gptimer.test',
-  #  includes='. ../utils',
-  #  uselib=['BOOST', 'SYSC', 'TLM2', 'AMBA', 'GREENSOCS'],
+  #  target       = 'speed.test',
+  #  features     = 'cxx cprogram test',
+  #  source       = 'tests/top_tlm.cpp',
+  #  defines      = 'SPEEDTEST',
+  #  includes     = '. tests',
+  #  uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+  #  uselib_local = 'utils signalkit',
   #)
   
+  #bld(
+  #  target       = 'function.test',
+  #  features     = 'cxx cprogram test',
+  #  source       = 'tests/top_tlm.cpp',
+  #  defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+  #  includes     = '. tests',
+  #  uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+  #  uselib_local = 'utils signalkit',
+  #)
+
   bld(
-    target       = 'speed.test',
+    target       = 'prescaler.test',
     features     = 'cxx cprogram test',
     source       = 'tests/top_tlm.cpp',
-    defines      = 'SPEEDTEST',
-    includes     = '.',
+    defines      = 'PRESCALERTEST CTBUS DEBUGOUT',
+    includes     = '. tests',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
     uselib_local = 'utils signalkit',
   )
-  
+
   bld(
-    target       = 'function.test',
+    target       = 'counter.test',
     features     = 'cxx cprogram test',
     source       = 'tests/top_tlm.cpp',
-    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = '.',
+    defines      = 'COUNTERTEST CTBUS DEBUGOUT',
+    includes     = '. tests',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
     uselib_local = 'utils signalkit',
   )

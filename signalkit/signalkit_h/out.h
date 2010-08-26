@@ -31,10 +31,12 @@ class signal_out : public signal_base<TYPE, MODULE>, public signal_out_if<TYPE> 
     virtual ~signal_out() {}
   
     virtual void bind(signal_in_if<TYPE> &receiver, const unsigned int &channel = 0) {
-      // TODO: Double insert possible
-      //if(m_receiver.find(receiver) != m_receiver.end()) {
+      for(typename t_receiver::iterator iter = m_receiver.begin(); iter != m_receiver.end(); iter++) {
+        if(*iter == &receiver){
+          return;
+        }
+      }
       m_receiver.push_back(&receiver);
-      //}
     }
     
     virtual void write(const TYPE &value, const sc_core::sc_time &time = sc_core::SC_ZERO_TIME) {

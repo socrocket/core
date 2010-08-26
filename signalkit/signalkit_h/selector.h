@@ -28,10 +28,15 @@ class signal_selector : public signal_base<TYPE, MODULE>, public signal_out_bind
       : signal_base<TYPE, MODULE>::signal_base(module, mn) {}
       
     virtual void bind(signal_in_if<TYPE> &receiver, const unsigned int &channel) {
-      // TODO: Make it work with multible sender per channel
-      // TODO: Make it work with all directions of bind requests. At the moment this bind must be called first.
-      signal_out<TYPE, MODULE> *item = new signal_out<TYPE, MODULE>(this->m_module, sc_core::sc_gen_unique_name("port", true));
-      outs.insert( std::make_pair(channel, item));
+      // TODO: Make work multipel selector<->infield channels
+      signal_out<TYPE, MODULE> *item = NULL;
+      typename t_map::iterator iter = outs.find(channel);
+      if(iter != outs.end()) {
+        item = iter->second;
+      } else {
+        item = new signal_out<TYPE, MODULE>(this->m_module, sc_core::sc_gen_unique_name("port", true));
+        outs.insert( std::make_pair(channel, item));
+      }  
       item->bind(receiver);
     }
       

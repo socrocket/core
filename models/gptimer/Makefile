@@ -75,7 +75,7 @@ wave: modelsim
 	vsim -do 'vsim -voptargs=+acc work.sc_main; add wave -r sim:/sc_main/*; run 1000ns;'
 
 vsim: modelsim
-	vsim
+	vsim -c -do 'vsim -voptargs=+acc work.sc_main; run -all;'
 
 modelsim/.dir:
 	vlib modelsim
@@ -120,8 +120,8 @@ modelsim/.gaisler: modelsim/gaisler/.dir modelsim/.techmap modelsim/.grlib
 modelsim/gptimer.h: modelsim/.gaisler
 	scgenmod -modelsimini modelsim.ini -lib gaisler -bool -map "std_logic_vector=sc_uint" -createtemplate gptimer > $@
 
-modelsim/.testbench: modelsim/work/.dir modelsim/gptimer.h tests/functiontest.h tests/top_rtl.cpp
-	sccom -nologo -work work $(CPPFLAGS) -I. -Itests -I../utils -I../../tlmsignals -Imodelsim -I/home/group/socrocket/tools/amba_socket-modelsim -I/home/group/socrocket/tools/greensocs-4.0.0 -I$(TLM2_HOME)/unit_test/tlm/multi_sockets/include -scv tests/top_rtl.cpp
+modelsim/.testbench: modelsim/work/.dir modelsim/gptimer.h tests/top.h tests/top_rtl.cpp tests/prescalertest.h
+	sccom -nologo -work work $(CPPFLAGS) -I. -Itests -I../utils -I../../signalkit -Imodelsim -I/home/group/socrocket/tools/amba_socket-modelsim -I/home/group/socrocket/tools/greensocs-4.0.0 -I$(TLM2_HOME)/unit_test/tlm/multi_sockets/include -scv tests/top_rtl.cpp
 	@touch $@
 
 modelsim/.link: modelsim/.grlib modelsim/.techmap modelsim/.gaisler modelsim/.testbench

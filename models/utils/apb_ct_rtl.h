@@ -122,7 +122,9 @@ class APB_CT_RTL : public sc_module, public signalkit::signal_module<APB_CT_RTL>
       while(1) {
         apb_slv_out_type val = apbo.read();
         m_prdata.write(val.prdata);
-        pirqo.write(val.pirq);
+        if(!pirqo==val.pirq) {
+          pirqo.write(val.pirq);
+        }
         pconfig_0.write(val.pconfig[0]);
         pconfig_1.write(val.pconfig[1]);
         pindex.write(val.pindex);
