@@ -40,7 +40,7 @@ typedef struct {
 
 // single cache data entry
 typedef union {
-  unsigned int i;
+  unsigned int  i;
   unsigned char c[4];
 } t_cache_data;
 
@@ -52,7 +52,11 @@ typedef struct {
 
 // structure of a tlb entry (page descriptor cache entry)
 // ========================
-// virtual address tag 20bit (for 4 kB page size)
+// virtual address tag: 
+// - 20bit (for 4 kB page size)
+// - 19bit (for 8 kb page size)
+// - 18bit (for 16 kb page size)
+// - 17bit (for 32 kb page size)
 // 
 // page descriptor cache entry
 // context tag      - ?? bits

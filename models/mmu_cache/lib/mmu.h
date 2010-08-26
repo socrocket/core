@@ -222,6 +222,17 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// mmu page size
   unsigned int m_mmupgsz;
 
+  // page size indices (helpers)
+  // ---------------------------
+  /// width of vtag index 1
+  unsigned int m_idx1;
+  /// width of vtag index 2
+  unsigned int m_idx2;
+  /// width of vtag index 3
+  unsigned int m_idx3;
+  /// total width of vtag
+  unsigned int m_vtag_width;
+
   // delay parameters
   // ----------------
   sc_core::sc_time m_itlb_hit_response_delay;

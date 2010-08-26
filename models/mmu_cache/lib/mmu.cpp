@@ -1,20 +1,20 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       mmu.h - Implementation of a memory management unit.     */
-/*             The mmu can be configured to have split or combined     */
-/*             TLBs for instructions and data. The TLB size can be     */
-/*             configured as well. The memory page size is currently   */
-/*             currently fixed to 4kB.                                 */
-/*                                                                     */
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Thomas Schuster                                         */
-/***********************************************************************/
+// ***********************************************************************
+// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
+// *                                                                     *
+// * File:       mmu.h - Implementation of a memory management unit.     *
+// *             The mmu can be configured to have split or combined     *
+// *             TLBs for instructions and data. The TLB size can be     *
+// *             configured as well. The memory page size is currently   *
+// *             currently fixed to 4kB.                                 *
+// *                                                                     *
+// *                                                                     *
+// * Modified on $Date$   *
+// *          at $Revision$                                         *
+// *                                                                     *
+// * Principal:  European Space Agency                                   *
+// * Author:     VLSI working group @ IDA @ TUBS                         *
+// * Maintainer: Thomas Schuster                                         *
+// ***********************************************************************
 
 #include "mmu.h"
 
@@ -81,24 +81,66 @@ mmu::mmu(sc_core::sc_module_name name,
     DUMP(this->name(),"Created combined instruction and data TLBs.");
 
   }
+
+  // The page size can be 4k, 8k, 16k or 32k.
+  // Depending on the configuration the indices for the address table
+  // lookup have different range.
+
+  switch (mmupgsz) {
+
+  case 0 : // 4 kB
+           m_idx1 = 8;
+           m_idx2 = 6;
+	   m_idx3 = 6;
+	   m_vtag_width = 20; 
+	   break;
+  case 2 : // also 4 kB
+           m_idx1 = 8;
+           m_idx2 = 6;
+           m_idx3 = 6;
+	   m_vtag_width = 20; 
+	   break;
+  case 3:  // 8 kB
+           m_idx1 = 7;
+	   m_idx2 = 6;
+	   m_idx3 = 6;
+	   m_vtag_width = 19; 
+	   break;
+  case 4:  // 16 kB
+           m_idx1 = 6;
+           m_idx2 = 6;
+           m_idx3 = 6;
+	   m_vtag_width = 18; 
+	   break;
+  case 5:  // 32 kB
+           m_idx1 = 4;
+           m_idx2 = 7;
+           m_idx3 = 6;
+	   m_vtag_width = 17; 
+	   break;
+  default: // not supported
+           DUMP(this->name(),"Selected mmupgsz not supported!");
+           assert(false);
+  }
+
 }
  
 // look up a tlb (page descriptor cache)
 // and return physical address
 unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size, sc_core::sc_time * t, unsigned int * debug) {
 
-  // Pages are always aligned on 4K-byte boundaries; hence, the lower-order
+  // According to the SparcV8 Manual: Pages of the Reference MMU are always aligned on 4K-byte boundaries; hence, the lower-order
   // 12 bits of a physical address are always the same as the low-order 12 bits of
-  // the virtual address.
-  unsigned int offset = (addr & 0x3ff);
-  t_VAT vpn = (addr >> 12);
+  // the virtual address. The Gaisler MMU additionally supports 8k, 16k and 32k alignment,
+  unsigned int offset = ((addr << m_vtag_width) >> m_vtag_width);
+  t_VAT vpn = (addr >> (32-m_vtag_width));
 
   // The Virtual Address Tag consists of three indices, which are used to look
   // up the three level page table in main memory. The indices are extracted from
   // the tag and translated to byte addresses (shift left 2 bit)
-  unsigned int idx1 = (vpn >> 12) << 2;
-  unsigned int idx2 = (vpn << 20) >> 24;
-  unsigned int idx3 = (vpn << 26) >> 24;
+  unsigned int idx1 = (vpn >> (m_idx2+m_idx3) << 2);
+  unsigned int idx2 = (vpn << (32-m_idx2-m_idx3)) >> (30-m_idx3); 
+  unsigned int idx3 = (vpn << (32-m_idx3)) >> (30-m_idx3);
 
   // locals for intermediate results
   t_PTE_context tmp;
@@ -127,7 +169,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
       DUMP(this->name(),"CONTEXT hit");
 
       // build physical address from PTE and offset, and return
-      paddr = (((tmp.pte>>8)<< 12)|offset);
+      paddr = (((tmp.pte >> 8) << (32 - m_vtag_width))|offset);
 
       // update debug information
       TLBHIT_SET(*debug);
@@ -164,7 +206,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
 
   // COMPOSITION OF A PAGE TABLE ENTRY (PTE)
   // [31-8] PPN - Physical Page Number. The PPN appears on bits 35 through 12 of the 
-  // physical address bus when a translation completes
+  // physical address bus when a translation completes (for 4kb default configuration)
   // [7] C - Cacheable. If this bit is one, the page is cacheable by an instruction
   // and/or data cache.
   // [6] M - Modified. This bit is set to one by the MMU when the page is accessed
@@ -211,7 +253,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     (*tlb)[vpn] = tmp; 
 
     // build physical address from PTE and offset
-    paddr = (((tmp.pte >> 8) << 12)|offset);
+    paddr = (((tmp.pte >> 8) << (32 - m_vtag_width))|offset);
 
     DUMP(this->name(),"Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr);
     return(paddr);
@@ -252,7 +294,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     (*tlb)[vpn] = tmp; 
 
     // build physical address from PTE and offset
-    paddr = (((tmp.pte >> 8) << 12)|offset);
+    paddr = (((tmp.pte >> 8) << (32 - m_vtag_width))|offset);
 
     DUMP(this->name(),"Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr);
     return(paddr);
@@ -293,7 +335,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     (*tlb)[vpn] = tmp; 
 
     // build physical address from PTE and offset
-    paddr = (((tmp.pte >> 8) << 12)|offset);
+    paddr = (((tmp.pte >> 8) << (32 - m_vtag_width))|offset);
 
     DUMP(this->name(),"Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr);
     return(paddr);
@@ -388,7 +430,7 @@ unsigned int mmu::read_mfar() {
 /// Diagnostic read of instruction PDC (ASI 0x5)
 void mmu::diag_read_itlb(unsigned int addr, unsigned int * data) {
 
-  t_VAT vpn = (addr >> 12);
+  t_VAT vpn = (addr >> (32 - m_vtag_width));
 
   // diagnostic ITLB lookup (without bus access)
   if ((addr & 0x3)==0x3) {
@@ -416,7 +458,7 @@ void mmu::diag_write_itlb(unsigned int addr, unsigned int * data) {
 /// Diagnostic read of data or shared instruction and data PDC (ASI 0x6)
 void mmu::diag_read_dctlb(unsigned int addr, unsigned int * data) {
 
-  t_VAT vpn = (addr >> 12);
+  t_VAT vpn = (addr >> (32 - m_vtag_width));
 
   // diagnostic ITLB lookup (without bus access)
   if ((addr & 0x3)==0x3) {
