@@ -19,6 +19,8 @@
 #define DEBUG
 
 //#include <cmath.h>
+#include <algorithm>
+#include <iostream>
 #include <boost/config.hpp>
 #include <systemc.h>
 #include <tlm.h>
@@ -30,7 +32,7 @@
 #include "generic_memory.h"
 #include "grlibdevice.h"
 
-class Mctrl : public gs::reg::gr_device
+class Mctrl : public gs::reg::gr_device, public amba_slave_base
 {
 public:
     //plug and play devices for AHB and APB
@@ -57,6 +59,37 @@ public:
            int _sdbits = 32,   int _sdlsb = 2,     int _oepol = 0,      int _syncrst = 0,
            int _pageburst = 0, int _scantest = 0,  int _mobile = 0);
     ~Mctrl();
+
+    //device identification on AHB bus
+  	inline sc_dt::uint64 get_size() {
+      //get start address of memory area
+      uint64_t base = std::min(romaddr, ioaddr);
+      base = std::min(static_cast<uint64_t>(ramaddr), base);
+
+      //get end address of memory area
+      uint64_t end = std::max(romaddr, ioaddr);
+      end = std::max(static_cast<uint64_t>(ramaddr), end);
+      //base of highest mem area + size of that area
+      if ( end == static_cast<uint64_t>(ramaddr) ) {
+        end += rammask;
+      }
+      else if ( end == static_cast<uint64_t>(ioaddr) ) {
+        end += iomask;
+      }
+      else if ( end == static_cast<uint64_t>(romaddr) ) {
+        end += rommask;
+      }
+
+      //size is given in MB, so << 20
+		  return ((end - base) << 20);
+  	}
+	  inline sc_dt::uint64 get_base_addr() {
+      //get start address of memory area
+      uint64_t base = std::min(romaddr, ioaddr);
+      base = std::min(static_cast<uint64_t>(ramaddr), base) << 20;
+
+	  	return base;
+  	}
 
     //proclamation of processes and callbacks
     SC_HAS_PROCESS(Mctrl);

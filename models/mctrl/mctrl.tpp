@@ -171,10 +171,10 @@ void Mctrl::end_of_elaboration() {
   r[MCTRL_MCFG4].br.create("emr", 0, 6);      // DS, TCSR, PASR need EMR command
   r[MCTRL_MCFG2].br.create("launch", 19, 20); // SDRAM command field
   r[MCTRL_MCFG4].br.create("pmode", 16, 18);  // SDRAM power saving mode field
-  r[MCTRL_MCFG2].br.create("si", 13, 13);     // tcas needs LMR command
-  r[MCTRL_MCFG2].br.create("se", 14, 14);     // DS, TCSR, PASR need EMR command
-  r[MCTRL_MCFG2].br.create("sr_bk", 9, 12);   // SDRAM command field
-  r[MCTRL_MCFG2].br.create("sdr_bk", 23, 25); // SDRAM power saving mode field
+  r[MCTRL_MCFG2].br.create("si", 13, 13);     // SRAM disable, address space calculation
+  r[MCTRL_MCFG2].br.create("se", 14, 14);     // SDRAM enable, address space calculation
+  r[MCTRL_MCFG2].br.create("sr_bk", 9, 12);   // SRAM bank size
+  r[MCTRL_MCFG2].br.create("sdr_bk", 23, 25); // SDRAM bank size
 
   GR_FUNCTION(Mctrl, configure_sdram);                  // args: module name, callback function name
   GR_SENSITIVE(r[MCTRL_MCFG2].br["lmr"].add_rule(
