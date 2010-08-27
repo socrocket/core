@@ -34,10 +34,8 @@
 Mctrl_tb::Mctrl_tb(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _romaddr,
                                    int _rommask,  int _ioaddr,    int _iomask,   int _ramaddr,
                                    int _rammask,  int _paddr,     int _pmask,    int _wprot,
-                                   int _invclk,   int _fast,
-                                   int _srbanks,  int _ram8,      int _ram16,    int _sden,
-                                   int _sepbus,   int _sdbits,    int _sdlsb,    int _oepol,
-                                   int _syncrst,  int _pageburst, int _scantest, int _mobile)
+                                   int _srbanks,  int _ram8,      int _ram16,
+                                   int _sepbus,   int _sdbits,    int _mobile)
   : apb_master_sock ("apb_master_sock", amba::amba_APB, amba::amba_LT, false),
     ahb_master_sock ("ahb_master_sock", amba::amba_AHB, amba::amba_LT, false),
   hindex   (_hindex),
@@ -51,19 +49,11 @@ Mctrl_tb::Mctrl_tb(sc_core::sc_module_name name,  int _hindex,    int _pindex,  
   paddr    (_paddr),
   pmask    (_pmask),
   wprot    (_wprot),
-  invclk   (_invclk),
-  fast     (_fast),
   srbanks  (_srbanks),
   ram8     (_ram8),
   ram16    (_ram16),
-  sden     (_sden),
   sepbus   (_sepbus),
   sdbits   (_sdbits),
-  sdlsb    (_sdlsb),
-  oepol    (_oepol),
-  syncrst  (_syncrst),
-  pageburst(_pageburst),
-  scantest (_scantest),
   mobile   (_mobile) {
 
     SC_THREAD(run);

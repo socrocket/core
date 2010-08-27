@@ -33,7 +33,7 @@ public:
     tlm_utils::simple_target_socket<Generic_memory> slave_socket;
 
     //constructor / destructor
-    Generic_memory(sc_module_name name, int _wprot = 0, int _fast = 0);
+    Generic_memory(sc_module_name name);
     ~Generic_memory();
 
     //memory instance (key: int address, value: int data)
@@ -59,11 +59,6 @@ public:
     //erase sdram required for deep power down and PASR mode
     void erase_sdram(uint32_t start_address, uint32_t end_address, unsigned int length);
 
-
-  private:
-    //constructor parameters (modeling VHDL generics)
-    const int wprot;
-    const int fast;
 };
 
 #include "generic_memory.tpp"

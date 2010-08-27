@@ -24,11 +24,9 @@
 //scope
 PRE_GENERIC_MEMORY Generic_memory POST_GENERIC_MEMORY(T)::
 //constructor
-Generic_memory(sc_core::sc_module_name name,  int _wprot, int _fast) :
+Generic_memory(sc_core::sc_module_name name) :
       // construct and name socket
-      slave_socket("slave_socket"),
-      wprot    (_wprot),
-      fast     (_fast)
+      slave_socket("slave_socket")
   {
   // register transport functions to sockets
   slave_socket.register_b_transport (this, &Generic_memory::b_transport);

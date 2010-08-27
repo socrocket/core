@@ -30,12 +30,10 @@
 
 //constructor
 Mctrl::Mctrl(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _romaddr,
-                      int _rommask,  int _ioaddr,    int _iomask,   int _ramaddr,
-                      int _rammask,  int _paddr,     int _pmask,    int _wprot,
-                      int _invclk,   int _fast,
-                      int _srbanks,  int _ram8,      int _ram16,    int _sden,
-                      int _sepbus,   int _sdbits,    int _sdlsb,    int _oepol,
-                      int _syncrst,  int _pageburst, int _scantest, int _mobile) :
+                             int _rommask,  int _ioaddr,    int _iomask,   int _ramaddr,
+                             int _rammask,  int _paddr,     int _pmask,    int _wprot,
+                             int _srbanks,  int _ram8,      int _ram16,
+                             int _sepbus,   int _sdbits,    int _mobile) :
   gr_device(
             name,                      //sc_module name
             gs::reg::ALIGNED_ADDRESS,  //address mode (options: aligned / indexed)
@@ -92,19 +90,11 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _
   paddr    (_paddr),
   pmask    (_pmask),
   wprot    (_wprot),
-  invclk   (_invclk),
-  fast     (_fast),
   srbanks  (_srbanks),
   ram8     (_ram8),
   ram16    (_ram16),
-  sden     (_sden),
   sepbus   (_sepbus),
   sdbits   (_sdbits),
-  sdlsb    (_sdlsb),
-  oepol    (_oepol),
-  syncrst  (_syncrst),
-  pageburst(_pageburst),
-  scantest (_scantest),
   mobile   (_mobile)
   {
 
