@@ -252,6 +252,13 @@ void Mctrl::initialize_mctrl() {
     //disable mobile SDRAM.
   }
 
+  // --- set register values according to generics
+  unsigned int set;
+  if (sepbus) {
+    set = r[MCTRL_MCFG2].get() | sdbits << 18;
+    r[MCTRL_MCFG2].set( set );
+  }
+
   // --- calculate address spaces of the different memory banks
 
   //ROM 
@@ -283,8 +290,8 @@ void Mctrl::initialize_mctrl() {
   //write calculated bank sizes into MCFG2
   uint32_t i_sr  = static_cast<uint32_t>( log( sram_bank_size)/log(2) + 7 );
   uint32_t i_sdr = static_cast<uint32_t>( log(sdram_bank_size)/log(2) - 3 );
-  unsigned int set = (MCTRL_MCFG2_DEFAULT & ~MCTRL_MCFG2_RAM_BANK_SIZE & ~MCTRL_MCFG2_SDRAM_BANKSZ)
-                      | (i_sr << 9 & MCTRL_MCFG2_RAM_BANK_SIZE) | (i_sdr << 23 & MCTRL_MCFG2_SDRAM_BANKSZ);
+  set = (MCTRL_MCFG2_DEFAULT & ~MCTRL_MCFG2_RAM_BANK_SIZE & ~MCTRL_MCFG2_SDRAM_BANKSZ)
+        | (i_sr << 9 & MCTRL_MCFG2_RAM_BANK_SIZE) | (i_sdr << 23 & MCTRL_MCFG2_SDRAM_BANKSZ);
   r[MCTRL_MCFG2].set( set );
 
   //address spaces in case of SRAM only configuration
@@ -505,10 +512,19 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
       cycles = DECODING_DELAY + MCTRL_SRAM_WRITE_DELAY(cycles) + 
                data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
     }
+    //check for write protection
+    if (cmd == tlm::TLM_WRITE_COMMAND && wprot) {
+      gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+      cycles = DECODING_DELAY;
+      start_idle = t_trans + cycle_time * cycles;
+      delay += cycle_time * cycles;
+    }
     //add delay and forward transaction to memory
-    start_idle = t_trans + cycle_time * cycles;
-    delay += cycle_time * cycles;
-    mctrl_sram->b_transport(gp,delay);
+    else {
+      start_idle = t_trans + cycle_time * cycles;
+      delay += cycle_time * cycles;
+      mctrl_sram->b_transport(gp,delay);
+    }
   }
   //access to SDRAM adress space
   else if (Mctrl::sdram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk1_e ||
@@ -516,8 +532,12 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
 
     //deep power down: memory is inactive and cannot be accessed
     //self refresh: system is powered down and should not even try to access memory
-    if ( mobile && (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME) && (pmode == 5 || pmode == 2) ) {
+    //write protection: well... write protection.
+    if ( mobile && (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME) && (pmode == 5 || pmode == 2)
+       | cmd == tlm::TLM_WRITE_COMMAND && wprot ) {
       gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+      cycles = DECODING_DELAY;
+      delay += cycle_time * cycles;
     }
     //no deep power down status, so regular access is possible
     else {
