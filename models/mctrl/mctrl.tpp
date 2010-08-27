@@ -408,10 +408,10 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
     if ( (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH) >> 9) {
       gp.set_streaming_width(4);
     }
-    else if (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH) {
+    else if (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH && ram16) {
       gp.set_streaming_width(2);
     }
-    else {
+    else if (ram8){
       gp.set_streaming_width(1);
     }
     if (cmd == tlm::TLM_WRITE_COMMAND) {
@@ -489,7 +489,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
         return;
       }
     }
-    else if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WIDTH) {
+    else if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WIDTH && ram16) {
       gp.set_streaming_width(2);
       //data length must match streaming width unless read-modify-write is enabled
       if (data_length < 2 && !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RMW) ) {
@@ -497,7 +497,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
         return;
       }
     }
-    else {
+    else if (ram8) {
       gp.set_streaming_width(1);
     }
     //calculate delay for read command
