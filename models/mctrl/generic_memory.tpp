@@ -16,13 +16,8 @@
 #include <assert.h>
 
 
-//macros to enhance readability of function definitions
-#define PRE_GENERIC_MEMORY template <typename T>
-#define POST_GENERIC_MEMORY(TYPE) <TYPE >
-
-
 //scope
-PRE_GENERIC_MEMORY Generic_memory POST_GENERIC_MEMORY(T)::
+template <typename T> Generic_memory <T>::
 //constructor
 Generic_memory(sc_core::sc_module_name name) :
       // construct and name socket
@@ -33,14 +28,14 @@ Generic_memory(sc_core::sc_module_name name) :
 }
 
 //explicit declaration of standard destructor required for linking
-PRE_GENERIC_MEMORY Generic_memory POST_GENERIC_MEMORY(T)::~Generic_memory() {
+template <typename T> Generic_memory  <T>::~Generic_memory() {
 }
 
 
 //-----------TLM--TRANSPORT--FUNCTIONS-----------//
 
 //scope: same template parameters as Mctrl
-PRE_GENERIC_MEMORY void Generic_memory POST_GENERIC_MEMORY(T)::
+template <typename T> void Generic_memory  <T>::
 //blocking transport for ROM
 b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
   sc_core::sc_time cycle_time(BUS_CLOCK_CYCLE, SC_NS);
@@ -158,7 +153,7 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
 //-----------------WRITE--FUNCTIONS----------------//
 
 //scope
-PRE_GENERIC_MEMORY void Generic_memory POST_GENERIC_MEMORY(T)::
+template <typename T> void Generic_memory  <T>::
 //write into ROM / SRAM: 8 bit access
 write_8(uint32_t address, unsigned char* data, uint8_t length) {
   for (uint8_t i=0; i<length; i++) {
@@ -168,7 +163,7 @@ write_8(uint32_t address, unsigned char* data, uint8_t length) {
 
 
 //scope
-PRE_GENERIC_MEMORY void Generic_memory POST_GENERIC_MEMORY(T)::
+template <typename T> void Generic_memory  <T>::
 //write into IO / SDRAM: 32 bit access
 write_32(uint32_t address, uint32_t* data, uint8_t length) {
   for (uint8_t i=0; i<length/4; i++) {
@@ -180,7 +175,7 @@ write_32(uint32_t address, uint32_t* data, uint8_t length) {
 //-----------------READ--FUNCTIONS-----------------//
 
 //scope
-PRE_GENERIC_MEMORY void Generic_memory POST_GENERIC_MEMORY(T)::
+template <typename T> void Generic_memory  <T>::
 //read from ROM / SRAM: 32 bit access only
 read_8(uint32_t address, unsigned char* data_ptr, uint8_t length) {
 
@@ -197,7 +192,7 @@ read_8(uint32_t address, unsigned char* data_ptr, uint8_t length) {
 
 
 //scope
-PRE_GENERIC_MEMORY void Generic_memory POST_GENERIC_MEMORY(T)::
+template <typename T> void Generic_memory  <T>::
 //read from IO / SDRAM: 32 bit access
 read_32(uint32_t address, uint32_t* data_ptr, uint8_t length) {
 
@@ -211,7 +206,7 @@ read_32(uint32_t address, uint32_t* data_ptr, uint8_t length) {
 //-------------SDRAM--ERASE--FUNCTION--------------//
 
 //scope
-PRE_GENERIC_MEMORY void Generic_memory POST_GENERIC_MEMORY(T)::
+template <typename T> void Generic_memory  <T>::
 //erase sdram
 erase_sdram(uint32_t start_address, uint32_t end_address, unsigned int length) {
   for (unsigned int i=start_address; i <= end_address; i+=length) {
