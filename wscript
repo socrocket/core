@@ -18,7 +18,7 @@ APPNAME = 'hwswtlmmodels'
 VERSION = '0.5'
 top = '.'
 out = 'build'
-dirs = ['signalkit', 'models']
+dirs = ['signalkit', 'models', 'tests']
 
 import os
 import os.path
