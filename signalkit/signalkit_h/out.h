@@ -17,6 +17,9 @@
 #include "signalkit_h/base.h"
 #include "signalkit_h/ifs.h"
 
+/// @addtogroup signalkit
+/// @{
+
 namespace signalkit {
 
 template<class TYPE, class MODULE>
@@ -66,5 +69,7 @@ class signal_out : public signal_base<TYPE, MODULE>, public signal_out_if<TYPE> 
 };
 
 } // signalkit
+
+/// @}
 
 #endif // SIGNALKIT_OUT_H

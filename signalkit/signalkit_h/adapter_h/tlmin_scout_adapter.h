@@ -17,6 +17,9 @@
 #include "signalkit_h/module.h"
 #include <systemc>
 
+/// @addtogroup signalkit
+/// @{
+
 namespace signalkit {
 
 template<class INTYPE, class OUTTYPE = INTYPE>
@@ -39,5 +42,7 @@ class tlmin_scout_adapter : public signal_module<tlmin_scout_adapter<INTYPE, OUT
 };
 
 } // signalkit
+
+/// @}
 
 #endif // TLMIN_SCOUT_ADAPTER_H

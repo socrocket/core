@@ -33,21 +33,11 @@
 #include <ostream>
 #include <vector>
 
+/// @addtogroup gptimer GPTimer
+/// @{
 class Timer;
 
 /// @brief This class implements an internal counter of a gptimer.
-///   
-/// @param pirq    Defines which APB interupt the timers will generate. Default is 0.
-/// @param sepirq  If set to 1, each timer will drive an individual interrupt line, 
-///                starting with interrupt irq. If set to 0, all timers will drive 
-///                the same interrupt line (irq).
-/// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
-/// @param nbits   Defines the number of bits in the timers. Default is 32.
-/// @param sbits   Defines the number of bits in the scaler. Default is 16.
-/// @param wdog    Watchdog reset value. When set to a non-zero value, the
-///                last timer will be enabled and pre-loaded with this value
-///                at reset. When the timer value reaches 0, the WDOG output
-///                is driven active.
 class Counter : public gs::reg::gr_subdevice {
   public:
     
@@ -305,6 +295,7 @@ class Timer
     inline int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime);
 };
 
+/// @}
 
 #include "gptimer.tpp"
 

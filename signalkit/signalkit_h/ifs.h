@@ -14,6 +14,9 @@
 #ifndef SIGNALKIT_IFS_H
 #define SIGNALKIT_IFS_H
 
+/// @addtogroup signalkit
+/// @{
+
 namespace signalkit {
 
 template<class TYPE>
@@ -80,5 +83,7 @@ TYPE signal_out_if<TYPE>::operator=(const signal_if<TYPE> &t) {
 }
 
 } // signalkit
+
+/// @}
 
 #endif // SIGNALKIT_IFS_H

@@ -17,6 +17,9 @@
 #include "signalkit_h/base.h"
 #include "signalkit_h/ifs.h"
 
+/// @addtogroup 
+/// @{
+
 namespace signalkit {
 
 template<class TYPE, class MODULE>
@@ -54,5 +57,7 @@ class signal_in : public signal_base<TYPE, MODULE>, public signal_in_if<TYPE> {
 };
 
 } // signalkit
+
+/// @}
 
 #endif // TLM_SIGNAL_IN_H

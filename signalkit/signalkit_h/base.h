@@ -16,6 +16,9 @@
 
 #include <systemc>
 
+/// @addtogroup signalkit
+/// @{
+
 namespace signalkit {
 
 template<class TYPE, class MODULE>
@@ -29,5 +32,7 @@ class signal_base : public sc_core::sc_object {
 };
 
 }; // signalkit
+
+/// @}
 
 #endif // SIGNALKIT_BASE_H

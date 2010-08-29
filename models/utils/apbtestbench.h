@@ -20,6 +20,9 @@
 
 #include "amba.h"
 
+/// @addtogroup utils
+/// @{
+
 ///macro to print a time stamp
 #define SHOW { \
   std::cout /*<< std::endl*/ \
@@ -57,18 +60,18 @@
   write(name, val, 4); \
 }
 
-// Testbench for GPTimer Models.
+/// Testbench for GPTimer Models.
 class APBTestbench : public sc_core::sc_module {
   public:
-    //tlm interface
+    /// TLM Interface
     amba::amba_master_socket<32>   master_sock;
 
-    //constructor
+    /// Constructor
     APBTestbench(sc_core::sc_module_name nm)
     : sc_core::sc_module(nm)
     , master_sock("socket", amba::amba_APB, amba::amba_LT, false) {}
     
-   //define TLM write transactions 
+    /// Define TLM write transactions 
     inline void write(uint32_t addr, uint32_t data, uint32_t width) {
       sc_core::sc_time t;
       tlm::tlm_generic_payload *gp = master_sock.get_transaction();
@@ -83,7 +86,7 @@ class APBTestbench : public sc_core::sc_module {
       master_sock.release_transaction(gp);
     }
     
-    //define TLM read transactions
+    /// Define TLM read transactions
     inline uint32_t read(uint32_t addr, uint32_t width) {
       sc_core::sc_time t;
       uint32_t data;
@@ -101,5 +104,7 @@ class APBTestbench : public sc_core::sc_module {
       return data;
     }
 };
+
+/// @}
 
 #endif // APB_TESTBENCH_H

@@ -20,6 +20,9 @@
 #include "signalkit_h/selector.h"
 #include "signalkit_h/infield.h"
 
+/// @addtogroup signalkit
+/// @{
+
 namespace signalkit {
 
 template<class MODULE>
@@ -36,5 +39,7 @@ class signal_module {
 };
 
 } // signalkit
+
+/// @}
 
 #endif // TLM_MODULE_H

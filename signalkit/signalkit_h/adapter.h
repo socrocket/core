@@ -14,8 +14,13 @@
 #ifndef SIGNALKIT_ADAPTER_H
 #define SIGNALKIT_ADAPTER_H
 
+/// @addtogroup signalkit
+/// @{
+
 #include "signalkit_h/adapter_h/tlmin_scout_adapter.h"
 #include "signalkit_h/adapter_h/scin_tlmout_adapter.h"
 #include "signalkit_h/adapter_h/tlmsc_inout_adapter.h"
+
+/// @}
 
 #endif

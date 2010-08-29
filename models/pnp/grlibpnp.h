@@ -19,8 +19,10 @@
 #define GRLIB_PLUG_AND_PLAY_H
 
 #include "grlibdevice.h"
-
 #include "amba.h"
+
+/// @addtogroup pnp Grlib PnP
+/// @{
 
 /// This model contains the plug and play functionality of the GRLIB AHB Master. 
 /// It provides the registers to the AHB Bus. And gathers its content from the instantiated model in the simulation environment.
@@ -138,5 +140,7 @@ class GrlibPnP : public sc_core::sc_module {
     /// The number of registerd slaves.
     uint8_t   slave_count;
 };
+
+/// @}
 
 #endif

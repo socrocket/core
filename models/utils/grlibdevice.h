@@ -20,6 +20,10 @@
 
 #include <stdint.h>
 
+/// @addtogroup utils
+/// @{
+
+/// Device type
 enum GrlibType {
   APBIO = 1,
   AHBMEM = 2,
@@ -70,5 +74,7 @@ class GrlibDevice {
     /// Impementation of the device register file.
     uint32_t m_register[8];
 };
+
+/// @}
 
 #endif

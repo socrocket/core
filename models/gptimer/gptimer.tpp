@@ -24,6 +24,9 @@
 #define RELOAD            (0x10*(nr+1)+0x4)
 #define CTRL              (0x10*(nr+1)+0x8)
 
+/// @addtogroup gptimer
+/// @{
+
 Counter::Counter(Timer &_parent, unsigned int _nr, sc_core::sc_module_name name)
   : gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false) {  
   SC_THREAD(ticking);
@@ -562,4 +565,7 @@ void Timer::diag() {
     wait(clockcycle);
   }
 }
+
+/// @}
+
 #endif

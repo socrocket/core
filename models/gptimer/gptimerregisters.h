@@ -16,6 +16,9 @@
 #ifndef TIMER_REGISTER_H
 #define TIMER_REGISTER_H
 
+/// @addtogroup gptimer
+/// @{
+
 #define TIM_AHB_BASE      (0x00000000)
 #define TIM_SCALER        (TIM_AHB_BASE+0x00)
 #define TIM_SCRELOAD      (TIM_AHB_BASE+0x04)
@@ -38,5 +41,7 @@
 #define TIM_CTRL_LD       2
 #define TIM_CTRL_RS       1
 #define TIM_CTRL_EN       0
+
+/// @}
 
 #endif

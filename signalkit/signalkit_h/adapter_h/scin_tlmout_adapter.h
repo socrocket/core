@@ -17,6 +17,9 @@
 #include "signalkit_h/module.h"
 #include <systemc>
 
+/// @addtogroup signalkit
+/// @{
+
 namespace signalkit {
 
 template<class INTYPE, class OUTTYPE = INTYPE>
@@ -46,5 +49,7 @@ private:
 };
 
 } // signalkit
+
+/// @}
 
 #endif // SCIN_TLMOUT_ADAPTER_H

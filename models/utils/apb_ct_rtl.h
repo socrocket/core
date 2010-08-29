@@ -7,7 +7,7 @@
 /*             to an AMBAKit CT bus                                    */
 /*                                                                     */
 /* Modified on $Date$   */
-/*          at $Revision$                                          */
+/*          at $Revision$                                         */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TU Braunschweig              */
@@ -20,26 +20,29 @@
 #include "adapters/APB_CT_RTL_Slave_Adapter.h"
 #include "signalkit.h"
 
-// This class is a specific adapter to connect an 
-// GRLIB APH Model to an AMBAKit APB CT Bus.
-// 
-//  Interrupt channels to the TLM components.
-//  |              clk  rst - needed by the adapter
-//  |                |  |
-//  | The TLM Bus  +------+
-//  |  ct.socket --| APB  |-- apbo 
-//  |              |  CT  |        connected to the RTL Model
-//  pirqi, pirqo --|  RTL |-- apbi
-//                 +------+
-//                  | |  |
-//          pconfig_0/1  pindex
-//          Device mapper output
-//
+/// @addtogroup utils
+/// @{
+
+/// This class is a specific adapter to connect an 
+/// GRLIB APH Model to an AMBAKit APB CT Bus.
+/// 
+///>  Interrupt channels to the TLM components.
+///>  |              clk  rst - needed by the adapter
+///>  |                |  |
+///>  | The TLM Bus  +------+
+///>  |  ct.socket --| APB  |-- apbo 
+///>  |              |  CT  |        connected to the RTL Model
+///>  pirqi, pirqo --|  RTL |-- apbi
+///>                 +------+
+///>                  | |  |
+///>          pconfig_0/1  pindex
+///>          Device mapper output
+///
 class APB_CT_RTL : public sc_module, public signalkit::signal_module<APB_CT_RTL> {
   public:
-    // A small subclass wich wraps the core functionality inhireted by amba::APB_CT_RTL_Slave_Adapter
-    // It has knowledge about addressdecoding and translates between the TLM Port and RTL Signals.
-    // But we need another class to map the RTL Signals to GRLIB Signals.
+    /// A small subclass wich wraps the core functionality inhireted by amba::APB_CT_RTL_Slave_Adapter
+    /// It has knowledge about addressdecoding and translates between the TLM Port and RTL Signals.
+    /// But we need another class to map the RTL Signals to GRLIB Signals.
     class ct : public APB_CT_RTL_Slave_Adapter<ct>, public amba_slave_base {
       public:
         ct(sc_core::sc_module_name nm, sc_dt::uint64 base, sc_dt::uint64 size)
@@ -82,9 +85,9 @@ class APB_CT_RTL : public sc_module, public signalkit::signal_module<APB_CT_RTL>
     ct ct;
 
   public:
-    // Constructor: Simply give name, baseaddress and size as an argument.
-    // After construction ensure that interrupt ports apbi apbo and the TLM Port
-    // are connected before starting the simulation.
+    /// Constructor: Simply give name, baseaddress and size as an argument.
+    /// After construction ensure that interrupt ports apbi apbo and the TLM Port
+    /// are connected before starting the simulation.
     APB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base, sc_dt::uint64 size)
       : sc_module(nm), clk("CLOCK"), rst(this, &APB_CT_RTL::onreset, "RESET"), apbo("apbo"), apbi("apbi"),
         pirqi(this, &APB_CT_RTL::onirq, "GR_IRQ_IN"), pirqo(this, "GR_IRQ_OUT"), pconfig_0(this, "GR_CONFIG_0"),
@@ -117,7 +120,7 @@ class APB_CT_RTL : public sc_module, public signalkit::signal_module<APB_CT_RTL>
       m_irqi.write(value);
     }
 
-    // Takes apbo inputs and converts them into TLM communication and irq signals.
+    /// Takes apbo inputs and converts them into TLM communication and irq signals.
     void apbo_ctrl() {
       while(1) {
         apb_slv_out_type val = apbo.read();
@@ -132,7 +135,7 @@ class APB_CT_RTL : public sc_module, public signalkit::signal_module<APB_CT_RTL>
       }
     }
 
-    // Collectes all data from the input ports and writes them into the apbi record for the GRLIB Model.
+    /// Collectes all data from the input ports and writes them into the apbi record for the GRLIB Model.
     void apbi_ctrl() {
       while(1) {
         apb_slv_in_type val;
@@ -150,5 +153,7 @@ class APB_CT_RTL : public sc_module, public signalkit::signal_module<APB_CT_RTL>
       }
     }
 };
+
+/// @}
 
 #endif

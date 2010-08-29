@@ -18,6 +18,9 @@
 #include "signalkit_h/ifs.h"
 #include <map>
 
+/// @addtogroup signalkit
+/// @{
+
 namespace signalkit {
 
 template<class TYPE, class MODULE>
@@ -87,5 +90,7 @@ class signal_infield : public signal_base<TYPE, MODULE>, public signal_in_if<TYP
 };
 
 } // signalkit
+
+/// @}
 
 #endif // SIGNALKIT_INFIELD_H

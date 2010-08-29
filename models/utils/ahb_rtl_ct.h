@@ -19,21 +19,24 @@
 
 #include "adapters/AHB_Master_RTL_CT_Adapter.h"
 
-// This class is a specific adapter to connect an 
-// GRLIB AHH Master to an AMBAKit AHB CT Bus.
-// 
-//  Interrupt channels to the TLM components.
-//  |              clk  rst - needed by the adapter
-//  |                |  |
-//  | The TLM Bus  +------+
-//  |  ct.socket --| AHB  |-- ahbo 
-//  |              | RTL  |        connected to the RTL Model
-//  hirqi, hirqo --|  CT  |-- ahbi
-//                 +------+
-//                  | |  |
-//          pconfig_0/1  pindex
-//          Device mapper output
-//
+/// @addtogroup utils Model Utils
+/// @{
+
+/// This class is a specific adapter to connect an 
+/// GRLIB AHH Master to an AMBAKit AHB CT Bus.
+/// 
+///>  Interrupt channels to the TLM components.
+///>  |              clk  rst - needed by the adapter
+///>  |                |  |
+///>  | The TLM Bus  +------+
+///>  |  ct.socket --| AHB  |-- ahbo 
+///>  |              | RTL  |        connected to the RTL Model
+///>  hirqi, hirqo --|  CT  |-- ahbi
+///>                 +------+
+///>                  | |  |
+///>          pconfig_0/1  pindex
+///>          Device mapper output
+///
 
 /*
 template<unsigned int BUSWIDTH, typename MODULE >
@@ -96,9 +99,9 @@ public:
 
 class AHB_RTL_CT : public sc_module {
   public:
-    // A small subclass wich wraps the core functionality inhireted by amba::AHB_Master_RTL_CT_Adapter
-    // It has knowledge about addressdecoding and translates between the TLM Port and RTL Signals.
-    // But we need another class to map the RTL Signals to GRLIB Signals.
+    /// A small subclass wich wraps the core functionality inhireted by amba::AHB_Master_RTL_CT_Adapter
+    /// It has knowledge about addressdecoding and translates between the TLM Port and RTL Signals.
+    /// But we need another class to map the RTL Signals to GRLIB Signals.
     class ct : public AHB_Master_RTL_CT_Adapter<32, ct>, public amba_slave_base {
       public:
         ct(sc_core::sc_module_name nm, sc_dt::uint64 base, sc_dt::uint64 size)
@@ -144,9 +147,9 @@ class AHB_RTL_CT : public sc_module {
     ct ct;
 
   public:
-    // Constructor: Simply give name, baseaddress and size as an argument.
-    // After construction ensure that interrupt ports ahbi ahbo and the TLM Port
-    // are connected before starting the simulation.
+    /// Constructor: Simply give name, baseaddress and size as an argument.
+    /// After construction ensure that interrupt ports ahbi ahbo and the TLM Port
+    /// are connected before starting the simulation.
     APB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base, sc_dt::uint64 size)
       : sc_module(nm), clk("CLOCK"), reset("RESET"), ahbo("ahbo"), ahbi("ahbi"),
         hirqi("GR_IRQ_IN"), hirqo("GR_IRQ_OUT"), hconfig_0("GR_CONFIG_0"),
@@ -178,7 +181,7 @@ class AHB_RTL_CT : public sc_module {
       sensitive << m_hrdata << m_hresp << m_hgrand << m_hreadyin << hirqi;
     }
 
-    // Takes ahbo inputs and converts them into TLM communication and irq signals.
+    /// Takes ahbo inputs and converts them into TLM communication and irq signals.
     void ahbo_ctrl() {
       while(1) {
         ahb_mst_out_type val = ahbo.read();
@@ -200,7 +203,7 @@ class AHB_RTL_CT : public sc_module {
       }
     }
 
-    // Collectes all data from the input ports and writes them into the ahbi record for the GRLIB Model.
+    /// Collectes all data from the input ports and writes them into the ahbi record for the GRLIB Model.
     void ahbi_ctrl() {
       while(1) {
         ahb_mst_in_type val;
@@ -219,5 +222,7 @@ class AHB_RTL_CT : public sc_module {
       }
     }
 };
+
+/// @}
 
 #endif

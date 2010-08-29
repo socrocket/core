@@ -14,15 +14,16 @@
 /***********************************************************************/
 
 /*  2-DO
-
 - take care of pindex / pconfig signals (apbo: PnP)
 - take care of pwd and fpen signals (irqi)
 - take care of rst, run, and rstvec signals (irqo)
-
 */
 
 #ifndef IRQMP_TPP
 #define IRQMP_TPP
+
+/// @addtogroup irqmp
+/// @{
 
 #define COUT_TIMING
 
@@ -40,7 +41,7 @@
 #define PROC_IR_FORCE(CPU_INDEX) (0x80 + 0x4 * CPU_INDEX)
 #define PROC_EXTIR_ID(CPU_INDEX) (0xC0 + 0x4 * CPU_INDEX)
 
-//constructor
+/// Constructor
 Irqmp::Irqmp(sc_core::sc_module_name name, int _pindex, int _paddr, int _pmask, int _ncpu, int _eirq)
   :
   gr_device(
@@ -159,13 +160,13 @@ Irqmp::Irqmp(sc_core::sc_module_name name, int _pindex, int _paddr, int _pmask, 
   }
 }
 
-//destructor
+/// Destructor
 Irqmp::~Irqmp() {
   GC_UNREGISTER_CALLBACKS();
 }
 
 
-//Hook up callback functions to registers
+/// Hook up callback functions to registers
 void Irqmp::end_of_elaboration() {   
 
   // send interrupts to processors after write to pending / force regs
@@ -235,8 +236,8 @@ void Irqmp::end_of_elaboration() {
 
 //P R O C E S S   I M P L E M E N T A T I O N
 
-//reset registers to default values
-//process sensitive to reset signal
+/// Reset registers to default values
+/// Process sensitive to reset signal
 void Irqmp::reset_registers(const bool &value, signalkit::signal_in_if<bool> *signal, signalkit::signal_out_if<bool> *sender, const sc_core::sc_time &time) {
 #if 0
 #ifdef COUT_TIMING
@@ -283,12 +284,12 @@ void Irqmp::reset_registers(const bool &value, signalkit::signal_in_if<bool> *si
 }
 
 
-//
-// register irq
-//  o watch interrupt bus signals (apbi.pirq)
-//  o write incoming interrupts into pending or force registers
-//
-//process sensitive to apbi.pirq
+///
+/// register irq
+///  - watch interrupt bus signals (apbi.pirq)
+///  - write incoming interrupts into pending or force registers
+///
+/// process sensitive to apbi.pirq
 void Irqmp::register_irq(const uint32_t &value, const unsigned int &channel, signalkit::signal_in_if<uint32_t> *signal, signalkit::signal_out_if<uint32_t> *sender, const sc_core::sc_time &time) {
 
   //static bool delay = true;
@@ -331,14 +332,14 @@ void Irqmp::register_irq(const uint32_t &value, const unsigned int &channel, sig
 }
 
 
-//
-// launch irq:
-//  o combine pending, force, and mask register
-//  o prioritize pending interrupts
-//  o send highest priority IR to processor via irqo port
-//
-//callback registered on IR pending register,
-//                       IR force registers
+///
+/// launch irq:
+///  - combine pending, force, and mask register
+///  - prioritize pending interrupts
+///  - send highest priority IR to processor via irqo port
+///
+/// callback registered on IR pending register,
+///                        IR force registers
 void Irqmp::launch_irq() {
   short int high_ir;        // highest priority interrupt (to be launched)
   sc_uint<32> masked_ir;    // vector of pending, masked interrupts
@@ -390,23 +391,23 @@ void Irqmp::launch_irq() {
   } // foreach cpu
 }
 
-//
-// clear acknowledged IRQs                                           (three processes)
-//  o interrupts can be cleared
-//    - by software writing to the IR_Clear register                 (process 1: clear_write)
-//    - by software writing to the upper half of IR_Force registers  (process 2: Clear_forced_ir)
-//    - by processor sending irqi.intack signal and irqi.irl data    (process 3: clear_acknowledged_irq)
-//  o remove IRQ from pending / force registers
-//  o in case of eirq, release eirq ID in eirq ID register
-//
-// callback registered on interrupt clear register
+///
+/// clear acknowledged IRQs                                           (three processes)
+///  - interrupts can be cleared
+///    - by software writing to the IR_Clear register                 (process 1: clear_write)
+///    - by software writing to the upper half of IR_Force registers  (process 2: Clear_forced_ir)
+///    - by processor sending irqi.intack signal and irqi.irl data    (process 3: clear_acknowledged_irq)
+///  - remove IRQ from pending / force registers
+///  - in case of eirq, release eirq ID in eirq ID register
+///
+/// callback registered on interrupt clear register
 void Irqmp::clear_write() {
   // pending reg only: forced IRs are cleared in the next function
   unsigned int cleared_vector = r[PENDING].get() and not r[CLEAR].get();
   r[PENDING].set(cleared_vector);
 }
 
-// callback registered on interrupt force registers
+/// callback registered on interrupt force registers
 void Irqmp::clear_forced_ir() {
 
   for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
@@ -420,7 +421,7 @@ void Irqmp::clear_forced_ir() {
 }
 
 
-//process sensitive to irqi
+/// process sensitive to irqi
 void Irqmp::clear_acknowledged_irq(const uint32_t &cleared_irq, const unsigned int &i_cpu, signalkit::signal_in_if<uint32_t> *signal, signalkit::signal_out_if<uint32_t> *sender, const sc_core::sc_time &time) {
 #if 0
 #ifdef COUT_TIMING
@@ -459,22 +460,22 @@ void Irqmp::clear_acknowledged_irq(const uint32_t &cleared_irq, const unsigned i
     }
 }
 
-//reset cpus after write to cpu status register
-//callback registered on mp status register
+/// reset cpus after write to cpu status register
+/// callback registered on mp status register
 void Irqmp::mpstat_write() {
   cpu_rst.write(0xFFFFFFFF, true);
 }
 
-//
-// Registers can be read by software.
-// The TLM transport function will read the value from the register container.
-// Prior to a read access, no changes to the registers are necessary.
-//
-//callback registered on all registers
+///
+/// Registers can be read by software.
+/// The TLM transport function will read the value from the register container.
+/// Prior to a read access, no changes to the registers are necessary.
+///
+/// callback registered on all registers
 void Irqmp::register_read() {
 
 }
 
-
+/// @}
 
 #endif

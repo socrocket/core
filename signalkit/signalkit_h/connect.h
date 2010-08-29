@@ -17,6 +17,9 @@
 #include "signalkit_h/ifs.h"
 #include "signalkit_h/adapter.h"
 
+/// @addtogroup signalkit
+/// @{
+
 namespace signalkit {
 
 template<class TYPE>
@@ -42,5 +45,7 @@ sc_core::sc_module *connect(sc_core::sc_signal<INTYPE> &in, signal_in<OUTTYPE, M
 }
 
 } // signalkit
+
+/// @}
 
 #endif // SIGNALKIT_CONNECT_H

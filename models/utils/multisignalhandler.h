@@ -8,7 +8,7 @@
 /*             register callbacks to signals                           */
 /*                                                                     */
 /* Modified on $Date$   */
-/*          at $Revision$                                          */
+/*          at $Revision$                                         */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TU Braunschweig              */
@@ -23,6 +23,9 @@
 #include "tlm.h"
 #include "green_signal.h"
 #include <map>
+
+/// @addtogroup utils
+/// @{
 
 #define CB_HANDLER(guard, class_name, method_name) \
   { \
@@ -114,5 +117,7 @@ class MultiSignalTarget {
   private:
     map<unsigned int, SignalCallback *> m_map;
 };
+
+/// @}
 
 #endif // SIGNALHANDLER_H
