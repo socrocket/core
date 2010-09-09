@@ -55,19 +55,19 @@ def set_options(ctx):
 
   ctx.recurse(dirs)
 
-  print "HWSWSIM - Waf Build system"
-  print ""
-  print "To compile the hole framework:"
-  print "  - Make sure you have boost, systemc, tlm2, scv, greensocs and ambakit installed."
-  print "  - Run './waf configure'"
-  print "  - If it fails rerun './waf configure' with direct options to address the failiur"
-  print "  - If it succeeds run: "
-  print "      './waf'                            - To build and test all targets"
-  print "      './waf docs'                       - To build documentation run"
-  print "      './waf list'                       - To list all targets run"
-  print "      './waf --targets=<target>,<target> - To compile a specific target execute "
-  print ""
-  print "Usage:"
+  #print "HWSWSIM - Waf Build system"
+  #print ""
+  #print "To compile the hole framework:"
+  #print "  - Make sure you have boost, systemc, tlm2, scv, greensocs and ambakit installed."
+  #print "  - Run './waf configure'"
+  #print "  - If it fails rerun './waf configure' with direct options to address the failiur"
+  #print "  - If it succeeds run: "
+  #print "      './waf'                            - To build and test all targets"
+  #print "      './waf docs'                       - To build documentation run"
+  #print "      './waf list'                       - To list all targets run"
+  #print "      './waf --targets=<target>,<target> - To compile a specific target execute "
+  #print ""
+  #print "Usage:"
 
 def configure(ctx):
   from Options import options
