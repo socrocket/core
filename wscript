@@ -23,7 +23,6 @@ dirs = ['signalkit', 'models', 'tests']
 import os
 import os.path
 import fnmatch
-import find
 
 from Tools import unittestw
 
@@ -31,29 +30,49 @@ def set_options(ctx):
   from os import environ
   ctx.tool_options('compiler_cxx')
   ctx.tool_options('unittestw')
-  dep = ctx.add_option_group("Boost Options")
-  sysc = ctx.add_option_group("SystemC Options")
-  gso = ctx.add_option_group("GreenSoCs Options")
+  ctx.tool_options('waftools', tooldir='.')
   
-  ctx.add_option('--onlytests', action='store_true', default=True, help='Exec unit tests only', dest='only_tests')
-  ctx.add_option("--cxxflags", dest="cxxflags", help="C++ compiler flags", default=environ.get("CXXFLAGS",""))
-  ctx.add_option("--doxygen", dest="dodoxygen", help="Enable to generate doxygen documentation", default=False, action="store_true")
+  conf = ctx.get_option_group("--download")
+  #ctx.add_option('--onlytests', action='store_true', default=True, help='Exec unit tests only', dest='only_tests')
+  conf.add_option("--cxxflags", dest="cxxflags", help="C++ compiler flags", default=environ.get("CXXFLAGS",""))
+  #ctx.add_option("--doxygen", dest="dodoxygen", help="Enable to generate doxygen documentation", default=False, action="store_true")
+  
+  dep = ctx.add_option_group("Boost Configuration Options")
   dep.add_option("--boost", dest="boost_home", help="Basedir of your Boost installation", default=environ.get("BOOST_HOME",""))
   dep.add_option("--boost_inc", dest="boost_inc", help="Include dir of your Boost installation", default=environ.get("BOOST_DIR",""))
   dep.add_option("--boost_lib", dest="boost_lib", help="Library dir of your Boost installation", default=environ.get("BOOST_LIB",""))
+  
+  sysc = ctx.add_option_group("SystemC configuration Options")
   sysc.add_option("--systemc", dest="systemc_home", help="Basedir of your SystemC installation", default=environ.get("SYSTEMC_HOME",""))
   sysc.add_option("--tlm2", dest="tlm2_home", help="Basedir of your TLM-2.0 distribution", default=environ.get("TLM2_HOME",""))
   sysc.add_option("--tlm2tests", dest="tlm2_tests", help="Example of your TLM-2.0 distribution", default=environ.get("TLM2_TESTS",""))
   sysc.add_option("--scv", dest="scv_home", help="Basedir of your SCV distribution", default=environ.get("SCV_HOME",""))
+  
+  gso = ctx.add_option_group("GreenSoCs Configuration Options")
   gso.add_option("--greensocs", dest="greensocs_home", help="Basedir of your GreenSoCs instalation", default=environ.get("GREENSOCS_HOME",""))
   gso.add_option("--amba", dest="amba_home", help="Basedir of your AMBAKit distribution", default=environ.get("AMBA_HOME",""))
   gso.add_option("--grlib", dest="grlib_home", help="Basedir of your grlib distribution", default=environ.get("GRLIB",""))
 
   ctx.recurse(dirs)
 
+  print "HWSWSIM - Waf Build system"
+  print ""
+  print "To compile the hole framework:"
+  print "  - Make sure you have boost, systemc, tlm2, scv, greensocs and ambakit installed."
+  print "  - Run './waf configure'"
+  print "  - If it fails rerun './waf configure' with direct options to address the failiur"
+  print "  - If it succeeds run: "
+  print "      './waf'                            - To build and test all targets"
+  print "      './waf docs'                       - To build documentation run"
+  print "      './waf list'                       - To list all targets run"
+  print "      './waf --targets=<target>,<target> - To compile a specific target execute "
+  print ""
+  print "Usage:"
+
 def configure(ctx):
   from Options import options
   import os.path
+  import waftools
   ctx.env['CXXFLAGS'] += ['-g', 
                          '-Wall', 
                          '-D_REENTRANT', 
@@ -62,6 +81,9 @@ def configure(ctx):
   
   ctx.check_tool('compiler_cxx')
   ctx.find_program('doxygen', var='DOXYGEN', mandatory=True)
+  #ctx.check_tool('doxygen', tooldir='.')
+  
+  ## Modelsim:
   #ctx.find_program('vlib', var='VLIB', mandatory=True)
   #ctx.find_program('vsim', var='VSIM', mandatory=True)
   #ctx.find_program('sccom', var='SCCOM', mandatory=True)
@@ -79,7 +101,7 @@ def configure(ctx):
            
   ctx.env["GREENREGROOT"] = os.path.join(options.greensocs_home, 'greenreg')
   if options.greensocs_home and options.greensocs_home != "":
-    ctx.env["CPPPATH_GREENSOCS"] = [os.path.join(options.greensocs_home, n) for n in GREENSOCS_INC] + find.getdirs(ctx.env["GREENREGROOT"], ['*test*', '*examples*'])
+    ctx.env["CPPPATH_GREENSOCS"] = [os.path.join(options.greensocs_home, n) for n in GREENSOCS_INC] + waftools.getdirs(ctx.env["GREENREGROOT"], ['*test*', '*examples*'])
  
     ctx.env["LIBPATH_GREENSOCS"] =  os.path.join(options.greensocs_home, "greenreg")
     ctx.env["LIB_GREENSOCS"] = "greenreg"
@@ -167,7 +189,6 @@ def configure(ctx):
     uselib       = 'BOOST',
   )
   
-
   ctx.check(
     compiler_mode = 'cxx',
     header_name   = "greenreg.h",
@@ -204,15 +225,3 @@ def build(bld):
   bld.add_subdirs(dirs)
   bld.add_post_fun(unittestw.summary)
 
-def docs(bld):
-  import subprocess
-  #sources = find.getfiles(
-  #    '.',
-  #    ['*.c', '*.cpp', '*.cxx', '*.h', '*.hpp', '*.tpp'], 
-  #    ['.hg', '.svn', 'build']
-  #)
-  subprocess.call(["doxygen", "Doxyfile"])  
-
-## Nice to have to set svn props:
-## It's maybe wothy to make a target out of it
-# grep --exclude=**.svn** -rn '\$Date\$' tlmsignals models | cut -f1 -d: | xargs -I {} svn propset svn:keywords "Date Revision" {}
