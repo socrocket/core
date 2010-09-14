@@ -18,7 +18,7 @@ APPNAME = 'hwswtlmmodels'
 VERSION = '0.5'
 top = '.'
 out = 'build'
-dirs = ['signalkit', 'models', 'tests']
+dirs = ['outkit', 'signalkit', 'models', 'tests']
 
 import os
 import os.path
@@ -28,19 +28,15 @@ from Tools import unittestw
 
 def set_options(ctx): 
   from os import environ
+  conf = ctx.get_option_group("--download")
+  
   ctx.tool_options('compiler_cxx')
   ctx.tool_options('unittestw')
-  ctx.tool_options('waftools', tooldir='.')
+  ctx.tool_options('common', tooldir='waftools')
+  ctx.tool_options('boost', tooldir='waftools', option_group=conf)
   
-  conf = ctx.get_option_group("--download")
   #ctx.add_option('--onlytests', action='store_true', default=True, help='Exec unit tests only', dest='only_tests')
   conf.add_option("--cxxflags", dest="cxxflags", help="C++ compiler flags", default=environ.get("CXXFLAGS",""))
-  #ctx.add_option("--doxygen", dest="dodoxygen", help="Enable to generate doxygen documentation", default=False, action="store_true")
-  
-  dep = ctx.add_option_group("Boost Configuration Options")
-  dep.add_option("--boost", dest="boost_home", help="Basedir of your Boost installation", default=environ.get("BOOST_HOME",""))
-  dep.add_option("--boost_inc", dest="boost_inc", help="Include dir of your Boost installation", default=environ.get("BOOST_DIR",""))
-  dep.add_option("--boost_lib", dest="boost_lib", help="Library dir of your Boost installation", default=environ.get("BOOST_LIB",""))
   
   sysc = ctx.add_option_group("SystemC configuration Options")
   sysc.add_option("--systemc", dest="systemc_home", help="Basedir of your SystemC installation", default=environ.get("SYSTEMC_HOME",""))
@@ -53,90 +49,51 @@ def set_options(ctx):
   gso.add_option("--amba", dest="amba_home", help="Basedir of your AMBAKit distribution", default=environ.get("AMBA_HOME",""))
   gso.add_option("--grlib", dest="grlib_home", help="Basedir of your grlib distribution", default=environ.get("GRLIB",""))
 
-  ctx.recurse(dirs)
-
-  #print "HWSWSIM - Waf Build system"
-  #print ""
-  #print "To compile the hole framework:"
-  #print "  - Make sure you have boost, systemc, tlm2, scv, greensocs and ambakit installed."
-  #print "  - Run './waf configure'"
-  #print "  - If it fails rerun './waf configure' with direct options to address the failiur"
-  #print "  - If it succeeds run: "
-  #print "      './waf'                            - To build and test all targets"
-  #print "      './waf docs'                       - To build documentation run"
-  #print "      './waf list'                       - To list all targets run"
-  #print "      './waf --targets=<target>,<target> - To compile a specific target execute "
-  #print ""
-  #print "Usage:"
+  from waftools.common import get_subdirs
+  ctx.recurse(get_subdirs(top))
 
 def configure(ctx):
   from Options import options
   import os.path
-  import waftools
+  #import waftools
   ctx.env['CXXFLAGS'] += ['-g', 
                          '-Wall', 
                          '-D_REENTRANT', 
                          '-DUSE_STATIC_CASTS', 
-                         '-DSC_INCLUDE_DYNAMIC_PROCESSES'] + options.cxxflags.split()
+                         '-DSC_INCLUDE_DYNAMIC_PROCESSES',
+                         '-O2'] + options.cxxflags.split()
   
   ctx.check_tool('compiler_cxx')
-  ctx.find_program('doxygen', var='DOXYGEN', mandatory=True)
-  #ctx.check_tool('doxygen', tooldir='.')
+  ctx.find_program('doxygen', var='DOXYGEN', mandatory=False)
+  #ctx.check_tool('doxygen', tooldir='waftools')
   
   ## Modelsim:
+  #ctx.check_tool('modelsim', tooldir='.')
   #ctx.find_program('vlib', var='VLIB', mandatory=True)
   #ctx.find_program('vsim', var='VSIM', mandatory=True)
   #ctx.find_program('sccom', var='SCCOM', mandatory=True)
   #ctx.find_program('scgenmod', var='SCGENMOD', mandatory=True)
   #ctx.find_program('vcom', var='VCOM', mandatory=True)
   ctx.check_tool('unittestw')
+  ctx.check_tool('boost', tooldir='waftools')
+  boostLibs = 'regex thread program_options filesystem system'
+  ctx.check_boost(lib=boostLibs, static='both', min_version='1.35.0', mandatory = True, errmsg = 'Unable to find ' + boostLibs + ' boost libraries of at least version 1.35, please install them and specify their location with the --boost-includes and --boost-libs configuration options')
   
-
-  GREENSOCS_INC = [".",
-                   "greensocket",
-                   "gsgpsocket",
-                   "greencontrol",
-                   os.path.join("signalsocket","green-signal-socket","include"),
-                   "greenreg"]
-           
-  ctx.env["GREENREGROOT"] = os.path.join(options.greensocs_home, 'greenreg')
-  if options.greensocs_home and options.greensocs_home != "":
-    ctx.env["CPPPATH_GREENSOCS"] = [os.path.join(options.greensocs_home, n) for n in GREENSOCS_INC] + waftools.getdirs(ctx.env["GREENREGROOT"], ['*test*', '*examples*'])
- 
-    ctx.env["LIBPATH_GREENSOCS"] =  os.path.join(options.greensocs_home, "greenreg")
-    ctx.env["LIB_GREENSOCS"] = "greenreg"
-    
-  if options.boost_home and options.boost_home != "":
-    #ctx.env["CXXFLAGS_BOOST"]
-    ctx.env["CPPPATH_BOOST"] = os.path.join(options.boost_home, "include")
-    ctx.env["LIBPATH_BOOST"] =  os.path.join(options.boost_home, "lib")
-    #ctx.env["LIB_BOOST"] = "boost"
-  elif options.boost_inc and options.boost_lib and options.boost_inc != "" and options.boost_inc != "":
-    ctx.env["CPPPATH_BOOST"] = options.boost_inc
-    ctx.env["LIBPATH_BOOST"] =  options.boost_lib
-    #ctx.env["LIB_BOOST"] = "boost"
-  
-  if options.systemc_home and options.systemc_home != "":
-    ctx.env["CPPPATH_SYSC"] = os.path.join(options.systemc_home, "include")
-    ctx.env["LIBPATH_SYSC"] =  os.path.join(options.systemc_home, "lib-linux")
-    ctx.env["LIB_SYSC"] = "systemc"
-    
-  if options.tlm2_home and options.tlm2_home != "":
-    ctx.env["CPPPATH_TLM2"] = os.path.join(options.tlm2_home, "include/tlm")
-    
-  if options.scv_home and options.scv_home != "":
-    ctx.env["CPPPATH_SCV"] = os.path.join(options.scv_home, "include")
-    ctx.env["LIBPATH_SCV"] =  os.path.join(options.scv_home, "lib-linux")
-    ctx.env["LIB_SCV"] = "scv"
-    
-  if options.amba_home and options.amba_home != "":
-    ctx.env["CPPPATH_AMBA"] = options.amba_home
-  
-  if options.tlm2_tests and options.tlm2_tests != "":
-    ctx.env["CPPPATH_GREENSOCS"] += [os.path.join(options.tlm2_tests, "tlm", "multi_sockets", "include")]
-  elif options.tlm2_home and options.tlm2_home != "":
-    ctx.env["CPPPATH_GREENSOCS"] += [os.path.join(options.tlm2_home, "unit_test", "tlm", "multi_sockets", "include")]
-    
+  # SystemC
+  ctx.check_cxx(
+    lib          = 'systemc',
+    uselib_store = 'SYSC',
+    mandatory    = True,
+    libpath      = os.path.join(options.systemc_home, "lib-linux"), # not always lib-linux -> lib-* or lib-<target>
+    errormsg     = "SystemC Library not found. Use --systemc option or set $SYSTEMC_HOME."
+  ) 
+  ctx.check_cxx(
+    header_name  = 'systemc.h',
+    uselib_store = 'SYSC',
+    mandatory    = True,
+    includes     = os.path.join(options.systemc_home, "include"),
+    uselib       = 'SYSC'
+  ) 
   ctx.check_cxx(
     msg          = "Checking for SystemC 2.2.0 or higher",
     mandatory    = True,
@@ -149,7 +106,15 @@ def configure(ctx):
     """,
     uselib       = 'SYSC',
   )
-  
+ 
+  # TLM 2.0
+  ctx.check_cxx(
+    header_name  = 'tlm.h',
+    uselib_store = 'TLM2',
+    mandatory    = True,
+    includes     = os.path.join(options.tlm2_home, "include/tlm"),
+    uselib       = 'SYSC',
+  ) 
   ctx.check_cxx(
     msg          = "Checking for TLM 2.0.x",
     mandatory    = True,
@@ -163,65 +128,108 @@ def configure(ctx):
     uselib       = 'SYSC TLM2',
   )
   
-  ctx.check_cxx(
-    msg          = "Checking for SCV Library 2.2 or higher",
-    mandatory    = True,
-    execute      = True,
-    fragment     = """
-                   #include <scv.h>
-                   int main(int argc, char *argv) {
-                     return !(SC_VERSION > 2001999);
-                   }
-    """,
-    uselib       = 'SCV SYSC',
-  )
+  # SCV
+  #ctx.check_cxx(
+  #  lib          = 'scv',
+  #  uselib_store = 'SCV',
+  #  mandatory    = True,
+  #  libpath      = os.path.join(options.scv_home, "lib-linux"), # not always lib-linux -> lib-* or lib-<target>
+  #  errormsg     = "SystemC Verification Library not found. Use --scv option or set $SYSTEMC_HOME."
+  #) 
+  #ctx.check_cxx(
+  #  header_name  = 'scv.h',
+  #  uselib_store = 'SYSC',
+  #  mandatory    = True,
+  #  includes     = os.path.join(options.scv_home, "include"),
+  #  uselib       = 'SYSC SCV'
+  #) 
+  #ctx.check_cxx(
+  #  msg          = "Checking for SCV Library 2.2 or higher",
+  #  mandatory    = True,
+  #  execute      = True,
+  #  fragment     = """
+  #                 #include <scv.h>
+  #                 int main(int argc, char *argv) {
+  #                   return !(SC_VERSION > 2001999);
+  #                 }
+  #  """,
+  #  uselib       = 'BOOST SYSC SCV',
+  #)
   
   ctx.check_cxx(
-    msg          = "Checking for Boost 1.37 or higher",
+    lib          = 'greenreg',
+    uselib_store = 'GREENSOCS',
     mandatory    = True,
-    execute      = True,
-    fragment     = """
-                   #include <boost/version.hpp>
-                   int main(int argc, char *argv) {
-                     return !(BOOST_VERSION > 103699);
-                   }
-    """,
-    uselib       = 'BOOST',
-  )
-  
-  ctx.check(
-    compiler_mode = 'cxx',
-    header_name   = "greenreg.h",
-    msg           = "Checking for GreenSocs Header",
+    libpath      = os.path.join(options.greensocs_home, "greenreg"),
+  ) 
+  ctx.check_cxx(
+    header_name   = "greensocket/initiator/single_socket.h",
+    uselib_store  = 'GREENSOCS',
     mandatory     = True,
+    includes      = options.greensocs_home,
+    uselib        = 'BOOST SYSC TLM2',
+  )
+  ctx.check_cxx(
+    header_name   = "target/single_socket.h",
+    uselib_store  = 'GREENSOCS',
+    mandatory     = True,
+    includes      = os.path.join(options.greensocs_home, "greensocket"),
     uselib        = 'GREENSOCS BOOST SYSC TLM2',
   )
-  
-  ctx.check(
-    compiler_mode = 'cxx',
-    header_name   = "amba.h",
-    msg           = "Checking for AMBAKit Header",
+  ctx.check_cxx(
+    header_name   = "config.h",
+    uselib_store  = 'GREENSOCS',
     mandatory     = True,
-    uselib        = 'GREENSOCS AMBA BOOST SYSC TLM2',
+    includes      = os.path.join(options.greensocs_home, "greencontrol"),
+    uselib        = 'GREENSOCS BOOST SYSC TLM2',
+  )
+  ctx.check_cxx(
+    header_name   = "greenreg.h",
+    uselib_store  = 'GREENSOCS',
+    mandatory     = True,
+    includes      = os.path.join(options.greensocs_home, "greenreg"),
+    uselib        = 'GREENSOCS BOOST SYSC TLM2',
+  )
+
+  # AMBAKit 
+  # Check for version
+  ctx.check_cxx(
+    header_name   = "amba.h",
+    uselib_store  = 'AMBA',
+    mandatory     = True,
+    includes      = options.amba_home,
+    uselib        = 'BOOST SYSC TLM2 GREENSOCS',
+  )
+
+  ctx.check_cxx(
+    header_name   = "greenreg_ambasocket.h",
+    uselib_store  = 'GREENSOCS',
+    mandatory     = True,
+    includes      = os.path.join(options.greensocs_home, "greenreg", "greenreg_socket"),
+    uselib        = 'GREENSOCS BOOST SYSC TLM2 AMBA',
   )
   
-  ctx.check(
-    compiler_mode = 'cxx',
+  # Extend GREENSOCS
+  ctx.check_cxx(
     header_name   = [ "tlm.h",
                       "tlm_utils/multi_passthrough_initiator_socket.h",
                       "tlm_utils/multi_passthrough_target_socket.h",
                       "simpleAddressMap.h",
                       "extensionPool.h"
                     ],
-    
+    uselib_store  = 'GREENSOCS',
     msg           = "Checking for extensionPool.h from TLM2",
     mandatory     = True,
-    uselib        = 'GREENSOCS SYSC TLM2',
+    includes      = [os.path.join(options.tlm2_tests, "tlm", "multi_sockets", "include"),
+                     os.path.join(options.tlm2_home, "unit_test", "tlm", "multi_sockets", "include")],
+    uselib        = 'SYSC TLM2 GREENSOCS',
   )
   
-  ctx.recurse(dirs)
+  from waftools.common import get_subdirs
+  ctx.recurse(get_subdirs(top))
 
 def build(bld):
-  bld.add_subdirs(dirs)
+  from waftools.common import get_subdirs
+  bld.add_subdirs(get_subdirs())
   bld.add_post_fun(unittestw.summary)
 

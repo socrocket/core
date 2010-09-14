@@ -17,6 +17,7 @@ import os
 import os.path
 import fnmatch
 import Utils, Environment, Options, Build
+from Configure import conf
 
 #
 # Find all project targets:
@@ -33,7 +34,6 @@ def set_options(opt):
   inst.set_title("Configuration Options")
   inst.set_description("""All following options can be provided to the configure rule.""")
   
-
 def target_list(ctx): 
   """returns a list of all targets"""
 
@@ -76,10 +76,17 @@ def setprops(bld):
 Utils.g_module.__dict__['list'] = target_list
 Utils.g_module.__dict__['docs'] = target_docs
 Utils.g_module.__dict__['setprops'] = setprops
+if Utils.g_module.__dict__.has_key('install'):
+  del Utils.g_module.__dict__['install']
+if Utils.g_module.__dict__.has_key('uninstall'):
+  del Utils.g_module.__dict__['uninstall']
+
+def get_subdirs(dir='.'):
+  return [name for name in os.listdir(dir) if os.path.isfile(os.path.join(dir, name, "wscript"))]
 
 #
 # For external resources
-#
+#  Not used at the moment, maybe with greenreg or grlib
 
 def getdirs(base = '.', excludes = []):
     """Return recursively all subdirectories of base, exept directories matching excludes."""
