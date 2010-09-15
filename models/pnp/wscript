@@ -25,12 +25,21 @@ def configure(ctx):
 
 def build(bld):
   bld(
+    target         = 'pnp',
+    features       = 'cxx cstaticlib',
+    source         = 'pnp.cpp', 
+    export_incdirs = '.',
+    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib_local   = 'utils'
+  )
+
+  bld(
     target       = 'simple.test',
     features     = 'cxx cprogram test',
     source       = 'tests/simple.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'utils',
+    uselib_local = 'utils outkit pnp',
   )
   
   bld(
@@ -39,5 +48,5 @@ def build(bld):
     source       = 'tests/amba.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'utils',
+    uselib_local = 'utils pnp',
   )
