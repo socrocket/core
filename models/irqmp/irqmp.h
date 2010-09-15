@@ -52,10 +52,9 @@ class Irqmp
     signal<uint32_t>::infield  irq_in;
 
     GC_HAS_CALLBACKS();
-    SC_HAS_PROCESS(Irqmp);
 
     /// Constructor. Takes vhdl generics as parameters
-    Irqmp(sc_core::sc_module_name name, int _pindex = 0, int _paddr = 0, int _pmask = 0xFFF, int _ncpu = 2, int _eirq = 1); // interrupt cascade for extended interrupts
+    Irqmp(sc_core::sc_module_name name, int _paddr = 0, int _pmask = 0xFFF, int _ncpu = 2, int _eirq = 1); // interrupt cascade for extended interrupts
     ~Irqmp();
 
     //function prototypes

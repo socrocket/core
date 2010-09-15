@@ -42,7 +42,7 @@
 #define PROC_EXTIR_ID(CPU_INDEX) (0xC0 + 0x4 * CPU_INDEX)
 
 /// Constructor
-Irqmp::Irqmp(sc_core::sc_module_name name, int _pindex, int _paddr, int _pmask, int _ncpu, int _eirq)
+Irqmp::Irqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, int _eirq)
   :
   gr_device(
             name,                      //sc_module name
@@ -53,8 +53,8 @@ Irqmp::Irqmp(sc_core::sc_module_name name, int _pindex, int _paddr, int _pmask, 
   bus( //greenreg_socket
       "bus",            //name
       r,                //register container
-      0x0,              // start address
-      0xFFFFFFFF,       // register space length
+      _paddr << 20,     // start address
+      0xE0,             // register space length
       ::amba::amba_APB, // bus type
       ::amba::amba_LT,  // communication type / abstraction level
       false             // not used
@@ -65,9 +65,7 @@ Irqmp::Irqmp(sc_core::sc_module_name name, int _pindex, int _paddr, int _pmask, 
   irq_ack(this, &Irqmp::clear_acknowledged_irq, "IRQ_ACKNOWLEDGE"),
   irq_in(this, &Irqmp::register_irq, "IRQ_INPUT"),
   ncpu(_ncpu), eirq(_eirq)
-//  pindex("PINDEX"),
-//  conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)),
-//  clockcycle(10.0, sc_core::SC_NS)
+//  conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7))
                                      {
 
   // create register | name + description
