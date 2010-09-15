@@ -47,9 +47,9 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
          (uint16_t) 0x0F, //device: MCTRL
          (uint8_t) 0,
          (uint8_t) 0,    //irq
-         GrlibBAR(AHBMEM, rommask, true, true, romaddr),
-         GrlibBAR(AHBMEM, iomask, false, false, ioaddr),
-         GrlibBAR(AHBMEM, rammask, true, true, ramaddr),
+         GrlibBAR(CGrlibDevice::AHBMEM, rommask, true, true, romaddr),
+         GrlibBAR(CGrlibDevice::AHBMEM, iomask, false, false, ioaddr),
+         GrlibBAR(CGrlibDevice::AHBMEM, rammask, true, true, ramaddr),
          (uint32_t) 0
          ),
   pnpapb(
@@ -57,7 +57,7 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
          (uint16_t) 0x0F, //device: MCTRL
          (uint8_t) 0,
          (uint8_t) 0,    //irq
-         GrlibBAR(APBIO, pmask, 0, 0, paddr),
+         GrlibBAR(CGrlibDevice::APBIO, pmask, 0, 0, paddr),
          (uint32_t) 0,
          (uint32_t) 0,
          (uint32_t) 0

@@ -36,7 +36,7 @@ class Mctrl : public gs::reg::gr_device, public amba_slave_base
 {
 public:
     //plug and play devices for AHB and APB
-    GrlibDevice pnpahb, pnpapb;
+    CGrlibDevice pnpahb, pnpapb;
 
     //APB slave socket: connects mctrl config registers to apb
     gs::reg::greenreg_socket< gs::amba::amba_slave<32> > apb;
