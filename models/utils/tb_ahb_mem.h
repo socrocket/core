@@ -48,7 +48,7 @@ class Ctb_ahb_mem : public sc_module {
       ~Ctb_ahb_mem();
 
       // AMBA pnp devices
-      GrlibDevice pnpahb;
+      CGrlibDevice pnpahb;
 
       // AMBA master socket
       amba::amba_slave_socket<32> ahb;

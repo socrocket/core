@@ -45,7 +45,7 @@ Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm,   // Module name
       0,    // device: TODO: get real device ID
       0,    //
       0,    // IRQ
-      GrlibBAR(AHBMEM, hmask, 0, 0, haddr),    // GrlibBAR 0
+      GrlibBAR(CGrlibDevice::AHBMEM, hmask, 0, 0, haddr),    // GrlibBAR 0
       0,    // GrlibBAR 1
       0,    // GrlibBAR 2
       0     // GrlibBAR 3
@@ -102,7 +102,7 @@ void Ctb_ahb_mem::b_transport(tlm::tlm_generic_payload &gp,
 
       // Neither read or write command
       default:
-         owarn << name << ": Received unknown command.\n";
+         VWARN << name << ": Received unknown command.\n";
          gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
          break;
    }
@@ -143,14 +143,14 @@ int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {
 
       // Warn if data stream ended unexpected
       if(nibble) {
-         owarn << name << ": Incomplete byte detected in memory file\n";
+         VWARN << name << ": Incomplete byte detected in memory file\n";
       }
 
       // close file
       infile.close();
       return 0;
    } else {
-      oerror << name << ": File \"" << infile_ << "\" not found or readable\n";
+      VERROR << name << ": File \"" << infile_ << "\" not found or readable\n";
       return infile.good();
    }
 }  // int Ctb_ahb_mem::readmem(char infile_[], unsigned int addr)
@@ -235,7 +235,7 @@ uint8_t Ctb_ahb_mem::char2nibble(const char *ch) const {
          return 0x0f;
          break;
       default:
-         owarn << name << ": Illegal character in memory file: \'"
+         VWARN << name << ": Illegal character in memory file: \'"
             << *ch << "\'\n";
          return 0x80;
          break;
@@ -257,7 +257,7 @@ int Ctb_ahb_mem::dumpmem(char outfile_[]) {
       }
       return 0;
    } else {
-      oerror << name << ": Unable to open dump file\n";
+      VERROR << name << ": Unable to open dump file\n";
       return outfile.good();
    }
 }  // int tb_ahb_mem::dumpmem(char outfile_[])

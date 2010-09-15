@@ -30,23 +30,23 @@ def build(bld):
     source         = 'pnp.cpp', 
     export_incdirs = '.',
     uselib         = 'SYSC TLM2 AMBA GREENSOCS',
-    uselib_local   = 'utils'
+    uselib_local   = 'utils vkit'
   )
 
   bld(
-    target       = 'simple.test',
+    target       = 'simple.pnp',
     features     = 'cxx cprogram test',
     source       = 'tests/simple.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'utils outkit pnp',
+    uselib_local = 'pnp utils vkit',
   )
   
   bld(
-    target       = 'amba.test',
+    target       = 'amba.pnp',
     features     = 'cxx cprogram test',
     source       = 'tests/amba.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'utils pnp',
+    uselib_local = 'pnp utils vkit',
   )

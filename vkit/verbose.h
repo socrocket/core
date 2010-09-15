@@ -1,7 +1,7 @@
 /***********************************************************************/
 /* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
 /*                                                                     */
-/* File:       output.h:                                               */
+/* File:       verbose.h:                                              */
 /*                                                                     */
 /* Modified on $Date$   */
 /*          at $Revision$                                         */
@@ -11,8 +11,8 @@
 /* Maintainer: Rolf Meyer                                              */
 /***********************************************************************/
 
-#ifndef OUTPUT_H
-#define OUTPUT_H
+#ifndef VERBOSE_H
+#define VERBOSE_H
 
 #include <systemc.h>
 #include <iostream>
@@ -21,8 +21,8 @@
 /// @addtogroup utils
 /// @{
 
-namespace out {
-
+namespace v {
+  
 class Color {
   public:
     Color(const char *value) : m_value(value) {}
@@ -59,9 +59,9 @@ extern Color Bold;
 extern Color Blink;
 extern Color Beep;
 
-//#ifndef DEBUG
-#define DEBUG 3
-//#endif
+#ifndef VERBOSITY
+#define VERBOSITY 1
+#endif
 
 #define output_header \
                "@" \
@@ -69,21 +69,21 @@ extern Color Beep;
             << " /" \
             << std::dec \
             << (unsigned)sc_core::sc_delta_count() \
-            << " (" << out::Blue \
-            << "Global" << out::Normal \
+            << " (" << ::v::Blue \
+            << "comming soon" << ::v::Normal \
             << "): "
 
-#define oinfo \
-  out::info << output_header << "Info: "
+#define VINFO \
+  ::v::info << output_header << "Info: "
 
-#define owarn \
-  out::warn << output_header << out::Yellow << "Warning" << out::Normal << ": "
+#define VWARN \
+  ::v::warn << output_header << ::v::Yellow << "Warning" << ::v::Normal << ": "
 
-#define oerror \
-  out::warn << output_header << out::Red << "Error" << out::Normal << ": "
+#define VERROR \
+  ::v::warn << output_header << ::v::Red << "Error" << ::v::Normal << ": "
 
-#define odebug \
-  out::warn << output_header << out::Cyan << "Debug" << out::Normal << ": "
+#define VDEBUG \
+  ::v::warn << output_header << ::v::Cyan << "Debug" << ::v::Normal << ": "
 
               
 template<int level>
@@ -97,7 +97,7 @@ class logstream {
     template <class T>
     inline
     logstream& operator<<(const T &in) {
-      if(level<DEBUG) {
+      if(level<VERBOSITY) {
         m_stream << in;
       }
       return *this;
@@ -105,7 +105,7 @@ class logstream {
  
     inline
     logstream& operator<<(std::ostream& (*in)(std::ostream&)) {
-      if(level<DEBUG) {
+      if(level<VERBOSITY) {
         m_stream << in;
       }
       return *this;
@@ -130,4 +130,4 @@ void logFile(char *);
 
 /// @}
 
-#endif // OUTPUT_H
+#endif // VERBOSE_H

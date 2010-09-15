@@ -19,17 +19,17 @@ top = '..'
 
 def set_options(ctx):
   from os import environ
-  ctx.add_option("--DEBUGLEVEL", dest="debug", help="Defines the Debuglevel for the build", default=environ.get("DEBUG_LEVEL",""))
+  ctx.add_option("--verbosity", dest="verbosity", help="Defines the verbosity for the build", default=environ.get("VERBOSITY",""))
 
 def configure(ctx):
   from Options import options
   import os.path
   if options.debug and options.debug != "":
-    ctx.env["CXXFLAGS"] += ['-DDEBUG=%s' % (options.debug)]
+    ctx.env["CXXFLAGS"] += ['-DVERBOSITY=%s' % (options.debug)]
 
 def build(bld):
   bld(
-    target         = 'outkit',
+    target         = 'vkit',
     features       = 'cxx cstaticlib',
     source         = 'verbose.cpp', 
     export_incdirs = '.',

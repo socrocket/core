@@ -27,8 +27,13 @@ def build(bld):
   bld(
     target         = 'utils',
     features       = 'cxx cstaticlib',
-    source         = 'tb_ahb_mem.cpp', 
+    source         = [#'ahb_rtl_ct.cpp',
+                      #'apb_ct_rtl.cpp',
+                      'tb_ahb_mem.cpp', 
+                      'grlibdevice.cpp',
+                      'apbtestbench.cpp',
+                     ],
     export_incdirs = '.',
     uselib         = 'SYSC TLM2 AMBA GREENSOCS',
-    uselib_local   = 'signalkit outkit'
+    uselib_local   = 'signalkit vkit'
   )

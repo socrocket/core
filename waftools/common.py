@@ -51,10 +51,22 @@ def target_list(ctx):
     except AttributeError:
       pass
 
-  lst = list(names)
-  lst.sort()
-  print "All targets:"
-  for name in lst:
+  libs  = list()
+  tests = list()
+  
+  for n in names:
+    if '.' in n:
+      tests.append(n)
+    else:
+      libs.append(n)
+  libs.sort()
+  tests.sort()
+  print "Library targets:"
+  for name in libs:
+    print " ", name
+  print ""
+  print "Test targets:"
+  for name in tests:
     print " ", name
 
 def target_docs(bld):

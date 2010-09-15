@@ -61,15 +61,15 @@
 }
 
 /// Testbench for GPTimer Models.
-class APBTestbench : public sc_core::sc_module {
+class CAPBTestbench : public sc_core::sc_module {
   public:
     /// TLM Interface
     amba::amba_master_socket<32>   master_sock;
 
     /// Constructor
-    APBTestbench(sc_core::sc_module_name nm)
-    : sc_core::sc_module(nm)
-    , master_sock("socket", amba::amba_APB, amba::amba_LT, false) {}
+    CAPBTestbench(sc_core::sc_module_name nm);
+    /// Destructor
+    ~CAPBTestbench();
     
     /// Define TLM write transactions 
     inline void write(uint32_t addr, uint32_t data, uint32_t width) {

@@ -24,8 +24,16 @@ def configure(ctx):
   pass
 
 def build(bld):
+  bld(
+    target         = 'gptimer',
+    features       = 'cxx cstaticlib',
+    source         = 'gptimer.cpp gpcounter.cpp', 
+    export_incdirs = '.',
+    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib_local   = 'utils signalkit vkit'
+  )
   #bld(
-  #  target       = 'speed.test',
+  #  target       = 'speed.gptimer',
   #  features     = 'cxx cprogram test',
   #  source       = 'tests/top_tlm.cpp',
   #  defines      = 'SPEEDTEST',
@@ -35,7 +43,7 @@ def build(bld):
   #)
   
   #bld(
-  #  target       = 'function.test',
+  #  target       = 'function.gptimer',
   #  features     = 'cxx cprogram test',
   #  source       = 'tests/top_tlm.cpp',
   #  defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
@@ -45,22 +53,22 @@ def build(bld):
   #)
 
   bld(
-    target       = 'prescaler.test',
+    target       = 'prescaler.gptimer',
     features     = 'cxx cprogram test',
     source       = 'tests/top_tlm.cpp',
     defines      = 'PRESCALERTEST CTBUS DEBUGOUT',
     includes     = '. tests',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'utils signalkit',
+    uselib_local = 'gptimer utils signalkit vkit',
   )
 
   bld(
-    target       = 'counter.test',
+    target       = 'counter.gptimer',
     features     = 'cxx cprogram test',
     source       = 'tests/top_tlm.cpp',
     defines      = 'COUNTERTEST CTBUS DEBUGOUT',
     includes     = '. tests',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'utils signalkit',
+    uselib_local = 'gptimer utils signalkit vkit',
   )
 

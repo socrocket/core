@@ -19,7 +19,7 @@ top = '..'
 
 def set_options(ctx):
   from os import environ
-  gso = ctx.add_option_group("GreenSoCs Options")
+  gso = ctx.get_option_group("--amba")
   gso.add_option("--ambaexamples", dest="amba_examples", help="Basedir of your AMBAKit Examples", default=environ.get("AMBA_EXAMPLES",""))
 
 def configure(ctx):
