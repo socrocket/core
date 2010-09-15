@@ -13,6 +13,8 @@
 /* Maintainer: Dennis Bode                                             */
 /***********************************************************************/
 
+//FIXME: Define cycle time variable at correct position (which is not nin generic memory.tpp).
+
 #ifndef MCTRL_TPP
 #define MCTRL_TPP
 
@@ -29,11 +31,11 @@
 #define MCTRL_SRAM_WRITE_DELAY(wstates) 3+wstates
 
 //constructor
-Mctrl::Mctrl(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _romaddr,
+Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _romaddr,
                              int _rommask,  int _ioaddr,    int _iomask,   int _ramaddr,
                              int _rammask,  int _paddr,     int _pmask,    int _wprot,
-                             int _srbanks,  int _ram8,      int _ram16,
-                             int _sepbus,   int _sdbits,    int _mobile) :
+                             int _srbanks,  int _ram8,      int _ram16,    int _sepbus,
+                             int _sdbits,   int _mobile) :
   gr_device(
             name,                      //sc_module name
             gs::reg::ALIGNED_ADDRESS,  //address mode (options: aligned / indexed)
@@ -63,24 +65,24 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _
   apb( //greenreg_socket
       "apb",            //name
       r,                //register container
-      0x0,              // ?
-      0xFFFFFFFF,       // ?
-      ::amba::amba_APB, // ?bus type?
-      ::amba::amba_LT,  // ?communication type / abstraction level?
-      false             // ?
+      _paddr << 20,     //apb base address
+      4096 - _pmask,    //apb address space size 
+      ::amba::amba_APB, //bus type
+      ::amba::amba_LT,  //?communication type / abstraction level?
+      false             //?
      ),
   ahb("ahb",
-      ::amba::amba_AHB, // ?bus type?
-      ::amba::amba_LT,  // ?communication type / abstraction level?
-      false             // ?
+      ::amba::amba_AHB, //bus type
+      ::amba::amba_LT,  //abstraction level
+      false             //?
      ),
   mctrl_rom("mctrl_rom"),
   mctrl_io("mctrl_io"),
   mctrl_sram("mctrl_sram"),
   mctrl_sdram("mctrl_sdram"),
   pmode(0),
-  hindex   (_hindex),
-  pindex   (_pindex),
+  romasel  (_romasel),
+  sdrasel  (_sdrasel),
   romaddr  (_romaddr),
   rommask  (_rommask),
   ioaddr   (_ioaddr),
@@ -97,6 +99,22 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _hindex,    int _pindex,   int _
   sdbits   (_sdbits),
   mobile   (_mobile)
   {
+
+  //check consistency of address space generics
+     //rom space in MByte: 4GB - masked area (rommask)
+     //rom space in Byte: 2^(romasel + 1)
+     //same for ram and sdrasel
+  if (4096 - _rommask   != 1 << (_romasel - 19) ||
+      4096 - _rammask   != 1 << (_sdrasel - 19) ||
+      _romaddr + 4096 - _rommask > _ioaddr      ||
+      _romaddr + 4096 - _rommask > _ramaddr     ||
+      _ioaddr  + 4096 - _iomask  > _romaddr     ||
+      _ioaddr  + 4096 - _iomask  > _ramaddr     ||
+      _ramaddr + 4096 - _rammask > _romaddr     ||
+      _ramaddr + 4096 - _rammask > _ioaddr         )
+  {
+    //FIXME: issue error message: inconsistent address space parameters
+  }
 
   // register transport functions to sockets
   ahb.register_b_transport (this, &Mctrl::b_transport);
@@ -157,14 +175,15 @@ Mctrl::~Mctrl() {
 //register GreenReg callback after elaboration
 void Mctrl::end_of_elaboration() {
   // create bit accessors for green registers
-  r[MCTRL_MCFG2].br.create("lmr", 26, 26);    // tcas needs LMR command
-  r[MCTRL_MCFG4].br.create("emr", 0, 6);      // DS, TCSR, PASR need EMR command
-  r[MCTRL_MCFG2].br.create("launch", 19, 20); // SDRAM command field
-  r[MCTRL_MCFG4].br.create("pmode", 16, 18);  // SDRAM power saving mode field
-  r[MCTRL_MCFG2].br.create("si", 13, 13);     // SRAM disable, address space calculation
-  r[MCTRL_MCFG2].br.create("se", 14, 14);     // SDRAM enable, address space calculation
-  r[MCTRL_MCFG2].br.create("sr_bk", 9, 12);   // SRAM bank size
-  r[MCTRL_MCFG2].br.create("sdr_bk", 23, 25); // SDRAM bank size
+  r[MCTRL_MCFG2].br.create("lmr", 26, 26);      // tcas needs LMR command
+  r[MCTRL_MCFG4].br.create("emr", 0, 6);        // DS, TCSR, PASR need EMR command
+  r[MCTRL_MCFG2].br.create("launch", 19, 20);   // SDRAM command field
+  r[MCTRL_MCFG4].br.create("pmode", 16, 18);    // SDRAM power saving mode field
+  r[MCTRL_MCFG2].br.create("si", 13, 13);       // SRAM disable, address space calculation
+  r[MCTRL_MCFG2].br.create("se", 14, 14);       // SDRAM enable, address space calculation
+  r[MCTRL_MCFG2].br.create("sr_bk", 9, 12);     // SRAM bank size
+  r[MCTRL_MCFG2].br.create("sdr_bk", 23, 25);   // SDRAM bank size
+  r[MCTRL_MCFG2].br.create("sdr_trfc", 27, 29); // SDRAM refresh cycle
 
   GR_FUNCTION(Mctrl, configure_sdram);                  // args: module name, callback function name
   GR_SENSITIVE(r[MCTRL_MCFG2].br["lmr"].add_rule(
@@ -212,6 +231,11 @@ void Mctrl::end_of_elaboration() {
                                         "sdram_change_bank_size", // function name
                                         gs::reg::NOTIFY));        // notification on every register access
 
+  GR_FUNCTION(Mctrl, sdram_change_refresh_cycle);
+  GR_SENSITIVE(r[MCTRL_MCFG2].br["sdr_trfc"].add_rule(
+                                        gs::reg::POST_WRITE,          // function to be called after register write
+                                        "sdram_change_refresh_cycle", // function name
+                                        gs::reg::NOTIFY));            // notification on every register access
 }
 
 
@@ -220,6 +244,10 @@ void Mctrl::initialize_mctrl() {
 
   //reset callback delay
   callback_delay = SC_ZERO_TIME;
+
+  //set refresh cycle and schedule first refresh
+  trfc = 3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27;
+  next_refresh = sc_core::sc_time( BUS_CLOCK_CYCLE * (r[MCTRL_MCFG3].get() >> 11), SC_NS );
 
   //set default values of mobile SDRAM
   unsigned int mcfg;
@@ -378,14 +406,24 @@ void Mctrl::initialize_mctrl() {
 void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
   //add delay from previously activated callbacks
   delay += callback_delay;
-  callback_delay = sc_core::SC_ZERO_TIME;
-
-  //capture current system time for idle time calculation (required in power down mode)
-  sc_core::sc_time t_trans = sc_core::sc_time_stamp();
 
   //prepare further delay calculation
   sc_core::sc_time cycle_time(BUS_CLOCK_CYCLE, SC_NS);
   uint8_t cycles = 0;
+
+  //start of transaction (required for refresh delay and in power down mode)
+  sc_core::sc_time t_trans = sc_core::sc_time_stamp() + callback_delay;
+
+  //next refresh must end in the future
+  while (t_trans > next_refresh + cycle_time * trfc) {
+    //start of sdram idle period must be later than end of last refresh
+    if (start_idle < next_refresh + cycle_time * trfc) {
+      start_idle = next_refresh + cycle_time * trfc;
+    }
+    //last refresh may have been stalled by an sdram access (see below)
+    next_refresh += cycle_time * (r[MCTRL_MCFG3].get() >> 11) - refresh_stall;
+    refresh_stall = sc_core::SC_ZERO_TIME;
+  }
 
   //gp parameters required for delay calculation
   tlm::tlm_command cmd = gp.get_command();
@@ -416,7 +454,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
       else {
         cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WRITE_WS) >> 4;
         cycles = DECODING_DELAY + MCTRL_ROM_WRITE_DELAY(cycles) + 
-                 data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
+                 2 * (data_length / gp.get_streaming_width() - 1);  //multiple data cycles, i.e. burst access
         //add delay and forward transaction to memory
         start_idle = t_trans + cycle_time * cycles;
         delay += cycle_time * cycles;
@@ -427,7 +465,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
     else if (cmd == tlm::TLM_READ_COMMAND) {
       cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_READ_WS);
       cycles = DECODING_DELAY + MCTRL_ROM_READ_DELAY(cycles) + 
-               data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
+               2 * (data_length / gp.get_streaming_width() - 1);  //multiple data cycles, i.e. burst access
       //add delay and forward transaction to memory
       start_idle = t_trans + cycle_time * cycles;
       delay += cycle_time * cycles;
@@ -574,7 +612,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
         if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) {
           cycles++; //trp = 3
         }
-        //every write transaction needs the entire write access time
+        //every write transaction needs the entire write access time (burst of writes)
         cycles *= data_length / gp.get_streaming_width();
       }
       //if in power down mode, each access will take +1 clock cycle
@@ -586,16 +624,32 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
                    //power down mode?    --> shift to LSB (=1)
                    r[MCTRL_MCFG4].get() ) >> 16;
       }
-      //add delay and forward transaction to memory
+      //add decoding delay and complete calculation of transaction delay
       cycles += DECODING_DELAY;
       delay += cycle_time * cycles;
-      start_idle = t_trans + cycle_time * cycles;
+      //add refresh delay after each refresh period
+      // (a) transactions starts during refresh cycle, i.e. transaction is stalled
+      if (t_trans < next_refresh + (trfc * cycle_time) && t_trans >= next_refresh) {
+        delay += next_refresh + trfc * cycle_time - t_trans;
+        next_refresh += cycle_time * (r[MCTRL_MCFG3].get() >> 11);
+      }
+      // (b) transaction starts before and ends after next scheduled refresh command, i.e. refresh is stalled
+      //note: 'callback_delay' must not be counted twice, but it has been added to 'delay' and to 't_trans'
+      else if (t_trans < next_refresh && t_trans + delay - callback_delay > next_refresh) {
+        refresh_stall = t_trans + delay - callback_delay - next_refresh;
+        next_refresh += refresh_stall;
+      }
+      //capture end of transaction and forward transaction to memory
+      start_idle = t_trans + delay;
       mctrl_sdram->b_transport(gp,delay);
     }
   }
-  if (mobile>0 && sc_core::sc_time_stamp() - start_idle >= (r[MCTRL_MCFG3].get() >> 11) * cycle_time) {
-    start_idle = sc_core::sc_time_stamp();
+  //no memory device at given address
+  else {
+    //FIXME: issue error message: No Memory device at this position.
   }
+  //end of transaction: reset callback delay variable
+  callback_delay = sc_core::SC_ZERO_TIME;
 }
 
 
@@ -618,6 +672,7 @@ void Mctrl::launch_sdram_command() {
         callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + MCTRL_MCFG2_SDRAM_TRFC_DEFAULT >> 30), SC_NS);
       break;
     // Precharge: Terminate current burst transaction (no effect in LT) --> wait for tRP
+    // FIXME: This delay should already be modeled within the burst transaction, which takes into account the termination by precharge
     case 1:
       callback_delay += sc_time(BUS_CLOCK_CYCLE * (2 + MCTRL_MCFG2_TRP_DEFAULT >> 29), SC_NS);
       break;
@@ -655,6 +710,7 @@ void Mctrl::erase_sdram() {
     { 
       //check previous power down mode
       uint8_t cycles = 0;
+      uint8_t cycles_after_refresh = 0;
       switch (pmode) {
         //leaving self refresh: tXSR + Auto Refresh cycle (tRFC)
         case 2:
@@ -663,11 +719,14 @@ void Mctrl::erase_sdram() {
           break;
         //leaving deep power down mode: Precharge, 2x Auto-Refresh, LMR, EMR
         case 5:
-          cycles = 2 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30            +  //precharge (tRP)
-                   2 * (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC >> 27) + 3 +  //2 * tRFC
-                   2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;       //LMR + EMR
+          cycles = 2 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30            +          //precharge (tRP)
+                   2 * (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC >> 27) + 3 +          //2 * tRFC
+                   2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;               //LMR + EMR
+          cycles_after_refresh = 2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ; //LMR + EMR
       }
-      callback_delay += sc_time(BUS_CLOCK_CYCLE * cycles, SC_NS);
+      callback_delay += sc_core::sc_time(BUS_CLOCK_CYCLE * cycles, SC_NS);
+      next_refresh = sc_core::sc_time_stamp() + 
+                     sc_core::sc_time(BUS_CLOCK_CYCLE * (cycles - cycles_after_refresh + trfc), SC_NS);
       pmode = 0;
       break;
     }
@@ -834,6 +893,9 @@ void Mctrl::sram_calculate_bank_addresses(uint32_t sram_bank_size) {
 
 }
 
+void Mctrl::sdram_change_refresh_cycle() {
+  trfc = 3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27;
+}
 
 #endif
 

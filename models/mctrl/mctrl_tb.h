@@ -22,7 +22,7 @@
 class Mctrl_tb : public sc_core::sc_module {
   public:
     //constructor and destructor
-    Mctrl_tb(sc_core::sc_module_name nm, int _hindex = 0,    int _pindex = 0,    int _romaddr = 0,    int _rommask = 3584,
+    Mctrl_tb(sc_core::sc_module_name nm, int _romasel = 28,  int _sdrasel = 29,  int _romaddr = 0,    int _rommask = 3584,
                                          int _ioaddr = 512,  int _iomask = 3584, int _ramaddr = 1024, int _rammask = 3072,
                                          int _paddr = 0,     int _pmask = 4095,  int _wprot = 0,      int _srbanks = 4,
                                          int _ram8 = 0,      int _ram16 = 0,     int _sepbus = 0,     int _sdbits = 32,
@@ -45,8 +45,8 @@ class Mctrl_tb : public sc_core::sc_module {
 
   private:
   //constructor parameters (modeling VHDL generics)
-    const int hindex;
-    const int pindex;
+    const int romasel;
+    const int sdrasel;
     const int romaddr;
     const int rommask;
     const int ioaddr;

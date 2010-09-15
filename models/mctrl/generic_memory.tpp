@@ -34,11 +34,10 @@ template <typename T> Generic_memory  <T>::~Generic_memory() {
 
 //-----------TLM--TRANSPORT--FUNCTIONS-----------//
 
-//scope: same template parameters as Mctrl
+//scope
 template <typename T> void Generic_memory  <T>::
 //blocking transport for ROM
 b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
-  sc_core::sc_time cycle_time(BUS_CLOCK_CYCLE, SC_NS);
 
   //check erase extension first
   typename Mctrl::ext_erase* e;

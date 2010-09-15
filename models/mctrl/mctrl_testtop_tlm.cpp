@@ -20,8 +20,8 @@
 
 int sc_main(int argc, char** argv) {
   //set generics
-  const int hindex = 0;
-  const int pindex = 0;
+  const int romasel = 28;
+  const int sdrasel = 29;
   const int romaddr = 0;
   const int rommask = 3584;
   const int ioaddr = 512;
@@ -39,14 +39,14 @@ int sc_main(int argc, char** argv) {
   const int mobile = 0;
 
   //instantiate mctrl, generic memory, and testbench
-  Mctrl mctrl_inst0("mctrl_inst0", hindex,    pindex,   romaddr, rommask,   ioaddr,   iomask,
+  Mctrl mctrl_inst0("mctrl_inst0", romasel,   sdrasel,  romaddr, rommask,   ioaddr,   iomask,
                                    ramaddr,   rammask,  paddr,   pmask,     wprot,
                                    srbanks,   ram8,     ram16,   sepbus,    sdbits,   mobile);
   Generic_memory <uint8_t>  generic_memory_rom("generic_memory_rom");
   Generic_memory <uint32_t> generic_memory_io("generic_memory_io");
   Generic_memory <uint8_t>  generic_memory_sram("generic_memory_sram");
   Generic_memory <uint32_t> generic_memory_sdram("generic_memory_sdram");
-  Mctrl_tb mctrl_tb("mctrl_tb", hindex,    pindex,   romaddr, rommask,   ioaddr,  iomask,
+  Mctrl_tb mctrl_tb("mctrl_tb", romasel,   sdrasel,  romaddr, rommask,   ioaddr,  iomask,
                                 ramaddr,   rammask,  paddr,   pmask,     wprot,
                                 srbanks,   ram8,     ram16,   sepbus,    sdbits,  mobile);
 

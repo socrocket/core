@@ -51,7 +51,7 @@ public:
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_sdram;
 
     //constructor / destructor
-    Mctrl(sc_module_name name, int _hindex = 0,    int _pindex = 0,     int _romaddr = 0,    int _rommask = 3584,
+    Mctrl(sc_module_name name, int _romasel = 28,  int _sdrasel = 29,   int _romaddr = 0,    int _rommask = 3584,
            int _ioaddr = 512,  int _iomask = 3584, int _ramaddr = 1024, int _rammask = 3072,
            int _paddr = 0,     int _pmask = 4095,  int _wprot = 0,      int _srbanks = 4,
            int _ram8 = 0,      int _ram16 = 0,     int _sepbus = 0,     int _sdbits = 32,
@@ -108,6 +108,7 @@ public:
     void sdram_enable();
     void sram_change_bank_size();
     void sdram_change_bank_size();
+    void sdram_change_refresh_cycle();
 
     //define TLM transport functions
     virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
@@ -138,13 +139,17 @@ public:
                                      sram_bk4_s, sram_bk4_e, sram_bk5_s, sram_bk5_e,
              sdram_bk1_s, sdram_bk1_e, sdram_bk2_s, sdram_bk2_e;
 
+    //control / timing variables
     sc_core::sc_time callback_delay; //count time elapsing in callbacks (to be added in next transaction)
     sc_core::sc_time start_idle;     //capture end time of last transaction to calculate sdram idle time
+    sc_core::sc_time next_refresh;   //time to perform next refresh
+    sc_core::sc_time refresh_stall;  //refresh can only be started in idle state, so it might be necessary to stall
+    uint8_t trfc;                    //length of refresh cycle
     uint8_t pmode;                   //capture current state of power mode
 
     //constructor parameters (modeling VHDL generics)
-    const int hindex;
-    const int pindex;
+    const int romasel;
+    const int sdrasel;
     const int romaddr;
     const int rommask;
     const int ioaddr;
