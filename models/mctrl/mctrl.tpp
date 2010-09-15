@@ -63,18 +63,18 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
          (uint32_t) 0
         ),
   apb( //greenreg_socket
-      "apb",            //name
-      r,                //register container
-      _paddr << 20,     //apb base address
-      4096 - _pmask,    //apb address space size 
-      ::amba::amba_APB, //bus type
-      ::amba::amba_LT,  //?communication type / abstraction level?
-      false             //?
+      "apb",                 //name
+      r,                     //register container
+      _paddr << 20,          //apb base address
+      (4096 - _pmask) << 20, //apb address space size 
+      ::amba::amba_APB,      //bus type
+      ::amba::amba_LT,       //abstraction level
+      false                  //not used
      ),
   ahb("ahb",
       ::amba::amba_AHB, //bus type
       ::amba::amba_LT,  //abstraction level
-      false             //?
+      false             //not used
      ),
   mctrl_rom("mctrl_rom"),
   mctrl_io("mctrl_io"),

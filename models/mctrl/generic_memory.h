@@ -57,7 +57,7 @@ public:
       void write_32(uint32_t address, uint32_t* data, uint8_t length);
 
     //erase sdram required for deep power down and PASR mode
-    void erase_sdram(uint32_t start_address, uint32_t end_address, unsigned int length);
+    void erase_memory(uint32_t start_address, uint32_t end_address, unsigned int length);
 
 };
 

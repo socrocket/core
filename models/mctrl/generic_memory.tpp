@@ -44,7 +44,7 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
   gp.get_extension(e);
   if ( e ) {
     uint32_t data = *reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
-    erase_sdram( gp.get_address(), data, gp.get_streaming_width() );
+    erase_memory( gp.get_address(), data, gp.get_streaming_width() );
     gp.set_response_status(tlm::TLM_OK_RESPONSE);
   }
   //process regular read / write transactions
@@ -207,7 +207,7 @@ read_32(uint32_t address, uint32_t* data_ptr, uint8_t length) {
 //scope
 template <typename T> void Generic_memory  <T>::
 //erase sdram
-erase_sdram(uint32_t start_address, uint32_t end_address, unsigned int length) {
+erase_memory(uint32_t start_address, uint32_t end_address, unsigned int length) {
   for (unsigned int i=start_address; i <= end_address; i+=length) {
     memory.erase(i);
   }

@@ -51,11 +51,11 @@ public:
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_sdram;
 
     //constructor / destructor
-    Mctrl(sc_module_name name, int _romasel = 28,  int _sdrasel = 29,   int _romaddr = 0,    int _rommask = 3584,
-           int _ioaddr = 512,  int _iomask = 3584, int _ramaddr = 1024, int _rammask = 3072,
-           int _paddr = 0,     int _pmask = 4095,  int _wprot = 0,      int _srbanks = 4,
-           int _ram8 = 0,      int _ram16 = 0,     int _sepbus = 0,     int _sdbits = 32,
-           int _mobile = 0,    int _sden = 0);
+    Mctrl(sc_module_name name,  int _romasel = 28,   int _sdrasel = 29,    int _romaddr = 0x0,   int _rommask = 0xE00,
+           int _ioaddr = 0x200, int _iomask = 0xE00, int _ramaddr = 0x400, int _rammask = 0xC00,
+           int _paddr = 0x0,    int _pmask = 0xFFF,  int _wprot = 0,       int _srbanks = 4,
+           int _ram8 = 0,       int _ram16 = 0,      int _sepbus = 0,      int _sdbits = 32,
+           int _mobile = 0,     int _sden = 0);
     ~Mctrl();
 
     //device identification on AHB bus
