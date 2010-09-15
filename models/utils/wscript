@@ -25,9 +25,10 @@ def configure(ctx):
 
 def build(bld):
   bld(
-    name           = 'utils',
+    target         = 'utils',
+    features       = 'cxx cstaticlib',
+    source         = 'tb_ahb_mem.cpp', 
     export_incdirs = '.',
-    uselib         = '',
-    uselib_local   = 'signalkit'
+    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib_local   = 'signalkit outkit'
   )
-  
