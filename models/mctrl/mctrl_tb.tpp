@@ -31,11 +31,11 @@
 { write(name, val, length, apb); }
 
 //constructor
-Mctrl_tb::Mctrl_tb(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _romaddr,
-                                   int _rommask,  int _ioaddr,    int _iomask,   int _ramaddr,
-                                   int _rammask,  int _paddr,     int _pmask,    int _wprot,
-                                   int _srbanks,  int _ram8,      int _ram16,
-                                   int _sepbus,   int _sdbits,    int _mobile)
+Mctrl_tb::Mctrl_tb(sc_core::sc_module_name name, int _romasel, int _sdrasel, int _romaddr,
+                                   int _rommask, int _ioaddr,  int _iomask,  int _ramaddr,
+                                   int _rammask, int _paddr,   int _pmask,   int _wprot,
+                                   int _srbanks, int _ram8,    int _ram16,   int _sepbus,
+                                   int _sdbits,  int _mobile,  int _sden)
   : apb_master_sock ("apb_master_sock", amba::amba_APB, amba::amba_LT, false),
     ahb_master_sock ("ahb_master_sock", amba::amba_AHB, amba::amba_LT, false),
   romasel  (_romasel),
@@ -54,7 +54,8 @@ Mctrl_tb::Mctrl_tb(sc_core::sc_module_name name,  int _romasel,   int _sdrasel, 
   ram16    (_ram16),
   sepbus   (_sepbus),
   sdbits   (_sdbits),
-  mobile   (_mobile) {
+  mobile   (_mobile),
+  sden     (_sden) {
 
     SC_THREAD(run);
 }

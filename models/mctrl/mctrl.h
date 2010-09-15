@@ -55,7 +55,7 @@ public:
            int _ioaddr = 512,  int _iomask = 3584, int _ramaddr = 1024, int _rammask = 3072,
            int _paddr = 0,     int _pmask = 4095,  int _wprot = 0,      int _srbanks = 4,
            int _ram8 = 0,      int _ram16 = 0,     int _sepbus = 0,     int _sdbits = 32,
-           int _mobile = 0);
+           int _mobile = 0,    int _sden = 0);
     ~Mctrl();
 
     //device identification on AHB bus
@@ -165,6 +165,7 @@ public:
     const int sepbus;
     const int sdbits;
     const int mobile;
+    const int sden;
 };
 
 #include "mctrl.tpp"

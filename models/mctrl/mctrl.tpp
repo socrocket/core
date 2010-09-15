@@ -35,7 +35,7 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
                              int _rommask,  int _ioaddr,    int _iomask,   int _ramaddr,
                              int _rammask,  int _paddr,     int _pmask,    int _wprot,
                              int _srbanks,  int _ram8,      int _ram16,    int _sepbus,
-                             int _sdbits,   int _mobile) :
+                             int _sdbits,   int _mobile,    int _sden) :
   gr_device(
             name,                      //sc_module name
             gs::reg::ALIGNED_ADDRESS,  //address mode (options: aligned / indexed)
@@ -97,7 +97,8 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
   ram16    (_ram16),
   sepbus   (_sepbus),
   sdbits   (_sdbits),
-  mobile   (_mobile)
+  mobile   (_mobile),
+  sden     (_sden)
   {
 
   //check consistency of address space generics
@@ -185,38 +186,11 @@ void Mctrl::end_of_elaboration() {
   r[MCTRL_MCFG2].br.create("sdr_bk", 23, 25);   // SDRAM bank size
   r[MCTRL_MCFG2].br.create("sdr_trfc", 27, 29); // SDRAM refresh cycle
 
-  GR_FUNCTION(Mctrl, configure_sdram);                  // args: module name, callback function name
-  GR_SENSITIVE(r[MCTRL_MCFG2].br["lmr"].add_rule(
-                                        gs::reg::POST_WRITE,  // function to be called after register write
-                                        "configure_sdram",    // function name
-                                        gs::reg::NOTIFY));    // notification on every register access
-  GR_SENSITIVE(r[MCTRL_MCFG4].br["emr"].add_rule(
-                                        gs::reg::POST_WRITE,
-                                        "configure_sdram",
-                                        gs::reg::NOTIFY));
-
-  GR_FUNCTION(Mctrl, launch_sdram_command);
-  GR_SENSITIVE(r[MCTRL_MCFG2].br["launch"].add_rule(
-                                        gs::reg::POST_WRITE,     // function to be called after register write
-                                        "launch_sdram_command",  // function name
-                                        gs::reg::NOTIFY));       // notification on every register access
-
-  GR_FUNCTION(Mctrl, erase_sdram);
-  GR_SENSITIVE(r[MCTRL_MCFG4].br["pmode"].add_rule(
-                                        gs::reg::POST_WRITE,      // function to be called after register write
-                                        "erase_sdram",            // function name
-                                        gs::reg::NOTIFY));        // notification on every register access
-
+  //register callbacks
   GR_FUNCTION(Mctrl, sram_disable);
   GR_SENSITIVE(r[MCTRL_MCFG2].br["si"].add_rule(
                                         gs::reg::POST_WRITE,      // function to be called after register write
                                         "sram_disable",           // function name
-                                        gs::reg::NOTIFY));        // notification on every register access
-
-  GR_FUNCTION(Mctrl, sdram_enable);
-  GR_SENSITIVE(r[MCTRL_MCFG2].br["se"].add_rule(
-                                        gs::reg::POST_WRITE,      // function to be called after register write
-                                        "sdram_enable",           // function name
                                         gs::reg::NOTIFY));        // notification on every register access
 
   GR_FUNCTION(Mctrl, sram_change_bank_size);
@@ -225,17 +199,49 @@ void Mctrl::end_of_elaboration() {
                                         "sram_change_bank_size",  // function name
                                         gs::reg::NOTIFY));        // notification on every register access
 
-  GR_FUNCTION(Mctrl, sdram_change_bank_size);
-  GR_SENSITIVE(r[MCTRL_MCFG2].br["sdr_bk"].add_rule(
-                                        gs::reg::POST_WRITE,      // function to be called after register write
-                                        "sdram_change_bank_size", // function name
-                                        gs::reg::NOTIFY));        // notification on every register access
 
-  GR_FUNCTION(Mctrl, sdram_change_refresh_cycle);
-  GR_SENSITIVE(r[MCTRL_MCFG2].br["sdr_trfc"].add_rule(
-                                        gs::reg::POST_WRITE,          // function to be called after register write
-                                        "sdram_change_refresh_cycle", // function name
-                                        gs::reg::NOTIFY));            // notification on every register access
+  //The following callbacks affect SDRAM only and are therefore not required if SDRAM is disabled
+  if (sden) {
+    GR_FUNCTION(Mctrl, configure_sdram);                  // args: module name, callback function name
+    GR_SENSITIVE(r[MCTRL_MCFG2].br["lmr"].add_rule(
+                                          gs::reg::POST_WRITE,  // function to be called after register write
+                                          "configure_sdram",    // function name
+                                          gs::reg::NOTIFY));    // notification on every register access
+    GR_SENSITIVE(r[MCTRL_MCFG4].br["emr"].add_rule(
+                                          gs::reg::POST_WRITE,
+                                          "configure_sdram",
+                                          gs::reg::NOTIFY));
+
+    GR_FUNCTION(Mctrl, launch_sdram_command);
+    GR_SENSITIVE(r[MCTRL_MCFG2].br["launch"].add_rule(
+                                          gs::reg::POST_WRITE,     // function to be called after register write
+                                          "launch_sdram_command",  // function name
+                                          gs::reg::NOTIFY));       // notification on every register access
+
+    GR_FUNCTION(Mctrl, erase_sdram);
+    GR_SENSITIVE(r[MCTRL_MCFG4].br["pmode"].add_rule(
+                                          gs::reg::POST_WRITE,      // function to be called after register write
+                                          "erase_sdram",            // function name
+                                          gs::reg::NOTIFY));        // notification on every register access
+
+    GR_FUNCTION(Mctrl, sdram_enable);
+    GR_SENSITIVE(r[MCTRL_MCFG2].br["se"].add_rule(
+                                          gs::reg::POST_WRITE,      // function to be called after register write
+                                          "sdram_enable",           // function name
+                                          gs::reg::NOTIFY));        // notification on every register access
+
+    GR_FUNCTION(Mctrl, sdram_change_bank_size);
+    GR_SENSITIVE(r[MCTRL_MCFG2].br["sdr_bk"].add_rule(
+                                          gs::reg::POST_WRITE,      // function to be called after register write
+                                          "sdram_change_bank_size", // function name
+                                          gs::reg::NOTIFY));        // notification on every register access
+
+    GR_FUNCTION(Mctrl, sdram_change_refresh_cycle);
+    GR_SENSITIVE(r[MCTRL_MCFG2].br["sdr_trfc"].add_rule(
+                                          gs::reg::POST_WRITE,          // function to be called after register write
+                                          "sdram_change_refresh_cycle", // function name
+                                          gs::reg::NOTIFY));            // notification on every register access
+  } //if sden
 }
 
 
@@ -250,29 +256,31 @@ void Mctrl::initialize_mctrl() {
   next_refresh = sc_core::sc_time( BUS_CLOCK_CYCLE * (r[MCTRL_MCFG3].get() >> 11), SC_NS );
 
   //set default values of mobile SDRAM
-  unsigned int mcfg;
-  switch (mobile) {
-    //case 0 is default value (set by initialization)
-    case 1:
-      //enable mobile SDRAM support
-      mcfg = static_cast<unsigned int> (r[MCTRL_MCFG2].get() | MCTRL_MCFG2_MS);
-      r[MCTRL_MCFG2].set( mcfg );
-      break;
-    case 2:
-      //enable mobile SDRAM support
-      mcfg = static_cast<unsigned int> (r[MCTRL_MCFG2].get() | MCTRL_MCFG2_MS);
-      r[MCTRL_MCFG2].set( mcfg );
-      //enable mobile SDRAM
-      mcfg = static_cast<unsigned int> (r[MCTRL_MCFG4].get() | MCTRL_MCFG4_ME);
-      r[MCTRL_MCFG4].set( mcfg );
-    //Case 3 would be the same as 2 here, the difference being that 3 disables std SDRAM,
-    //i.e. mobile cannot be disabled. This will be implemented wherever someone tries to
-    //disable mobile SDRAM.
+  if (sden) {
+    unsigned int mcfg;
+    switch (mobile) {
+      //case 0 is default value (set by initialization)
+      case 1:
+        //enable mobile SDRAM support
+        mcfg = static_cast<unsigned int> (r[MCTRL_MCFG2].get() | MCTRL_MCFG2_MS);
+        r[MCTRL_MCFG2].set( mcfg );
+        break;
+      case 2:
+        //enable mobile SDRAM support
+        mcfg = static_cast<unsigned int> (r[MCTRL_MCFG2].get() | MCTRL_MCFG2_MS);
+        r[MCTRL_MCFG2].set( mcfg );
+        //enable mobile SDRAM
+        mcfg = static_cast<unsigned int> (r[MCTRL_MCFG4].get() | MCTRL_MCFG4_ME);
+        r[MCTRL_MCFG4].set( mcfg );
+      //Case 3 would be the same as 2 here, the difference being that 3 disables std SDRAM,
+      //i.e. mobile cannot be disabled. This will be implemented wherever someone tries to
+      //disable mobile SDRAM.
+    }
   }
 
   // --- set register values according to generics
   unsigned int set;
-  if (sepbus) {
+  if (sden && sepbus) {
     set = r[MCTRL_MCFG2].get() | sdbits << 18;
     r[MCTRL_MCFG2].set( set );
   }
@@ -313,7 +321,7 @@ void Mctrl::initialize_mctrl() {
   r[MCTRL_MCFG2].set( set );
 
   //address spaces in case of SRAM only configuration
-  if (!(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE)) {
+  if ( !sden || !( r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE ) ) {
     //potentially unused banks
     sram_bk2_s = 0;
     sram_bk2_e = 0;
@@ -414,20 +422,23 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
   //start of transaction (required for refresh delay and in power down mode)
   sc_core::sc_time t_trans = sc_core::sc_time_stamp() + callback_delay;
 
-  //next refresh must end in the future
-  while (t_trans > next_refresh + cycle_time * trfc) {
-    //start of sdram idle period must be later than end of last refresh
-    if (start_idle < next_refresh + cycle_time * trfc) {
-      start_idle = next_refresh + cycle_time * trfc;
+  //refresh handling required for sdram only (deactivated by default)
+  if (sden) {
+    //next refresh must end in the future
+    while (t_trans > next_refresh + cycle_time * trfc) {
+      //start of sdram idle period must be later than end of last refresh
+      if (start_idle < next_refresh + cycle_time * trfc) {
+        start_idle = next_refresh + cycle_time * trfc;
+      }
+      //last refresh may have been stalled by an sdram access (see below)
+      next_refresh += cycle_time * (r[MCTRL_MCFG3].get() >> 11) - refresh_stall;
+      refresh_stall = sc_core::SC_ZERO_TIME;
     }
-    //last refresh may have been stalled by an sdram access (see below)
-    next_refresh += cycle_time * (r[MCTRL_MCFG3].get() >> 11) - refresh_stall;
-    refresh_stall = sc_core::SC_ZERO_TIME;
   }
 
   //gp parameters required for delay calculation
   tlm::tlm_command cmd = gp.get_command();
-  uint8_t data_length = data_length;
+  uint8_t data_length = gp.get_data_length();
 
   //access to ROM adress space
   if (Mctrl::rom_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::rom_bk1_e ||
@@ -657,6 +668,9 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
 
 //write into SDRAM_CMD field of MCFG2
 void Mctrl::launch_sdram_command() {
+  if (!sden) {
+    return;
+  }
   uint8_t cmd = ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_CMD >> 19) & 0x000000FF);
   switch (cmd) {
     // LMR / EMR
@@ -688,8 +702,9 @@ void Mctrl::configure_sdram() {
   //transparent to the TLM memory system. However, the delay induced by this command can be modeled here.
 
   //one cycle to write the register + tRP (2+0 or 2+1) to let the changes take effect
-  callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30), SC_NS);
-
+  if (sden) {
+    callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30), SC_NS);
+  }
 } 
 
 //change of PMODE
