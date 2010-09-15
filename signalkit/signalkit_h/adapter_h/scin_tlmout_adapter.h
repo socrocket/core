@@ -32,7 +32,7 @@ public:
   
   scin_tlmout_adapter(sc_core::sc_module_name mn)
     : sc_core::sc_module(mn)
-    , out(this,"OUT")
+    , out("OUT")
     , in("IN") {
       
     SC_THREAD(oninput);

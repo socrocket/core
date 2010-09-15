@@ -28,16 +28,16 @@ class signal_infield : public signal_base<TYPE, MODULE>, public signal_in_if<TYP
   public:
     typedef void(MODULE::*t_callback)(const TYPE &value, const unsigned int &channel, signal_in_if<TYPE> *signal, signal_out_if<TYPE> *sender, const sc_core::sc_time &time);
     
-    signal_infield(MODULE *module, sc_core::sc_module_name mn = NULL)
-      : signal_base<TYPE, MODULE>::signal_base(module, mn), m_callback(NULL) {}
+    signal_infield(sc_core::sc_module_name mn = NULL)
+      : signal_base<TYPE, MODULE>::signal_base(mn), m_callback(NULL) {}
 
-    signal_infield(MODULE *module, t_callback callback, sc_core::sc_module_name mn = NULL)
-      : signal_base<TYPE, MODULE>::signal_base(module, mn), m_callback(callback) {}
+    signal_infield(t_callback callback, sc_core::sc_module_name mn = NULL)
+      : signal_base<TYPE, MODULE>::signal_base(mn), m_callback(callback) {}
 
     virtual ~signal_infield() {}
     virtual void bind(signal_out_bind_if<TYPE> &sender, const unsigned int &channel = 0) {
       // TODO: Make it work with multible sender per channel
-      TYPE v;
+      TYPE v = TYPE();
       signal_out_if<TYPE> *out = static_cast<signal_out_if<TYPE> *>(&sender);
       if(out) {
         m_channel.insert(std::make_pair(out, channel));
@@ -56,7 +56,10 @@ class signal_infield : public signal_base<TYPE, MODULE>, public signal_in_if<TYP
       }
       value->second = sender->read();
       if(m_callback) {
-        (this->m_module->*m_callback)(value->second, channel->second, this, sender, time);
+        MODULE *mod = this->get_module();
+        if(mod) {
+          (mod->*m_callback)(value->second, channel->second, this, sender, time);
+        }
       }
     }
 

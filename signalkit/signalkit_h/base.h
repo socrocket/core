@@ -24,11 +24,20 @@ namespace signalkit {
 template<class TYPE, class MODULE>
 class signal_base : public sc_core::sc_object {
   public:
-    signal_base(MODULE *module, sc_core::sc_module_name mn = NULL)
-      : sc_core::sc_object(), m_module(module) {}
+    signal_base(sc_core::sc_module_name mn = NULL)
+      : sc_core::sc_object() {}
     
-  protected: 
-    MODULE *m_module;
+    virtual ~signal_base() {}
+  protected:
+    virtual MODULE *get_module() {
+      sc_core::sc_object *obj = get_parent();
+      MODULE *mod = dynamic_cast<MODULE *>(obj);
+      if(!mod) {
+        // Error Message: MODULE is not an sc_object/systemc_module.
+        return NULL;
+      } 
+      return mod;
+    }
 };
 
 }; // signalkit

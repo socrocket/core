@@ -27,8 +27,8 @@ namespace signalkit {
 template<class TYPE, class MODULE>
 class signal_selector : public signal_base<TYPE, MODULE>, public signal_out_bind_if<TYPE> {
   public:
-    signal_selector(MODULE *module, sc_core::sc_module_name mn = NULL)
-      : signal_base<TYPE, MODULE>::signal_base(module, mn) {}
+    signal_selector(sc_core::sc_module_name mn = NULL)
+      : signal_base<TYPE, MODULE>::signal_base(mn) {}
       
     virtual void bind(signal_in_if<TYPE> &receiver, const unsigned int &channel) {
       // TODO: Make work multipel selector<->infield channels
@@ -37,7 +37,7 @@ class signal_selector : public signal_base<TYPE, MODULE>, public signal_out_bind
       if(iter != outs.end()) {
         item = iter->second;
       } else {
-        item = new signal_out<TYPE, MODULE>(this->m_module, sc_core::sc_gen_unique_name("port", true));
+        item = new signal_out<TYPE, MODULE>(sc_core::sc_gen_unique_name("port", true));
         outs.insert( std::make_pair(channel, item));
       }  
       item->bind(receiver);

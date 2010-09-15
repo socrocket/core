@@ -32,7 +32,7 @@ public:
   
   tlmsc_inout_adapter(sc_core::sc_module_name mn)
     : sc_core::sc_module(mn)
-    , tlm(this, &tlmsc_inout_adapter::ontlm, "TLM")
+    , tlm(&tlmsc_inout_adapter::ontlm, "TLM")
     , sc("SC") {
     SC_THREAD(onsc);
     dont_initialize();

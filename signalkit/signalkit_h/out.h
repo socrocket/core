@@ -28,8 +28,8 @@ class signal_out : public signal_base<TYPE, MODULE>, public signal_out_if<TYPE> 
     typedef std::vector<signal_in_if<TYPE> *> t_receiver;
     
   public:
-    signal_out(MODULE *module, sc_core::sc_module_name mn = NULL)
-      : signal_base<TYPE, MODULE>::signal_base(module, mn) {}
+    signal_out(sc_core::sc_module_name mn = NULL)
+      : signal_base<TYPE, MODULE>::signal_base(mn) {}
       
     virtual ~signal_out() {}
   

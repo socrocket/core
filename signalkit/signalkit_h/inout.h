@@ -27,13 +27,13 @@ class signal_inout : public signal_out<TYPE, MODULE>, public signal_in<TYPE, MOD
   public:
     typedef void(MODULE::*t_callback)(const TYPE &value, signal_in_if<TYPE> *signal, signal_out_if<TYPE> *sender, const sc_core::sc_time &time);
    
-    signal_inout(MODULE *module, sc_core::sc_module_name mn = NULL)
-      : signal_out<TYPE, MODULE>::signal_out(module, mn)
-      , signal_in<TYPE, MODULE>::signal_in(module, mn) {}
+    signal_inout(sc_core::sc_module_name mn = NULL)
+      : signal_out<TYPE, MODULE>::signal_out(mn)
+      , signal_in<TYPE, MODULE>::signal_in(mn) {}
 
-    signal_inout(MODULE *module, t_callback callback, sc_core::sc_module_name mn = NULL)
-      : signal_out<TYPE, MODULE>::signal(module, mn)
-      , signal_in<TYPE, MODULE>::signal_in(module, callback, mn) {}
+    signal_inout(t_callback callback, sc_core::sc_module_name mn = NULL)
+      : signal_out<TYPE, MODULE>::signal(mn)
+      , signal_in<TYPE, MODULE>::signal_in(callback, mn) {}
 
     virtual ~signal_inout() {}
 };

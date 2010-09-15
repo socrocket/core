@@ -30,7 +30,7 @@ class tlmin_scout_adapter : public signal_module<tlmin_scout_adapter<INTYPE, OUT
 
     tlmin_scout_adapter(sc_core::sc_module_name mn)
       : sc_core::sc_module(mn)
-      , in(this, &tlmin_scout_adapter::oninput, "IN")
+      , in(&tlmin_scout_adapter::oninput, "IN")
       , out("OUT") {}
 
   private:
