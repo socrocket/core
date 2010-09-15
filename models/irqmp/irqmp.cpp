@@ -316,7 +316,7 @@ void CIrqmp::register_irq(const uint32_t &value, const unsigned int &channel, si
     r[PENDING].set( set );
 
     //set force registers for broadcasted interrupts
-    for (int i_cpu; i_cpu<ncpu; i_cpu++) {                                                   // EIRs cannot be forced
+    for (int i_cpu = 0; i_cpu<ncpu; i_cpu++) {                                             // EIRs cannot be forced
       unsigned int set = static_cast<unsigned int>( irq & r[BROADCAST].get() & IRQMP_PROC_IR_FORCE_IF );
       r[PROC_IR_FORCE(i_cpu)].set( set );
     }

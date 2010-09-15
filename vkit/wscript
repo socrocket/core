@@ -24,8 +24,8 @@ def set_options(ctx):
 def configure(ctx):
   from Options import options
   import os.path
-  if options.debug and options.debug != "":
-    ctx.env["CXXFLAGS"] += ['-DVERBOSITY=%s' % (options.debug)]
+  if options.verbosity and options.verbosity != "":
+    ctx.env["CXXFLAGS"] += ['-DVERBOSITY=%s' % (options.verbosity)]
 
 def build(bld):
   bld(

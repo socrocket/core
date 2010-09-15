@@ -630,7 +630,7 @@ inline t_cache_line * vectorcache::lookup(unsigned int set, unsigned int idx) {
 /// select cache line to be replaced according to replacement policy
 unsigned int vectorcache::replacement_selector(unsigned int mode) {
 
-  unsigned int set_select;
+  unsigned int set_select = 0;
   int min_lru;
 
   // LRU - least recently used
