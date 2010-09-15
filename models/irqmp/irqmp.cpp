@@ -42,7 +42,7 @@
 #define PROC_EXTIR_ID(CPU_INDEX) (0xC0 + 0x4 * CPU_INDEX)
 
 /// Constructor
-Irqmp::Irqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, int _eirq)
+CIrqmp::CIrqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, int _eirq)
   :
   gr_device(
             name,                      //sc_module name
@@ -53,19 +53,21 @@ Irqmp::Irqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, in
   bus( //greenreg_socket
       "bus",            //name
       r,                //register container
-      _paddr << 20,     // start address
-      0xE0,             // register space length
+      0x0,              // start address
+      0xFFFFFFFF,       // register space length
       ::amba::amba_APB, // bus type
       ::amba::amba_LT,  // communication type / abstraction level
       false             // not used
      ),
-  rst(this, &Irqmp::reset_registers, "RESET"),
-  cpu_rst(this, "CPU_RESET"),
-  irq_req(this, "CPU_REQUEST"),
-  irq_ack(this, &Irqmp::clear_acknowledged_irq, "IRQ_ACKNOWLEDGE"),
-  irq_in(this, &Irqmp::register_irq, "IRQ_INPUT"),
+  rst(&CIrqmp::reset_registers, "RESET"),
+  cpu_rst("CPU_RESET"),
+  irq_req("CPU_REQUEST"),
+  irq_ack(&CIrqmp::clear_acknowledged_irq, "IRQ_ACKNOWLEDGE"),
+  irq_in(&CIrqmp::register_irq, "IRQ_INPUT"),
   ncpu(_ncpu), eirq(_eirq)
-//  conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7))
+//  pindex("PINDEX"),
+//  conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)),
+//  clockcycle(10.0, sc_core::SC_NS)
                                      {
 
   // create register | name + description
@@ -159,34 +161,34 @@ Irqmp::Irqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, in
 }
 
 /// Destructor
-Irqmp::~Irqmp() {
+CIrqmp::~CIrqmp() {
   GC_UNREGISTER_CALLBACKS();
 }
 
 
 /// Hook up callback functions to registers
-void Irqmp::end_of_elaboration() {   
+void CIrqmp::end_of_elaboration() {   
 
   // send interrupts to processors after write to pending / force regs
-  GR_FUNCTION(Irqmp, launch_irq);                         // args: module name, callback function name
+  GR_FUNCTION(CIrqmp, launch_irq);                         // args: module name, callback function name
   GR_SENSITIVE(r[PENDING].add_rule( gs::reg::POST_WRITE,  // function to be called after register write
                                     "launch_irq",         // function name
                                     gs::reg::NOTIFY));    // notification on every register access
   for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
-    GR_FUNCTION(Irqmp, launch_irq);
+    GR_FUNCTION(CIrqmp, launch_irq);
     GR_SENSITIVE(r[PROC_IR_FORCE(i_cpu)].add_rule( gs::reg::POST_WRITE, 
                                      gen_unique_name("launch_irq", false), 
                                      gs::reg::NOTIFY));
   }
 
   // unset pending bits of cleared interrupts
-  GR_FUNCTION(Irqmp, clear_write);
+  GR_FUNCTION(CIrqmp, clear_write);
   GR_SENSITIVE(r[CLEAR].add_rule( gs::reg::POST_WRITE,
                                   "clear_write",
                                   gs::reg::NOTIFY));
 
   // unset pending bits of cleared interrupts
-  GR_FUNCTION(Irqmp, clear_forced_ir);
+  GR_FUNCTION(CIrqmp, clear_forced_ir);
   for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
     GR_SENSITIVE(r[PROC_IR_FORCE(i_cpu)].add_rule( gs::reg::POST_WRITE,
                                                    gen_unique_name("clear_forced_ir", false),
@@ -194,13 +196,13 @@ void Irqmp::end_of_elaboration() {
   }
 
   // manage cpu run / reset signals after write into MP status reg
-  GR_FUNCTION(Irqmp, mpstat_write);
+  GR_FUNCTION(CIrqmp, mpstat_write);
   GR_SENSITIVE(r[MP_STAT].add_rule( gs::reg::POST_WRITE, 
                                    "mpstat_write", 
                                    gs::reg::NOTIFY));
 
   // read registers
-  GR_FUNCTION(Irqmp, register_read);
+  GR_FUNCTION(CIrqmp, register_read);
   GR_SENSITIVE(r[LEVEL].add_rule( gs::reg::PRE_READ, 
                                    "level_read", 
                                    gs::reg::NOTIFY));
@@ -218,7 +220,7 @@ void Irqmp::end_of_elaboration() {
                                    gs::reg::NOTIFY));
 
   for (int i_cpu=0; i_cpu<ncpu;i_cpu++) {
-    GR_FUNCTION(Irqmp, register_read);
+    GR_FUNCTION(CIrqmp, register_read);
     GR_SENSITIVE(r[PROC_IR_MASK(i_cpu)].add_rule( gs::reg::POST_WRITE, 
                                      gen_unique_name("mask_read", false), 
                                      gs::reg::NOTIFY));
@@ -236,7 +238,7 @@ void Irqmp::end_of_elaboration() {
 
 /// Reset registers to default values
 /// Process sensitive to reset signal
-void Irqmp::reset_registers(const bool &value, signalkit::signal_in_if<bool> *signal, signalkit::signal_out_if<bool> *sender, const sc_core::sc_time &time) {
+void CIrqmp::reset_registers(const bool &value, signalkit::signal_in_if<bool> *signal, signalkit::signal_out_if<bool> *sender, const sc_core::sc_time &time) {
 #if 0
 #ifdef COUT_TIMING
     cout << endl << "reset_registers called by trigger at:" << sc_time_stamp();
@@ -288,7 +290,7 @@ void Irqmp::reset_registers(const bool &value, signalkit::signal_in_if<bool> *si
 ///  - write incoming interrupts into pending or force registers
 ///
 /// process sensitive to apbi.pirq
-void Irqmp::register_irq(const uint32_t &value, const unsigned int &channel, signalkit::signal_in_if<uint32_t> *signal, signalkit::signal_out_if<uint32_t> *sender, const sc_core::sc_time &time) {
+void CIrqmp::register_irq(const uint32_t &value, const unsigned int &channel, signalkit::signal_in_if<uint32_t> *signal, signalkit::signal_out_if<uint32_t> *sender, const sc_core::sc_time &time) {
 
   //static bool delay = true;
 
@@ -338,7 +340,7 @@ void Irqmp::register_irq(const uint32_t &value, const unsigned int &channel, sig
 ///
 /// callback registered on IR pending register,
 ///                        IR force registers
-void Irqmp::launch_irq() {
+void CIrqmp::launch_irq() {
   short int high_ir;        // highest priority interrupt (to be launched)
   sc_uint<32> masked_ir;    // vector of pending, masked interrupts
   //l3_irq_in_type temp;      // temp var required for write access to single signals inside the struct
@@ -399,14 +401,14 @@ void Irqmp::launch_irq() {
 ///  - in case of eirq, release eirq ID in eirq ID register
 ///
 /// callback registered on interrupt clear register
-void Irqmp::clear_write() {
+void CIrqmp::clear_write() {
   // pending reg only: forced IRs are cleared in the next function
   unsigned int cleared_vector = r[PENDING].get() and not r[CLEAR].get();
   r[PENDING].set(cleared_vector);
 }
 
 /// callback registered on interrupt force registers
-void Irqmp::clear_forced_ir() {
+void CIrqmp::clear_forced_ir() {
 
   for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
     unsigned int ir_force_reg = r[IRQMP_PROC_IR_FORCE(i_cpu)].get();
@@ -420,7 +422,7 @@ void Irqmp::clear_forced_ir() {
 
 
 /// process sensitive to irqi
-void Irqmp::clear_acknowledged_irq(const uint32_t &cleared_irq, const unsigned int &i_cpu, signalkit::signal_in_if<uint32_t> *signal, signalkit::signal_out_if<uint32_t> *sender, const sc_core::sc_time &time) {
+void CIrqmp::clear_acknowledged_irq(const uint32_t &cleared_irq, const unsigned int &i_cpu, signalkit::signal_in_if<uint32_t> *signal, signalkit::signal_out_if<uint32_t> *sender, const sc_core::sc_time &time) {
 #if 0
 #ifdef COUT_TIMING
     cout << endl << "clear_acknowledged_irq called by trigger at:" << sc_time_stamp();
@@ -460,7 +462,7 @@ void Irqmp::clear_acknowledged_irq(const uint32_t &cleared_irq, const unsigned i
 
 /// reset cpus after write to cpu status register
 /// callback registered on mp status register
-void Irqmp::mpstat_write() {
+void CIrqmp::mpstat_write() {
   cpu_rst.write(0xFFFFFFFF, true);
 }
 
@@ -470,7 +472,7 @@ void Irqmp::mpstat_write() {
 /// Prior to a read access, no changes to the registers are necessary.
 ///
 /// callback registered on all registers
-void Irqmp::register_read() {
+void CIrqmp::register_read() {
 
 }
 

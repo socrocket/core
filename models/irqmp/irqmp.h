@@ -29,9 +29,9 @@
 /// @addtogroup irqmp IRQMP
 /// @{
 
-class Irqmp
+class CIrqmp
     : public gs::reg::gr_device
-    , public signalkit::signal_module<Irqmp> {
+    , public signalkit::signal_module<CIrqmp> {
   public:
     /// Slave socket with delayed switch; responsible for all bus communication
     gs::reg::greenreg_socket< gs::amba::amba_slave<32> > bus;
@@ -54,8 +54,8 @@ class Irqmp
     GC_HAS_CALLBACKS();
 
     /// Constructor. Takes vhdl generics as parameters
-    Irqmp(sc_core::sc_module_name name, int _paddr = 0, int _pmask = 0xFFF, int _ncpu = 2, int _eirq = 1); // interrupt cascade for extended interrupts
-    ~Irqmp();
+    CIrqmp(sc_core::sc_module_name name, int _paddr = 0, int _pmask = 0xFFF, int _ncpu = 2, int _eirq = 1); // interrupt cascade for extended interrupts
+    ~CIrqmp();
 
     //function prototypes
     void end_of_elaboration();
@@ -95,7 +95,5 @@ class Irqmp
 };
 
 /// @}
-
-#include "irqmp.tpp"
 
 #endif
