@@ -67,11 +67,11 @@ Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm,   // Module name
 /// Destructor
 Ctb_ahb_mem::~Ctb_ahb_mem() {
 
-   cout << name << " Memory content: \n" << endl;
-   for(std::map<unsigned int, unsigned char>::iterator it=mem.begin();
-       it!=mem.end(); it++) {
-      printf("@%#8.8x: %#2.2x\n", it->first, it->second);
-   }
+//    cout << name << " Memory content: \n" << endl;
+//    for(std::map<unsigned int, unsigned char>::iterator it=mem.begin();
+//        it!=mem.end(); it++) {
+//       printf("@%#8.8x: %#2.2x\n", it->first, it->second);
+//    }
    mem.clear();
 }  // End destructor
 
@@ -109,7 +109,7 @@ void Ctb_ahb_mem::b_transport(tlm::tlm_generic_payload &gp,
 }  // void Ctb_ahb_mem::b_transport()
 
 /// Method to initialize memory contents from a text file
-int Ctb_ahb_mem::readmem(char infile_[], unsigned int addr) {
+int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {
 
    std::ifstream infile(infile_, ios::in);
    char buffer = 0;
@@ -150,7 +150,7 @@ int Ctb_ahb_mem::readmem(char infile_[], unsigned int addr) {
       infile.close();
       return 0;
    } else {
-      oerror << name << ": File not found or readable\n";
+      oerror << name << ": File \"" << infile_ << "\" not found or readable\n";
       return infile.good();
    }
 }  // int Ctb_ahb_mem::readmem(char infile_[], unsigned int addr)

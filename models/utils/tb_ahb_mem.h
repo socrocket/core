@@ -67,6 +67,11 @@ class Ctb_ahb_mem : public sc_module {
       void b_transport(tlm::tlm_generic_payload &gp,
                        sc_core::sc_time &delay);
 
+      /// @brief Delete memory content
+      void clear_mem() {
+         mem.clear();
+      }
+
    private:
       /// The actual memory
       std::map<uint32_t, uint8_t> mem;
