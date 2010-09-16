@@ -19,13 +19,6 @@
 #include "gpcounter.h"
 #include "gptimer.h"
 
-#define SCALER            (0x00)
-#define SCRELOAD          (0x04)
-#define CONF              (0x08)
-#define VALUE             (0x10*(nr+1)+0x0)
-#define RELOAD            (0x10*(nr+1)+0x4)
-#define CTRL              (0x10*(nr+1)+0x8)
-
 /// @addtogroup gptimer
 /// @{
 
@@ -41,69 +34,69 @@ CGPCounter::~CGPCounter() {
   
 void CGPCounter::end_of_elaboration() {
   GR_FUNCTION(CGPCounter, ctrl_read);
-  GR_SENSITIVE(p.r[CTRL].add_rule(gs::reg::PRE_READ, 
+  GR_SENSITIVE(p.r[CGPTimer::CTRL(nr)].add_rule(gs::reg::PRE_READ, 
                                   gen_unique_name("ctrl_read", false), 
                                   gs::reg::NOTIFY));
 
   GR_FUNCTION(CGPCounter, ctrl_write);
-  GR_SENSITIVE(p.r[CTRL].add_rule(gs::reg::POST_WRITE, 
+  GR_SENSITIVE(p.r[CGPTimer::CTRL(nr)].add_rule(gs::reg::POST_WRITE, 
                                   gen_unique_name("ctrl_write", false), 
                                   gs::reg::NOTIFY));
 
   GR_FUNCTION(CGPCounter, value_read);
-  GR_SENSITIVE(p.r[VALUE].add_rule(gs::reg::PRE_READ, 
+  GR_SENSITIVE(p.r[CGPTimer::VALUE(nr)].add_rule(gs::reg::PRE_READ, 
                                    gen_unique_name("value_read", false), 
                                    gs::reg::NOTIFY));
 
   GR_FUNCTION(CGPCounter, value_write);
-  GR_SENSITIVE(p.r[VALUE].add_rule(gs::reg::POST_WRITE, 
+  GR_SENSITIVE(p.r[CGPTimer::VALUE(nr)].add_rule(gs::reg::POST_WRITE, 
                                    gen_unique_name("value_write", false), 
                                    gs::reg::NOTIFY));
 
-  p.r[VALUE].enable_events();
+  p.r[CGPTimer::VALUE(nr)].enable_events();
 }
 
 void CGPCounter::ctrl_read() {
-  p.r[CTRL].b[TIM_CTRL_DH] = (p.dhalt.read() != 0);
-  p.r[CTRL].b[TIM_CTRL_IP] = m_pirq; 
+  p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_DH] = (p.dhalt.read() != 0);
+  p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IP] = m_pirq; 
 }
 
 void CGPCounter::ctrl_write() {
-  p.r[CTRL].b[TIM_CTRL_DH] = (p.dhalt.read() != 0);
+  p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_DH] = (p.dhalt.read() != 0);
   std::cout << " CGPTimer " << nr << " write " << std::endl;
 
   /* Clean irq if desired */
   bool old_pirq = m_pirq;
 
-  m_pirq = p.r[CTRL].b[TIM_CTRL_IP] and m_pirq;
+  m_pirq = p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IP] and m_pirq;
   if(old_pirq && !m_pirq) {
-    unsigned int irqnr = (p.r[CONF] >> 3) & 0xF;
-    if(p.r[CONF].b[TIM_CONF_SI]) {
+    unsigned int irqnr = (p.r[CGPTimer::CONF] >> 3) & 0xF;
+    if(p.r[CGPTimer::CONF].b[CGPTimer::CONF_SI]) {
        irqnr += nr;
     }
     p.irq.write(p.irq.read() & ~(1<<irqnr));
   }
 
   /* Prepare for chainging */
-  if(p.r[CTRL].b[TIM_CTRL_CH]) {
+  if(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) {
     chain_run = false;
     stop();
   }
 
   /* Load */
-  if(p.r[CTRL].b[TIM_CTRL_LD]) {
-    unsigned int reload = p.r[RELOAD]; 
-    p.r[VALUE].set(reload);
+  if(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_LD]) {
+    unsigned int reload = p.r[CGPTimer::RELOAD(nr)]; 
+    p.r[CGPTimer::VALUE(nr)].set(reload);
     value_write();
-    p.r[CTRL].b[TIM_CTRL_LD] = false;
+    p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_LD] = false;
   }
 
   /* Enable */
   //std::cout << "StartStop_" << nr << std::endl;
-  if(p.r[CTRL].b[TIM_CTRL_EN] && stopped) {
+  if(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN] && stopped) {
     std::cout << "Start_" << nr << std::endl;
     start();
-  } else if((!p.r[CTRL].b[TIM_CTRL_EN])&&!stopped) {
+  } else if((!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN])&&!stopped) {
     std::cout << "Stop_" << nr << std::endl;
     stop();
   }
@@ -112,9 +105,9 @@ void CGPCounter::ctrl_write() {
 void CGPCounter::value_read() {
   if(!stopped) {
     sc_core::sc_time now = sc_core::sc_time_stamp();
-    int reload = p.r[RELOAD] + 1;
+    int reload = p.r[CGPTimer::RELOAD(nr)] + 1;
     int dticks;
-    if(p.r[CTRL].b[TIM_CTRL_CH]) {
+    if(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) {
       dticks = p.numberofticksbetween(lasttime, now, 0, p.counter[nr-1]->cycletime());
     } else {
       dticks = p.numberofticksbetween(lasttime, now, nr+2, p.clockcycle);
@@ -122,15 +115,15 @@ void CGPCounter::value_read() {
     int value = ((int)lastvalue - dticks) % reload;
     
     if(value<0) {
-      p.r[VALUE] = reload + value;
+      p.r[CGPTimer::VALUE(nr)] = reload + value;
     } else {
-      p.r[VALUE] = value;
+      p.r[CGPTimer::VALUE(nr)] = value;
     }
   }
 }
 
 void CGPCounter::value_write() {
-  lastvalue = p.r[VALUE];
+  lastvalue = p.r[CGPTimer::VALUE(nr)];
   lasttime  = sc_core::sc_time_stamp();
   if(!stopped) {
     calculate();
@@ -157,14 +150,14 @@ void CGPCounter::ticking() {
     #endif
     
     /* Send interupt and set outputs */
-    if(p.r[CTRL].b[TIM_CTRL_IE]) {
-        // p.r[CTRL].b[TIM_CTRL_SI] // seperatet interupts
+    if(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IE]) {
+        // p.r[CGPTimer::CTRL].b[CGPTimer::TIM_CTRL_SI] // seperatet interupts
         // APBIRQ addresse beachten -.-
-      unsigned int irqnr = (p.r[CONF] >> 3) & 0xF;
+      unsigned int irqnr = (p.r[CGPTimer::CONF] >> 3) & 0xF;
       #ifdef DEBUG
-      std::cout << "IRQ: " << irqnr << " CONF "<< p.r[CONF] << std::endl;
+      std::cout << "IRQ: " << irqnr << " CONF "<< p.r[CGPTimer::CONF] << std::endl;
       #endif
-      if(p.r[CONF].b[TIM_CONF_SI]) {
+      if(p.r[CGPTimer::CONF].b[CGPTimer::CONF_SI]) {
         irqnr += nr;
       }
       p.irq.write(p.irq.read() | (1<<irqnr));
@@ -183,21 +176,21 @@ void CGPCounter::ticking() {
 #endif
     
     unsigned int nrn = (nr+1<p.counter.size())? nr+1 : 0;
-    if(p.r[TIM_CTRL(nrn)].b[TIM_CTRL_CH]) {
+    if(p.r[CGPTimer::CTRL(nrn)].b[CGPTimer::CTRL_CH]) {
       p.counter[(nrn) % p.counter.size()]->chaining();
     }
 
     // Enable value becomes restart value
-    p.r[CTRL].b[TIM_CTRL_EN].set(p.r[CTRL].b[TIM_CTRL_RS].get());
+    p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN].set(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_RS].get());
   }
 }
 
 void CGPCounter::do_reset() {
   lastvalue   = 0;
   lasttime    = sc_core::sc_time_stamp();
-  p.r[VALUE]  = 0;
-  p.r[RELOAD] = 0;
-  p.r[CONF]   = 0;
+  p.r[CGPTimer::VALUE(nr)]  = 0;
+  p.r[CGPTimer::RELOAD(nr)] = 0;
+  p.r[CGPTimer::CTRL(nr)]   = 0;
   stopped     = true;
   chain_run   = false;
 }
@@ -209,20 +202,20 @@ void CGPCounter::do_reset() {
 sc_core::sc_time CGPCounter::nextzero() {
   sc_core::sc_time t; /* cycle time of foundation (other CGPCounter or the cloccycle) */
   int x; /* Per cycle */
-  if(p.r[CTRL].b[TIM_CTRL_CH]) { /* We depend on the cycle time of the last CGPCounter. */
+  if(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) { /* We depend on the cycle time of the last CGPCounter. */
     if(nr) {
       //p.counter[nr-1]->value_read();
       //t = p.counter[nr-1]->cycletime();
-      x = p.r[TIM_VALUE(nr-1)];
+      x = p.r[CGPTimer::VALUE(nr-1)];
     } else {
       p.counter[p.counter.size()-1]->value_read();
       t = p.counter[p.counter.size()-1]->cycletime();
-      x = p.r[TIM_VALUE(p.counter.size()-1)];
+      x = p.r[CGPTimer::VALUE(p.counter.size()-1)];
     }
   } else { /* We only depend on the prescaler */
     p.scaler_read();
     t = p.clockcycle;
-    x = p.r[SCALER];
+    x = p.r[CGPTimer::SCALER];
   } 
   return t * (x + 2);
 }
@@ -233,18 +226,18 @@ sc_core::sc_time CGPCounter::nextzero() {
 sc_core::sc_time CGPCounter::cycletime() {
   sc_core::sc_time t; /* cycle time of foundation (other CGPCounter or the cloccycle) */
   int m; /* Per cycle */
-  if(p.r[CTRL].b[TIM_CTRL_CH]) { /* We depend on the cycle time of the last CGPCounter. */
+  if(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) { /* We depend on the cycle time of the last CGPCounter. */
     if(nr) {
       t = p.counter[nr-1]->cycletime();
-      m = p.r[TIM_RELOAD(nr-1)];
+      m = p.r[CGPTimer::RELOAD(nr-1)];
     } else {
       t = p.counter[p.counter.size()]->cycletime();
-      m = p.r[TIM_RELOAD(p.counter.size())];
+      m = p.r[CGPTimer::RELOAD(p.counter.size())];
     }
   } else 
   { /* We only depend on the prescaler */
     t = p.clockcycle;
-    m = p.r[TIM_SCRELOAD];
+    m = p.r[CGPTimer::SCRELOAD];
     //m = 1;
   }
   return t * (m + 1);
@@ -255,10 +248,10 @@ sc_core::sc_time CGPCounter::cycletime() {
 void CGPCounter::calculate() {
   e_wait.cancel();
   value_read();
-  int value = p.r[VALUE];
+  int value = p.r[CGPTimer::VALUE(nr)];
   sc_core::sc_time time;
   // Calculate with currentime, and lastvalue updates
-  if(p.r[CTRL].b[TIM_CTRL_EN]) {
+  if(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN]) {
     sc_core::sc_time zero = this->nextzero();
     sc_core::sc_time cycle = this->cycletime();
     #ifdef DEBUG
@@ -279,12 +272,14 @@ void CGPCounter::calculate() {
 void CGPCounter::start() {
   std::cout << "start_" << nr << " stopped: " 
             << stopped << "-" 
-            << p.r[CTRL].b[TIM_CTRL_EN] << "-" 
+            << p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN] << "-" 
             << (p.dhalt.read()!=0) << "-" 
-            << (!p.r[CTRL].b[TIM_CTRL_CH] || (p.r[CTRL].b[TIM_CTRL_CH] && chain_run)) 
+            << (!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH] || 
+                (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH] && chain_run)) 
             << std::endl;
-  if(stopped && p.r[CTRL].b[TIM_CTRL_EN] /*&& (p.dhalt.read()!=0)*/ && 
-    (!p.r[CTRL].b[TIM_CTRL_CH] || (p.r[CTRL].b[TIM_CTRL_CH] && chain_run))) {
+  if(stopped && p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN] /*&& (p.dhalt.read()!=0)*/ && 
+    (!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH] || 
+     (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH] && chain_run))) {
     std::cout << "startnow_" << nr << std::endl;
     
     lasttime  = sc_core::sc_time_stamp();
@@ -301,7 +296,7 @@ void CGPCounter::stop() {
     //std::cout << "stop_" << nr << std::endl;
     e_wait.cancel();
     value_read();
-    lastvalue = p.r[VALUE];
+    lastvalue = p.r[CGPTimer::VALUE(nr)];
     lasttime  = sc_core::sc_time_stamp();
     stopped = true;
   }

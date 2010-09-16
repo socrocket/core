@@ -26,7 +26,6 @@
 #include "greencontrol/all.h"
 #include "signalkit.h"
 
-#include "gptimerregisters.h"
 #include "grlibdevice.h"
 #include "gpcounter.h"
 
@@ -193,11 +192,34 @@ class CGPTimer
     /// @see lasttime
     /// @see numberofticksbetween()
     ///
-    int valueof(sc_core::sc_time t, int offset, sc_core::sc_time cycletime) const;
+    int32_t valueof(sc_core::sc_time t, int32_t offset, sc_core::sc_time cycletime) const;
 
     /// @brief
     ///
     int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime);
+
+    static const uint32_t SCALER     = 0x00;
+    static const uint32_t SCRELOAD   = 0x04;
+    static const uint32_t CONF       = 0x08;
+    static const uint32_t VALUE(uint8_t nr)  { return 0x10*(nr+1)+0x0; }
+    static const uint32_t RELOAD(uint8_t nr) { return TIM_AHB_BASE+0x10*(nr+1)+0x4; }
+    static const uint32_t CTRL(uint8_t nr)   { return TIM_AHB_BASE+0x10*(nr+1)+0x8; }
+
+    static const uint32_t CONF_DF    =  9;
+    static const uint32_t CONF_SI    =  8;
+    static const uint32_t CONF_IQ_MA =  0x000000F8;
+    static const uint32_t CONF_IQ_OS =  3;
+    static const uint32_t CONF_NR_MA =  0x00000007;
+    static const uint32_t CONF_NR_OS =  0;
+
+    static const uint32_t CTRL_DH    =  6;
+    static const uint32_t CTRL_CH    =  5;
+    static const uint32_t CTRL_IP    =  4;
+    static const uint32_t CTRL_IE    =  3;
+    static const uint32_t CTRL_LD    =  2;
+    static const uint32_t CTRL_RS    =  1;
+    static const uint32_t CTRL_EN    =  0;
+
 };
 
 /// @}

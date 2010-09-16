@@ -18,20 +18,13 @@
 #include <string>
 #include "gptimer.h"
 
-#define SCALER            (0x00)
-#define SCRELOAD          (0x04)
-#define CONF              (0x08)
-#define VALUE             (0x10*(nr+1)+0x0)
-#define RELOAD            (0x10*(nr+1)+0x4)
-#define CTRL              (0x10*(nr+1)+0x8)
-
 /// @addtogroup gptimer
 /// @{
 
 CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers, int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq, int gsbits, int gnbits, int gwdog)
   : gr_device(name, gs::reg::ALIGNED_ADDRESS, 4*(1+ntimers), NULL)
   , CGrlibDevice(0x1, 0x11, 0, 0, gpirq, GrlibBAR(APBIO, gpmask, false, false, gpaddr))
-  , bus( "bus", r, 0x0, 0xFFFFFFFF, ::amba::amba_APB, ::amba::amba_LT, false)
+  , bus( "bus", r, gpaddr << 20, (4095 - gpmask) << 20, ::amba::amba_APB, ::amba::amba_LT, false)
   , rst(&CGPTimer::do_reset, "RESET")
   , dhalt(&CGPTimer::do_dhalt, "DHALT")
   , tick("TICK"), irq("IRQ"), wdog("WDOG")
@@ -69,7 +62,7 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers, int gpind
     CGPCounter *c = new CGPCounter(*this, i, gen_unique_name("CGPCounter", true));
     counter.push_back(c);
     r.create_register( gen_unique_name("value", false), "CGPCounter Value Register", 
-          /* offset */ TIM_VALUE(i),
+          /* offset */ VALUE(i),
           /* config */ gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
       /* init value */ 0x00000000, 
       /* write mask */ static_cast<unsigned int>((1ULL<<gnbits)-1), /* nbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s. */ 
@@ -77,7 +70,7 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers, int gpind
        /* lock mask */ 0x00
                      );
     r.create_register( gen_unique_name("reload", false), "Reload Value Register", 
-          /* offset */ TIM_RELOAD(i),
+          /* offset */ RELOAD(i),
           /* config */ gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
       /* init value */ 0x00000001, 
       /* write mask */ static_cast<unsigned int>((1ULL<<gnbits)-1), /* nbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s. */ 
@@ -85,7 +78,7 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers, int gpind
        /* lock mask */ 0x00
                      );
     r.create_register( gen_unique_name("ctrl", false), "Controle Register", 
-          /* offset */ TIM_CTRL(i),
+          /* offset */ CTRL(i),
           /* config */ gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
       /* init value */ 0x00000000, 
       /* write mask */ 0x0000007F, 
@@ -173,7 +166,7 @@ void CGPTimer::ticking() {
  * The value will be directly fetched in conf_read to show the right value in the conf registers.
  */
 void CGPTimer::do_dhalt(const bool &value, signalkit::signal_in_if<bool> *signal, signalkit::signal_out_if<bool> *sender, const sc_core::sc_time &time) {
-  if(r[TIM_CONF].b[TIM_CONF_DF]) {
+  if(r[CONF].b[CONF_DF]) {
     if(value) {
       for(std::vector<CGPCounter *>::iterator iter=counter.begin();iter!=counter.end();iter++) {
         (*iter)->stop();
@@ -280,7 +273,7 @@ void CGPTimer::diag() {
   while(1) {
     std::printf("\n@%-7s /%-4d: ", sc_core::sc_time_stamp().to_string().c_str(), (unsigned)sc_core::sc_delta_count());
     scaler_read();
-    std::cout << "Scaler:{ v:" << r[TIM_SCALER] << ", r:" << r[TIM_SCRELOAD] << "}";
+    std::cout << "Scaler:{ v:" << r[SCALER] << ", r:" << r[SCRELOAD] << "}";
     SHOWCGPCounter(0);
     SHOWCGPCounter(1);
     SHOWCGPCounter(2);
