@@ -66,17 +66,18 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
       (4096 - _pmask) << 20, //apb address space size 
       ::amba::amba_APB,      //bus type
       ::amba::amba_LT,       //abstraction level
-      false                  //not used
+      false                  //socket is not used for arbitration
      ),
   ahb("ahb",
       ::amba::amba_AHB, //bus type
       ::amba::amba_LT,  //abstraction level
-      false             //not used
+      false             //socket is not used for arbitration
      ),
   mctrl_rom("mctrl_rom"),
   mctrl_io("mctrl_io"),
   mctrl_sram("mctrl_sram"),
   mctrl_sdram("mctrl_sdram"),
+  rst(&Mctrl::reset_mctrl, "RESET"),
   pmode(0),
   romasel  (_romasel),
   sdrasel  (_sdrasel),
@@ -103,15 +104,18 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
      //rom space in Byte: 2^(romasel + 1)
      //same for ram and sdrasel
   if (4096 - _rommask   != 1 << (_romasel - 19) ||
-      4096 - _rammask   != 1 << (_sdrasel - 19) ||
-      _romaddr + 4096 - _rommask > _ioaddr      ||
-      _romaddr + 4096 - _rommask > _ramaddr     ||
-      _ioaddr  + 4096 - _iomask  > _romaddr     ||
-      _ioaddr  + 4096 - _iomask  > _ramaddr     ||
-      _ramaddr + 4096 - _rammask > _romaddr     ||
-      _ramaddr + 4096 - _rammask > _ioaddr         )
+      4096 - _rammask   != 1 << (_sdrasel - 19)    )
   {
-    //FIXME: issue error message: inconsistent address space parameters
+    //FIXME: issue error message: inconsistent address space parameters (addr / mask contradicting romasel / sdrasel)
+  }
+  else if (_romaddr + 4096 - _rommask > _ioaddr      ||
+           _romaddr + 4096 - _rommask > _ramaddr     ||
+           _ioaddr  + 4096 - _iomask  > _romaddr     ||
+           _ioaddr  + 4096 - _iomask  > _ramaddr     ||
+           _ramaddr + 4096 - _rammask > _romaddr     ||
+           _ramaddr + 4096 - _rammask > _ioaddr         )
+  {
+    //FIXME: issue error message: inconsistent address space parameters (overlapping address spaces)
   }
 
   // register transport functions to sockets
@@ -159,9 +163,6 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
                       32,
                       0x00
                    );
-  //process registration
-  SC_THREAD(initialize_mctrl);
-
 }
 
 //destructor unregisters callbacks
@@ -239,167 +240,174 @@ void Mctrl::end_of_elaboration() {
                                           "sdram_change_refresh_cycle", // function name
                                           gs::reg::NOTIFY));            // notification on every register access
   } //if sden
+
+  //initialize mctrl according to generics
+  reset_mctrl(false, NULL, NULL, sc_core::SC_ZERO_TIME);
 }
 
 
-//function to initialize memory address space constants
-void Mctrl::initialize_mctrl() {
+//function to initialize and reset memory address space constants
+void Mctrl::reset_mctrl(const bool &value, signalkit::signal_in_if<bool> *signal, signalkit::signal_out_if<bool> *sender, const sc_core::sc_time &time) {
 
-  //reset callback delay
-  callback_delay = SC_ZERO_TIME;
+  //low active reset
+  if(!value) {
 
-  //set refresh cycle and schedule first refresh
-  trfc = 3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27;
-  next_refresh = sc_core::sc_time( BUS_CLOCK_CYCLE * (r[MCTRL_MCFG3].get() >> 11), SC_NS );
+    //reset callback delay
+    callback_delay = sc_core::SC_ZERO_TIME;
 
-  //set default values of mobile SDRAM
-  if (sden) {
-    unsigned int mcfg;
-    switch (mobile) {
-      //case 0 is default value (set by initialization)
-      case 1:
-        //enable mobile SDRAM support
-        mcfg = static_cast<unsigned int> (r[MCTRL_MCFG2].get() | MCTRL_MCFG2_MS);
-        r[MCTRL_MCFG2].set( mcfg );
-        break;
-      case 2:
-        //enable mobile SDRAM support
-        mcfg = static_cast<unsigned int> (r[MCTRL_MCFG2].get() | MCTRL_MCFG2_MS);
-        r[MCTRL_MCFG2].set( mcfg );
-        //enable mobile SDRAM
-        mcfg = static_cast<unsigned int> (r[MCTRL_MCFG4].get() | MCTRL_MCFG4_ME);
-        r[MCTRL_MCFG4].set( mcfg );
-      //Case 3 would be the same as 2 here, the difference being that 3 disables std SDRAM,
-      //i.e. mobile cannot be disabled. This will be implemented wherever someone tries to
-      //disable mobile SDRAM.
+    //set refresh cycle and schedule first refresh
+    trfc = 3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27;
+    next_refresh = sc_core::sc_time( BUS_CLOCK_CYCLE * (r[MCTRL_MCFG3].get() >> 11), SC_NS );
+
+    //set default values of mobile SDRAM
+    if (sden) {
+      unsigned int mcfg;
+      switch (mobile) {
+        //case 0 is default value (set by initialization)
+        case 1:
+          //enable mobile SDRAM support
+          mcfg = static_cast<unsigned int> (r[MCTRL_MCFG2].get() | MCTRL_MCFG2_MS);
+          r[MCTRL_MCFG2].set( mcfg );
+          break;
+        case 2:
+          //enable mobile SDRAM support
+          mcfg = static_cast<unsigned int> (r[MCTRL_MCFG2].get() | MCTRL_MCFG2_MS);
+          r[MCTRL_MCFG2].set( mcfg );
+          //enable mobile SDRAM
+          mcfg = static_cast<unsigned int> (r[MCTRL_MCFG4].get() | MCTRL_MCFG4_ME);
+          r[MCTRL_MCFG4].set( mcfg );
+        //Case 3 would be the same as 2 here, the difference being that 3 disables std SDRAM,
+        //i.e. mobile cannot be disabled. This will be implemented wherever someone tries to
+        //disable mobile SDRAM.
+      }
+    }
+
+    // --- set register values according to generics
+    unsigned int set;
+    if (sden && sepbus) {
+      set = r[MCTRL_MCFG2].get() | sdbits << 18;
+      r[MCTRL_MCFG2].set( set );
+    }
+  
+    // --- calculate address spaces of the different memory banks
+  
+    //ROM 
+    uint32_t size = (4096 - rommask) << 20;
+    rom_bk1_s = static_cast<uint32_t>(romaddr << 20); //   's' --> 'start'
+    rom_bk2_e = rom_bk1_s + size - 1; //add full rom size: 'e' --> 'end'
+    rom_bk1_e = rom_bk2_e >> 1;       //bk1 ends at half of address space, rounding fits
+    rom_bk2_s = rom_bk1_e + 1;
+  
+    //IO
+    size = (4096 - iomask) << 20;
+    io_s = static_cast<uint32_t>(ioaddr << 20);
+    io_e = io_s + size - 1;
+
+    // ------- RAM -------
+  
+    //SRAM bank size: lower half of RAM address space divided by #banks
+    uint32_t sram_bank_size;
+    if (srbanks == 5) {              //max 4 banks in lower half
+      sram_bank_size = ((4096 - rammask) / 8) << 20;
+    }
+    else {
+      sram_bank_size = ((4096 - rammask) / (2*srbanks)) << 20;
+    }
+  
+    //SDRAM bank size: upper half of RAM address space divided by 2 banks
+    uint32_t sdram_bank_size = ((4096 - rammask) / 4) << 20;
+  
+    //write calculated bank sizes into MCFG2
+    uint32_t i_sr  = static_cast<uint32_t>( log( sram_bank_size)/log(2) + 7 );
+    uint32_t i_sdr = static_cast<uint32_t>( log(sdram_bank_size)/log(2) - 3 );
+    set = (MCTRL_MCFG2_DEFAULT & ~MCTRL_MCFG2_RAM_BANK_SIZE & ~MCTRL_MCFG2_SDRAM_BANKSZ)
+          | (i_sr << 9 & MCTRL_MCFG2_RAM_BANK_SIZE) | (i_sdr << 23 & MCTRL_MCFG2_SDRAM_BANKSZ);
+    r[MCTRL_MCFG2].set( set );
+  
+    //address spaces in case of SRAM only configuration
+    if ( !sden || !( r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE ) ) {
+      //potentially unused banks
+      sram_bk2_s = 0;
+      sram_bk2_e = 0;
+      sram_bk3_s = 0;
+      sram_bk3_e = 0;
+      sram_bk4_s = 0;
+      sram_bk4_e = 0;
+      sram_bk5_s = 0;
+      sram_bk5_e = 0;
+
+      //call function that calculates the SRAM bank addresses
+      //This (lengthy) operation is required several times in the code.
+      sram_calculate_bank_addresses( sram_bank_size );
+  
+      //unused banks, sdram1 and sdram2: constants need to be defined, but range must be empty
+      sdram_bk1_s = 0;
+      sdram_bk1_e = 0;
+      sdram_bk2_s = 0;
+      sdram_bk2_e = 0;
+  
+    }
+    //address spaces in case of SDRAM and SRAM (lower 4 SRAM banks only) configuration
+    else if (!(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SI)) {
+      //potentially unused banks: constants need to be defined, but range must be empty
+      sram_bk2_s = 0;
+      sram_bk2_e = 0;
+      sram_bk3_s = 0;
+      sram_bk3_e = 0;
+      sram_bk4_s = 0;
+      sram_bk4_e = 0;
+  
+      //call function that calculates the SRAM bank addresses
+      sram_calculate_bank_addresses( sram_bank_size );
+  
+      //calculate SDRAM bank addresses
+      //SDRAM bank 1 starts at upper half of RAM area
+      sdram_bk1_s = static_cast<uint32_t>( (ramaddr + (4096 - rammask) / 2) << 20 );
+      sdram_bk1_e = sdram_bk1_s + sdram_bank_size - 1;
+      //SDRAM bank 2
+      sdram_bk2_s = sdram_bk1_e + 1;
+      sdram_bk2_e = sdram_bk2_s + sdram_bank_size - 1;
+  
+      //unused bank sram5: constants need to be defined, but range must be empty
+      sram_bk5_s = 0;
+      sram_bk5_e = 0;
+    }
+    // SDRAM only (located in lower half of RAM address space)
+    else {
+      //SDRAM bank 1 starts at lower half of RAM area
+      sdram_bk1_s = static_cast<uint32_t>(ramaddr << 20);
+      sdram_bk1_e = sdram_bk1_s + sdram_bank_size - 1;
+      //SDRAM bank 2
+      sdram_bk2_s = sdram_bk1_e + 1;
+      sdram_bk2_e = sdram_bk2_s + sdram_bank_size - 1;
+  
+      //unused banks, sram1 ... sram5
+      sram_bk1_s = 0;
+      sram_bk1_e = 0;
+      sram_bk2_s = 0;
+      sram_bk2_e = 0;
+      sram_bk3_s = 0;
+      sram_bk3_e = 0;
+      sram_bk4_s = 0;
+      sram_bk4_e = 0;
+      sram_bk5_s = 0;
+      sram_bk5_e = 0;
     }
   }
-
-  // --- set register values according to generics
-  unsigned int set;
-  if (sden && sepbus) {
-    set = r[MCTRL_MCFG2].get() | sdbits << 18;
-    r[MCTRL_MCFG2].set( set );
-  }
-
-  // --- calculate address spaces of the different memory banks
-
-  //ROM 
-  uint32_t size = (4096 - rommask) << 20;
-  rom_bk1_s = static_cast<uint32_t>(romaddr << 20); //   's' --> 'start'
-  rom_bk2_e = rom_bk1_s + size - 1; //add full rom size: 'e' --> 'end'
-  rom_bk1_e = rom_bk2_e >> 1;       //bk1 ends at half of address space, rounding fits
-  rom_bk2_s = rom_bk1_e + 1;
-
-  //IO
-  size = (4096 - iomask) << 20;
-  io_s = static_cast<uint32_t>(ioaddr << 20);
-  io_e = io_s + size - 1;
-
-  // ------- RAM -------
-
-  //SRAM bank size: lower half of RAM address space divided by #banks
-  uint32_t sram_bank_size;
-  if (srbanks == 5) {              //max 4 banks in lower half
-    sram_bank_size = ((4096 - rammask) / 8) << 20;
-  }
-  else {
-    sram_bank_size = ((4096 - rammask) / (2*srbanks)) << 20;
-  }
-
-  //SDRAM bank size: upper half of RAM address space divided by 2 banks
-  uint32_t sdram_bank_size = ((4096 - rammask) / 4) << 20;
-
-  //write calculated bank sizes into MCFG2
-  uint32_t i_sr  = static_cast<uint32_t>( log( sram_bank_size)/log(2) + 7 );
-  uint32_t i_sdr = static_cast<uint32_t>( log(sdram_bank_size)/log(2) - 3 );
-  set = (MCTRL_MCFG2_DEFAULT & ~MCTRL_MCFG2_RAM_BANK_SIZE & ~MCTRL_MCFG2_SDRAM_BANKSZ)
-        | (i_sr << 9 & MCTRL_MCFG2_RAM_BANK_SIZE) | (i_sdr << 23 & MCTRL_MCFG2_SDRAM_BANKSZ);
-  r[MCTRL_MCFG2].set( set );
-
-  //address spaces in case of SRAM only configuration
-  if ( !sden || !( r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE ) ) {
-    //potentially unused banks
-    sram_bk2_s = 0;
-    sram_bk2_e = 0;
-    sram_bk3_s = 0;
-    sram_bk3_e = 0;
-    sram_bk4_s = 0;
-    sram_bk4_e = 0;
-    sram_bk5_s = 0;
-    sram_bk5_e = 0;
-
-    //call function that calculates the SRAM bank addresses
-    //This (lengthy) operation is required several times in the code.
-    sram_calculate_bank_addresses( sram_bank_size );
-
-    //unused banks, sdram1 and sdram2: constants need to be defined, but range must be empty
-    sdram_bk1_s = 0;
-    sdram_bk1_e = 0;
-    sdram_bk2_s = 0;
-    sdram_bk2_e = 0;
-
-  }
-  //address spaces in case of SDRAM and SRAM (lower 4 SRAM banks only) configuration
-  else if (!(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SI)) {
-    //potentially unused banks: constants need to be defined, but range must be empty
-    sram_bk2_s = 0;
-    sram_bk2_e = 0;
-    sram_bk3_s = 0;
-    sram_bk3_e = 0;
-    sram_bk4_s = 0;
-    sram_bk4_e = 0;
-
-    //call function that calculates the SRAM bank addresses
-    sram_calculate_bank_addresses( sram_bank_size );
-
-    //calculate SDRAM bank addresses
-    //SDRAM bank 1 starts at upper half of RAM area
-    sdram_bk1_s = static_cast<uint32_t>( (ramaddr + (4096 - rammask) / 2) << 20 );
-    sdram_bk1_e = sdram_bk1_s + sdram_bank_size - 1;
-    //SDRAM bank 2
-    sdram_bk2_s = sdram_bk1_e + 1;
-    sdram_bk2_e = sdram_bk2_s + sdram_bank_size - 1;
-
-    //unused bank sram5: constants need to be defined, but range must be empty
-    sram_bk5_s = 0;
-    sram_bk5_e = 0;
-  }
-  // SDRAM only (located in lower half of RAM address space)
-  else {
-    //SDRAM bank 1 starts at lower half of RAM area
-    sdram_bk1_s = static_cast<uint32_t>(ramaddr << 20);
-    sdram_bk1_e = sdram_bk1_s + sdram_bank_size - 1;
-    //SDRAM bank 2
-    sdram_bk2_s = sdram_bk1_e + 1;
-    sdram_bk2_e = sdram_bk2_s + sdram_bank_size - 1;
-
-    //unused banks, sram1 ... sram5
-    sram_bk1_s = 0;
-    sram_bk1_e = 0;
-    sram_bk2_s = 0;
-    sram_bk2_e = 0;
-    sram_bk3_s = 0;
-    sram_bk3_e = 0;
-    sram_bk4_s = 0;
-    sram_bk4_e = 0;
-    sram_bk5_s = 0;
-    sram_bk5_e = 0;
-  }
-
-#ifdef DEBUG
-  cout << endl << hex << "--- address space borders ---" << endl
-       << "ROM_1:   " <<   rom_bk1_s << " - " <<   rom_bk1_e << endl
-       << "ROM_2:   " <<   rom_bk2_s << " - " <<   rom_bk2_e << endl
-       << "IO:      " <<        io_s << " - " <<        io_e << endl
-       << "SRAM_1:  " <<  sram_bk1_s << " - " <<  sram_bk1_e << endl
-       << "SRAM_2:  " <<  sram_bk2_s << " - " <<  sram_bk2_e << endl
-       << "SRAM_3:  " <<  sram_bk3_s << " - " <<  sram_bk3_e << endl
-       << "SRAM_4:  " <<  sram_bk4_s << " - " <<  sram_bk4_e << endl
-       << "SRAM_5:  " <<  sram_bk5_s << " - " <<  sram_bk5_e << endl
-       << "SDRAM_1: " << sdram_bk1_s << " - " << sdram_bk1_e << endl
-       << "SDRAM_2: " << sdram_bk2_s << " - " << sdram_bk2_e << endl;
-#endif
+  
+  #ifdef DEBUG
+    cout << endl << hex << "--- address space borders ---" << endl
+         << "ROM_1:   " <<   rom_bk1_s << " - " <<   rom_bk1_e << endl
+         << "ROM_2:   " <<   rom_bk2_s << " - " <<   rom_bk2_e << endl
+         << "IO:      " <<        io_s << " - " <<        io_e << endl
+         << "SRAM_1:  " <<  sram_bk1_s << " - " <<  sram_bk1_e << endl
+         << "SRAM_2:  " <<  sram_bk2_s << " - " <<  sram_bk2_e << endl
+         << "SRAM_3:  " <<  sram_bk3_s << " - " <<  sram_bk3_e << endl
+         << "SRAM_4:  " <<  sram_bk4_s << " - " <<  sram_bk4_e << endl
+         << "SRAM_5:  " <<  sram_bk5_s << " - " <<  sram_bk5_e << endl
+         << "SDRAM_1: " << sdram_bk1_s << " - " << sdram_bk1_e << endl
+         << "SDRAM_2: " << sdram_bk2_s << " - " << sdram_bk2_e << endl;
+  #endif
 
 }
 
@@ -811,6 +819,7 @@ void Mctrl::sram_disable() {
       //the GR callback is somehow misused for this pupose
       sram_change_bank_size();
     }
+    //FIXME: Issue warning: address ranges of RAM banks have just been changed (print the new addresses maybe?)
   }
 }
 
@@ -822,7 +831,6 @@ void Mctrl::sdram_enable() {
     sram_bk5_e = 0;
 
     //calculate SDRAM bank addresses based on MCFG2 bank size field
-    //the GR callback is somehow misused for this pupose
     sdram_change_bank_size();
   }
   //SDRAM has just been disabled
@@ -840,6 +848,7 @@ void Mctrl::sdram_enable() {
       sram_change_bank_size();
     }
   }
+  //FIXME: Issue warning: address ranges of RAM banks have just been changed (print the new addresses maybe?)
 }
 
 //recalculate start / end addresses of sram banks after change of sram bank size
@@ -849,6 +858,12 @@ void Mctrl::sram_change_bank_size() {
   //16KB = 1B << 13 + b'0001
   //32KB = 1B << 13 + b'0010 ...
   uint32_t sram_bank_size = 1 << ( 13 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_BANK_SIZE >> 9) );
+
+  //check for conflicts: 1-4 banks must fit into half of RAM address space
+  if (srbanks * sram_bank_size > static_cast<uint32_t>( ((4096 - rammask) / 2) << 20 )) {
+    //FIXME: Error message: "re-calculated size of SDRAM exceeds SDRAM address space"
+  }
+
   //calculate new bank addresses
   sram_calculate_bank_addresses( sram_bank_size );
 }
@@ -860,6 +875,11 @@ void Mctrl::sdram_change_bank_size() {
   // 8MB = 1B << 22 + b'001
   //16MB = 1B << 22 + b'010 ...
   uint32_t sdram_bank_size = 1 << ( 22 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_BANKSZ >> 23) );
+
+  //check for conflicts: 2 banks must fit into half of RAM address space
+  if (2*sdram_bank_size > static_cast<uint32_t>( ((4096 - rammask) / 2) << 20 )) {
+    //FIXME: Error message: "re-calculated size of SDRAM exceeds SDRAM address space"
+  }
 
   //calculate new bank addresses
   sdram_bk1_s = sram_bk1_s + ((4096 - rammask) / 2) << 20;

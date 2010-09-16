@@ -31,9 +31,10 @@
 #include "mctrlreg.h"
 #include "generic_memory.h"
 #include "grlibdevice.h"
+#include "signalkit.h"
 #include "ext_erase.h"
 
-class Mctrl : public gs::reg::gr_device, public amba_slave_base
+class Mctrl : public gs::reg::gr_device, public amba_slave_base, public signalkit::signal_module<Mctrl>
 {
 public:
     //constructor / destructor
@@ -58,6 +59,9 @@ public:
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_io;
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_sram;
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_sdram;
+
+    //reset signal
+    signal<bool>::in rst;
 
     //device identification on AHB bus
   	inline sc_dt::uint64 get_size() {
@@ -90,8 +94,7 @@ public:
 	  	return base;
   	}
 
-    //proclamation of processes and callbacks
-    SC_HAS_PROCESS(Mctrl);
+    //proclamation of callbacks
     GC_HAS_CALLBACKS();
 
     //function prototypes
@@ -99,7 +102,7 @@ public:
     void sram_calculate_bank_addresses(uint32_t sram_bank_size);
 
     //thread process to initialize MCTRL (set registers, define address spaces, etc.)
-    void initialize_mctrl();
+    void reset_mctrl(const bool &value, signalkit::signal_in_if<bool> *signal, signalkit::signal_out_if<bool> *sender, const sc_core::sc_time &time);
 
     //callbacks reacting on register access
     void launch_sdram_command();
