@@ -65,6 +65,4 @@ class Mctrl_tb : public sc_core::sc_module {
     const int sden;
 };
 
-#include "mctrl_tb.tpp"
-
 #endif

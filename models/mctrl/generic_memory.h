@@ -24,6 +24,8 @@
 #include <greenreg_ambasocket.h>
 #include "greencontrol/all.h"
 #include "tlm_utils/simple_target_socket.h"
+#include "ext_erase.h"
+#include <assert.h>
 
 template <typename T = uint8_t>
 class Generic_memory : public sc_core::sc_module

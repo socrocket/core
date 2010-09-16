@@ -12,10 +12,6 @@
 /* Maintainer: Dennis Bode                                             */
 /***********************************************************************/
 
-#include "mctrl.h"
-#include <assert.h>
-
-
 //scope
 template <typename T> Generic_memory <T>::
 //constructor
@@ -40,7 +36,7 @@ template <typename T> void Generic_memory  <T>::
 b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
 
   //check erase extension first
-  typename Mctrl::ext_erase* e;
+  typename ext_erase::ext_erase* e;
   gp.get_extension(e);
   if ( e ) {
     uint32_t data = *reinterpret_cast<uint32_t *>( gp.get_data_ptr() );

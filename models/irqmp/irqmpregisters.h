@@ -130,12 +130,3 @@
 /// @}
 #endif
 
-/*
-Offene Frage:
- o Gibt es einen Unterschied zwischen dem "processor interrupt mask register" und dem "processor 1 interrupt mask register"?
- o Gleiche Frage für "interrupt force register"
- o Warum gibt es kein "processor extended interrupt identification register" an Adresse 0xC0?
- o Welchen Sinn hat das "interrupt force register" in einem Einprozessorsystem (NCPU = 0)?
-    o Warum gibt es ein eigenes IR force reg für NCPU=0 an Adresse 0x08? Schneller durch Lokalität?
-*/
-

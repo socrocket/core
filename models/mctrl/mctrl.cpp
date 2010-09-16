@@ -13,10 +13,7 @@
 /* Maintainer: Dennis Bode                                             */
 /***********************************************************************/
 
-//FIXME: Define cycle time variable at correct position (which is not nin generic memory.tpp).
-
-#ifndef MCTRL_TPP
-#define MCTRL_TPP
+#include "mctrl.h"
 
 //should be defined somewhere else
 #define BUS_CLOCK_CYCLE 10
@@ -911,11 +908,4 @@ void Mctrl::sram_calculate_bank_addresses(uint32_t sram_bank_size) {
 void Mctrl::sdram_change_refresh_cycle() {
   trfc = 3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27;
 }
-
-#endif
-
-
-
-
-
 

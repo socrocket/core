@@ -31,10 +31,19 @@
 #include "mctrlreg.h"
 #include "generic_memory.h"
 #include "grlibdevice.h"
+#include "ext_erase.h"
 
 class Mctrl : public gs::reg::gr_device, public amba_slave_base
 {
 public:
+    //constructor / destructor
+    Mctrl(sc_module_name name,  int _romasel = 28,   int _sdrasel = 29,    int _romaddr = 0x0,   int _rommask = 0xE00,
+           int _ioaddr = 0x200, int _iomask = 0xE00, int _ramaddr = 0x400, int _rammask = 0xC00,
+           int _paddr = 0x0,    int _pmask = 0xFFF,  int _wprot = 0,       int _srbanks = 4,
+           int _ram8 = 0,       int _ram16 = 0,      int _sepbus = 0,      int _sdbits = 32,
+           int _mobile = 0,     int _sden = 0);
+    ~Mctrl();
+
     //plug and play devices for AHB and APB
     CGrlibDevice pnpahb, pnpapb;
 
@@ -49,14 +58,6 @@ public:
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_io;
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_sram;
     tlm_utils::simple_initiator_socket<Mctrl> mctrl_sdram;
-
-    //constructor / destructor
-    Mctrl(sc_module_name name,  int _romasel = 28,   int _sdrasel = 29,    int _romaddr = 0x0,   int _rommask = 0xE00,
-           int _ioaddr = 0x200, int _iomask = 0xE00, int _ramaddr = 0x400, int _rammask = 0xC00,
-           int _paddr = 0x0,    int _pmask = 0xFFF,  int _wprot = 0,       int _srbanks = 4,
-           int _ram8 = 0,       int _ram16 = 0,      int _sepbus = 0,      int _sdbits = 32,
-           int _mobile = 0,     int _sden = 0);
-    ~Mctrl();
 
     //device identification on AHB bus
   	inline sc_dt::uint64 get_size() {
@@ -113,24 +114,6 @@ public:
     //define TLM transport functions
     virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
 
-    //simple payload extension for erasing memory
-    struct ext_erase : public tlm::tlm_extension<ext_erase> {
-    public:
-      ext_erase() {erase_flag = 0;}
-      bool erase_flag;
-      //must_override pure virtual clone method
-      virtual tlm::tlm_extension_base* clone() const {
-        ext_erase* t = new ext_erase;
-        t->erase_flag = this->erase_flag;
-        return t;
-      }
-      //must override pure virtual copy_from method
-      virtual void copy_from (tlm::tlm_extension_base const &ext) {
-        erase_flag = static_cast<ext_erase const &>(ext).erase_flag;
-      }
-
-    };
-
   private:
     //address space variables
     uint32_t rom_bk1_s, rom_bk1_e, rom_bk2_s, rom_bk2_e,
@@ -167,8 +150,6 @@ public:
     const int mobile;
     const int sden;
 };
-
-#include "mctrl.tpp"
 
 #endif
 

@@ -14,11 +14,9 @@
 /* Maintainer: Dennis Bode                                             */
 /***********************************************************************/
 
-#ifndef MCTRL_TB_TPP
-#define MCTRL_TB_TPP
-
 #include "amba.h"
 #include "mctrlreg.h"
+#include "mctrl_tb.h"
 
 #define APB true
 #define AHB false
@@ -117,9 +115,9 @@ uint32_t Mctrl_tb::read(uint32_t addr, uint32_t width, bool apb) {
 void Mctrl_tb::run() {
   sc_core::sc_time t;
 
-  cout << endl << endl << "--------------------------------------------------"
-               << endl << "---------- write and read all memories -----------"
-               << endl << "--------------------------------------------------" << endl;
+  std::cout << std::endl << std::endl << "--------------------------------------------------"
+                         << std::endl << "---------- write and read all memories -----------"
+                         << std::endl << "--------------------------------------------------" << std::endl;
 
   //write ROM
   for (uint32_t i=0x00000000; i<0x0000000A; i+=4) {
@@ -154,34 +152,34 @@ void Mctrl_tb::run() {
     REG (i, 4, AHB);
   }
 
-  cout << endl << endl << "--------------------------------------------------"
-               << endl << "--switching widths to: rom-16, sram-16, sdram-64--"
-               << endl << "--------------------------------------------------" << endl;
+  std::cout << std::endl << std::endl << "--------------------------------------------------"
+                         << std::endl << "--switching widths to: rom-16, sram-16, sdram-64--"
+                         << std::endl << "--------------------------------------------------" << std::endl;
 
   //switch ROM to 16 bit access
   unsigned int temp = read (MCTRL_MCFG1, 4, APB);
-  cout << endl << "old MCFG1 contents: " << hex << (unsigned int) temp;
+  std::cout << std::endl << "old MCFG1 contents: " << std::hex << (unsigned int) temp;
   temp &= ~MCTRL_MCFG1_PROM_WIDTH;
-  cout << endl << "intermediate MCFG1 contents: " << hex << (unsigned int) temp;
+  std::cout << std::endl << "intermediate MCFG1 contents: " << std::hex << (unsigned int) temp;
   temp |= (MCTRL_MCFG1_PROM_WIDTH & 0x00000100);
-  cout << endl << "new MCFG1 contents: " << hex << (unsigned int) temp;
+  std::cout << std::endl << "new MCFG1 contents: " << std::hex << (unsigned int) temp;
   SET (MCTRL_MCFG1, temp, 4, APB);
 
   //switch SRAM to 16 bit access
   temp = read (MCTRL_MCFG2, 4, APB);
-  cout << endl << "old MCFG2 contents: " << hex << (unsigned int) temp;
+  std::cout << std::endl << "old MCFG2 contents: " << std::hex << (unsigned int) temp;
   temp &= ~MCTRL_MCFG2_RAM_WIDTH;
-  cout << endl << "intermediate MCFG2 contents: " << hex << (unsigned int) temp;
+  std::cout << std::endl << "intermediate MCFG2 contents: " << std::hex << (unsigned int) temp;
   temp |= (MCTRL_MCFG2_RAM_WIDTH & 0x00000010);
 
   //switch SDRAM to 64 bit access
   temp |= MCTRL_MCFG2_D64;
-  cout << endl << "new MCFG2 contents: " << hex << (unsigned int) temp;
+  std::cout << std::endl << "new MCFG2 contents: " << std::hex << (unsigned int) temp;
   SET (MCTRL_MCFG2, temp, 4, APB);
 
-  cout << endl << endl << "--------------------------------------------------"
-               << endl << "-------- write / read ROM / SRAM / SDRAM ---------"
-               << endl << "--------------------------------------------------" << endl;
+  std::cout << std::endl << std::endl << "--------------------------------------------------"
+                         << std::endl << "-------- write / read ROM / SRAM / SDRAM ---------"
+                         << std::endl << "--------------------------------------------------" << std::endl;
 
   //write ROM
 //  uint16_t i16=0;
@@ -216,27 +214,27 @@ void Mctrl_tb::run() {
     REG (i, 8, AHB);
   }
 
-  cout << endl << endl << "--------------------------------------------------"
-               << endl << "------- switching widths to: rom-8, sram-8 -------"
-               << endl << "--------------------------------------------------" << endl;
+  std::cout << std::endl << std::endl << "--------------------------------------------------"
+                         << std::endl << "------- switching widths to: rom-8, sram-8 -------"
+                         << std::endl << "--------------------------------------------------" << std::endl;
 
   //switch ROM to 8 bit access
   temp = read (MCTRL_MCFG1, 4, APB);
-  cout << endl << "old MCFG1 contents: " << hex << (unsigned int) temp;
+  std::cout << std::endl << "old MCFG1 contents: " << std::hex << (unsigned int) temp;
   temp &= ~MCTRL_MCFG1_PROM_WIDTH;
-  cout << endl << "new MCFG1 contents: " << hex << (unsigned int) temp;
+  std::cout << std::endl << "new MCFG1 contents: " << std::hex << (unsigned int) temp;
   SET (MCTRL_MCFG1, temp, 4, APB);
 
   //switch SRAM to 8 bit access
   temp = read (MCTRL_MCFG2, 4, APB);
-  cout << endl << "old MCFG2 contents: " << hex << (unsigned int) temp;
+  std::cout << std::endl << "old MCFG2 contents: " << std::hex << (unsigned int) temp;
   temp &= ~MCTRL_MCFG2_RAM_WIDTH;
-  cout << endl << "new MCFG1 contents: " << hex << (unsigned int) temp;
+  std::cout << std::endl << "new MCFG1 contents: " << std::hex << (unsigned int) temp;
   SET (MCTRL_MCFG2, temp, 4, APB);
 
-  cout << endl << endl << "--------------------------------------------------"
-               << endl << "---------- write and read ROM and SRAM -----------"
-               << endl << "--------------------------------------------------" << endl;
+  std::cout << std::endl << std::endl << "--------------------------------------------------"
+                         << std::endl << "---------- write and read ROM and SRAM -----------"
+                         << std::endl << "--------------------------------------------------" << std::endl;
 
   //write ROM
   uint8_t i8=0;
@@ -259,18 +257,18 @@ void Mctrl_tb::run() {
     REG (i, 4, AHB);
   }
 
-  cout << endl << endl << "--------------------------------------------------"
-               << endl << "---------- switch off PROM write enable ----------"
-               << endl << "--------------------------------------------------" << endl;
+  std::cout << std::endl << std::endl << "--------------------------------------------------"
+                         << std::endl << "---------- switch off PROM write enable ----------"
+                         << std::endl << "--------------------------------------------------" << std::endl;
 
   //switch off ROM write capability
   temp = read (MCTRL_MCFG1, 4, APB);
   temp &= ~MCTRL_MCFG1_PWEN;
   SET (MCTRL_MCFG1, temp, 4, APB);
 
-  cout << endl << endl << "--------------------------------------------------"
-               << endl << "---------------- write into PROM -----------------"
-               << endl << "--------------------------------------------------" << endl;
+  std::cout << std::endl << std::endl << "--------------------------------------------------"
+                         << std::endl << "---------------- write into PROM -----------------"
+                         << std::endl << "--------------------------------------------------" << std::endl;
 
   //write ROM
   i8=0;
@@ -279,27 +277,26 @@ void Mctrl_tb::run() {
     i8++;
   }
 
-  cout << endl << endl << "--------------------------------------------------"
-               << endl << "------- send SDRAM to deep power down mode -------"
-               << endl << "--------------------------------------------------" << endl;
+  std::cout << std::endl << std::endl << "--------------------------------------------------"
+                         << std::endl << "------- send SDRAM to deep power down mode -------"
+                         << std::endl << "--------------------------------------------------" << std::endl;
 
   //send SDRAM to deep power down mode
   temp = read (MCTRL_MCFG4, 4, APB);
-  cout << endl << "old MCFG4 contents: " << hex << (unsigned int) temp;
+  std::cout << std::endl << "old MCFG4 contents: " << std::hex << (unsigned int) temp;
   temp |= MCTRL_MCFG4_PMODE & 0x00050000;
-  cout << endl << "modified MCFG4 contents: " << hex << (unsigned int) temp;
+  std::cout << std::endl << "modified MCFG4 contents: " << std::hex << (unsigned int) temp;
   SET (MCTRL_MCFG4, temp, 4, APB);
 
-  cout << endl << endl << "--------------------------------------------------"
-               << endl << "---------------- read from SDRAM -----------------"
-               << endl << "--------------------------------------------------" << endl;
+  std::cout << std::endl << std::endl << "--------------------------------------------------"
+                         << std::endl << "---------------- read from SDRAM -----------------"
+                         << std::endl << "--------------------------------------------------" << std::endl;
 
   //read SDRAM
   for (uint32_t i=0x80000010; i<=0x80000020; i+=8) {
     REG (i, 8, AHB);
   }
 
-  cout << endl;
+  std::cout << std::endl;
 }
 
-#endif
