@@ -84,7 +84,7 @@ void Ctb_ahb_mem::b_transport(tlm::tlm_generic_payload &gp,
       case tlm::TLM_READ_COMMAND:
          for(uint32_t i=0; i<gp.get_data_length(); i++) {
 
-            *(gp.get_data_ptr() + i) = mem[i];
+            *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
 
          }
          gp.set_response_status(tlm::TLM_OK_RESPONSE);
@@ -94,7 +94,7 @@ void Ctb_ahb_mem::b_transport(tlm::tlm_generic_payload &gp,
       case tlm::TLM_WRITE_COMMAND:
          for(uint32_t i=0; i<gp.get_data_length(); i++) {
 
-            mem[i] = *(gp.get_data_ptr() + i);
+            mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
 
          }
          gp.set_response_status(tlm::TLM_OK_RESPONSE);
