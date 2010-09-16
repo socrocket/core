@@ -106,7 +106,7 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
   if (4096 - _rommask   != 1 << (_romasel - 19) ||
       4096 - _rammask   != 1 << (_sdrasel - 19)    )
   {
-    //FIXME: issue error message: inconsistent address space parameters (addr / mask contradicting romasel / sdrasel)
+    v::error << "Mctrl" << "Inconsisten address space parameters. Check romasel / sdrasel vs. (rom-|ram-)(-addr|-mask)." << endl;
   }
   else if (_romaddr + 4096 - _rommask > _ioaddr      ||
            _romaddr + 4096 - _rommask > _ramaddr     ||
@@ -115,7 +115,7 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
            _ramaddr + 4096 - _rammask > _romaddr     ||
            _ramaddr + 4096 - _rammask > _ioaddr         )
   {
-    //FIXME: issue error message: inconsistent address space parameters (overlapping address spaces)
+    v::error << "Mctrl" << "Inconsistent address space parameters. Check *addr and *mask for overlaps." << endl;
   }
 
   // register transport functions to sockets
@@ -247,7 +247,11 @@ void Mctrl::end_of_elaboration() {
 
 
 //function to initialize and reset memory address space constants
-void Mctrl::reset_mctrl(const bool &value, signalkit::signal_in_if<bool> *signal, signalkit::signal_out_if<bool> *sender, const sc_core::sc_time &time) {
+void Mctrl::reset_mctrl(const bool &value, 
+                        signalkit::signal_in_if<bool> *signal, 
+                        signalkit::signal_out_if<bool> *sender, 
+                        const sc_core::sc_time &time)
+  {
 
   //low active reset
   if(!value) {
@@ -662,7 +666,9 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
   }
   //no memory device at given address
   else {
-    //FIXME: issue error message: No Memory device at this position.
+    v::error << "Mctrl" << "Invalid memory acces: No device at address" << std::hex << std::setfill('0') << std::setw(8)
+             <<  gp.get_address() << "." << endl;
+    gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
   }
   //end of transaction: reset callback delay variable
   callback_delay = sc_core::SC_ZERO_TIME;
@@ -691,7 +697,6 @@ void Mctrl::launch_sdram_command() {
         callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + MCTRL_MCFG2_SDRAM_TRFC_DEFAULT >> 30), SC_NS);
       break;
     // Precharge: Terminate current burst transaction (no effect in LT) --> wait for tRP
-    // FIXME: This delay should already be modeled within the burst transaction, which takes into account the termination by precharge
     case 1:
       callback_delay += sc_time(BUS_CLOCK_CYCLE * (2 + MCTRL_MCFG2_TRP_DEFAULT >> 29), SC_NS);
       break;
@@ -819,7 +824,15 @@ void Mctrl::sram_disable() {
       //the GR callback is somehow misused for this pupose
       sram_change_bank_size();
     }
-    //FIXME: Issue warning: address ranges of RAM banks have just been changed (print the new addresses maybe?)
+    v::warn << "Mctrl" << "address ranges of RAM banks have just been changed to" << endl
+            << std::hex << std::setfill('0') << std::setw(8)
+            << "SRAM_1:  " <<  sram_bk1_s << " - " <<  sram_bk1_e << endl
+            << "SRAM_2:  " <<  sram_bk2_s << " - " <<  sram_bk2_e << endl
+            << "SRAM_3:  " <<  sram_bk3_s << " - " <<  sram_bk3_e << endl
+            << "SRAM_4:  " <<  sram_bk4_s << " - " <<  sram_bk4_e << endl
+            << "SRAM_5:  " <<  sram_bk5_s << " - " <<  sram_bk5_e << endl
+            << "SDRAM_1: " << sdram_bk1_s << " - " << sdram_bk1_e << endl
+            << "SDRAM_2: " << sdram_bk2_s << " - " << sdram_bk2_e << endl;
   }
 }
 
@@ -848,7 +861,15 @@ void Mctrl::sdram_enable() {
       sram_change_bank_size();
     }
   }
-  //FIXME: Issue warning: address ranges of RAM banks have just been changed (print the new addresses maybe?)
+  v::warn << "Mctrl" << "address ranges of RAM banks have just been changed to" << endl
+          << std::hex << std::setfill('0') << std::setw(8)
+          << "SRAM_1:  " <<  sram_bk1_s << " - " <<  sram_bk1_e << endl
+          << "SRAM_2:  " <<  sram_bk2_s << " - " <<  sram_bk2_e << endl
+          << "SRAM_3:  " <<  sram_bk3_s << " - " <<  sram_bk3_e << endl
+          << "SRAM_4:  " <<  sram_bk4_s << " - " <<  sram_bk4_e << endl
+          << "SRAM_5:  " <<  sram_bk5_s << " - " <<  sram_bk5_e << endl
+          << "SDRAM_1: " << sdram_bk1_s << " - " << sdram_bk1_e << endl
+          << "SDRAM_2: " << sdram_bk2_s << " - " << sdram_bk2_e << endl;
 }
 
 //recalculate start / end addresses of sram banks after change of sram bank size
@@ -861,7 +882,7 @@ void Mctrl::sram_change_bank_size() {
 
   //check for conflicts: 1-4 banks must fit into half of RAM address space
   if (srbanks * sram_bank_size > static_cast<uint32_t>( ((4096 - rammask) / 2) << 20 )) {
-    //FIXME: Error message: "re-calculated size of SDRAM exceeds SDRAM address space"
+    v::error << "Mctrl" << "SRAM bank size has been changed. The extended memory banks exceed SRAM addrres space." << endl;
   }
 
   //calculate new bank addresses
@@ -878,7 +899,7 @@ void Mctrl::sdram_change_bank_size() {
 
   //check for conflicts: 2 banks must fit into half of RAM address space
   if (2*sdram_bank_size > static_cast<uint32_t>( ((4096 - rammask) / 2) << 20 )) {
-    //FIXME: Error message: "re-calculated size of SDRAM exceeds SDRAM address space"
+    v::error << "Mctrl" << "SDRAM bank size has been changed. The extended memory banks exceed SDRAM addrres space." << endl;
   }
 
   //calculate new bank addresses

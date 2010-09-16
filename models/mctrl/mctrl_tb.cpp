@@ -7,7 +7,7 @@
 /*             included by testbench header file                       */
 /*                                                                     */
 /* Modified on $Date$   */
-/*          at $Revision$                                          */
+/*          at $Revision$                                        */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */

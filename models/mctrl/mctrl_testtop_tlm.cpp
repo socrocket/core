@@ -5,7 +5,7 @@
 /*             test file for systemc implementation of mctrl + memory  */
 /*                                                                     */
 /* Modified on $Date$   */
-/*          at $Revision$                                          */
+/*          at $Revision$                                        */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */

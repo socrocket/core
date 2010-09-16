@@ -29,7 +29,7 @@ def build(bld):
     source         = 'mctrl.cpp', 
     export_incdirs = '.',
     uselib         = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local   = 'utils signalkit'
+    uselib_local   = 'utils signalkit vkit'
   )
 
   bld(
@@ -38,6 +38,6 @@ def build(bld):
     target       = 'mctrl.test',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'mctrl utils signalkit'
+    uselib_local = 'mctrl utils signalkit vkit'
   )
 

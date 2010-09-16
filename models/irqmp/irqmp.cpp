@@ -28,7 +28,7 @@
 #define COUT_TIMING
 
 #include "irqmp.h"
-#include "irqmpregisters.h"
+//#include "irqmpregisters.h"
 #include <string>
 
 #define LEVEL                    (0x00)
@@ -119,7 +119,7 @@ CIrqmp::CIrqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, 
                       0x10,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
                       0x00000000, 
-                      IRQMP_MP_STAT_NCPU | IRQMP_MP_STAT_EIRQ | IRQMP_MP_STAT_STAT,
+                      IRQMP_MP_STAT_NCPU | IRQMP_MP_STAT_EIRQ | IRQMP_MP_STAT_STAT(),
                       32,
                       0x00
                    );

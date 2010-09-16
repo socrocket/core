@@ -28,10 +28,10 @@
 #include <greenreg_ambasocket.h>
 #include "greencontrol/all.h"
 #include "tlm_utils/simple_initiator_socket.h"
-#include "mctrlreg.h"
 #include "generic_memory.h"
 #include "grlibdevice.h"
 #include "signalkit.h"
+#include "verbose.h"
 #include "ext_erase.h"
 
 class Mctrl : public gs::reg::gr_device, public amba_slave_base, public signalkit::signal_module<Mctrl>
@@ -152,6 +152,112 @@ public:
     const int sdbits;
     const int mobile;
     const int sden;
+
+    //---constant bit masks for APB register access
+
+    //register address offset
+    static const uint32_t MCTRL_MCFG1 = 0x00;
+    static const uint32_t MCTRL_MCFG2 = 0x04;
+    static const uint32_t MCTRL_MCFG3 = 0x08;
+    static const uint32_t MCTRL_MCFG4 = 0x0C;
+
+    //memory configuration register 1
+    static const uint32_t MCTRL_MCFG1_WRITE_MASK      = 0x1FF00BFF;
+    static const uint32_t MCTRL_MCFG1_IOBUSW          = 0x18000000;
+    static const uint32_t MCTRL_MCFG1_IBRDY           = 0x04000000;
+    static const uint32_t MCTRL_MCFG1_BEXCN           = 0x02000000;
+    static const uint32_t MCTRL_MCFG1_IO_WAITSTATES   = 0x01E00000;
+    static const uint32_t MCTRL_MCFG1_IOEN            = 0x00100000;
+    static const uint32_t MCTRL_MCFG1_PWEN            = 0x00000800;
+    static const uint32_t MCTRL_MCFG1_PROM_WIDTH      = 0x00000300;
+    static const uint32_t MCTRL_MCFG1_PROM_WRITE_WS   = 0x000000F0;
+    static const uint32_t MCTRL_MCFG1_PROM_READ_WS    = 0x0000000F;
+
+    //memory configuration register 2
+    static const uint32_t MCTRL_MCFG2_WRITE_MASK      = 0xFFFD7EFF;
+    static const uint32_t MCTRL_MCFG2_SDRF            = 0x80000000;
+    static const uint32_t MCTRL_MCFG2_TRP             = 0x40000000;
+    static const uint32_t MCTRL_MCFG2_SDRAM_TRFC      = 0x38000000;
+    static const uint32_t MCTRL_MCFG2_TCAS            = 0x04000000;
+    static const uint32_t MCTRL_MCFG2_SDRAM_BANKSZ    = 0x03800000;
+    static const uint32_t MCTRL_MCFG2_SDRAM_COSZ      = 0x00600000;
+    static const uint32_t MCTRL_MCFG2_SDRAM_CMD       = 0x00180000;
+    static const uint32_t MCTRL_MCFG2_D64             = 0x00040000;
+    static const uint32_t MCTRL_MCFG2_MS              = 0x00010000;
+    static const uint32_t MCTRL_MCFG2_SE              = 0x00004000;
+    static const uint32_t MCTRL_MCFG2_SI              = 0x00002000;
+    static const uint32_t MCTRL_MCFG2_RAM_BANK_SIZE   = 0x00001E00;
+    static const uint32_t MCTRL_MCFG2_RBRDY           = 0x00000080;
+    static const uint32_t MCTRL_MCFG2_RMW             = 0x00000040;
+    static const uint32_t MCTRL_MCFG2_RAM_WIDTH       = 0x00000030;
+    static const uint32_t MCTRL_MCFG2_RAM_WRITE_WS    = 0x0000000C;
+    static const uint32_t MCTRL_MCFG2_RAM_READ_WS     = 0x00000003;
+
+    //memory configuration register 3
+    static const uint32_t MCTRL_MCFG3_WRITE_MASK      = 0x07FFF000;
+    static const uint32_t MCTRL_MCFG3_SDRAM_RLD_VAL   = 0x07FFF000;
+
+    //memory configuration register 4
+    static const uint32_t MCTRL_MCFG4_WRITE_MASK      = 0xE0FE007F;
+    static const uint32_t MCTRL_MCFG4_ME              = 0x80000000;
+    static const uint32_t MCTRL_MCFG4_CE              = 0x40000000;
+    static const uint32_t MCTRL_MCFG4_EM              = 0x20000000;
+    static const uint32_t MCTRL_MCFG4_TXSR            = 0x00F00000;
+    static const uint32_t MCTRL_MCFG4_PMODE           = 0x000E0000;
+    static const uint32_t MCTRL_MCFG4_DC              = 0x00000060;
+    static const uint32_t MCTRL_MCFG4_TCSR            = 0x00000018;
+    static const uint32_t MCTRL_MCFG4_PASR            = 0x00000007;
+
+    //---register default values
+
+    //memory configuration register 1
+    static const uint32_t MCTRL_MCFG1_IOBUSW_DEFAULT          = 0x10000000;
+    static const uint32_t MCTRL_MCFG1_IBRDY_DEFAULT           = 0x00000000;
+    static const uint32_t MCTRL_MCFG1_BEXCN_DEFAULT           = 0x00000000;
+    static const uint32_t MCTRL_MCFG1_IO_WAITSTATES_DEFAULT   = 0x00F00000;
+    static const uint32_t MCTRL_MCFG1_IOEN_DEFAULT            = 0x00080000;
+    static const uint32_t MCTRL_MCFG1_PWEN_DEFAULT            = 0x00000800;
+    static const uint32_t MCTRL_MCFG1_PROM_WIDTH_DEFAULT      = 0x00000200;
+    static const uint32_t MCTRL_MCFG1_PROM_WRITE_WS_DEFAULT   = 0x000000F0;
+    static const uint32_t MCTRL_MCFG1_PROM_READ_WS_DEFAULT    = 0x0000000F;
+    //                                                      +
+    static const uint32_t MCTRL_MCFG1_DEFAULT                 = 0x10F80AFF;
+
+    //memory configuration register 2
+    static const uint32_t MCTRL_MCFG2_SDRF_DEFAULT            = 0x80000000;
+    static const uint32_t MCTRL_MCFG2_TRP_DEFAULT             = 0x40000000;
+    static const uint32_t MCTRL_MCFG2_SDRAM_TRFC_DEFAULT      = 0x38000000;
+    static const uint32_t MCTRL_MCFG2_TCAS_DEFAULT            = 0x04000000;
+    static const uint32_t MCTRL_MCFG2_SDRAM_BANKSZ_DEFAULT    = 0x03800000;
+    static const uint32_t MCTRL_MCFG2_SDRAM_COSZ_DEFAULT      = 0x00600000;
+    static const uint32_t MCTRL_MCFG2_SDRAM_CMD_DEFAULT       = 0x00000000;
+    static const uint32_t MCTRL_MCFG2_D64_DEFAULT             = 0x00000000;
+    static const uint32_t MCTRL_MCFG2_MS_DEFAULT              = 0x00000000;
+    static const uint32_t MCTRL_MCFG2_SE_DEFAULT              = 0x00004000;
+    static const uint32_t MCTRL_MCFG2_SI_DEFAULT              = 0x00000000;
+    static const uint32_t MCTRL_MCFG2_RAM_BANK_SIZE_DEFAULT   = 0x00001E00;
+    static const uint32_t MCTRL_MCFG2_RBRDY_DEFAULT           = 0x00000000;
+    static const uint32_t MCTRL_MCFG2_RMW_DEFAULT             = 0x00000000;
+    static const uint32_t MCTRL_MCFG2_RAM_WIDTH_DEFAULT       = 0x00000030;
+    static const uint32_t MCTRL_MCFG2_RAM_WRITE_WS_DEFAULT    = 0x0000000C;
+    static const uint32_t MCTRL_MCFG2_RAM_READ_WS_DEFAULT     = 0x00000003;
+    //                                                      +
+    static const uint32_t MCTRL_MCFG2_DEFAULT                 = 0xFFE05E3F;
+
+    //memory configuration register 3
+    static const uint32_t MCTRL_MCFG3_DEFAULT                 = 0x07FFF000;
+
+    //memory configuration register 4
+    static const uint32_t MCTRL_MCFG4_ME_DEFAULT              = 0x00000000;
+    static const uint32_t MCTRL_MCFG4_CE_DEFAULT              = 0x00000000;
+    static const uint32_t MCTRL_MCFG4_EM_DEFAULT              = 0x00000000;
+    static const uint32_t MCTRL_MCFG4_TXSR_DEFAULT            = 0x00F00000;
+    static const uint32_t MCTRL_MCFG4_PMODE_DEFAULT           = 0x00000000;
+    static const uint32_t MCTRL_MCFG4_DS_DEFAULT              = 0x00000000;
+    static const uint32_t MCTRL_MCFG4_TCSR_DEFAULT            = 0x00000000;
+    static const uint32_t MCTRL_MCFG4_PASR_DEFAULT            = 0x00000000;
+    //                                                      +
+    static const uint32_t MCTRL_MCFG4_DEFAULT                 = 0x00F00000;
 };
 
 #endif
