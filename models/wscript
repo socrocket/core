@@ -23,7 +23,8 @@ models = [
   'mmu_cache', 
   'mctrl', 
   'pnp',
-  'utils'
+  'utils',
+  'socwire'
 ]
 
 def set_options(ctx): 

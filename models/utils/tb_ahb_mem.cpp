@@ -151,7 +151,7 @@ int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {
       return 0;
    } else {
      v::error << name << ": File \"" << infile_ << "\" not found or readable\n";
-      return infile.good();
+      return 1;
    }
 }  // int Ctb_ahb_mem::readmem(char infile_[], unsigned int addr)
 
@@ -246,16 +246,16 @@ uint8_t Ctb_ahb_mem::char2nibble(const char *ch) const {
 /// Method to dump the memory content into an text file
 int Ctb_ahb_mem::dumpmem(char outfile_[]) {
 
-   std::ofstream outfile(outfile_, ios::out);
-   uint32_t word = 0;
-   int      position = 0;
-
    // check if memory is filled
    if(mem.empty()) {
      v::info << name << ": Memory is empty. Nothing do dump.\n";
       return 1;
    }
-   // reate map iterator and initialize to first element
+
+   std::ofstream outfile(outfile_, ios::out);
+   uint32_t word     = 0;
+   int      position = 0;
+   // create map iterator and initialize to first element
    std::map<uint32_t, uint8_t>::iterator it      = mem.begin();
    std::map<uint32_t, uint8_t>::iterator it_next = mem.begin();
    it_next++;
@@ -290,6 +290,6 @@ int Ctb_ahb_mem::dumpmem(char outfile_[]) {
       return 0;
    } else {
      v::error << name << ": Unable to open dump file\n";
-      return outfile.good();
+      return 1;
    }
 }  // int tb_ahb_mem::dumpmem(char outfile_[])
