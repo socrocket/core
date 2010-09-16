@@ -143,14 +143,14 @@ int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {
 
       // Warn if data stream ended unexpected
       if(nibble) {
-         VWARN << name << ": Incomplete byte detected in memory file\n";
+         VWARN << name << ": Incomplete byte detected in memory file.\n";
       }
 
       // close file
       infile.close();
       return 0;
    } else {
-      VERROR << name << ": File \"" << infile_ << "\" not found or readable\n";
+      VERROR << name << ": File \"" << infile_ << "\" not found or readable.\n";
       return infile.good();
    }
 }  // int Ctb_ahb_mem::readmem(char infile_[], unsigned int addr)
@@ -247,17 +247,49 @@ uint8_t Ctb_ahb_mem::char2nibble(const char *ch) const {
 int Ctb_ahb_mem::dumpmem(char outfile_[]) {
 
    std::ofstream outfile(outfile_, ios::out);
+   uint32_t word = 0;
+   int      position = 0;
+
+   // check if memory is filled
+   if(mem.empty()) {
+      VINFO << name << ": Memory is empty. Nothing do dump.\n";
+      return 1;
+   }
+   // reate map iterator and initialize to first element
+   std::map<uint32_t, uint8_t>::iterator it      = mem.begin();
+   std::map<uint32_t, uint8_t>::iterator it_next = mem.begin();
+   it_next++;
 
    if(outfile.good()) {
-      for(std::map<unsigned int, unsigned char>::iterator it=mem.begin();
-          it!=mem.end(); it++) {
-         outfile << "@0x" << std::hex << std::setw(8) << std::setfill('0')
-            << it->first << ": 0x" << std::setw(2)
-            << static_cast<unsigned int>(it->second) << endl;
+      // print first address in file
+      outfile << "@" << std::hex << std::setw(8) << std::setfill('0')
+         << (it->first & 0xfffffffc) << endl;
+
+      for(it=mem.begin(); it!=mem.end(); it++, it_next++) {
+
+         position = it->first % 4;
+         word |= (it->second << (8*position));
+
+         // Next byte not within current word
+         if( (3 - position - static_cast<int>(it_next->first - it->first)) < 0) {
+            // print word
+            outfile << std::hex << std::setw(8) << std::setfill('0') << word
+               << endl;
+            word = 0;
+
+            // print address if necessary
+            if( (7 - position - static_cast<int>(it_next->first - it->first)) < 0) {
+               outfile << "@" << std::hex << std::setw(8) << std::setfill('0')
+                  << (it_next->first & 0xfffffffc) << endl;
+            }
+         }
       }
+      // print last word
+      outfile << std::hex << std::setw(8) << std::setfill('0') << word
+         << endl;
       return 0;
    } else {
-      VERROR << name << ": Unable to open dump file\n";
+      VERROR << name << ": Unable to open dump file.\n";
       return outfile.good();
    }
 }  // int tb_ahb_mem::dumpmem(char outfile_[])
