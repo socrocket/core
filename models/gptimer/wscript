@@ -30,7 +30,7 @@ def build(bld):
     source         = 'gptimer.cpp gpcounter.cpp', 
     export_incdirs = '.',
     uselib         = 'SYSC TLM2 AMBA GREENSOCS',
-    uselib_local   = 'utils signalkit vkit'
+    uselib_local   = 'utils signalkit common'
   )
   #bld(
   #  target       = 'speed.gptimer',
@@ -59,7 +59,7 @@ def build(bld):
     defines      = 'PRESCALERTEST CTBUS DEBUGOUT',
     includes     = '. tests',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'gptimer utils signalkit vkit',
+    uselib_local = 'gptimer utils signalkit common',
   )
 
   bld(
@@ -69,6 +69,6 @@ def build(bld):
     defines      = 'COUNTERTEST CTBUS DEBUGOUT',
     includes     = '. tests',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'gptimer utils signalkit vkit',
+    uselib_local = 'gptimer utils signalkit common',
   )
 

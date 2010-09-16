@@ -15,7 +15,6 @@
 #include "amba.h"
 #include "generic_memory.h"
 #include "mctrl.h"
-#include "mctrlreg.h"
 #include "mctrl_tb.h"
 
 int sc_main(int argc, char** argv) {

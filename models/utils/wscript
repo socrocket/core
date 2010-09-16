@@ -35,5 +35,5 @@ def build(bld):
                      ],
     export_incdirs = '.',
     uselib         = 'SYSC TLM2 AMBA GREENSOCS',
-    uselib_local   = 'signalkit vkit'
+    uselib_local   = 'signalkit common'
   )

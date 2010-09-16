@@ -30,7 +30,7 @@ def build(bld):
     source         = 'pnp.cpp', 
     export_incdirs = '.',
     uselib         = 'SYSC TLM2 AMBA GREENSOCS',
-    uselib_local   = 'utils vkit'
+    uselib_local   = 'utils common'
   )
 
   bld(
@@ -39,7 +39,7 @@ def build(bld):
     source       = 'tests/simple.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'pnp utils vkit',
+    uselib_local = 'pnp utils common',
   )
   
   bld(
@@ -48,5 +48,5 @@ def build(bld):
     source       = 'tests/amba.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'pnp utils vkit',
+    uselib_local = 'pnp utils common',
   )

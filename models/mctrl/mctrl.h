@@ -152,7 +152,7 @@ public:
     const int sdbits;
     const int mobile;
     const int sden;
-
+  public:
     //---constant bit masks for APB register access
 
     //register address offset

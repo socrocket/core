@@ -90,6 +90,7 @@ class CIrqmp
     const int ncpu;
     const int eirq;
 
+  public:
     //---register address offset
     static const uint32_t IRQMP_IR_LEVEL   = 0x00;
     static const uint32_t IRQMP_IR_PENDING = 0x04;
@@ -97,9 +98,9 @@ class CIrqmp
     static const uint32_t IRQMP_IR_CLEAR   = 0x0C;
     static const uint32_t IRQMP_MP_STAT    = 0x10;
     static const uint32_t IRQMP_BROADCAST  = 0x14;
-    inline uint32_t IRQMP_PROC_IR_MASK(int CPU_INDEX) const {return(0x40 + 0x4 * CPU_INDEX);}
-    inline uint32_t IRQMP_PROC_IR_FORCE(int CPU_INDEX) const {return(0x80 + 0x4 * CPU_INDEX);}
-    inline uint32_t IRQMP_PROC_EXTIR_ID(int CPU_INDEX) const {return(0xC0 + 0x4 * CPU_INDEX);}
+    static const uint32_t IRQMP_PROC_IR_MASK(int CPU_INDEX) {return(0x40 + 0x4 * CPU_INDEX);}
+    static const uint32_t IRQMP_PROC_IR_FORCE(int CPU_INDEX) {return(0x80 + 0x4 * CPU_INDEX);}
+    static const uint32_t IRQMP_PROC_EXTIR_ID(int CPU_INDEX) {return(0xC0 + 0x4 * CPU_INDEX);}
 
 
     /// register contents (config bit masks)

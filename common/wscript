@@ -29,7 +29,7 @@ def configure(ctx):
 
 def build(bld):
   bld(
-    target         = 'vkit',
+    target         = 'common',
     features       = 'cxx cstaticlib',
     source         = 'verbose.cpp', 
     export_incdirs = '.',
@@ -37,11 +37,11 @@ def build(bld):
   )
   
   bld(
-    target       = 'simple.vkit',
+    target       = 'simple.common',
     features     = 'cxx cprogram test',
     source       = 'tests/simple.cpp',
     includes     = '.',
     uselib       = 'SYSC',
-    uselib_local = 'vkit'
+    uselib_local = 'common'
   )
  

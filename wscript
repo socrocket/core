@@ -214,7 +214,7 @@ def configure(ctx):
     )
   except Configure.ConfigurationError:
     # use own old files
-    ctx.env["CPPPATH_GREENSOCS"] += os.path.join(ctx.srcdir,'grkit'),
+    ctx.env["CPPPATH_GREENSOCS"] += os.path.join(ctx.srcdir,'contrib', 'greensocs-4.0.0_patch'),
     # TODO: Check if it works
   
   # Extend GREENSOCS

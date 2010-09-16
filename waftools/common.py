@@ -44,29 +44,40 @@ def target_list(ctx):
 
   bld.add_subdirs([os.path.split(Utils.g_module.root_path)[0]]) 
 
-  names = set([])
-  for x in bld.all_task_gen: 
+  nlibs = set([])
+  ntests = set([])
+  napps = set([])
+  for x in bld.all_task_gen:
     try:
-      names.add(x.name or x.target)
+      if "test" in x.features:
+        ntests.add(x.name or x.target)
+      elif "cprogram" in x.features:
+        napps.add(x.name or x.target)
+      elif "cstaticlib" in x.features:
+        nlibs.add(x.name or x.target)
+        
     except AttributeError:
       pass
 
-  libs  = list()
-  tests = list()
+  libs  = list(nlibs)
+  tests = list(ntests)
+  apps = list(napps)
   
-  for n in names:
-    if '.' in n:
-      tests.append(n)
-    else:
-      libs.append(n)
   libs.sort()
   tests.sort()
+  apps.sort()
   print "Library targets:"
   for name in libs:
     print " ", name
   print ""
+
   print "Test targets:"
   for name in tests:
+    print " ", name
+  print ""
+  
+  print "Executable targets:"
+  for name in apps:
     print " ", name
 
 def target_docs(bld):
