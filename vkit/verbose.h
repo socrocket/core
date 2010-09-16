@@ -22,6 +22,12 @@
 /// @{
 
 namespace v {
+
+using std::endl;
+using std::hex;
+using std::dec;
+using std::flush;
+
   
 class Color {
   public:
@@ -63,40 +69,14 @@ extern Color Beep;
 #define VERBOSITY 1
 #endif
 
-#define output_header \
-               "@" \
-            <<  sc_core::sc_time_stamp().to_string().c_str() \
-            << " /" \
-            << std::dec \
-            << (unsigned)sc_core::sc_delta_count() \
-            << " (" << ::v::Blue \
-            << "comming soon" << ::v::Normal \
-            << "): "
-
-#define VINFO \
-  ::v::info << output_header << "Info: "
-
-#define VWARN \
-  ::v::warn << output_header << ::v::Yellow << "Warning" << ::v::Normal << ": "
-
-#define VERROR \
-  ::v::warn << output_header << ::v::Red << "Error" << ::v::Normal << ": "
-
-#define VDEBUG \
-  ::v::warn << output_header << ::v::Cyan << "Debug" << ::v::Normal << ": "
-
-              
 template<int level>
-class logstream {
+class msgstream {
   public:
-    logstream(std::streambuf *sb) : m_stream(sb) {}
+    msgstream(std::streambuf *sb) : m_stream(sb) {}
 
-    //inline void show() const {
-    //}
- 
     template <class T>
     inline
-    logstream& operator<<(const T &in) {
+    msgstream& operator<<(const T &in) {
       if(level<VERBOSITY) {
         m_stream << in;
       }
@@ -104,7 +84,7 @@ class logstream {
     }
  
     inline
-    logstream& operator<<(std::ostream& (*in)(std::ostream&)) {
+    msgstream& operator<<(std::ostream& (*in)(std::ostream&)) {
       if(level<VERBOSITY) {
         m_stream << in;
       }
@@ -114,19 +94,61 @@ class logstream {
   private:
     std::ostream m_stream;
 };
+              
+template<int level>
+class logstream {
+  public:
+    logstream(std::streambuf *sb) : m_stream(sb) {}
 
-extern logstream<0> info;
+    template <class T>
+    inline
+    msgstream<level>& operator<<(const T &in) {
+      if(level<VERBOSITY) {
+        m_stream << "@" 
+                 <<  sc_core::sc_time_stamp().to_string().c_str()
+                 << " /"
+                 << std::dec
+                 << (unsigned)sc_core::sc_delta_count()
+                 << " (" << ::v::Blue
+                 << in << ::v::Normal
+                 << "): ";
+        switch(level) {
+          case 0:
+            m_stream << v::Red << "Error: " << v::Normal;
+            break;
+          case 1: 
+            m_stream << v::Yellow << "Warning: " << v::Normal;
+            break;
+          case 2: 
+            m_stream << v::Cyan << "Info: " << v::Normal;
+            break;
+          default:
+            m_stream << v::Magenta << "Debug: " << v::Normal;
+        }
+      }
+      return m_stream;
+    }
+ 
+    /*inline
+    msgstream<level>& operator<<(std::ostream& (*in)(std::ostream&)) {
+      if(level<VERBOSITY) {
+        m_stream << in;
+      }
+      return *this;
+    }*/
+    
+  private:
+    msgstream<level> m_stream;
+};
+
+extern logstream<0> error;
 extern logstream<1> warn;
-extern logstream<2> error;
+extern logstream<2> info;
 extern logstream<3> debug;
 
 void logFile(char *);
 
 } // namespace 
-
-//char *name() {
-//  return "Global";
-//}
 
 /// @}
 

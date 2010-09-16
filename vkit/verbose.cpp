@@ -62,9 +62,9 @@ void logFile(char *name) {
   }
 }
 
-logstream<0> info(&logbuf);
+logstream<0> error(&logbuf);
 logstream<1> warn(&logbuf);
-logstream<2> error(&logbuf);
+logstream<2> info(&logbuf);
 logstream<3> debug(&logbuf);
 
 /** Linux internal consol color pattern */

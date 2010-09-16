@@ -78,13 +78,14 @@ def configure(ctx):
   ctx.check_tool('boost', tooldir='waftools')
   boostLibs = 'regex thread program_options filesystem system'
   ctx.check_boost(lib=boostLibs, static='both', min_version='1.35.0', mandatory = True, errmsg = 'Unable to find ' + boostLibs + ' boost libraries of at least version 1.35, please install them and specify their location with the --boost-includes and --boost-libs configuration options')
+  import glob
   
   # SystemC
   ctx.check_cxx(
     lib          = 'systemc',
     uselib_store = 'SYSC',
     mandatory    = True,
-    libpath      = os.path.join(options.systemc_home, "lib-linux"), # not always lib-linux -> lib-* or lib-<target>
+    libpath      = glob.glob(os.path.join(options.systemc_home, "lib-*")), # not always lib-linux -> lib-* or lib-<target>
     errormsg     = "SystemC Library not found. Use --systemc option or set $SYSTEMC_HOME."
   ) 
   ctx.check_cxx(
@@ -201,13 +202,20 @@ def configure(ctx):
     uselib        = 'BOOST SYSC TLM2 GREENSOCS',
   )
 
-  ctx.check_cxx(
-    header_name   = "greenreg_ambasocket.h",
-    uselib_store  = 'GREENSOCS',
-    mandatory     = True,
-    includes      = os.path.join(options.greensocs_home, "greenreg", "greenreg_socket"),
-    uselib        = 'GREENSOCS BOOST SYSC TLM2 AMBA',
-  )
+  # Check for AMBAKit extended GreenSocs
+  import Configure
+  try:
+    ctx.check_cxx(
+      header_name   = "greenreg_ambasocket.h",
+      uselib_store  = 'GREENSOCS',
+      mandatory     = True,
+      includes      = os.path.join(options.greensocs_home, "greenreg", "greenreg_socket"),
+      uselib        = 'GREENSOCS BOOST SYSC TLM2 AMBA',
+    )
+  except Configure.ConfigurationError:
+    # use own old files
+    ctx.env["CPPPATH_GREENSOCS"] += os.path.join(ctx.srcdir,'grkit'),
+    # TODO: Check if it works
   
   # Extend GREENSOCS
   ctx.check_cxx(
@@ -227,6 +235,9 @@ def configure(ctx):
   
   from waftools.common import get_subdirs
   ctx.recurse(get_subdirs(top))
+  
+  ctx.check_cxx(cxxflags=ctx.env['CXXFLAGS'], mandatory=1, msg='Checking for G++ compilation flags')
+  ctx.check_cxx(linkflags=ctx.env['LINKFLAGS'], mandatory=1, msg='Checking for link flags')
 
 def build(bld):
   from waftools.common import get_subdirs

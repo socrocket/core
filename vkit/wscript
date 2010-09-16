@@ -35,3 +35,13 @@ def build(bld):
     export_incdirs = '.',
     uselib         = 'SYSC'
   )
+  
+  bld(
+    target       = 'simple.vkit',
+    features     = 'cxx cprogram test',
+    source       = 'tests/simple.cpp',
+    includes     = '.',
+    uselib       = 'SYSC',
+    uselib_local = 'vkit'
+  )
+ 
