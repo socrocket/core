@@ -108,12 +108,12 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
   {
     v::error << "Mctrl" << "Inconsisten address space parameters. Check romasel / sdrasel vs. (rom-|ram-)(-addr|-mask)." << endl;
   }
-  else if (_romaddr + 4096 - _rommask > _ioaddr      ||
-           _romaddr + 4096 - _rommask > _ramaddr     ||
-           _ioaddr  + 4096 - _iomask  > _romaddr     ||
-           _ioaddr  + 4096 - _iomask  > _ramaddr     ||
-           _ramaddr + 4096 - _rammask > _romaddr     ||
-           _ramaddr + 4096 - _rammask > _ioaddr         )
+  else if (_romaddr_ < _ioaddr  && _romaddr + 4096 - _rommask > _ioaddr      ||
+           _romaddr_ < _ramaddr && _romaddr + 4096 - _rommask > _ramaddr     ||
+           _ioaddr_  < _romaddr && _ioaddr  + 4096 - _iomask  > _romaddr     ||
+           _ioaddr_  < _ramaddr && _ioaddr  + 4096 - _iomask  > _ramaddr     ||
+           _ramaddr_ < _romaddr && _ramaddr + 4096 - _rammask > _romaddr     ||
+           _ramaddr_ < _ioaddr  && _ramaddr + 4096 - _rammask > _ioaddr         )
   {
     v::error << "Mctrl" << "Inconsistent address space parameters. Check *addr and *mask for overlaps." << endl;
   }
