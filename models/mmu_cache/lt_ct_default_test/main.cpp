@@ -75,8 +75,7 @@ int sc_main(int argc, char** argv) {
 
   // CREATE MMU Cache
   // ----------------
-  mmu_cache mmu_cache(0,  // int dsu = 0, 
-		      1,  // int icen = 1 (icache enabled)
+  mmu_cache mmu_cache(1,  // int icen = 1 (icache enabled)
 		      3,  // int irepl = 3 (icache random replacement)
 		      3,  //  int isets = 3 (4 instruction cache sets)
 		      0,  //  int ilinesize = 0 (1 word per icache line)

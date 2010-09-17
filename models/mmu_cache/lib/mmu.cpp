@@ -18,28 +18,17 @@
 
 #include "mmu.h"
 
-// constructor args:
-// - sysc module name,
-// - delay on an instruction tlb hit
-// - delay on an instruction tlb miss (per page table lookup)
-// - delay on a data tlb hit
-// - delay on a data tlb miss (per page table lookup)
-// - number of instruction tlbs
-// - number of data tlbs
-// - tlb type
-// - tlb replacement strategy
-// - tlb mmu page size (default 4kB)
-mmu::mmu(sc_core::sc_module_name name,
-      mmu_cache_if * _mmu_cache,
-      sc_core::sc_time itlb_hit_response_delay,
-      sc_core::sc_time itlb_miss_response_delay,
-      sc_core::sc_time dtlb_hit_response_delay,
-      sc_core::sc_time dtlb_miss_response_delay,
-      unsigned int itlbnum,
-      unsigned int dtlbnum,
-      unsigned int tlb_type,
-      unsigned int tlb_rep,
-      unsigned int mmupgsz) : sc_module(name),
+mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
+      mmu_cache_if * _mmu_cache,                  // pointer to memory interface
+      sc_core::sc_time itlb_hit_response_delay,   // delay on an instruction tlb hit
+      sc_core::sc_time itlb_miss_response_delay,  // delay on an instruction tlb miss (per page table lookup)
+      sc_core::sc_time dtlb_hit_response_delay,   // delay on a data tlb hit
+      sc_core::sc_time dtlb_miss_response_delay,  // delay on a data tlb miss (per page table lookup)
+      unsigned int itlbnum,                       // number of instruction tlbs
+      unsigned int dtlbnum,                       // number of data tlbs
+      unsigned int tlb_type,                      // tlb type
+      unsigned int tlb_rep,                       // tlb replacement strategy
+      unsigned int mmupgsz) : sc_module(name),    // tlb mmu page size (default 4kB)
 			      m_mmu_cache(_mmu_cache),
 			      m_itlbnum(2^itlbnum),
 			      m_dtlbnum(2^dtlbnum),

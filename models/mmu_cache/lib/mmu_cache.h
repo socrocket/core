@@ -53,7 +53,6 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
   amba::amba_master_socket<32> ahb_master;
 
   /// @brief Constructor of the top-level class of the memory sub-system (caches and mmu).
-  /// @param         dsu
   /// @icen          instruction cache enable
   /// @irepl         instruction cache replacement strategy
   /// @isets         number of instruction cache sets
@@ -91,8 +90,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
   /// @itlb_miss_response_delay           Delay on an instruction TLB miss
   /// @dtlb_hit_response_delay            Delay on a data TLB hit
   /// @dtlb_miss_response_delay           Delay on a data TLB miss
-  mmu_cache(unsigned int dsu,
-	    unsigned int icen,
+  mmu_cache(unsigned int icen,
 	    unsigned int irepl,
 	    unsigned int isets,
 	    unsigned int ilinesize,
@@ -134,12 +132,12 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
   // ----------------
   // forward transport function for icio socket
   void icio_custom_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay_time);
-  // forward transport functtion for dcio socket
+  // forward transport function for dcio socket
   void dcio_custom_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay_time);
 
   // interface to AMBA master socket (impl. mem_if)
-  virtual void mem_write(unsigned int addr, unsigned char * data, unsigned int length, sc_core::sc_time * t, unsigned int * t);
-  virtual void mem_read(unsigned int addr, unsigned char * data, unsigned int length, sc_core::sc_time * t, unsigned int * t);
+  virtual void mem_write(unsigned int addr, unsigned char * data, unsigned int length, sc_core::sc_time * t, unsigned int * debug);
+  virtual void mem_read(unsigned int addr, unsigned char * data, unsigned int length, sc_core::sc_time * t, unsigned int * debug);
 
   // read/write cache control register
   void write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time *delay);
@@ -175,6 +173,9 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
   // [22] - Flush data cache (FD)        - If set, will flush the data cache. Always reads as zero.
   // [23] - Data cache snoop enable (DS) - If set, will enable data cache snooping.
   unsigned int CACHE_CONTROL_REG;
+
+  unsigned int m_icen;
+  unsigned int m_dcen;
 
   unsigned int m_ilram;
   unsigned int m_ilramstart;

@@ -75,23 +75,8 @@ int sc_main(int argc, char** argv) {
 
   // CREATE MMU Cache
   // ----------------
-  // constructor args: 
-  // - name of sysc module
-  // - id of the AHB master
-  // - icache delay for read hit
-  // - icache delay for read miss,
-  // - dcache delay for read hit
-  // - dcache delay for read miss
-  // - dcache delay for write (hit and miss)
-  // - itlb delay on read hit
-  // - itlb delay on read miss
-  // - dtlb delay on read hit
-  // - dtlb delay on read miss
-  //
-  // template parameters:
 
-  mmu_cache mmu_cache(0,  // <int dsu = 0, 
-		      1,  //  int icen = 1 (icache enabled)
+  mmu_cache mmu_cache(1,  //  int icen = 1 (icache enabled)
 		      3,  //  int irepl = 3 (icache random replacement)
 		      3,  //  int isets = 3 (4 instruction cache sets)
 		      0,  //  int ilinesize = 0 (1 word per icache line)
@@ -116,7 +101,7 @@ int sc_main(int argc, char** argv) {
 		      3,  //  int dtlb_num = 3 (8 dtlbs)
 		      0,  //  int tlb_type = 0 (split tlb mode)
 		      1,  //  int tlb_rep = 1 (random replacement)
-		      0,  //  int mmupgsz = 0 (4kB mmu page size)>
+		      0,  //  int mmupgsz = 0 (4kB mmu page size)
 		      "mmu_cache",  // name of sysc module
 		      CACHE_MASTER_ID,  // id of the AHB master
 		      sc_core::sc_time(0, sc_core::SC_NS),              // icache delay for read hit

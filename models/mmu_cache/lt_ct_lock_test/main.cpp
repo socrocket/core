@@ -88,8 +88,7 @@ int sc_main(int argc, char** argv) {
   //
   // template parameters:
 
-  mmu_cache mmu_cache(0,  // <int dsu = 0, 
-		      1,  //  int icen = 1 (icache enabled)
+  mmu_cache mmu_cache(1,  //  int icen = 1 (icache enabled)
 		      2,  //  int irepl = 2 (icache LRR)
 		      1,  //  int isets = 1 (2 instruction cache sets)
 		      2,  //  int ilinesize = 2 (4 words per icache line)
@@ -114,7 +113,7 @@ int sc_main(int argc, char** argv) {
 		      3,  //  int dtlb_num = 3 (8 dtlbs - disabled)
 		      0,  //  int tlb_type = 0 (split tlb mode)
 		      1,  //  int tlb_rep = 1 (random replacement - disabled)
-		      0,  //  int mmupgsz = 0 (4kB mmu page size 0 - disabled)>
+		      0,  //  int mmupgsz = 0 (4kB mmu page size 0 - disabled)
 		      "mmu_cache",  // name of sysc module
 		      CACHE_MASTER_ID,  // id of the AHB master
 		      sc_core::sc_time(0, sc_core::SC_NS),              // icache delay for read hit

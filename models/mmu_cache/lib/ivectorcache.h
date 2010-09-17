@@ -52,14 +52,19 @@ class ivectorcache : public vectorcache {
 
  public:
 
+  // overwrite write function
+  void write(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug);
+  // implement ccr check
+  unsigned int check_mode();
+
   // constructor
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
   /// @brief Constructor of data cache
   /// @param name                              SystemC module name
   /// @param mmu_cache                         Pointer to top-level class of cache subsystem (mmu_cache) for access to AHB bus interface
   /// @param tlb_adaptor                       Pointer to memory management unit
-  /// @param icache_hit_read_response_delay           Delay for a cache read hit
-  /// @param icache_miss_read_response_delay          Delay for a cache read miss
+  /// @param icache_hit_read_response_delay    Delay for a cache read hit
+  /// @param icache_miss_read_response_delay   Delay for a cache read miss
   /// @param sets                              Number of cache sets
   /// @param setsize                           Size of a cache set (in kbytes)
   /// @param linesize                          Size of a cache line (in bytes)
@@ -97,21 +102,7 @@ class ivectorcache : public vectorcache {
 						    lramstart,
 						    lramsize) {}
 
- public:
 
-  // overwrite write function
-  void write(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
-
-    DUMP(this->name(),"Forbidden to write icache!");
-    assert(false);
-
-  }
-
-  unsigned int check_mode() {
-
-    return(m_mmu_cache->read_ccr() & 0x3);
-
-  }
 };
 
 #endif // __IVECTORCACHE_H__

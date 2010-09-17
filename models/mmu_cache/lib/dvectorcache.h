@@ -19,15 +19,15 @@
 
 #include "tlm.h"
 
-#include <vector>
-#include <iostream>
-#include "math.h"
+//#include <vector>
+//#include <iostream>
+//#include "math.h"
 
 #include "defines.h"
-#include "mmu_cache.h"
+//#include "mmu_cache.h"
 #include "vectorcache.h"
-#include "mmu.h"
-#include "mem_if.h"
+//#include "mmu.h"
+//#include "mem_if.h"
 
 // implementation of cache memory and controller
 // ---------------------------------------------
@@ -58,6 +58,9 @@ class dvectorcache : public vectorcache {
   using vectorcache::dbg_out;
 
  public:
+
+  // implement ccr check
+  unsigned int check_mode();
 
   // constructor
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
@@ -108,13 +111,6 @@ class dvectorcache : public vectorcache {
 						    lramsize) {}
 
 
- public:
-
-  virtual unsigned int check_mode() {
-
-    return(m_mmu_cache->read_ccr() & 0x3);
-
-  }
 
 };
 

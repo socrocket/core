@@ -20,8 +20,7 @@
 
 //SC_HAS_PROCESS(mmu_cache<>);
 /// Constructor
-mmu_cache::mmu_cache(unsigned int dsu, 
-		     unsigned int icen,
+mmu_cache::mmu_cache(unsigned int icen,
 		     unsigned int irepl,
 		     unsigned int isets,
 		     unsigned int ilinesize,
@@ -61,6 +60,8 @@ mmu_cache::mmu_cache(unsigned int dsu,
 			icio("icio"), 
 			dcio("dcio"),
 			ahb_master("ahb_master_socket", amba::amba_AHB, amba::amba_LT, false), 
+           		m_icen(icen),
+		        m_dcen(dcen),
 			m_ilram(ilram),
                         m_ilramstart(ilramstart),
 			m_dlram(dlram),
@@ -130,7 +131,7 @@ mmu_cache::mmu_cache(unsigned int dsu,
   // (! only allowed with mmu disabled !)
   ilocalram = ((ilram == 1)&&(mmu_en==0)) ? new localram("ilocalram",
 		ilramsize,
-		ilramstart) :NULL;
+		ilramstart) : NULL;
 
   // create data scratchpad
   // (! only allowed with mmu disabled !)
@@ -171,15 +172,22 @@ void mmu_cache::icio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 
 	ilocalram->read((unsigned int)adr, ptr, len, &delay, debug); 
 
-    } else {
+    // instruction cache access
+    } else if (m_icen) {
 
     	icache->read((unsigned int)adr, ptr, len, &delay, debug);
     	//DUMP(name(),"ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr);    
+
+    // icache disabled - bypass
+    } else {
+
+        mem_read((unsigned int)adr, ptr, len, &delay, debug);
+	
     }
   } 
   else if(cmd==tlm::TLM_WRITE_COMMAND) 
   {
-    //DUMP(name(),"Command not valid for instruction cache (tlm_write)");
+    DUMP(name(),"Command not valid for instruction cache (tlm_write)");
   }
 
 }
@@ -213,12 +221,12 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 			*(unsigned int *)ptr = read_ccr();
 		}
 		else if (adr == 8) {
-			// instruction cache configuration register
-			*(unsigned int *)ptr = icache->read_config_reg(&delay);
+			// instruction cache configuration register (only if present)
+		        if (m_icen) { *(unsigned int *)ptr = icache->read_config_reg(&delay);} else { assert(false); }
 		}
 		else if (adr == 0x0c) {
-			// data cache configuration register
-			*(unsigned int *)ptr = dcache->read_config_reg(&delay);
+			// data cache configuration register (only if present)
+		        if (m_dcen) { *(unsigned int *)ptr = dcache->read_config_reg(&delay);} else { assert(false); }
 		}
 		else {
 			DUMP(this->name(),"Address not valid for read with ASI 0x2");
@@ -235,11 +243,11 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 		// TRIGGER DEBUG OUTPUT / NOT A SPARC SYSTEM REGISTER
 		else if (adr == 0xfe) {
 			// icache debug output (arg: line)
-			icache->dbg_out(*ptr);
+		        if (m_icen) { icache->dbg_out(*ptr); } else { assert(false); }
 		}
 		else if (adr == 0xff) {
 			// dcache debug output (arg: line)
-			dcache->dbg_out(*ptr);
+		        if (m_dcen) { dcache->dbg_out(*ptr); } else { assert(false); }
 		}
 		else {
 			DUMP(this->name(),"Address not valid for write with ASI 0x2 (or read only)");
@@ -257,12 +265,12 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 	if (cmd==tlm::TLM_READ_COMMAND) {
 	
 		DUMP(this->name(),"Diagnostic read from instruction PDC (ASI 0x5)");
-		m_mmu->diag_read_itlb(adr, (unsigned int *)ptr);
+		if (m_mmu_en) { m_mmu->diag_read_itlb(adr, (unsigned int *)ptr); } else { assert(false); }
 	}
 	else if (cmd==tlm::TLM_WRITE_COMMAND) {
 
 		DUMP(this->name(),"Diagnostic write to instruction PDC (ASI 0x5)");
-		m_mmu->diag_write_itlb(adr, (unsigned int *)ptr);
+		if (m_mmu_en) { m_mmu->diag_write_itlb(adr, (unsigned int *)ptr); } else { assert(false); }
 	}	
   }
   // diagnostic access to data or shared instruction and data PDC
@@ -271,12 +279,12 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 	if (cmd==tlm::TLM_READ_COMMAND) {
 	
 		DUMP(this->name(),"Diagnostic read from data (or shared) PDC (ASI 0x6)");
-		m_mmu->diag_read_dctlb(adr, (unsigned int *)ptr);
+		if (m_mmu_en) { m_mmu->diag_read_dctlb(adr, (unsigned int *)ptr); } else { assert(false); }
 	}
 	else if (cmd==tlm::TLM_WRITE_COMMAND) {
 
 		DUMP(this->name(),"Diagnostic write to data (or shared) PDC (ASI 0x6)");
-		m_mmu->diag_write_dctlb(adr, (unsigned int *)ptr);
+		if (m_mmu_en) { m_mmu->diag_write_dctlb(adr, (unsigned int *)ptr); } else { assert(false); }
 	}
   }
   // access instruction cache tags
@@ -284,11 +292,11 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 
 	if (cmd==tlm::TLM_READ_COMMAND) {
 		DUMP(this->name(),"ASI read instruction cache tags");
-		icache->read_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);
+		if (m_icen) { icache->read_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);} else { assert(false); }
 	}
 	else if (cmd==tlm::TLM_WRITE_COMMAND) {
 		DUMP(this->name(),"ASI write instruction cache tags");
-		icache->write_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);
+		if (m_icen) { icache->write_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);} else { assert(false); }
 	}
 	else {
 		DUMP(this->name(), "Unvalid TLM Command");
@@ -299,11 +307,11 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 
 	if (cmd==tlm::TLM_READ_COMMAND) {
 		DUMP(this->name(),"ASI read instruction cache entry");
-		icache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
+		if (m_icen) { icache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay); } else { assert(false); }
 	}
 	else if (cmd==tlm::TLM_WRITE_COMMAND) {
 		DUMP(this->name(),"ASI write instruction cache entry");
-		icache->write_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
+		if (m_icen) { icache->write_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay); } else { assert(false); }
 	}
 	else {
 		DUMP(this->name(), "Unvalid TLM Command");
@@ -314,11 +322,11 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 
 	if (cmd==tlm::TLM_READ_COMMAND) {
 		DUMP(this->name(),"ASI read data cache tags");
-		dcache->read_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);
+		if (m_dcen) { dcache->read_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay); } else { assert(false); }
 	}
 	else if (cmd==tlm::TLM_WRITE_COMMAND) {
 		DUMP(this->name(),"ASI write data cache tags");
-		dcache->write_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);
+		if (m_dcen) { dcache->write_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay); } else { assert(false); }
 	}
 	else {
 		DUMP(this->name(), "Unvalid TLM Command");
@@ -329,11 +337,11 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 	
 	if (cmd==tlm::TLM_READ_COMMAND) {
 		DUMP(this->name(),"ASI read data cache entry");
-		dcache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
+		if (m_dcen) { dcache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay); } else { assert(false); }
 	}
 	else if (cmd==tlm::TLM_WRITE_COMMAND) {
 		DUMP(this->name(),"ASI write data cache entry");
-		dcache->write_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
+		if (m_dcen) { dcache->write_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay); } else { assert(false); }
 	}
 	else {
 		DUMP(this->name(), "Unvalid TLM Command");
@@ -345,7 +353,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 	// icache is flushed on any write with ASI 0x10
 	if (cmd==tlm::TLM_WRITE_COMMAND) {
 		DUMP(this->name(),"ASI flush instruction cache");
-		icache->flush(&delay, debug);
+		if (m_icen) { icache->flush(&delay, debug); }
 	}
 	else {
 		DUMP(this->name(), "Unvalid TLM Command");
@@ -357,7 +365,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 	// dcache is flushed on any write with ASI 0x11
 	if (cmd==tlm::TLM_WRITE_COMMAND) {
 		DUMP(this->name(), "ASI flush data cache");
-		dcache->flush(&delay, debug);
+		if (m_dcen) { dcache->flush(&delay, debug); }
 	}
 	else {
 		DUMP(this->name(), "Unvalid TLM Command");
@@ -372,27 +380,28 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 		DUMP(this->name(),"MMU register read with ASI 0x19 - addr:" << std::hex << adr);
       		if (adr==0x000) {
 			// MMU Control Register
-			*(unsigned int *)ptr = m_mmu->read_mcr();
+		        if (m_mmu_en) { *(unsigned int *)ptr = m_mmu->read_mcr(); } else { assert(false); }
      		}
       		else if (adr == 0x100) {
 			// Context Pointer Register
-			*(unsigned int *)ptr = m_mmu->read_mctpr();
+		        if (m_mmu_en) { *(unsigned int *)ptr = m_mmu->read_mctpr(); } else { assert(false); }
       		}
       		else if (adr == 0x200) {
 			// Context Register
-			*(unsigned int *)ptr = m_mmu->read_mctxr();
+		        if (m_mmu_en) { *(unsigned int *)ptr = m_mmu->read_mctxr(); } else { assert(false); }
       		}
       		else if (adr == 0x300) {
 			// Fault Status Register
-			*(unsigned int *)ptr = m_mmu->read_mfsr();
+		        if (m_mmu_en) { *(unsigned int *)ptr = m_mmu->read_mfsr(); } else { assert(false); }
       		}
       		else if (adr == 0x400) {
 			// Fault Address Register
-			*(unsigned int *)ptr = m_mmu->read_mfar();
+		        if (m_mmu_en) { *(unsigned int *)ptr = m_mmu->read_mfar(); } else { assert(false); }
       		}
       		else {
 			DUMP(this->name(),"Address not valid for read with ASI 0x19");
 			*(unsigned int *)ptr = 0;
+			// ignore
       		}
 	
     	}
@@ -401,15 +410,15 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 		DUMP(this->name(),"MMU register write with ASI 0x19 - addr:" << std::hex << adr);
       		if (adr==0x000) {
 			// MMU Control Register
-			m_mmu->write_mcr((unsigned int *)ptr);
+		        if (m_mmu_en) { m_mmu->write_mcr((unsigned int *)ptr); } else { assert(false); }
       		}
      		else if (adr==0x100) {
 			// Context Table Pointer Register
-			m_mmu->write_mctpr((unsigned int*)ptr);
+		        if (m_mmu_en) { m_mmu->write_mctpr((unsigned int*)ptr); } else { assert(false); }
 		}
       		else if (adr==0x200) {
 			// Context Register
-			m_mmu->write_mctxr((unsigned int*)ptr);
+		        if (m_mmu_en) { m_mmu->write_mctxr((unsigned int*)ptr); } else { assert(false); }
       		}
 		else {
 			DUMP(this->name(),"Address not valid for write with ASI 0x19 (or read-only)");
@@ -433,11 +442,17 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 	   dlocalram->read((unsigned int)adr, ptr, len, &delay, debug);
 	
 	// cache access
-	} else {
+	} else if (m_dcen) {
 
 	   dcache->read((unsigned int)adr, ptr, len, &delay, debug);
       	   //DUMP(name(),"DCIO Socket data received (tlm_read): " << std::hex << *(unsigned int*)ptr);    
-	}
+        // no dcache present - bypass
+	} else {
+
+	   mem_read((unsigned int)adr, ptr, len, &delay, debug);
+
+        }
+	
     }
     else if(cmd==tlm::TLM_WRITE_COMMAND) 
     {
@@ -452,10 +467,16 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 	   dlocalram->write((unsigned int)adr, ptr, len, &delay, debug);
 
 	// cache access (write through)
-	} else {
+	} else if (m_dcen) {
 
        	   dcache->write((unsigned int)adr, ptr, len, &delay, debug);
 	   //DUMP(name(),"DCIO Socket done tlm_write");
+	 
+        // no dcache present - bypass
+	} else {
+
+	  mem_write((unsigned int)adr, ptr, len, &delay, debug);
+
 	}
     }
   }
@@ -478,10 +499,17 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data, unsigned int 
 	gp->set_data_length(len);
 	gp->set_data_ptr(data);
 
+	// set the burst size
 	amba::burst_size* size_ext;
 	ahb_master.validate_extension<amba::burst_size>(*gp);
 	ahb_master.get_extension<amba::burst_size>(size_ext, *gp);
-	size_ext->value=len;
+	size_ext->value= (len < 4) ? len : 4;
+
+	// set the id of the master
+	amba::tag_id* m_id;
+	ahb_master.get_extension<amba::tag_id>(m_id, *gp);
+	m_id->value=master_id;
+	ahb_master.validate_extension<amba::tag_id>(*gp);
 	
 	// issue transaction
 	ahb_master->b_transport(*gp, delay);
@@ -504,11 +532,21 @@ void mmu_cache::mem_read(unsigned int addr, unsigned char * data, unsigned int l
 	gp->set_data_ptr(data);
 	gp->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
+	// set the burst size
 	amba::burst_size* size_ext;
 	ahb_master.validate_extension<amba::burst_size>(*gp);
 	ahb_master.get_extension<amba::burst_size>(size_ext, *gp);
-	size_ext->value=len;
+	size_ext->value= (len < 4) ? len : 4;
 
+	// set the id of the master
+	amba::tag_id* m_id;
+	ahb_master.get_extension<amba::tag_id>(m_id, *gp);
+	m_id->value=master_id;
+	ahb_master.validate_extension<amba::tag_id>(*gp);
+
+	//amba::cacheable_access* cachable;
+	//ahb_master.validate_extension<amba::cacheable_access>(*gp);
+	
 	// issue transaction
 	ahb_master->b_transport(*gp, delay);
 	

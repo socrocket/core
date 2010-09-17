@@ -76,89 +76,44 @@ int sc_main(int argc, char** argv) {
 
   // CREATE MMU Cache
   // ----------------
-  // constructor args: 
-  // - name of sysc module
-  // - id of the AHB master
-  // - icache delay for read hit
-  // - icache delay for read miss,
-  // - dcache delay for read hit
-  // - dcache delay for read miss
-  // - dcache delay for write (hit and miss)
-  // - itlb delay on read hit
-  // - itlb delay on read miss
-  // - dtlb delay on read hit
-  // - dtlb delay on read miss
-  //
-  // template parameters:
-  // <int dsu = 0, 
-  //  int icen = 1 (icache enabled)
-  //  int irepl = 3 (icache random replacement)
-  //  int isets = 1 (2 instruction cache sets)
-  //  int ilinesize = 3 (8 words per icache line)
-  //  int isetsize = 6 (64kB per icache set)
-  //  int isetlock = 0 (no icache locking)
 
-  //  int dcen = 1 (dcache enabled)
-  //  int drepl = 3 (dcache random replacement)
-  //  int dsets = 1 (2 data cache sets)
-  //  int dlinesize = 3 (8 words per dcache line)
-  //  int dsetsize = 6 (64kB per dcache set)
-  //  int dsetlock = 0 (no dcache locking)
-  //  int dsnoop = 0 (no cache snooping)
-
-  //  int ilram = 0 (instr. localram disable)
-  //  int ilramsize = 0 (1kB ilram size)
-  //  int ilramstart = 8e (0x8e000000 default ilram start address)
-
-  //  int dlram = 0 (data localram disable)
-  //  int dlramsize = 0 (1kB dlram size)
-  //  int dlramstart = 8f (0x8f000000 default dlram start address)
-
-  //  int cached = 0 (fixed cacheability mask)
-  //  int mmu_en = 0 (mmu not present)
-  //  int itlb_num = 3 (8 itlbs - not present)
-  //  int dtlb_num = 3 (8 dtlbs - not present)
-  //  int tlb_type = 0 (split tlb mode - not present)
-  //  int tlb_rep = 1 (random replacement)
-  //  int mmupgsz = 0 (4kB mmu page size)>
-  mmu_cache mmu_cache(0,
-		      1,
-		      3,
-		      1,
-		      3,
-		      6,
-		      0,
-		      1,
-		      3,
-		      1,
-		      3,
-		      6,
-		      0,
-		      0,
-		      0,
-		      0,
-		      0x0000008e,
-		      0,
-		      0,
-		      0x0000008f,
-		      0,
-		      0,
-		      3,
-		      3,
-		      0,
-		      1,
-		      0,
-		      "mmu_cache", 
-		      CACHE_MASTER_ID, 
-		      sc_core::sc_time(0, sc_core::SC_NS), 
-		      sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),
-		      sc_core::sc_time(0, sc_core::SC_NS),
-		      sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),
-		      sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),
-		      sc_core::sc_time(0, sc_core::SC_NS),
-		      sc_core::sc_time(2*LOCAL_CLOCK, sc_core::SC_NS),
-		      sc_core::sc_time(0, sc_core::SC_NS),
-		      sc_core::sc_time(2*LOCAL_CLOCK, sc_core::SC_NS));
+  mmu_cache mmu_cache(1, // int icen = 1 (icache enabled)
+		      3, //  int irepl = 3 (icache random replacement)
+		      1, //  int isets = 1 (2 instruction cache sets)
+		      3, //  int ilinesize = 3 (8 words per icache line)
+		      6, //  int isetsize = 6 (64kB per icache set)
+		      0, //  int isetlock = 0 (no icache locking)
+		      1, //  int dcen = 1 (dcache enabled)
+		      3, //  int drepl = 3 (dcache random replacement)
+		      1, //  int dsets = 1 (2 data cache sets)
+		      3, //  int dlinesize = 3 (8 words per dcache line)
+		      6, //  int dsetsize = 6 (64kB per dcache set)
+		      0, //  int dsetlock = 0 (no dcache locking)
+		      0, //  int dsnoop = 0 (no cache snooping)
+		      0, //  int ilram = 0 (instr. localram disable)
+		      0, //  int ilramsize = 0 (1kB ilram size)
+		      0x0000008e, //  int ilramstart = 8e (0x8e000000 default ilram start address)
+		      0, //  int dlram = 0 (data localram disable)
+		      0, //  int dlramsize = 0 (1kB dlram size)
+		      0x0000008f, //  int dlramstart = 8f (0x8f000000 default dlram start address)
+		      0, //  int cached = 0 (fixed cacheability mask)
+		      0, //  int mmu_en = 0 (mmu not present)
+		      3, //  int itlb_num = 3 (8 itlbs - not present)
+		      3, //  int dtlb_num = 3 (8 dtlbs - not present)
+		      0, //  int tlb_type = 0 (split tlb mode - not present)
+		      1, //  int tlb_rep = 1 (random replacement)
+		      0, //  int mmupgsz = 0 (4kB mmu page size)
+		      "mmu_cache",                                      // name of sysc module
+		      CACHE_MASTER_ID,                                  // id of the AHB master
+		      sc_core::sc_time(0, sc_core::SC_NS),              // icache delay for read hit
+		      sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),    // icache delay for read miss,
+		      sc_core::sc_time(0, sc_core::SC_NS),              // dcache delay for read hit
+		      sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),    // dcache delay for read miss
+		      sc_core::sc_time(LOCAL_CLOCK, sc_core::SC_NS),    // dcache delay for write (hit and miss)
+		      sc_core::sc_time(0, sc_core::SC_NS),              // itlb delay on read hit
+		      sc_core::sc_time(2*LOCAL_CLOCK, sc_core::SC_NS),  // itlb delay on read miss
+		      sc_core::sc_time(0, sc_core::SC_NS),              // dtlb delay on read hit
+		      sc_core::sc_time(2*LOCAL_CLOCK, sc_core::SC_NS)); // dtlb delay on read miss
 
   // create AHB bus
   ahb_simple_bus<32> ahb_bus("AHB_Bus");
