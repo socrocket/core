@@ -69,6 +69,7 @@ def build(bld):
 		       'lib/mmu_cache.cpp' ],
     export_incdirs = 'lib',
     uselib         = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib_local   = 'common',
   )
 
   bld(
@@ -78,7 +79,7 @@ def build(bld):
                      'lt_ct_default_test/main.cpp'],
     includes     = '.',
     uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    uselib_local = 'mmu_cache',
+    uselib_local = 'mmu_cache common',
   )
 
   bld(
@@ -88,7 +89,7 @@ def build(bld):
                      'lt_ct_mmu_test/main.cpp'],
     includes     = '.',
     uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    uselib_local = 'mmu_cache',
+    uselib_local = 'mmu_cache common',
   )
 
   bld(
@@ -98,7 +99,7 @@ def build(bld):
                      'lt_ct_localram_test/main.cpp'],
     includes     = '.',
     uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    uselib_local = 'mmu_cache',
+    uselib_local = 'mmu_cache common',
   )
 
   bld(
@@ -108,7 +109,7 @@ def build(bld):
                      'lt_ct_cacheline_test/main.cpp'],
     includes     = '.',
     uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    uselib_local = 'mmu_cache',
+    uselib_local = 'mmu_cache common',
   )
 
   bld(
@@ -118,6 +119,6 @@ def build(bld):
                      'lt_ct_lock_test/main.cpp'],
     includes     = '.',
     uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    uselib_local = 'mmu_cache',
+    uselib_local = 'mmu_cache common',
   )
 

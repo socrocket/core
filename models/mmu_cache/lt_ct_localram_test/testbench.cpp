@@ -13,6 +13,7 @@
 /***********************************************************************/
 
 #include "testbench.h"
+#include "verbose.h"
 
 // testbench initiator thread
 void testbench::initiator_thread(void) {
@@ -43,21 +44,21 @@ void testbench::initiator_thread(void) {
     // master activity
     // ===============
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * Phase 0: Read system registers (ASI 0x2) ");
-    DUMP(name()," ************************************************************");
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * Phase 0: Read system registers (ASI 0x2) " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;
 
     // read/write cache control register
-    DUMP(name()," ********************************************************* ");
-    DUMP(name()," * 1. ACTIVATE CACHES by writing the CONTROL REGISTER ");
-    DUMP(name()," * (ASI 0x2 - addr 0)    ");
-    DUMP(name()," ********************************************************* ");
+    v::info << name() << " ********************************************************* " << v::endl;
+    v::info << name() << " * 1. ACTIVATE CACHES by writing the CONTROL REGISTER " << v::endl;
+    v::info << name() << " * (ASI 0x2 - addr 0)    " << v::endl;
+    v::info << name() << " ********************************************************* " << v::endl;
     
     // read cache control register !
     // args: address, length, asi, flush, flushl, lock, debug 
     data=dread(0x0, 4, 2, 0, 0, 0, debug);
     // [3:2] == 0b11; [1:0] = 0b11 -> dcache and icache enabled
-    DUMP(name(),"cache_contr_reg: " << std::hex << data);
+    v::info << name() << "cache_contr_reg: " << std::hex << data << v::endl;
     assert(data==0x0);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
@@ -69,40 +70,40 @@ void testbench::initiator_thread(void) {
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // read icache configuration register
-    DUMP(name()," ********************************************************* ");
-    DUMP(name()," * 2. Read ICACHE CONFIGURATION REGISTER (ASI 0x2 - addr 8)   ");
-    DUMP(name()," ********************************************************* ");    
+    v::info << name() << " ********************************************************* " << v::endl;
+    v::info << name() << " * 2. Read ICACHE CONFIGURATION REGISTER (ASI 0x2 - addr 8)   " << v::endl;
+    v::info << name() << " ********************************************************* " << v::endl;    
 
     data=dread(0x8, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b001, [23:20] ssize == 0b1000 (256kb)
     // [19] lram == 1, [18:16] lsize == 0b000 (1 word per line)
     // [15:12] lramsize == 0b1001 (512kb), [11:4] lramstart == 0x8e, [3] mmu = 0
-    DUMP(name(),"icache_config_reg: " << std::hex << data);
+    v::info << name() << "icache_config_reg: " << std::hex << data << v::endl;
     assert(data==0x318898e0);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // read icache configuration register
-    DUMP(name()," ********************************************************* ");
-    DUMP(name()," * 3. Read DCACHE CONFIGURATION REGISTER (ASI 0x2 - addr 0xc)   ");
-    DUMP(name()," ********************************************************* ");    
+    v::info << name() << " ********************************************************* " << v::endl;
+    v::info << name() << " * 3. Read DCACHE CONFIGURATION REGISTER (ASI 0x2 - addr 0xc)   " << v::endl;
+    v::info << name() << " ********************************************************* " << v::endl;    
 
     data=dread(0xc, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b001, [23:20] ssize == 0b1000 (256kb)
     // [19] lram == 1, [18:16] lsize == 0b000 (1 word per line)
     // [15:12] lramsize == 0b1001 (512kb), [11:4] lramstart == 0x8e, [3] mmu = 0
-    DUMP(name(),"dcache_config_reg: " << std:: hex << data);
+    v::info << name() << "dcache_config_reg: " << std:: hex << data << v::endl;
     assert(data==0x318898f0);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * Phase 1: Test the Cache ");
-    DUMP(name()," ************************************************************");
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * Phase 1: Test the Cache " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 4. Initialize 768kB of main memory (3x cache set size) ");
-    DUMP(name()," ************************************************************");
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 4. Initialize 768kB of main memory (3x cache set size) " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;
 
     for (int i = 0; i < 0xc0000; i+=4) {
 
@@ -116,10 +117,10 @@ void testbench::initiator_thread(void) {
       }
     }
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 5. Read 512 kB of memory (cache misses) ");
-    DUMP(name()," * This should completely fill the two cache sets (2x 256kB) ");
-    DUMP(name()," ************************************************************");
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 5. Read 512 kB of memory (cache misses) " << v::endl;
+    v::info << name() << " * This should completely fill the two cache sets (2x 256kB) " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;
 
     // tags 0 and 1
     for (unsigned int i = 0; i < 0x80000; i+=4) {
@@ -134,9 +135,9 @@ void testbench::initiator_thread(void) {
       }
     }
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 6. Read the same data again (cache hits) ");
-    DUMP(name()," ************************************************************");   
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 6. Read the same data again (cache hits) " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;   
 
     // tags 0 and 1
     for (unsigned int i = 0; i < 0x80000; i+=4) {
@@ -151,9 +152,9 @@ void testbench::initiator_thread(void) {
       }
     }
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 7. Read another 256 kB from memory (cache miss) ");
-    DUMP(name()," ************************************************************");
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 7. Read another 256 kB from memory (cache miss) " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;
 
     // tag 2
     for (unsigned int i = 0x80000; i < 0xc0000; i+=4) {
@@ -168,9 +169,9 @@ void testbench::initiator_thread(void) {
       }
     }
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 8. Read again the new 256 kB (cache miss) ");
-    DUMP(name()," ************************************************************");
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 8. Read again the new 256 kB (cache miss) " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;
 
     // tag 2
     for (unsigned int i = 0x80000; i < 0xc0000; i+=4) {
@@ -185,13 +186,13 @@ void testbench::initiator_thread(void) {
       }
     }
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * Phase 2: Test instruction scratchpad ");
-    DUMP(name()," ************************************************************");   
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * Phase 2: Test instruction scratchpad " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;   
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 9. Fill the instruction scratchpad with data ");
-    DUMP(name()," ************************************************************");    
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 9. Fill the instruction scratchpad with data " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;    
 
     // start of scratchpad segment
     for (unsigned int i = 0x8e000000; i < 0x8e080000; i+=4) {
@@ -205,9 +206,9 @@ void testbench::initiator_thread(void) {
       }
     }
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 10. Read the instruction scratchpad");
-    DUMP(name()," ************************************************************");       
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 10. Read the instruction scratchpad" << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;       
 
     // start of scratchpad segment
     for (unsigned int i = 0x8e000000; i < 0x8e080000; i+=4) {
@@ -223,9 +224,9 @@ void testbench::initiator_thread(void) {
       }
     }
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 11. Fill the data scratchpad with data");
-    DUMP(name()," ************************************************************");    
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 11. Fill the data scratchpad with data" << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;    
 
     for (unsigned int i = 0x8f000000; i < 0x8f080000; i+=4) {
 
@@ -238,9 +239,9 @@ void testbench::initiator_thread(void) {
       }
     }
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 12. Read the data scratchpad");
-    DUMP(name()," ************************************************************"); 
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 12. Read the data scratchpad" << v::endl;
+    v::info << name() << " ************************************************************" << v::endl; 
 
     for (unsigned int i = 0x8f000000; i < 0x8f080000; i+=4) {
 
@@ -253,9 +254,9 @@ void testbench::initiator_thread(void) {
       }
     }
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 13. Test byte store for data scratchpad ");
-    DUMP(name()," ************************************************************");    
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 13. Test byte store for data scratchpad " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;    
 
     for (unsigned int i = 0; i < 4; i++) {
 
@@ -265,9 +266,9 @@ void testbench::initiator_thread(void) {
       wait(LOCAL_CLOCK,sc_core::SC_NS); 
     }
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 14. Test byte load for data scratchpad ");
-    DUMP(name()," ************************************************************");     
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 14. Test byte load for data scratchpad " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;     
 
     for (unsigned int i = 0; i < 4; i++) {
 
@@ -278,9 +279,9 @@ void testbench::initiator_thread(void) {
       wait(LOCAL_CLOCK,sc_core::SC_NS); 
     }
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 15. Test half-word read for data scratchpad ");
-    DUMP(name()," ************************************************************");     
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 15. Test half-word read for data scratchpad " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;     
 
     data=dread(0x8f000000, 2, 8, 0, 0, 0, debug);
     assert(data==0x0201);
@@ -294,9 +295,9 @@ void testbench::initiator_thread(void) {
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
-    DUMP(name()," ************************************************************ ");
-    DUMP(name()," * 16. Test half-word write for data scratchpad ");
-    DUMP(name()," ************************************************************");   
+    v::info << name() << " ************************************************************ " << v::endl;
+    v::info << name() << " * 16. Test half-word write for data scratchpad " << v::endl;
+    v::info << name() << " ************************************************************" << v::endl;   
 
     dwrite(0x8f000004, 0x0b0a, 2, 8, 0, 0, 0, debug);
     assert(SCRATCHPAD_CHECK(*debug));

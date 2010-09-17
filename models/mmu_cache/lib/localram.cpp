@@ -15,6 +15,7 @@
 // ***********************************************************************
 
 #include "localram.h"
+#include "verbose.h"
 
 /// constructor
 localram::localram(sc_core::sc_module_name name, 
@@ -34,11 +35,11 @@ localram::localram(sc_core::sc_module_name name,
   // create the actual ram
   scratchpad = new std::vector<t_cache_data>(m_lrsize, m_default_entry);
 
-  DUMP(this->name(), " ******************************************************************************* ");
-  DUMP(this->name(), " * Created local ram with following parameters:                                  ");
-  DUMP(this->name(), " * start address " << std::hex << m_lrstart);
-  DUMP(this->name(), " * size in bytes " << std::hex << m_lrsize);
-  DUMP(this->name(), " ******************************************************************************* ");
+  v::info << this->name() <<  " ******************************************************************************* " << v::endl;
+  v::info << this->name() <<  " * Created local ram with following parameters:                                  " << v::endl;
+  v::info << this->name() <<  " * start address " << std::hex << m_lrstart << v::endl;
+  v::info << this->name() <<  " * size in bytes " << std::hex << m_lrsize << v::endl;
+  v::info << this->name() <<  " ******************************************************************************* " << v::endl;
 
 }
 
@@ -61,7 +62,7 @@ void localram::read(unsigned int addr, unsigned char *data, unsigned int len, sc
   // memcpy ??
   for(unsigned int i=0; i<len; i++) { *(data+i) = (*scratchpad)[(addr - m_lrstart) >> 2].c[byt+i]; }
 
-  DUMP(this->name(),"Read from address: " << std::hex << addr);
+  v::info << this->name() << "Read from address: " << std::hex << addr << v::endl;
  
   // update debug information
   SCRATCHPAD_SET(*debug);
@@ -79,7 +80,7 @@ void localram::write(unsigned int addr, unsigned char *data, unsigned int len, s
   // memcpy ??
   for(unsigned int i=0; i<len; i++) { (*scratchpad)[(addr - m_lrstart) >> 2].c[byt+i] = *(data + i); }
 
-  DUMP(this->name(),"Write to address: " << std::hex << addr);
+  v::info << this->name() << "Write to address: " << std::hex << addr << v::endl;
 
   // update debug information
   SCRATCHPAD_SET(*debug);

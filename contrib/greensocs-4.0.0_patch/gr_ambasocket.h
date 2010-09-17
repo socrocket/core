@@ -36,11 +36,11 @@
 #define _GR_AMBASOCKET_H_
 
 #include <systemc>
-#include "greenreg.h"
+#include "greenreg/greenreg.h"
 #include "greensocket/utils/greensocketaddress_base.h"
-#include "transactor_if.h"
+#include "greenreg/greenreg_socket/transactor_if.h"
 #include "amba.h"
-#include "framework/core/gr_common.h"
+#include "greenreg/framework/core/gr_common.h"
 
 #include <iostream>
 

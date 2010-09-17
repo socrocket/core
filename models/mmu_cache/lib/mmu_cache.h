@@ -50,7 +50,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
   tlm_utils::simple_target_socket<mmu_cache> dcio;
 
   // amba master socket
-  amba::amba_master_socket<32> ahb_master;
+  amba::amba_master_socket<32, 0> ahb_master;
 
   /// @brief Constructor of the top-level class of the memory sub-system (caches and mmu).
   /// @icen          instruction cache enable

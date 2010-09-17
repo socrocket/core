@@ -17,6 +17,7 @@
 // ***********************************************************************
 
 #include "mmu.h"
+#include "verbose.h"
 
 mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
       mmu_cache_if * _mmu_cache,                  // pointer to memory interface
@@ -59,7 +60,7 @@ mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
     dtlb = new std::map<t_VAT, t_PTE_context>;
     itlb_adaptor = new tlb_adaptor("dtlb_adaptor", _mmu_cache, this, dtlb, m_dtlbnum);
  
-    DUMP(this->name(),"Created split instruction and data TLBs.");
+    v::info << this->name() << "Created split instruction and data TLBs." << v::endl;
 
   } else {
 
@@ -67,7 +68,7 @@ mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
     dtlb = itlb;
     dtlb_adaptor = itlb_adaptor;
 
-    DUMP(this->name(),"Created combined instruction and data TLBs.");
+    v::info << this->name() << "Created combined instruction and data TLBs." << v::endl;
 
   }
 
@@ -108,7 +109,7 @@ mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
 	   m_vtag_width = 17; 
 	   break;
   default: // not supported
-           DUMP(this->name(),"Selected mmupgsz not supported!");
+           v::info << this->name() << "Selected mmupgsz not supported!" << v::endl;
            assert(false);
   }
 
@@ -139,15 +140,15 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   bool context_miss = false;
 
   // search virtual address tag in ipdc (associative)
-  DUMP(this->name(),"lookup with VPN: " << std::hex << vpn << " and OFFSET: " << std::hex << offset); 
+  v::info << this->name() << "lookup with VPN: " << std::hex << vpn << " and OFFSET: " << std::hex << offset << v::endl; 
   pdciter = tlb->find(vpn);
 
-  DUMP(this->name(),"pdciter->first: " << std::hex << pdciter->first << " pdciter->second: " << std::hex << (pdciter->second).pte);
+  v::info << this->name() << "pdciter->first: " << std::hex << pdciter->first << " pdciter->second: " << std::hex << (pdciter->second).pte << v::endl;
 
   // tlb hit
   if (pdciter != tlb->end()) {
 
-    DUMP(this->name(),"Virtual Address Tag hit on address: " << std::hex << addr);
+    v::info << this->name() << "Virtual Address Tag hit on address: " << std::hex << addr << v::endl;
 
     // read the PDC entry
     tmp = pdciter->second;
@@ -155,7 +156,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     // check the context tag
     if (tmp.context == MMU_CONTEXT_REG) {
 
-      DUMP(this->name(),"CONTEXT hit");
+      v::info << this->name() << "CONTEXT hit" << v::endl;
 
       // build physical address from PTE and offset, and return
       paddr = (((tmp.pte >> 8) << (32 - m_vtag_width))|offset);
@@ -168,7 +169,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     }
     else {
 
-      DUMP(this->name(),"CONTEXT miss");
+      v::info << this->name() << "CONTEXT miss" << v::endl;
       
       // update debug information
       TLBMISS_SET(*debug);
@@ -178,7 +179,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   }
   else {
 
-    DUMP(this->name(),"Virtual Address Tag miss");
+    v::info << this->name() << "Virtual Address Tag miss" << v::endl;
 
     // update debug information
     TLBMISS_SET(*debug);
@@ -206,7 +207,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   // [1-0] ET - Entry type. (0 - reserved, 1 - PTD, 2 - PTE, 3 - reserved)
 
   // tlb miss processing  
-  DUMP(this->name(),"START TLB MISS PROCESSING FOR VIRTUAL ADDRESS: " << std::hex << addr);
+  v::info << this->name() << "START TLB MISS PROCESSING FOR VIRTUAL ADDRESS: " << std::hex << addr << v::endl;
 
   // ***************************************
   // 3-Level TLB table walk
@@ -217,20 +218,20 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   // 1. load from 1st-level page table
   m_mmu_cache->mem_read(MMU_CONTEXT_TABLE_POINTER_REG+idx1, (unsigned char *)&data, 4, t, debug);
 
-  DUMP(this->name(),"Back from read addr: " << std::hex << (MMU_CONTEXT_TABLE_POINTER_REG+idx1) << " data: " << std::hex << data);
+  v::info << this->name() << "Back from read addr: " << std::hex << (MMU_CONTEXT_TABLE_POINTER_REG+idx1) << " data: " << std::hex << data << v::endl;
 
   // !!!! todo: why is is it always loosing the sc_module_name here ????
 
   // page table entry (PTE) or page table descriptor (PTD) (to level 2)
   if ((data & 0x3) == 0x2) {
 
-    DUMP(this->name(),"1-Level Page Table returned PTE: " << std::hex << data);
+    v::info << this->name() << "1-Level Page Table returned PTE: " << std::hex << data << v::endl;
 
     // In case of a virtual address tag miss a new PDC entry is created.
     // For context miss the existing entry will be replaced.
     if ((!context_miss)&&(tlb->size()==tlb_size)) {
       
-      DUMP(this->name(),"TLB full" << std::hex << data);
+      v::info << this->name() << "TLB full" << std::hex << data << v::endl;
       // kick out an entry to make room for a new one
       // todo !!
     }
@@ -244,17 +245,17 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     // build physical address from PTE and offset
     paddr = (((tmp.pte >> 8) << (32 - m_vtag_width))|offset);
 
-    DUMP(this->name(),"Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr);
+    v::info << this->name() << "Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr << v::endl;
     return(paddr);
   }
   else if ((data & 0x3) == 0x1) { 
 
-    DUMP(this->name(),"1st-Level Page Table returned PTD: " << std::hex << data);
+    v::info << this->name() << "1st-Level Page Table returned PTD: " << std::hex << data << v::endl;
 
   }
   else {
 
-    DUMP(this->name(),"Error in 1st-Level Page Table / Entry type not valid");
+    v::info << this->name() << "Error in 1st-Level Page Table / Entry type not valid" << v::endl;
     assert(false);
     return(0);
   }
@@ -265,13 +266,13 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   // page table entry (PTE) or page table descriptor (PTD) (to level 3)
   if ((data & 0x3) == 0x2) {
 
-    DUMP(this->name(),"2-Level Page Table returned PTE: " << std::hex << data);
+    v::info << this->name() << "2-Level Page Table returned PTE: " << std::hex << data << v::endl;
 
     // In case of a virtual address tag miss a new PDC entry is created.
     // For context miss the existing entry will be replaced.
     if ((!context_miss)&&(tlb->size()==tlb_size)) {
       
-      DUMP(this->name(),"TLB full" << std::hex << data);
+      v::info << this->name() << "TLB full" << std::hex << data << v::endl;
       // kick out an entry to make room for a new one
       // todo !!
     }
@@ -285,17 +286,17 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     // build physical address from PTE and offset
     paddr = (((tmp.pte >> 8) << (32 - m_vtag_width))|offset);
 
-    DUMP(this->name(),"Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr);
+    v::info << this->name() << "Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr << v::endl;
     return(paddr);
   }
   else if ((data & 0x3) == 0x1) { 
 
-    DUMP(this->name(),"2-Level Page Table returned PTD: " << std::hex << data);
+    v::info << this->name() << "2-Level Page Table returned PTD: " << std::hex << data << v::endl;
 
   }
   else {
 
-    DUMP(this->name(),"Error in 2-Level Page Table / Entry type not valid");
+    v::info << this->name() << "Error in 2-Level Page Table / Entry type not valid" << v::endl;
     assert(false);
     return(0);
   }
@@ -306,13 +307,13 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   // 3rd-level page table must contain PTE (PTD not allowed)
   if ((data & 0x3) == 0x2) {
 
-    DUMP(this->name(),"3-Level Page Table returned PTE: " << std::hex << data);
+    v::info << this->name() << "3-Level Page Table returned PTE: " << std::hex << data << v::endl;
 
     // In case of a virtual address tag miss a new PDC entry is created.
     // For context miss the existing entry will be replaced.
     if ((!context_miss)&&(tlb->size()==tlb_size)) {
       
-      DUMP(this->name(),"TLB full" << std::hex << data);
+      v::info << this->name() << "TLB full" << std::hex << data << v::endl;
       // kick out an entry to make room for a new one
       // todo !!
     }
@@ -326,12 +327,12 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     // build physical address from PTE and offset
     paddr = (((tmp.pte >> 8) << (32 - m_vtag_width))|offset);
 
-    DUMP(this->name(),"Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr);
+    v::info << this->name() << "Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr << v::endl;
     return(paddr);
   }
   else {
 
-    DUMP(this->name(),"Error in 3-Level Page Table / Entry type not valid");
+    v::info << this->name() << "Error in 3-Level Page Table / Entry type not valid" << v::endl;
     assert(false);
     return(0);
   }

@@ -15,6 +15,7 @@
 // ***********************************************************************
 
 #include "vectorcache.h"
+#include "verbose.h"
 
 // constructor
 // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy  
@@ -65,7 +66,7 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
   // create the cache sets
   for (unsigned int i=0; i <= m_sets; i++) {
 
-    DUMP(this->name(),"Create cache set " << i);
+    v::info << this->name() << "Create cache set " << i << v::endl;
     std::vector<t_cache_line> *cache_set = new std::vector<t_cache_line>(m_number_of_vectors , m_default_cacheline);
 
     cache_mem.push_back(cache_set);
@@ -75,16 +76,16 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     m_current_cacheline.push_back(current_cacheline);
   }
 
-  DUMP(this->name(), " ******************************************************************************* ");
-  DUMP(this->name(), " * Created cache memory with following parameters:                               ");
-  DUMP(this->name(), " * number of cache sets " << (m_sets+1));
-  DUMP(this->name(), " * size of each cache set " << (unsigned int)pow(2,m_setsize) << " kb");
-  DUMP(this->name(), " * bytes per line " << m_bytesperline << " (offset bits: " << m_offset_bits << ")");
-  DUMP(this->name(), " * number of cache lines per set " << m_number_of_vectors << " (index bits: " << m_idx_bits << ")");
-  DUMP(this->name(), " * Width of cache tag in bits " << m_tagwidth);
-  DUMP(this->name(), " * Replacement strategy: " << m_repl);
-  DUMP(this->name(), " * Line Locking: " << m_setlock);
-  DUMP(this->name(), " ******************************************************************************* ");
+  v::info << this->name() <<  " ******************************************************************************* " << v::endl;
+  v::info << this->name() <<  " * Created cache memory with following parameters:                               " << v::endl;
+  v::info << this->name() <<  " * number of cache sets " << (m_sets+1) << v::endl;
+  v::info << this->name() <<  " * size of each cache set " << (unsigned int)pow(2, m_setsize) << " kb" << v::endl;
+  v::info << this->name() <<  " * bytes per line " << m_bytesperline << " (offset bits: " << m_offset_bits << ")" << v::endl;
+  v::info << this->name() <<  " * number of cache lines per set " << m_number_of_vectors << " (index bits: " << m_idx_bits << ")" << v::endl;
+  v::info << this->name() <<  " * Width of cache tag in bits " << m_tagwidth << v::endl;
+  v::info << this->name() <<  " * Replacement strategy: " << m_repl << v::endl;
+  v::info << this->name() <<  " * Line Locking: " << m_setlock << v::endl;
+  v::info << this->name() <<  " ******************************************************************************* " << v::endl;
 
   // lru counter saturation
   switch (m_sets) {
@@ -142,14 +143,14 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
     // space for data to refill a cache line of maximum size
     unsigned char ahb_data[32];
   
-    DUMP(this->name(),"READ ACCESS idx: " << std::hex << idx << " tag: " << std::hex << tag << " offset: " << std::hex << offset);
+    v::info << this->name() << "READ ACCESS idx: " << std::hex << idx << " tag: " << std::hex << tag << " offset: " << std::hex << offset << v::endl;
 
     // lookup all cachesets
     for (unsigned int i=0; i <= m_sets; i++){
 
       m_current_cacheline[i] = lookup(i, idx);
 
-      //DUMP(this->name(), "Set :" << i << " atag: " << (*m_current_cacheline[i]).tag.atag << " valid: " << (*m_current_cacheline[i]).tag.valid << " entry: " << (*m_current_cacheline[i]).entry[offset>>2].i);
+      //v::info << this->name() <<  "Set :" << i << " atag: " << (*m_current_cacheline[i]).tag.atag << " valid: " << (*m_current_cacheline[i]).tag.valid << " entry: " << (*m_current_cacheline[i]).entry[offset>>2].i << v::endl;
 
       // asi == 1 forces cache miss
       if (asi != 1) {
@@ -157,12 +158,12 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 	// check the cache tag
 	if ((*m_current_cacheline[i]).tag.atag == tag) {
 
-	  //DUMP(this->name(), "Correct atag found in set " << i);
+	  //v::info << this->name() <<  "Correct atag found in set " << i << v::endl;
      
 	  // check the valid bit (math.h pow is mapped to the coproc, hence it should be pretty fast)
 	  if (((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2)))) != 0) {
 
-	    DUMP(this->name(),"Cache Hit in Set " << i);
+	    v::info << this->name() << "Cache Hit in Set " << i << v::endl;
 	  
 	    // update debug information
 	    CACHEREADHIT_SET(*debug,i);
@@ -183,18 +184,18 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 	  }	
 	  else {
 	
-	    DUMP(this->name(),"Tag Hit but data not valid in set " << i);
+	    v::info << this->name() << "Tag Hit but data not valid in set " << i << v::endl;
 	  }
 	}
 	else {
       
-	  DUMP(this->name(),"Cache miss in set " << i);
+	  v::info << this->name() << "Cache miss in set " << i << v::endl;
 
 	}
       }
       else {
       
-	DUMP(this->name(),"ASI force cache miss");
+	v::info << this->name() << "ASI force cache miss" << v::endl;
     
       }
     }
@@ -233,7 +234,7 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 
 	  // select unvalid data for replacement
 	  set_select = i;
-	  DUMP(this->name(), "Set " << set_select << " has no valid data - will use for refill.");
+	  v::info << this->name() <<  "Set " << set_select << " has no valid data - will use for refill." << v::endl;
 	  break;
 	}
       }
@@ -248,7 +249,7 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 
 	  // select set according to replacement strategy (todo: late binding)
 	  set_select = replacement_selector(m_repl);
-	  DUMP(this->name(),"Set " << set_select << " selected for refill by replacement selector.");
+	  v::info << this->name() << "Set " << set_select << " selected for refill by replacement selector." << v::endl;
       
 	}
 
@@ -324,12 +325,12 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
       memcpy(data, ahb_data+byt, len);
       //for (unsigned int j=0; j<len; j++) { data[j] = ahb_data[byt+j]; };
 
-      //DUMP(this->name(),"Updated entry: " << std::hex << (*m_current_cacheline[set_select]).entry[offset >> 2].i << " valid bits: " << std::hex << (*m_current_cacheline[set_select]).tag.valid);
+      //v::info << this->name() << "Updated entry: " << std::hex << (*m_current_cacheline[set_select]).entry[offset >> 2].i << " valid bits: " << std::hex << (*m_current_cacheline[set_select]).tag.valid << v::endl;
     }
 
   } else {
     
-    DUMP(this->name(),"BYPASS read from address: " << std::hex << address);
+    v::info << this->name() << "BYPASS read from address: " << std::hex << address << v::endl;
 
     // cache is disabled
     // forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
@@ -362,24 +363,24 @@ void vectorcache::write(unsigned int address, unsigned char * data, unsigned int
 
     bool is_hit = false;
 
-    DUMP(this->name(),"WRITE ACCESS with idx: " << std::hex << idx << " tag: " << std::hex << tag << " offset: " << std::hex << offset);
+    v::info << this->name() << "WRITE ACCESS with idx: " << std::hex << idx << " tag: " << std::hex << tag << " offset: " << std::hex << offset << v::endl;
 
     // lookup all cachesets
     for (unsigned int i = 0; i <= m_sets; i++){
 
       m_current_cacheline[i] = lookup(i, idx);
 
-      //DUMP(this->name(), "Set :" << i << " atag: " << (*m_current_cacheline[i]).tag.atag << " valid: " << (*m_current_cacheline[i]).tag.valid << " entry: " << (*m_current_cacheline[i]).entry[offset>>2].i);
+      //v::info << this->name() <<  "Set :" << i << " atag: " << (*m_current_cacheline[i]).tag.atag << " valid: " << (*m_current_cacheline[i]).tag.valid << " entry: " << (*m_current_cacheline[i]).entry[offset>>2].i << v::endl;
 
       // check the cache tag
       if ((*m_current_cacheline[i]).tag.atag == tag) {
 
-	//DUMP(this->name(),"Correct atag found in set " << i);
+	//v::info << this->name() << "Correct atag found in set " << i << v::endl;
      
 	// check the valid bit (math.h pow is mapped to the coproc, hence it should be pretty fast)
 	if ((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow((double)2,(double)(offset >> 2))) != 0) {
 
-	  DUMP(this->name(),"Cache Hit in Set " << i);
+	  v::info << this->name() << "Cache Hit in Set " << i << v::endl;
 	
 	  // update lru history
 	  if (m_repl==1) { lru_update(i);}
@@ -400,13 +401,13 @@ void vectorcache::write(unsigned int address, unsigned char * data, unsigned int
 	}	
 	else {
 	
-	  DUMP(this->name(),"Tag Hit but data not valid in set " << i);
+	  v::info << this->name() << "Tag Hit but data not valid in set " << i << v::endl;
 	}
 
       }
       else {
       
-	DUMP(this->name(),"Cache miss in set " << i);
+	v::info << this->name() << "Cache miss in set " << i << v::endl;
       }
     }
 
@@ -426,7 +427,7 @@ void vectorcache::write(unsigned int address, unsigned char * data, unsigned int
 
   } else {
 
-    DUMP(this->name(),"BYPASS write to address: " << std::hex << address);
+    v::info << this->name() << "BYPASS write to address: " << std::hex << address << v::endl;
 
     // cache is disabled
     // forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
@@ -461,7 +462,7 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug) {
 	  addr |= (line << m_offset_bits);
 	  addr |= (entry << 2);
 
-	  DUMP(this->name(),"FLUSH set: " << set << " line: " << line << " addr: " << std::hex << addr << " data: " << std::hex << (*m_current_cacheline[set]).entry[entry].i);
+	  v::info << this->name() << "FLUSH set: " << set << " line: " << line << " addr: " << std::hex << addr << " data: " << std::hex << (*m_current_cacheline[set]).entry[entry].i << v::endl;
 
 	  m_tlb_adaptor->mem_write(addr, (unsigned char *)&(*m_current_cacheline[set]).entry[entry], 4, t, debug);
 
@@ -513,7 +514,7 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data, sc_c
   tmp |= (*m_current_cacheline[set]).tag.lock << 8;
   tmp |= (*m_current_cacheline[set]).tag.valid;
 
-  DUMP(this->name(),"Diagnostic tag read set: " << std::hex << set << " idx: " << std::hex << idx << " - tag: " << std::hex << tmp);
+  v::info << this->name() << "Diagnostic tag read set: " << std::hex << set << " idx: " << std::hex << idx << " - tag: " << std::hex << tmp << v::endl;
 
   // handover bitmask pointer (the tag)
   *data = tmp;
@@ -658,12 +659,12 @@ unsigned int vectorcache::replacement_selector(unsigned int mode) {
 
       for(unsigned int i = 0; i <= m_sets; i++) {
 
-	DUMP(this->name(),"LRU Replacer Check Set: " << i);
+	v::info << this->name() << "LRU Replacer Check Set: " << i << v::endl;
 
 	// the last set will never be locked
 	if (((*m_current_cacheline[i]).tag.lru <= min_lru) && ((*m_current_cacheline[i]).tag.lock == 0)) { 
 
-	  DUMP(this->name(),"LRU Replacer Select Set: " << i);
+	  v::info << this->name() << "LRU Replacer Select Set: " << i << v::endl;
 	  min_lru = (*m_current_cacheline[i]).tag.lru; 
 	  set_select = i;
 
@@ -684,11 +685,11 @@ unsigned int vectorcache::replacement_selector(unsigned int mode) {
       
       for(unsigned int i = 0; i < 2; i++) {
 
-	DUMP(this->name(),"LRR Replacer Check Set: " << i);
+	v::info << this->name() << "LRR Replacer Check Set: " << i << v::endl;
 
 	if (((*m_current_cacheline[i]).tag.lrr == 0) && ((*m_current_cacheline[i]).tag.lock == 0)) {
 
-	  DUMP(this->name(),"LRR Replacer Select Set: " << i);
+	  v::info << this->name() << "LRR Replacer Select Set: " << i << v::endl;
 	  set_select = i;
 	  break;
 	}
@@ -728,7 +729,7 @@ void vectorcache::lrr_update(unsigned int set_select) {
 
     // switch on lrr bit off selected set, switch off the other one
     (*m_current_cacheline[i]).tag.lrr = (i == set_select) ? 1 : 0;
-    DUMP(this->name(),"Set " << i << " lrr: " << (*m_current_cacheline[i]).tag.lrr);
+    v::info << this->name() << "Set " << i << " lrr: " << (*m_current_cacheline[i]).tag.lrr << v::endl;
 
   }
 
@@ -742,7 +743,7 @@ void vectorcache::lru_update(unsigned int set_select) {
     // LRU: Counter for each line of a set
     // (2 way - 1 bit, 3 way - 3 bit, 4 way - 5 bit)
     (*m_current_cacheline[i]).tag.lru = (i == set_select) ? m_max_lru : (*m_current_cacheline[i]).tag.lru - 1;
-    DUMP(this->name(),"Set " << i << " lru: " << (*m_current_cacheline[i]).tag.lru);
+    v::info << this->name() << "Set " << i << " lru: " << (*m_current_cacheline[i]).tag.lru << v::endl;
 
   }
 }
@@ -761,12 +762,12 @@ void vectorcache::dbg_out(unsigned int line) {
     dbg_cacheline = (*cache_mem[i])[line];
 
     // display the tag 
-    DUMP(this->name(), "SET: " << i << " ATAG: 0x" << std::hex << dbg_cacheline.tag.atag << " VALID: 0x" << std::hex << dbg_cacheline.tag.valid);
+    v::info << this->name() <<  "SET: " << i << " ATAG: 0x" << std::hex << dbg_cacheline.tag.atag << " VALID: 0x" << std::hex << dbg_cacheline.tag.valid << v::endl;
 
     // display all entries
     for (unsigned int j = 0; j < m_wordsperline; j++) {
 
-      DUMP(this->name(), "Entry: " << j << " - " << std::hex << dbg_cacheline.entry[j].i);
+      v::info << this->name() <<  "Entry: " << j << " - " << std::hex << dbg_cacheline.entry[j].i << v::endl;
 
     }
   }
