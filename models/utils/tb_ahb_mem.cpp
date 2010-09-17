@@ -76,8 +76,9 @@ Ctb_ahb_mem::~Ctb_ahb_mem() {
 }  // End destructor
 
 /// TLM blocking transport function
-void Ctb_ahb_mem::b_transport(tlm::tlm_generic_payload &gp,
-                               sc_core::sc_time &delay) {
+void Ctb_ahb_mem::b_transport(unsigned int id,
+                              tlm::tlm_generic_payload &gp,
+                              sc_core::sc_time &delay) {
 
    switch(gp.get_command()) {
       // Read command

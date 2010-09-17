@@ -51,7 +51,7 @@ class Ctb_ahb_mem : public sc_module {
       CGrlibDevice pnpahb;
 
       // AMBA master socket
-      amba::amba_slave_socket<32> ahb;
+      amba::amba_slave_socket<32, 0> ahb;
 
       /// @brief Method to read memory contents from a text file
       /// @param infile File name of a text file to initialize the memory from
@@ -64,7 +64,8 @@ class Ctb_ahb_mem : public sc_module {
       int dumpmem(char outfile_[]);
 
       /// TLM blocking transport function
-      void b_transport(tlm::tlm_generic_payload &gp,
+      void b_transport(unsigned int id,
+                       tlm::tlm_generic_payload &gp,
                        sc_core::sc_time &delay);
 
       /// @brief Delete memory content
