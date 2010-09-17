@@ -1,0 +1,89 @@
+Library content:
+================
+
+This is the root directory of the HWSWCOSIM TLM IP library.
+It contains following files and folders:
+
+./common	Globally used convenience functions e.g. unified debug output, verbosity control
+./contrib	Contains extension to GreenSocs software, which are not yet part of 
+		the officially released software (submitted patches and extensions).
+./doc		Contains the library documentation
+Doxyfile	Control file for doxygen
+./models	Contains source code and testbenches for all the models of the library.
+./leon3		A Leon3 SparcV8 processor integer unit, generated with TrapGen.
+./signalkit	The sources of a software package for modeling fast signal interconnect in TLM style.
+./tests		System-Level tests.
+waf		WAF build tool
+wscript		Global WAF control file
+
+-------------------------------------------------------------------------
+
+Quickstart:
+===========
+
+The build system is written in WAF. The WAF executable and the global build-control file (wscript) can be found in the root directory of the library. WAF requires Python 2.3 to run.
+
+Do a "./waf -h" to get help on all available commands and options.
+
+waf [command] [options]
+
+Building the project requires following steps:
+
+1. 	Execute "./waf configure" to configure the build environment.
+	The configuration step succeeds in case all the required software packages are available.
+
+	Following software needs to be installed:
+
+	Tool		Version		Vendor		Installation Path Variables
+	Python		>2.3		Python team	On $PATH
+	GCC (x86)	4.1.0		GCC team	On $PATH
+	GMP		5.0.0		GCC team	On $PATH
+	MPFR		2.4.2		GCC team	On $PATH
+	binutils	2.19		GNU team	On $PATH
+	Boost		1_37_0		Boost team	$BOOST_DIR - header path
+							$BOOST_LIB - library path
+	SystemC		2.2.0		OSCI		$SYSTEMC_HOME - installation root
+	SCV				OSCI		$SCV_HOME - installation root
+	TLM 2.0 	2009-07-15	OSCI		$TLM2_HOME - installation root
+	GreenSocs 	4.0.0		GreenSocs Ltd.	$GREENSOCS_HOME - installation root
+	AMBAKit		trunk		GreenSocs Ltd.	$AMBA_HOME - installation root
+
+	It is also possible to specify the location of a missing package by one of the following options:  
+	
+	Common Configuration Options:    
+
+	-b BLDDIR, --blddir=BLDDIR                      build dir for the project (configuration)    
+	-s SRCDIR, --srcdir=SRCDIR                      src dir for the project (configuration)    
+	--prefix=PREFIX     				installation prefix (configuration) [default: '/usr/local/']    
+	--download         				 try to download the tools if missing    
+	--cxxflags=CXXFLAGS                        	C++ compiler flags  
+	C++ Compiler Configuration Options:    
+
+	--check-cxx-compiler=CHECK_CXX_COMPILER         On this platform (linux) the following C++ Compiler will be checked by default: "g++ icpc sunc++"  
+
+	Boost Configuration Options:    
+	 --boost=BOOST_HOME  Basedir of your Boost installation    
+	 --boost_inc=BOOST_INC                        	Include dir of your Boost installation    
+	 --boost_lib=BOOST_LIB                        	Library dir of your Boost installation  
+
+	SystemC configuration Options:    
+	 --systemc=SYSTEMC_HOME                        	Basedir of your SystemC installation    
+	 --tlm2=TLM2_HOME    				Basedir of your TLM-2.0 distribution    
+	 --tlm2tests=TLM2_TESTS                        	Example of your TLM-2.0 distribution    
+	 --scv=SCV_HOME      				Basedir of your SCV distribution  
+
+	GreenSoCs Configuration Options:    
+	 --greensocs=GREENSOCS_HOME                     Basedir of your GreenSoCs instalation    
+	 --amba=AMBA_HOME    				Basedir of your AMBAKit distribution    
+	 --grlib=GRLIB_HOME  				Basedir of your grlib distribution    
+	 --ambaexamples=AMBA_EXAMPLES                   Basedir of your AMBAKit Examples
+
+2.	Execute "./waf" to build all models and tests.
+
+	As an alternative you may select a specific target (test or library) using:
+	"./waf --targets="list,of,targets"
+
+	A list of targets can be generated with "./waf list"
+
+3.	Execute "./waf docs" to generate the source doxygen documentation.
+
