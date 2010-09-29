@@ -9,7 +9,7 @@
 // *             interface for connection to the main memory.            * 
 // *                                                                     *
 // * Modified on $Date$   *
-// *          at $Revision$                                         *
+// *          at $Revision$                                        *
 // *                                                                     *
 // * Principal:  European Space Agency                                   *
 // * Author:     VLSI working group @ IDA @ TUBS                         *
@@ -17,7 +17,6 @@
 // ***********************************************************************
 
 #include "mmu_cache.h"
-#include "verbose.h"
 
 //SC_HAS_PROCESS(mmu_cache<>);
 /// Constructor
@@ -96,7 +95,7 @@ mmu_cache::mmu_cache(unsigned int icen,
 		mmupgsz) : NULL;
 
   // create icache
-  icache = (icen==1)? new ivectorcache("ivectorcache",
+  icache = (icen==1)? (cache_if* )new ivectorcache("ivectorcache",
 		(mmu_cache_if *)this,
 		(mmu_en) ? (mem_if *)m_mmu->get_itlb_if() : (mem_if *)this,
 		mmu_en,
@@ -109,10 +108,11 @@ mmu_cache::mmu_cache(unsigned int icen,
 		irepl,
 		ilram,
 		ilramstart,
-		ilramsize) : NULL;
+		ilramsize) : (cache_if* )new nocache("no_icache",
+					 (mmu_en) ? (mem_if *)m_mmu->get_itlb_if() : (mem_if *)this);
 
   // create dcache
-  dcache = (dcen==1)? new dvectorcache("dvectorcache",
+  dcache = (dcen==1)? (cache_if* )new dvectorcache("dvectorcache",
 		(mmu_cache_if *)this,
 		(mmu_en) ? (mem_if *)m_mmu->get_dtlb_if() : (mem_if *) this,
 		mmu_en,
@@ -126,7 +126,8 @@ mmu_cache::mmu_cache(unsigned int icen,
 		drepl,
 		dlram,
 		dlramstart,
-		dlramsize) : NULL;
+		dlramsize) : (cache_if* )new nocache("no_dcache",
+					 (mmu_en) ? (mem_if *)m_mmu->get_dtlb_if() : (mem_if *)this);
 
   // create instruction scratchpad
   // (! only allowed with mmu disabled !)
@@ -174,16 +175,10 @@ void mmu_cache::icio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 	ilocalram->read((unsigned int)adr, ptr, len, &delay, debug); 
 
     // instruction cache access
-    } else if (m_icen) {
-
-    	icache->read((unsigned int)adr, ptr, len, &delay, debug);
-    	//v::info << name() << "ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr << v::endl;    
-
-    // icache disabled - bypass
     } else {
 
-        mem_read((unsigned int)adr, ptr, len, &delay, debug);
-	
+    	icache->mem_read((unsigned int)adr, ptr, len, &delay, debug);
+    	//v::info << name() << "ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr << v::endl;    
     }
   } 
   else if(cmd==tlm::TLM_WRITE_COMMAND) 
@@ -214,276 +209,279 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
   // access system registers
   if (asi == 2) {
 
-	if (cmd==tlm::TLM_READ_COMMAND) {
-		
-		v::info << this->name() << "System Registers read with ASI 0x2 - addr:" << std::hex << adr << v::endl;
-		if (adr == 0) {
-			// cache control register
-			*(unsigned int *)ptr = read_ccr();
-		}
-		else if (adr == 8) {
-			// instruction cache configuration register (only if present)
-		        if (m_icen) { *(unsigned int *)ptr = icache->read_config_reg(&delay);} else { assert(false); }
-		}
-		else if (adr == 0x0c) {
-			// data cache configuration register (only if present)
-		        if (m_dcen) { *(unsigned int *)ptr = dcache->read_config_reg(&delay);} else { assert(false); }
-		}
-		else {
-			v::info << this->name() << "Address not valid for read with ASI 0x2" << v::endl;
-			*ptr = 0;
-		}
-	} 
-	else if (cmd==tlm::TLM_WRITE_COMMAND) {
+    if (cmd==tlm::TLM_READ_COMMAND) {
+	
+      v::info << this->name() << "System Registers read with ASI 0x2 - addr:" << std::hex << adr << v::endl;
+      if (adr == 0) {
+	// cache control register
+	*(unsigned int *)ptr = read_ccr();
+      }
+      else if (adr == 8) {
+	// instruction cache configuration register
+	*(unsigned int *)ptr = icache->read_config_reg(&delay);
+      }
+      else if (adr == 0x0c) {
+	// data cache configuration register
+	*(unsigned int *)ptr = dcache->read_config_reg(&delay);
+      }
+      else {
+	v::warn << this->name() << "Address not valid for read with ASI 0x2" << v::endl;
+	*ptr = 0;
+      }
+    } 
+    else if (cmd==tlm::TLM_WRITE_COMMAND) {
 
-		v::info << this->name() << "System Register write with ASI 0x2 - addr:" << std::hex << adr << v::endl;
-		if (adr == 0) {
-			// cache control register
-			write_ccr(ptr, len, &delay);
-		}
-		// TRIGGER DEBUG OUTPUT / NOT A SPARC SYSTEM REGISTER
-		else if (adr == 0xfe) {
-			// icache debug output (arg: line)
-		        if (m_icen) { icache->dbg_out(*ptr); } else { assert(false); }
-		}
-		else if (adr == 0xff) {
-			// dcache debug output (arg: line)
-		        if (m_dcen) { dcache->dbg_out(*ptr); } else { assert(false); }
-		}
-		else {
-			v::info << this->name() << "Address not valid for write with ASI 0x2 (or read only)" << v::endl;
-			// ignore (cache configuration regs (0x8, 0xc) are read only
-		}
-	}
-	else {
-		v::info << this->name() << "Unvalid TLM Command" << v::endl;
-		assert(false);
-	}
+      v::info << this->name() << "System Register write with ASI 0x2 - addr:" << std::hex << adr << v::endl;
+      if (adr == 0) {
+	// cache control register
+	write_ccr(ptr, len, &delay);
+      }
+      // TRIGGER DEBUG OUTPUT / NOT A SPARC SYSTEM REGISTER
+      else if (adr == 0xfe) {
+        // icache debug output (arg: line)
+	icache->dbg_out(*ptr);
+      }
+      else if (adr == 0xff) {
+	// dcache debug output (arg: line)
+	dcache->dbg_out(*ptr);
+      }
+      else {
+	v::warn << this->name() << "Address not valid for write with ASI 0x2 (or read only)" << v::endl;
+	// ignore (cache configuration regs (0x8, 0xc) are read only)
+      }
+    }
+    else {
+      v::info << this->name() << "Unvalid TLM Command" << v::endl;
+      assert(false);
+    }
   }
   // diagnostic access to instruction PDC
   else if (asi == 0x5) {
 
-	if (cmd==tlm::TLM_READ_COMMAND) {
+    if (cmd==tlm::TLM_READ_COMMAND) {
 	
-		v::info << this->name() << "Diagnostic read from instruction PDC (ASI 0x5)" << v::endl;
-		if (m_mmu_en) { m_mmu->diag_read_itlb(adr, (unsigned int *)ptr); } else { assert(false); }
-	}
-	else if (cmd==tlm::TLM_WRITE_COMMAND) {
+      v::info << this->name() << "Diagnostic read from instruction PDC (ASI 0x5)" << v::endl;
+      if (m_mmu_en) { m_mmu->diag_read_itlb(adr, (unsigned int *)ptr); } else { assert(false); }
+    }
+    else if (cmd==tlm::TLM_WRITE_COMMAND) {
 
-		v::info << this->name() << "Diagnostic write to instruction PDC (ASI 0x5)" << v::endl;
-		if (m_mmu_en) { m_mmu->diag_write_itlb(adr, (unsigned int *)ptr); } else { assert(false); }
-	}	
+      v::info << this->name() << "Diagnostic write to instruction PDC (ASI 0x5)" << v::endl;
+      if (m_mmu_en) { m_mmu->diag_write_itlb(adr, (unsigned int *)ptr); } else { assert(false); }
+    }	
   }
   // diagnostic access to data or shared instruction and data PDC
   else if (asi == 0x6) {
 
-	if (cmd==tlm::TLM_READ_COMMAND) {
+    if (cmd==tlm::TLM_READ_COMMAND) {
 	
-		v::info << this->name() << "Diagnostic read from data (or shared) PDC (ASI 0x6)" << v::endl;
-		if (m_mmu_en) { m_mmu->diag_read_dctlb(adr, (unsigned int *)ptr); } else { assert(false); }
-	}
-	else if (cmd==tlm::TLM_WRITE_COMMAND) {
+      v::info << this->name() << "Diagnostic read from data (or shared) PDC (ASI 0x6)" << v::endl;
+      if (m_mmu_en) { m_mmu->diag_read_dctlb(adr, (unsigned int *)ptr); } else { assert(false); }
+    }
+    else if (cmd==tlm::TLM_WRITE_COMMAND) {
 
-		v::info << this->name() << "Diagnostic write to data (or shared) PDC (ASI 0x6)" << v::endl;
-		if (m_mmu_en) { m_mmu->diag_write_dctlb(adr, (unsigned int *)ptr); } else { assert(false); }
-	}
+      v::info << this->name() << "Diagnostic write to data (or shared) PDC (ASI 0x6)" << v::endl;
+      if (m_mmu_en) { m_mmu->diag_write_dctlb(adr, (unsigned int *)ptr); } else { assert(false); }
+    }
   }
   // access instruction cache tags
   else if (asi == 0xc) {
 
-	if (cmd==tlm::TLM_READ_COMMAND) {
-		v::info << this->name() << "ASI read instruction cache tags" << v::endl;
-		if (m_icen) { icache->read_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);} else { assert(false); }
-	}
-	else if (cmd==tlm::TLM_WRITE_COMMAND) {
-		v::info << this->name() << "ASI write instruction cache tags" << v::endl;
-		if (m_icen) { icache->write_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);} else { assert(false); }
-	}
-	else {
-		v::info << this->name() <<  "Unvalid TLM Command" << v::endl;
-	}
+    if (cmd==tlm::TLM_READ_COMMAND) {
+      v::info << this->name() << "ASI read instruction cache tags" << v::endl;
+      icache->read_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);
+    }
+    else if (cmd==tlm::TLM_WRITE_COMMAND) {
+      v::info << this->name() << "ASI write instruction cache tags" << v::endl;
+      icache->write_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);
+    }
+    else {
+      v::warn << this->name() <<  "Unvalid TLM Command" << v::endl;
+    }
   }
   // access instruction cache data
   else if (asi == 0xd) {
 
-	if (cmd==tlm::TLM_READ_COMMAND) {
-		v::info << this->name() << "ASI read instruction cache entry" << v::endl;
-		if (m_icen) { icache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay); } else { assert(false); }
-	}
-	else if (cmd==tlm::TLM_WRITE_COMMAND) {
-		v::info << this->name() << "ASI write instruction cache entry" << v::endl;
-		if (m_icen) { icache->write_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay); } else { assert(false); }
-	}
-	else {
-		v::info << this->name() <<  "Unvalid TLM Command" << v::endl;
-	}
+    if (cmd==tlm::TLM_READ_COMMAND) {
+      v::info << this->name() << "ASI read instruction cache entry" << v::endl;
+      icache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
+    }
+    else if (cmd==tlm::TLM_WRITE_COMMAND) {
+      v::info << this->name() << "ASI write instruction cache entry" << v::endl;
+      icache->write_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
+    }
+    else {
+      v::warn << this->name() <<  "Unvalid TLM Command" << v::endl;
+    }
   }
   // access data cache tags
   else if (asi == 0xe) {
 
-	if (cmd==tlm::TLM_READ_COMMAND) {
-		v::info << this->name() << "ASI read data cache tags" << v::endl;
-		if (m_dcen) { dcache->read_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay); } else { assert(false); }
-	}
-	else if (cmd==tlm::TLM_WRITE_COMMAND) {
-		v::info << this->name() << "ASI write data cache tags" << v::endl;
-		if (m_dcen) { dcache->write_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay); } else { assert(false); }
-	}
-	else {
-		v::info << this->name() <<  "Unvalid TLM Command" << v::endl;
-	}
+    if (cmd==tlm::TLM_READ_COMMAND) {
+      v::info << this->name() << "ASI read data cache tags" << v::endl;
+      dcache->read_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);
+    }
+    else if (cmd==tlm::TLM_WRITE_COMMAND) {
+      v::info << this->name() << "ASI write data cache tags" << v::endl;
+      dcache->write_cache_tag((unsigned int)adr, (unsigned int*)ptr, &delay);
+    }
+    else {
+      v::warn << this->name() <<  "Unvalid TLM Command" << v::endl;
+    }
   }
   // access data cache data
   else if (asi == 0xf) {
 	
-	if (cmd==tlm::TLM_READ_COMMAND) {
-		v::info << this->name() << "ASI read data cache entry" << v::endl;
-		if (m_dcen) { dcache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay); } else { assert(false); }
-	}
-	else if (cmd==tlm::TLM_WRITE_COMMAND) {
-		v::info << this->name() << "ASI write data cache entry" << v::endl;
-		if (m_dcen) { dcache->write_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay); } else { assert(false); }
-	}
-	else {
-		v::info << this->name() <<  "Unvalid TLM Command" << v::endl;
-	}
+    if (cmd==tlm::TLM_READ_COMMAND) {
+      v::info << this->name() << "ASI read data cache entry" << v::endl;
+      dcache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
+    }
+    else if (cmd==tlm::TLM_WRITE_COMMAND) {
+      v::info << this->name() << "ASI write data cache entry" << v::endl;
+      dcache->write_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
+    }
+    else {
+      v::warn << this->name() <<  "Unvalid TLM Command" << v::endl;
+    }
   }
   // flush instruction cache
   else if (asi == 0x10) {
 
-	// icache is flushed on any write with ASI 0x10
-	if (cmd==tlm::TLM_WRITE_COMMAND) {
-		v::info << this->name() << "ASI flush instruction cache" << v::endl;
-		if (m_icen) { icache->flush(&delay, debug); }
-	}
-	else {
-		v::info << this->name() <<  "Unvalid TLM Command" << v::endl;
-	}
+    // icache is flushed on any write with ASI 0x10
+    if (cmd==tlm::TLM_WRITE_COMMAND) {
+      v::info << this->name() << "ASI flush instruction cache" << v::endl;
+      icache->flush(&delay, debug);
+    }
+    else {
+      v::warn << this->name() <<  "Unvalid TLM Command" << v::endl;
+    }
   }
   // flush data cache
   else if (asi == 0x11) {
 
-	// dcache is flushed on any write with ASI 0x11
-	if (cmd==tlm::TLM_WRITE_COMMAND) {
-		v::info << this->name() <<  "ASI flush data cache" << v::endl;
-		if (m_dcen) { dcache->flush(&delay, debug); }
-	}
-	else {
-		v::info << this->name() <<  "Unvalid TLM Command" << v::endl;
-	}
+    // dcache is flushed on any write with ASI 0x11
+    if (cmd==tlm::TLM_WRITE_COMMAND) {
+      v::info << this->name() <<  "ASI flush data cache" << v::endl;
+      dcache->flush(&delay, debug);
+    }
+    else {
+      v::warn << this->name() <<  "Unvalid TLM Command" << v::endl;
+    }
   }
   // access MMU internal registers
-  // (only allowed if mmu present)
-  else if ((asi == 0x19)&&(m_mmu_en == 0x1)) {
+  else if (asi == 0x19) {
 
-    	if (cmd==tlm::TLM_READ_COMMAND) {
+    // check MMU present
+    if (m_mmu_en == 0x1) {
+
+      if (cmd==tlm::TLM_READ_COMMAND) {
       
-		v::info << this->name() << "MMU register read with ASI 0x19 - addr:" << std::hex << adr << v::endl;
-      		if (adr==0x000) {
-			// MMU Control Register
-		        if (m_mmu_en) { *(unsigned int *)ptr = m_mmu->read_mcr(); } else { assert(false); }
-     		}
-      		else if (adr == 0x100) {
-			// Context Pointer Register
-		        if (m_mmu_en) { *(unsigned int *)ptr = m_mmu->read_mctpr(); } else { assert(false); }
-      		}
-      		else if (adr == 0x200) {
-			// Context Register
-		        if (m_mmu_en) { *(unsigned int *)ptr = m_mmu->read_mctxr(); } else { assert(false); }
-      		}
-      		else if (adr == 0x300) {
-			// Fault Status Register
-		        if (m_mmu_en) { *(unsigned int *)ptr = m_mmu->read_mfsr(); } else { assert(false); }
-      		}
-      		else if (adr == 0x400) {
-			// Fault Address Register
-		        if (m_mmu_en) { *(unsigned int *)ptr = m_mmu->read_mfar(); } else { assert(false); }
-      		}
-      		else {
-			v::info << this->name() << "Address not valid for read with ASI 0x19" << v::endl;
-			*(unsigned int *)ptr = 0;
-			// ignore
-      		}
-	
-    	}
-    	else if (cmd==tlm::TLM_WRITE_COMMAND) {
-
-		v::info << this->name() << "MMU register write with ASI 0x19 - addr:" << std::hex << adr << v::endl;
-      		if (adr==0x000) {
-			// MMU Control Register
-		        if (m_mmu_en) { m_mmu->write_mcr((unsigned int *)ptr); } else { assert(false); }
-      		}
-     		else if (adr==0x100) {
-			// Context Table Pointer Register
-		        if (m_mmu_en) { m_mmu->write_mctpr((unsigned int*)ptr); } else { assert(false); }
-		}
-      		else if (adr==0x200) {
-			// Context Register
-		        if (m_mmu_en) { m_mmu->write_mctxr((unsigned int*)ptr); } else { assert(false); }
-      		}
-		else {
-			v::info << this->name() << "Address not valid for write with ASI 0x19 (or read-only)" << v::endl;
-			// ignore
-      		}
+	v::info << this->name() << "MMU register read with ASI 0x19 - addr:" << std::hex << adr << v::endl;
+      	if (adr==0x000) {
+	  // MMU Control Register
+	  v::info << this->name() << "ASI read MMU Control Register" << v::endl;
+	  *(unsigned int *)ptr = m_mmu->read_mcr();
+     	}
+      	else if (adr == 0x100) {
+	  // Context Pointer Register
+	  v::info << this->name() << "ASI read MMU Context Pointer Register" << v::endl;
+	  *(unsigned int *)ptr = m_mmu->read_mctpr();
+      	}
+      	else if (adr == 0x200) {
+	  // Context Register
+	  v::info << this->name() << "ASI read MMU Context Register" << v::endl;
+	  *(unsigned int *)ptr = m_mmu->read_mctxr();
+      	}
+      	else if (adr == 0x300) {
+	  // Fault Status Register
+	  v::info << this->name() << "ASI read MMU Fault Status Register" << v::endl;
+	  *(unsigned int *)ptr = m_mmu->read_mfsr();
+      	}
+      	else if (adr == 0x400) {
+	  // Fault Address Register
+	  v::info << this->name() << "ASI read MMU Fault Address Register" << v::endl;
+	  *(unsigned int *)ptr = m_mmu->read_mfar();
 	}
+      	else {
+	  v::warn << this->name() << "Address not valid for read with ASI 0x19" << v::endl;
+	  *(unsigned int *)ptr = 0;
+      	}
+      }
+      else if (cmd==tlm::TLM_WRITE_COMMAND) {
+
+	v::info << this->name() << "MMU register write with ASI 0x19 - addr:" << std::hex << adr << v::endl;
+	if (adr==0x000) {
+	  // MMU Control Register
+	  v::info << this->name() << "ASI write MMU Control Register" << v::endl;
+          m_mmu->write_mcr((unsigned int *)ptr);
+      	}
+     	else if (adr==0x100) {
+	  // Context Table Pointer Register
+          v::info << this->name() << "ASI write MMU Context Table Pointer Register" << v::endl;
+	  m_mmu->write_mctpr((unsigned int*)ptr);
+	}
+      	else if (adr==0x200) {
+	  // Context Register
+          v::info << this->name() << "ASI write MMU Context Register" << v::endl;
+	  m_mmu->write_mctxr((unsigned int*)ptr);
+      	}
+	else {
+	  v::warn << this->name() << "Address not valid for write with ASI 0x19 (or read-only)" << v::endl;
+      	}
+      }
+    }
+    else {
+
+      v::warn << this->name() << "Access to MMU registers, but MMU not present!" << v::endl;
+
+    }
   }
   // ordinary access
   else if ((asi == 0x8)||(asi == 0x9)||(asi == 0xa)||(asi == 0xb)) {
 
     if (cmd==tlm::TLM_READ_COMMAND) {
 
-	// instruction scratchpad enabled && address points into selected 16 MB region 
-	if (m_ilram && (((adr >> 24) & 0xff)==m_ilramstart)) {
+      // instruction scratchpad enabled && address points into selected 16 MB region 
+      if (m_ilram && (((adr >> 24) & 0xff)==m_ilramstart)) {
 		
-	   ilocalram->read((unsigned int)adr, ptr, len, &delay, debug);
+	ilocalram->read((unsigned int)adr, ptr, len, &delay, debug);
 
-	// data scratchpad enabled && address points into selected 16MB region
-	} else if (m_dlram && (((adr >> 24) & 0xff)==m_dlramstart)) {
+      // data scratchpad enabled && address points into selected 16MB region
+      } else if (m_dlram && (((adr >> 24) & 0xff)==m_dlramstart)) {
 
-	   dlocalram->read((unsigned int)adr, ptr, len, &delay, debug);
+	dlocalram->read((unsigned int)adr, ptr, len, &delay, debug);
 	
-	// cache access
-	} else if (m_dcen) {
+      // cache access || bypass || direct mmu
+      } else {
 
-	   dcache->read((unsigned int)adr, ptr, len, &delay, debug);
-      	   //v::info << name() << "DCIO Socket data received (tlm_read): " << std::hex << *(unsigned int*)ptr << v::endl;    
+	dcache->mem_read((unsigned int)adr, ptr, len, &delay, debug);
+      	// v::info << name() << "DCIO Socket data received (tlm_read): " << std::hex << *(unsigned int*)ptr << v::endl;    
         // no dcache present - bypass
-	} else {
-
-	   mem_read((unsigned int)adr, ptr, len, &delay, debug);
-
-        }
-	
+      }
     }
     else if(cmd==tlm::TLM_WRITE_COMMAND) 
     {
-	// instruction scratchpad enabled && address points into selected 16 MB region
-	if (m_ilram && (((adr >> 24) & 0xff)==m_ilramstart)) {
+      // instruction scratchpad enabled && address points into selected 16 MB region
+      if (m_ilram && (((adr >> 24) & 0xff)==m_ilramstart)) {
 
-	   ilocalram->write((unsigned int)adr, ptr, len, &delay, debug);
+	ilocalram->write((unsigned int)adr, ptr, len, &delay, debug);
 
-	// data scratchpad enabled && address points into selected 16MB region
-	} else if (m_dlram && (((adr >> 24) & 0xff)==m_dlramstart)) {
+      // data scratchpad enabled && address points into selected 16MB region
+      } else if (m_dlram && (((adr >> 24) & 0xff)==m_dlramstart)) {
 
-	   dlocalram->write((unsigned int)adr, ptr, len, &delay, debug);
+	dlocalram->write((unsigned int)adr, ptr, len, &delay, debug);
 
-	// cache access (write through)
-	} else if (m_dcen) {
+      // cache access (write through) || bypass || direct mmu
+      } else {
 
-       	   dcache->write((unsigned int)adr, ptr, len, &delay, debug);
-	   //v::info << name() << "DCIO Socket done tlm_write" << v::endl;
-	 
-        // no dcache present - bypass
-	} else {
-
-	  mem_write((unsigned int)adr, ptr, len, &delay, debug);
-
-	}
+        dcache->mem_write((unsigned int)adr, ptr, len, &delay, debug);
+        //v::info << name() << "DCIO Socket done tlm_write" << v::endl;
+	// no dcache present - bypass
+      }
     }
   }
   else {
 
-   v::info << name() << "ASI not recognized: " << std::hex << asi << v::endl;
+   v::warn << name() << "ASI not recognized: " << std::hex << asi << v::endl;
    assert(0);
   }
 }

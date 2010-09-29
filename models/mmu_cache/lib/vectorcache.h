@@ -24,44 +24,45 @@
 #include "math.h"
 
 #include "defines.h"
+#include "cache_if.h"
 #include "mmu_cache_if.h"
 #include "tlb_adaptor.h"
 #include "mem_if.h"
 
 // implementation of cache memory and controller
 /// @brief virtual cache model, contain common functionality of instruction and data cache
-class vectorcache : public sc_core::sc_module, public mem_if {
+class vectorcache : public sc_core::sc_module, public cache_if {
 
- protected:
+ public:
 
   // external interface functions (to be made public by childs):
   // -----------------------------------------------------------
   /// read from cache
-  void read(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug);
+  virtual void mem_read(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug);
   /// write through cache
-  void write(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug); 
+  virtual void mem_write(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug); 
   /// flush cache
-  void flush(sc_core::sc_time * t, unsigned int * debug);
+  virtual void flush(sc_core::sc_time * t, unsigned int * debug);
   /// read data cache tags (ASI 0xe)
-  void read_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);
+  virtual void read_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);
   /// write data cache tags (ASI 0xe)
-  void write_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);
+  virtual void write_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);
   /// read data cache entries/data (ASI 0xf)
-  void read_cache_entry(unsigned int address, unsigned int * data, sc_core::sc_time *t);
+  virtual void read_cache_entry(unsigned int address, unsigned int * data, sc_core::sc_time *t);
   /// write data cache entries/data (ASI 0xf)
-  void write_cache_entry(unsigned int address, unsigned int * data, sc_core::sc_time *t);
+  virtual void write_cache_entry(unsigned int address, unsigned int * data, sc_core::sc_time *t);
   /// read cache configuration register (ASI 0x2)
-  unsigned int read_config_reg(sc_core::sc_time *t);
+  virtual unsigned int read_config_reg(sc_core::sc_time *t);
 
-  virtual unsigned int check_mode() = 0;
+  virtual unsigned int check_mode()=0;
 
   // debug and helper functions
   // --------------------------
   /// display of cache lines for debug
   virtual void dbg_out(unsigned int line);
 
- private:
-
+ protected:
+ 
   // internal behavioral functions
   // -----------------------------
   /// reads a cache line from a cache set
@@ -73,7 +74,7 @@ class vectorcache : public sc_core::sc_module, public mem_if {
   /// updates the lrr bits for every line replacement
   void lrr_update(unsigned int set_select);
 
- public:
+ protected:
   // constructor
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
   /// @brief Constructor of data cache

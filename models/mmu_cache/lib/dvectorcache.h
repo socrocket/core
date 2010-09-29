@@ -36,29 +36,6 @@ class dvectorcache : public vectorcache {
 
  public:
 
-  // external interface functions (to be made public by childs):
-  // -----------------------------------------------------------
-  /// read from cache
-  using vectorcache::read;
-  /// write through cache
-  using vectorcache::write; 
-  /// flush cache
-  using vectorcache::flush;
-  /// read data cache tags (ASI 0xe)
-  using vectorcache::read_cache_tag;
-  /// write data cache tags (ASI 0xe)
-  using vectorcache::write_cache_tag;
-  /// read data cache entries/data (ASI 0xf)
-  using vectorcache::read_cache_entry;
-  /// write data cache entries/data (ASI 0xf)
-  using vectorcache::write_cache_entry;
-  /// read cache configuration register (ASI 0x2)
-  using vectorcache::read_config_reg;
-  /// debug output
-  using vectorcache::dbg_out;
-
- public:
-
   // implement ccr check
   unsigned int check_mode();
 

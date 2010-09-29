@@ -120,7 +120,7 @@ vectorcache::~vectorcache() {
 // ----------------------------
 
 /// read from cache
-void vectorcache::read(unsigned int address, unsigned char *data, unsigned int len, sc_core::sc_time *t, unsigned int * debug) {
+void vectorcache::mem_read(unsigned int address, unsigned char *data, unsigned int len, sc_core::sc_time *t, unsigned int * debug) {
 
   int set_select = -1;
   int cache_hit = -1;
@@ -350,7 +350,7 @@ void vectorcache::read(unsigned int address, unsigned char *data, unsigned int l
 //   Subsequent writes to the block will update main memory because Write Through policy is employed. 
 //   So, some time is saved not bringing the block in the cache on a miss because it appears useless anyway.
 
-void vectorcache::write(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
+void vectorcache::mem_write(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
 
   // is the cache enabled (0x11) or frozen (0x01)
   if (check_mode() & 0x1) {

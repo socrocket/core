@@ -22,18 +22,23 @@
 #include <tlm.h>
 #include <tlm_utils/simple_target_socket.h>
 
+#include <math.h>
+#include <ostream>
+
 #include "icio_payload_extension.h"
 #include "dcio_payload_extension.h"
 
 #include "amba.h"
 
+#include "verbose.h"
+#include "cache_if.h"
 #include "ivectorcache.h"
 #include "dvectorcache.h"
+#include "nocache.h"
 #include "mmu_cache_if.h"
 #include "mmu.h"
 #include "localram.h"
-#include <math.h>
-#include <ostream>
+
 
 /// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
 class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
@@ -146,9 +151,9 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
   // data members
   // ------------
   /// instruction cache pointer
-  ivectorcache * icache;
+  cache_if * icache;
   /// data cache pointer
-  dvectorcache * dcache;
+  cache_if * dcache;
   /// mmu poiner
   mmu * m_mmu;
   /// instruction scratchpad pointer
