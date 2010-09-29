@@ -43,7 +43,10 @@ mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
 {
 
   // initialize internal registers
-  MMU_CONTROL_REG = 0;
+
+  // initialize MMU control register (ITLB, DTLB)
+  MMU_CONTROL_REG = (itlbnum << 21) || (dtlbnum << 18);
+
   MMU_CONTEXT_TABLE_POINTER_REG = 0;
   MMU_CONTEXT_REG = 0;
   MMU_FAULT_STATUS_REG = 0;
@@ -70,6 +73,9 @@ mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
 
     v::info << this->name() << "Created combined instruction and data TLBs." << v::endl;
 
+    // update MMU control register (ST)
+    MMU_CONTROL_REG |= (1 << 14);
+
   }
 
   // The page size can be 4k, 8k, 16k or 32k.
@@ -83,6 +89,7 @@ mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
            m_idx2 = 6;
 	   m_idx3 = 6;
 	   m_vtag_width = 20; 
+
 	   break;
   case 2 : // also 4 kB
            m_idx1 = 8;
@@ -95,21 +102,30 @@ mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
 	   m_idx2 = 6;
 	   m_idx3 = 6;
 	   m_vtag_width = 19; 
+
+	   // update MMU control register (PSZ)
+	   MMU_CONTROL_REG |= (1 << 16);
 	   break;
   case 4:  // 16 kB
            m_idx1 = 6;
            m_idx2 = 6;
            m_idx3 = 6;
 	   m_vtag_width = 18; 
+
+	   // update MMU control register (PSZ)
+	   MMU_CONTROL_REG |= (2 << 16);
 	   break;
   case 5:  // 32 kB
            m_idx1 = 4;
            m_idx2 = 7;
            m_idx3 = 6;
-	   m_vtag_width = 17; 
+	   m_vtag_width = 17;
+
+	   // update MMU control register (PSZ)
+	   MMU_CONTROL_REG |= (3 << 16);
 	   break;
   default: // not supported
-           v::info << this->name() << "Selected mmupgsz not supported!" << v::endl;
+           v::error << this->name() << "Selected mmupgsz not supported!" << v::endl;
            assert(false);
   }
 
@@ -348,8 +364,8 @@ unsigned int mmu::read_mcr() {
 /// Write MMU Control Register
 void mmu::write_mcr(unsigned int * data) {
 
-  // only PSO [7], NF [1] and E [0] are writable
-  MMU_CONTROL_REG = (*data & 0x00000083);
+  // only TD [15], NF [1] and E [0] are writable
+  MMU_CONTROL_REG = (*data & 0x00008003);
 
 }
 

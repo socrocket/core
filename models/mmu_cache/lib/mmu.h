@@ -117,14 +117,21 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// MMU Control Register (Page 253 Sparc Ref Manual):<br>
   /// -------------------------------------------------<br>
   /// [31-28] IMPL - Identifies the specific implementation of the MMU.
-  /// It is hardwired into the implementation and is read only.<br>
-  /// [27-24] VER  - Version of the MMU implementation (read-only)<br>
-  /// [23-8]  SC   - The System Control bits are implementation defined.
-  /// The may be reflected in a variable number of signals external to
-  /// the MMU and need not all be implemented. If a bit is not implemented,
-  /// it reads as zero and writes to it are ignored.<br>
-  /// [7] PSO - The PSO bit controls whether the memory model seen by the
-  /// processor is Partial Store Ordering (PSO=1) or Total Store Ordering (PSO=0).<br>
+  /// It is hardwired into the implementation and is read only (0000).<br>
+  /// [27-24] VER  - Version of the MMU implementation (0001)(read-only)<br>
+  /// [32-21] ITLB - Number of ITLB entries. The number of ITLB entries is <br>
+  /// calculated as 2^ITLB. If the TLB is shared between instructions and data, <br>
+  /// this field indicates the total number of TLBs.
+  /// [20-18] DTLB - Number of DTLB entries. The number of DTLB entries is <br>
+  /// calculated as 2^DTLB. If the TLB is shared between instructions and data, <br>
+  /// this field is zero.
+  /// [17-16] Page size.The size of the smallest MMU page: 0 - 4kbyte, 1 - 8kbyte, <br>
+  /// 2 - 16kbyte, 3 - 32kbyte.
+  /// [15] TLB disable. When set to 1, the TLB will be disabled and each data <br> 
+  /// access will generate an MMU page table walk. <br> 
+  /// [14] Separate TLB. This bit is set to 1 if separate instructions <br>
+  /// and data TLM are implemented. <br>
+  /// [13-2] reserved <br>
   /// [1] NF  - The "No Fault" bit. When NF=0, any fault detected by the MMU
   /// causes FSR and FAR to be updated and causes a fault to be generated to
   /// the processor. When NF=1, a fault on an access to ASI 9 is handled as
