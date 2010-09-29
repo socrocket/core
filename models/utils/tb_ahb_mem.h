@@ -76,8 +76,6 @@ class Ctb_ahb_mem : public sc_module {
    private:
       /// The actual memory
       std::map<uint32_t, uint8_t> mem;
-      // Module name
-      const sc_core::sc_module_name name;
       /// Method to convert ascii chars into their binary represenation
       uint8_t char2nibble(const char *ch) const;
 };

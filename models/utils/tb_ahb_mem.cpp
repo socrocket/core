@@ -55,7 +55,7 @@ Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm,   // Module name
       amba::amba_AHB,   // bus type
       amba::amba_LT,    // abstraction level
       false             // is arbiter
-   ), name(nm) {
+   ) {
 
       ahb.register_b_transport(this, &Ctb_ahb_mem::b_transport);
       if(infile!=NULL) {
@@ -67,11 +67,7 @@ Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm,   // Module name
 /// Destructor
 Ctb_ahb_mem::~Ctb_ahb_mem() {
 
-//    cout << name << " Memory content: \n" << endl;
-//    for(std::map<unsigned int, unsigned char>::iterator it=mem.begin();
-//        it!=mem.end(); it++) {
-//       printf("@%#8.8x: %#2.2x\n", it->first, it->second);
-//    }
+   // Delete memory contents
    mem.clear();
 }  // End destructor
 
@@ -103,7 +99,7 @@ void Ctb_ahb_mem::b_transport(unsigned int id,
 
       // Neither read or write command
       default:
-         v::warn << name << ": Received unknown command.\n";
+         v::warn << name() << "Received unknown command.\n";
          gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
          break;
    }
@@ -113,11 +109,11 @@ void Ctb_ahb_mem::b_transport(unsigned int id,
 int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {
 
    std::ifstream infile(infile_, ios::in);
-   char buffer = 0;
-   uint8_t nibble_buffer = 0;
-   unsigned char data = 0;
-   unsigned int nibble = 0;
-   bool process_char = 0;
+   char buffer          = 0;
+   uint8_t nibbleBuffer = 0;
+   unsigned char data   = 0;
+   unsigned int nibble  = 0;
+   bool processChar     = 0;
 
    // Parse input file
    if(infile.good()) {
@@ -125,33 +121,33 @@ int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {
          // Read one byte from file
          infile.read(&buffer, 1);
          // Convert char into binary
-         nibble_buffer = char2nibble(&buffer);
+         nibbleBuffer = char2nibble(&buffer);
 
          // combine two ascii chars into one byte and write into memory
-         if(!(nibble_buffer & 0xf0)) {
+         if(!(nibbleBuffer & 0xf0)) {
             if(nibble) {
-               data |= nibble_buffer;
+               data |= nibbleBuffer;
                mem[addr++] = data;
                data = 0x0;
                nibble = 0;
             } else {
-               data |= (nibble_buffer << 4);
+               data |= (nibbleBuffer << 4);
                nibble++;
             }
-            process_char = 0;
+            processChar = 0;
          }
       }  // while(!infile.eof())
 
       // Warn if data stream ended unexpected
       if(nibble) {
-        v::warn << name << ": Incomplete byte detected in memory file\n";
+        v::warn << name() << "Incomplete byte detected in memory file\n";
       }
 
       // close file
       infile.close();
       return 0;
    } else {
-     v::error << name << ": File \"" << infile_ << "\" not found or readable\n";
+     v::error << name() << "File \"" << infile_ << "\" not found or readable\n";
       return 1;
    }
 }  // int Ctb_ahb_mem::readmem(char infile_[], unsigned int addr)
@@ -236,7 +232,7 @@ uint8_t Ctb_ahb_mem::char2nibble(const char *ch) const {
          return 0x0f;
          break;
       default:
-         v::error << name << ": Illegal character in memory file: \'"
+         v::warn << name() << "Illegal character in memory file: \'"
             << *ch << "\'\n";
          return 0x80;
          break;
@@ -249,7 +245,7 @@ int Ctb_ahb_mem::dumpmem(char outfile_[]) {
 
    // check if memory is filled
    if(mem.empty()) {
-     v::info << name << ": Memory is empty. Nothing do dump.\n";
+     v::info << name() << "Memory is empty. Nothing do dump.\n";
       return 1;
    }
 
@@ -290,7 +286,7 @@ int Ctb_ahb_mem::dumpmem(char outfile_[]) {
          << endl;
       return 0;
    } else {
-     v::error << name << ": Unable to open dump file\n";
+     v::error << name() << "Unable to open dump file\n";
       return 1;
    }
 }  // int tb_ahb_mem::dumpmem(char outfile_[])
