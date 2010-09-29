@@ -33,7 +33,7 @@ localram::localram(sc_core::sc_module_name name,
   m_default_entry.i = 0;
 
   // create the actual ram
-  scratchpad = new std::vector<t_cache_data>(m_lrsize, m_default_entry);
+  scratchpad = new t_cache_data[m_lrsize];
 
   v::info << this->name() <<  " ******************************************************************************* " << v::endl;
   v::info << this->name() <<  " * Created local ram with following parameters:                                  " << v::endl;
@@ -60,7 +60,7 @@ void localram::read(unsigned int addr, unsigned char *data, unsigned int len, sc
   unsigned int byt = addr & 0x3;
 
   // memcpy ??
-  for(unsigned int i=0; i<len; i++) { *(data+i) = (*scratchpad)[(addr - m_lrstart) >> 2].c[byt+i]; }
+  for(unsigned int i=0; i<len; i++) { *(data+i) = scratchpad[(addr - m_lrstart) >> 2].c[byt+i]; }
 
   v::info << this->name() << "Read from address: " << std::hex << addr << v::endl;
  
@@ -78,7 +78,7 @@ void localram::write(unsigned int addr, unsigned char *data, unsigned int len, s
   unsigned int byt = addr & 0x3;
 
   // memcpy ??
-  for(unsigned int i=0; i<len; i++) { (*scratchpad)[(addr - m_lrstart) >> 2].c[byt+i] = *(data + i); }
+  for(unsigned int i=0; i<len; i++) { scratchpad[(addr - m_lrstart) >> 2].c[byt+i] = *(data + i); }
 
   v::info << this->name() << "Write to address: " << std::hex << addr << v::endl;
 

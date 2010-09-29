@@ -35,7 +35,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
 
  public:
 
-  // external interface functions (to be made public by childs):
+  // external interface functions  
   // -----------------------------------------------------------
   /// read from cache
   virtual void mem_read(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug);

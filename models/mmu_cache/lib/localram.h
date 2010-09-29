@@ -53,7 +53,7 @@ class localram : public sc_core::sc_module {
   ~localram();
 
   // the actual local ram
-  std::vector<t_cache_data> *scratchpad;
+  t_cache_data * scratchpad;
 
   // helpers
   // -------
@@ -65,7 +65,6 @@ class localram : public sc_core::sc_module {
   unsigned int m_lrsize;
   /// start address of the local ram
   unsigned int m_lrstart;
-
 
 };
 
