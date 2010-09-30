@@ -99,7 +99,7 @@ void Ctb_ahb_mem::b_transport(unsigned int id,
 
       // Neither read or write command
       default:
-         v::warn << name() << "Received unknown command.\n";
+         v::warn << name() << "Received unknown command." << endl;
          gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
          break;
    }
@@ -140,14 +140,14 @@ int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {
 
       // Warn if data stream ended unexpected
       if(nibble) {
-        v::warn << name() << "Incomplete byte detected in memory file\n";
+        v::warn << name() << "Incomplete byte detected in memory file" << endl;
       }
 
       // close file
       infile.close();
       return 0;
    } else {
-     v::error << name() << "File \"" << infile_ << "\" not found or readable\n";
+     v::error << name() << "File \"" << infile_ << "\" not found or readable" << endl;
       return 1;
    }
 }  // int Ctb_ahb_mem::readmem(char infile_[], unsigned int addr)
@@ -233,7 +233,7 @@ uint8_t Ctb_ahb_mem::char2nibble(const char *ch) const {
          break;
       default:
          v::warn << name() << "Illegal character in memory file: \'"
-            << *ch << "\'\n";
+            << *ch << "\'" << endl;
          return 0x80;
          break;
    }
@@ -245,7 +245,7 @@ int Ctb_ahb_mem::dumpmem(char outfile_[]) {
 
    // check if memory is filled
    if(mem.empty()) {
-     v::info << name() << "Memory is empty. Nothing do dump.\n";
+     v::info << name() << "Memory is empty. Nothing do dump." << endl;
       return 1;
    }
 
@@ -286,7 +286,7 @@ int Ctb_ahb_mem::dumpmem(char outfile_[]) {
          << endl;
       return 0;
    } else {
-     v::error << name() << "Unable to open dump file\n";
+      v::error << name() << "Unable to open dump file" << endl;
       return 1;
    }
 }  // int tb_ahb_mem::dumpmem(char outfile_[])

@@ -56,11 +56,13 @@ class Ctb_ahb_mem : public sc_module {
       /// @brief Method to read memory contents from a text file
       /// @param infile File name of a text file to initialize the memory from
       /// @param addr Start address for memory initilization
+      /// @return 0 on success, 1 on error
       int readmem(char infile_[], uint32_t addr=0);
 
 
       /// @brief Method dumping the memory contents to a text file
       /// @param outfile File name to dump the memory in
+      /// @return 0 on success, 1 on error
       int dumpmem(char outfile_[]);
 
       /// TLM blocking transport function
