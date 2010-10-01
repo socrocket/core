@@ -16,6 +16,12 @@
 //                - response
 //             All other fields are ignored.
 //             Delays are not modeled.
+//             Address checking is performed in that way, that transactions
+//             are only executed if the slave select condition defined in
+//             grlib user manual holds.
+//             Transactions generating a correct slave select but exceeding
+//             the memory region due to theri length are reported as warning
+//             and executed anyhow.
 //
 // Modified on $Date$
 //          at $Revision$
@@ -35,8 +41,8 @@
 
 /// Constructor
 Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm,   // Module name
-                           uint16_t haddr,   // AMBA AHB address (12 bit)
-                           uint16_t hmask,   // AMBA AHB address mask (12 bit)
+                           uint16_t haddr_,   // AMBA AHB address (12 bit)
+                           uint16_t hmask_,   // AMBA AHB address mask (12 bit)
                            char infile[],    // Memory initialization file
                            uint32_t addr) :  // Address for memory initalization
    sc_module(nm),
@@ -45,7 +51,7 @@ Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm,   // Module name
       0,    // device: TODO: get real device ID
       0,    //
       0,    // IRQ
-      GrlibBAR(CGrlibDevice::AHBMEM, hmask, 0, 0, haddr),    // GrlibBAR 0
+      GrlibBAR(CGrlibDevice::AHBMEM, hmask_, 0, 0, haddr),    // GrlibBAR 0
       0,    // GrlibBAR 1
       0,    // GrlibBAR 2
       0     // GrlibBAR 3
@@ -56,13 +62,15 @@ Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm,   // Module name
       amba::amba_LT,    // abstraction level
       false             // is arbiter
    ),
-   ahbBaseAddress(static_cast<uint32_t>(hmask & haddr) << 20),
-   ahbSize( ~(static_cast<uint32_t>(hmask) << 20) + 1) {
+   ahbBaseAddress(static_cast<uint32_t>(hmask_ & haddr_) << 20),
+   ahbSize( ~(static_cast<uint32_t>(hmask_) << 20) + 1),
+   hmask(static_cast<uint32_t>(hmask_ << 20)),
+   haddr(static_cast<uint32_t>(haddr_ << 20)) {
 
       // Display AHB slave information
       v::info << name() << "AHB slave @0x" << hex << std::setw(8)
               << std::setfill('0') << get_base_addr() << " size: 0x" << hex
-              << std::setw(8) << std::setfill('0') << get_size() << " byte" 
+              << std::setw(8) << std::setfill('0') << get_size() << " byte"
               << endl;
 
       ahb.register_b_transport(this, &Ctb_ahb_mem::b_transport);
@@ -84,33 +92,41 @@ void Ctb_ahb_mem::b_transport(unsigned int id,
                               tlm::tlm_generic_payload &gp,
                               sc_core::sc_time &delay) {
 
-   switch(gp.get_command()) {
-      // Read command
-      case tlm::TLM_READ_COMMAND:
-         for(uint32_t i=0; i<gp.get_data_length(); i++) {
+   // Check address for before doing anything else
+   if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) ) {
+      // warn if access exceeds slave memory region
+      if( (gp.get_address() + gp.get_data_length()) > (ahbBaseAddress + ahbSize) ) {
+         v::warn << name() << "Transaction exceeds slave memory region" << endl;
+      }
 
-            *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
+      switch(gp.get_command()) {
+         // Read command
+         case tlm::TLM_READ_COMMAND:
+            for(uint32_t i=0; i<gp.get_data_length(); i++) {
 
-         }
-         gp.set_response_status(tlm::TLM_OK_RESPONSE);
-         break;
+               *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
 
-      // Write command
-      case tlm::TLM_WRITE_COMMAND:
-         for(uint32_t i=0; i<gp.get_data_length(); i++) {
+            }
+            gp.set_response_status(tlm::TLM_OK_RESPONSE);
+            break;
 
-            mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
+         // Write command
+         case tlm::TLM_WRITE_COMMAND:
+            for(uint32_t i=0; i<gp.get_data_length(); i++) {
 
-         }
-         gp.set_response_status(tlm::TLM_OK_RESPONSE);
-         break;
+               mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
 
-      // Neither read or write command
-      default:
-         v::warn << name() << "Received unknown command." << endl;
-         gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-         break;
-   }
+            }
+            gp.set_response_status(tlm::TLM_OK_RESPONSE);
+            break;
+
+         // Neither read or write command
+         default:
+            v::warn << name() << "Received unknown command." << endl;
+            gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+            break;
+      }
+   }  // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
 }  // void Ctb_ahb_mem::b_transport()
 
 /// Method to initialize memory contents from a text file

@@ -38,8 +38,8 @@ class Ctb_ahb_mem : public sc_module {
       /// @param infile File name of a text file to initialize the memory from
       /// @param addr Start address for memory initilization
       Ctb_ahb_mem(sc_core::sc_module_name nm,
-                   uint16_t haddr,
-                   uint16_t hmask=0,
+                   uint16_t haddr_,
+                   uint16_t hmask_=0,
                    char infile[]=NULL,
                    uint32_t addr=0);
 
@@ -98,6 +98,8 @@ class Ctb_ahb_mem : public sc_module {
       const uint32_t ahbBaseAddress;
       // size is saved in bytes
       const uint32_t ahbSize;
+      const uint32_t hmask;
+      const uint32_t haddr;
 };
 
 #endif
