@@ -75,11 +75,29 @@ class Ctb_ahb_mem : public sc_module {
          mem.clear();
       }
 
+      /// @brief Method returning the memory's base address at the AHB bus
+      /// @return AHB base address of the memory module
+      uint32_t get_base_addr() {
+         return ahbBaseAddress;
+      }
+
+      /// @brief Method returning the memory's size at the AHB bus
+      /// @return Size of the address space occupied by the memory module in B
+      uint32_t get_size() {
+         // ahbSize hold size in bytes. Add shift if other units are required.
+         return ahbSize;
+      }
+
    private:
       /// The actual memory
       std::map<uint32_t, uint8_t> mem;
       /// Method to convert ascii chars into their binary represenation
       uint8_t char2nibble(const char *ch) const;
+
+      /// AHB slave base address and size
+      const uint32_t ahbBaseAddress;
+      // size is saved in bytes
+      const uint32_t ahbSize;
 };
 
 #endif

@@ -55,7 +55,15 @@ Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm,   // Module name
       amba::amba_AHB,   // bus type
       amba::amba_LT,    // abstraction level
       false             // is arbiter
-   ) {
+   ),
+   ahbBaseAddress(static_cast<uint32_t>(hmask & haddr) << 20),
+   ahbSize( ~(static_cast<uint32_t>(hmask) << 20) + 1) {
+
+      // Display AHB slave information
+      v::info << name() << "AHB slave @0x" << hex << std::setw(8)
+              << std::setfill('0') << get_base_addr() << " size: 0x" << hex
+              << std::setw(8) << std::setfill('0') << get_size() << " byte" 
+              << endl;
 
       ahb.register_b_transport(this, &Ctb_ahb_mem::b_transport);
       if(infile!=NULL) {
