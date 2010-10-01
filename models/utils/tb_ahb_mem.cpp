@@ -8,19 +8,13 @@
 // Purpose:    Provide a test bench memory class with AHB slave interface.
 //
 // Method:     Memory is modeled with a map.
-//             Considered field of the tlm_generic_payload are:
-//                - command
-//                - address
-//                - data_ptr
-//                - data_length
-//                - response
-//             All other fields are ignored.
+//             DMI and streaming width fields are ignored.
 //             Delays are not modeled.
 //             Address checking is performed in that way, that transactions
 //             are only executed if the slave select condition defined in
 //             grlib user manual holds.
 //             Transactions generating a correct slave select but exceeding
-//             the memory region due to theri length are reported as warning
+//             the memory region due to their length are reported as warning
 //             and executed anyhow.
 //
 // Modified on $Date$
@@ -41,10 +35,10 @@
 
 /// Constructor
 Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm,   // Module name
-                           uint16_t haddr_,   // AMBA AHB address (12 bit)
-                           uint16_t hmask_,   // AMBA AHB address mask (12 bit)
-                           char infile[],    // Memory initialization file
-                           uint32_t addr) :  // Address for memory initalization
+                         uint16_t haddr_,   // AMBA AHB address (12 bit)
+                         uint16_t hmask_,   // AMBA AHB address mask (12 bit)
+                         char infile[],     // Memory initialization file
+                         uint32_t addr) :   // Address for memory initalization
    sc_module(nm),
    pnpahb(
       0x04, // vendor_id: ESA
@@ -99,23 +93,44 @@ void Ctb_ahb_mem::b_transport(unsigned int id,
          v::warn << name() << "Transaction exceeds slave memory region" << endl;
       }
 
+      // if a byte enable array is present its length must not be zero
+      unsigned char *byteEnablePtr   = gp.get_byte_enable_ptr();
+      unsigned int  byteEnableLength = gp.get_byte_enable_length();
+      assert( (byteEnableLength != 0) || (byteEnablePtr==NULL) );
+
       switch(gp.get_command()) {
          // Read command
          case tlm::TLM_READ_COMMAND:
-            for(uint32_t i=0; i<gp.get_data_length(); i++) {
-
-               *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
-
+            if(byteEnablePtr != NULL) {
+               // Use byte enable
+               for(uint32_t i=0; i<gp.get_data_length(); i++) {
+                  if(byteEnablePtr[i % byteEnableLength] == TLM_BYTE_ENABLED) {
+                     *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
+                  }
+               }
+            } else {
+               // no byte enable
+               for(uint32_t i=0; i<gp.get_data_length(); i++) {
+                  *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
+               }
             }
             gp.set_response_status(tlm::TLM_OK_RESPONSE);
             break;
 
          // Write command
          case tlm::TLM_WRITE_COMMAND:
-            for(uint32_t i=0; i<gp.get_data_length(); i++) {
-
-               mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
-
+            if(byteEnablePtr != NULL) {
+               // Use byte enable
+               for(uint32_t i=0; i<gp.get_data_length(); i++) {
+                  if(byteEnablePtr[i % byteEnableLength] == TLM_BYTE_ENABLED) {
+                     mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
+                  }
+               }
+            } else {
+               // no byte enable
+               for(uint32_t i=0; i<gp.get_data_length(); i++) {
+                  mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
+               }
             }
             gp.set_response_status(tlm::TLM_OK_RESPONSE);
             break;
