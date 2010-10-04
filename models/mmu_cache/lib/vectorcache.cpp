@@ -550,9 +550,9 @@ void vectorcache::write_cache_tag(unsigned int address, unsigned int * data, sc_
   (*m_current_cacheline[set]).tag.lock = ((m_setlock) && (set != m_sets)) ? ((*data & 0x080) >> 8) : 0;
   (*m_current_cacheline[set]).tag.valid = (*data & 0xff);
 
-  DUMP(this->name(),"Diagnostic tag write set: " << std::hex << set << " idx: " << std::hex << idx << " atag: " 
+  v::info << this->name() << "Diagnostic tag write set: " << std::hex << set << " idx: " << std::hex << idx << " atag: " 
        << std::hex << (*m_current_cacheline[set]).tag.atag << " lrr: " << std::hex << (*m_current_cacheline[set]).tag.lrr 
-       << " lock: " << std::hex << (*m_current_cacheline[set]).tag.lock << " valid: " << std::hex << (*m_current_cacheline[set]).tag.valid);
+	  << " lock: " << std::hex << (*m_current_cacheline[set]).tag.lock << " valid: " << std::hex << (*m_current_cacheline[set]).tag.valid << v::endl;
 
   // increment time
   *t+=m_hit_read_response_delay;
@@ -575,8 +575,8 @@ void vectorcache::read_cache_entry(unsigned int address, unsigned int * data, sc
 
   *data = (*m_current_cacheline[set]).entry[sb].i;
 
-  DUMP(this->name(),"Diagnostic data read set: " << std::hex << set << " idx: " << std::hex << idx
-       << " sub-block: " << sb << " - data: " << std::hex << *data);
+  v::info << this->name() << "Diagnostic data read set: " << std::hex << set << " idx: " << std::hex << idx
+	   << " sub-block: " << sb << " - data: " << std::hex << *data << v::endl;
 
   // increment time
   *t+=m_hit_read_response_delay;
@@ -599,8 +599,8 @@ void vectorcache::write_cache_entry(unsigned int address, unsigned int * data, s
 
   (*m_current_cacheline[set]).entry[sb].i = *data;
 
-  DUMP(this->name(),"Diagnostic data write set: " << std::hex << set << " idx: " << std::hex << idx
-       << " sub-block: " << sb << " - data: " << std::hex << *data);
+  v::info << this->name() << "Diagnostic data write set: " << std::hex << set << " idx: " << std::hex << idx
+	  << " sub-block: " << sb << " - data: " << std::hex << *data << v::endl;
 
   // increment time
   *t+=m_hit_read_response_delay;
