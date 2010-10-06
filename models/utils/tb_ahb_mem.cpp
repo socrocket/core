@@ -30,7 +30,6 @@
 #include "tb_ahb_mem.h"
 #include <fstream>
 #include <iostream>
-#include <iomanip>
 #include "verbose.h"
 
 /// Constructor
@@ -62,9 +61,9 @@ Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm,   // Module name
    haddr(static_cast<uint32_t>(haddr_ << 20)) {
 
       // Display AHB slave information
-      v::info << name() << "AHB slave @0x" << hex << std::setw(8)
-              << std::setfill('0') << get_base_addr() << " size: 0x" << hex
-              << std::setw(8) << std::setfill('0') << get_size() << " byte"
+      v::info << name() << "AHB slave @0x" << hex << v::setw(8)
+              << v::setfill('0') << get_base_addr() << " size: 0x" << hex
+              << v::setw(8) << v::setfill('0') << get_size() << " byte"
               << endl;
 
       ahb.register_b_transport(this, &Ctb_ahb_mem::b_transport);
@@ -298,7 +297,7 @@ int Ctb_ahb_mem::dumpmem(char outfile_[]) {
 
    if(outfile.good()) {
       // print first address in file
-      outfile << "@" << std::hex << std::setw(8) << std::setfill('0')
+      outfile << "@" << hex << v::setw(8) << v::setfill('0')
          << (it->first & 0xfffffffc) << endl;
 
       for(it=mem.begin(); it!=mem.end(); it++, it_next++) {
@@ -309,19 +308,19 @@ int Ctb_ahb_mem::dumpmem(char outfile_[]) {
          // Next byte not within current word
          if( (3 - position - static_cast<int>(it_next->first - it->first)) < 0) {
             // print word
-            outfile << std::hex << std::setw(8) << std::setfill('0') << word
+            outfile << hex << v::setw(8) << v::setfill('0') << word
                << endl;
             word = 0;
 
             // print address if necessary
             if( (7 - position - static_cast<int>(it_next->first - it->first)) < 0) {
-               outfile << "@" << std::hex << std::setw(8) << std::setfill('0')
+               outfile << "@" << hex << v::setw(8) << v::setfill('0')
                   << (it_next->first & 0xfffffffc) << endl;
             }
          }
       }
       // print last word
-      outfile << std::hex << std::setw(8) << std::setfill('0') << word
+      outfile << hex << v::setw(8) << v::setfill('0') << word
          << endl;
       return 0;
    } else {

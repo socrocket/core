@@ -17,6 +17,7 @@
 #include <systemc.h>
 #include <iostream>
 #include <streambuf>
+#include <iomanip>
 
 /// @addtogroup utils
 /// @{
@@ -27,6 +28,8 @@ using std::endl;
 using std::hex;
 using std::dec;
 using std::flush;
+using std::setw;
+using std::setfill;
 
   
 class Color {
