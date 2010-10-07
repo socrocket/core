@@ -1,19 +1,49 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       gptimer.cpp                                             */
-/*             source file defining the implementation of the gptimer  */
-/*             model. Due to the fact that the gptimer class is a      */
-/*             template class it gets included by its definition in    */
-/*             gptimer.h                                               */
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Rolf Meyer                                              */
-/***********************************************************************/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      gptimer.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    source file defining the implementation of the gptimer
+//             model. Due to the fact that the gptimer class is a
+//             template class it gets included by its definition in
+//             gptimer.h
+//
+// Method:
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Rolf Meyer
+// Reviewed:
+//*********************************************************************
 
 #include <string>
 #include "gptimer.h"
@@ -33,65 +63,65 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers, int gpind
   , clockcycle(10.0, sc_core::SC_NS) {
 
   /* create register */
-  r.create_register( "scaler", "Scaler Value", 
+  r.create_register( "scaler", "Scaler Value",
          /* offset */ 0x00,
          /* config */ gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
      /* init value */ 0xFFFFFFFF,
-     /* write mask */ (2<<(gsbits))-1, /* sbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s. */ 
+     /* write mask */ (2<<(gsbits))-1, /* sbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s. */
       /* reg width */ 32,                            /* Maximum register with is 32bit sbit must be less than 32. */
       /* lock mask */ 0x00                           /* Not implementet has to be zero. */
                    );
-  r.create_register( "screload", "Scaler Reload Value", 
+  r.create_register( "screload", "Scaler Reload Value",
          /* offset */ 0x04,
          /* config */ gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-     /* init value */ 0xFFFFFFFF, 
-     /* write mask */ static_cast<unsigned int>((1ULL<<gsbits)-1), /* sbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s. */ 
-      /* reg width */ 32, 
+     /* init value */ 0xFFFFFFFF,
+     /* write mask */ static_cast<unsigned int>((1ULL<<gsbits)-1), /* sbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s. */
+      /* reg width */ 32,
       /* lock mask */ 0x00
                    );
-  r.create_register( "conf", "Configuration Register", 
+  r.create_register( "conf", "Configuration Register",
          /* offset */ 0x08,
          /* config */ gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-     /* init value */ conf_defaults, 
-     /* write mask */ 0x00003FFF, 
-      /* reg width */ 32, 
+     /* init value */ conf_defaults,
+     /* write mask */ 0x00003FFF,
+      /* reg width */ 32,
       /* lock mask */ 0x00
                    );
 
   for(unsigned int i=0;i<ntimers;++i) {
     CGPCounter *c = new CGPCounter(*this, i, gen_unique_name("CGPCounter", true));
     counter.push_back(c);
-    r.create_register( gen_unique_name("value", false), "CGPCounter Value Register", 
+    r.create_register( gen_unique_name("value", false), "CGPCounter Value Register",
           /* offset */ VALUE(i),
           /* config */ gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-      /* init value */ 0x00000000, 
-      /* write mask */ static_cast<unsigned int>((1ULL<<gnbits)-1), /* nbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s. */ 
-       /* reg width */ 32, 
+      /* init value */ 0x00000000,
+      /* write mask */ static_cast<unsigned int>((1ULL<<gnbits)-1), /* nbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s. */
+       /* reg width */ 32,
        /* lock mask */ 0x00
                      );
-    r.create_register( gen_unique_name("reload", false), "Reload Value Register", 
+    r.create_register( gen_unique_name("reload", false), "Reload Value Register",
           /* offset */ RELOAD(i),
           /* config */ gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-      /* init value */ 0x00000001, 
-      /* write mask */ static_cast<unsigned int>((1ULL<<gnbits)-1), /* nbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s. */ 
-       /* reg width */ 32, 
+      /* init value */ 0x00000001,
+      /* write mask */ static_cast<unsigned int>((1ULL<<gnbits)-1), /* nbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s. */
+       /* reg width */ 32,
        /* lock mask */ 0x00
                      );
-    r.create_register( gen_unique_name("ctrl", false), "Controle Register", 
+    r.create_register( gen_unique_name("ctrl", false), "Controle Register",
           /* offset */ CTRL(i),
           /* config */ gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-      /* init value */ 0x00000000, 
-      /* write mask */ 0x0000007F, 
-       /* reg width */ 32, 
+      /* init value */ 0x00000000,
+      /* write mask */ 0x0000007F,
+       /* reg width */ 32,
        /* lock mask */ 0x00
                      );
   }
- 
+
   #ifdef DEBUG
   SC_THREAD(diag);
   #endif
 
-  #ifdef DEBUGOUT  
+  #ifdef DEBUGOUT
   SC_THREAD(ticking);
   #endif
 }
@@ -102,27 +132,27 @@ CGPTimer::~CGPTimer() {
   }
   GC_UNREGISTER_CALLBACKS();
 }
-  
-void CGPTimer::end_of_elaboration() {   
+
+void CGPTimer::end_of_elaboration() {
   GR_FUNCTION(CGPTimer, scaler_read);
-  GR_SENSITIVE(r[SCALER].add_rule( gs::reg::PRE_READ, 
-                                   "scaler_read", 
+  GR_SENSITIVE(r[SCALER].add_rule( gs::reg::PRE_READ,
+                                   "scaler_read",
                                    gs::reg::NOTIFY));
-  
+
   GR_FUNCTION(CGPTimer, scaler_write);
-  GR_SENSITIVE(r[SCALER].add_rule( gs::reg::POST_WRITE, 
-                                   "scaler_write", 
+  GR_SENSITIVE(r[SCALER].add_rule( gs::reg::POST_WRITE,
+                                   "scaler_write",
                                    gs::reg::NOTIFY));
   GR_FUNCTION(CGPTimer, screload_write);
-  GR_SENSITIVE(r[SCRELOAD].add_rule( gs::reg::POST_WRITE, 
-                                     "scaler_reload_write", 
+  GR_SENSITIVE(r[SCRELOAD].add_rule( gs::reg::POST_WRITE,
+                                     "scaler_reload_write",
                                      gs::reg::NOTIFY));
 
   GR_FUNCTION(CGPTimer, conf_read);
-  GR_SENSITIVE(r[CONF].add_rule( gs::reg::PRE_READ, 
-                                 "conf_read", 
+  GR_SENSITIVE(r[CONF].add_rule( gs::reg::PRE_READ,
+                                 "conf_read",
                                  gs::reg::NOTIFY));
-  
+
 }
 
 #ifdef DEBUGOUT
@@ -140,7 +170,7 @@ void CGPTimer::tick_calc() {
   //std::cout << "Reload: " << reload << std::endl;
   //if(((unsigned )scaler != 0xFFFFFFFF) || (scaler == 0 && reload == 0)) {
   //  e_tick.notify(clockcycle * (((scaler)? scaler: (reload - 1)) - 1));
-  //}  
+  //}
   //if(reload != 0) {
     e_tick.notify(clockcycle * (scaler));
   //}
@@ -158,11 +188,11 @@ void CGPTimer::ticking() {
     if(rst.read() == 1) {
       tick.write(tick.read() & ~1);
     }
-  }   
+  }
 }
 #endif
 
-/* Disable or enable CGPCounter when DHALT arrives 
+/* Disable or enable CGPCounter when DHALT arrives
  * The value will be directly fetched in conf_read to show the right value in the conf registers.
  */
 void CGPTimer::do_dhalt(const bool &value, signalkit::signal_in_if<bool> *signal, signalkit::signal_out_if<bool> *sender, const sc_core::sc_time &time) {
@@ -232,7 +262,7 @@ void CGPTimer::do_reset(const bool &value, signalkit::signal_in_if<bool> *signal
     lasttime = sc_core::sc_time_stamp();
     scaler_write();
     scaler_read();
-    
+
     for(std::vector<CGPCounter *>::iterator iter=counter.begin();iter!=counter.end();iter++) {
       (*iter)->do_reset();
     }
@@ -242,7 +272,7 @@ void CGPTimer::do_reset(const bool &value, signalkit::signal_in_if<bool> *signal
 int CGPTimer::valueof(sc_core::sc_time t, int offset, sc_core::sc_time cycletime) const {
   return (int)(lastvalue - ((t - lasttime - (1+offset)* cycletime) / cycletime) + 1);
 }
- 
+
 int CGPTimer::numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int CGPCounter, sc_core::sc_time cycletime) {
   int reload = r[SCRELOAD] + 1;
   int val_a = valueof(a, 0, cycletime);

@@ -1,17 +1,47 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       irqmp.tpp                                               */
-/*             implementation of irqmp module                          */
-/*             is included by irqmp.h template header file             */
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Dennis Bode                                             */
-/***********************************************************************/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      irqmp.tpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    implementation of irqmp module
+//             is included by irqmp.h template header file
+//
+// Method:
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Dennis Bode
+// Reviewed:
+//*********************************************************************
 
 /*  2-DO
 - take care of pindex / pconfig signals (apbo: PnP)
@@ -85,63 +115,63 @@ CIrqmp::CIrqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, 
   // 2) If there were 0 cpus, no cpu would need an IR force register
   // 3) The IR force register for the first CPU ('CPU 0') will always be located at address 0x80
   if (ncpu == 0) {
-    r.create_register( "force", "Interrupt Force Register", 
+    r.create_register( "force", "Interrupt Force Register",
                         0x08,
                         gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                        0x00000000, 
+                        0x00000000,
                         IRQMP_IR_FORCE_IF,
-                        32, 
+                        32,
                         0x00
                      );
   }
-  r.create_register( "clear", "Interrupt Clear Register", 
+  r.create_register( "clear", "Interrupt Clear Register",
                       0x0C,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      0x00000000, 
+                      0x00000000,
                       IRQMP_IR_CLEAR_IC,
                       32,
                       0x00
                    );
-  r.create_register( "mpstat", "Multiprocessor Status Register", 
+  r.create_register( "mpstat", "Multiprocessor Status Register",
                       0x10,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      0x00000000, 
+                      0x00000000,
                       IRQMP_MP_STAT_NCPU | IRQMP_MP_STAT_EIRQ | IRQMP_MP_STAT_STAT(),
                       32,
                       0x00
                    );
-  r.create_register( "broadcast", "Interrupt broadcast Register", 
+  r.create_register( "broadcast", "Interrupt broadcast Register",
                       0x14,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      0x00000000, 
+                      0x00000000,
                       IRQMP_BROADCAST_BM,
                       32,
                       0x00
                    );
 
   for(int i=0; i<ncpu; ++i) {
-    r.create_register( gen_unique_name("mask", false), "Interrupt Mask Register", 
+    r.create_register( gen_unique_name("mask", false), "Interrupt Mask Register",
                        0x40 + 0x4 * i,
                        gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                       0xFFFFFFFF, 
-                       IRQMP_PROC_MASK_EIM | IRQMP_PROC_MASK_IM, 
-                       32, 
+                       0xFFFFFFFF,
+                       IRQMP_PROC_MASK_EIM | IRQMP_PROC_MASK_IM,
+                       32,
                        0x00
                      );
-    r.create_register( gen_unique_name("force", false), "Interrupt Force Register", 
+    r.create_register( gen_unique_name("force", false), "Interrupt Force Register",
                        0x80 + 0x4 * i,
                        gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                       0x00000000, 
+                       0x00000000,
                        IRQMP_PROC_IR_FORCE_IFC | IRQMP_IR_FORCE_IF,
-                       32, 
+                       32,
                        0x00
                      );
-    r.create_register( gen_unique_name("eir_id", false), "Extended Interrupt Identification Register", 
+    r.create_register( gen_unique_name("eir_id", false), "Extended Interrupt Identification Register",
                        0xC0 + 0x4 * i,
                        gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                       0x00000000, 
-                       IRQMP_PROC_EXTIR_ID_EID, 
-                       32, 
+                       0x00000000,
+                       IRQMP_PROC_EXTIR_ID_EID,
+                       32,
                        0x00
                      );
   }
@@ -154,7 +184,7 @@ CIrqmp::~CIrqmp() {
 
 
 /// Hook up callback functions to registers
-void CIrqmp::end_of_elaboration() {   
+void CIrqmp::end_of_elaboration() {
 
   // send interrupts to processors after write to pending / force regs
   GR_FUNCTION(CIrqmp, launch_irq);                         // args: module name, callback function name
@@ -163,8 +193,8 @@ void CIrqmp::end_of_elaboration() {
                                     gs::reg::NOTIFY));    // notification on every register access
   for (int i_cpu=0; i_cpu<ncpu; i_cpu++) {
     GR_FUNCTION(CIrqmp, launch_irq);
-    GR_SENSITIVE(r[IRQMP_PROC_IR_FORCE(i_cpu)].add_rule( gs::reg::POST_WRITE, 
-                                     gen_unique_name("launch_irq", false), 
+    GR_SENSITIVE(r[IRQMP_PROC_IR_FORCE(i_cpu)].add_rule( gs::reg::POST_WRITE,
+                                     gen_unique_name("launch_irq", false),
                                      gs::reg::NOTIFY));
   }
 
@@ -184,38 +214,38 @@ void CIrqmp::end_of_elaboration() {
 
   // manage cpu run / reset signals after write into MP status reg
   GR_FUNCTION(CIrqmp, mpstat_write);
-  GR_SENSITIVE(r[IRQMP_MP_STAT].add_rule( gs::reg::POST_WRITE, 
-                                   "mpstat_write", 
+  GR_SENSITIVE(r[IRQMP_MP_STAT].add_rule( gs::reg::POST_WRITE,
+                                   "mpstat_write",
                                    gs::reg::NOTIFY));
 
   // read registers
   GR_FUNCTION(CIrqmp, register_read);
-  GR_SENSITIVE(r[IRQMP_IR_LEVEL].add_rule( gs::reg::PRE_READ, 
-                                   "level_read", 
+  GR_SENSITIVE(r[IRQMP_IR_LEVEL].add_rule( gs::reg::PRE_READ,
+                                   "level_read",
                                    gs::reg::NOTIFY));
-  GR_SENSITIVE(r[IRQMP_IR_PENDING].add_rule( gs::reg::PRE_READ, 
-                                   "pending_read", 
+  GR_SENSITIVE(r[IRQMP_IR_PENDING].add_rule( gs::reg::PRE_READ,
+                                   "pending_read",
                                    gs::reg::NOTIFY));
-  GR_SENSITIVE(r[IRQMP_IR_CLEAR].add_rule( gs::reg::PRE_READ, 
-                                   "clear_read", 
+  GR_SENSITIVE(r[IRQMP_IR_CLEAR].add_rule( gs::reg::PRE_READ,
+                                   "clear_read",
                                    gs::reg::NOTIFY));
-  GR_SENSITIVE(r[IRQMP_MP_STAT].add_rule( gs::reg::PRE_READ, 
-                                   "mp_stat_read", 
+  GR_SENSITIVE(r[IRQMP_MP_STAT].add_rule( gs::reg::PRE_READ,
+                                   "mp_stat_read",
                                    gs::reg::NOTIFY));
-  GR_SENSITIVE(r[IRQMP_BROADCAST].add_rule( gs::reg::PRE_READ, 
-                                   "broadcast_read", 
+  GR_SENSITIVE(r[IRQMP_BROADCAST].add_rule( gs::reg::PRE_READ,
+                                   "broadcast_read",
                                    gs::reg::NOTIFY));
 
   for (int i_cpu=0; i_cpu<ncpu;i_cpu++) {
     GR_FUNCTION(CIrqmp, register_read);
-    GR_SENSITIVE(r[IRQMP_PROC_IR_MASK(i_cpu)].add_rule( gs::reg::POST_WRITE, 
-                                     gen_unique_name("mask_read", false), 
+    GR_SENSITIVE(r[IRQMP_PROC_IR_MASK(i_cpu)].add_rule( gs::reg::POST_WRITE,
+                                     gen_unique_name("mask_read", false),
                                      gs::reg::NOTIFY));
-    GR_SENSITIVE(r[IRQMP_PROC_IR_FORCE(i_cpu)].add_rule( gs::reg::POST_WRITE, 
-                                     gen_unique_name("force_read", false), 
+    GR_SENSITIVE(r[IRQMP_PROC_IR_FORCE(i_cpu)].add_rule( gs::reg::POST_WRITE,
+                                     gen_unique_name("force_read", false),
                                      gs::reg::NOTIFY));
-    GR_SENSITIVE(r[IRQMP_PROC_EXTIR_ID(i_cpu)].add_rule( gs::reg::POST_WRITE, 
-                                     gen_unique_name("extir_id_read", false), 
+    GR_SENSITIVE(r[IRQMP_PROC_EXTIR_ID(i_cpu)].add_rule( gs::reg::POST_WRITE,
+                                     gen_unique_name("extir_id_read", false),
                                      gs::reg::NOTIFY));
   }
 }
@@ -416,7 +446,7 @@ void CIrqmp::clear_acknowledged_irq(const uint32_t &cleared_irq, const unsigned 
 #endif
     t += sc_core::sc_time(CLOCK_PERIOD, SC_NS);
 #endif
-    
+
 #ifdef COUT_TIMING
     cout << endl << "clear_acknowledged_irq called after delay at:" << sc_time_stamp();
 #endif

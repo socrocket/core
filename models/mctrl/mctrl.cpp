@@ -1,17 +1,47 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       mctrl.tpp                                               */
-/*             implementation of the mctrl module                      */
-/*             is included by mctrl.h template header file             */
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Dennis Bode                                             */
-/***********************************************************************/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      mctrl.tpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    implementation of the mctrl module
+//             is included by mctrl.h template header file
+//
+// Method:
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Dennis Bode
+// Reviewed:
+//*********************************************************************
 
 #include "mctrl.h"
 
@@ -63,7 +93,7 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
       "apb",                 //name
       r,                     //register container
       _paddr << 20,          //apb base address
-      (4096 - _pmask) << 20, //apb address space size 
+      (4096 - _pmask) << 20, //apb address space size
       ::amba::amba_APB,      //bus type
       ::amba::amba_LT,       //abstraction level
       false                  //socket is not used for arbitration
@@ -121,7 +151,7 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
   // register transport functions to sockets
   ahb.register_b_transport (this, &Mctrl::b_transport);
 
-      // nb_transport to be added 
+      // nb_transport to be added
 
 
   // create register | name + description
@@ -147,18 +177,18 @@ Mctrl::Mctrl(sc_core::sc_module_name name,  int _romasel,   int _sdrasel,  int _
                       32,
                       0x00
                    );
-  r.create_register( "MCFG3", "Memory Configuration Register 3", 
+  r.create_register( "MCFG3", "Memory Configuration Register 3",
                       0x08,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      MCTRL_MCFG3_DEFAULT, 
+                      MCTRL_MCFG3_DEFAULT,
                       MCTRL_MCFG3_WRITE_MASK,
-                      32, 
+                      32,
                       0x00
                    );
-  r.create_register( "MCFG4", "Power-Saving Configuration Register", 
+  r.create_register( "MCFG4", "Power-Saving Configuration Register",
                       0x0C,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      MCTRL_MCFG4_DEFAULT, 
+                      MCTRL_MCFG4_DEFAULT,
                       MCTRL_MCFG4_WRITE_MASK,
                       32,
                       0x00
@@ -247,9 +277,9 @@ void Mctrl::end_of_elaboration() {
 
 
 //function to initialize and reset memory address space constants
-void Mctrl::reset_mctrl(const bool &value, 
-                        signalkit::signal_in_if<bool> *signal, 
-                        signalkit::signal_out_if<bool> *sender, 
+void Mctrl::reset_mctrl(const bool &value,
+                        signalkit::signal_in_if<bool> *signal,
+                        signalkit::signal_out_if<bool> *sender,
                         const sc_core::sc_time &time)
   {
 
@@ -292,23 +322,23 @@ void Mctrl::reset_mctrl(const bool &value,
       set = r[MCTRL_MCFG2].get() | sdbits << 18;
       r[MCTRL_MCFG2].set( set );
     }
-  
+
     // --- calculate address spaces of the different memory banks
-  
-    //ROM 
+
+    //ROM
     uint32_t size = (4096 - rommask) << 20;
     rom_bk1_s = static_cast<uint32_t>(romaddr << 20); //   's' --> 'start'
     rom_bk2_e = rom_bk1_s + size - 1; //add full rom size: 'e' --> 'end'
     rom_bk1_e = rom_bk2_e >> 1;       //bk1 ends at half of address space, rounding fits
     rom_bk2_s = rom_bk1_e + 1;
-  
+
     //IO
     size = (4096 - iomask) << 20;
     io_s = static_cast<uint32_t>(ioaddr << 20);
     io_e = io_s + size - 1;
 
     // ------- RAM -------
-  
+
     //SRAM bank size: lower half of RAM address space divided by #banks
     uint32_t sram_bank_size;
     if (srbanks == 5) {              //max 4 banks in lower half
@@ -317,17 +347,17 @@ void Mctrl::reset_mctrl(const bool &value,
     else {
       sram_bank_size = ((4096 - rammask) / (2*srbanks)) << 20;
     }
-  
+
     //SDRAM bank size: upper half of RAM address space divided by 2 banks
     uint32_t sdram_bank_size = ((4096 - rammask) / 4) << 20;
-  
+
     //write calculated bank sizes into MCFG2
     uint32_t i_sr  = static_cast<uint32_t>( log( sram_bank_size)/log(2) + 7 );
     uint32_t i_sdr = static_cast<uint32_t>( log(sdram_bank_size)/log(2) - 3 );
     set = (MCTRL_MCFG2_DEFAULT & ~MCTRL_MCFG2_RAM_BANK_SIZE & ~MCTRL_MCFG2_SDRAM_BANKSZ)
           | (i_sr << 9 & MCTRL_MCFG2_RAM_BANK_SIZE) | (i_sdr << 23 & MCTRL_MCFG2_SDRAM_BANKSZ);
     r[MCTRL_MCFG2].set( set );
-  
+
     //address spaces in case of SRAM only configuration
     if ( !sden || !( r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE ) ) {
       //potentially unused banks
@@ -343,13 +373,13 @@ void Mctrl::reset_mctrl(const bool &value,
       //call function that calculates the SRAM bank addresses
       //This (lengthy) operation is required several times in the code.
       sram_calculate_bank_addresses( sram_bank_size );
-  
+
       //unused banks, sdram1 and sdram2: constants need to be defined, but range must be empty
       sdram_bk1_s = 0;
       sdram_bk1_e = 0;
       sdram_bk2_s = 0;
       sdram_bk2_e = 0;
-  
+
     }
     //address spaces in case of SDRAM and SRAM (lower 4 SRAM banks only) configuration
     else if (!(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SI)) {
@@ -360,10 +390,10 @@ void Mctrl::reset_mctrl(const bool &value,
       sram_bk3_e = 0;
       sram_bk4_s = 0;
       sram_bk4_e = 0;
-  
+
       //call function that calculates the SRAM bank addresses
       sram_calculate_bank_addresses( sram_bank_size );
-  
+
       //calculate SDRAM bank addresses
       //SDRAM bank 1 starts at upper half of RAM area
       sdram_bk1_s = static_cast<uint32_t>( (ramaddr + (4096 - rammask) / 2) << 20 );
@@ -371,7 +401,7 @@ void Mctrl::reset_mctrl(const bool &value,
       //SDRAM bank 2
       sdram_bk2_s = sdram_bk1_e + 1;
       sdram_bk2_e = sdram_bk2_s + sdram_bank_size - 1;
-  
+
       //unused bank sram5: constants need to be defined, but range must be empty
       sram_bk5_s = 0;
       sram_bk5_e = 0;
@@ -384,7 +414,7 @@ void Mctrl::reset_mctrl(const bool &value,
       //SDRAM bank 2
       sdram_bk2_s = sdram_bk1_e + 1;
       sdram_bk2_e = sdram_bk2_s + sdram_bank_size - 1;
-  
+
       //unused banks, sram1 ... sram5
       sram_bk1_s = 0;
       sram_bk1_e = 0;
@@ -398,7 +428,7 @@ void Mctrl::reset_mctrl(const bool &value,
       sram_bk5_e = 0;
     }
   }
-  
+
   #ifdef DEBUG
     cout << endl << hex << "--- address space borders ---" << endl
          << "ROM_1:   " <<   rom_bk1_s << " - " <<   rom_bk1_e << endl
@@ -473,7 +503,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
       //calculate delay for write command
       else {
         cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WRITE_WS) >> 4;
-        cycles = DECODING_DELAY + MCTRL_ROM_WRITE_DELAY(cycles) + 
+        cycles = DECODING_DELAY + MCTRL_ROM_WRITE_DELAY(cycles) +
                  2 * (data_length / gp.get_streaming_width() - 1);  //multiple data cycles, i.e. burst access
         //add delay and forward transaction to memory
         start_idle = t_trans + cycle_time * cycles;
@@ -484,7 +514,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
     //calculate delay for read command
     else if (cmd == tlm::TLM_READ_COMMAND) {
       cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_READ_WS);
-      cycles = DECODING_DELAY + MCTRL_ROM_READ_DELAY(cycles) + 
+      cycles = DECODING_DELAY + MCTRL_ROM_READ_DELAY(cycles) +
                2 * (data_length / gp.get_streaming_width() - 1);  //multiple data cycles, i.e. burst access
       //add delay and forward transaction to memory
       start_idle = t_trans + cycle_time * cycles;
@@ -499,13 +529,13 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
       cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IO_WAITSTATES) >> 20;
       //calculate delay for read command
       if (cmd == tlm::TLM_READ_COMMAND) {
-        cycles = DECODING_DELAY + MCTRL_IO_READ_DELAY(cycles) + 
+        cycles = DECODING_DELAY + MCTRL_IO_READ_DELAY(cycles) +
                  data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
         //FIXME: add dynamic waitstates for IO access here
       }
       //calculate delay for write command
       else if (cmd == tlm::TLM_WRITE_COMMAND) {
-        cycles = DECODING_DELAY + MCTRL_IO_WRITE_DELAY(cycles) + 
+        cycles = DECODING_DELAY + MCTRL_IO_WRITE_DELAY(cycles) +
                  data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
       }
       //add delay and forward transaction to memory
@@ -551,13 +581,13 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
     //calculate delay for read command
     if (cmd == tlm::TLM_READ_COMMAND) {
       cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_READ_WS);
-      cycles = DECODING_DELAY + MCTRL_SRAM_READ_DELAY(cycles) + 
+      cycles = DECODING_DELAY + MCTRL_SRAM_READ_DELAY(cycles) +
                data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
     }
     //calculate delay for write command
     else if (cmd == tlm::TLM_WRITE_COMMAND) {
       cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WRITE_WS >> 2);
-      cycles = DECODING_DELAY + MCTRL_SRAM_WRITE_DELAY(cycles) + 
+      cycles = DECODING_DELAY + MCTRL_SRAM_WRITE_DELAY(cycles) +
                data_length / gp.get_streaming_width() - 1;  //multiple data cycles, i.e. burst access
     }
     //check for write protection
@@ -605,7 +635,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
           cycles++; //trp = 3
         }
         //calculate number of activated rows during burst access:
-        // 1. calculate row length from bank size and 'column size' field (which in 
+        // 1. calculate row length from bank size and 'column size' field (which in
         //    fact determines the number of column address bits, i.e. the row length)
         uint32_t sdram_row_length;
                 //bank size of 512MB activates col-sz field of MCFG2; any other bank size causes default col-sz of 2048
@@ -638,9 +668,9 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay)  {
       //if in power down mode, each access will take +1 clock cycle
       if (mobile>0 && sc_core::sc_time_stamp() - start_idle >=16 * cycle_time) {
                     //is mobile SDRAM enabled?
-        cycles += ( (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME >> 15) & 
+        cycles += ( (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME >> 15) &
                    //is mobile SDRAM allowed?
-                   r[MCTRL_MCFG2].get() & 
+                   r[MCTRL_MCFG2].get() &
                    //power down mode?    --> shift to LSB (=1)
                    r[MCTRL_MCFG4].get() ) >> 16;
       }
@@ -708,14 +738,14 @@ void Mctrl::launch_sdram_command() {
 
 //change of TCAS, DS, TCSR, or PASR
 void Mctrl::configure_sdram() {
-  //The reaction to the changes to these register fields is a command with a functionality 
+  //The reaction to the changes to these register fields is a command with a functionality
   //transparent to the TLM memory system. However, the delay induced by this command can be modeled here.
 
   //one cycle to write the register + tRP (2+0 or 2+1) to let the changes take effect
   if (sden) {
     callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30), SC_NS);
   }
-} 
+}
 
 //change of PMODE
 void Mctrl::erase_sdram() {
@@ -732,7 +762,7 @@ void Mctrl::erase_sdram() {
 
   switch (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_PMODE) {
     case 0x00000000:
-    { 
+    {
       //check previous power down mode
       uint8_t cycles = 0;
       uint8_t cycles_after_refresh = 0;
@@ -750,7 +780,7 @@ void Mctrl::erase_sdram() {
           cycles_after_refresh = 2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ; //LMR + EMR
       }
       callback_delay += sc_core::sc_time(BUS_CLOCK_CYCLE * cycles, SC_NS);
-      next_refresh = sc_core::sc_time_stamp() + 
+      next_refresh = sc_core::sc_time_stamp() +
                      sc_core::sc_time(BUS_CLOCK_CYCLE * (cycles - cycles_after_refresh + trfc), SC_NS);
       pmode = 0;
       break;
@@ -784,7 +814,7 @@ void Mctrl::erase_sdram() {
         gp.set_address(sdram_bk2_s);
         data = sdram_bk2_e;
         mctrl_sdram->b_transport(gp,t);
-        //partially erase lower bank according to PASR bits 
+        //partially erase lower bank according to PASR bits
         gp.set_address(sdram_bk1_s);
         data = Mctrl::sdram_bk1_e >> (pasr-1);
         mctrl_sdram->b_transport(gp,t);
@@ -838,7 +868,7 @@ void Mctrl::sram_disable() {
 
 //recalculate start / end addresses of ram banks after sdram enable / disable
 void Mctrl::sdram_enable() {
-  //SDRAM has just been enabled (SRAM cannot be disabled) 
+  //SDRAM has just been enabled (SRAM cannot be disabled)
   if(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE) {
     sram_bk5_s = 0;
     sram_bk5_e = 0;

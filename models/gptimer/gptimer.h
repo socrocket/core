@@ -1,19 +1,47 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       gptimer.h                                               */
-/*             header file containing the definition of the gptimer    */
-/*             model. Due to the fact that the gptimer class is a      */
-/*             template class it includes its implementation from      */
-/*             gptimer.tpp                                             */
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Rolf Meyer                                              */
-/***********************************************************************/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      gptimer.h
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    header file containing the definition of the gptimer
+//             model. Due to the fact that the gptimer class is a
+//             template class it includes its implementation from
+//             gptimer.tpp
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Rolf Meyer
+// Reviewed:
+//*********************************************************************
 
 #ifndef GPTIMER_H
 #define GPTIMER_H
@@ -37,34 +65,34 @@
 /// @{
 
 /// @brief This class is a tlm model of the gaisler aeroflex grlib gptimer.
-///   
+///
 class CGPTimer
     : public gs::reg::gr_device
     , public signalkit::signal_module<CGPTimer>
     , public CGrlibDevice {
   public:
     /// Slave socket with delayed switchi
-    gs::reg::greenreg_socket< gs::amba::amba_slave<32> > bus; 
-    
+    gs::reg::greenreg_socket< gs::amba::amba_slave<32> > bus;
+
     signal<bool>::in      rst;
     signal<bool>::in      dhalt;
     signal<uint8_t>::out  tick;
     signal<uint32_t>::out irq;
     signal<uint32_t>::out wdog;
-   
-    /// Stores the default config register value 
+
+    /// Stores the default config register value
     /// TODO: Might be deprecated.
     unsigned int conf_defaults;
 
     /// Stores the time when the value of the prescaler was known.
     sc_core::sc_time lasttime;
-    
+
     /// Stores the last known prescaler value.
     ///
-    /// A prescaler value is known when it gets set by the prescaler value register 
+    /// A prescaler value is known when it gets set by the prescaler value register
     /// or when its get calculatet befor a complete stop.
     ///
-    /// It gets always set with the lasttime. Both define the prescaler function 
+    /// It gets always set with the lasttime. Both define the prescaler function
     /// implemented in valueof.
     unsigned int  lastvalue;
 
@@ -74,7 +102,7 @@ class CGPTimer
     /// Therefore the accumulated state gets stored in this attribute to modify only one bit at a time when a counter changes the signal.
     ///
     unsigned int ticks;
-    
+
     /// The clock cycle length
     ///
     /// To calculate the right delays and waiting times we need to store the length of one clock cycle.
@@ -88,11 +116,11 @@ class CGPTimer
     /// See tick_calc for calculation and ticking for the event wait statement.
     ///
     sc_core::sc_event e_tick;
-    
+
     /// A vector of Counter classes, each representate an internal counter.
     std::vector<CGPCounter *> counter;
 
-    GC_HAS_CALLBACKS(); 
+    GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(CGPTimer);
 
     /// Creates an instance of an GPTimer.
@@ -100,8 +128,8 @@ class CGPTimer
     /// @param name    The name of the instance. It's needed for debunging.
     /// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
     /// @param pirq    Defines which APB interupt the timers will generate. Default is 0.
-    /// @param sepirq  If set to 1, each timer will drive an individual interrupt line, 
-    ///                starting with interrupt irq. If set to 0, all timers will drive 
+    /// @param sepirq  If set to 1, each timer will drive an individual interrupt line,
+    ///                starting with interrupt irq. If set to 0, all timers will drive
     ///                the same interrupt line (irq).
     /// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
     /// @param nbits   Defines the number of bits in the timers. Default is 32.
@@ -114,7 +142,7 @@ class CGPTimer
 
     /// Free all counter and unregister all callbacks.
     ~CGPTimer();
-    
+
     /// Execute the callback registering when systemc reaches the end of elaboration.
     void end_of_elaboration();
 
@@ -144,7 +172,7 @@ class CGPTimer
 
     /// Diagnostic SC_THREAD
     ///
-    ///  diag is a diagnostic SC_THREAD it gets triggert once in a clockcycle. But this module does not receive 
+    ///  diag is a diagnostic SC_THREAD it gets triggert once in a clockcycle. But this module does not receive
     ///  a clock it calculates the clockcycle from the values set by a clk function.
     ///  In this function are debuging commands to read current signals or register values.
     ///

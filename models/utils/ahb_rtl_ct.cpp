@@ -1,18 +1,48 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       ahb_rtl_ct.cpp                                          */
-/*             header file defining a generic AHB RTL to CT adapter    */
-/*             it enables the user to connect an grlib AHB model       */
-/*             to an AMBAKit CT bus                                    */
-/*                                                                     */
-/* Modified on $Date: 2010-08-30 00:40:19 +0200 (Mon, 30 Aug 2010) $   */
-/*          at $Revision: 84 $                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TU Braunschweig              */
-/* Maintainer: Rolf Meyer                                              */
-/***********************************************************************/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      ahb_rtl_ct.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    header file defining a generic AHB RTL to CT adapter
+//             it enables the user to connect an grlib AHB model
+//             to an AMBAKit CT bus
+//
+// Method:
+//
+// Modified on $Date: 2010-08-30 00:40:19 +0200 (Mon, 30 Aug 2010) $
+//          at $Revision: 84 $
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TU Braunschweig
+// Maintainer: Rolf Meyer
+// Reviewed:
+//*********************************************************************
 
 #include <systemc.h>
 #include "ahb_rtl_ct.h"
@@ -26,8 +56,8 @@ CAHB_RTL_CT::CAHB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base, sc_dt::
       hconfig_1("GR_CONFIG_1"), hindex("GR_INDEX"), m_hbusreq("AHB_BUSREQ"),
       m_hlock("AHB_LOCK"), m_htrans("AHB_TRANS"), m_haddr("AHB_ADDRESS"),
       m_hsize("AHB_SIZE"), m_hburst("AHB_BURST"), m_prot("AHB_PROT"),
-      m_hwrite("AHB_WRITE"), m_hwdata("AHB_WRITE_DATA"), m_hrdata("AHB_READ_DATA"), 
-      m_hresp("AHB_RESPONSE"), m_hgrant("AHB_GRANT"), m_hreadyin("AHB_READY_IN"), 
+      m_hwrite("AHB_WRITE"), m_hwdata("AHB_WRITE_DATA"), m_hrdata("AHB_READ_DATA"),
+      m_hresp("AHB_RESPONSE"), m_hgrant("AHB_GRANT"), m_hreadyin("AHB_READY_IN"),
       ct("CT", base, size) {
     ct.m_clk(clk);
     ct.m_Reset(reset);
@@ -47,7 +77,7 @@ CAHB_RTL_CT::CAHB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base, sc_dt::
 
     SC_THREAD(ahbo_ctrl);
     sensitive << ahbo;
-    
+
     SC_THREAD(ahbi_ctrl);
     sensitive << m_hrdata << m_hresp << m_hgrand << m_hreadyin << hirqi;
 }
@@ -64,7 +94,7 @@ void CAHB_RTL_CT::ahbo_ctrl() {
         m_hburst.write(val.hburst);
         m_hprot.write(val.hprot);
         m_hwdata.write(val.hwdata);
-        
+
         hirqo.write(val.hwirq);
         hconfig_0.write(val.hconfig[0]);
         hconfig_1.write(val.hconfig[1]);

@@ -1,19 +1,49 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       gpCGPCounter.cpp                                           */
-/*             source file defining the implementation of the gptimer  */
-/*             model. Due to the fact that the gptimer class is a      */
-/*             template class it gets included by its definition in    */
-/*             gptimer.h                                               */
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Rolf Meyer                                              */
-/***********************************************************************/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      gpCGPCounter.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    source file defining the implementation of the gptimer
+//             model. Due to the fact that the gptimer class is a
+//             template class it gets included by its definition in
+//             gptimer.h
+//
+// Method:
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Rolf Meyer
+// Reviewed:
+//*********************************************************************
 
 #include <string>
 #include "gpcounter.h"
@@ -23,7 +53,7 @@
 /// @{
 
 CGPCounter::CGPCounter(CGPTimer &_parent, unsigned int _nr, sc_core::sc_module_name name)
-  : gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false) {  
+  : gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false) {
   SC_THREAD(ticking);
   //do_reset();
 }
@@ -31,26 +61,26 @@ CGPCounter::CGPCounter(CGPTimer &_parent, unsigned int _nr, sc_core::sc_module_n
 CGPCounter::~CGPCounter() {
   GC_UNREGISTER_CALLBACKS();
 }
-  
+
 void CGPCounter::end_of_elaboration() {
   GR_FUNCTION(CGPCounter, ctrl_read);
-  GR_SENSITIVE(p.r[CGPTimer::CTRL(nr)].add_rule(gs::reg::PRE_READ, 
-                                  gen_unique_name("ctrl_read", false), 
+  GR_SENSITIVE(p.r[CGPTimer::CTRL(nr)].add_rule(gs::reg::PRE_READ,
+                                  gen_unique_name("ctrl_read", false),
                                   gs::reg::NOTIFY));
 
   GR_FUNCTION(CGPCounter, ctrl_write);
-  GR_SENSITIVE(p.r[CGPTimer::CTRL(nr)].add_rule(gs::reg::POST_WRITE, 
-                                  gen_unique_name("ctrl_write", false), 
+  GR_SENSITIVE(p.r[CGPTimer::CTRL(nr)].add_rule(gs::reg::POST_WRITE,
+                                  gen_unique_name("ctrl_write", false),
                                   gs::reg::NOTIFY));
 
   GR_FUNCTION(CGPCounter, value_read);
-  GR_SENSITIVE(p.r[CGPTimer::VALUE(nr)].add_rule(gs::reg::PRE_READ, 
-                                   gen_unique_name("value_read", false), 
+  GR_SENSITIVE(p.r[CGPTimer::VALUE(nr)].add_rule(gs::reg::PRE_READ,
+                                   gen_unique_name("value_read", false),
                                    gs::reg::NOTIFY));
 
   GR_FUNCTION(CGPCounter, value_write);
-  GR_SENSITIVE(p.r[CGPTimer::VALUE(nr)].add_rule(gs::reg::POST_WRITE, 
-                                   gen_unique_name("value_write", false), 
+  GR_SENSITIVE(p.r[CGPTimer::VALUE(nr)].add_rule(gs::reg::POST_WRITE,
+                                   gen_unique_name("value_write", false),
                                    gs::reg::NOTIFY));
 
   p.r[CGPTimer::VALUE(nr)].enable_events();
@@ -58,7 +88,7 @@ void CGPCounter::end_of_elaboration() {
 
 void CGPCounter::ctrl_read() {
   p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_DH] = (p.dhalt.read() != 0);
-  p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IP] = m_pirq; 
+  p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IP] = m_pirq;
 }
 
 void CGPCounter::ctrl_write() {
@@ -85,7 +115,7 @@ void CGPCounter::ctrl_write() {
 
   /* Load */
   if(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_LD]) {
-    unsigned int reload = p.r[CGPTimer::RELOAD(nr)]; 
+    unsigned int reload = p.r[CGPTimer::RELOAD(nr)];
     p.r[CGPTimer::VALUE(nr)].set(reload);
     value_write();
     p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_LD] = false;
@@ -113,7 +143,7 @@ void CGPCounter::value_read() {
       dticks = p.numberofticksbetween(lasttime, now, nr+2, p.clockcycle);
     }
     int value = ((int)lastvalue - dticks) % reload;
-    
+
     if(value<0) {
       p.r[CGPTimer::VALUE(nr)] = reload + value;
     } else {
@@ -140,15 +170,15 @@ void CGPCounter::ticking() {
   while(1) {
     /* calculate sleep time, CGPCounter timeout */
     calculate();
-  
-    #ifdef DEBUG  
+
+    #ifdef DEBUG
     std::cout << std::endl << "CGPCounter_" << nr << " is wait" << std::endl;
     #endif
     wait(e_wait);
     #ifdef DEBUG
     std::cout << std::endl << "CGPCounter_" << nr << " is rockin'" << std::endl;
     #endif
-    
+
     /* Send interupt and set outputs */
     if(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IE]) {
         // p.r[CGPTimer::CTRL].b[CGPTimer::TIM_CTRL_SI] // seperatet interupts
@@ -174,7 +204,7 @@ void CGPCounter::ticking() {
       p.tick.write(p.tick.read() & ~(1<<(nr + 1)));
     }
 #endif
-    
+
     unsigned int nrn = (nr+1<p.counter.size())? nr+1 : 0;
     if(p.r[CGPTimer::CTRL(nrn)].b[CGPTimer::CTRL_CH]) {
       p.counter[(nrn) % p.counter.size()]->chaining();
@@ -216,7 +246,7 @@ sc_core::sc_time CGPCounter::nextzero() {
     p.scaler_read();
     t = p.clockcycle;
     x = p.r[CGPTimer::SCALER];
-  } 
+  }
   return t * (x + 2);
 }
 
@@ -234,7 +264,7 @@ sc_core::sc_time CGPCounter::cycletime() {
       t = p.counter[p.counter.size()]->cycletime();
       m = p.r[CGPTimer::RELOAD(p.counter.size())];
     }
-  } else 
+  } else
   { /* We only depend on the prescaler */
     t = p.clockcycle;
     m = p.r[CGPTimer::SCRELOAD];
@@ -270,18 +300,18 @@ void CGPCounter::calculate() {
  * For example for enable, !dhalt, e_chain
  */
 void CGPCounter::start() {
-  std::cout << "start_" << nr << " stopped: " 
-            << stopped << "-" 
-            << p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN] << "-" 
-            << (p.dhalt.read()!=0) << "-" 
-            << (!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH] || 
-                (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH] && chain_run)) 
+  std::cout << "start_" << nr << " stopped: "
+            << stopped << "-"
+            << p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN] << "-"
+            << (p.dhalt.read()!=0) << "-"
+            << (!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH] ||
+                (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH] && chain_run))
             << std::endl;
-  if(stopped && p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN] /*&& (p.dhalt.read()!=0)*/ && 
-    (!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH] || 
+  if(stopped && p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN] /*&& (p.dhalt.read()!=0)*/ &&
+    (!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH] ||
      (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH] && chain_run))) {
     std::cout << "startnow_" << nr << std::endl;
-    
+
     lasttime  = sc_core::sc_time_stamp();
     calculate();
     stopped = false;

@@ -1,15 +1,45 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       verbose.h:                                              */
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TU Braunschweig              */
-/* Maintainer: Rolf Meyer                                              */
-/***********************************************************************/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      verbose.h
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Implements a unified output system for messages
+//             and debunging.
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TU Braunschweig
+// Maintainer: Rolf Meyer
+// Reviewed:
+//*********************************************************************
 
 #ifndef VERBOSE_H
 #define VERBOSE_H
@@ -31,7 +61,7 @@ using std::flush;
 using std::setw;
 using std::setfill;
 
-  
+
 class Color {
   public:
     Color(const char *value) : m_value(value) {}
@@ -85,7 +115,7 @@ class msgstream {
       }
       return *this;
     }
- 
+
     inline
     msgstream& operator<<(std::ostream& (*in)(std::ostream&)) {
       if(level<VERBOSITY) {
@@ -93,11 +123,11 @@ class msgstream {
       }
       return *this;
     }
-    
+
   private:
     std::ostream m_stream;
 };
-              
+
 template<int level>
 class logstream {
   public:
@@ -107,7 +137,7 @@ class logstream {
     inline
     msgstream<level>& operator<<(const T &in) {
       if(level<VERBOSITY) {
-        m_stream << "@" 
+        m_stream << "@"
                  <<  sc_core::sc_time_stamp().to_string().c_str()
                  << " /"
                  << std::dec
@@ -119,10 +149,10 @@ class logstream {
           case 0:
             m_stream << v::Red << "Error: " << v::Normal;
             break;
-          case 1: 
+          case 1:
             m_stream << v::Yellow << "Warning: " << v::Normal;
             break;
-          case 2: 
+          case 2:
             m_stream << v::Cyan << "Info: " << v::Normal;
             break;
           default:
@@ -131,7 +161,7 @@ class logstream {
       }
       return m_stream;
     }
- 
+
     /*inline
     msgstream<level>& operator<<(std::ostream& (*in)(std::ostream&)) {
       if(level<VERBOSITY) {
@@ -139,7 +169,7 @@ class logstream {
       }
       return *this;
     }*/
-    
+
   private:
     msgstream<level> m_stream;
 };
@@ -151,7 +181,7 @@ extern logstream<3> debug;
 
 void logFile(char *);
 
-} // namespace 
+} // namespace
 
 /// @}
 

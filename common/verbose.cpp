@@ -1,3 +1,48 @@
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      verbose.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Implements a unified output system for messages
+//             and debunging.
+//
+// Method:
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TU Braunschweig
+// Maintainer: Rolf Meyer
+// Reviewed:
+//*********************************************************************
+
 #include "verbose.h"
 
 namespace v {
@@ -6,28 +51,28 @@ template <typename char_type, typename traits = std::char_traits<char_type> >
 class basic_teebuf : public std::basic_streambuf<char_type, traits> {
   public:
     typedef typename traits::int_type int_type;
-    
+
     basic_teebuf(std::basic_streambuf<char_type, traits> *sb1,
                  std::basic_streambuf<char_type, traits> *sb2)
       : sb1(sb1)
       , sb2(sb2){}
-    
+
     void set_tee(std::basic_streambuf<char_type, traits> *tee) {
       //this->flush();
       sb2 = tee;
       sync();
     }
-    
-private:    
+
+private:
     virtual int sync() {
         int const r1 = sb1->pubsync();
         int const r2 = (sb2? sb2->pubsync() : 0);
         return r1 == 0 && r2 == 0 ? 0 : -1;
     }
-    
+
     virtual int_type overflow(int_type c) {
         int_type const eof = traits::eof();
-        
+
         if (traits::eq_int_type(c, eof)) {
             return traits::not_eof(c);
 
