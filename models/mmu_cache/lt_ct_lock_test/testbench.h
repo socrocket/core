@@ -31,8 +31,8 @@
 // Purpose:    Class definition of the
 //             stimuli generator/monitor for the current testbench.
 //
-// Modified on $Date: 2010-08-13 20:04:30 +0200 (Fri, 13 Aug 2010) $
-//          at $Revision: 45 $
+// Modified on $Date$
+//          at $Revision$
 //          by $Author$
 //
 // Principal:  European Space Agency

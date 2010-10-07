@@ -35,8 +35,8 @@
 //
 // Method:
 //
-// Modified on $Date: 2010-08-30 00:40:19 +0200 (Mon, 30 Aug 2010) $
-//          at $Revision: 84 $
+// Modified on $Date$
+//          at $Revision$
 //          by $Author$
 //
 // Principal:  European Space Agency

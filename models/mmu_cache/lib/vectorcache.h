@@ -33,8 +33,8 @@
 //             set associative. Set-size, line-size and replacement
 //             strategy can be defined through constructor arguments.
 //
-// Modified on $Date: 2010-08-18 15:12:22 +0200 (Wed, 18 Aug 2010) $
-//          at $Revision: 47 $
+// Modified on $Date$
+//          at $Revision$
 //          by $Author$
 //
 // Principal:  European Space Agency
