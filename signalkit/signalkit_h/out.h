@@ -51,49 +51,56 @@
 namespace signalkit {
 
 template<class TYPE, class MODULE>
-class signal_out : public signal_base<TYPE, MODULE>, public signal_out_if<TYPE> {
-  protected:
-    typedef std::vector<signal_in_if<TYPE> *> t_receiver;
+class signal_out : public signal_base<TYPE, MODULE> ,
+                   public signal_out_if<TYPE> {
+    protected:
+        typedef std::vector<signal_in_if<TYPE> *> t_receiver;
 
-  public:
-    signal_out(sc_core::sc_module_name mn = NULL)
-      : signal_base<TYPE, MODULE>::signal_base(mn) {}
-
-    virtual ~signal_out() {}
-
-    virtual void bind(signal_in_if<TYPE> &receiver, const unsigned int &channel = 0) {
-      for(typename t_receiver::iterator iter = m_receiver.begin(); iter != m_receiver.end(); iter++) {
-        if(*iter == &receiver){
-          return;
+    public:
+        signal_out(sc_core::sc_module_name mn = NULL) :
+            signal_base<TYPE, MODULE>::signal_base(mn) {
         }
-      }
-      m_receiver.push_back(&receiver);
-    }
 
-    virtual void write(const TYPE &value, const sc_core::sc_time &time = sc_core::SC_ZERO_TIME) {
-      this->m_value = value;
-      for(typename t_receiver::iterator i = m_receiver.begin(); i != m_receiver.end(); i++) {
-        (*i)->update((signal_out_if<TYPE> *)this, time);
-      }
-    }
+        virtual ~signal_out() {
+        }
 
-    void operator()(signal_in_if<TYPE> &receiver) {
-      this->bind(receiver);
-      receiver.bind(*this);
-    }
+        virtual void bind(signal_in_if<TYPE> &receiver,
+                          const unsigned int &channel = 0) {
+            for (typename t_receiver::iterator iter = m_receiver.begin(); iter
+                    != m_receiver.end(); iter++) {
+                if (*iter == &receiver) {
+                    return;
+                }
+            }
+            m_receiver.push_back(&receiver);
+        }
 
-    TYPE operator=(const TYPE &t) {
-      write(t);
-      return this->m_value;
-    }
+        virtual void write(const TYPE &value, const sc_core::sc_time &time =
+                sc_core::SC_ZERO_TIME) {
+            this->m_value = value;
+            for (typename t_receiver::iterator i = m_receiver.begin(); i
+                    != m_receiver.end(); i++) {
+                (*i)->update((signal_out_if<TYPE> *)this, time);
+            }
+        }
 
-    TYPE operator=(const signal_if<TYPE> &t) {
-      TYPE value = t;
-      write(value);
-      return this->m_value;
-    }
-  protected:
-    t_receiver m_receiver;
+        void operator()(signal_in_if<TYPE> &receiver) {
+            this->bind(receiver);
+            receiver.bind(*this);
+        }
+
+        TYPE operator=(const TYPE &t) {
+            write(t);
+            return this->m_value;
+        }
+
+        TYPE operator=(const signal_if<TYPE> &t) {
+            TYPE value = t;
+            write(value);
+            return this->m_value;
+        }
+    protected:
+        t_receiver m_receiver;
 };
 
 } // signalkit

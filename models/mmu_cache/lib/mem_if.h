@@ -47,12 +47,22 @@
 
 class mem_if {
 
- public:
+    public:
 
-  // amba master interface functions
-  virtual void mem_write(unsigned int addr, unsigned char * data, unsigned int length, sc_core::sc_time * t, unsigned int * debug) {};  virtual void mem_read(unsigned int addr, unsigned char * data, unsigned int length, sc_core::sc_time * t, unsigned int * debug) {};
+        // amba master interface functions
+        virtual void mem_write(unsigned int addr, unsigned char * data,
+                               unsigned int length, sc_core::sc_time * t,
+                               unsigned int * debug) {
+        }
+        ;
+        virtual void mem_read(unsigned int addr, unsigned char * data,
+                              unsigned int length, sc_core::sc_time * t,
+                              unsigned int * debug) {
+        }
+        ;
 
-  virtual ~mem_if() {}
+        virtual ~mem_if() {
+        }
 
 };
 

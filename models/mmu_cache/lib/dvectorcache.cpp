@@ -50,7 +50,7 @@
 // implement ccr check
 unsigned int dvectorcache::check_mode() {
 
-    return(m_mmu_cache->read_ccr() & 0x3);
+    return (m_mmu_cache->read_ccr() & 0x3);
 
 }
 

@@ -50,32 +50,32 @@
 /// @brief Payload extensions for TLM data cache target socket
 class dcio_payload_extension : public tlm::tlm_extension<dcio_payload_extension> {
 
- public:
+    public:
 
-  typedef tlm::tlm_base_protocol_types::tlm_payload_type tlm_payload_type;
-  typedef tlm::tlm_base_protocol_types::tlm_phase_type   tlm_phase_type;
+        typedef tlm::tlm_base_protocol_types::tlm_payload_type tlm_payload_type;
+        typedef tlm::tlm_base_protocol_types::tlm_phase_type tlm_phase_type;
 
-  /// constructor
-  dcio_payload_extension(void);
+        /// constructor
+        dcio_payload_extension(void);
 
-  /// destructor
-  ~dcio_payload_extension(void);
+        /// destructor
+        ~dcio_payload_extension(void);
 
-  void copy_from(const tlm_extension_base &extension);
-  tlm::tlm_extension_base * clone(void) const;
+        void copy_from(const tlm_extension_base &extension);
+        tlm::tlm_extension_base * clone(void) const;
 
-  // extensions
-  // ----------
-  /// address space identifier
-  unsigned int asi;
-  /// flush data cache
-  unsigned int flush;
-  /// flush data cache line
-  unsigned int flushl;
-  /// lock cache line
-  unsigned int lock;
-  /// debug information
-  unsigned int * debug;
+        // extensions
+        // ----------
+        /// address space identifier
+        unsigned int asi;
+        /// flush data cache
+        unsigned int flush;
+        /// flush data cache line
+        unsigned int flushl;
+        /// lock cache line
+        unsigned int lock;
+        /// debug information
+        unsigned int * debug;
 
 };
 

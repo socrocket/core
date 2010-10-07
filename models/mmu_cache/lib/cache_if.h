@@ -48,29 +48,36 @@
 
 class cache_if : public mem_if {
 
- public:
+    public:
 
-  /// flush cache
-  virtual void flush(sc_core::sc_time * t, unsigned int * debug) = 0;
-  /// read data cache tags (ASI 0xe)
-  virtual void read_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t) = 0;
-  /// write data cache tags (ASI 0xe)
-  virtual void write_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t) = 0;
-  /// read data cache entries/data (ASI 0xf)
-  virtual void read_cache_entry(unsigned int address, unsigned int * data, sc_core::sc_time *t) = 0;
-  /// write data cache entries/data (ASI 0xf)
-  virtual void write_cache_entry(unsigned int address, unsigned int * data, sc_core::sc_time *t) = 0;
-  /// read cache configuration register (ASI 0x2)
-  virtual unsigned int read_config_reg(sc_core::sc_time *t) = 0;
+        /// flush cache
+        virtual void flush(sc_core::sc_time * t, unsigned int * debug) = 0;
+        /// read data cache tags (ASI 0xe)
+        virtual void read_cache_tag(unsigned int address, unsigned int * data,
+                                    sc_core::sc_time *t) = 0;
+        /// write data cache tags (ASI 0xe)
+        virtual void write_cache_tag(unsigned int address, unsigned int * data,
+                                     sc_core::sc_time *t) = 0;
+        /// read data cache entries/data (ASI 0xf)
+        virtual void
+                read_cache_entry(unsigned int address, unsigned int * data,
+                                 sc_core::sc_time *t) = 0;
+        /// write data cache entries/data (ASI 0xf)
+        virtual void
+                write_cache_entry(unsigned int address, unsigned int * data,
+                                  sc_core::sc_time *t) = 0;
+        /// read cache configuration register (ASI 0x2)
+        virtual unsigned int read_config_reg(sc_core::sc_time *t) = 0;
 
-  virtual unsigned int check_mode() = 0;
+        virtual unsigned int check_mode() = 0;
 
-  // debug and helper functions
-  // --------------------------
-  /// display of cache lines for debug
-  virtual void dbg_out(unsigned int line) = 0;
+        // debug and helper functions
+        // --------------------------
+        /// display of cache lines for debug
+        virtual void dbg_out(unsigned int line) = 0;
 
-  virtual ~cache_if() {}
+        virtual ~cache_if() {
+        }
 
 };
 

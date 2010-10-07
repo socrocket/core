@@ -50,18 +50,18 @@
 #include "../lib/mmu_cache_test.h"
 
 class testbench : public mmu_cache_test {
- public:
+    public:
 
-  virtual void initiator_thread();
+        virtual void initiator_thread();
 
-  SC_HAS_PROCESS(testbench);
-  /// constructor
-  testbench(sc_core::sc_module_name name) : mmu_cache_test(name) {
+        SC_HAS_PROCESS( testbench);
+        /// constructor
+        testbench(sc_core::sc_module_name name) :
+            mmu_cache_test(name) {
 
-     // register testbench thread
-     SC_THREAD(initiator_thread);
-  }
+            // register testbench thread
+            SC_THREAD(initiator_thread);
+        }
 };
 
 #endif // __TESTBENCH_H__
-

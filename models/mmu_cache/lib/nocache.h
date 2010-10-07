@@ -53,43 +53,54 @@
 
 class nocache : public sc_core::sc_module, public cache_if {
 
- public:
+    public:
 
-  // external interface functions
-  // -----------------------------------------------------------
-  /// read from cache
-  virtual void mem_read(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug);
-  /// write through cache
-  virtual void mem_write(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug);
-  /// flush cache
-  virtual void flush(sc_core::sc_time * t, unsigned int * debug);
-  /// read data cache tags (ASI 0xe)
-  virtual void read_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);
-  /// write data cache tags (ASI 0xe)
-  virtual void write_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);
-  /// read data cache entries/data (ASI 0xf)
-  virtual void read_cache_entry(unsigned int address, unsigned int * data, sc_core::sc_time *t);
-  /// write data cache entries/data (ASI 0xf)
-  virtual void write_cache_entry(unsigned int address, unsigned int * data, sc_core::sc_time *t);
-  /// read cache configuration register (ASI 0x2)
-  virtual unsigned int read_config_reg(sc_core::sc_time *t);
+        // external interface functions
+        // -----------------------------------------------------------
+        /// read from cache
+        virtual void mem_read(unsigned int address, unsigned char * data,
+                              unsigned int len, sc_core::sc_time * t,
+                              unsigned int * debug);
+        /// write through cache
+        virtual void mem_write(unsigned int address, unsigned char * data,
+                               unsigned int len, sc_core::sc_time * t,
+                               unsigned int * debug);
+        /// flush cache
+        virtual void flush(sc_core::sc_time * t, unsigned int * debug);
+        /// read data cache tags (ASI 0xe)
+        virtual void read_cache_tag(unsigned int address, unsigned int * data,
+                                    sc_core::sc_time *t);
+        /// write data cache tags (ASI 0xe)
+        virtual void write_cache_tag(unsigned int address, unsigned int * data,
+                                     sc_core::sc_time *t);
+        /// read data cache entries/data (ASI 0xf)
+        virtual void read_cache_entry(unsigned int address,
+                                      unsigned int * data, sc_core::sc_time *t);
+        /// write data cache entries/data (ASI 0xf)
+        virtual void
+                write_cache_entry(unsigned int address, unsigned int * data,
+                                  sc_core::sc_time *t);
+        /// read cache configuration register (ASI 0x2)
+        virtual unsigned int read_config_reg(sc_core::sc_time *t);
 
-  virtual unsigned int check_mode();
+        virtual unsigned int check_mode();
 
-  // debug and helper functions
-  // --------------------------
-  /// display of cache lines for debug
-  virtual void dbg_out(unsigned int line);
+        // debug and helper functions
+        // --------------------------
+        /// display of cache lines for debug
+        virtual void dbg_out(unsigned int line);
 
-  // constructor
-  nocache(sc_core::sc_module_name name, mem_if * _mem_adapter);
+        // constructor
+        nocache(sc_core::sc_module_name name, mem_if * _mem_adapter);
 
-  // destructor
-  virtual ~nocache() {};
+        // destructor
+        virtual ~nocache() {
+        }
+        ;
 
- private:
+    private:
 
-  mem_if * m_mem_adapter;
+        mem_if * m_mem_adapter;
 
 };
 

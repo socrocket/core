@@ -47,7 +47,10 @@
 
 #include "apbtestbench.h"
 
-CAPBTestbench::CAPBTestbench(sc_core::sc_module_name nm)
-: sc_core::sc_module(nm), master_sock("socket", amba::amba_APB, amba::amba_LT, false) {}
+CAPBTestbench::CAPBTestbench(sc_core::sc_module_name nm) :
+    sc_core::sc_module(nm), master_sock("socket", amba::amba_APB,
+            amba::amba_LT, false) {
+}
 
-CAPBTestbench::~CAPBTestbench() {}
+CAPBTestbench::~CAPBTestbench() {
+}

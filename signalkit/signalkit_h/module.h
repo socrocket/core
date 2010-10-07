@@ -55,15 +55,15 @@ namespace signalkit {
 
 template<class MODULE>
 class signal_module {
-  public:
-    template<class TYPE>
-    struct signal {
-      typedef signal_in<TYPE, MODULE>       in;
-      typedef signal_out<TYPE, MODULE>      out;
-      typedef signal_inout<TYPE, MODULE>    inout;
-      typedef signal_selector<TYPE, MODULE> selector;
-      typedef signal_infield<TYPE, MODULE>  infield;
-    };
+    public:
+        template<class TYPE>
+        struct signal {
+                typedef signal_in<TYPE, MODULE> in;
+                typedef signal_out<TYPE, MODULE> out;
+                typedef signal_inout<TYPE, MODULE> inout;
+                typedef signal_selector<TYPE, MODULE> selector;
+                typedef signal_infield<TYPE, MODULE> infield;
+        };
 };
 
 } // signalkit

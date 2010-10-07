@@ -57,138 +57,150 @@
 /// helper class for building testbenchs for mmu_cache
 class mmu_cache_test : public sc_core::sc_module {
 
- public:
-  // variables and object declaration
+    public:
+        // variables and object declaration
 
-  // TLM2.0 initiator sockets for instructions and data
-  tlm_utils::simple_initiator_socket<mmu_cache_test> instruction_initiator_socket;
-  tlm_utils::simple_initiator_socket<mmu_cache_test> data_initiator_socket;
+        // TLM2.0 initiator sockets for instructions and data
+        tlm_utils::simple_initiator_socket<mmu_cache_test>
+                instruction_initiator_socket;
+        tlm_utils::simple_initiator_socket<mmu_cache_test>
+                data_initiator_socket;
 
-  tlm::tlm_response_status gp_status;
+        tlm::tlm_response_status gp_status;
 
-  // Constructor
-  mmu_cache_test(sc_core::sc_module_name name) : sc_module(name),
-		     instruction_initiator_socket("instruction_initiator_socket"),
-                     data_initiator_socket("data_initiator_socket") { };
+        // Constructor
+        mmu_cache_test(sc_core::sc_module_name name) :
+            sc_module(name), instruction_initiator_socket(
+                    "instruction_initiator_socket"), data_initiator_socket(
+                    "data_initiator_socket") {
+        }
+        ;
 
-  // member functions
-  // ----------------
-  /// The main testbench thread (plain virtual)
-  virtual void initiator_thread(void) = 0;
+        // member functions
+        // ----------------
+        /// The main testbench thread (plain virtual)
+        virtual void initiator_thread(void) = 0;
 
-  /// issues an instruction read transaction and returns the result
-  unsigned int iread(unsigned int addr, unsigned int flush, unsigned int flushl, unsigned int fline, unsigned int * debug) {
+        /// issues an instruction read transaction and returns the result
+        unsigned int iread(unsigned int addr, unsigned int flush,
+                           unsigned int flushl, unsigned int fline,
+                           unsigned int * debug) {
 
-    // locals
-    sc_core::sc_time t;
-    unsigned int data=0;
-    tlm::tlm_generic_payload gp;
-    icio_payload_extension * ext = new icio_payload_extension();
+            // locals
+            sc_core::sc_time t;
+            unsigned int data = 0;
+            tlm::tlm_generic_payload gp;
+            icio_payload_extension * ext = new icio_payload_extension();
 
-    // clear debug pointer for new transaction
-    *debug = 0;
+            // clear debug pointer for new transaction
+            *debug = 0;
 
-    // attache extension
-    gp.set_extension(ext);
+            // attache extension
+            gp.set_extension(ext);
 
-    // initialize
-    gp.set_command(tlm::TLM_READ_COMMAND);
-    gp.set_address(addr);
-    gp.set_data_length(4); // data length always 4 byte for instr. interface
-    gp.set_streaming_width(4);
-    gp.set_byte_enable_ptr(NULL);
-    gp.set_data_ptr((unsigned char*)&data);
-    gp.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+            // initialize
+            gp.set_command(tlm::TLM_READ_COMMAND);
+            gp.set_address(addr);
+            gp.set_data_length(4); // data length always 4 byte for instr. interface
+            gp.set_streaming_width(4);
+            gp.set_byte_enable_ptr(NULL);
+            gp.set_data_ptr((unsigned char*)&data);
+            gp.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
-    // attache extensions
-    ext->flush  = flush;
-    ext->flushl = flushl;
-    ext->fline  = fline;
-    ext->debug  = debug;
+            // attache extensions
+            ext->flush = flush;
+            ext->flushl = flushl;
+            ext->fline = fline;
+            ext->debug = debug;
 
-    // send
-    instruction_initiator_socket->b_transport(gp,t);
+            // send
+            instruction_initiator_socket->b_transport(gp, t);
 
-    // suspend and burn the time
-    wait(t);
+            // suspend and burn the time
+            wait(t);
 
-    return(data);
-  }
+            return (data);
+        }
 
-  /// issues a data read transaction
-  unsigned int dread(unsigned int addr, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int * debug) {
+        /// issues a data read transaction
+        unsigned int dread(unsigned int addr, unsigned int length,
+                           unsigned int asi, unsigned int flush,
+                           unsigned int flushl, unsigned int lock,
+                           unsigned int * debug) {
 
-    // locals
-    sc_core::sc_time t;
-    unsigned int data=0;
-    tlm::tlm_generic_payload gp;
-    dcio_payload_extension * ext = new dcio_payload_extension();
+            // locals
+            sc_core::sc_time t;
+            unsigned int data = 0;
+            tlm::tlm_generic_payload gp;
+            dcio_payload_extension * ext = new dcio_payload_extension();
 
-    // clear debug pointer for new transaction
-    *debug = 0;
+            // clear debug pointer for new transaction
+            *debug = 0;
 
-    // attache extension
-    gp.set_extension(ext);
+            // attache extension
+            gp.set_extension(ext);
 
-    // initialize
-    gp.set_command(tlm::TLM_READ_COMMAND);
-    gp.set_address(addr);
-    gp.set_data_length(length);
-    gp.set_streaming_width(4);
-    gp.set_byte_enable_ptr(NULL);
-    gp.set_data_ptr((unsigned char *)&data);
-    gp.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+            // initialize
+            gp.set_command(tlm::TLM_READ_COMMAND);
+            gp.set_address(addr);
+            gp.set_data_length(length);
+            gp.set_streaming_width(4);
+            gp.set_byte_enable_ptr(NULL);
+            gp.set_data_ptr((unsigned char *)&data);
+            gp.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
-    ext->asi    = asi;
-    ext->flush  = flush;
-    ext->flushl = flushl;
-    ext->lock   = lock;
-    ext->debug  = debug;
+            ext->asi = asi;
+            ext->flush = flush;
+            ext->flushl = flushl;
+            ext->lock = lock;
+            ext->debug = debug;
 
-    // send
-    data_initiator_socket->b_transport(gp,t);
+            // send
+            data_initiator_socket->b_transport(gp, t);
 
-    // suspend and burn the time
-    wait(t);
+            // suspend and burn the time
+            wait(t);
 
-    return(data);
-  }
+            return (data);
+        }
 
-  /// issues a data write transaction
-  void dwrite(unsigned int addr, unsigned int data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int * debug) {
+        /// issues a data write transaction
+        void dwrite(unsigned int addr, unsigned int data, unsigned int length,
+                    unsigned int asi, unsigned int flush, unsigned int flushl,
+                    unsigned int lock, unsigned int * debug) {
 
-    // locals
-    sc_core::sc_time t;
-    tlm::tlm_generic_payload gp;
-    dcio_payload_extension * ext = new dcio_payload_extension();
+            // locals
+            sc_core::sc_time t;
+            tlm::tlm_generic_payload gp;
+            dcio_payload_extension * ext = new dcio_payload_extension();
 
-    // clear debug pointer for new transaction
-    *debug = 0;
+            // clear debug pointer for new transaction
+            *debug = 0;
 
-    // attache extension
-    gp.set_extension(ext);
+            // attache extension
+            gp.set_extension(ext);
 
-    // initialize
-    gp.set_command(tlm::TLM_WRITE_COMMAND);
-    gp.set_address(addr);
-    gp.set_data_length(length);
-    gp.set_streaming_width(4);
-    gp.set_byte_enable_ptr(NULL);
-    gp.set_data_ptr((unsigned char*)&data);
+            // initialize
+            gp.set_command(tlm::TLM_WRITE_COMMAND);
+            gp.set_address(addr);
+            gp.set_data_length(length);
+            gp.set_streaming_width(4);
+            gp.set_byte_enable_ptr(NULL);
+            gp.set_data_ptr((unsigned char*)&data);
 
-    ext->asi    = asi;
-    ext->flush  = flush;
-    ext->flushl = flushl;
-    ext->lock   = lock;
-    ext->debug  = debug;
+            ext->asi = asi;
+            ext->flush = flush;
+            ext->flushl = flushl;
+            ext->lock = lock;
+            ext->debug = debug;
 
-    // send
-    data_initiator_socket->b_transport(gp,t);
+            // send
+            data_initiator_socket->b_transport(gp, t);
 
-    // suspend and burn the time
-    wait(t);
+            // suspend and burn the time
+            wait(t);
 
-  }
+        }
 
 };
 

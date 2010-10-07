@@ -62,38 +62,41 @@
 /// @brief Local Scratchpad RAM
 class localram : public sc_core::sc_module {
 
- public:
+    public:
 
-  // external interface functions:
-  // -----------------------------
-  /// read from scratchpad
-  void read(unsigned int address, unsigned char *data, unsigned int len, sc_core::sc_time *t, unsigned int *debug);
-  /// write to scratchpad
-  void write(unsigned int address, unsigned char *data, unsigned int len, sc_core::sc_time *t, unsigned int *debug);
+        // external interface functions:
+        // -----------------------------
+        /// read from scratchpad
+        void read(unsigned int address, unsigned char *data, unsigned int len,
+                  sc_core::sc_time *t, unsigned int *debug);
+        /// write to scratchpad
+        void write(unsigned int address, unsigned char *data, unsigned int len,
+                   sc_core::sc_time *t, unsigned int *debug);
 
-  // constructor
-  /// @brief Constructor of scratchpad RAM implementation (localram)
-  /// @param name    SystemC module name
-  /// @param lrsize  Local ram size. Size in kbyte = 2^lrsize (like top-level template)
-  /// @param lrstart Local ram start address. The 8 most significant bits of the address.
-  localram(sc_core::sc_module_name name, unsigned int lrsize, unsigned int lrstart);
+        // constructor
+        /// @brief Constructor of scratchpad RAM implementation (localram)
+        /// @param name    SystemC module name
+        /// @param lrsize  Local ram size. Size in kbyte = 2^lrsize (like top-level template)
+        /// @param lrstart Local ram start address. The 8 most significant bits of the address.
+        localram(sc_core::sc_module_name name, unsigned int lrsize,
+                 unsigned int lrstart);
 
-  /// destructor
-  ~localram();
+        /// destructor
+        ~localram();
 
-  // the actual local ram
-  t_cache_data * scratchpad;
+        // the actual local ram
+        t_cache_data * scratchpad;
 
-  // helpers
-  // -------
-  t_cache_data m_default_entry;
+        // helpers
+        // -------
+        t_cache_data m_default_entry;
 
-  // local ram parameters
-  // --------------------
-  /// size of the local ram in words
-  unsigned int m_lrsize;
-  /// start address of the local ram
-  unsigned int m_lrstart;
+        // local ram parameters
+        // --------------------
+        /// size of the local ram in words
+        unsigned int m_lrsize;
+        /// start address of the local ram
+        unsigned int m_lrstart;
 
 };
 

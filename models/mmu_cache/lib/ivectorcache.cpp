@@ -49,7 +49,9 @@
 #include "verbose.h"
 
 // overwrite write function
-void ivectorcache::mem_write(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
+void ivectorcache::mem_write(unsigned int address, unsigned char * data,
+                             unsigned int len, sc_core::sc_time * t,
+                             unsigned int * debug) {
 
     v::info << this->name() << "Forbidden to write icache!" << v::endl;
     assert(false);
@@ -59,6 +61,6 @@ void ivectorcache::mem_write(unsigned int address, unsigned char * data, unsigne
 // implement ccr check
 unsigned int ivectorcache::check_mode() {
 
-    return(m_mmu_cache->read_ccr() & 0x3);
+    return (m_mmu_cache->read_ccr() & 0x3);
 
 }

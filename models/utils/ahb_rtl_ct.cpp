@@ -50,15 +50,17 @@
 /// @addtogroup utils Model Utils
 /// @{
 
-CAHB_RTL_CT::CAHB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base, sc_dt::uint64 size)
-    : sc_module(nm), clk("CLOCK"), reset("RESET"), ahbo("ahbo"), ahbi("ahbi"),
-      hirqi("GR_IRQ_IN"), hirqo("GR_IRQ_OUT"), hconfig_0("GR_CONFIG_0"),
-      hconfig_1("GR_CONFIG_1"), hindex("GR_INDEX"), m_hbusreq("AHB_BUSREQ"),
-      m_hlock("AHB_LOCK"), m_htrans("AHB_TRANS"), m_haddr("AHB_ADDRESS"),
-      m_hsize("AHB_SIZE"), m_hburst("AHB_BURST"), m_prot("AHB_PROT"),
-      m_hwrite("AHB_WRITE"), m_hwdata("AHB_WRITE_DATA"), m_hrdata("AHB_READ_DATA"),
-      m_hresp("AHB_RESPONSE"), m_hgrant("AHB_GRANT"), m_hreadyin("AHB_READY_IN"),
-      ct("CT", base, size) {
+CAHB_RTL_CT::CAHB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base,
+                         sc_dt::uint64 size) :
+    sc_module(nm), clk("CLOCK"), reset("RESET"), ahbo("ahbo"), ahbi("ahbi"),
+            hirqi("GR_IRQ_IN"), hirqo("GR_IRQ_OUT"), hconfig_0("GR_CONFIG_0"),
+            hconfig_1("GR_CONFIG_1"), hindex("GR_INDEX"), m_hbusreq(
+                    "AHB_BUSREQ"), m_hlock("AHB_LOCK"), m_htrans("AHB_TRANS"),
+            m_haddr("AHB_ADDRESS"), m_hsize("AHB_SIZE"), m_hburst("AHB_BURST"),
+            m_prot("AHB_PROT"), m_hwrite("AHB_WRITE"), m_hwdata(
+                    "AHB_WRITE_DATA"), m_hrdata("AHB_READ_DATA"), m_hresp(
+                    "AHB_RESPONSE"), m_hgrant("AHB_GRANT"), m_hreadyin(
+                    "AHB_READY_IN"), ct("CT", base, size) {
     ct.m_clk(clk);
     ct.m_Reset(reset);
     ct.m_HBUSREQ(m_hbusreq);
@@ -75,7 +77,7 @@ CAHB_RTL_CT::CAHB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base, sc_dt::
     ct.m_HGRANT(m_hgrant);
     ct.m_HREADYIN(m_hreadyin);
 
-    SC_THREAD(ahbo_ctrl);
+    SC_THREAD( ahbo_ctrl);
     sensitive << ahbo;
 
     SC_THREAD(ahbi_ctrl);
@@ -83,7 +85,7 @@ CAHB_RTL_CT::CAHB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base, sc_dt::
 }
 
 void CAHB_RTL_CT::ahbo_ctrl() {
-    while(1) {
+    while (1) {
         ahb_mst_out_type val = ahbo.read();
         m_hbusreq.write(val.hbusreq);
         m_hlock.write(val.hlock);
@@ -104,7 +106,7 @@ void CAHB_RTL_CT::ahbo_ctrl() {
 }
 
 void CAHB_RTL_CT::ahbi_ctrl() {
-    while(1) {
+    while (1) {
         ahb_mst_in_type val;
         val.hgrant = (m_hgrant.read())? 0xFFFFFFFF : 0x0;
         val.hready = m_hreadyin.read();
@@ -120,6 +122,5 @@ void CAHB_RTL_CT::ahbi_ctrl() {
         wait();
     }
 }
-
 
 /// @}

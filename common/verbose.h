@@ -61,18 +61,19 @@ using std::flush;
 using std::setw;
 using std::setfill;
 
-
 class Color {
-  public:
-    Color(const char *value) : m_value(value) {}
-  private:
-    const char *m_value;
-  friend ostream &operator << (ostream &os, const Color &cl);
+    public:
+        Color(const char *value) :
+            m_value(value) {
+        }
+    private:
+        const char *m_value;
+        friend ostream &operator <<(ostream &os, const Color &cl);
 };
 
-inline ostream &operator << (ostream &os, const Color &cl) {
-  os << cl.m_value;
-  return os;
+inline ostream &operator <<(ostream &os, const Color &cl) {
+    os << cl.m_value;
+    return os;
 }
 
 extern Color bgBlack;
@@ -104,74 +105,71 @@ extern Color Beep;
 
 template<int level>
 class msgstream {
-  public:
-    msgstream(std::streambuf *sb) : m_stream(sb) {}
+    public:
+        msgstream(std::streambuf *sb) :
+            m_stream(sb) {
+        }
 
-    template <class T>
-    inline
-    msgstream& operator<<(const T &in) {
-      if(level<VERBOSITY) {
-        m_stream << in;
-      }
-      return *this;
-    }
+        template<class T>
+        inline msgstream& operator<<(const T &in) {
+            if (level < VERBOSITY) {
+                m_stream << in;
+            }
+            return *this;
+        }
 
-    inline
-    msgstream& operator<<(std::ostream& (*in)(std::ostream&)) {
-      if(level<VERBOSITY) {
-        m_stream << in;
-      }
-      return *this;
-    }
+        inline msgstream& operator<<(std::ostream& (*in)(std::ostream&)) {
+            if (level < VERBOSITY) {
+                m_stream << in;
+            }
+            return *this;
+        }
 
-  private:
-    std::ostream m_stream;
+    private:
+        std::ostream m_stream;
 };
 
 template<int level>
 class logstream {
-  public:
-    logstream(std::streambuf *sb) : m_stream(sb) {}
-
-    template <class T>
-    inline
-    msgstream<level>& operator<<(const T &in) {
-      if(level<VERBOSITY) {
-        m_stream << "@"
-                 <<  sc_core::sc_time_stamp().to_string().c_str()
-                 << " /"
-                 << std::dec
-                 << (unsigned)sc_core::sc_delta_count()
-                 << " (" << ::v::Blue
-                 << in << ::v::Normal
-                 << "): ";
-        switch(level) {
-          case 0:
-            m_stream << v::Red << "Error: " << v::Normal;
-            break;
-          case 1:
-            m_stream << v::Yellow << "Warning: " << v::Normal;
-            break;
-          case 2:
-            m_stream << v::Cyan << "Info: " << v::Normal;
-            break;
-          default:
-            m_stream << v::Magenta << "Debug: " << v::Normal;
+    public:
+        logstream(std::streambuf *sb) :
+            m_stream(sb) {
         }
-      }
-      return m_stream;
-    }
 
-    /*inline
-    msgstream<level>& operator<<(std::ostream& (*in)(std::ostream&)) {
-      if(level<VERBOSITY) {
-        m_stream << in;
-      }
-      return *this;
-    }*/
+        template<class T>
+        inline msgstream<level>& operator<<(const T &in) {
+            if (level < VERBOSITY) {
+                m_stream << "@" << sc_core::sc_time_stamp().to_string().c_str()
+                        << " /" << std::dec
+                        << (unsigned)sc_core::sc_delta_count() << " ("
+                        << ::v::Blue << in << ::v::Normal << "): ";
+                switch (level) {
+                    case 0:
+                        m_stream << v::Red << "Error: " << v::Normal;
+                        break;
+                    case 1:
+                        m_stream << v::Yellow << "Warning: " << v::Normal;
+                        break;
+                    case 2:
+                        m_stream << v::Cyan << "Info: " << v::Normal;
+                        break;
+                    default:
+                        m_stream << v::Magenta << "Debug: " << v::Normal;
+                }
+            }
+            return m_stream;
+        }
 
-  private:
-    msgstream<level> m_stream;
+        /*inline
+         msgstream<level>& operator<<(std::ostream& (*in)(std::ostream&)) {
+         if(level<VERBOSITY) {
+         m_stream << in;
+         }
+         return *this;
+         }*/
+
+    private:
+        msgstream<level> m_stream;
 };
 
 extern logstream<0> error;

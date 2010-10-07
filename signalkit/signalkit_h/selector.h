@@ -53,47 +53,52 @@
 namespace signalkit {
 
 template<class TYPE, class MODULE>
-class signal_selector : public signal_base<TYPE, MODULE>, public signal_out_bind_if<TYPE> {
-  public:
-    signal_selector(sc_core::sc_module_name mn = NULL)
-      : signal_base<TYPE, MODULE>::signal_base(mn) {}
-
-    virtual void bind(signal_in_if<TYPE> &receiver, const unsigned int &channel) {
-      // TODO: Make work multipel selector<->infield channels
-      signal_out<TYPE, MODULE> *item = NULL;
-      typename t_map::iterator iter = outs.find(channel);
-      if(iter != outs.end()) {
-        item = iter->second;
-      } else {
-        item = new signal_out<TYPE, MODULE>(sc_core::sc_gen_unique_name("port", true));
-        outs.insert( std::make_pair(channel, item));
-      }
-      item->bind(receiver);
-    }
-
-    virtual void write(const unsigned int &mask, const TYPE &value, const sc_core::sc_time &time = sc_core::SC_ZERO_TIME) {
-      for(typename t_map::iterator i = outs.begin(); i != outs.end(); i++) {
-        if(mask&(1<<i->first)) {
-          i->second->write(value, time);
+class signal_selector : public signal_base<TYPE, MODULE> ,
+                        public signal_out_bind_if<TYPE> {
+    public:
+        signal_selector(sc_core::sc_module_name mn = NULL) :
+            signal_base<TYPE, MODULE>::signal_base(mn) {
         }
-      }
-    }
 
-    /*
-    void operator[](const unsigned int &mask, const TYPE &value) {
-      this->write(mask, value)
-    }*/
+        virtual void bind(signal_in_if<TYPE> &receiver,
+                          const unsigned int &channel) {
+            // TODO: Make work multipel selector<->infield channels
+            signal_out<TYPE, MODULE> *item = NULL;
+            typename t_map::iterator iter = outs.find(channel);
+            if (iter != outs.end()) {
+                item = iter->second;
+            } else {
+                item = new signal_out<TYPE, MODULE> (
+                        sc_core::sc_gen_unique_name("port", true));
+                outs.insert(std::make_pair(channel, item));
+            }
+            item->bind(receiver);
+        }
 
-    void operator()(signal_in_if<TYPE> &receiver, const unsigned int &channel) {
-      this->bind(receiver, channel);
-      receiver.bind(*this);
-    }
+        virtual void write(const unsigned int &mask, const TYPE &value,
+                           const sc_core::sc_time &time = sc_core::SC_ZERO_TIME) {
+            for (typename t_map::iterator i = outs.begin(); i != outs.end(); i++) {
+                if (mask & (1 << i->first)) {
+                    i->second->write(value, time);
+                }
+            }
+        }
 
-  private:
-    typedef std::map<unsigned int, signal_out<TYPE, MODULE> *> t_map;
-    t_map outs;
+        /*
+         void operator[](const unsigned int &mask, const TYPE &value) {
+         this->write(mask, value)
+         }*/
+
+        void operator()(signal_in_if<TYPE> &receiver,
+                        const unsigned int &channel) {
+            this->bind(receiver, channel);
+            receiver.bind(*this);
+        }
+
+    private:
+        typedef std::map<unsigned int, signal_out<TYPE, MODULE> *> t_map;
+        t_map outs;
 };
-
 
 } // signalkit
 

@@ -60,23 +60,23 @@
 // valid - one bit per word per cacheline (e.g. 32 bytes/line -> 8 valid bits), valid[0] refers to first address
 
 typedef struct {
-  unsigned int atag;
-  unsigned int lrr;
-  int lru;
-  unsigned int lock;
-  unsigned int valid;
+        unsigned int atag;
+        unsigned int lrr;
+        int lru;
+        unsigned int lock;
+        unsigned int valid;
 } t_cache_tag;
 
 // single cache data entry
 typedef union {
-  unsigned int  i;
-  unsigned char c[4];
+        unsigned int i;
+        unsigned char c[4];
 } t_cache_data;
 
 // cacheline consists of tag and up to 8 entries (depending on configuration)
 typedef struct {
-  t_cache_tag   tag;
-  t_cache_data  entry[8];
+        t_cache_tag tag;
+        t_cache_data entry[8];
 } t_cache_line;
 
 // structure of a tlb entry (page descriptor cache entry)
@@ -93,8 +93,8 @@ typedef struct {
 
 // page descriptor cache entry
 typedef struct {
-  unsigned int context;
-  unsigned int pte;
+        unsigned int context;
+        unsigned int pte;
 } t_PTE_context;
 
 // virtual address tag

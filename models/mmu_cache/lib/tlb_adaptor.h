@@ -54,86 +54,85 @@
 
 class tlb_adaptor : public sc_core::sc_module, public mem_if {
 
- public:
+    public:
 
-  /// constructor
-  tlb_adaptor(sc_core::sc_module_name name,
-	      mmu_cache_if * top,
-	      mmu_if * _mmu,
-	      std::map<t_VAT, t_PTE_context> * tlb,
-	      unsigned int tlbnum) : sc_module(name),
-    m_mmu_cache(top),
-    m_mmu(_mmu),
-    m_tlb(tlb),
-    m_tlbnum(tlbnum) {
+        /// constructor
+        tlb_adaptor(sc_core::sc_module_name name, mmu_cache_if * top,
+                    mmu_if * _mmu, std::map<t_VAT, t_PTE_context> * tlb,
+                    unsigned int tlbnum) :
+            sc_module(name), m_mmu_cache(top), m_mmu(_mmu), m_tlb(tlb),
+                    m_tlbnum(tlbnum) {
 
-    // nothing to do
+            // nothing to do
 
-  }
+        }
 
-  /// destructor
-  ~tlb_adaptor() {
+        /// destructor
+        ~tlb_adaptor() {
 
-    // nothing to do
+            // nothing to do
 
-  }
+        }
 
-  /// implementation of mem_read function from mem_if.h
-  virtual void mem_read(unsigned int addr, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
+        /// implementation of mem_read function from mem_if.h
+        virtual void mem_read(unsigned int addr, unsigned char * data,
+                              unsigned int len, sc_core::sc_time * t,
+                              unsigned int * debug) {
 
-    unsigned int paddr;
+            unsigned int paddr;
 
-    // mmu enabled
-    if (m_mmu->read_mcr() & 0x1) {
+            // mmu enabled
+            if (m_mmu->read_mcr() & 0x1) {
 
-      paddr=m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug);
+                paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug);
 
-    }
-    // mmu in bypass mode
-    else {
+            }
+            // mmu in bypass mode
+            else {
 
-      paddr=addr;
+                paddr = addr;
 
-    }
+            }
 
-    // forward request to amba interface
-    m_mmu_cache->mem_read(paddr, data, len, t, debug);
+            // forward request to amba interface
+            m_mmu_cache->mem_read(paddr, data, len, t, debug);
 
-  }
+        }
 
-  /// implementation of mem_write function from mem_if.h
-  virtual void mem_write(unsigned int addr, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug) {
+        /// implementation of mem_write function from mem_if.h
+        virtual void mem_write(unsigned int addr, unsigned char * data,
+                               unsigned int len, sc_core::sc_time * t,
+                               unsigned int * debug) {
 
-    unsigned int paddr;
+            unsigned int paddr;
 
-    // mmu enabled
-    if (m_mmu->read_mcr() & 0x1) {
+            // mmu enabled
+            if (m_mmu->read_mcr() & 0x1) {
 
-      paddr=m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug);
+                paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug);
 
-    }
-    // mmu in bypass mode
-    else {
+            }
+            // mmu in bypass mode
+            else {
 
-      paddr=addr;
+                paddr = addr;
 
-    }
+            }
 
-    // forward request to mmu amba interface
-    m_mmu_cache->mem_write(paddr, data, len, t, debug);
+            // forward request to mmu amba interface
+            m_mmu_cache->mem_write(paddr, data, len, t, debug);
 
-  }
+        }
 
- public:
+    public:
 
-  mmu_cache_if * m_mmu_cache;
-  mmu_if * m_mmu;
+        mmu_cache_if * m_mmu_cache;
+        mmu_if * m_mmu;
 
-  std::map<t_VAT, t_PTE_context> * m_tlb;
+        std::map<t_VAT, t_PTE_context> * m_tlb;
 
-  unsigned int m_tlbnum;
+        unsigned int m_tlbnum;
 
 };
-
 
 #endif // __TLB_ADAPTOR_H__
