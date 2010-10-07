@@ -1,19 +1,48 @@
 #! /usr/bin/env python
 # encoding: utf-8
-#***********************************************************************#
-#* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *#
-#*                                                                     *#
-#* File:       wscript                                                 *#
-#*             this file contains the build system for the TLM library *#
-#*             $ ./waf configure; ./waf # to build it                  *#
-#*                                                                     *#
-#* Modified on $Date$   *#
-#*          at $Revision$                                         *#
-#*                                                                     *#
-#* Principal:  European Space Agency                                   *#
-#* Author:     VLSI working group @ IDA @ TUBS                         *#
-#* Maintainer: Rolf Meyer                                              *#
-#***********************************************************************#
+#*********************************************************************
+# Copyright 2010, Institute of Computer and Network Engineering,
+#                 TU-Braunschweig
+# All rights reserved
+# Any reproduction, use, distribution or disclosure of this program,
+# without the express, prior written consent of the authors is 
+# strictly prohibited.
+#
+# University of Technology Braunschweig
+# Institute of Computer and Network Engineering
+# Hans-Sommer-Str. 66
+# 38118 Braunschweig, Germany
+#
+# ESA SPECIAL LICENSE
+#
+# This program may be freely used, copied, modified, and redistributed
+# by the European Space Agency for the Agency's own requirements.
+#
+# The program is provided "as is", there is no warranty that
+# the program is correct or suitable for any purpose,
+# neither implicit nor explicit. The program and the information in it
+# contained do not necessarily reflect the policy of the European 
+# Space Agency or of TU-Braunschweig.
+#*********************************************************************
+# Title:      wscript
+#
+# ScssId:
+#
+# Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+#
+# Purpose:    this file contains the build system for the TLM library
+#
+# Method:     $ ./waf configure; ./waf # to build it
+#
+# Modified on $Date$
+#          at $Revision$
+#          by $Author$
+#
+# Principal:  European Space Agency
+# Author:     VLSI working group @ IDA @ TUBS
+# Maintainer: Rolf Meyer
+# Reviewed:
+#*********************************************************************
 APPNAME = 'hwswtlmmodels'
 VERSION = '0.5'
 top = '.'
@@ -33,7 +62,7 @@ def set_options(ctx):
   ctx.tool_options('compiler_cxx')
   ctx.tool_options('unittestw')
   ctx.tool_options('common', tooldir='waftools')
-  ctx.tool_options('boost', tooldir='waftools', option_group=conf)
+  ctx.tool_options('boost', option_group=conf)
   
   #ctx.add_option('--onlytests', action='store_true', default=True, help='Exec unit tests only', dest='only_tests')
   conf.add_option("--cxxflags", dest="cxxflags", help="C++ compiler flags", default=environ.get("CXXFLAGS",""))
@@ -56,27 +85,31 @@ def configure(ctx):
   from Options import options
   import os.path
   #import waftools
-  ctx.env['CXXFLAGS'] += ['-g', 
-                         '-Wall', 
-                         '-D_REENTRANT', 
-                         '-DUSE_STATIC_CASTS', 
-                         '-DSC_INCLUDE_DYNAMIC_PROCESSES',
-                         '-O2'] + options.cxxflags.split()
-  
+  ctx.env['CXXFLAGS'] += ['-g',
+                          '-Wall',
+                          '-O2'] + options.cxxflags.split()
+
+  ctx.env['CPPFLAGS'] += ['-D_REENTRANT',
+                          '-DUSE_STATIC_CASTS',
+                          '-DSC_INCLUDE_DYNAMIC_PROCESSES']
+
   ctx.check_tool('compiler_cxx')
   ctx.find_program('doxygen', var='DOXYGEN', mandatory=False)
   #ctx.check_tool('doxygen', tooldir='waftools')
   
   ## Modelsim:
-  #ctx.check_tool('modelsim', tooldir='.')
-  #ctx.find_program('vlib', var='VLIB', mandatory=True)
-  #ctx.find_program('vsim', var='VSIM', mandatory=True)
-  #ctx.find_program('sccom', var='SCCOM', mandatory=True)
-  #ctx.find_program('scgenmod', var='SCGENMOD', mandatory=True)
-  #ctx.find_program('vcom', var='VCOM', mandatory=True)
+  #ctx.check_tool('modelsim', tooldir='wadtools')
   ctx.check_tool('unittestw')
-  ctx.check_tool('boost', tooldir='waftools')
-  boostLibs = 'regex thread program_options filesystem system'
+  ctx.check_tool('boost')
+  from os import environ
+  if not options.boostincludes or options.boostincludes == "":
+    options.boostincludes = environ.get("BOOST_DIR","")
+    
+  if not options.boostlibs or options.boostlibs == "":
+    options.boostlibs = environ.get("BOOST_LIB","")
+  
+  # It seems that we just need the header for static & shared pointer, algorithem trim but libs for program_options in greensocs, tokenizer filesystem and iostream in greenreg
+  boostLibs = 'program_options filesystem iostream' # Trap: 'regex thread program_options filesystem system'
   ctx.check_boost(lib=boostLibs, static='both', min_version='1.35.0', mandatory = True, errmsg = 'Unable to find ' + boostLibs + ' boost libraries of at least version 1.35, please install them and specify their location with the --boost-includes and --boost-libs configuration options')
   import glob
   
@@ -85,14 +118,14 @@ def configure(ctx):
     lib          = 'systemc',
     uselib_store = 'SYSC',
     mandatory    = True,
-    libpath      = glob.glob(os.path.join(options.systemc_home, "lib-*")), # not always lib-linux -> lib-* or lib-<target>
+    libpath      = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.systemc_home, "lib-*"))))), # not always lib-linux -> lib-* or lib-<target>
     errormsg     = "SystemC Library not found. Use --systemc option or set $SYSTEMC_HOME."
   ) 
   ctx.check_cxx(
     header_name  = 'systemc.h',
     uselib_store = 'SYSC',
     mandatory    = True,
-    includes     = os.path.join(options.systemc_home, "include"),
+    includes     = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.systemc_home, "include")))),
     uselib       = 'SYSC'
   ) 
   ctx.check_cxx(
@@ -101,7 +134,7 @@ def configure(ctx):
     execute      = True,
     fragment     = """
                    #include <systemc.h>
-                   int main(int argc, char *argv) {
+                   int main(int argc, char *argv[]) {
                      return !(SYSTEMC_VERSION > 20070313);
                    }
     """,
@@ -113,7 +146,7 @@ def configure(ctx):
     header_name  = 'tlm.h',
     uselib_store = 'TLM2',
     mandatory    = True,
-    includes     = os.path.join(options.tlm2_home, "include/tlm"),
+    includes     = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.tlm2_home, "include/tlm")))),
     uselib       = 'SYSC',
   ) 
   ctx.check_cxx(
@@ -122,26 +155,27 @@ def configure(ctx):
     execute      = True,
     fragment     = """
                    #include <tlm.h>
-                   int main(int argc, char *argv) {
+                   int main(int argc, char *argv[]) {
                      return !((TLM_VERSION_MAJOR == 2) && (TLM_VERSION_MINOR == 0));
                    }
     """,
     uselib       = 'SYSC TLM2',
   )
-  
+ 
+  # TODO: It has to be checked if we realy need them
   # SCV
   #ctx.check_cxx(
   #  lib          = 'scv',
   #  uselib_store = 'SCV',
   #  mandatory    = True,
-  #  libpath      = os.path.join(options.scv_home, "lib-linux"), # not always lib-linux -> lib-* or lib-<target>
+  #  libpath      = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.scv_home, "lib-linux"))))), # not always lib-linux -> lib-* or lib-<target>
   #  errormsg     = "SystemC Verification Library not found. Use --scv option or set $SYSTEMC_HOME."
   #) 
   #ctx.check_cxx(
   #  header_name  = 'scv.h',
   #  uselib_store = 'SYSC',
   #  mandatory    = True,
-  #  includes     = os.path.join(options.scv_home, "include"),
+  #  includes     = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.scv_home, "include")))),
   #  uselib       = 'SYSC SCV'
   #) 
   #ctx.check_cxx(
@@ -150,7 +184,7 @@ def configure(ctx):
   #  execute      = True,
   #  fragment     = """
   #                 #include <scv.h>
-  #                 int main(int argc, char *argv) {
+  #                 int main(int argc, char *argv[]) {
   #                   return !(SC_VERSION > 2001999);
   #                 }
   #  """,
@@ -161,44 +195,44 @@ def configure(ctx):
     lib          = 'greenreg',
     uselib_store = 'GREENSOCS',
     mandatory    = True,
-    libpath      = os.path.join(options.greensocs_home, "greenreg"),
+    libpath      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greenreg")))),
   ) 
   ctx.check_cxx(
     header_name   = "greensocket/initiator/single_socket.h",
     uselib_store  = 'GREENSOCS',
     mandatory     = True,
-    includes      = options.greensocs_home,
+    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(options.greensocs_home))),
     uselib        = 'BOOST SYSC TLM2',
   )
   ctx.check_cxx(
     header_name   = "target/single_socket.h",
     uselib_store  = 'GREENSOCS',
     mandatory     = True,
-    includes      = os.path.join(options.greensocs_home, "greensocket"),
+    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greensocket")))),
     uselib        = 'GREENSOCS BOOST SYSC TLM2',
   )
   ctx.check_cxx(
     header_name   = "config.h",
     uselib_store  = 'GREENSOCS',
     mandatory     = True,
-    includes      = os.path.join(options.greensocs_home, "greencontrol"),
+    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greencontrol")))),
     uselib        = 'GREENSOCS BOOST SYSC TLM2',
   )
   ctx.check_cxx(
     header_name   = "greenreg.h",
     uselib_store  = 'GREENSOCS',
     mandatory     = True,
-    includes      = os.path.join(options.greensocs_home, "greenreg"),
+    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greenreg")))),
     uselib        = 'GREENSOCS BOOST SYSC TLM2',
   )
 
   # AMBAKit 
-  # Check for version
+  # TODO: Check for version, its included in the new version
   ctx.check_cxx(
     header_name   = "amba.h",
     uselib_store  = 'AMBA',
     mandatory     = True,
-    includes      = options.amba_home,
+    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(options.amba_home))),
     uselib        = 'BOOST SYSC TLM2 GREENSOCS',
   )
 
@@ -209,7 +243,7 @@ def configure(ctx):
       header_name   = "greenreg_ambasocket.h",
       uselib_store  = 'GREENSOCS',
       mandatory     = True,
-      includes      = os.path.join(options.greensocs_home, "greenreg", "greenreg_socket"),
+      includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greenreg", "greenreg_socket")))),
       uselib        = 'GREENSOCS BOOST SYSC TLM2 AMBA',
     )
   except Configure.ConfigurationError:
@@ -228,8 +262,8 @@ def configure(ctx):
     uselib_store  = 'GREENSOCS',
     msg           = "Checking for extensionPool.h from TLM2",
     mandatory     = True,
-    includes      = [os.path.join(options.tlm2_tests, "tlm", "multi_sockets", "include"),
-                     os.path.join(options.tlm2_home, "unit_test", "tlm", "multi_sockets", "include")],
+    includes      = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.tlm2_tests, "tlm", "multi_sockets", "include")))),
+                     os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.tlm2_home, "unit_test", "tlm", "multi_sockets", "include"))))],
     uselib        = 'SYSC TLM2 GREENSOCS',
   )
   
