@@ -1,18 +1,47 @@
-// ***********************************************************************
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
-// *                                                                     *
-// * File:       localram.h - Class definition of a local RAM that       *
-// *             can be attached to the icache and dcache controllers.   *
-// *             The LocalRAM enables fast 0-waitstate access            *
-// *             to instructions or data.                                *
-// *                                                                     *
-// * Modified on $Date$   *
-// *          at $Revision$                                           *
-// *                                                                     *
-// * Principal:  European Space Agency                                   *
-// * Author:     VLSI working group @ IDA @ TUBS                         *
-// * Maintainer: Thomas Schuster                                         *
-// ***********************************************************************
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      localram.h
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Class definition of a local RAM that
+//             can be attached to the icache and dcache controllers.
+//             The LocalRAM enables fast 0-waitstate access
+//             to instructions or data.
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #ifndef __LOCALRAM_H__
 #define __LOCALRAM_H__
@@ -22,7 +51,7 @@
 // Local scratchpad ram can optionally be attached to both instruction and data cache controllers.
 // The scratch pad ram provides fast 0-waitstates ram memories for instructions and data.
 // The ram can be between 1 - 512 kbyte, and mapped to any 16 Mbyte block in the address space.
-// Accesses the the scratchpad ram are not cached, and will not appear on the AHB bus. 
+// Accesses the the scratchpad ram are not cached, and will not appear on the AHB bus.
 // The scratch pads do not appear on the AHB bus and can only be read or written by the
 // processor. The instruction scratchpad must be initialized by software (through store instr.)
 // before it can be used. The default address for the instruction ram is 0x83000000,

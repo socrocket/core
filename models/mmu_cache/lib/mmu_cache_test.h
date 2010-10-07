@@ -1,17 +1,46 @@
-// ***********************************************************************
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
-// *                                                                     *
-// * File:       mmu_cache_test.h - Provides two TLM initiator sockets   *
-// *             and several helper functions to simplify the coding     *
-// *             of testbenches for mmu_cache.                           *
-// *                                                                     *
-// * Modified on $Date$   *
-// *          at $Revision$                                         *
-// *                                                                     *
-// * Principal:  European Space Agency                                   *
-// * Author:     VLSI working group @ IDA @ TUBS                         *
-// * Maintainer: Thomas Schuster                                         *
-// ***********************************************************************
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      mmu_cache_test.h
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Provides two TLM initiator sockets
+//             and several helper functions to simplify the coding
+//             of testbenches for mmu_cache.
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #ifndef __MMU_CACHE_TEST_H__
 #define __MMU_CACHE_TEST_H__
@@ -32,13 +61,13 @@ class mmu_cache_test : public sc_core::sc_module {
   // variables and object declaration
 
   // TLM2.0 initiator sockets for instructions and data
-  tlm_utils::simple_initiator_socket<mmu_cache_test> instruction_initiator_socket; 
+  tlm_utils::simple_initiator_socket<mmu_cache_test> instruction_initiator_socket;
   tlm_utils::simple_initiator_socket<mmu_cache_test> data_initiator_socket;
 
   tlm::tlm_response_status gp_status;
 
   // Constructor
-  mmu_cache_test(sc_core::sc_module_name name) : sc_module(name), 
+  mmu_cache_test(sc_core::sc_module_name name) : sc_module(name),
 		     instruction_initiator_socket("instruction_initiator_socket"),
                      data_initiator_socket("data_initiator_socket") { };
 
@@ -76,7 +105,7 @@ class mmu_cache_test : public sc_core::sc_module {
     ext->flushl = flushl;
     ext->fline  = fline;
     ext->debug  = debug;
-  
+
     // send
     instruction_initiator_socket->b_transport(gp,t);
 
@@ -94,7 +123,7 @@ class mmu_cache_test : public sc_core::sc_module {
     unsigned int data=0;
     tlm::tlm_generic_payload gp;
     dcio_payload_extension * ext = new dcio_payload_extension();
-  
+
     // clear debug pointer for new transaction
     *debug = 0;
 
@@ -160,7 +189,7 @@ class mmu_cache_test : public sc_core::sc_module {
     wait(t);
 
   }
-  
+
 };
 
 #endif // __MMU_CACHE_TEST_H__

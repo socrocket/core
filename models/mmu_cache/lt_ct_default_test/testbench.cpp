@@ -1,17 +1,48 @@
-// ***********************************************************************
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
-// *                                                                     *
-// * File:       mmu_cache_test.cpp - Provides two TLM initiator sockets *
-// *             and several helper functions to simplify the coding     *
-// *             of testbenches for mmu_cache.                           *
-// *                                                                     *
-// * Modified on $Date$  *
-// *          at $Revision$                                         *
-// *                                                                     *
-// * Principal:  European Space Agency                                   *
-// * Author:     VLSI working group @ IDA @ TUBS                         *
-// * Maintainer: Thomas Schuster                                         *
-// ***********************************************************************
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      mmu_cache_test.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Provides two TLM initiator sockets
+//             and several helper functions to simplify the coding
+//             of testbenches for mmu_cache.
+//
+// Method:
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #include "testbench.h"
 #include "verbose.h"
@@ -56,7 +87,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << " ********************************************************* " << v::endl;
 
     // read cache control register !
-    // args: address, length, asi, flush, flushl, lock, debug 
+    // args: address, length, asi, flush, flushl, lock, debug
     data=dread(0x0, 4, 2, 0, 0, 0, debug);
     // CCR [3:2] == 0b00; [1:0] = 0b00 -> dcache and icache disabled
     v::info << name() << "cache_contr_reg: " << std::hex << data << v::endl;
@@ -73,7 +104,7 @@ void testbench::initiator_thread(void) {
     // read icache configuration register
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 2. Read ICACHE CONFIGURATION REGISTER (ASI 0x2 - addr 8)   " << v::endl;
-    v::info << name() << " ********************************************************* " << v::endl;    
+    v::info << name() << " ********************************************************* " << v::endl;
 
     data=dread(0x8, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b011, [23:20] ssize == 0b0000 (1kb)
@@ -87,7 +118,7 @@ void testbench::initiator_thread(void) {
     // read icache configuration register
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 3. Read DCACHE CONFIGURATION REGISTER (ASI 0x2 - addr 0xc)   " << v::endl;
-    v::info << name() << " ********************************************************* " << v::endl;    
+    v::info << name() << " ********************************************************* " << v::endl;
 
     data=dread(0xc, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b100, [23:20] ssize == 0b0001 (1kb)
@@ -107,10 +138,10 @@ void testbench::initiator_thread(void) {
     // write some data to memory (cache write miss)
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 4. DCACHE write addr 0x64 (cache write miss)               " << v::endl;
-    v::info << name() << " ********************************************************* " << v::endl;    
+    v::info << name() << " ********************************************************* " << v::endl;
 
     data=0x04030201;
-    // args: address, data, length, asi, flush, flushl, lock 
+    // args: address, data, length, asi, flush, flushl, lock
     dwrite(0x64,data, 4, 0x8, 0, 0, 0, debug);
     assert(CACHEWRITEMISS_CHECK(*debug));
 
@@ -118,7 +149,7 @@ void testbench::initiator_thread(void) {
 
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 5. DCACHE write addr 0x464 (cache write miss)              " << v::endl;
-    v::info << name() << " ********************************************************* " << v::endl;    
+    v::info << name() << " ********************************************************* " << v::endl;
 
     data=0x08070605;
     dwrite(0x464,data,4, 0x8, 0, 0, 0, debug);
@@ -128,7 +159,7 @@ void testbench::initiator_thread(void) {
 
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 6. DCACHE write addr 0x864 (cache write miss)              " << v::endl;
-    v::info << name() << " ********************************************************* " << v::endl;    
+    v::info << name() << " ********************************************************* " << v::endl;
 
     data=0x0c0b0a09;
     dwrite(0x864,data,4, 0x8, 0, 0, 0, debug);
@@ -152,7 +183,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << " * all four sets of the cache should be filled. The first part " << v::endl;
     v::info << name() << " * provokes cache misses, the second part cache hits. " << v::endl;
     v::info << name() << " ******************************************************************** " << v::endl;
-  
+
     // first read (cache miss)
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 8. DCACHE read addr 0x64 (cache miss)         "                     << v::endl;
@@ -176,7 +207,7 @@ void testbench::initiator_thread(void) {
     v::info << name() <<  "DCACHE read from 0x64 returned " << std::hex << data << v::endl;
     assert(data==0x04030201);
     assert(CACHEREADHIT_CHECK(*debug));
- 
+
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // same index new tag (cache miss - load next bank)
@@ -226,7 +257,7 @@ void testbench::initiator_thread(void) {
     v::info << name() <<  "DCACHE read from 0x464 returned " << std::hex << data << v::endl;
     assert(data==0x08070605);
     assert(CACHEREADHIT_CHECK(*debug));
-    
+
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // cache hit
@@ -369,7 +400,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << " ************************************************* " << v::endl;
 
     dwrite(0xff,25,4,2,0,0,0, debug);
-   
+
     v::info << name() << " ******************************************************************** " << v::endl;
     v::info << name() << " * Phase 4: Test diagnostic read/write of caches " << v::endl;
     v::info << name() << " ******************************************************************** " << v::endl;
@@ -378,7 +409,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << " ************************************************* " << v::endl;
     v::info << name() << " * 26. DCACHE read TAG from set 0 line 25 (ASI 0xE) " << v::endl;
     v::info << name() << " ************************************************* " << v::endl;
-    
+
     // TAG address = SET & LINE [12-5] & SUBBLOCK [4-2] & "00"
     //set 0b0 line 0b00011001 0b00000
     data = dread(0x320, 4, 0xe, 0, 0, 0, debug);
@@ -392,7 +423,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << " ************************************************* " << v::endl;
     v::info << name() << " * 27. DCACHE read TAG from set 1 line 25 (ASI 0xE) " << v::endl;
     v::info << name() << " ************************************************* " << v::endl;
-    
+
     //set 0b1 line 0b00011001 0b00000
     data = dread(0x2320, 4, 0xe, 0, 0, 0, debug);
     v::info << name() <<  "DCACHE returned TAG: " << std::hex << data << v::endl;
@@ -405,8 +436,8 @@ void testbench::initiator_thread(void) {
     v::info << name() << " ************************************************* " << v::endl;
     v::info << name() << " * 28. DCACHE read TAG from set 2 line 25 (ASI 0xE) " << v::endl;
     v::info << name() << " ************************************************* " << v::endl;
-    
-    //set 0b2 line 0b00011001 0b00000    
+
+    //set 0b2 line 0b00011001 0b00000
     data = dread(0x4320, 4, 0xe, 0, 0, 0, debug);
     v::info << name() <<  "DCACHE returned TAG: " << std::hex << data << v::endl;
     // [31:10] = atag == 1, [9] lrr = 0, [8] lock = 0, LSBs valid = 1
@@ -418,7 +449,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << " ************************************************* " << v::endl;
     v::info << name() << " * 29. DCACHE read TAG from set 3 line 25 (ASI 0xE) " << v::endl;
     v::info << name() << " ************************************************* " << v::endl;
-    
+
     //set 0b3 line 0b00011001 0b00000
     data = dread(0x6320, 4, 0xe, 0, 0, 0, debug);
     v::info << name() <<  "DCACHE returned TAG: " << std::hex << data << v::endl;
@@ -450,14 +481,14 @@ void testbench::initiator_thread(void) {
     v::info << name() <<  "DCACHE returned DATA: " << std::hex << data << v::endl;
     assert(data==0x08070605);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // dcache entry read
     v::info << name() << " ************************************************* " << v::endl;
     v::info << name() << " * 32. DCACHE read entry 0 from set 2 line 25 (ASI 0xF) " << v::endl;
     v::info << name() << " ************************************************* " << v::endl;
 
-    //set 0b2 line 0b00011001 subblock 0b000 00    
+    //set 0b2 line 0b00011001 subblock 0b000 00
     data = dread(0x4320, 4, 0xf, 0, 0, 0, debug);
     v::info << name() <<  "DCACHE returned DATA: " << std::hex << data << v::endl;
     assert(data==0x0c0b0a09);
@@ -490,7 +521,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << " ************************************************* " << v::endl;
     v::info << name() << " * 35. ICACHE read TAG from set 1 line 25 (ASI 0xC) " << v::endl;
     v::info << name() << " ************************************************* " << v::endl;
-    
+
     //set 0b1 line 0b00011001 0b00000
     data = dread(0x2320, 4, 0xc, 0, 0, 0, debug);
     v::info << name() <<  "DCACHE returned TAG: " << std::hex << data << v::endl;
@@ -503,8 +534,8 @@ void testbench::initiator_thread(void) {
     v::info << name() << " ************************************************* " << v::endl;
     v::info << name() << " * 36. ICACHE read TAG from set 2 line 25 (ASI 0xC) " << v::endl;
     v::info << name() << " ************************************************* " << v::endl;
-    
-    //set 0b2 line 0b00011001 0b00000    
+
+    //set 0b2 line 0b00011001 0b00000
     data = dread(0x4320, 4, 0xc, 0, 0, 0, debug);
     v::info << name() <<  "DCACHE returned TAG: " << std::hex << data << v::endl;
     // [31:10] = atag == 1, [9] lrr = 0, [8] lock = 0, LSBs valid = 1
@@ -516,7 +547,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << " ************************************************* " << v::endl;
     v::info << name() << " * 37. ICACHE read TAG from set 3 line 25 (ASI 0xC) " << v::endl;
     v::info << name() << " ************************************************* " << v::endl;
-    
+
     //set 0b3 line 0b00011001 0b00000
     data = dread(0x6320, 4, 0xc, 0, 0, 0, debug);
     v::info << name() <<  "DCACHE returned TAG: " << std::hex << data << v::endl;
@@ -548,19 +579,19 @@ void testbench::initiator_thread(void) {
     v::info << name() <<  "DCACHE returned DATA: " << std::hex << data << v::endl;
     assert(data==0x08070605);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // icache entry read
     v::info << name() << " ************************************************* " << v::endl;
     v::info << name() << " * 40. ICACHE read entry 0 from set 2 line 25 (ASI 0xD) " << v::endl;
     v::info << name() << " ************************************************* " << v::endl;
 
-    //set 0b2 line 0b00011001 subblock 0b000 00    
+    //set 0b2 line 0b00011001 subblock 0b000 00
     data = dread(0x4320, 4, 0xd, 0, 0, 0, debug);
     v::info << name() <<  "DCACHE returned DATA: " << std::hex << data << v::endl;
     assert(data==0x0c0b0a09);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // icache entry read
     v::info << name() << " ************************************************* " << v::endl;
@@ -572,7 +603,7 @@ void testbench::initiator_thread(void) {
     v::info << name() <<  "DCACHE returned DATA: " << std::hex << data << v::endl;
     assert(data==0x100f0e0d);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // dcache tag write
     v::info << name() << " ************************************************* " << v::endl;
@@ -581,12 +612,12 @@ void testbench::initiator_thread(void) {
 
     // atag starts from bit 10; entry 0 (bit 0) valid
     data = (0 << 10) | 1;
-    
+
     v::info << name() << "DCACHE write TAG: " << std::hex << data << " Address: 0x340" << v::endl;
     // set 0b0 line 0b00011010 subblock 0b000 00
     dwrite(0x340, data, 4, 0xe, 0, 0, 0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // dcache entry write
     v::info << name() << " ************************************************* " << v::endl;
@@ -596,7 +627,7 @@ void testbench::initiator_thread(void) {
     // set 0b0 line 0b00011010 subblock 0b000 00
     dwrite(0x340, 0x12345678, 4, 0xf, 0, 0, 0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     v::info << name() << " ************************************************* " << v::endl;
     v::info << name() << " * 44. Content of DCACHE line 26 (dbg_out)        * " << v::endl;
@@ -604,7 +635,7 @@ void testbench::initiator_thread(void) {
 
     dwrite(0xff,26,4,2,0,0,0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // dcache read
     v::info << name() << " ************************************************* " << v::endl;
@@ -616,7 +647,7 @@ void testbench::initiator_thread(void) {
     assert(data==0x12345678);
     assert(CACHEREADHIT_CHECK(*debug));
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // icache tag write
     v::info << name() << " ************************************************* " << v::endl;
@@ -625,12 +656,12 @@ void testbench::initiator_thread(void) {
 
     // atag starts from bit 10; entry 0 (bit 0) valid
     data = (1 << 10) | 1;
-    
+
     v::info << name() << "ICACHE write TAG: " << std::hex << data << " Address: 0x6340" << v::endl;
     // set 0b11 line 0b00011010 subblock 0b000 00
     dwrite(0x6340, data, 4, 0xc, 0, 0, 0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // icache entry write
     v::info << name() << " ************************************************* " << v::endl;
@@ -640,7 +671,7 @@ void testbench::initiator_thread(void) {
     // set 0b11 line 0b00011010 subblock 0b000 00
     dwrite(0x6340, 0x87654321, 4, 0xd, 0, 0, 0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     v::info << name() << " ************************************************* " << v::endl;
     v::info << name() << " * 48. Content of ICACHE line 26 (dbg_out)        * " << v::endl;
@@ -648,7 +679,7 @@ void testbench::initiator_thread(void) {
 
     dwrite(0xfe,26,4,2,0,0,0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // icache read
     v::info << name() << " ************************************************* " << v::endl;
@@ -660,8 +691,8 @@ void testbench::initiator_thread(void) {
     assert(data==0x87654321);
     assert(CACHEREADHIT_CHECK(*debug));
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
-    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
     v::info << name() << " ******************************************************************** " << v::endl;
     v::info << name() << " * Phase 5: Cache flushing           " << v::endl;
     v::info << name() << " ******************************************************************** " << v::endl;
@@ -698,12 +729,12 @@ void testbench::initiator_thread(void) {
 
     // atag starts from bit 10; entry 0 (bit 0) valid
     data = (1 << 10) | 0;
-    
+
     v::info << name() << "ICACHE write TAG: " << std::hex << data << " Address: 0x6340" << v::endl;
     // set 0b11 line 0b00011010 subblock 0b000 00
     dwrite(0x6340, data, 4, 0xc, 0, 0, 0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // invalidate
     v::info << name() << "************************************************** " << v::endl;
@@ -712,12 +743,12 @@ void testbench::initiator_thread(void) {
 
     // atag starts from bit 10; entry 0 (bit 0) valid
     data = (0 << 10) | 0;
-    
+
     v::info << name() << "DCACHE write TAG: " << std::hex << data << " Address: 0x340" << v::endl;
     // set 0b0 line 0b00011010 subblock 0b000 00
     dwrite(0x340, data, 4, 0xe, 0, 0, 0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // icache read
     v::info << name() << "************************************************* " << v::endl;
@@ -754,12 +785,12 @@ void testbench::initiator_thread(void) {
 
     // atag starts from bit 10; entry 0 (bit 0) valid
     data = (2 << 10) | 1;
-    
+
     v::info << name() << "ICACHE write TAG: " << std::hex << data << " Address: 0x6340" << v::endl;
     // set 0b11 line 0b00011010 subblock 0b000 00
     dwrite(0x6340, data, 4, 0xc, 0, 0, 0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // icache entry write
     v::info << name() << "************************************************* " << v::endl;
@@ -769,7 +800,7 @@ void testbench::initiator_thread(void) {
     // set 0b11 line 0b00011010 subblock 0b000 00
     dwrite(0x6340, 0x11111111, 4, 0xd, 0, 0, 0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
    // dcache tag write
     v::info << name() << "************************************************* " << v::endl;
@@ -778,12 +809,12 @@ void testbench::initiator_thread(void) {
 
     // atag starts from bit 10; entry 0 (bit 0) valid
     data = (3 << 10) | 1;
-    
+
     v::info << name() << "DCACHE write TAG: " << std::hex << data << " Address: 0x340" << v::endl;
     // set 0b0 line 0b00011010 subblock 0b000 00
     dwrite(0x340, data, 4, 0xe, 0, 0, 0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // dcache entry write
     v::info << name() << "************************************************* " << v::endl;
@@ -812,7 +843,7 @@ void testbench::initiator_thread(void) {
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // invalidate diagnostic cache data
-    
+
     // invalidate
     v::info << name() << "************************************************** " << v::endl;
     v::info << name() << "* 61. Invalidate icache address 0x868                 " << v::endl;
@@ -820,12 +851,12 @@ void testbench::initiator_thread(void) {
 
     // atag starts from bit 10; entry 0 (bit 0) valid
     data = (2 << 10) | 0;
-    
+
     v::info << name() << "ICACHE write TAG: " << std::hex << data << " Address: 0x6340" << v::endl;
     // set 0b11 line 0b00011010 subblock 0b000 00
     dwrite(0x6340, data, 4, 0xc, 0, 0, 0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // invalidate
     v::info << name() << "************************************************** " << v::endl;
@@ -834,14 +865,14 @@ void testbench::initiator_thread(void) {
 
     // atag starts from bit 10; entry 0 (bit 0) valid
     data = (3 << 10) | 0;
-    
+
     v::info << name() << "DCACHE write TAG: " << std::hex << data << " Address: 0x340" << v::endl;
     // set 0b0 line 0b00011010 subblock 0b000 00
     dwrite(0x340, data, 4, 0xe, 0, 0, 0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
-    // Reading from the addresses of the 'diagnostic' data brings the 
+    // Reading from the addresses of the 'diagnostic' data brings the
     // data back to cache.
 
     v::info << name() << "************************************************* " << v::endl;
@@ -900,7 +931,7 @@ void testbench::initiator_thread(void) {
 
     dwrite(0xff,26,4,2,0,0,0, debug);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     v::info << name() << " ************************************************* " << v::endl;
     v::info << name() << " * Content of ICACHE line 25 (dbg_out)        * " << v::endl;
@@ -921,12 +952,12 @@ void testbench::initiator_thread(void) {
 
     v::info << name() << "************************************************* " << v::endl;
     v::info << name() << "* Phase 6: Sub-word access            " << v::endl;
-    v::info << name() << "************************************************* " << v::endl;    
+    v::info << name() << "************************************************* " << v::endl;
 
     // dcache write
     v::info << name() << "************************************************* " << v::endl;
     v::info << name() << "* 67. Store 4 bytes to tag 5 line 0 (miss)  " << v::endl;
-    v::info << name() << "************************************************* " << v::endl;    
+    v::info << name() << "************************************************* " << v::endl;
 
     // 1 -> 0x1400
     dwrite(0x1400,1,1,8,0,0,0,debug);
@@ -950,17 +981,17 @@ void testbench::initiator_thread(void) {
     dwrite(0x1403,4,1,8,0,0,0,debug);
     assert(CACHEWRITEMISS_CHECK(*debug));
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS);   
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // dcache read
     v::info << name() << "************************************************* " << v::endl;
     v::info << name() << "* 68. Read 1 word and check result (miss)  " << v::endl;
-    v::info << name() << "************************************************* " << v::endl;        
+    v::info << name() << "************************************************* " << v::endl;
 
     data = dread(0x1400,4,8,0,0,0,debug);
     assert(CACHEREADMISS_CHECK(*debug));
     assert(data=0x04030201);
-    
+
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // dcache read
@@ -971,13 +1002,13 @@ void testbench::initiator_thread(void) {
     data = dread(0x1400,2,8,0,0,0,debug);
     assert(CACHEREADHIT_CHECK(*debug));
     assert(data=0x0201);
-    
-    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     data = dread(0x1402,2,8,0,0,0,debug);
     assert(CACHEREADHIT_CHECK(*debug));
     assert(data=0x0403);
-    
+
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // dcache read
@@ -1031,7 +1062,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << "* 72. Read 1 byte from tag 5 line 1 (miss)  " << v::endl;
     v::info << name() << "* The miss on the byte should cause the complete " << v::endl;
     v::info << name() << "* word to be cached. " << v::endl;
-    v::info << name() << "************************************************* " << v::endl; 
+    v::info << name() << "************************************************* " << v::endl;
 
     data = dread(0x1405,1,8,0,0,0,debug);
     assert(CACHEREADMISS_CHECK(*debug));
@@ -1042,7 +1073,7 @@ void testbench::initiator_thread(void) {
     // dcache write
     v::info << name() << "************************************************* " << v::endl;
     v::info << name() << "* 73. Read the two shorts with one word access (hit)  " << v::endl;
-    v::info << name() << "************************************************* " << v::endl;   
+    v::info << name() << "************************************************* " << v::endl;
 
     data = dread(0x1404,4,8,0,0,0,debug);
     assert(CACHEREADHIT_CHECK(*debug));
@@ -1052,7 +1083,7 @@ void testbench::initiator_thread(void) {
 
     v::info << name() << "************************************************* " << v::endl;
     v::info << name() << "* Phase 7: Disable caches and test bypass mode!  " << v::endl;
-    v::info << name() << "************************************************* " << v::endl;   
+    v::info << name() << "************************************************* " << v::endl;
 
     // read/write cache control register
     v::info << name() << " ********************************************************* " << v::endl;
@@ -1073,7 +1104,7 @@ void testbench::initiator_thread(void) {
     dwrite(0x0, 0x0, 4, 2, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
-    
+
     // bypass write word
     v::info << name() << "************************************************* " << v::endl;
     v::info << name() << "* 81. Write word through data interface (bypass) " << v::endl;
@@ -1086,8 +1117,8 @@ void testbench::initiator_thread(void) {
     // bypass write short
     v::info << name() << "************************************************* " << v::endl;
     v::info << name() << "* 82. Write shorts through data interface (bypass) " << v::endl;
-    v::info << name() << "************************************************* " << v::endl;    
-    
+    v::info << name() << "************************************************* " << v::endl;
+
     // write shorts in bypass mode
     dwrite(0x4, 0xaaaa, 2, 8, 0, 0, 0, debug);
     assert(CACHEBYPASS_CHECK(*debug));
@@ -1121,7 +1152,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << "************************************************* " << v::endl;
     v::info << name() << "* 84. Read word through data interface (bypass) " << v::endl;
     v::info << name() << "************************************************* " << v::endl;
-   
+
     data = dread(0x8, 4, 8, 0, 0, 0, debug);
     assert(data==0xffeeddcc);
     assert(CACHEBYPASS_CHECK(*debug));
@@ -1129,7 +1160,7 @@ void testbench::initiator_thread(void) {
      // bypass read shorts
     v::info << name() << "************************************************* " << v::endl;
     v::info << name() << "* 85. Read shorts through data interface (bypass) " << v::endl;
-    v::info << name() << "************************************************* " << v::endl;    
+    v::info << name() << "************************************************* " << v::endl;
 
     data = dread(0x0,2,8,0,0,0,debug);
     assert(data==0xffff);
@@ -1143,7 +1174,7 @@ void testbench::initiator_thread(void) {
      // bypass read bytes
     v::info << name() << "************************************************* " << v::endl;
     v::info << name() << "* 86. Read shorts through data interface (bypass) " << v::endl;
-    v::info << name() << "************************************************* " << v::endl;    
+    v::info << name() << "************************************************* " << v::endl;
 
     data = dread(0x4, 1, 8, 0, 0, 0, debug);
     assert(data==0xaa);
@@ -1155,7 +1186,7 @@ void testbench::initiator_thread(void) {
 
     data = dread(0x6, 1, 8, 0, 0, 0, debug);
     assert(data==0xbb);
-    assert(CACHEBYPASS_CHECK(*debug));    
+    assert(CACHEBYPASS_CHECK(*debug));
 
     data = dread(0x3, 1, 8, 0, 0, 0, debug);
     assert(data==0xee);
@@ -1165,7 +1196,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << "************************************************* " << v::endl;
     v::info << name() << "* 87. Read word through instr. interface (bypass) " << v::endl;
     v::info << name() << "************************************************* " << v::endl;
-   
+
     data = iread(0x8, 0, 0, 0, debug);
     assert(data==0xffeeddcc);
     assert(CACHEBYPASS_CHECK(*debug));
@@ -1186,7 +1217,7 @@ void testbench::initiator_thread(void) {
     // write tag: icache set 0 line 0
     // addr: set 0b00 line 0b00000000 subblock 0b000 00
     dwrite(0x0000, 0 << 10, 4, 0xc, 0, 0, 0, debug);
-    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // write tag: icache set 1 line 0
     // addr: set 0b01 line 0b00000000 subblock 0b000 00
@@ -1206,7 +1237,7 @@ void testbench::initiator_thread(void) {
     // write tag: dcache set 0 line 0
     // addr: set 0b00 line 0b00000000 subblock 0b000 00
     dwrite(0x0000, 0 << 10, 4, 0xe, 0, 0, 0, debug);
-    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // write tag: dcache set 1 line 0
     // addr: set 0b01 line 0b00000000 subblock 0b000 00
@@ -1287,7 +1318,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << " * 92. FREEZE CACHES by writing the CONTROL REGISTER " << v::endl;
     v::info << name() << " * (ASI 0x2 - addr 0)    " << v::endl;
     v::info << name() << " ********************************************************* " << v::endl;
-    
+
      // read cache control register !
     data=dread(0x0, 4, 2, 0, 0, 0, debug);
     // CCR [3:2] == 0b11; [1:0] = 0b11 -> dcache and icache enabled
@@ -1299,7 +1330,7 @@ void testbench::initiator_thread(void) {
     // freeze caches:
     // CCR [3-2] = 0b01  freeze dcache, CCR [1-0] = 0b01 freeze icache
     dwrite(0x0, 0x5, 4, 2, 0, 0, 0, debug);
-   
+
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // read miss - freeze no effect
@@ -1361,7 +1392,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 95. Check whether the four original tags are still " << v::endl;
     v::info << name() << " * cached and valid (read hit) " << v::endl;
-    v::info << name() << " ********************************************************* " << v::endl;   
+    v::info << name() << " ********************************************************* " << v::endl;
 
     data=dread(0x0000, 4, 8, 0, 0, 0, debug);
     assert(data==0x11223344);

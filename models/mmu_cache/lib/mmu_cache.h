@@ -1,20 +1,49 @@
-// ***********************************************************************
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
-// *                                                                     *
-// * File:       mmu_cache.h - Class definition of a cache-subsystem.    *
-// *             The cache-subsystem envelopes an instruction cache,     *
-// *             a data cache and a memory management unit.              *
-// *             The mmu_cache class provides two TLM slave interfaces   *
-// *             for connecting the cpu to the caches and an AHB master  *
-// *             interface for connection to the main memory.            * 
-// *                                                                     *
-// * Modified on $Date$   *
-// *          at $Revision$                                         *
-// *                                                                     *
-// * Principal:  European Space Agency                                   *
-// * Author:     VLSI working group @ IDA @ TUBS                         *
-// * Maintainer: Thomas Schuster                                         *
-// ***********************************************************************
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      mmu_cache.h
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Class definition of a cache-subsystem.
+//             The cache-subsystem envelopes an instruction cache,
+//             a data cache and a memory management unit.
+//             The mmu_cache class provides two TLM slave interfaces
+//             for connecting the cpu to the caches and an AHB master
+//             interface for connection to the main memory.
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #ifndef __MMU_CACHE_H__
 #define __MMU_CACHE_H__
@@ -84,7 +113,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
   /// @tlb_type      split or shared instruction and data TLBs
   /// @tlb_rep       TLB replacement strategy
   /// @mmupgsz       MMU page size
-  /// @name                               SystemC module name 
+  /// @name                               SystemC module name
   /// @id                                 ID of the AHB master
   /// @icache_hit_read_response_delay     Delay on an instruction cache hit
   /// @icache_miss_read_response_delay    Delay on an instruction cache miss
@@ -121,11 +150,11 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
 	    unsigned int tlb_type,
 	    unsigned int tlb_rep,
 	    unsigned int mmupgsz,
-	    sc_core::sc_module_name name, 
-	    unsigned int id, 
-	    sc_core::sc_time icache_hit_read_response_delay, 
-	    sc_core::sc_time icache_miss_read_response_delay, 
-	    sc_core::sc_time dcache_hit_read_response_delay, 
+	    sc_core::sc_module_name name,
+	    unsigned int id,
+	    sc_core::sc_time icache_hit_read_response_delay,
+	    sc_core::sc_time icache_miss_read_response_delay,
+	    sc_core::sc_time dcache_hit_read_response_delay,
 	    sc_core::sc_time dcache_miss_read_response_delay,
 	    sc_core::sc_time dcache_write_response_delay,
 	    sc_core::sc_time itlb_hit_response_delay,

@@ -1,24 +1,55 @@
-// ***********************************************************************
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
-// *                                                                     *
-// * File:       localram.cpp - Implementation of a local RAM that       *
-// *             can be attached to the icache and dcache controllers.   *
-// *             The LocalRAM enables fast 0-waitstate access            *
-// *             to instructions or data.                                *
-// *                                                                     *
-// * Modified on $Date$   *
-// *          at $Revision$                                           *
-// *                                                                     *
-// * Principal:  European Space Agency                                   *
-// * Author:     VLSI working group @ IDA @ TUBS                         *
-// * Maintainer: Thomas Schuster                                         *
-// ***********************************************************************
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      localram.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Implementation of a local RAM that
+//             can be attached to the icache and dcache controllers.
+//             The LocalRAM enables fast 0-waitstate access
+//             to instructions or data.
+//
+// Method:
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #include "localram.h"
 #include "verbose.h"
 
 /// constructor
-localram::localram(sc_core::sc_module_name name, 
+localram::localram(sc_core::sc_module_name name,
 		   unsigned int lrsize,
 		   unsigned int lrstart) : sc_module(name),
 					   m_lrsize((unsigned int)pow(2,(lrsize+8))),
@@ -55,7 +86,7 @@ localram::~localram() {
 void localram::read(unsigned int addr, unsigned char *data, unsigned int len, sc_core::sc_time *t, unsigned int *debug) {
 
   assert(addr - m_lrstart < (m_lrsize << 2));
-  
+
   // byte offset
   unsigned int byt = addr & 0x3;
 
@@ -63,7 +94,7 @@ void localram::read(unsigned int addr, unsigned char *data, unsigned int len, sc
   for(unsigned int i=0; i<len; i++) { *(data+i) = scratchpad[(addr - m_lrstart) >> 2].c[byt+i]; }
 
   v::info << this->name() << "Read from address: " << std::hex << addr << v::endl;
- 
+
   // update debug information
   SCRATCHPAD_SET(*debug);
 

@@ -1,16 +1,47 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       testbench.cpp - Implementation of the                   */
-/*             stimuli generator/monitor for the current testbench.    */
-/*                                                                     */
-/* Modified on $Date$   */
-/*          at $Revision$                                         */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Thomas Schuster                                         */
-/***********************************************************************/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      testbench.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Implementation of the
+//             stimuli generator/monitor for the current testbench.
+//
+// Method:
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #include "testbench.h"
 #include "verbose.h"
@@ -53,9 +84,9 @@ void testbench::initiator_thread(void) {
     v::info << name() << " * 1. ACTIVATE CACHES by writing the CONTROL REGISTER " << v::endl;
     v::info << name() << " * (ASI 0x2 - addr 0)    " << v::endl;
     v::info << name() << " ********************************************************* " << v::endl;
-    
+
     // read cache control register !
-    // args: address, length, asi, flush, flushl, lock, debug 
+    // args: address, length, asi, flush, flushl, lock, debug
     data=dread(0x0, 4, 2, 0, 0, 0, debug);
     // [3:2] == 0b11; [1:0] = 0b11 -> dcache and icache enabled
     v::info << name() << "cache_contr_reg: " << std::hex << data << v::endl;
@@ -72,7 +103,7 @@ void testbench::initiator_thread(void) {
     // read icache configuration register
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 2. Read ICACHE CONFIGURATION REGISTER (ASI 0x2 - addr 8)   " << v::endl;
-    v::info << name() << " ********************************************************* " << v::endl;    
+    v::info << name() << " ********************************************************* " << v::endl;
 
     data=dread(0x8, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b001, [23:20] ssize == 0b1000 (256kb)
@@ -86,7 +117,7 @@ void testbench::initiator_thread(void) {
     // read icache configuration register
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 3. Read DCACHE CONFIGURATION REGISTER (ASI 0x2 - addr 0xc)   " << v::endl;
-    v::info << name() << " ********************************************************* " << v::endl;    
+    v::info << name() << " ********************************************************* " << v::endl;
 
     data=dread(0xc, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b001, [23:20] ssize == 0b1000 (256kb)
@@ -130,14 +161,14 @@ void testbench::initiator_thread(void) {
 	data=dread(i, 4, 8, 0, 0, 0, debug);
 	assert(data==i);
 	assert(CACHEREADMISS_CHECK(*debug));
- 
-	wait(LOCAL_CLOCK,sc_core::SC_NS);   
+
+	wait(LOCAL_CLOCK,sc_core::SC_NS);
       }
     }
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 6. Read the same data again (cache hits) " << v::endl;
-    v::info << name() << " ************************************************************" << v::endl;   
+    v::info << name() << " ************************************************************" << v::endl;
 
     // tags 0 and 1
     for (unsigned int i = 0; i < 0x80000; i+=4) {
@@ -147,8 +178,8 @@ void testbench::initiator_thread(void) {
 	data=dread(i, 4, 8, 0, 0, 0, debug);
 	assert(data==i);
 	assert(CACHEREADHIT_CHECK(*debug));
- 
-	wait(LOCAL_CLOCK,sc_core::SC_NS);   
+
+	wait(LOCAL_CLOCK,sc_core::SC_NS);
       }
     }
 
@@ -164,8 +195,8 @@ void testbench::initiator_thread(void) {
 	data=dread(i, 4, 8, 0, 0, 0, debug);
 	assert(data==i);
 	assert(CACHEREADMISS_CHECK(*debug));
- 
-	wait(LOCAL_CLOCK,sc_core::SC_NS);   
+
+	wait(LOCAL_CLOCK,sc_core::SC_NS);
       }
     }
 
@@ -181,18 +212,18 @@ void testbench::initiator_thread(void) {
 	data=dread(i, 4, 8, 0, 0, 0, debug);
 	assert(data==i);
 	assert(CACHEREADHIT_CHECK(*debug));
- 
-	wait(LOCAL_CLOCK,sc_core::SC_NS);   
+
+	wait(LOCAL_CLOCK,sc_core::SC_NS);
       }
     }
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * Phase 2: Test instruction scratchpad " << v::endl;
-    v::info << name() << " ************************************************************" << v::endl;   
+    v::info << name() << " ************************************************************" << v::endl;
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 9. Fill the instruction scratchpad with data " << v::endl;
-    v::info << name() << " ************************************************************" << v::endl;    
+    v::info << name() << " ************************************************************" << v::endl;
 
     // start of scratchpad segment
     for (unsigned int i = 0x8e000000; i < 0x8e080000; i+=4) {
@@ -202,13 +233,13 @@ void testbench::initiator_thread(void) {
 	dwrite(i, i, 4, 8, 0, 0, 0, debug);
 	assert(SCRATCHPAD_CHECK(*debug));
 
-	wait(LOCAL_CLOCK,sc_core::SC_NS);  
+	wait(LOCAL_CLOCK,sc_core::SC_NS);
       }
     }
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 10. Read the instruction scratchpad" << v::endl;
-    v::info << name() << " ************************************************************" << v::endl;       
+    v::info << name() << " ************************************************************" << v::endl;
 
     // start of scratchpad segment
     for (unsigned int i = 0x8e000000; i < 0x8e080000; i+=4) {
@@ -226,7 +257,7 @@ void testbench::initiator_thread(void) {
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 11. Fill the data scratchpad with data" << v::endl;
-    v::info << name() << " ************************************************************" << v::endl;    
+    v::info << name() << " ************************************************************" << v::endl;
 
     for (unsigned int i = 0x8f000000; i < 0x8f080000; i+=4) {
 
@@ -235,13 +266,13 @@ void testbench::initiator_thread(void) {
 	dwrite(i, i, 4, 8, 0, 0, 0, debug);
 	assert(SCRATCHPAD_CHECK(*debug));
 
-	wait(LOCAL_CLOCK,sc_core::SC_NS);  
+	wait(LOCAL_CLOCK,sc_core::SC_NS);
       }
     }
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 12. Read the data scratchpad" << v::endl;
-    v::info << name() << " ************************************************************" << v::endl; 
+    v::info << name() << " ************************************************************" << v::endl;
 
     for (unsigned int i = 0x8f000000; i < 0x8f080000; i+=4) {
 
@@ -250,25 +281,25 @@ void testbench::initiator_thread(void) {
 	data=dread(i, 4, 8, 0, 0, 0, debug);
 	assert(SCRATCHPAD_CHECK(*debug));
 
-	wait(LOCAL_CLOCK,sc_core::SC_NS);  
+	wait(LOCAL_CLOCK,sc_core::SC_NS);
       }
     }
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 13. Test byte store for data scratchpad " << v::endl;
-    v::info << name() << " ************************************************************" << v::endl;    
+    v::info << name() << " ************************************************************" << v::endl;
 
     for (unsigned int i = 0; i < 4; i++) {
 
       dwrite(0x8f000000+i, i+1, 1, 8, 0, 0, 0, debug);
       assert(SCRATCHPAD_CHECK(*debug));
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS); 
+      wait(LOCAL_CLOCK,sc_core::SC_NS);
     }
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 14. Test byte load for data scratchpad " << v::endl;
-    v::info << name() << " ************************************************************" << v::endl;     
+    v::info << name() << " ************************************************************" << v::endl;
 
     for (unsigned int i = 0; i < 4; i++) {
 
@@ -276,18 +307,18 @@ void testbench::initiator_thread(void) {
       assert(data==(i+1));
       assert(SCRATCHPAD_CHECK(*debug));
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS); 
+      wait(LOCAL_CLOCK,sc_core::SC_NS);
     }
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 15. Test half-word read for data scratchpad " << v::endl;
-    v::info << name() << " ************************************************************" << v::endl;     
+    v::info << name() << " ************************************************************" << v::endl;
 
     data=dread(0x8f000000, 2, 8, 0, 0, 0, debug);
     assert(data==0x0201);
     assert(SCRATCHPAD_CHECK(*debug));
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     data=dread(0x8f000002, 2, 8, 0, 0, 0, debug);
     assert(data==0x0403);
@@ -297,7 +328,7 @@ void testbench::initiator_thread(void) {
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 16. Test half-word write for data scratchpad " << v::endl;
-    v::info << name() << " ************************************************************" << v::endl;   
+    v::info << name() << " ************************************************************" << v::endl;
 
     dwrite(0x8f000004, 0x0b0a, 2, 8, 0, 0, 0, debug);
     assert(SCRATCHPAD_CHECK(*debug));

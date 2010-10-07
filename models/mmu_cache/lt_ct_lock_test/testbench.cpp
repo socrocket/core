@@ -1,16 +1,47 @@
-// ***********************************************************************
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
-// *                                                                     *
-// * File:       testbench.cpp - Implementation of the                   *
-// *             stimuli generator/monitor for the current testbench.    *
-// *                                                                     *
-// * Modified on $Date: 2010-08-19 13:36:00 +0200 (Thu, 19 Aug 2010) $   *
-// *          at $Revision: 49 $                                         *
-// *                                                                     *
-// * Principal:  European Space Agency                                   *
-// * Author:     VLSI working group @ IDA @ TUBS                         *
-// * Maintainer: Thomas Schuster                                         *
-// ***********************************************************************
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      testbench.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Implementation of the
+//             stimuli generator/monitor for the current testbench.
+//
+// Method:
+//
+// Modified on $Date: 2010-08-19 13:36:00 +0200 (Thu, 19 Aug 2010) $
+//          at $Revision: 49 $
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #include "testbench.h"
 #include "verbose.h"
@@ -69,9 +100,9 @@ void testbench::initiator_thread(void) {
     v::info << name() << " * 1. ACTIVATE CACHES by writing the CONTROL REGISTER " << v::endl;
     v::info << name() << " * (ASI 0x2 - addr 0)    " << v::endl;
     v::info << name() << " ********************************************************* " << v::endl;
-    
+
     // read cache control register !
-    // args: address, length, asi, flush, flushl, lock 
+    // args: address, length, asi, flush, flushl, lock
     data=dread(0x0, 4, 2, 0, 0, 0, debug);
     // [3:2] == 0b11; [1:0] = 0b11 -> dcache and icache enabled
     v::info << name() << "cache_contr_reg: " << std::hex << data << v::endl;
@@ -81,14 +112,14 @@ void testbench::initiator_thread(void) {
 
     // activate caches:
     // CCR [3-2] = 11 enable dcache, CCR [1-0] enable icache
-    dwrite(0x0, data |= 0xf, 4, 2, 0, 0, 0, debug);    
+    dwrite(0x0, data |= 0xf, 4, 2, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // read icache configuration register
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 2. Read ICACHE CONFIGURATION REGISTER (ASI 0x2 - addr 8)   " << v::endl;
-    v::info << name() << " ********************************************************* " << v::endl;    
+    v::info << name() << " ********************************************************* " << v::endl;
 
     data=dread(0x8, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b10, [26:24] sets == 0b001, [23:20] ssize == 0b0011 (8kb)
@@ -102,7 +133,7 @@ void testbench::initiator_thread(void) {
     // read icache configuration register
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 3. Read DCACHE CONFIGURATION REGISTER (ASI 0x2 - addr 0xc)   " << v::endl;
-    v::info << name() << " ********************************************************* " << v::endl;    
+    v::info << name() << " ********************************************************* " << v::endl;
 
     data=dread(0xc, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b01, [26:24] sets == 0b010, [23:20] ssize == 0b0011 (8kb)
@@ -120,7 +151,7 @@ void testbench::initiator_thread(void) {
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 4. Initialize main memory " << v::endl;
     v::info << name() << " ************************************************************" << v::endl;
-    
+
     // | 31 - 13 (19 bit tag) | 12 - 4 (9 bit index) | 3 - 0 (4 bit offset) |
 
     // 0x00002000 (tag == 1)
@@ -132,7 +163,7 @@ void testbench::initiator_thread(void) {
       dwrite((0x00002000 + (i<<2)), i, 4, 0x8, 0, 0, 0, debug);
       assert(CACHEWRITEMISS_CHECK(*debug));
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS);  
+      wait(LOCAL_CLOCK,sc_core::SC_NS);
     }
 
     // 0x0004000 (tag == 2)
@@ -144,7 +175,7 @@ void testbench::initiator_thread(void) {
       dwrite((0x00004000 + (i<<2)), i, 4, 0x8, 0, 0, 0, debug);
       assert(CACHEWRITEMISS_CHECK(*debug));
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS);  
+      wait(LOCAL_CLOCK,sc_core::SC_NS);
     }
 
     // 0x0006000 (tag == 3)
@@ -156,7 +187,7 @@ void testbench::initiator_thread(void) {
       dwrite((0x00006000 + (i<<2)), i, 4, 0x8, 0, 0, 0, debug);
       assert(CACHEWRITEMISS_CHECK(*debug));
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS);  
+      wait(LOCAL_CLOCK,sc_core::SC_NS);
     }
 
     // 0x00008000 (tag == 4)
@@ -168,7 +199,7 @@ void testbench::initiator_thread(void) {
       dwrite((0x00008000 + (i<<2)), i, 4, 0x8, 0, 0, 0, debug);
       assert(CACHEWRITEMISS_CHECK(*debug));
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS);  
+      wait(LOCAL_CLOCK,sc_core::SC_NS);
     }
 
     // 0x0000a000 (tag == 5)
@@ -180,7 +211,7 @@ void testbench::initiator_thread(void) {
       dwrite((0x0000a000 + (i<<2)), i, 4, 0x8, 0, 0, 0, debug);
       assert(CACHEWRITEMISS_CHECK(*debug));
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS);  
+      wait(LOCAL_CLOCK,sc_core::SC_NS);
     }
 
     // 0x0000c000 (tag == 6)
@@ -192,7 +223,7 @@ void testbench::initiator_thread(void) {
       dwrite((0x0000c000 + (i<<2)), i, 4, 0x8, 0, 0, 0, debug);
       assert(CACHEWRITEMISS_CHECK(*debug));
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS);  
+      wait(LOCAL_CLOCK,sc_core::SC_NS);
     }
 
     v::info << name() << " ************************************************************ " << v::endl;
@@ -202,33 +233,33 @@ void testbench::initiator_thread(void) {
     // load tag 1
     data = dread(0x00002032, 4, 8, 0, 0, 0, debug);
     assert(CACHEREADMISS_CHECK(*debug));
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // load tag 2
     data = dread(0x00004032, 4, 8, 0, 0, 0, debug);
     assert(CACHEREADMISS_CHECK(*debug));
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // load tag 3
     data = dread(0x00006032, 4, 8, 0, 0, 0, debug);
     assert(CACHEREADMISS_CHECK(*debug));
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 6. Check if the data was cached correctly " << v::endl;
     v::info << name() << " ************************************************************" << v::endl;
- 
+
     // load tag 1
     data = dread(0x00002032, 4, 8, 0, 0, 0, debug);
     assert(CACHEREADHIT_CHECK(*debug));
     seta = *debug & 0x3;
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // load tag 2
     data = dread(0x00004032, 4, 8, 0, 0, 0, debug);
     assert(CACHEREADHIT_CHECK(*debug));
     setb = *debug & 0x3;
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // load tag 3
     data = dread(0x00006032, 4, 8, 0, 0, 0, debug);
@@ -246,7 +277,7 @@ void testbench::initiator_thread(void) {
     assert(CACHEREADMISS_CHECK(*debug));
     assert((*debug & 0x3) == seta);
     wait(LOCAL_CLOCK,sc_core::SC_NS);
-    
+
     // load tag 5 (supposed to go into setb)
     data = dread(0x0000a032, 4, 8, 0, 0, 0, debug);
     assert(CACHEREADMISS_CHECK(*debug));
@@ -257,26 +288,26 @@ void testbench::initiator_thread(void) {
     data = dread(0x0000c032, 4, 8, 0, 0, 0, debug);
     assert(CACHEREADMISS_CHECK(*debug));
     assert((*debug & 0x3) == setc);
-    wait(LOCAL_CLOCK,sc_core::SC_NS);  
-    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * Phase 2: Test LRR on ICACHE " << v::endl;
     v::info << name() << " ************************************************************" << v::endl;
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 8. Fill line 3 offset 2 of set 1 and 2 " << v::endl;
-    v::info << name() << " ************************************************************" << v::endl;    
+    v::info << name() << " ************************************************************" << v::endl;
 
     // load tag 1
     data = iread(0x00002032, 0, 0, 0, debug);
     assert(CACHEREADMISS_CHECK(*debug));
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // load tag 2
     data = iread(0x00004032, 0, 0, 0, debug);
     assert(CACHEREADMISS_CHECK(*debug));
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
-    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 9. Check if the data was cached correctly " << v::endl;
     v::info << name() << " ************************************************************" << v::endl;
@@ -285,14 +316,14 @@ void testbench::initiator_thread(void) {
     data = iread(0x00002032, 0, 0, 0, debug);
     assert(CACHEREADHIT_CHECK(*debug));
     seta = *debug & 0x3;
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // load tag 2
     data = iread(0x00004032, 0, 0, 0, debug);
     assert(CACHEREADHIT_CHECK(*debug));
     setb = *debug & 0x3;
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
- 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
+
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * 10. Check LRR - The sets should be replaced in the same " << v::endl;
     v::info << name() << " *     order they have been written in 6." << v::endl;
@@ -302,13 +333,13 @@ void testbench::initiator_thread(void) {
     data = iread(0x00006032, 0, 0, 0, debug);
     assert(CACHEREADMISS_CHECK(*debug));
     assert((*debug & 0x3)==seta);
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // load tag 4
     data = iread(0x00008032, 0, 0, 0, debug);
     assert(CACHEREADMISS_CHECK(*debug));
     assert((*debug & 0x3)==setb);
-    wait(LOCAL_CLOCK,sc_core::SC_NS);     
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
     sc_core::sc_stop();

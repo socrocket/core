@@ -1,16 +1,47 @@
-// ***********************************************************************
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
-// *                                                                     *
-// * File:       testbench.cpp - Implementation of the                   *
-// *             stimuli generator/monitor for the current testbench.    *
-// *                                                                     *
-// * Modified on $Date$   *
-// *          at $Revision$                                         *
-// *                                                                     *
-// * Principal:  European Space Agency                                   *
-// * Author:     VLSI working group @ IDA @ TUBS                         *
-// * Maintainer: Thomas Schuster                                         *
-// ***********************************************************************
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      testbench.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Implementation of the
+//             stimuli generator/monitor for the current testbench.
+//
+// Method:
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #include "testbench.h"
 #include "verbose.h"
@@ -53,9 +84,9 @@ void testbench::initiator_thread(void) {
     v::info << name() << " * 1. ACTIVATE CACHES by writing the CONTROL REGISTER " << v::endl;
     v::info << name() << " * (ASI 0x2 - addr 0)    " << v::endl;
     v::info << name() << " ********************************************************* " << v::endl;
-    
+
     // read cache control register !
-    // args: address, length, asi, flush, flushl, lock 
+    // args: address, length, asi, flush, flushl, lock
     data=dread(0x0, 4, 2, 0, 0, 0, debug);
     // [3:2] == 0b11; [1:0] = 0b11 -> dcache and icache enabled
     v::info << name() << "cache_contr_reg: " << std::hex << data << v::endl;
@@ -65,14 +96,14 @@ void testbench::initiator_thread(void) {
 
     // activate caches:
     // CCR [3-2] = 11 enable dcache, CCR [1-0] enable icache
-    dwrite(0x0, data |= 0xf, 4, 2, 0, 0, 0, debug);    
+    dwrite(0x0, data |= 0xf, 4, 2, 0, 0, 0, debug);
 
     wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // read icache configuration register
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 2. Read ICACHE CONFIGURATION REGISTER (ASI 0x2 - addr 8)   " << v::endl;
-    v::info << name() << " ********************************************************* " << v::endl;    
+    v::info << name() << " ********************************************************* " << v::endl;
 
     data=dread(0x8, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b011, [23:20] ssize == 0b0000 (1kb)
@@ -86,7 +117,7 @@ void testbench::initiator_thread(void) {
     // read icache configuration register
     v::info << name() << " ********************************************************* " << v::endl;
     v::info << name() << " * 3. Read DCACHE CONFIGURATION REGISTER (ASI 0x2 - addr 0xc)   " << v::endl;
-    v::info << name() << " ********************************************************* " << v::endl;    
+    v::info << name() << " ********************************************************* " << v::endl;
 
     data=dread(0xc, 4, 2, 0, 0, 0, debug);
     // [29:28] repl == 0b11, [26:24] sets == 0b011, [23:20] ssize == 0b0000 (1kb)
@@ -99,7 +130,7 @@ void testbench::initiator_thread(void) {
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * Phase 1: Setup Demo Page Table " << v::endl;
-    v::info << name() << " ************************************************************" << v::endl;    
+    v::info << name() << " ************************************************************" << v::endl;
 
     // -----------------------
     // Level 1 - Table
@@ -194,18 +225,18 @@ void testbench::initiator_thread(void) {
 
     // set MMU_CONTEXT_REGISTER to zero (ASI 0x19)
     dwrite(0x200, 0x0, 4, 0x19, 0, 0, 0, debug);
-    wait(LOCAL_CLOCK,sc_core::SC_NS);   
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // The context register (process id) indexes
     // the context table pointer. Each process has its own page table.
 
     // read MMU_CONTROL_REGISTER
-    data = dread(0x0, 4, 0x19, 0, 0, 0, debug); 
+    data = dread(0x0, 4, 0x19, 0, 0, 0, debug);
 
     // activate MMU by writing the control register
     data |= 0x1;
     dwrite(0x000, data, 4, 0x19, 0, 0, 0, debug);
-    wait(LOCAL_CLOCK,sc_core::SC_NS);    
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " * Phase 3: write data with virtual addressing " << v::endl;
@@ -235,7 +266,7 @@ void testbench::initiator_thread(void) {
       assert(TLBHIT_CHECK(*debug));
       assert(CACHEWRITEMISS_CHECK(*debug));
 
-      wait(LOCAL_CLOCK,sc_core::SC_NS);      
+      wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     }
 
@@ -264,64 +295,64 @@ void testbench::initiator_thread(void) {
 	assert(TLBHIT_CHECK(*debug));
 	assert(CACHEWRITEMISS_CHECK(*debug));
       }
-      
-      wait(LOCAL_CLOCK,sc_core::SC_NS);      
+
+      wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     }
 
     v::info << name() << " ************************************************************ " << v::endl;
     v::info << name() << " *  Diagnostic Lookup Data PDC (without causing AMBA reads)   " << v::endl;
     v::info << name() << " *  (Check all the 8 Data TLBs)                               " << v::endl;
-    v::info << name() << " ************************************************************ " << v::endl;    
+    v::info << name() << " ************************************************************ " << v::endl;
 
     // VPN: 0x1041 -> PTE: 0x00000402 (PTN: 0x4, ET 0x2 (Phy: 0x4000 - 0x4fff)
     data = dread(0x1041003, 4, 6, 0, 0, 0, debug);
     v::info << this->name() << "Diagnostic lookup DPDC with VPN: 0x1041 returned PTE: " << std::hex << data << v::endl;
     assert(data==0x00000402);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // VPN: 0x1042 -> PTE: 0x00000502 (PTN: 0x5, ET 0x2 (Phy: 0x5000 - 0x5fff)
     data = dread(0x1042003, 4, 6, 0, 0, 0, debug);
     v::info << this->name() << "Diagnostic lookup DPDC with VPN: 0x1042 returned PTE: " << std::hex << data << v::endl;
     assert(data==0x00000502);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // VPN: 0x1043 -> PTE: 0x00000602 (PPN: 0x6, ET 0x2 (Phy: 0x6000 - 0x6fff)
     data = dread(0x1043003, 4, 6, 0, 0, 0, debug);
     v::info << this->name() << "Diagnostic lookup DPDC with VPN: 0x1043 returned PTE: " << std::hex << data << v::endl;
     assert(data==0x00000602);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // VPN: 0x1044 -> PTE: 0x00000702 (PPN: 0x7, ET 0x2 (Phy: 0x7000 - 0x7fff)
     data = dread(0x1044003, 4, 6, 0, 0, 0, debug);
     v::info << this->name() << "Diagnostic lookup DPDC with VPN: 0x1044 returned PTE: " << std::hex << data << v::endl;
     assert(data==0x00000702);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // VPN: 0x1045 -> PTE: 0x00000802 (PPN: 0x8, ET 0x2 (Phy: 0x8000 - 0x8fff)
     data = dread(0x1045003, 4, 6, 0, 0, 0, debug);
     v::info << this->name() << "Diagnostic lookup DPDC with VPN: 0x1045 returned PTE: " << std::hex << data << v::endl;
     assert(data==0x00000802);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // VPN: 0x1046 -> PTE: 0x00000902 (PPN: 0x9, ET 0x2 (Phy: 0x9000 - 0x9fff)
     data = dread(0x1046003, 4, 6, 0, 0, 0, debug);
     v::info << this->name() << "Diagnostic lookup DPDC with VPN: 0x1046 returned PTE: " << std::hex << data << v::endl;
     assert(data==0x00000902);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // VPN: 0x1047 -> PTE: 0x00000a02 (PPN: 0xa, ET 0x2 (Phy: 0xa000 - 0xafff)
     data = dread(0x1047003, 4, 6, 0, 0, 0, debug);
     v::info << this->name() << "Diagnostic lookup DPDC with VPN: 0x1047 returned PTE: " << std::hex << data << v::endl;
     assert(data==0x00000a02);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
 
     // VPN: 0x1048 -> PTE: 0x00000b02 (PPN: 0xb, ET 0x2 (Phy: 0xb000 - 0xbfff)
     data = dread(0x1048003, 4, 6, 0, 0, 0, debug);
@@ -335,7 +366,7 @@ void testbench::initiator_thread(void) {
     v::info << this->name() << "Provoke miss on diagnostic lookup for VPN: 0x1049 - returned PTE: " << std::hex << data << v::endl;
     assert(data==0);
 
-    wait(LOCAL_CLOCK,sc_core::SC_NS); 
+    wait(LOCAL_CLOCK,sc_core::SC_NS);
     sc_core::sc_stop();
   }
 }

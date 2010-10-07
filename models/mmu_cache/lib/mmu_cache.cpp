@@ -1,20 +1,51 @@
-// ***********************************************************************
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
-// *                                                                     *
-// * File:       mmu_cache.cpp - Class definition of a cache-subsystem.  *
-// *             The cache-subsystem envelopes an instruction cache,     *
-// *             a data cache and a memory management unit.              *
-// *             The mmu_cache class provides two TLM slave interfaces   *
-// *             for connecting the cpu to the caches and an AHB master  *
-// *             interface for connection to the main memory.            * 
-// *                                                                     *
-// * Modified on $Date$   *
-// *          at $Revision$                                        *
-// *                                                                     *
-// * Principal:  European Space Agency                                   *
-// * Author:     VLSI working group @ IDA @ TUBS                         *
-// * Maintainer: Thomas Schuster                                         *
-// ***********************************************************************
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      mmu_cache.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Class definition of a cache-subsystem.
+//             The cache-subsystem envelopes an instruction cache,
+//             a data cache and a memory management unit.
+//             The mmu_cache class provides two TLM slave interfaces
+//             for connecting the cpu to the caches and an AHB master
+//             interface for connection to the main memory.
+//
+// Method:
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #include "mmu_cache.h"
 
@@ -45,10 +76,10 @@ mmu_cache::mmu_cache(unsigned int icen,
 		     unsigned int dtlb_num,
 		     unsigned int tlb_type,
 		     unsigned int tlb_rep,
-		     unsigned int mmupgsz,   
-		     sc_core::sc_module_name name, 
-		     unsigned int id, 
-		     sc_core::sc_time icache_hit_read_response_delay, 
+		     unsigned int mmupgsz,
+		     sc_core::sc_module_name name,
+		     unsigned int id,
+		     sc_core::sc_time icache_hit_read_response_delay,
 		     sc_core::sc_time icache_miss_read_response_delay,
 		     sc_core::sc_time dcache_hit_read_response_delay,
 		     sc_core::sc_time dcache_miss_read_response_delay,
@@ -56,10 +87,10 @@ mmu_cache::mmu_cache(unsigned int icen,
 		     sc_core::sc_time itlb_hit_response_delay,
 		     sc_core::sc_time itlb_miss_response_delay,
 		     sc_core::sc_time dtlb_hit_response_delay,
-		     sc_core::sc_time dtlb_miss_response_delay) : sc_module(name), 
-			icio("icio"), 
+		     sc_core::sc_time dtlb_miss_response_delay) : sc_module(name),
+			icio("icio"),
 			dcio("dcio"),
-			ahb_master("ahb_master_socket", amba::amba_AHB, amba::amba_LT, false), 
+			ahb_master("ahb_master_socket", amba::amba_AHB, amba::amba_LT, false),
            		m_icen(icen),
 		        m_dcen(dcen),
 			m_ilram(ilram),
@@ -67,8 +98,8 @@ mmu_cache::mmu_cache(unsigned int icen,
 			m_dlram(dlram),
                         m_dlramstart(dlramstart),
 			m_mmu_en(mmu_en),
-			master_id(id), 
-			m_txn_count(0), 
+			master_id(id),
+			m_txn_count(0),
 			m_data_count(0),
 			m_bus_granted(false),
 			current_trans(NULL),
@@ -82,7 +113,7 @@ mmu_cache::mmu_cache(unsigned int icen,
   // todo
 
   // create mmu (if required)
-  m_mmu = (mmu_en==1)? new mmu("mmu", 
+  m_mmu = (mmu_en==1)? new mmu("mmu",
 		(mmu_cache_if *)this,
 		itlb_hit_response_delay,
 		itlb_miss_response_delay,
@@ -101,7 +132,7 @@ mmu_cache::mmu_cache(unsigned int icen,
 		mmu_en,
 		icache_hit_read_response_delay,
 		icache_miss_read_response_delay,
-		isets, 
+		isets,
 		isetsize,
  	        isetlock,
 		ilinesize,
@@ -147,7 +178,7 @@ mmu_cache::mmu_cache(unsigned int icen,
 
   // initialize cache control registers
   CACHE_CONTROL_REG = 0;
-	
+
 }
 
 /// TLM forward transport for icio socket
@@ -167,21 +198,21 @@ void mmu_cache::icio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 
   unsigned int * debug = iext->debug;
 
-  if(cmd==tlm::TLM_READ_COMMAND) 
+  if(cmd==tlm::TLM_READ_COMMAND)
   {
-    // instruction scratchpad enabled && address points into selecte 16MB region 
+    // instruction scratchpad enabled && address points into selecte 16MB region
     if(m_ilram && (((adr >> 24) & 0xff)==m_ilramstart)) {
 
-	ilocalram->read((unsigned int)adr, ptr, len, &delay, debug); 
+	ilocalram->read((unsigned int)adr, ptr, len, &delay, debug);
 
     // instruction cache access
     } else {
 
     	icache->mem_read((unsigned int)adr, ptr, len, &delay, debug);
-    	//v::info << name() << "ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr << v::endl;    
+    	//v::info << name() << "ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr << v::endl;
     }
-  } 
-  else if(cmd==tlm::TLM_WRITE_COMMAND) 
+  }
+  else if(cmd==tlm::TLM_WRITE_COMMAND)
   {
     v::info << name() << "Command not valid for instruction cache (tlm_write)" << v::endl;
   }
@@ -190,7 +221,7 @@ void mmu_cache::icio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 
 /// TLM forward transport for dcio socket
 void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core::sc_time& delay) {
- 
+
   // extract payload
   tlm::tlm_command cmd = tran.get_command();
   sc_dt::uint64    adr = tran.get_address();
@@ -210,7 +241,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
   if (asi == 2) {
 
     if (cmd==tlm::TLM_READ_COMMAND) {
-	
+
       v::info << this->name() << "System Registers read with ASI 0x2 - addr:" << std::hex << adr << v::endl;
       if (adr == 0) {
 	// cache control register
@@ -228,7 +259,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 	v::warn << this->name() << "Address not valid for read with ASI 0x2" << v::endl;
 	*ptr = 0;
       }
-    } 
+    }
     else if (cmd==tlm::TLM_WRITE_COMMAND) {
 
       v::info << this->name() << "System Register write with ASI 0x2 - addr:" << std::hex << adr << v::endl;
@@ -259,7 +290,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
   else if (asi == 0x5) {
 
     if (cmd==tlm::TLM_READ_COMMAND) {
-	
+
       v::info << this->name() << "Diagnostic read from instruction PDC (ASI 0x5)" << v::endl;
       if (m_mmu_en) { m_mmu->diag_read_itlb(adr, (unsigned int *)ptr); } else { assert(false); }
     }
@@ -267,13 +298,13 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 
       v::info << this->name() << "Diagnostic write to instruction PDC (ASI 0x5)" << v::endl;
       if (m_mmu_en) { m_mmu->diag_write_itlb(adr, (unsigned int *)ptr); } else { assert(false); }
-    }	
+    }
   }
   // diagnostic access to data or shared instruction and data PDC
   else if (asi == 0x6) {
 
     if (cmd==tlm::TLM_READ_COMMAND) {
-	
+
       v::info << this->name() << "Diagnostic read from data (or shared) PDC (ASI 0x6)" << v::endl;
       if (m_mmu_en) { m_mmu->diag_read_dctlb(adr, (unsigned int *)ptr); } else { assert(false); }
     }
@@ -330,7 +361,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
   }
   // access data cache data
   else if (asi == 0xf) {
-	
+
     if (cmd==tlm::TLM_READ_COMMAND) {
       v::info << this->name() << "ASI read data cache entry" << v::endl;
       dcache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr, &delay);
@@ -374,7 +405,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
     if (m_mmu_en == 0x1) {
 
       if (cmd==tlm::TLM_READ_COMMAND) {
-      
+
 	v::info << this->name() << "MMU register read with ASI 0x19 - addr:" << std::hex << adr << v::endl;
       	if (adr==0x000) {
 	  // MMU Control Register
@@ -440,25 +471,25 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core:
 
     if (cmd==tlm::TLM_READ_COMMAND) {
 
-      // instruction scratchpad enabled && address points into selected 16 MB region 
+      // instruction scratchpad enabled && address points into selected 16 MB region
       if (m_ilram && (((adr >> 24) & 0xff)==m_ilramstart)) {
-		
+
 	ilocalram->read((unsigned int)adr, ptr, len, &delay, debug);
 
       // data scratchpad enabled && address points into selected 16MB region
       } else if (m_dlram && (((adr >> 24) & 0xff)==m_dlramstart)) {
 
 	dlocalram->read((unsigned int)adr, ptr, len, &delay, debug);
-	
+
       // cache access || bypass || direct mmu
       } else {
 
 	dcache->mem_read((unsigned int)adr, ptr, len, &delay, debug);
-      	// v::info << name() << "DCIO Socket data received (tlm_read): " << std::hex << *(unsigned int*)ptr << v::endl;    
+      	// v::info << name() << "DCIO Socket data received (tlm_read): " << std::hex << *(unsigned int*)ptr << v::endl;
         // no dcache present - bypass
       }
     }
-    else if(cmd==tlm::TLM_WRITE_COMMAND) 
+    else if(cmd==tlm::TLM_WRITE_COMMAND)
     {
       // instruction scratchpad enabled && address points into selected 16 MB region
       if (m_ilram && (((adr >> 24) & 0xff)==m_ilramstart)) {
@@ -509,7 +540,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data, unsigned int 
 	ahb_master.get_extension<amba::tag_id>(m_id, *gp);
 	m_id->value=master_id;
 	ahb_master.validate_extension<amba::tag_id>(*gp);
-	
+
 	// issue transaction
 	ahb_master->b_transport(*gp, delay);
 
@@ -545,10 +576,10 @@ void mmu_cache::mem_read(unsigned int addr, unsigned char * data, unsigned int l
 
 	//amba::cacheable_access* cachable;
 	//ahb_master.validate_extension<amba::cacheable_access>(*gp);
-	
+
 	// issue transaction
 	ahb_master->b_transport(*gp, delay);
-	
+
 	// burn the time
 	wait(delay);
 	ahb_master.release_transaction(gp);
@@ -562,7 +593,7 @@ void mmu_cache::write_ccr(unsigned char * data, unsigned int len, sc_core::sc_ti
 
 	memcpy(&tmp, data, len);
 
-	// [DS] data cache snoop enable (todo) 
+	// [DS] data cache snoop enable (todo)
 	if (tmp & (1<<23)) {}
 	// [FD] dcache flush (do not set; always reads as zero)
 	if (tmp & (1<<22)) { dcache->flush(delay, &dummy); }

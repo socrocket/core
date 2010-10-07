@@ -1,21 +1,52 @@
-// ***********************************************************************/
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-// *                                                                     */
-// * File:       main.cpp - Top level file (sc_main) for                 */
-// *             lt_ct_cacheline_test. This test focusses on the         */
-// *             replacement and invalidation of cacheline elements.     */
-// *	         MMU and localrams are disabled. The caches have two     */
-// *	         sets and a size of 64kb each. The size of the           */
-// *             cachelines is set to the maximum (32 bytes).            */        
-// *                                                                     */
-// *                                                                     */
-// * Modified on $Date$   */
-// *          at $Revision$                                        */
-// *                                                                     */
-// * Principal:  European Space Agency                                   */
-// * Author:     VLSI working group @ IDA @ TUBS                         */
-// * Maintainer: Thomas Schuster                                         */
-// ***********************************************************************/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//**********************************************************************/
+// Title:      main.cpp
+//
+// ScssId:
+//                                                                     */
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform     */
+//
+// Purpose:    Top level file (sc_main) for                 */
+//             lt_ct_cacheline_test. This test focusses on the         */
+//             replacement and invalidation of cacheline elements.     */
+//	         MMU and localrams are disabled. The caches have two     */
+//	         sets and a size of 64kb each. The size of the           */
+//             cachelines is set to the maximum (32 bytes).            */
+//                                                                     */
+//                                                                     */
+// Method:
+//
+// Modified on $Date$   */
+//          at $Revision$                                        */
+//          by $Author$
+//                                                                     */
+// Principal:  European Space Agency                                   */
+// Author:     VLSI working group @ IDA @ TUBS                         */
+// Maintainer: Thomas Schuster                                         */
+// Reviewed:
+//**********************************************************************/
 
 
 #include "tlm.h"
@@ -41,7 +72,7 @@
 //                                 |  mmu_cache (lt)   |
 //                                 | ----------------- |
 // --------   TLM2 Generic Payl.   | | ivectorcache  | |
-// |      |-----------|------------| ----------------- |                       -------------   
+// |      |-----------|------------| ----------------- |                       -------------
 // |      |instruction|icio target | ----------------- |     AHB Payload       |           |
 // |      |init.sock  |socket(lt)  | | dvectorcache  | |-----------|-----------| ahb_lt_ct |
 // |  tb  |-----------|------------| ----------------- | ahb_master|slave_sock | transactor|  ...
@@ -151,5 +182,5 @@ int sc_main(int argc, char** argv) {
   return 0;
 
 }
-  
- 
+
+

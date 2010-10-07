@@ -1,15 +1,44 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       defines.h - Header file with global defines             */
-/*                                                                     */
-/* Modified on $Date$                                                  */
-/*          at $Revision$                                              */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Thomas Schuster                                         */
-/***********************************************************************/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      defines.h
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Header file with global defines
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #ifndef __DEFINES_H__
 #define __DEFINES_H__
@@ -20,7 +49,7 @@
 
 // structure of a cache tag
 // ========================
-// atag  - width of the cache tag:    32bit virt. addr 
+// atag  - width of the cache tag:    32bit virt. addr
 //                                  - index bits        (log2(cache_set_size/cache_line_size))
 //                                  - offset bits       (log2(cache_line_size))
 //                                  ------------------
@@ -52,12 +81,12 @@ typedef struct {
 
 // structure of a tlb entry (page descriptor cache entry)
 // ========================
-// virtual address tag: 
+// virtual address tag:
 // - 20bit (for 4 kB page size)
 // - 19bit (for 8 kb page size)
 // - 18bit (for 16 kb page size)
 // - 17bit (for 32 kb page size)
-// 
+//
 // page descriptor cache entry
 // context tag      - ?? bits
 // page table entry - 24bit
@@ -72,12 +101,12 @@ typedef struct {
 typedef unsigned int t_VAT;
 
 // payload pointer
-typedef tlm::tlm_generic_payload *gp_ptr;  
+typedef tlm::tlm_generic_payload *gp_ptr;
 
 // Structure of the debug extension for the dcio and icio payload extensions.
 // ==========================================================================
-// [21]    MMU state    - 0 tlb hit, 1 tlb miss 
-// [20-16] TLB          - for tlb hit:  number of the tlb that delivered the hit  (!!! not implemented yet !!!) 
+// [21]    MMU state    - 0 tlb hit, 1 tlb miss
+// [20-16] TLB          - for tlb hit:  number of the tlb that delivered the hit  (!!! not implemented yet !!!)
 //                      - for tlb miss: number of the tlb that delivered the miss
 // [15]    Reserved
 // [14]    Frozen Miss  - If the cache is frozen, no new lines are allocated on a read miss.
@@ -110,7 +139,7 @@ typedef tlm::tlm_generic_payload *gp_ptr;
 // MACROS for evaluating debug information
 #define FROZENMISS_CHECK(debug) (debug & 0x2000)
 #define CACHEBYPASS_CHECK(debug) (debug & 0x1000)
-#define SCRATCHPAD_CHECK(debug) (debug & 0x800) 
+#define SCRATCHPAD_CHECK(debug) (debug & 0x800)
 
 #define CACHEREADHIT_CHECK(debug)    ((debug & 0xc) == 0)
 #define CACHEREADMISS_CHECK(debug)   ((debug & 0xc) == 4)

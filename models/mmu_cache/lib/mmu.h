@@ -1,20 +1,49 @@
-// ***********************************************************************
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
-// *                                                                     *
-// * File:       mmu.h - Class definition of a memory management unit.   *
-// *             The mmu can be configured to have split or combined     *
-// *             TLBs for instructions and data. The TLB size can be     *
-// *             configured as well. The memory page size is currently   *
-// *             currently fixed to 4kB.                                 *
-// *                                                                     *
-// *                                                                     *
-// * Modified on $Date$   *
-// *          at $Revision$                                         *
-// *                                                                     *
-// * Principal:  European Space Agency                                   *
-// * Author:     VLSI working group @ IDA @ TUBS                         *
-// * Maintainer: Thomas Schuster                                         *
-// ***********************************************************************
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      mmu.h
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Class definition of a memory management unit.
+//             The mmu can be configured to have split or combined
+//             TLBs for instructions and data. The TLB size can be
+//             configured as well. The memory page size is currently
+//             currently fixed to 4kB.
+//
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #ifndef __MMU_H__
 #define __MMU_H__
@@ -31,7 +60,7 @@
 // implementation of a memory management unit
 // ------------------------------------------
 
-/// @brief Memory Management Unit (MMU) for TrapGen LEON3 simulator 
+/// @brief Memory Management Unit (MMU) for TrapGen LEON3 simulator
 class mmu : public sc_core::sc_module, public mmu_if {
 
   public:
@@ -94,7 +123,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
 
   /// pointer to instruction tlb adaptor
   tlb_adaptor * itlb_adaptor;
-  
+
   /// pointer to data tlb adaptor
   tlb_adaptor * dtlb_adaptor;
 
@@ -102,7 +131,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
   // (depending on configuration may point to a shared tlb implementation)
   /// associative memory for instruction TLB (eventually also data tlb in shared mode)
   std::map<t_VAT, t_PTE_context> * itlb;
-  /// associative memory for data TLB (not used in shared mode) 
+  /// associative memory for data TLB (not used in shared mode)
   std::map<t_VAT, t_PTE_context> * dtlb;
 
   /// iterator for PDC lookup
@@ -127,8 +156,8 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// this field is zero.
   /// [17-16] Page size.The size of the smallest MMU page: 0 - 4kbyte, 1 - 8kbyte, <br>
   /// 2 - 16kbyte, 3 - 32kbyte.
-  /// [15] TLB disable. When set to 1, the TLB will be disabled and each data <br> 
-  /// access will generate an MMU page table walk. <br> 
+  /// [15] TLB disable. When set to 1, the TLB will be disabled and each data <br>
+  /// access will generate an MMU page table walk. <br>
   /// [14] Separate TLB. This bit is set to 1 if separate instructions <br>
   /// and data TLM are implemented. <br>
   /// [13-2] reserved <br>
@@ -154,9 +183,9 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// ------------------------------------------------------<br>
   /// The Context Table Pointer points to the Context Table in physical memory.
   /// The table is indexed by the contents of the Context Register. The Context
-  /// Table Pointer appears on bits 35 through 6 of the physical address bus during 
+  /// Table Pointer appears on bits 35 through 6 of the physical address bus during
   /// the first fetch occurring during miss processing. The context table pointed
-  /// to by the Context Table Pointer must be aligned on a boundary equal to the 
+  /// to by the Context Table Pointer must be aligned on a boundary equal to the
   /// size of the table.<br>
   /// [31-2] Context Table Pointer<br>
   unsigned int MMU_CONTEXT_TABLE_POINTER_REG;
@@ -179,8 +208,8 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// - instruction access faults<br>
   /// - data access faults<br>
   /// - translation table access faults<br>
-  /// If another instruction access fault occurs before the fault status of a 
-  /// previous instruction access fault has been read by the CPU, the MMU 
+  /// If another instruction access fault occurs before the fault status of a
+  /// previous instruction access fault has been read by the CPU, the MMU
   /// writes the status of the latest fault into the Fault Status Register,writes
   /// the faulting address into the Fault Address Register, and sets the OW bit
   /// to indicate that the previous fault status has been lost. The MMU and CPU
@@ -202,7 +231,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// [4-2] FT - Defines the Fault Type of the current fault. (see Page 257 of Sparc Ref Man.)<br>
   /// [1] FAV - The Fault Address Valid bit is set to one if the contents of the Fault
   /// Address Register are valid.<br>
-  /// [0] OW - The Overwrite bit is set to one if the Fault Status Register has been 
+  /// [0] OW - The Overwrite bit is set to one if the Fault Status Register has been
   /// written more than once by faults of the same class since the last time it was read.<br>
   unsigned int MMU_FAULT_STATUS_REG;
 

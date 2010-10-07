@@ -1,18 +1,47 @@
-// ***********************************************************************
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
-// *                                                                     *
-// * File:       ivectorcache.h - Class definition of an instruction     *
-// *             cache. The cache can be configured direct mapped or     *
-// *             set associative. Set-size, line-size and replacement    *
-// *             strategy can be defined through constructor arguments.  *
-// *                                                                     *
-// * Modified on $Date$   *
-// *          at $Revision$                                         *
-// *                                                                     *
-// * Principal:  European Space Agency                                   *
-// * Author:     VLSI working group @ IDA @ TUBS                         *
-// * Maintainer: Thomas Schuster                                         *
-// ***********************************************************************
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      ivectorcache.h
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Class definition of an instruction
+//             cache. The cache can be configured direct mapped or
+//             set associative. Set-size, line-size and replacement
+//             strategy can be defined through constructor arguments.
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #ifndef __IVECTORCACHE_H__
 #define __IVECTORCACHE_H__
@@ -24,7 +53,7 @@
 
 // implementation of cache memory and controller
 // ---------------------------------------------
-/// @brief Instruction cache implementation for TrapGen LEON3 simulator 
+/// @brief Instruction cache implementation for TrapGen LEON3 simulator
 class ivectorcache : public vectorcache {
 
  public:
@@ -49,22 +78,22 @@ class ivectorcache : public vectorcache {
   /// @param lram                              Local RAM configured
   /// @param lramstart                         The 8 MSBs of the local ram start address (16MB segment)
   /// @param lramsize                          Size of local ram (size in kbyte = 2^lramsize)
-  ivectorcache(sc_core::sc_module_name name, 
+  ivectorcache(sc_core::sc_module_name name,
  	       mmu_cache_if * _mmu_cache,
 	       mem_if * _tlb_adaptor,
 	       unsigned int mmu_en,
-	       sc_core::sc_time icache_hit_read_response_delay, 
-	       sc_core::sc_time icache_miss_read_response_delay, 
-	       unsigned int sets, 
-	       unsigned int setsize, 
+	       sc_core::sc_time icache_hit_read_response_delay,
+	       sc_core::sc_time icache_miss_read_response_delay,
+	       unsigned int sets,
+	       unsigned int setsize,
 	       unsigned int setlock,
-	       unsigned int linesize, 
+	       unsigned int linesize,
 	       unsigned int repl,
 	       unsigned int lram,
 	       unsigned int lramstart,
-	       unsigned int lramsize) : vectorcache(name, 
-						    _mmu_cache, 
-						    _tlb_adaptor, 
+	       unsigned int lramsize) : vectorcache(name,
+						    _mmu_cache,
+						    _tlb_adaptor,
 						    mmu_en,
 						    1, // burst fetch allowed
 						    icache_hit_read_response_delay,
@@ -83,6 +112,6 @@ class ivectorcache : public vectorcache {
 };
 
 #endif // __IVECTORCACHE_H__
-  
 
-  
+
+

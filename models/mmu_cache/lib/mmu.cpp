@@ -1,20 +1,51 @@
-// ***********************************************************************
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
-// *                                                                     *
-// * File:       mmu.h - Implementation of a memory management unit.     *
-// *             The mmu can be configured to have split or combined     *
-// *             TLBs for instructions and data. The TLB size can be     *
-// *             configured as well. The memory page size is currently   *
-// *             currently fixed to 4kB.                                 *
-// *                                                                     *
-// *                                                                     *
-// * Modified on $Date$   *
-// *          at $Revision$                                         *
-// *                                                                     *
-// * Principal:  European Space Agency                                   *
-// * Author:     VLSI working group @ IDA @ TUBS                         *
-// * Maintainer: Thomas Schuster                                         *
-// ***********************************************************************
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      mmu.h
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Implementation of a memory management unit.
+//             The mmu can be configured to have split or combined
+//             TLBs for instructions and data. The TLB size can be
+//             configured as well. The memory page size is currently
+//             currently fixed to 4kB.
+//
+//
+// Method:
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #include "mmu.h"
 #include "verbose.h"
@@ -62,7 +93,7 @@ mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
     // generate another associative memory (map) for data tlb
     dtlb = new std::map<t_VAT, t_PTE_context>;
     itlb_adaptor = new tlb_adaptor("dtlb_adaptor", _mmu_cache, this, dtlb, m_dtlbnum);
- 
+
     v::info << this->name() << "Created split instruction and data TLBs." << v::endl;
 
   } else {
@@ -88,20 +119,20 @@ mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
            m_idx1 = 8;
            m_idx2 = 6;
 	   m_idx3 = 6;
-	   m_vtag_width = 20; 
+	   m_vtag_width = 20;
 
 	   break;
   case 2 : // also 4 kB
            m_idx1 = 8;
            m_idx2 = 6;
            m_idx3 = 6;
-	   m_vtag_width = 20; 
+	   m_vtag_width = 20;
 	   break;
   case 3:  // 8 kB
            m_idx1 = 7;
 	   m_idx2 = 6;
 	   m_idx3 = 6;
-	   m_vtag_width = 19; 
+	   m_vtag_width = 19;
 
 	   // update MMU control register (PSZ)
 	   MMU_CONTROL_REG |= (1 << 16);
@@ -110,7 +141,7 @@ mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
            m_idx1 = 6;
            m_idx2 = 6;
            m_idx3 = 6;
-	   m_vtag_width = 18; 
+	   m_vtag_width = 18;
 
 	   // update MMU control register (PSZ)
 	   MMU_CONTROL_REG |= (2 << 16);
@@ -130,7 +161,7 @@ mmu::mmu(sc_core::sc_module_name name,            // sysc module name,
   }
 
 }
- 
+
 // look up a tlb (page descriptor cache)
 // and return physical address
 unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size, sc_core::sc_time * t, unsigned int * debug) {
@@ -145,7 +176,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   // up the three level page table in main memory. The indices are extracted from
   // the tag and translated to byte addresses (shift left 2 bit)
   unsigned int idx1 = (vpn >> (m_idx2+m_idx3) << 2);
-  unsigned int idx2 = (vpn << (32-m_idx2-m_idx3)) >> (30-m_idx3); 
+  unsigned int idx2 = (vpn << (32-m_idx2-m_idx3)) >> (30-m_idx3);
   unsigned int idx3 = (vpn << (32-m_idx3)) >> (30-m_idx3);
 
   // locals for intermediate results
@@ -156,7 +187,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   bool context_miss = false;
 
   // search virtual address tag in ipdc (associative)
-  v::info << this->name() << "lookup with VPN: " << std::hex << vpn << " and OFFSET: " << std::hex << offset << v::endl; 
+  v::info << this->name() << "lookup with VPN: " << std::hex << vpn << " and OFFSET: " << std::hex << offset << v::endl;
   pdciter = tlb->find(vpn);
 
   v::info << this->name() << "pdciter->first: " << std::hex << pdciter->first << " pdciter->second: " << std::hex << (pdciter->second).pte << v::endl;
@@ -186,7 +217,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     else {
 
       v::info << this->name() << "CONTEXT miss" << v::endl;
-      
+
       // update debug information
       TLBMISS_SET(*debug);
       context_miss = true;
@@ -206,12 +237,12 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   // [31-2] PTP - Page Table Pointer. Physical address of the base of a next-level
   // page table. The PTP appears on bits 35 (32) through 6 of the physical address bus
   // during miss processing. The page table pointed to by a PTP must be aligned on a
-  // boundary equal to the size of the page table. The sizes of the three levels of 
+  // boundary equal to the size of the page table. The sizes of the three levels of
   // page tables are: level 1 - 1024 bytes, level 2 - 256 bytes, level 3 - 256 bytes.
   // [1-0] ET - Entry type. (0 - reserved, 1 - PTD, 2 - PTE, 3 - reserved)
 
   // COMPOSITION OF A PAGE TABLE ENTRY (PTE)
-  // [31-8] PPN - Physical Page Number. The PPN appears on bits 35 through 12 of the 
+  // [31-8] PPN - Physical Page Number. The PPN appears on bits 35 through 12 of the
   // physical address bus when a translation completes (for 4kb default configuration)
   // [7] C - Cacheable. If this bit is one, the page is cacheable by an instruction
   // and/or data cache.
@@ -222,7 +253,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
   // [4-2] Access Permissions (see page 248 of Sparc Reference Manual)
   // [1-0] ET - Entry type. (0 - reserved, 1 - PTD, 2 - PTE, 3 - reserved)
 
-  // tlb miss processing  
+  // tlb miss processing
   v::info << this->name() << "START TLB MISS PROCESSING FOR VIRTUAL ADDRESS: " << std::hex << addr << v::endl;
 
   // ***************************************
@@ -246,7 +277,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     // In case of a virtual address tag miss a new PDC entry is created.
     // For context miss the existing entry will be replaced.
     if ((!context_miss)&&(tlb->size()==tlb_size)) {
-      
+
       v::info << this->name() << "TLB full" << std::hex << data << v::endl;
       // kick out an entry to make room for a new one
       // todo !!
@@ -256,7 +287,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     tmp.context = MMU_CONTEXT_REG;
     tmp.pte     = data;
 
-    (*tlb)[vpn] = tmp; 
+    (*tlb)[vpn] = tmp;
 
     // build physical address from PTE and offset
     paddr = (((tmp.pte >> 8) << (32 - m_vtag_width))|offset);
@@ -264,7 +295,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     v::info << this->name() << "Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr << v::endl;
     return(paddr);
   }
-  else if ((data & 0x3) == 0x1) { 
+  else if ((data & 0x3) == 0x1) {
 
     v::info << this->name() << "1st-Level Page Table returned PTD: " << std::hex << data << v::endl;
 
@@ -287,7 +318,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     // In case of a virtual address tag miss a new PDC entry is created.
     // For context miss the existing entry will be replaced.
     if ((!context_miss)&&(tlb->size()==tlb_size)) {
-      
+
       v::info << this->name() << "TLB full" << std::hex << data << v::endl;
       // kick out an entry to make room for a new one
       // todo !!
@@ -297,7 +328,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     tmp.context = MMU_CONTEXT_REG;
     tmp.pte     = data;
 
-    (*tlb)[vpn] = tmp; 
+    (*tlb)[vpn] = tmp;
 
     // build physical address from PTE and offset
     paddr = (((tmp.pte >> 8) << (32 - m_vtag_width))|offset);
@@ -305,7 +336,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     v::info << this->name() << "Mapping complete - Virtual Addr: " << std::hex << addr << " Physical Addr: " << std::hex << paddr << v::endl;
     return(paddr);
   }
-  else if ((data & 0x3) == 0x1) { 
+  else if ((data & 0x3) == 0x1) {
 
     v::info << this->name() << "2-Level Page Table returned PTD: " << std::hex << data << v::endl;
 
@@ -328,7 +359,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     // In case of a virtual address tag miss a new PDC entry is created.
     // For context miss the existing entry will be replaced.
     if ((!context_miss)&&(tlb->size()==tlb_size)) {
-      
+
       v::info << this->name() << "TLB full" << std::hex << data << v::endl;
       // kick out an entry to make room for a new one
       // todo !!
@@ -338,7 +369,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr, std::map<t_VAT, t_PTE_context> *
     tmp.context = MMU_CONTEXT_REG;
     tmp.pte     = data;
 
-    (*tlb)[vpn] = tmp; 
+    (*tlb)[vpn] = tmp;
 
     // build physical address from PTE and offset
     paddr = (((tmp.pte >> 8) << (32 - m_vtag_width))|offset);
@@ -429,9 +460,9 @@ unsigned int mmu::read_mfar() {
 //            LRU counter is less than the stored data
 //            value, increment its counter. Otherwise,
 //            leave the LRU counter unchanged. In any
-//            case, zero the LRU counter of the addressed 
+//            case, zero the LRU counter of the addressed
 //            PDC entry.
- 
+
 
 /// Diagnostic read of instruction PDC (ASI 0x5)
 void mmu::diag_read_itlb(unsigned int addr, unsigned int * data) {
@@ -442,7 +473,7 @@ void mmu::diag_read_itlb(unsigned int addr, unsigned int * data) {
   if ((addr & 0x3)==0x3) {
 
     pdciter = itlb->find(vpn);
-    
+
     // found something ?
     if (pdciter != itlb->end()) {
 
@@ -470,7 +501,7 @@ void mmu::diag_read_dctlb(unsigned int addr, unsigned int * data) {
   if ((addr & 0x3)==0x3) {
 
     pdciter = dtlb->find(vpn);
-    
+
     // found something ?
     if (pdciter != dtlb->end()) {
 

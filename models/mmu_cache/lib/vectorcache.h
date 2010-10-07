@@ -1,18 +1,47 @@
-// ***********************************************************************
-// * Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *
-// *                                                                     *
-// * File:       vectorcache.h - Class definition of a virtual cache     *
-// *             model. The cache can be configured direct mapped or     *
-// *             set associative. Set-size, line-size and replacement    *
-// *             strategy can be defined through constructor arguments.  *
-// *                                                                     *
-// * Modified on $Date: 2010-08-18 15:12:22 +0200 (Wed, 18 Aug 2010) $   *
-// *          at $Revision: 47 $                                         *
-// *                                                                     *
-// * Principal:  European Space Agency                                   *
-// * Author:     VLSI working group @ IDA @ TUBS                         *
-// * Maintainer: Thomas Schuster                                         *
-// ***********************************************************************
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      vectorcache.h
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Class definition of a virtual cache
+//             model. The cache can be configured direct mapped or
+//             set associative. Set-size, line-size and replacement
+//             strategy can be defined through constructor arguments.
+//
+// Modified on $Date: 2010-08-18 15:12:22 +0200 (Wed, 18 Aug 2010) $
+//          at $Revision: 47 $
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
 
 #ifndef __VECTORCACHE_H__
 #define __VECTORCACHE_H__
@@ -35,12 +64,12 @@ class vectorcache : public sc_core::sc_module, public cache_if {
 
  public:
 
-  // external interface functions  
+  // external interface functions
   // -----------------------------------------------------------
   /// read from cache
   virtual void mem_read(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug);
   /// write through cache
-  virtual void mem_write(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug); 
+  virtual void mem_write(unsigned int address, unsigned char * data, unsigned int len, sc_core::sc_time * t, unsigned int * debug);
   /// flush cache
   virtual void flush(sc_core::sc_time * t, unsigned int * debug);
   /// read data cache tags (ASI 0xe)
@@ -62,7 +91,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
   virtual void dbg_out(unsigned int line);
 
  protected:
- 
+
   // internal behavioral functions
   // -----------------------------
   /// reads a cache line from a cache set
@@ -92,18 +121,18 @@ class vectorcache : public sc_core::sc_module, public cache_if {
   /// @param lram                              Local RAM configured
   /// @param lramstart                         The 8 MSBs of the local ram start address (16MB segment)
   /// @param lramsize                          Size of local ram (size in kbyte = 2^lramsize)
-  vectorcache(sc_core::sc_module_name name, 
+  vectorcache(sc_core::sc_module_name name,
  	       mmu_cache_if * _mmu_cache,
 	       mem_if * _tlb_adaptor,
 	       unsigned int mmu_en,
   	       unsigned int burst_en,
-	       sc_core::sc_time hit_read_response_delay, 
-	       sc_core::sc_time miss_read_response_delay, 
+	       sc_core::sc_time hit_read_response_delay,
+	       sc_core::sc_time miss_read_response_delay,
 	       sc_core::sc_time write_response_delay,
-	       unsigned int sets, 
-	       unsigned int setsize, 
+	       unsigned int sets,
+	       unsigned int setsize,
   	       unsigned int setlock,
-	       unsigned int linesize, 
+	       unsigned int linesize,
 	       unsigned int repl,
 	       unsigned int lram,
 	       unsigned int lramstart,
@@ -150,7 +179,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
   unsigned int m_burst_en;
   /// pseudo random pointer
   unsigned int m_pseudo_rand;
-  
+
   // cache parameters
   // ----------------
   /// number of cache sets (000 - direct mapped, 001 - 2x, 010 - 3x, 011 -4x
