@@ -91,7 +91,7 @@ def setprops(bld):
   """set svn properties for all files (searches for Author$)"""
   import subprocess
   # grep --exclude=**.svn** -rn '\$Date\$' tlmsignals models | cut -f1 -d: | xargs -I {} svn propset svn:keywords "Date Revision" {}
-  grep = subprocess.Popen(["grep", "--exclude=**.svn**", "-rn", "\$Author\$", "signalkit", "models", "tests"], stdout=subprocess.PIPE)
+  grep = subprocess.Popen(["grep", "--exclude=**.svn**", "-rn", "\$Author\$", "signalkit", "common", "models", "tests"], stdout=subprocess.PIPE)
   cut = subprocess.Popen(["cut", "-f1", "-d:"], stdin=grep.stdout, stdout=subprocess.PIPE)
   xargs = subprocess.Popen(["xargs", "-I", "{}", "svn", "propset", "svn:keywords", "Author Date Revision", "{}"], stdin=cut.stdout, stdout=subprocess.PIPE)
   print xargs.communicate()[0]        
