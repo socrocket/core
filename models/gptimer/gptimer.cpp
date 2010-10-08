@@ -199,10 +199,7 @@ void CGPTimer::ticking() {
 /* Disable or enable CGPCounter when DHALT arrives
  * The value will be directly fetched in conf_read to show the right value in the conf registers.
  */
-void CGPTimer::do_dhalt(const bool &value,
-                        signalkit::signal_in_if<bool> *signal,
-                        signalkit::signal_out_if<bool> *sender,
-                        const sc_core::sc_time &time) {
+void CGPTimer::do_dhalt(const bool &value, const sc_core::sc_time &time) {
     if (r[CONF].b[CONF_DF]) {
         if (value) {
             for (std::vector<CGPCounter *>::iterator iter = counter.begin(); iter
@@ -260,10 +257,7 @@ void CGPTimer::conf_read() {
     r[CONF] = (r[CONF] & 0x0000030) | (conf_defaults & 0x0000000F);
 }
 
-void CGPTimer::do_reset(const bool &value,
-                        signalkit::signal_in_if<bool> *signal,
-                        signalkit::signal_out_if<bool> *sender,
-                        const sc_core::sc_time &time) {
+void CGPTimer::do_reset(const bool &value, const sc_core::sc_time &time) {
     if (!value) {
         r[SCALER] = 0xFFFFFFFF;
         r[SCRELOAD] = 0xFFFFFFFF;

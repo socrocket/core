@@ -131,8 +131,6 @@ class Mctrl : public gs::reg::gr_device,
 
         //thread process to initialize MCTRL (set registers, define address spaces, etc.)
         void reset_mctrl(const bool &value,
-                         signalkit::signal_in_if<bool> *signal,
-                         signalkit::signal_out_if<bool> *sender,
                          const sc_core::sc_time &time);
 
         //callbacks reacting on register access

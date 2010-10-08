@@ -57,8 +57,6 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
     public:
         typedef void(MODULE::*t_callback)(const TYPE &value,
                                           const unsigned int &channel,
-                                          signal_in_if<TYPE> *signal,
-                                          signal_out_if<TYPE> *sender,
                                           const sc_core::sc_time &time);
 
         signal_infield(sc_core::sc_module_name mn = NULL) :
@@ -99,8 +97,7 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
             if (m_callback) {
                 MODULE *mod = this->get_module();
                 if (mod) {
-                    (mod->*m_callback)(value->second, channel->second, this,
-                            sender, time);
+                    (mod->*m_callback)(value->second, channel->second, time);
                 }
             }
         }

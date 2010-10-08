@@ -83,16 +83,12 @@ CAPB_CT_RTL::CAPB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base,
             << m_irqi;
 }
 
-void CAPB_CT_RTL::onreset(const bool &value,
-                          signalkit::signal_in_if<bool> *signal,
-                          signalkit::signal_out_if<bool> *sender,
+void CAPB_CT_RTL::onreset(const bool &value, 
                           const sc_core::sc_time &time) {
     m_reset.write(value);
 }
 
 void CAPB_CT_RTL::onirq(const uint32_t &value,
-                        signalkit::signal_in_if<uint32_t> *signal,
-                        signalkit::signal_out_if<uint32_t> *sender,
                         const sc_core::sc_time &time) {
     m_irqi.write(value);
 }

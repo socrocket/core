@@ -64,8 +64,7 @@ class tlmin_scout_adapter : public signal_module<tlmin_scout_adapter<INTYPE,
         }
 
     private:
-        void oninput(const INTYPE &value, signal_in_if<INTYPE> *signal,
-                     signal_out_if<INTYPE> *sender,
+        void oninput(const INTYPE &value,
                      const sc_core::sc_time &time) {
             OUTTYPE o = value;
             out.write(o);

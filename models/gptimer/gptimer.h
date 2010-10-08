@@ -166,14 +166,10 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
         void conf_read();
 
         /// Execute a reset on the timer when the rst signal arrives.
-        void do_reset(const bool &value, signalkit::signal_in_if<bool> *signal,
-                      signalkit::signal_out_if<bool> *sender,
-                      const sc_core::sc_time &time);
+        void do_reset(const bool &value, const sc_core::sc_time &time);
 
         /// Performs the stopping and starting of all counter when dhalt arrives.
-        void do_dhalt(const bool &value, signalkit::signal_in_if<bool> *signal,
-                      signalkit::signal_out_if<bool> *sender,
-                      const sc_core::sc_time &time);
+        void do_dhalt(const bool &value, const sc_core::sc_time &time);
 
         /// Diagnostic SC_THREAD
         ///

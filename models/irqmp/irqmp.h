@@ -87,10 +87,7 @@ class CIrqmp : public gs::reg::gr_device, public signalkit::signal_module<
 
         //function prototypes
         void end_of_elaboration();
-        void reset_registers(const bool &value,
-                             signalkit::signal_in_if<bool> *signal,
-                             signalkit::signal_out_if<bool> *sender,
-                             const sc_core::sc_time &time);
+        void reset_registers(const bool &value, const sc_core::sc_time &time);
 
         /// bus communication
 
@@ -108,9 +105,7 @@ class CIrqmp : public gs::reg::gr_device, public signalkit::signal_module<
 
         /// Processor communication
         void register_irq(const uint32_t &cleared_irq,
-                          const unsigned int &i_cpu, signalkit::signal_in_if<
-                                  uint32_t> *signal, signalkit::signal_out_if<
-                                  uint32_t> *sender,
+                          const unsigned int &i_cpu, 
                           const sc_core::sc_time &time);
 
         /// Bus and processor communication
@@ -121,8 +116,6 @@ class CIrqmp : public gs::reg::gr_device, public signalkit::signal_module<
         ///processor communication
         void clear_acknowledged_irq(const uint32_t &cleared_irq,
                                     const unsigned int &i_cpu,
-                                    signalkit::signal_in_if<uint32_t> *signal,
-                                    signalkit::signal_out_if<uint32_t> *sender,
                                     const sc_core::sc_time &time);
 
     private:

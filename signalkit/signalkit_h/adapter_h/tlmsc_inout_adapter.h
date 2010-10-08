@@ -69,8 +69,7 @@ class tlmsc_inout_adapter : public signal_module<tlmsc_inout_adapter<INTYPE,
         }
 
     private:
-        void ontlm(const INTYPE &value, signal_in_if<INTYPE> *signal,
-                   signal_out_if<INTYPE> *sender, const sc_core::sc_time &time) {
+        void ontlm(const INTYPE &value, const sc_core::sc_time &time) {
             OUTTYPE o = value;
             sc.write(o);
         }

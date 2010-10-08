@@ -129,14 +129,9 @@ class CAPB_CT_RTL : public sc_module, public signalkit::signal_module<
         CAPB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base,
                     sc_dt::uint64 size);
 
-        void onreset(const bool &value, signalkit::signal_in_if<bool> *signal,
-                     signalkit::signal_out_if<bool> *sender,
-                     const sc_core::sc_time &time);
+        void onreset(const bool &value, const sc_core::sc_time &time);
 
-        void onirq(const uint32_t &value,
-                   signalkit::signal_in_if<uint32_t> *signal,
-                   signalkit::signal_out_if<uint32_t> *sender,
-                   const sc_core::sc_time &time);
+        void onirq(const uint32_t &value, const sc_core::sc_time &time);
 
         /// Takes apbo inputs and converts them into TLM communication and irq signals.
         void apbo_ctrl();

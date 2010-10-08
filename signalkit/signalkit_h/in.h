@@ -54,8 +54,6 @@ template<class TYPE, class MODULE>
 class signal_in : public signal_base<TYPE, MODULE> , public signal_in_if<TYPE> {
     public:
         typedef void(MODULE::*t_callback)(const TYPE &value,
-                                          signal_in_if<TYPE> *signal,
-                                          signal_out_if<TYPE> *sender,
                                           const sc_core::sc_time &time);
 
         signal_in(sc_core::sc_module_name mn = NULL) :
@@ -78,7 +76,7 @@ class signal_in : public signal_base<TYPE, MODULE> , public signal_in_if<TYPE> {
             if (m_callback) {
                 MODULE *mod = this->get_module();
                 if (mod) {
-                    (mod->*m_callback)(this->m_value, this, sender, time);
+                    (mod->*m_callback)(this->m_value, time);
                 }
             }
         }

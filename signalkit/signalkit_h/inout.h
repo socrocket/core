@@ -55,8 +55,6 @@ class signal_inout : public signal_out<TYPE, MODULE> , public signal_in<TYPE,
         MODULE> {
     public:
         typedef void(MODULE::*t_callback)(const TYPE &value,
-                                          signal_in_if<TYPE> *signal,
-                                          signal_out_if<TYPE> *sender,
                                           const sc_core::sc_time &time);
 
         signal_inout(sc_core::sc_module_name mn = NULL) :

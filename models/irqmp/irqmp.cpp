@@ -212,10 +212,7 @@ void CIrqmp::end_of_elaboration() {
 
 /// Reset registers to default values
 /// Process sensitive to reset signal
-void CIrqmp::reset_registers(const bool &value,
-                             signalkit::signal_in_if<bool> *signal,
-                             signalkit::signal_out_if<bool> *sender,
-                             const sc_core::sc_time &time) {
+void CIrqmp::reset_registers(const bool &value, const sc_core::sc_time &time) {
 #if 0
 #ifdef COUT_TIMING
     cout << endl << "reset_registers called by trigger at:" << sc_time_stamp();
@@ -277,8 +274,6 @@ void CIrqmp::reset_registers(const bool &value,
 ///
 /// process sensitive to apbi.pirq
 void CIrqmp::register_irq(const uint32_t &value, const unsigned int &channel,
-                          signalkit::signal_in_if<uint32_t> *signal,
-                          signalkit::signal_out_if<uint32_t> *sender,
                           const sc_core::sc_time &time) {
 
     //static bool delay = true;
@@ -424,8 +419,6 @@ void CIrqmp::clear_forced_ir() {
 /// process sensitive to irqi
 void CIrqmp::clear_acknowledged_irq(const uint32_t &cleared_irq,
                                     const unsigned int &i_cpu,
-                                    signalkit::signal_in_if<uint32_t> *signal,
-                                    signalkit::signal_out_if<uint32_t> *sender,
                                     const sc_core::sc_time &time) {
 #if 0
 #ifdef COUT_TIMING

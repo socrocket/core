@@ -227,13 +227,11 @@ void Mctrl::end_of_elaboration() {
     } //if sden
 
     //initialize mctrl according to generics
-    reset_mctrl(false, NULL, NULL, sc_core::SC_ZERO_TIME);
+    reset_mctrl(false, sc_core::SC_ZERO_TIME);
 }
 
 //function to initialize and reset memory address space constants
 void Mctrl::reset_mctrl(const bool &value,
-                        signalkit::signal_in_if<bool> *signal,
-                        signalkit::signal_out_if<bool> *sender,
                         const sc_core::sc_time &time) {
 
     //low active reset
