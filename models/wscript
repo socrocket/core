@@ -47,7 +47,6 @@
 top = '..'
 
 models = [
-  'apbbridge',
   'gptimer', 
   'irqmp', 
   'mmu_cache', 
