@@ -68,6 +68,7 @@ class Mctrl_tb : public sc_core::sc_module {
         //define TLM write and read transactions
         void write(uint32_t addr, uint64_t data, uint32_t width, bool apb);
         uint32_t read(uint32_t addr, uint32_t width, bool apb);
+    void check (uint32_t start, uint32_t end, uint8_t inc);
 
         //stimuli (make use of TLM write / read transaction functions defined above)
         void run();

@@ -68,17 +68,17 @@ int sc_main(int argc, char** argv) {
     const int mobile = 0;
     const int sden = 0;
 
-    //instantiate mctrl, generic memory, and testbench
-    Mctrl mctrl_inst0("mctrl_inst0", romasel, sdrasel, romaddr, rommask,
-            ioaddr, iomask, ramaddr, rammask, paddr, pmask, wprot, srbanks,
-            ram8, ram16, sepbus, sdbits, mobile, sden);
-    Generic_memory<uint8_t> generic_memory_rom("generic_memory_rom");
-    Generic_memory<uint32_t> generic_memory_io("generic_memory_io");
-    Generic_memory<uint8_t> generic_memory_sram("generic_memory_sram");
-    Generic_memory<uint32_t> generic_memory_sdram("generic_memory_sdram");
-    Mctrl_tb mctrl_tb("mctrl_tb", romasel, sdrasel, romaddr, rommask, ioaddr,
-            iomask, ramaddr, rammask, paddr, pmask, wprot, srbanks, ram8,
-            ram16, sepbus, sdbits, mobile, sden);
+  //instantiate mctrl, generic memory, and testbench
+  Mctrl mctrl_inst0("mctrl_inst0", romasel, sdrasel, romaddr, rommask, ioaddr, iomask,
+                                   ramaddr, rammask, paddr,   pmask,   wprot,  srbanks,
+                                   ram8,    ram16,   sepbus,  sdbits,  mobile, sden);
+  Generic_memory <uint8_t>  generic_memory_rom("generic_memory_rom");
+  Generic_memory <uint8_t>  generic_memory_io("generic_memory_io");
+  Generic_memory <uint8_t>  generic_memory_sram("generic_memory_sram");
+  Generic_memory <uint32_t> generic_memory_sdram("generic_memory_sdram");
+  Mctrl_tb mctrl_tb("mctrl_tb", romasel, sdrasel, romaddr, rommask, ioaddr, iomask,
+                                ramaddr, rammask, paddr,   pmask,   wprot,  srbanks,
+                                ram8,    ram16,   sepbus,  sdbits,  mobile, sden);
 
     //bus communication via amba sockets (TLM)
     mctrl_tb.apb_master_sock(mctrl_inst0.apb); //config registers
