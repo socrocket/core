@@ -62,6 +62,7 @@ def set_options(ctx):
   ctx.tool_options('compiler_cxx')
   ctx.tool_options('unittestw')
   ctx.tool_options('common', tooldir='waftools')
+  ctx.tool_options('modelsim', tooldir='waftools')
   ctx.tool_options('boost', option_group=conf)
   
   #ctx.add_option('--onlytests', action='store_true', default=True, help='Exec unit tests only', dest='only_tests')
@@ -98,7 +99,7 @@ def configure(ctx):
   #ctx.check_tool('doxygen', tooldir='waftools')
   
   ## Modelsim:
-  #ctx.check_tool('modelsim', tooldir='wadtools')
+  ctx.check_tool('modelsim', tooldir='wadtools')
   ctx.check_tool('unittestw')
   ctx.check_tool('boost')
   from os import environ

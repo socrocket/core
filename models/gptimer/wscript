@@ -45,6 +45,55 @@
 # Reviewed:
 #*********************************************************************
 top = '../..'
+vsim_conf = """
+[Library]
+modelsim = %(ROOT)s/modelsim
+grlib = %(ROOT)s/modelsim/grlib
+unisim = %(ROOT)s/modelsim/unisim
+dw02 = %(ROOT)s/modelsim/dw02
+synplify = %(ROOT)s/modelsim/synplify
+techmap = %(ROOT)s/modelsim/techmap
+spw = %(ROOT)s/modelsim/spw
+eth = %(ROOT)s/modelsim/eth
+opencores = %(ROOT)s/modelsim/opencores
+gaisler = %(ROOT)s/modelsim/gaisler
+esa = %(ROOT)s/modelsim/esa
+micron = %(ROOT)s/modelsim/micron
+work = %(path)s/work
+vsys = %(ROOT)s/modelsim/vsys
+std = $MODEL_TECH/../std
+ieee = $MODEL_TECH/../ieee
+vital2000 = $MODEL_TECH/../vital2000
+verilog = $MODEL_TECH/../verilog
+std_developerskit = $MODEL_TECH/../std_developerskit
+synopsys = $MODEL_TECH/../synopsys
+
+[vcom]
+VHDL93 = 1
+Show_source = 1
+Show_Warning1 = 0
+Show_Warning5 = 0
+Quiet = 1
+
+[vlog]
+Quiet = 1
+
+[vsim]
+VoptFlow = 0
+Resolution = 1ps
+UserTimeUnit = ns
+RunLength = 100
+IterationLimit = 5000
+BreakOnAssertion = 3
+DefaultRadix = symbolic
+TranscriptFile = transcript.txt
+PathSeparator = /
+UnbufferedOutput = 0
+
+[lmc]
+libsm = $MODEL_TECH/libsm.sl
+libhm = $MODEL_TECH/libhm.sl
+"""
 
 def set_options(ctx):
   pass 
@@ -70,16 +119,45 @@ def build(bld):
   #  uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
   #  uselib_local = 'utils signalkit',
   #)
-  
+
+  bld(
+    features     = 'modelsim',
+    target       = 'work',
+    dobefore     = "build_grlib.do",
+    name         = 'gptimer_wrapper',
+    generate     = 'gptimer_wrapper:gptimer_wrapper.h',
+    source       = ['tests/gptimer_wrapper.vhd',
+                    'tests/top_rtl.cpp'],
+    uselib       = 'AMBA GREENSOCS',
+    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+    includes     = '../utils ../../signalkit',
+    config       =  vsim_conf,
+  )
+
   #bld(
-  #  target       = 'function.gptimer',
-  #  features     = 'cxx cprogram test',
-  #  source       = 'tests/top_tlm.cpp',
+  #  target       = 'function',
+  #  features     = 'modelsim',
+  #  source       = 'tests/top_rtl.cpp',
   #  defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-  #  includes     = '. tests',
-  #  uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+  #  includes     = '. tests ../utils ../../signalkit',
+  #  #generate     = 'gptimer:gptimer2.h',
+  #  #uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+  #  uselib       = 'AMBA GREENSOCS',
   #  uselib_local = 'utils signalkit',
+  #  config       = vsim_conf,
+  #  after        = "gptimer.h",
   #)
+
+  
+  bld(
+    target       = 'function.gptimer',
+    features     = 'cxx cprogram',
+    source       = 'tests/top_tlm.cpp',
+    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+    includes     = '. tests',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib_local = 'gptimer utils signalkit common',
+  )
 
   bld(
     target       = 'prescaler.gptimer',

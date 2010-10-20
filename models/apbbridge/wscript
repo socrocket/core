@@ -30,14 +30,14 @@
 #
 # Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 #
-# Purpose:    this file contains the build system for building
-#             all model subdirectories
+# Purpose:    this file contains the build system for the grlib pnp
+#             mechanism model and all its testbenches
 #
 # Method:     $ ./waf configure; ./waf # to build it on top level
 #
-# Modified on $Date$
-#          at $Revision$
-#          by $Author$
+# Modified on $Date: 2010-10-07 19:02:15 +0200 (Thu, 07 Oct 2010) $
+#          at $Revision: 165 $
+#          by $Author: HWSWSIM $
 #
 # Principal:  European Space Agency
 # Author:     VLSI working group @ IDA @ TUBS
@@ -46,22 +46,19 @@
 #*********************************************************************
 top = '..'
 
-models = [
-  'gptimer', 
-  'irqmp', 
-  'mmu_cache', 
-  'mctrl', 
-  'pnp',
-  'utils',
-  'apbbridge',
-  'socwire',
-]
-
-def set_options(ctx): 
-  ctx.recurse(models)
+def set_options(ctx):
+  pass 
 
 def configure(ctx):
-  ctx.recurse(models)
+  pass
 
 def build(bld):
-  bld.add_subdirs(models)
+  bld(
+    target         = 'apbbridge',
+    features       = 'cxx cstaticlib',
+    source         = 'apbbridge.cpp', 
+    export_incdirs = '.',
+    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib_local   = 'utils common'
+  )
+
