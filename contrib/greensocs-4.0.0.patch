@@ -357,16 +357,3 @@ diff -Nur greensocs-4.0.0/greenreg/greenreg_socket/greenreg_ambasocket.h greenso
 +} // end namespace gs:reg
 +
 +#endif // __GREENREG_AMBASOCKET_H__
-diff -Nur greensocs-4.0.0/signalsocket/green-signal-socket/include/green_signal_h/green_signal_socket/target/target_signal_multi_socket.h greensocs-hwswsim/signalsocket/green-signal-socket/include/green_signal_h/green_signal_socket/target/target_signal_multi_socket.h
---- greensocs-4.0.0/signalsocket/green-signal-socket/include/green_signal_h/green_signal_socket/target/target_signal_multi_socket.h	2010-02-18 17:56:56.000000000 +0100
-+++ greensocs-hwswsim/signalsocket/green-signal-socket/include/green_signal_h/green_signal_socket/target/target_signal_multi_socket.h	2010-07-28 15:47:16.015956919 +0200
-@@ -43,6 +43,9 @@
-         return signal_map[EXT::ID];
-       }
-     
-+      inline unsigned char get_last_value(const unsigned int &id) {
-+        return signal_map[id];
-+      }
-       /*
-       //DEPRECATING this as the TEMPLATE version should be used now.
-       void set_source (std::string name) { 

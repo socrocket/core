@@ -514,16 +514,16 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
     gp->set_data_ptr(data);
 
     // set the burst size
-    amba::burst_size* size_ext;
-    ahb_master.validate_extension<amba::burst_size> (*gp);
-    ahb_master.get_extension<amba::burst_size> (size_ext, *gp);
+    amba::amba_burst_size* size_ext;
+    ahb_master.validate_extension<amba::amba_burst_size> (*gp);
+    ahb_master.get_extension<amba::amba_burst_size> (size_ext, *gp);
     size_ext->value = (len < 4)? len : 4;
 
     // set the id of the master
-    amba::tag_id* m_id;
-    ahb_master.get_extension<amba::tag_id> (m_id, *gp);
+    amba::amba_id* m_id;
+    ahb_master.get_extension<amba::amba_id> (m_id, *gp);
     m_id->value = master_id;
-    ahb_master.validate_extension<amba::tag_id> (*gp);
+    ahb_master.validate_extension<amba::amba_id> (*gp);
 
     // issue transaction
     ahb_master->b_transport(*gp, delay);
@@ -549,16 +549,16 @@ void mmu_cache::mem_read(unsigned int addr, unsigned char * data,
     gp->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
     // set the burst size
-    amba::burst_size* size_ext;
-    ahb_master.validate_extension<amba::burst_size> (*gp);
-    ahb_master.get_extension<amba::burst_size> (size_ext, *gp);
+    amba::amba_burst_size* size_ext;
+    ahb_master.validate_extension<amba::amba_burst_size> (*gp);
+    ahb_master.get_extension<amba::amba_burst_size> (size_ext, *gp);
     size_ext->value = (len < 4)? len : 4;
 
     // set the id of the master
-    amba::tag_id* m_id;
-    ahb_master.get_extension<amba::tag_id> (m_id, *gp);
+    amba::amba_id* m_id;
+    ahb_master.get_extension<amba::amba_id> (m_id, *gp);
     m_id->value = master_id;
-    ahb_master.validate_extension<amba::tag_id> (*gp);
+    ahb_master.validate_extension<amba::amba_id> (*gp);
 
     //amba::cacheable_access* cachable;
     //ahb_master.validate_extension<amba::cacheable_access>(*gp);

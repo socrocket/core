@@ -448,8 +448,8 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     uint8_t data_length = gp.get_data_length();
 
   //get burst_size extension for later checks of consistency of burst_size, streaming_width, and data length 
-  amba::burst_size * amba_burst_size;
-  if (!(ahb.get_extension<amba::burst_size>(amba_burst_size, gp)) ) {
+  amba::amba_burst_size * amba_burst_size;
+  if (!(ahb.get_extension<amba::amba_burst_size>(amba_burst_size, gp)) ) {
     amba_burst_size->value = 0;
   }
   //If present, the burst size extension of the gp is now stored in amba_burst_size.
