@@ -120,6 +120,9 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
         switch (gp.get_command()) {
             // Read command
             case tlm::TLM_READ_COMMAND:
+                // wait to make sure data is available
+                wait(delay);
+                delay = sc_core::SC_ZERO_TIME;
                 if (byteEnablePtr != NULL) {
                     // Use byte enable
                     for (uint32_t i = 0; i < gp.get_data_length(); i++) {
@@ -140,6 +143,9 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
 
                 // Write command
             case tlm::TLM_WRITE_COMMAND:
+                // wait to make sure data is not available to early
+                wait(delay);
+                delay = sc_core::SC_ZERO_TIME;
                 if (byteEnablePtr != NULL) {
                     // Use byte enable
                     for (uint32_t i = 0; i < gp.get_data_length(); i++) {
