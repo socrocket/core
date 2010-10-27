@@ -28,7 +28,9 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:
+// Purpose:    This file implements a base class for all tlm module which 
+//             need to use signalkit signals.
+//             It provides all neccessary classes to work with signals.
 // Modified on $Date$
 //          at $Revision$
 //          by $Author$
@@ -48,26 +50,38 @@
 #include "signalkit_h/selector.h"
 #include "signalkit_h/infield.h"
 
+namespace signalkit {
+
 /// @addtogroup signalkit
 /// @{
 
-namespace signalkit {
-
+/// Signalkit module base class.
+/// Derive from this class to use the signalkit.
 template<class MODULE>
 class signal_module {
     public:
+        /// Defines all signal types without the need to tell each of it the type of the base class
         template<class TYPE>
         struct signal {
+                /// Input signal
                 typedef signal_in<TYPE, MODULE> in;
+
+                /// Output signal
                 typedef signal_out<TYPE, MODULE> out;
+
+                /// Inout signal
                 typedef signal_inout<TYPE, MODULE> inout;
+
+                /// Selector signal
                 typedef signal_selector<TYPE, MODULE> selector;
+
+                /// Infield signal
                 typedef signal_infield<TYPE, MODULE> infield;
         };
 };
 
-} // signalkit
-
 /// @}
 
-#endif // TLM_MODULE_H
+} // signalkit
+
+#endif // SIGNALKIT_MODULE_H

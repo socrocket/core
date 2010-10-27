@@ -45,10 +45,10 @@
 #include "signalkit_h/module.h"
 #include <systemc>
 
+namespace signalkit {
+
 /// @addtogroup signalkit
 /// @{
-
-namespace signalkit {
 
 template<class INTYPE, class OUTTYPE = INTYPE>
 class scin_tlmout_adapter : public signal_module<scin_tlmout_adapter<INTYPE,
@@ -76,8 +76,8 @@ class scin_tlmout_adapter : public signal_module<scin_tlmout_adapter<INTYPE,
         }
 };
 
-} // signalkit
-
 /// @}
+
+} // signalkit
 
 #endif // SCIN_TLMOUT_ADAPTER_H

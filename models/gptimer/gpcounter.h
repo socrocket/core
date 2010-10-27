@@ -70,7 +70,6 @@ class CGPCounter : public gs::reg::gr_subdevice {
 
         /// A pointer to the parent GPTimer. This is needed to acces common functions and register.
         CGPTimer &p;
-        //Timer &p;
 
         /// The interrupt state of the counter. Might be get deprecated
         bool m_pirq;
@@ -84,9 +83,6 @@ class CGPCounter : public gs::reg::gr_subdevice {
         /// @see lasttime
         /// @see stop()
         unsigned int lastvalue;
-
-        /// ???
-        sc_core::sc_time zerofactor;
 
         /// The event which implements the corefunctionality.
         /// It gets set by calculate() and ticking() is waiting with it.
@@ -107,16 +103,17 @@ class CGPCounter : public gs::reg::gr_subdevice {
         GC_HAS_CALLBACKS();
         SC_HAS_PROCESS( CGPCounter);
 
+        /// Creates a new Counter instance. Only usfull if its called from inside of a GPTimer instance.
         CGPCounter(CGPTimer &_parent, unsigned int nr,
                    sc_core::sc_module_name name);
+
+        /// Destroies a Counter instance
         ~CGPCounter();
 
         /// Execute the callback registering when systemc reaches the end of elaboration.
         void end_of_elaboration();
 
-        /// Performs the reset code for the Counter. This function is executed by the Timer::do_reset() function
-        void do_reset();
-
+      // Register Callbacks
         /// This is a callback which gets executed before the control register is read.
         /// It updates the control register with the current values.
         void ctrl_read();
@@ -143,20 +140,30 @@ class CGPCounter : public gs::reg::gr_subdevice {
         /// @see calculate()
         void value_write();
 
+      // Functions
+        /// Performs the reset code for the Counter. This function is executed by the Timer::do_reset() function
+        void do_reset();
+
         /// This function prepares the Counter for chaining.
         void chaining();
-
-        /// This function contains the core functionality of the Counter.
-        /// It is a SC_THREAD which triggers the interupt and waits for the e_tick event.
-        void ticking();
 
         sc_core::sc_time nextzero();
         sc_core::sc_time cycletime();
 
+        /// Function calculating the waiting time for the next timer event.
         void calculate();
 
+        /// Start a Counter from dhalt or to enable it etc.
         void start();
+        
+        /// Stop a Counter from dhalt or to enable it etc.
         void stop();
+        
+      // Threads
+        /// This function contains the core functionality of the Counter.
+        /// It is a SC_THREAD which triggers the interupt and waits for the e_tick event.
+        void ticking();
+
 
 };
 

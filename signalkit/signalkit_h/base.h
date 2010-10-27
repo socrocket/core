@@ -28,7 +28,7 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:
+// Purpose:    This file contains the base class for all signalkit signals
 // Modified on $Date$
 //          at $Revision$
 //          by $Author$
@@ -43,22 +43,36 @@
 #define SIGNALKIT_BASE_H
 
 #include <systemc>
+#include "verbose.h"
+
+namespace signalkit {
 
 /// @addtogroup signalkit
 /// @{
 
-namespace signalkit {
-
+/// Base class for all signalkit signals.
+/// This is needed to hide the direct pointer to the parent model.
+/// Each instantiated member signal needs a pointer to it's parent class to
+/// provide an instance pointer for callback functions.
+///
+/// To provide these pointer we abuse the sc_object api.
+/// sc_object provides a mechanism to get an sc_object instance of the parent object.
+/// This is casted back to the type MODULE (template parameter).
 template<class TYPE, class MODULE>
 class signal_base : public sc_core::sc_object {
     public:
+        /// Default constructor
         signal_base(sc_core::sc_module_name mn = NULL) :
             sc_core::sc_object() {
         }
 
+        /// default destructor.
+        /// Only declared for virtual functions.
         virtual ~signal_base() {
         }
     protected:
+        /// Returns the MODULE instance of the parent object.
+        /// It only works if the parent object is an sc_object and from type MODULE.
         virtual MODULE *get_module() {
             sc_core::sc_object *obj = get_parent();
             MODULE *mod = dynamic_cast<MODULE *> (obj);
@@ -70,9 +84,9 @@ class signal_base : public sc_core::sc_object {
         }
 };
 
+/// @}
+
 }
 ; // signalkit
-
-/// @}
 
 #endif // SIGNALKIT_BASE_H

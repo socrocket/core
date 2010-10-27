@@ -51,40 +51,13 @@
 /// @addtogroup utils
 /// @{
 
-///macro to print a time stamp
-#define SHOW { \
-  std::cout /*<< std::endl*/ \
-            << "@" \
-            << sc_core::sc_time_stamp().to_string().c_str() \
-            << " /" \
-            << std::dec \
-            << (unsigned)sc_core::sc_delta_count(); \
-}
-
-///macro to print a time stamp and a msg
-#define PRINT(msg) { \
-  std::cout \
-            << "@" \
-            << sc_core::sc_time_stamp().to_string().c_str() \
-            << " /" \
-            << std::dec \
-            << (unsigned)sc_core::sc_delta_count() \
-            << " " << msg << std::endl; \
-}
-
 ///macro to print a register value
 #define REG(name) { \
-  std::cout << " "#name \
             << ": 0x" \
             << std::hex \
             << std::setfill('0') \
             << std::setw(2) \
             << read(name, 4); \
-}
-
-///macro to set a register
-#define SET(name, val) { \
-  write(name, val, 4); \
 }
 
 /// Testbench for GPTimer Models.
@@ -129,6 +102,14 @@ class CAPBTestbench : public sc_core::sc_module {
             wait(t);
             master_sock.release_transaction(gp);
             return data;
+        }
+
+        inline void set(const uint32_t &addr, const uint32_t &data) {
+            write(addr, data, 4);
+        }
+
+        inline uint32_t get(const uint32_t &addr) {
+            return read(addr, 4);
         }
 };
 

@@ -147,31 +147,32 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
         /// Execute the callback registering when systemc reaches the end of elaboration.
         void end_of_elaboration();
 
-        /// Calculate the time of the next prescaler underflow to create the debunging output for the presacler ticks.
-        void tick_calc();
-
-        /// Create the prescaler tick when the prescaler underflow happens.
-        void ticking();
-
-        /// Execute before the prescaler value register gets read, to calculate the current value.
+        
+      // Register Callbacks
+        /// Register callback executed before the prescaler value register gets read, to calculate the current value.
         void scaler_read();
 
-        /// Execute after the presacler value is written, to recalculate the counter and ticking functions.
+        /// Register callback executed after the presacler value is written, to recalculate the counter and ticking functions.
         void scaler_write();
 
-        /// Execute after the presacler reset is written, to recalculate the counter and ticking functions.
+        /// Register callback executed after the presacler reset is written, to recalculate the counter and ticking functions.
         void screload_write();
 
-        /// Execute before the prescaler config register gets read, to calculate the current value.
+        /// Register callback executed before the prescaler config register gets read, to calculate the current value.
         void conf_read();
 
-        /// Execute a reset on the timer when the rst signal arrives.
+        // Signal Callbacks
+        /// Signal callback executed a reset on the timer when the rst signal arrives.
         void do_reset(const bool &value, const sc_core::sc_time &time);
 
-        /// Performs the stopping and starting of all counter when dhalt arrives.
+        /// Signal callback performing the stopping and starting of all counter when dhalt arrives.
         void do_dhalt(const bool &value, const sc_core::sc_time &time);
 
-        /// Diagnostic SC_THREAD
+      // Threads
+        /// Thread which creates the prescaler tick when the prescaler underflow happens.
+        void ticking();
+
+        /// Diagnostic Thread
         ///
         ///  diag is a diagnostic SC_THREAD it gets triggert once in a clockcycle. But this module does not receive
         ///  a clock it calculates the clockcycle from the values set by a clk function.
@@ -179,6 +180,7 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
         ///
         void diag();
 
+      // Functions
         /// Set the clockcycle length.
         ///
         ///  With this function you can set the clockcycle length of the gptimer instance.
@@ -204,6 +206,9 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
         /// @param base   The unit of the clockcycle length stored in period.
         void clk(double period, sc_core::sc_time_unit base);
 
+        /// Function calculate the time of the next prescaler underflow to create the debunging output for the presacler ticks.
+        void tick_calc();
+
         /// The time to value function of the prescaler or the counters.
         ///
         ///  This is the fundamental function which defines the connection between a given time and the value.
@@ -228,33 +233,69 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
         ///
         int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b,
                                  int counter, sc_core::sc_time cycletime);
-
+        
+      // Register Value Offsets, Masks and Bits
+        /// Scaler Value Register Address
         static const uint32_t SCALER = 0x00;
+        
+        /// Scaler Relaod Register Address
         static const uint32_t SCRELOAD = 0x04;
+        
+        /// Scaler Configuration Register Address
         static const uint32_t CONF = 0x08;
+
+        /// Returns Counter Value Register Address for Counter nr
         static const uint32_t VALUE(uint8_t nr) {
             return 0x10 * (nr + 1) + 0x0;
         }
+
+        /// Returns Counter Reload Register Address for Counter nr
         static const uint32_t RELOAD(uint8_t nr) {
             return TIM_AHB_BASE + 0x10 * (nr + 1) + 0x4;
         }
+
+        /// Returns Counter Control Register Address for Counter nr
         static const uint32_t CTRL(uint8_t nr) {
             return TIM_AHB_BASE + 0x10 * (nr + 1) + 0x8;
         }
 
+        /// Position of the Bit in the Scaler Configuration Register
         static const uint32_t CONF_DF = 9;
+        
+        /// Position of the SetInterrupt Bit in the Scaler Configuration Register
         static const uint32_t CONF_SI = 8;
+        
+        /// Mask of the IRQ Bits in the Scaler Configuration Register
         static const uint32_t CONF_IQ_MA = 0x000000F8;
+        
+        /// Offset of the IRQ Bits in the Scaler Configuration Register
         static const uint32_t CONF_IQ_OS = 3;
+        
+        /// Mask of the Counter Number Bits in the Scaler Configuration Register
         static const uint32_t CONF_NR_MA = 0x00000007;
+        
+        /// Offset of the Counter Number Bits in the Scaler Configuration Register
         static const uint32_t CONF_NR_OS = 0;
 
+        /// Position of the Debug Halt Bit in the Counter Control Registers
         static const uint32_t CTRL_DH = 6;
+
+        /// Position of the Chaining Bit in the Counter Control Registers
         static const uint32_t CTRL_CH = 5;
+
+        /// Position of the Interrupt Pending Bit in the Counter Control Registers
         static const uint32_t CTRL_IP = 4;
+
+        /// Position of the Interrupt Enable Bit in the Counter Control Registers
         static const uint32_t CTRL_IE = 3;
+
+        /// Position of the Load Bit in the Counter Control Registers
         static const uint32_t CTRL_LD = 2;
+
+        /// Position of the Reset Bit in the Counter Control Registers
         static const uint32_t CTRL_RS = 1;
+
+        /// Position of the Enable Bit in the Counter Control Registers
         static const uint32_t CTRL_EN = 0;
 
 };

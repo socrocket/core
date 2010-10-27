@@ -47,19 +47,36 @@
 #include "signalkit_h/ifs.h"
 #include "signalkit_h/out.h"
 
+namespace signalkit {
+
 /// @addtogroup signalkit
 /// @{
 
-namespace signalkit {
-
+/// Signalkit selector signal.
+/// This class implements a TLM Signal abstraction of an outgoing signal with multiple channels.
+/// The signal stores the value and triggers the update function of all receivers.
+/// Each channel can be updated seperately.
+/// The channels are addressed as bitmasks. This makes it possible to update multiple channels at once.
 template<class TYPE, class MODULE>
 class signal_selector : public signal_base<TYPE, MODULE> ,
                         public signal_out_bind_if<TYPE> {
     public:
+        /// Constructor
+        ///
+        /// @param mn Signal name.
         signal_selector(sc_core::sc_module_name mn = NULL) :
             signal_base<TYPE, MODULE>::signal_base(mn) {
         }
 
+        /// Virtual destructor
+        virtual ~signal_selector() {
+        }
+        
+        /// Selector signal bind method.
+        /// This method implements the binding mechanism with an input signal on a specific channel.
+        ///
+        /// @param receiver Input interface to bind with.
+        /// @param channel  The channel which has to be bind.
         virtual void bind(signal_in_if<TYPE> &receiver,
                           const unsigned int &channel) {
             // TODO: Make work multipel selector<->infield channels
@@ -75,6 +92,12 @@ class signal_selector : public signal_base<TYPE, MODULE> ,
             item->bind(receiver);
         }
 
+        /// Write the value of a signal.
+        /// Stores the value in corresponding channel and triggers an updat in all receivers.
+        ///
+        /// @param mask  The write mask with all channels to write to.
+        /// @param value The new value of the signal.
+        /// @param time The delay from sc_timestamp() at propagation.
         virtual void write(const unsigned int &mask, const TYPE &value,
                            const sc_core::sc_time &time = sc_core::SC_ZERO_TIME) {
             for (typename t_map::iterator i = outs.begin(); i != outs.end(); i++) {
@@ -89,6 +112,11 @@ class signal_selector : public signal_base<TYPE, MODULE> ,
          this->write(mask, value)
          }*/
 
+        /// Connecting a channel with an input signal.
+        /// Calls caller and receiver bind methods.
+        ///
+        /// @param receiver The input signal to connect with.
+        /// @param channel  The channel which gets connected.
         void operator()(signal_in_if<TYPE> &receiver,
                         const unsigned int &channel) {
             this->bind(receiver, channel);
@@ -96,12 +124,14 @@ class signal_selector : public signal_base<TYPE, MODULE> ,
         }
 
     private:
+        /// Channels to outputs list type.
         typedef std::map<unsigned int, signal_out<TYPE, MODULE> *> t_map;
+        /// Stores the output list
         t_map outs;
 };
 
-} // signalkit
-
 /// @}
+
+} // signalkit
 
 #endif // SIGNALKIT_SELECTOR_H

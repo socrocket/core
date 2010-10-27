@@ -51,78 +51,91 @@
 /// @addtogroup gptimer
 /// @{
 
+// Constructor: create all members, registers and Counter objects.
+// Store configuration default value in conf_defaults.
 CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                    int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq,
                    int gsbits, int gnbits, int gwdog) :
     gr_device(name, gs::reg::ALIGNED_ADDRESS, 4 * (1 + ntimers), NULL),
-            CGrlibDevice(0x1, 0x11, 0, 0, gpirq, GrlibBAR(APBIO, gpmask, false,
-                    false, gpaddr)), bus("bus", r, gpaddr << 20,
-                    (4095 - gpmask) << 20, ::amba::amba_APB, ::amba::amba_LT,
-                    false), rst(&CGPTimer::do_reset, "RESET"), dhalt(
-                    &CGPTimer::do_dhalt, "DHALT"), tick("TICK"), irq("IRQ"),
-            wdog("WDOG"), conf_defaults((gsepirq << 8) | ((gpirq & 0xF) << 3)
-                    | (ntimers & 0x7)), lasttime(0, sc_core::SC_NS), lastvalue(
-                    0), clockcycle(10.0, sc_core::SC_NS) {
+    CGrlibDevice(0x1, 0x11, 0, 0, gpirq, 
+            GrlibBAR(APBIO, gpmask, false, false, gpaddr)), 
+    bus("bus", r, gpaddr << 20, (4095 - gpmask) << 20, ::amba::amba_APB, 
+            ::amba::amba_LT, false), 
+    rst(&CGPTimer::do_reset, "RESET"), 
+    dhalt(&CGPTimer::do_dhalt, "DHALT"), 
+    tick("TICK"), irq("IRQ"), wdog("WDOG"), 
+    conf_defaults((gsepirq << 8) | ((gpirq & 0xF) << 3) | (ntimers & 0x7)), 
+    lasttime(0, sc_core::SC_NS), lastvalue(0), 
+    clockcycle(10.0, sc_core::SC_NS) {
 
     /* create register */
     r.create_register("scaler", "Scaler Value",
-    /* offset */0x00,
-    /* config */gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-            | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-    /* init value */0xFFFFFFFF,
-    /* write mask */(2 << (gsbits)) - 1, /* sbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s. */
-    /* reg width */32, /* Maximum register with is 32bit sbit must be less than 32. */
-    /* lock mask */0x00 /* Not implementet has to be zero. */
+                      0x00,                // offset
+                      gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
+                      gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                      0xFFFFFFFF,          // init value
+                      (2 << (gsbits)) - 1, // write mask
+                      // sbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s.
+                      32,                  // Register width. Maximum register with is 32bit sbit must be less than 32.
+                      0x00                 // Lock Mask: Not implementet has to be zero.
     );
+    
     r.create_register("screload", "Scaler Reload Value",
-    /* offset */0x04,
-    /* config */gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-            | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-    /* init value */0xFFFFFFFF,
-    /* write mask */static_cast<unsigned int> ((1ULL << gsbits) - 1), /* sbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s. */
-    /* reg width */32,
-    /* lock mask */0x00);
+                      0x04, // offset
+                      gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |      // config
+                      gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                      0xFFFFFFFF,                                       // init value
+                      static_cast<unsigned int> ((1ULL << gsbits) - 1), // write mask
+                      // sbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s.
+                      32,                                               // register width
+                      0x00                                              // lock mask
+    );
+    
     r.create_register("conf", "Configuration Register",
-    /* offset */0x08,
-    /* config */gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-            | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-    /* init value */conf_defaults,
-    /* write mask */0x00003FFF,
-    /* reg width */32,
-    /* lock mask */0x00);
+                      0x08,                                        // offset
+                      gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
+                      gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                      conf_defaults,                               // init value
+                      0x00003FFF,                                  // write mask
+                      32,                                          // register width
+                      0x00                                         // lock mask
+    );
 
     for (unsigned int i = 0; i < ntimers; ++i) {
         CGPCounter *c = new CGPCounter(*this, i, gen_unique_name("CGPCounter",
                 true));
         counter.push_back(c);
-        r.create_register(
-                gen_unique_name("value", false),
-                "CGPCounter Value Register",
-                /* offset */VALUE(i),
-                /* config */gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-                        | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                /* init value */0x00000000,
-                /* write mask */static_cast<unsigned int> ((1ULL << gnbits) - 1), /* nbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s. */
-                /* reg width */32,
-                /* lock mask */0x00);
-        r.create_register(
-                gen_unique_name("reload", false),
-                "Reload Value Register",
-                /* offset */RELOAD(i),
-                /* config */gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-                        | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                /* init value */0x00000001,
-                /* write mask */static_cast<unsigned int> ((1ULL << gnbits) - 1), /* nbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s. */
-                /* reg width */32,
-                /* lock mask */0x00);
+        r.create_register(gen_unique_name("value", false), "CGPCounter Value Register",
+                          VALUE(i), // offset
+                          gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
+                          gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                          0x00000000, // init value
+                          static_cast<unsigned int> ((1ULL << gnbits) - 1), // write mask
+                          // nbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s.
+                          32, // register width
+                          0x00 // lock mask
+        );
+        
+        r.create_register(gen_unique_name("reload", false), "Reload Value Register",
+                          RELOAD(i), // offset
+                          gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
+                          gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                          0x00000001, // init value
+                          static_cast<unsigned int> ((1ULL << gnbits) - 1), // write mask
+                          // nbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s.
+                          32, // register width
+                          0x00 // lock mask
+        );
+        
         r.create_register(gen_unique_name("ctrl", false), "Controle Register",
-        /* offset */CTRL(i),
-        /* config */gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-                | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-        /* init value */0x00000000,
-        /* write mask */0x0000007F,
-        /* reg width */32,
-        /* lock mask */0x00);
+                          CTRL(i), // offset
+                          gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
+                          gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                          0x00000000, // init value
+                          0x0000007F, //write mask
+                          32, //register width
+                          0x00 // lock mask
+        );
     }
 
 #ifdef DEBUG
@@ -134,6 +147,8 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
 #endif
 }
 
+// Destructor: Unregister Register Callbacks.
+// Destroy all Counter objects.
 CGPTimer::~CGPTimer() {
     for (std::vector<CGPCounter *>::iterator iter = counter.begin(); iter
             != counter.end(); iter++) {
@@ -142,6 +157,7 @@ CGPTimer::~CGPTimer() {
     GC_UNREGISTER_CALLBACKS();
 }
 
+// Set all register callbacks
 void CGPTimer::end_of_elaboration() {
     GR_FUNCTION(CGPTimer, scaler_read);
     GR_SENSITIVE(r[SCALER].add_rule(gs::reg::PRE_READ, "scaler_read",
@@ -161,6 +177,7 @@ void CGPTimer::end_of_elaboration() {
 }
 
 #ifdef DEBUGOUT
+// Calculate tick output for the prescaler tick TICK(0)
 void CGPTimer::tick_calc() {
     e_tick.cancel();
     scaler_read();
@@ -171,8 +188,8 @@ void CGPTimer::tick_calc() {
     if(reload) {
         scaler = (scaler) % reload;
     }
-    //std::cout << "Scaler: " << scaler << std::endl;
-    //std::cout << "Reload: " << reload << std::endl;
+    //v::debug << name() << "Scaler: " << scaler << v::endl;
+    //v::debug << name() << "Reload: " << reload << v::endl;
     //if(((unsigned )scaler != 0xFFFFFFFF) || (scaler == 0 && reload == 0)) {
     //  e_tick.notify(clockcycle * (((scaler)? scaler: (reload - 1)) - 1));
     //}
@@ -181,6 +198,7 @@ void CGPTimer::tick_calc() {
     //}
 }
 
+// Wait for prescaler tick output ans set TICK(0)
 void CGPTimer::ticking() {
     while(1) {
         tick_calc();
@@ -196,9 +214,8 @@ void CGPTimer::ticking() {
 }
 #endif
 
-/* Disable or enable CGPCounter when DHALT arrives
- * The value will be directly fetched in conf_read to show the right value in the conf registers.
- */
+// Disable or enable CGPCounter when DHALT arrives
+// The value will be directly fetched in conf_read to show the right value in the conf registers.
 void CGPTimer::do_dhalt(const bool &value, const sc_core::sc_time &time) {
     if (r[CONF].b[CONF_DF]) {
         if (value) {
@@ -215,48 +232,56 @@ void CGPTimer::do_dhalt(const bool &value, const sc_core::sc_time &time) {
     }
 }
 
+// Calback for scaler register. Updates register value before reads.
 void CGPTimer::scaler_read() {
     sc_core::sc_time now = sc_core::sc_time_stamp();
     int reload = r[SCRELOAD] + 1;
     int value = valueof(now, 0, clockcycle) - (reload);
-    //  std::cout << " pure: " << std::dec << valueof(now) << "->" << value;
+    //  v::debug << name() << " pure: " << std::dec << valueof(now) << "->" << value << v::endl;
 
     //  if(value<0) {
     if (reload) {
         value = value % (reload);
     }
     r[SCALER] = reload + value - 1;
-    //  std::cout << " reg: " << std::dec << value << " +reload: " << reload + value << std::endl;
+    //  v::debug << name() << " reg: " << std::dec << value << " +reload: " << reload + value << v::endl;
     //  } else {
     //  if(reload + 1) {
     //    value = value % (reload + 1);
     //  }
     //    r[SCALER] = value;
-    //    std::cout << "unten" << std::dec << value << std::endl;
+    //    v::debug << name() << "unten" << std::dec << value << v::endl;
     //  }
     // lastvalue = r[SCALER];
     // lasttime  = now;
 }
+
+// Callback for scaler relaod register. Updates Prescaler Ticks and all Counters on write.
 void CGPTimer::screload_write() {
     uint32_t reload = r[SCRELOAD];
     r[SCALER] = reload;
-    //  std::cout << "!Reload: " << reload << std::endl;
+    //  v::debug << name() << "!Reload: " << reload << v::endl;
     scaler_write();
 }
 
+// Callback for scaler value register. Updates Prescaler Ticks and all Counters on write.
 void CGPTimer::scaler_write() {
     lasttime = sc_core::sc_time_stamp();
     lastvalue = r[SCALER];
-    //  std::cout << "!Scaler: " << lastvalue << std::endl;
+    //v::debug << name() << "!Scaler: " << lastvalue << v::endl;
+
+    // TODO: Update all Counter!!!
 #ifdef DEBUGOUT
     tick_calc();
 #endif
 }
 
+// Callback for configuration register. Updates the content before reads.
 void CGPTimer::conf_read() {
     r[CONF] = (r[CONF] & 0x0000030) | (conf_defaults & 0x0000000F);
 }
 
+// Calback for the rst signal. Resets the module on true.
 void CGPTimer::do_reset(const bool &value, const sc_core::sc_time &time) {
     if (!value) {
         r[SCALER] = 0xFFFFFFFF;
@@ -276,12 +301,14 @@ void CGPTimer::do_reset(const bool &value, const sc_core::sc_time &time) {
     }
 }
 
+// Prescaler value relative to the current value.
 int CGPTimer::valueof(sc_core::sc_time t, int offset,
                       sc_core::sc_time cycletime) const {
     return (int)(lastvalue - ((t - lasttime - (1 + offset) * cycletime)
             / cycletime) + 1);
 }
 
+// Number of zero crosses between two prescaler values.
 int CGPTimer::numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b,
                                    int CGPCounter, sc_core::sc_time cycletime) {
     int reload = r[SCRELOAD] + 1;
@@ -292,14 +319,17 @@ int CGPTimer::numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b,
     return std::abs(num_a - num_b);
 }
 
+// Extract basic cycle rate from a sc_clock
 void CGPTimer::clk(sc_core::sc_clock &clk) {
     clockcycle = clk.period();
 }
 
+// Extract basic cycle rate from a clock period
 void CGPTimer::clk(sc_core::sc_time &period) {
     clockcycle = period;
 }
 
+// Extract basic cycle rate from a clock period in double
 void CGPTimer::clk(double period, sc_core::sc_time_unit base) {
     clockcycle = sc_core::sc_time(period, base);
 }
@@ -307,8 +337,9 @@ void CGPTimer::clk(double period, sc_core::sc_time_unit base) {
 #ifdef DEBUG
 #define SHOWCGPCounter(n) \
     CGPCounter[n]->value_read(); \
-    std::cout << " CGPTimer"#n << ":{ v:" << r[TIM_VALUE(n)] << ", r:" << r[TIM_RELOAD(n)] << "}";
+    v::debug << name() << " CGPTimer"#n << ":{ v:" << r[TIM_VALUE(n)] << ", r:" << r[TIM_RELOAD(n)] << "}";
 
+// Diagnostic thread.
 void CGPTimer::diag() {
     while(1) {
         std::printf("\n@%-7s /%-4d: ", sc_core::sc_time_stamp().to_string().c_str(), (unsigned)sc_core::sc_delta_count());
@@ -320,7 +351,7 @@ void CGPTimer::diag() {
         wait(clockcycle);
     }
 }
+#endif
 
 /// @}
 
-#endif

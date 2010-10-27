@@ -28,7 +28,8 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:
+// Purpose:    This file includes all signalkit systemc adapter
+//
 // Modified on $Date$
 //          at $Revision$
 //          by $Author$

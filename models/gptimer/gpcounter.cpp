@@ -48,6 +48,7 @@
 #include <string>
 #include "gpcounter.h"
 #include "gptimer.h"
+#include "verbose.h"
 
 /// @addtogroup gptimer
 /// @{
@@ -57,7 +58,6 @@ CGPCounter::CGPCounter(CGPTimer &_parent, unsigned int _nr,
     gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(
             false) {
     SC_THREAD(ticking);
-    //do_reset();
 }
 
 CGPCounter::~CGPCounter() {
@@ -91,7 +91,7 @@ void CGPCounter::ctrl_read() {
 
 void CGPCounter::ctrl_write() {
     p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_DH] = (p.dhalt.read() != 0);
-    std::cout << " CGPTimer " << nr << " write " << std::endl;
+    v::debug << name()<< "CGPTimer " << nr << " write " << v::endl;
 
     /* Clean irq if desired */
     bool old_pirq = m_pirq;
@@ -120,12 +120,12 @@ void CGPCounter::ctrl_write() {
     }
 
     /* Enable */
-    //std::cout << "StartStop_" << nr << std::endl;
+    //v::debug << name() << "StartStop_" << nr << v::endl;
     if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN] && stopped) {
-        std::cout << "Start_" << nr << std::endl;
+        v::debug << name() << "Start_" << nr << v::endl;
         start();
     } else if ((!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN]) && !stopped) {
-        std::cout << "Stop_" << nr << std::endl;
+        v::debug << name() << "Stop_" << nr << v::endl;
         stop();
     }
 }
@@ -163,31 +163,25 @@ void CGPCounter::value_write() {
 
 void CGPCounter::chaining() {
     chain_run = true;
-    //std::cout << "Chaining_" << nr << std::endl;
+    //v::debug << name() << "Chaining_" << nr << v::endl;
     start();
 }
 
 void CGPCounter::ticking() {
     while (1) {
-        /* calculate sleep time, CGPCounter timeout */
+        // calculate sleep time, CGPCounter timeout
         calculate();
 
-#ifdef DEBUG
-        std::cout << std::endl << "CGPCounter_" << nr << " is wait" << std::endl;
-#endif
+        v::debug << name() << "CGPCounter_" << nr << " is wait" << v::endl;
         wait(e_wait);
-#ifdef DEBUG
-        std::cout << std::endl << "CGPCounter_" << nr << " is rockin'" << std::endl;
-#endif
+        v::debug << name() << "CGPCounter_" << nr << " is rockin'" << v::endl;
 
-        /* Send interupt and set outputs */
+        // Send interupt and set outputs
         if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IE]) {
             // p.r[CGPTimer::CTRL].b[CGPTimer::TIM_CTRL_SI] // seperatet interupts
             // APBIRQ addresse beachten -.-
             unsigned int irqnr = (p.r[CGPTimer::CONF] >> 3) & 0xF;
-#ifdef DEBUG
-            std::cout << "IRQ: " << irqnr << " CONF "<< p.r[CGPTimer::CONF] << std::endl;
-#endif
+            v::debug << name() << "IRQ: " << irqnr << " CONF "<< hex << (uint32_t)p.r[CGPTimer::CONF] << v::endl;
             if (p.r[CGPTimer::CONF].b[CGPTimer::CONF_SI]) {
                 irqnr += nr;
             }
@@ -227,13 +221,11 @@ void CGPCounter::do_reset() {
     chain_run = false;
 }
 
-/**
- * Gets the time to the end of the next zero hit.
- */
+// Gets the time to the end of the next zero hit.
 sc_core::sc_time CGPCounter::nextzero() {
-    sc_core::sc_time t; /* cycle time of foundation (other CGPCounter or the cloccycle) */
-    int x; /* Per cycle */
-    if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) { /* We depend on the cycle time of the last CGPCounter. */
+    sc_core::sc_time t; // cycle time of foundation (other CGPCounter or the cloccycle)
+    int x; // Per cycle
+    if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) { // We depend on the cycle time of the last CGPCounter.
         if (nr) {
             //p.counter[nr-1]->value_read();
             //t = p.counter[nr-1]->cycletime();
@@ -243,7 +235,7 @@ sc_core::sc_time CGPCounter::nextzero() {
             t = p.counter[p.counter.size() - 1]->cycletime();
             x = p.r[CGPTimer::VALUE(p.counter.size() - 1)];
         }
-    } else { /* We only depend on the prescaler */
+    } else { // We only depend on the prescaler
         p.scaler_read();
         t = p.clockcycle;
         x = p.r[CGPTimer::SCALER];
@@ -251,13 +243,12 @@ sc_core::sc_time CGPCounter::nextzero() {
     return t * (x + 2);
 }
 
-/**
- * Gets the Cycletime of the CCGPCounter.
- */
+
+// Gets the Cycletime of the CCGPCounter.
 sc_core::sc_time CGPCounter::cycletime() {
-    sc_core::sc_time t; /* cycle time of foundation (other CGPCounter or the cloccycle) */
-    int m; /* Per cycle */
-    if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) { /* We depend on the cycle time of the last CGPCounter. */
+    sc_core::sc_time t; // cycle time of foundation (other CGPCounter or the cloccycle)
+    int m; // Per cycle
+    if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) { // We depend on the cycle time of the last CGPCounter.
         if (nr) {
             t = p.counter[nr - 1]->cycletime();
             m = p.r[CGPTimer::RELOAD(nr - 1)];
@@ -265,7 +256,7 @@ sc_core::sc_time CGPCounter::cycletime() {
             t = p.counter[p.counter.size()]->cycletime();
             m = p.r[CGPTimer::RELOAD(p.counter.size())];
         }
-    } else { /* We only depend on the prescaler */
+    } else { // We only depend on the prescaler
         t = p.clockcycle;
         m = p.r[CGPTimer::SCRELOAD];
         //m = 1;
@@ -274,7 +265,7 @@ sc_core::sc_time CGPCounter::cycletime() {
     //return t * (m + 1);
 }
 
-/* Recalculate sleeptime and send notification */
+// Recalculate sleeptime and send notification
 void CGPCounter::calculate() {
     e_wait.cancel();
     value_read();
@@ -284,33 +275,28 @@ void CGPCounter::calculate() {
     if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN]) {
         sc_core::sc_time zero = this->nextzero();
         sc_core::sc_time cycle = this->cycletime();
-#ifdef DEBUG
-        std::cout << " calc_" << nr << " Zero: " << zero << " Cycle: " << cycle << " Value: " << value << std::endl;
-#endif
+        v::debug << name() << " calc_" << nr << " Zero: " << zero << " Cycle: " << cycle << " Value: " << value << v::endl;
         time = zero;
         time += (cycle * value) + (nr + 1) * p.clockcycle;
-#ifdef DEBUG
-        std::cout << " calc_" << nr << ": " << time << std::endl;
-#endif
+        v::debug << name() << " calc_" << nr << ": " << time << v::endl;
         e_wait.notify(time);
     }
 }
 
-/* Start counting imideately.
- * For example for enable, !dhalt, e_chain
- */
+// Start counting imideately.
+// For example for enable, !dhalt, e_chain
 void CGPCounter::start() {
-    std::cout << "start_" << nr << " stopped: " << stopped << "-"
-            << p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN] << "-"
+    v::debug << name() << "start_" << nr << " stopped: " << stopped << "-"
+            << (bool)(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN]) << "-"
             << (p.dhalt.read() != 0) << "-"
             << (!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]
                     || (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]
-                            && chain_run)) << std::endl;
+                            && chain_run)) << v::endl;
     if (stopped && p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN]
             /*&& (p.dhalt.read()!=0)*/&& (!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]
                     || (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]
                             && chain_run))) {
-        std::cout << "startnow_" << nr << std::endl;
+        v::debug << name() << "startnow_" << nr << v::endl;
 
         lasttime = sc_core::sc_time_stamp();
         calculate();
@@ -318,12 +304,12 @@ void CGPCounter::start() {
     }
 }
 
-/* Stoping counting imideately.
- * For example for disableing, dhalt, e_chain
- */
+// Stoping counting imideately.
+// For example for disableing, dhalt, e_chain
+//
 void CGPCounter::stop() {
     if (!stopped) {
-        //std::cout << "stop_" << nr << std::endl;
+        //v::debug << name() << "stop_" << nr << v::endl;
         e_wait.cancel();
         value_read();
         lastvalue = p.r[CGPTimer::VALUE(nr)];

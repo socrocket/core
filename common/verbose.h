@@ -100,7 +100,7 @@ extern Color Blink;
 extern Color Beep;
 
 #ifndef VERBOSITY
-#define VERBOSITY 1
+#define VERBOSITY 3
 #endif
 
 template<int level>

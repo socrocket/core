@@ -45,25 +45,38 @@
 #include "signalkit_h/base.h"
 #include "signalkit_h/ifs.h"
 
+namespace signalkit {
+
 /// @addtogroup signalkit
 /// @{
 
-namespace signalkit {
-
+/// Signalkit output signal.
+/// This class implements a TLM Signal abstraction of an outgoing signal.
+/// The signal stores the value and triggers the update function of all receivers.
 template<class TYPE, class MODULE>
 class signal_out : public signal_base<TYPE, MODULE> ,
                    public signal_out_if<TYPE> {
     protected:
+        /// Type of a list of receivers
         typedef std::vector<signal_in_if<TYPE> *> t_receiver;
 
     public:
+        /// Constructor
+        ///
+        /// @param mn Signal name.
         signal_out(sc_core::sc_module_name mn = NULL) :
             signal_base<TYPE, MODULE>::signal_base(mn) {
         }
 
+        /// Virtual destructor
         virtual ~signal_out() {
         }
 
+        /// Output signal bind method.
+        /// This method implements the binding mechanism with an input signal.
+        ///
+        /// @param receiver Input interface to bind with.
+        /// @param channel  The channel which has to be bind.
         virtual void bind(signal_in_if<TYPE> &receiver,
                           const unsigned int &channel = 0) {
             for (typename t_receiver::iterator iter = m_receiver.begin(); iter
@@ -75,6 +88,11 @@ class signal_out : public signal_base<TYPE, MODULE> ,
             m_receiver.push_back(&receiver);
         }
 
+        /// Write the value of a signal.
+        /// Stores the value and triggers an updat in all receivers.
+        ///
+        /// @param value The new value of the signal.
+        /// @param time The delay from sc_timestamp() at propagation.
         virtual void write(const TYPE &value, const sc_core::sc_time &time =
                 sc_core::SC_ZERO_TIME) {
             this->m_value = value;
@@ -84,27 +102,34 @@ class signal_out : public signal_base<TYPE, MODULE> ,
             }
         }
 
+        /// Connecting the Signal with an input signal.
+        /// Calls caller and receiver bind methods.
+        ///
+        /// @param receiver The input signal to connect with.
         void operator()(signal_in_if<TYPE> &receiver) {
             this->bind(receiver);
             receiver.bind(*this);
         }
 
+        /// Set the value and call updates on all receivern.
         TYPE operator=(const TYPE &t) {
             write(t);
             return this->m_value;
         }
 
+        /// Sets the value from another signal.
         TYPE operator=(const signal_if<TYPE> &t) {
             TYPE value = t;
             write(value);
             return this->m_value;
         }
     protected:
+        /// List of receivers.
         t_receiver m_receiver;
 };
 
-} // signalkit
-
 /// @}
+
+} // signalkit
 
 #endif // SIGNALKIT_OUT_H

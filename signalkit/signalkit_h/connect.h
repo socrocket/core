@@ -28,7 +28,9 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:
+// Purpose:    This file contains connect methods of all kind of 
+//             signalkit connections: in<->out, kit<->sysc
+//
 // Modified on $Date$
 //          at $Revision$
 //          by $Author$
@@ -45,17 +47,26 @@
 #include "signalkit_h/ifs.h"
 #include "signalkit_h/adapter.h"
 
+namespace signalkit {
+
 /// @addtogroup signalkit
 /// @{
 
-namespace signalkit {
-
+/// Connects an input signal with an output signal
 template<class TYPE>
 void connect(signal_in_if<TYPE> &in, signal_out_if<TYPE> &out) {
     in.bind(out);
     out.bind(in);
 }
 
+/// Connects an input signal with an output signal
+template<class TYPE>
+void connect(signal_out_if<TYPE> &out, signal_in_if<TYPE> &in) {
+    in.bind(out);
+    out.bind(in);
+}
+
+/// Special connect mehtod to connect an signalkit output with an systemc input signal
 template<class INTYPE, class OUTTYPE, class MODULE>
 sc_core::sc_module *connect(signal_out<INTYPE, MODULE> &in, sc_core::sc_signal<
         OUTTYPE> &out) {
@@ -66,6 +77,7 @@ sc_core::sc_module *connect(signal_out<INTYPE, MODULE> &in, sc_core::sc_signal<
     return result;
 }
 
+/// Special connect mehtod to connect an signalkit input with an systemc output signal
 template<class INTYPE, class OUTTYPE, class MODULE>
 sc_core::sc_module *connect(sc_core::sc_signal<INTYPE> &in, signal_in<OUTTYPE,
         MODULE> &out) {
@@ -76,8 +88,8 @@ sc_core::sc_module *connect(sc_core::sc_signal<INTYPE> &in, signal_in<OUTTYPE,
     return result;
 }
 
-} // signalkit
-
 /// @}
+
+} // signalkit
 
 #endif // SIGNALKIT_CONNECT_H
