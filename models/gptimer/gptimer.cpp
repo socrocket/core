@@ -59,7 +59,7 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
     gr_device(name, gs::reg::ALIGNED_ADDRESS, 4 * (1 + ntimers), NULL),
     CGrlibDevice(0x1, 0x11, 0, 0, gpirq, 
             GrlibBAR(APBIO, gpmask, false, false, gpaddr)), 
-    bus("bus", r, gpaddr << 20, (4095 - gpmask) << 20, ::amba::amba_APB, 
+    bus("bus", r, (gpaddr & gpmask) << 8, (((~gpmask & 0xfff) + 1) << 8), ::amba::amba_APB, 
             ::amba::amba_LT, false), 
     rst(&CGPTimer::do_reset, "RESET"), 
     dhalt(&CGPTimer::do_dhalt, "DHALT"), 
@@ -67,6 +67,13 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
     conf_defaults((gsepirq << 8) | ((gpirq & 0xF) << 3) | (ntimers & 0x7)), 
     lasttime(0, sc_core::SC_NS), lastvalue(0), 
     clockcycle(10.0, sc_core::SC_NS) {
+
+    // Display APB slave information
+    v::info << name << "APB slave @0x" << hex << v::setw(8)
+            << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex
+            << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
+            << endl;
+
 
     /* create register */
     r.create_register("scaler", "Scaler Value",

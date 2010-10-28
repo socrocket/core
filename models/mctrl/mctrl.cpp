@@ -82,13 +82,13 @@ Mctrl::Mctrl(sc_core::sc_module_name name, int _romasel, int _sdrasel,
                     (uint16_t)0x0F, //device: MCTRL
                     (uint8_t)0,
                     (uint8_t)0, //irq
-                    GrlibBAR(CGrlibDevice::APBIO, pmask, 0, 0, paddr),
+                    GrlibBAR(CGrlibDevice::APBIO, _pmask, 0, 0, _paddr),
                     (uint32_t)0, (uint32_t)0, (uint32_t)0),
             apb( //greenreg_socket
                     "apb", //name
                     r, //register container
-                    _paddr << 20, //apb base address
-                    (4096 - _pmask) << 20, //apb address space size
+                    (_paddr & _pmask) << 8, //apb base address
+                    (((~_pmask & 0xfff) + 1) << 8), //apb address space size
                     ::amba::amba_APB, //bus type
                     ::amba::amba_LT, //abstraction level
                     false //socket is not used for arbitration
@@ -104,6 +104,12 @@ Mctrl::Mctrl(sc_core::sc_module_name name, int _romasel, int _sdrasel,
                     _rammask), paddr(_paddr), pmask(_pmask), wprot(_wprot),
             srbanks(_srbanks), ram8(_ram8), ram16(_ram16), sepbus(_sepbus),
             sdbits(_sdbits), mobile(_mobile), sden(_sden) {
+
+  // Display APB slave information
+  v::info << name << "APB slave @0x" << hex << v::setw(8)
+          << v::setfill('0') << apb.get_base_addr() << " size: 0x" << hex
+          << v::setw(8) << v::setfill('0') << apb.get_size() << " byte"
+          << endl;
 
   //check consistency of address space generics
      //rom space in MByte: 4GB - masked area (rommask)

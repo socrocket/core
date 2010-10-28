@@ -1,4 +1,4 @@
-//*********************************************************************
+// ********************************************************************
 // Copyright 2010, Institute of Computer and Network Engineering,
 //                 TU-Braunschweig
 // All rights reserved
@@ -21,7 +21,7 @@
 // neither implicit nor explicit. The program and the information in it
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
-//*********************************************************************
+// ********************************************************************
 // Title:      apbbridge.h
 //
 // ScssId:
@@ -38,27 +38,38 @@
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Thomas Schuster
 // Reviewed:
-//*********************************************************************
+// ********************************************************************
 
 #ifndef APBBRIDGE_H
 #define APBBRIDGE_H
 
 #include <systemc>
 #include "amba.h"
-#include "verbose.h"
+#include "grlibdevice.h"
 
-/// 
-class apb_bridge : public sc_core::sc_module, public amba_slave_base {
+class apb_bridge : public sc_core::sc_module, public amba_slave_base, public CGrlibDevice {
     public:
         SC_HAS_PROCESS(apb_bridge);
-        apb_bridge(sc_core::sc_module_name nm, sc_dt::uint64 bAddr,
-                   sc_dt::uint64 mSize);
+        /// Constructor
+        apb_bridge(sc_core::sc_module_name nm,
+                   uint32_t haddr_ = 0xfff,
+                   uint32_t hmask_ = 0);
+
+        /// Desctructor
         ~apb_bridge();
 
+        /// AMBA interfaces
         amba::amba_slave_socket<32> ahb;
         amba::amba_master_socket<32, 0> apb;
-        inline sc_dt::uint64 get_size();
-        inline sc_dt::uint64 get_base_addr();
+
+        inline sc_dt::uint64 get_base_addr() {
+           return (HADDR & HMASK) << 20;
+        }
+
+        inline sc_dt::uint64 get_size() {
+           return (~(HMASK << 20)) + 1;
+        }
+
         inline void setAddressMap(uint32_t i, sc_dt::uint64 baseAddr,
                                   sc_dt::uint64 size);
         inline uint32_t get_index(uint32_t address);
@@ -73,10 +84,12 @@ class apb_bridge : public sc_core::sc_module, public amba_slave_base {
         std::map<uint32_t, slave_info_t> slave_map;
 
         // -- ahb slave --
-        sc_dt::uint64 baseAddr; //base address of the slave
-        sc_dt::uint64 mem_size; //size of the memory
+        const uint32_t HADDR;
+        const uint32_t HMASK;
 
         void start_of_simulation();
+
+        static const uint32_t APBADDRMASK = 0x000fffff;
 };
 
 

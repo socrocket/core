@@ -58,6 +58,7 @@
 #define COUT_TIMING
 
 #include "irqmp.h"
+#include "verbose.h"
 //#include "irqmpregisters.h"
 #include <string>
 
@@ -72,8 +73,8 @@ CIrqmp::CIrqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu,
             bus( //greenreg_socket
                     "bus", //name
                     r, //register container
-                    0x0, // start address
-                    0xFFFFFFFF, // register space length
+                    (_paddr & _pmask) << 8, // start address
+                    (((~_pmask & 0xfff) + 1) << 8), // register space length
                     ::amba::amba_APB, // bus type
                     ::amba::amba_LT, // communication type / abstraction level
                     false // not used
@@ -81,6 +82,12 @@ CIrqmp::CIrqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu,
             irq_req("CPU_REQUEST"), irq_ack(&CIrqmp::clear_acknowledged_irq,
                     "IRQ_ACKNOWLEDGE"), irq_in(&CIrqmp::register_irq,
                     "IRQ_INPUT"), ncpu(_ncpu), eirq(_eirq) {
+
+   // Display APB slave information
+   v::info << name << "APB slave @0x" << hex << v::setw(8)
+           << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex
+           << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
+           << endl;
 
     // create register | name + description
     r.create_register("level", "Interrupt Level Register",
