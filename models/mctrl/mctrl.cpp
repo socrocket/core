@@ -201,12 +201,12 @@ void Mctrl::end_of_elaboration() {
     GR_FUNCTION(Mctrl, sram_disable);
     GR_SENSITIVE(r[MCTRL_MCFG2].br["si"].add_rule(gs::reg::POST_WRITE, // function to be called after register write
             "sram_disable", // function name
-            gs::reg::NOTIFY)); // notification on every register access
+            gs::reg::BIT_STATE_CHANGE)); // notification on bit state change only
 
     GR_FUNCTION(Mctrl, sram_change_bank_size);
     GR_SENSITIVE(r[MCTRL_MCFG2].br["sr_bk"].add_rule(gs::reg::POST_WRITE, // function to be called after register write
             "sram_change_bank_size", // function name
-            gs::reg::NOTIFY)); // notification on every register access
+            gs::reg::BIT_STATE_CHANGE)); // notification on bit state change only
 
 
     //The following callbacks affect SDRAM only and are therefore not required if SDRAM is disabled
@@ -221,28 +221,28 @@ void Mctrl::end_of_elaboration() {
         GR_FUNCTION(Mctrl, launch_sdram_command);
         GR_SENSITIVE(r[MCTRL_MCFG2].br["launch"].add_rule(gs::reg::POST_WRITE, // function to be called after register write
                 "launch_sdram_command", // function name
-                gs::reg::NOTIFY)); // notification on every register access
+                gs::reg::BIT_STATE_CHANGE)); // notification on bit state change only
 
         GR_FUNCTION(Mctrl, erase_sdram);
         GR_SENSITIVE(r[MCTRL_MCFG4].br["pmode"].add_rule(gs::reg::POST_WRITE, // function to be called after register write
                 "erase_sdram", // function name
-                gs::reg::NOTIFY)); // notification on every register access
+                gs::reg::BIT_STATE_CHANGE)); // notification on bit state change only
 
         GR_FUNCTION(Mctrl, sdram_enable);
         GR_SENSITIVE(r[MCTRL_MCFG2].br["se"].add_rule(gs::reg::POST_WRITE, // function to be called after register write
                 "sdram_enable", // function name
-                gs::reg::NOTIFY)); // notification on every register access
+                gs::reg::BIT_STATE_CHANGE)); // notification on bit state change only
 
         GR_FUNCTION(Mctrl, sdram_change_bank_size);
         GR_SENSITIVE(r[MCTRL_MCFG2].br["sdr_bk"].add_rule(gs::reg::POST_WRITE, // function to be called after register write
                 "sdram_change_bank_size", // function name
-                gs::reg::NOTIFY)); // notification on every register access
+                gs::reg::BIT_STATE_CHANGE)); // notification on bit state change only
 
         GR_FUNCTION(Mctrl, sdram_change_refresh_cycle);
         GR_SENSITIVE(r[MCTRL_MCFG2].br["sdr_trfc"].add_rule(
                 gs::reg::POST_WRITE, // function to be called after register write
                 "sdram_change_refresh_cycle", // function name
-                gs::reg::NOTIFY)); // notification on every register access
+                gs::reg::BIT_STATE_CHANGE)); // notification on bit state change only
     } //if sden
 
     //initialize mctrl according to generics
@@ -325,10 +325,12 @@ void Mctrl::reset_mctrl(const bool &value,
         uint32_t sdram_bank_size = ((4096 - rammask) / 4) << 20;
 
         //write calculated bank sizes into MCFG2
+        //SRAM: "0000" --> 8KByte <-- 2^13Byte
         uint32_t i_sr =
-                static_cast<uint32_t> (log(sram_bank_size) / log(2) + 7);
+                static_cast<uint32_t> (log(sram_bank_size) / log(2) - 13);
+        //SDRAM: "000" --> 4MByte <-- 2^22Bte
         uint32_t i_sdr = static_cast<uint32_t> (log(sdram_bank_size) / log(2)
-                - 3);
+                - 22);
         set = (MCTRL_MCFG2_DEFAULT & ~MCTRL_MCFG2_RAM_BANK_SIZE
                 & ~MCTRL_MCFG2_SDRAM_BANKSZ) | (i_sr << 9
                 & MCTRL_MCFG2_RAM_BANK_SIZE) | (i_sdr << 23
@@ -866,26 +868,16 @@ void Mctrl::sram_disable() {
             //the GR callback is somehow misused for this pupose
             sram_change_bank_size();
         }
-        v::warn << "Mctrl"
-                << "address ranges of RAM banks have just been changed to"
-                << endl << std::hex << std::setfill('0') << std::setw(8)
-                << "SRAM_1:  " << sram_bk1_s << " - " << sram_bk1_e << endl
-                << "SRAM_2:  " << sram_bk2_s << " - " << sram_bk2_e << endl
-                << "SRAM_3:  " << sram_bk3_s << " - " << sram_bk3_e << endl
-                << "SRAM_4:  " << sram_bk4_s << " - " << sram_bk4_e << endl
-                << "SRAM_5:  " << sram_bk5_s << " - " << sram_bk5_e << endl
-                << "SDRAM_1: " << sdram_bk1_s << " - " << sdram_bk1_e << endl
-                << "SDRAM_2: " << sdram_bk2_s << " - " << sdram_bk2_e << endl;
+        v::warn << "Mctrl" << "address ranges of RAM banks have just been changed to" << std::endl
+                << std::hex << std::setfill('0')
+                << "SRAM_1:  0x" << std::setw(8) <<  sram_bk1_s << " - 0x" << std::setw(8) <<  sram_bk1_e << std::endl
+                << "SRAM_2:  0x" << std::setw(8) <<  sram_bk2_s << " - 0x" << std::setw(8) <<  sram_bk2_e << std::endl
+                << "SRAM_3:  0x" << std::setw(8) <<  sram_bk3_s << " - 0x" << std::setw(8) <<  sram_bk3_e << std::endl
+                << "SRAM_4:  0x" << std::setw(8) <<  sram_bk4_s << " - 0x" << std::setw(8) <<  sram_bk4_e << std::endl
+                << "SRAM_5:  0x" << std::setw(8) <<  sram_bk5_s << " - 0x" << std::setw(8) <<  sram_bk5_e << std::endl
+                << "SDRAM_1: 0x" << std::setw(8) << sdram_bk1_s << " - 0x" << std::setw(8) << sdram_bk1_e << std::endl
+                << "SDRAM_2: 0x" << std::setw(8) << sdram_bk2_s << " - 0x" << std::setw(8) << sdram_bk2_e << std::endl;
     }
-    v::warn << "Mctrl" << "address ranges of RAM banks have just been changed to" << std::endl
-            << std::hex << std::setfill('0')
-            << "SRAM_1:  0x" << std::setw(8) <<  sram_bk1_s << " - 0x" << std::setw(8) <<  sram_bk1_e << std::endl
-            << "SRAM_2:  0x" << std::setw(8) <<  sram_bk2_s << " - 0x" << std::setw(8) <<  sram_bk2_e << std::endl
-            << "SRAM_3:  0x" << std::setw(8) <<  sram_bk3_s << " - 0x" << std::setw(8) <<  sram_bk3_e << std::endl
-            << "SRAM_4:  0x" << std::setw(8) <<  sram_bk4_s << " - 0x" << std::setw(8) <<  sram_bk4_e << std::endl
-            << "SRAM_5:  0x" << std::setw(8) <<  sram_bk5_s << " - 0x" << std::setw(8) <<  sram_bk5_e << std::endl
-            << "SDRAM_1: 0x" << std::setw(8) << sdram_bk1_s << " - 0x" << std::setw(8) << sdram_bk1_e << std::endl
-            << "SDRAM_2: 0x" << std::setw(8) << sdram_bk2_s << " - 0x" << std::setw(8) << sdram_bk2_e << std::endl;
 }
 
 //recalculate start / end addresses of ram banks after sdram enable / disable
@@ -915,13 +907,13 @@ void Mctrl::sdram_enable() {
     }
     v::warn << "Mctrl" << "address ranges of RAM banks have just been changed to" << std::endl
             << std::hex << std::setfill('0') << std::setw(8)
-            << "SRAM_1:  " <<  sram_bk1_s << " - " <<  sram_bk1_e << std::endl
-            << "SRAM_2:  " <<  sram_bk2_s << " - " <<  sram_bk2_e << std::endl
-            << "SRAM_3:  " <<  sram_bk3_s << " - " <<  sram_bk3_e << std::endl
-            << "SRAM_4:  " <<  sram_bk4_s << " - " <<  sram_bk4_e << std::endl
-            << "SRAM_5:  " <<  sram_bk5_s << " - " <<  sram_bk5_e << std::endl
-            << "SDRAM_1: " << sdram_bk1_s << " - " << sdram_bk1_e << std::endl
-            << "SDRAM_2: " << sdram_bk2_s << " - " << sdram_bk2_e << std::endl;
+            << "SRAM_1:  0x" <<  sram_bk1_s << " - 0x" <<  sram_bk1_e << std::endl
+            << "SRAM_2:  0x" <<  sram_bk2_s << " - 0x" <<  sram_bk2_e << std::endl
+            << "SRAM_3:  0x" <<  sram_bk3_s << " - 0x" <<  sram_bk3_e << std::endl
+            << "SRAM_4:  0x" <<  sram_bk4_s << " - 0x" <<  sram_bk4_e << std::endl
+            << "SRAM_5:  0x" <<  sram_bk5_s << " - 0x" <<  sram_bk5_e << std::endl
+            << "SDRAM_1: 0x" << sdram_bk1_s << " - 0x" << sdram_bk1_e << std::endl
+            << "SDRAM_2: 0x" << sdram_bk2_s << " - 0x" << sdram_bk2_e << std::endl;
 }
 
 //recalculate start / end addresses of sram banks after change of sram bank size
