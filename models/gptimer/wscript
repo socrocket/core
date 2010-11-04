@@ -130,7 +130,7 @@ def build(bld):
                     'tests/top_rtl.cpp'],
     uselib       = 'AMBA GREENSOCS',
     defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = '../utils ../../signalkit',
+    includes     = '../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )
 
