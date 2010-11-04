@@ -104,11 +104,11 @@ class Mctrl : public gs::reg::gr_device,
             end = std::max(static_cast<uint64_t> (ramaddr), end);
             //base of highest mem area + size of that area
             if (end == static_cast<uint64_t> (ramaddr)) {
-                end += rammask;
+                end += ((~rammask) & 0xfff) + 1;
             } else if (end == static_cast<uint64_t> (ioaddr)) {
-                end += iomask;
+                end += ((~iomask) & 0xfff) + 1;
             } else if (end == static_cast<uint64_t> (romaddr)) {
-                end += rommask;
+                end += ((~rommask) & 0xfff) + 1;
             }
 
             //size is given in MB, so << 20
@@ -117,9 +117,9 @@ class Mctrl : public gs::reg::gr_device,
         inline sc_dt::uint64 get_base_addr() {
             //get start address of memory area
             uint64_t base = std::min(romaddr, ioaddr);
-            base = std::min(static_cast<uint64_t> (ramaddr), base) << 20;
+            base = std::min(static_cast<uint64_t> (ramaddr), base);
 
-            return base;
+            return base << 20;
         }
 
         //proclamation of callbacks

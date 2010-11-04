@@ -49,7 +49,7 @@
 #include "amba.h"
 #include "grlibdevice.h"
 
-class Ctb_ahb_mem : public sc_module {
+class Ctb_ahb_mem : public sc_module, public amba_slave_base {
 
     public:
         /// Constructor
@@ -94,14 +94,14 @@ class Ctb_ahb_mem : public sc_module {
 
         /// @brief Method returning the memory's base address at the AHB bus
         /// @return AHB base address of the memory module
-        uint32_t get_base_addr() {
+        inline sc_dt::uint64 get_base_addr() {
             return ahbBaseAddress;
         }
 
         /// @brief Method returning the memory's size at the AHB bus
         /// @return Size of the address space occupied by the memory module in B
-        uint32_t get_size() {
-            // ahbSize hold size in bytes. Add shift if other units are required.
+        inline sc_dt::uint64 get_size() {
+            // ahbSize holds size in bytes. Add shift if other units are required.
             return ahbSize;
         }
 

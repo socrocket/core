@@ -22,13 +22,15 @@
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
 // ********************************************************************
-// Title:      apbbridge.h
+// Title:      ahbdecoder.h
 //
 // ScssId:
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Implements an LT/AT AHB APB Bridge
+// Purpose:    AHB address decoder.
+//             The decoder collects all AHB request from the masters and
+//             forwards them to the appropriate slave.
 //
 // Modified on $Date$
 //          at $Revision$
@@ -36,45 +38,37 @@
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
+// Maintainer: Soeren Brinkmann
 // Reviewed:
 // ********************************************************************
 
-#ifndef APBBRIDGE_H
-#define APBBRIDGE_H
+#ifndef AHBDECODER_H
+#define AHBDECODER_H
 
 #include <systemc>
 #include "amba.h"
 #include "grlibdevice.h"
 
-class CAPBBridge : public sc_core::sc_module, public amba_slave_base, public CGrlibDevice {
+class CAHBDecoder : public sc_core::sc_module {
     public:
-        SC_HAS_PROCESS(CAPBBridge);
+        SC_HAS_PROCESS(CAHBDecoder);
         /// Constructor
-        CAPBBridge(sc_core::sc_module_name nm,
-                   uint32_t haddr_ = 0xfff,
-                   uint32_t hmask_ = 0);
+        CAHBDecoder(sc_core::sc_module_name nm);
 
         /// Desctructor
-        ~CAPBBridge();
+        ~CAHBDecoder();
 
         /// AMBA interfaces
-        amba::amba_slave_socket<32> ahb;
-        amba::amba_master_socket<32, 0> apb;
+        amba::amba_slave_socket<32, 0> ahbIN;
+        amba::amba_master_socket<32, 0> ahbOUT;
 
-        inline sc_dt::uint64 get_base_addr() {
-           return (HADDR & HMASK) << 20;
-        }
+        void setAddressMap(uint32_t i,
+                           uint32_t baseAddr,
+                           uint32_t size);
 
-        inline sc_dt::uint64 get_size() {
-           return (~(HMASK << 20)) + 1;
-        }
 
-        inline void setAddressMap(uint32_t i, uint32_t baseAddr,
-                                  uint32_t size);
-        inline int get_index(uint32_t address);
-
-        virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
+        /// TLM blocking transport method
+        void b_transport(uint32_t id, tlm::tlm_generic_payload& gp, sc_time& delay);
 
         void checkMemMap();
 
@@ -85,14 +79,9 @@ class CAPBBridge : public sc_core::sc_module, public amba_slave_base, public CGr
         typedef std::pair<uint32_t, uint32_t> slave_info_t;
         std::map<uint32_t, slave_info_t> slave_map;
 
-        // -- ahb slave --
-        const uint32_t HADDR;
-        const uint32_t HMASK;
+        int get_index(uint32_t address);
 
         void start_of_simulation();
-
-        static const uint32_t APBADDRMASK = 0x000fffff;
 };
 
-
-#endif // APBBRIDGE_H
+#endif // AHBDECODER_H
