@@ -47,26 +47,26 @@
 top = '../..'
 vsim_conf = """
 [Library]
-modelsim = %(ROOT)s/modelsim
-grlib = %(ROOT)s/modelsim/grlib
-unisim = %(ROOT)s/modelsim/unisim
-dw02 = %(ROOT)s/modelsim/dw02
-synplify = %(ROOT)s/modelsim/synplify
-techmap = %(ROOT)s/modelsim/techmap
-spw = %(ROOT)s/modelsim/spw
-eth = %(ROOT)s/modelsim/eth
-opencores = %(ROOT)s/modelsim/opencores
-gaisler = %(ROOT)s/modelsim/gaisler
-esa = %(ROOT)s/modelsim/esa
-micron = %(ROOT)s/modelsim/micron
-work = %(path)s/work
-vsys = %(ROOT)s/modelsim/vsys
+modelsim = $GRLIB_TECH
+grlib = $GRLIB_TECH/grlib
+unisim = $GRLIB_TECH/unisim
+dw02 = $GRLIB_TECH/dw02
+synplify = $GRLIB_TECH/synplify
+techmap = $GRLIB_TECH/techmap
+spw = $GRLIB_TECH/spw
+eth = $GRLIB_TECH/eth
+opencores = $GRLIB_TECH/opencores
+gaisler = $GRLIB_TECH/gaisler
+esa = $GRLIB_TECH/esa
+micron = $GRLIB_TECH/micron
+vsys = $GRLIB_TECH/vsys
 std = $MODEL_TECH/../std
 ieee = $MODEL_TECH/../ieee
 vital2000 = $MODEL_TECH/../vital2000
 verilog = $MODEL_TECH/../verilog
 std_developerskit = $MODEL_TECH/../std_developerskit
 synopsys = $MODEL_TECH/../synopsys
+work = %(path)s/work
 
 [vcom]
 VHDL93 = 1
@@ -123,7 +123,6 @@ def build(bld):
   bld(
     features     = 'modelsim',
     target       = 'work',
-    dobefore     = "build_grlib.do",
     name         = 'gptimer_wrapper',
     generate     = 'gptimer_wrapper:gptimer_wrapper.h',
     source       = ['tests/gptimer_wrapper.vhd',

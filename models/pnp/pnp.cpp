@@ -47,13 +47,22 @@
 
 #include "pnp.h"
 
-CPnP::CPnP(sc_core::sc_module_name nm, uint16_t ioaddr, uint16_t iomask,
-           uint16_t cfgaddr, uint16_t cfgmask) :
-    ahb_slave("ahb_slave", amba::amba_AHB, amba::amba_LT, false), mMasterCount(
-            0), mSlaveCount(0) {
+CPnP::CPnP(sc_core::sc_module_name nm, uint16_t cfgaddr, uint16_t cfgmask) :
+        ahb_slave("ahb_slave", amba::amba_AHB, amba::amba_LT, false), 
+        mMasterCount(0), mSlaveCount(0), 
+        mem_size(0xFFF), baseAddr((cfgaddr & cfgmask) << 20) {
 
     ahb_slave.register_b_transport(this, &CPnP::BTransport);
 }
+
+sc_dt::uint64 CPnP::get_size() {
+    return mem_size;
+}
+
+sc_dt::uint64 CPnP::get_base_addr() {
+    return baseAddr;
+}
+
 
 uint32_t CPnP::GetRegister(uint32_t nr // The number of the register to get
 ) const {

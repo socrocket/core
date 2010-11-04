@@ -68,7 +68,7 @@
 /// In oder to use this implementation you have to know that ther is no mechanism to unregister devices
 /// , once a device is registered it connected. Furthermore there is no logic to handle the deletion of
 /// a device.
-class CPnP : public sc_core::sc_module {
+class CPnP : public sc_core::sc_module, public amba_slave_base {
     public:
 
         /// AHB Slave Socket
@@ -92,13 +92,15 @@ class CPnP : public sc_core::sc_module {
         ///                 area and the start address together with cfgaddr.
         ///                 If set to 0, the configuration
         ///                 will be disabled. Values between 0 and 16#FFF# are allowed, default is 16#FF0#.
-        CPnP(sc_core::sc_module_name nm, uint16_t ioaddr = 4095,
-             uint16_t iomask = 4095, uint16_t cfgaddr = 4080, uint16_t cfgmask =
+        CPnP(sc_core::sc_module_name nm, uint16_t cfgaddr = 4080, uint16_t cfgmask =
                      4080);
 
         /// Empty destructor
         ~CPnP();
 
+        sc_dt::uint64 get_size();
+        sc_dt::uint64 get_base_addr();
+        
         /// Blocking Transport function for the AHB Slave Socket.
         /// Incomming requests will be processed here. Write requests are ignored.
         /// Read requests will seperated in register access and processt in
@@ -137,6 +139,12 @@ class CPnP : public sc_core::sc_module {
 
         /// The number of registerd slaves.
         uint8_t mSlaveCount;
+        
+        /// Base assress of the module
+        sc_dt::uint64 baseAddr;
+
+        /// Memory size of the module
+        sc_dt::uint64 mem_size;
 };
 
 /// @}

@@ -54,6 +54,7 @@
 
 namespace v {
 
+// Import std iostream operators
 using std::endl;
 using std::hex;
 using std::dec;
@@ -61,21 +62,30 @@ using std::flush;
 using std::setw;
 using std::setfill;
 
+/// Output colors
 class Color {
     public:
+        /// Constructor
+        ///
+        /// @param value The color code to determ the output.
         Color(const char *value) :
             m_value(value) {
         }
     private:
+        /// Stores the color code
         const char *m_value;
+
+        /// Prints the color code
         friend ostream &operator <<(ostream &os, const Color &cl);
 };
 
+/// Display the color code on the ostream
 inline ostream &operator <<(ostream &os, const Color &cl) {
     os << cl.m_value;
     return os;
 }
 
+// Colors defined in the cpp file
 extern Color bgBlack;
 extern Color bgWhite;
 extern Color bgYellow;
@@ -99,10 +109,14 @@ extern Color Bold;
 extern Color Blink;
 extern Color Beep;
 
+/// Standard verbosity is 3.
+/// All messages but debug.
 #ifndef VERBOSITY
 #define VERBOSITY 3
 #endif
 
+/// Message stream.
+/// This stream is used for output messages
 template<int level>
 class msgstream {
     public:
@@ -129,6 +143,8 @@ class msgstream {
         std::ostream m_stream;
 };
 
+/// This stream is used for an output line.
+/// It defines the Header of a line and returns a msgstream for the message itself.
 template<int level>
 class logstream {
     public:
