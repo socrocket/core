@@ -3,7 +3,7 @@
 //                 TU-Braunschweig
 // All rights reserved
 // Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
+// without the express, prior written consent of the authors is
 // strictly prohibited.
 //
 // University of Technology Braunschweig
@@ -19,7 +19,7 @@
 // The program is provided "as is", there is no warranty that
 // the program is correct or suitable for any purpose,
 // neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
+// contained do not necessarily reflect the policy of the
 // European Space Agency or of TU-Braunschweig.
 // ********************************************************************
 // Title:      apbbridge.cpp
@@ -45,7 +45,7 @@
 #include "apbbridge.h"
 #include "verbose.h"
 
-CAPBBridge::CAPBBridge(sc_core::sc_module_name nm, uint32_t haddr_, 
+CAPBBridge::CAPBBridge(sc_core::sc_module_name nm, uint32_t haddr_,
                        uint32_t hmask_) :
       sc_module(nm),
       CGrlibDevice(0x04, // vendor_id: ESA
@@ -82,7 +82,8 @@ void CAPBBridge::setAddressMap(uint32_t i, uint32_t baseAddr,
                                uint32_t size) {
     baseAddr &= APBADDRMASK;
     uint32_t highAddr = baseAddr + size;
-    slave_map.insert(std::pair<uint32_t, slave_info_t>(i, slave_info_t(baseAddr, highAddr)));
+    slave_map.insert(std::pair<uint32_t, slave_info_t>
+                        (i, slave_info_t(baseAddr, highAddr)));
 }
 
 int CAPBBridge::get_index(uint32_t address) {
@@ -111,7 +112,9 @@ void CAPBBridge::b_transport(tlm::tlm_generic_payload& ahb_gp,
 
        // Warn if access exceeds the selected slave's memory region
        it = slave_map.find(index);
-       if(it !=slave_map.end() &&  (!(it->second.second >= (ahb_gp.get_address() & APBADDRMASK) + ahb_gp.get_data_length()))) {
+       if(it !=slave_map.end() &&
+          (!(it->second.second >= (ahb_gp.get_address() & APBADDRMASK) +
+                                    ahb_gp.get_data_length()))) {
           v::warn << name() << "Transaction length exceeds slave region." << endl;
        }
 
@@ -161,8 +164,8 @@ void CAPBBridge::start_of_simulation() {
             uint32_t addr = slave->get_base_addr();
             uint32_t size = slave->get_size();
             setAddressMap(i, addr, size);
-            v::info << name() << "Found APB slave " << obj->name() << "@0x" 
-                    << hex << v::setw(8) << v::setfill('0') 
+            v::info << name() << "Found APB slave " << obj->name() << "@0x"
+                    << hex << v::setw(8) << v::setfill('0')
                     << (((HADDR & HMASK) << 20) | addr)
                     << ", size:" << hex << "0x" << size << endl;
         } else {
@@ -178,8 +181,10 @@ void CAPBBridge::checkMemMap() {
 
    for(it=slave_map.begin(), it2=slave_map.begin(); it!=slave_map.end(); it++, it2++) {
       for(it2++; it2!=slave_map.end(); it2++) {
-         if(((it2->second.first >= it->second.first) && (it2->second.first < it->second.second)) ||
-            (((it2->second.second - 1) >= it->second.first) && ((it2->second.second - 1)< it->second.second))) {
+         if(((it2->second.first >= it->second.first) &&
+               (it2->second.first < it->second.second)) ||
+            (((it2->second.second - 1) >= it->second.first) &&
+               ((it2->second.second - 1)< it->second.second))) {
             // Memory regions overlap output warning
              uint32_t a = 0;
              socket_t *other_socket = apb.get_other_side(it->first, a);
@@ -194,7 +199,8 @@ void CAPBBridge::checkMemMap() {
                       << v::setw(8) << v::setfill('0') << (it->second.second - 1) << endl;
              v::debug << name() << obj2->name() << "@0x" << hex << v::setw(8)
                       << v::setfill('0') << it2->second.first << ":0x" << hex
-                      << v::setw(8) << v::setfill('0') << (it2->second.second - 1) << endl;
+                      << v::setw(8) << v::setfill('0') << (it2->second.second - 1)
+                      << endl;
 
          }
       }

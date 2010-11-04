@@ -3,7 +3,7 @@
 //                 TU-Braunschweig
 // All rights reserved
 // Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
+// without the express, prior written consent of the authors is
 // strictly prohibited.
 //
 // University of Technology Braunschweig
@@ -62,7 +62,8 @@ CAHBDecoder::~CAHBDecoder() {
 void CAHBDecoder::setAddressMap(uint32_t i, uint32_t baseAddr,
                                uint32_t size) {
     uint32_t highAddr = baseAddr + size;
-    slave_map.insert(std::pair<uint32_t, slave_info_t>(i, slave_info_t(baseAddr, highAddr)));
+    slave_map.insert(std::pair<uint32_t, slave_info_t>
+                        (i, slave_info_t(baseAddr, highAddr)));
 }
 
 int CAHBDecoder::get_index(uint32_t address) {
@@ -133,8 +134,8 @@ void CAHBDecoder::start_of_simulation() {
             uint32_t addr = slave->get_base_addr();
             uint32_t size = slave->get_size();
             setAddressMap(i, addr, size);
-            v::info << name() << "Found AHB slave " << obj->name() << "@0x" 
-                    << hex << v::setw(8) << v::setfill('0') << addr 
+            v::info << name() << "Found AHB slave " << obj->name() << "@0x"
+                    << hex << v::setw(8) << v::setfill('0') << addr
                     << ", size:" << hex << "0x" << size << endl;
         } else {
             v::warn << name() << "Unexpected NULL object." << v::endl;
@@ -149,8 +150,10 @@ void CAHBDecoder::checkMemMap() {
 
    for(it=slave_map.begin(), it2=slave_map.begin(); it!=slave_map.end(); it++, it2++) {
       for(it2++; it2!=slave_map.end(); it2++) {
-         if(((it2->second.first >= it->second.first) && (it2->second.first < it->second.second)) ||
-            (((it2->second.second - 1) >= it->second.first) && ((it2->second.second - 1)< it->second.second))) {
+         if(((it2->second.first >= it->second.first) &&
+            (it2->second.first < it->second.second)) ||
+            (((it2->second.second - 1) >= it->second.first) &&
+             ((it2->second.second - 1)< it->second.second))) {
             // Memory regions overlap output warning
              uint32_t a = 0;
              socket_t *other_socket = ahbOUT.get_other_side(it->first, a);
@@ -165,7 +168,8 @@ void CAHBDecoder::checkMemMap() {
                       << v::setw(8) << v::setfill('0') << (it->second.second - 1) << endl;
              v::debug << name() << obj2->name() << "@0x" << hex << v::setw(8)
                       << v::setfill('0') << it2->second.first << ":0x" << hex
-                      << v::setw(8) << v::setfill('0') << (it2->second.second - 1) << endl;
+                      << v::setw(8) << v::setfill('0') << (it2->second.second - 1)
+                      << endl;
 
          }
       }

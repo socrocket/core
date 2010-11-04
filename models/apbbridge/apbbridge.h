@@ -3,7 +3,7 @@
 //                 TU-Braunschweig
 // All rights reserved
 // Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
+// without the express, prior written consent of the authors is
 // strictly prohibited.
 //
 // University of Technology Braunschweig
@@ -19,7 +19,7 @@
 // The program is provided "as is", there is no warranty that
 // the program is correct or suitable for any purpose,
 // neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
+// contained do not necessarily reflect the policy of the
 // European Space Agency or of TU-Braunschweig.
 // ********************************************************************
 // Title:      apbbridge.h
@@ -47,7 +47,8 @@
 #include "amba.h"
 #include "grlibdevice.h"
 
-class CAPBBridge : public sc_core::sc_module, public amba_slave_base, public CGrlibDevice {
+class CAPBBridge : public sc_core::sc_module, public amba_slave_base,
+                   public CGrlibDevice {
     public:
         SC_HAS_PROCESS(CAPBBridge);
         /// Constructor
