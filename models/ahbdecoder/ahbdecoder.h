@@ -62,9 +62,9 @@ class CAHBDecoder : public sc_core::sc_module {
         amba::amba_slave_socket<32, 0> ahbIN;
         amba::amba_master_socket<32, 0> ahbOUT;
 
-        void setAddressMap(uint32_t i,
-                           uint32_t baseAddr,
-                           uint32_t size);
+        void setAddressMap(const uint32_t i,
+                           const uint32_t baseAddr,
+                           const uint32_t size);
 
 
         /// TLM blocking transport method
@@ -79,7 +79,7 @@ class CAHBDecoder : public sc_core::sc_module {
         typedef std::pair<uint32_t, uint32_t> slave_info_t;
         std::map<uint32_t, slave_info_t> slave_map;
 
-        int get_index(uint32_t address);
+        int get_index(const uint32_t address);
 
         void start_of_simulation();
 };

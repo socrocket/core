@@ -354,6 +354,8 @@ int Ctb_ahb_mem::dumpmem(char outfile_[]) {
         }
         // print last word
         outfile << hex << v::setw(8) << v::setfill('0') << word << endl;
+
+        outfile.close();
         return 0;
     } else {
         v::error << name() << "Unable to open dump file" << endl;

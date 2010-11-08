@@ -59,14 +59,14 @@ CAHBDecoder::CAHBDecoder(sc_core::sc_module_name nm) :
 CAHBDecoder::~CAHBDecoder() {
 }
 
-void CAHBDecoder::setAddressMap(uint32_t i, uint32_t baseAddr,
-                               uint32_t size) {
+void CAHBDecoder::setAddressMap(const uint32_t i, const uint32_t baseAddr,
+                                const uint32_t size) {
     uint32_t highAddr = baseAddr + size;
     slave_map.insert(std::pair<uint32_t, slave_info_t>
                         (i, slave_info_t(baseAddr, highAddr)));
 }
 
-int CAHBDecoder::get_index(uint32_t address) {
+int CAHBDecoder::get_index(const uint32_t address) {
     std::map<uint32_t, slave_info_t>::iterator it;
 
     for (it = slave_map.begin(); it != slave_map.end(); it++) {
