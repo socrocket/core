@@ -172,9 +172,9 @@ void Mctrl_tb::check (uint32_t start, uint32_t end, uint8_t inc) {
 void Mctrl_tb::run() {
     sc_core::sc_time t;
 
-  std::cout << std::endl << "--------------------------------------------------"
-            << std::endl << "---------- write and read all memories -----------"
-            << std::endl << "--------------------------------------------------" << std::endl << std::endl;
+  v::info << "Mctrl" << std::endl << "--------------------------------------------------"
+          << std::endl << "---------- write and read all memories -----------"
+          << std::endl << "--------------------------------------------------" << std::endl << std::endl;
 
   check (0x00000000, 0x00000008, 4);
   check (0x20000000, 0x20000008, 4);
@@ -192,9 +192,9 @@ void Mctrl_tb::run() {
   check (0x40000014, 0x40000017, 1);
   check (0x60000014, 0x60000017, 1);
 
-  std::cout << std::endl << std::endl << "--------------------------------------------------"
-                         << std::endl << "--switching widths to: rom-16, sram-16, sdram-64--"
-                         << std::endl << "--------------------------------------------------" << std::endl << std::endl;
+  v::info << "Mctrl" << std::endl << std::endl << "--------------------------------------------------"
+                       << std::endl << "--switching widths to: rom-16, sram-16, sdram-64--"
+                       << std::endl << "--------------------------------------------------" << std::endl << std::endl;
 
   //switch ROM to 16 bit access
   uint32_t temp = read (Mctrl::MCTRL_MCFG1, 4, APB);
@@ -219,7 +219,7 @@ void Mctrl_tb::run() {
   std::cout << std::endl << "MCFG2 contents after writing:" << std::endl;
   REG (Mctrl::MCTRL_MCFG2, 4, APB);
 
-    std::cout << std::endl << std::endl
+    v::info << "Mctrl" << std::endl << std::endl
             << "--------------------------------------------------"
             << std::endl
             << "-------- write / read ROM / SRAM / SDRAM ---------"
@@ -239,9 +239,9 @@ void Mctrl_tb::run() {
   check (0x40000114, 0x40000117, 1);
   check (0x60000114, 0x60000117, 1);
 
-  std::cout << std::endl << std::endl << "--------------------------------------------------"
-                         << std::endl << "------- switching widths to: rom-8, sram-8 -------"
-                         << std::endl << "--------------------------------------------------" << std::endl;
+  v::info << "Mctrl" << std::endl << std::endl << "--------------------------------------------------"
+                       << std::endl << "------- switching widths to: rom-8, sram-8 -------"
+                       << std::endl << "--------------------------------------------------" << std::endl;
 
   //switch ROM to 8 bit access
   temp = read (Mctrl::MCTRL_MCFG1, 4, APB);
@@ -257,7 +257,7 @@ void Mctrl_tb::run() {
   std::cout << "new MCFG2 contents: " << std::hex << (unsigned int) temp << std::endl;
   SET (Mctrl::MCTRL_MCFG2, temp, 4, APB);
 
-    std::cout << std::endl << std::endl
+    v::info << "Mctrl" << std::endl << std::endl
             << "--------------------------------------------------"
             << std::endl
             << "---------- write and read ROM and SRAM -----------"
@@ -274,9 +274,9 @@ void Mctrl_tb::run() {
   check (0x00010014, 0x00010017, 1);
   check (0x40010014, 0x40010017, 1);
 
-  std::cout << std::endl << std::endl << "--------------------------------------------------"
-                         << std::endl << "---------- switch off PROM write enable ----------"
-                         << std::endl << "--------------------------------------------------" << std::endl;
+  v::info << "Mctrl" << std::endl << std::endl << "--------------------------------------------------"
+                     << std::endl << "---------- switch off PROM write enable ----------"
+                     << std::endl << "--------------------------------------------------" << std::endl;
 
   //switch off ROM write capability
   temp = read (Mctrl::MCTRL_MCFG1, 4, APB);
@@ -284,7 +284,7 @@ void Mctrl_tb::run() {
   std::cout << std::endl;
   SET (Mctrl::MCTRL_MCFG1, temp, 4, APB);
 
-    std::cout << std::endl << std::endl
+    v::info << "Mctrl" << std::endl << std::endl
             << "--------------------------------------------------"
             << std::endl
             << "---------------- write into PROM -----------------"
@@ -299,7 +299,7 @@ void Mctrl_tb::run() {
     i8++;
   }
 
-    std::cout << std::endl << std::endl
+    v::info << "Mctrl" << std::endl << std::endl
             << "--------------------------------------------------"
             << std::endl
             << "------- send SDRAM to deep power down mode -------"
@@ -314,7 +314,7 @@ void Mctrl_tb::run() {
   std::cout << "modified MCFG4 contents: " << std::hex << (unsigned int) temp << std::endl;
   SET (Mctrl::MCTRL_MCFG4, temp, 4, APB);
 
-    std::cout << std::endl << std::endl
+    v::info << "Mctrl" << std::endl << std::endl
             << "--------------------------------------------------"
             << std::endl
             << "---------------- read from SDRAM -----------------"

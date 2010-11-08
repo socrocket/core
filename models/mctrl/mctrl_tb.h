@@ -46,6 +46,7 @@
 #define MCTRL_TB_H
 
 #include "amba.h"
+#include "verbose.h"
 
 class Mctrl_tb : public sc_core::sc_module {
     public:

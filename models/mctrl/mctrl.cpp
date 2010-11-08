@@ -145,7 +145,7 @@ Mctrl::Mctrl(sc_core::sc_module_name name, int _romasel, int _sdrasel,
                    // init value (to be calculated from the generics for all 4 registers)
                       MCTRL_MCFG1_DEFAULT,
                    // write mask
-                      MCTRL_MCFG1_WRITE_MASK,
+                      MCTRL_MCFG1_WRITE_MASK & ((_ram8 | _ram16) << 9) ^ ((_ram8 ^ _ram16) << 8),
                    // reg width (maximum 32 bit)
                       32,
                    // lock mask: Not implementet, has to be zero.
@@ -337,6 +337,11 @@ void Mctrl::reset_mctrl(const bool &value,
                 & MCTRL_MCFG2_SDRAM_BANKSZ);
         r[MCTRL_MCFG2].set(set);
 
+        //SRAM bank size has to be a power of two, which is not necessarily the case here.
+        //Certain combinations of rammask and srbanks might have caused odd numbers here, so
+        // the SRAM bank size is re-calculated from the register values here.
+        sram_bank_size = 1 << ( 13 + ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_BANK_SIZE) >> 9) );
+
         //address spaces in case of SRAM only configuration
         if (!sden || !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE)) {
             //potentially unused banks
@@ -409,17 +414,17 @@ void Mctrl::reset_mctrl(const bool &value,
         }
     }
 
-    cout << "Mctrl" << std::endl << std::hex << std::setfill('0') << "--- address space borders ---" << std::endl
-         << "ROM_1:   0x" << std::setw(8) <<   rom_bk1_s << " - 0x" << std::setw(8) <<   rom_bk1_e << std::endl
-         << "ROM_2:   0x" << std::setw(8) <<   rom_bk2_s << " - 0x" << std::setw(8) <<   rom_bk2_e << std::endl
-         << "IO:      0x" << std::setw(8) <<        io_s << " - 0x" << std::setw(8) <<        io_e << std::endl
-         << "SRAM_1:  0x" << std::setw(8) <<  sram_bk1_s << " - 0x" << std::setw(8) <<  sram_bk1_e << std::endl
-         << "SRAM_2:  0x" << std::setw(8) <<  sram_bk2_s << " - 0x" << std::setw(8) <<  sram_bk2_e << std::endl
-         << "SRAM_3:  0x" << std::setw(8) <<  sram_bk3_s << " - 0x" << std::setw(8) <<  sram_bk3_e << std::endl
-         << "SRAM_4:  0x" << std::setw(8) <<  sram_bk4_s << " - 0x" << std::setw(8) <<  sram_bk4_e << std::endl
-         << "SRAM_5:  0x" << std::setw(8) <<  sram_bk5_s << " - 0x" << std::setw(8) <<  sram_bk5_e << std::endl
-         << "SDRAM_1: 0x" << std::setw(8) << sdram_bk1_s << " - 0x" << std::setw(8) << sdram_bk1_e << std::endl
-         << "SDRAM_2: 0x" << std::setw(8) << sdram_bk2_s << " - 0x" << std::setw(8) << sdram_bk2_e << std::endl;
+    v::info << "Mctrl" << std::endl << std::hex << std::setfill('0') << "--- address space borders ---" << std::endl
+            << "ROM_1:   0x" << std::setw(8) <<   rom_bk1_s << " - 0x" << std::setw(8) <<   rom_bk1_e << std::endl
+            << "ROM_2:   0x" << std::setw(8) <<   rom_bk2_s << " - 0x" << std::setw(8) <<   rom_bk2_e << std::endl
+            << "IO:      0x" << std::setw(8) <<        io_s << " - 0x" << std::setw(8) <<        io_e << std::endl
+            << "SRAM_1:  0x" << std::setw(8) <<  sram_bk1_s << " - 0x" << std::setw(8) <<  sram_bk1_e << std::endl
+            << "SRAM_2:  0x" << std::setw(8) <<  sram_bk2_s << " - 0x" << std::setw(8) <<  sram_bk2_e << std::endl
+            << "SRAM_3:  0x" << std::setw(8) <<  sram_bk3_s << " - 0x" << std::setw(8) <<  sram_bk3_e << std::endl
+            << "SRAM_4:  0x" << std::setw(8) <<  sram_bk4_s << " - 0x" << std::setw(8) <<  sram_bk4_e << std::endl
+            << "SRAM_5:  0x" << std::setw(8) <<  sram_bk5_s << " - 0x" << std::setw(8) <<  sram_bk5_e << std::endl
+            << "SDRAM_1: 0x" << std::setw(8) << sdram_bk1_s << " - 0x" << std::setw(8) << sdram_bk1_e << std::endl
+            << "SDRAM_2: 0x" << std::setw(8) << sdram_bk2_s << " - 0x" << std::setw(8) << sdram_bk2_e << std::endl;
 }
 
 //-----------TLM--TRANSPORT--FUNCTIONS-----------//
@@ -455,273 +460,285 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     tlm::tlm_command cmd = gp.get_command();
     uint8_t data_length = gp.get_data_length();
 
-  //get burst_size extension for later checks of consistency of burst_size, streaming_width, and data length 
-  amba::amba_burst_size * amba_burst_size;
-  if (!(ahb.get_extension<amba::amba_burst_size>(amba_burst_size, gp)) ) {
-    amba_burst_size->value = 0;
-  }
-  //If present, the burst size extension of the gp is now stored in amba_burst_size.
-  //Else, the burst size is set to zero, alway indicating that the extension is not present.
+    //get burst_size extension for later checks of consistency of burst_size, streaming_width, and data length 
+    amba::amba_burst_size * amba_burst_size;
+    if (!(ahb.get_extension<amba::amba_burst_size>(amba_burst_size, gp)) ) {
+        amba_burst_size->value = 0;
+    }
+    //If present, the burst size extension of the gp is now stored in amba_burst_size.
+    //Else, the burst size is set to zero, always indicating that the extension is not present.
 
-  //access to ROM adress space
-  if (Mctrl::rom_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::rom_bk1_e ||
-      Mctrl::rom_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::rom_bk2_e    ) {
-    //determine streaming width by MCFG1[9..8]
-    if ( (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH) >> 9) {
-      gp.set_streaming_width(4);
+    //data length must be multiple of burst size
+    if ( (amba_burst_size->value && data_length % amba_burst_size->value) ) {
+        v::error << "Mctrl" << "Data length (" << (unsigned int) data_length 
+                 << ") does not match burst_size (" << (unsigned int) amba_burst_size->value 
+                 << ")." << std::endl;
+        gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+        return;
     }
-    else if (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH && ram16) {
-      gp.set_streaming_width(2);
-    }
-    else if (ram8){
-      gp.set_streaming_width(1);
-    }
-    else {
-      v::error << "Mctrl" << "Attempted disallowed sub-word access to PROM" << std::endl;
-      gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
-      return;
-    }
-    if (   (amba_burst_size->value && data_length % amba_burst_size->value)
-        || data_length % gp.get_streaming_width()) {
-      v::error << "Mctrl" << "Data length does not match PROM access width." << std::endl;
-      gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
-      return;
-    }
-    if (cmd == tlm::TLM_WRITE_COMMAND) {
-      //PROM write access must be explicitly allowed
-      if ( !(r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PWEN) ) {
-        //issue error message / failure
-        gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-        //address decoding delay only
-        delay += DECODING_DELAY * cycle_time;
-      }
-      //calculate delay for write command
-      else {
-        cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WRITE_WS) >> 4;
-        cycles = DECODING_DELAY + MCTRL_ROM_WRITE_DELAY(cycles) + 
-                 (data_length / gp.get_streaming_width() - 1);    //multiple data cycles, i.e. burst access
-        //add delay and forward transaction to memory
-        start_idle = t_trans + cycle_time * cycles;
-        delay += cycle_time * cycles;
-        mctrl_rom->b_transport(gp,delay);
-      }
-    }
-    //calculate delay for read command
-    else if (cmd == tlm::TLM_READ_COMMAND) {
-      cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_READ_WS);
-      cycles = DECODING_DELAY + MCTRL_ROM_READ_DELAY(cycles) + 
-               2 * (data_length / gp.get_streaming_width() - 1);  //multiple data1 / data2 cycles, i.e. burst access
-      //add delay and forward transaction to memory
-      start_idle = t_trans + cycle_time * cycles;
-      delay += cycle_time * cycles;
-      mctrl_rom->b_transport(gp,delay);
-      //set cacheable_access extension
-      ahb.validate_extension<amba::amba_cacheable> (gp);
-    }
-  }
-  //access to IO adress space
-  else if (Mctrl::io_s <= gp.get_address() and gp.get_address() <= Mctrl::io_e) {
-    //IO enable bit set?
-    if (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IOEN) {
-      cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IO_WAITSTATES) >> 20;
-      //check burst size extension to identify sub-word writes
-      if (amba_burst_size->value != 0) {
-        gp.set_streaming_width(amba_burst_size->value);
-        if (amba_burst_size->value < data_length) {
-          v::warn << "Mctrl" << "subword burst access to IO area" << std::endl;
+    //access to ROM adress space
+    if (Mctrl::rom_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::rom_bk1_e ||
+        Mctrl::rom_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::rom_bk2_e    ) {
+        //determine streaming width by MCFG1[9..8]
+        if ( (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH) >> 9) {
+            gp.set_streaming_width(4);
         }
-      }
-      if (data_length % gp.get_streaming_width()) {
-        v::error << "Mctrl" << "Data length does not match I/O access width." << std::endl;
-        gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
-        return;
-      }
-      //calculate delay for read command
-      if (cmd == tlm::TLM_READ_COMMAND) {
-        cycles = DECODING_DELAY + MCTRL_IO_READ_DELAY(cycles) + 
-                 2 * (data_length / gp.get_streaming_width() - 1);  //multiple data cycles, i.e. burst access
-      }
-      //calculate delay for write command
-      else if (cmd == tlm::TLM_WRITE_COMMAND) {
-        cycles = DECODING_DELAY + MCTRL_IO_WRITE_DELAY(cycles) + 
-                 data_length / gp.get_streaming_width() - 1;        //multiple data cycles, i.e. burst access
-      }
-      //add delay and forward transaction to memory
-      start_idle = t_trans + cycle_time * cycles;
-      delay += cycle_time * cycles;
-      gp.set_streaming_width(4);
-      mctrl_io->b_transport(gp,delay);
+        else if (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WIDTH && ram16) {
+            gp.set_streaming_width(2);
+        }
+        else if (ram8){
+            gp.set_streaming_width(1);
+        }
+        else {
+            v::error << "Mctrl" << "Attempted disallowed sub-word access to PROM" << std::endl;
+            gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+            return;
+        }
+        //data length must be multiple of streaming width
+        if ( data_length % gp.get_streaming_width() ) {
+            v::error << "Mctrl" << "PROM access: data length (" << (unsigned int) data_length 
+                     << ") does not match streaming width (" << (unsigned int) gp.get_streaming_width() 
+                     << ")." << std::endl;
+            gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+            return;
+        }
+        if (cmd == tlm::TLM_WRITE_COMMAND) {
+            //PROM write access must be explicitly allowed
+            if ( !(r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PWEN) ) {
+                //issue error message / failure
+                gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+                //address decoding delay only
+                delay += DECODING_DELAY * cycle_time;
+            }
+            //calculate delay for write command
+            else {
+                cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_WRITE_WS) >> 4;
+                cycles = DECODING_DELAY + MCTRL_ROM_WRITE_DELAY(cycles) + 
+                         (data_length / gp.get_streaming_width() - 1);    //multiple data cycles, i.e. burst access
+                //add delay and forward transaction to memory
+                start_idle = t_trans + cycle_time * cycles;
+                delay += cycle_time * cycles;
+                mctrl_rom->b_transport(gp,delay);
+            }
+        }
+        //calculate delay for read command
+        else if (cmd == tlm::TLM_READ_COMMAND) {
+            cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_PROM_READ_WS);
+            cycles = DECODING_DELAY + MCTRL_ROM_READ_DELAY(cycles) + 
+                     2 * (data_length / gp.get_streaming_width() - 1);  //multiple data1 / data2 cycles, i.e. burst access
+            //add delay and forward transaction to memory
+            start_idle = t_trans + cycle_time * cycles;
+            delay += cycle_time * cycles;
+            mctrl_rom->b_transport(gp,delay);
+            //set cacheable_access extension
+            ahb.validate_extension<amba::amba_cacheable> (gp);
+        }
     }
-    else {
-      //IO enable not set: issue error message / failure
-      gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-      //address decoding delay only
-      delay += DECODING_DELAY * cycle_time;
+    //access to IO adress space
+    else if (Mctrl::io_s <= gp.get_address() and gp.get_address() <= Mctrl::io_e) {
+        //IO enable bit set?
+        if (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IOEN) {
+            cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IO_WAITSTATES) >> 20;
+            //check burst size extension to identify sub-word writes
+            if (amba_burst_size->value != 0) {
+                gp.set_streaming_width(amba_burst_size->value);
+                if (amba_burst_size->value < data_length) {
+                    v::warn << "Mctrl" << "subword burst access to IO area" << std::endl;
+                }
+            }
+            if (data_length % gp.get_streaming_width()) {
+            v::error << "Mctrl" << "I/O access: data length (" << (unsigned int) data_length 
+                     << ") does not match streaming width (" << (unsigned int) gp.get_streaming_width() 
+                     << ")." << std::endl;
+            gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+            return;
+            }
+            //calculate delay for read command
+            if (cmd == tlm::TLM_READ_COMMAND) {
+                cycles = DECODING_DELAY + MCTRL_IO_READ_DELAY(cycles) + 
+                         2 * (data_length / gp.get_streaming_width() - 1);  //multiple data cycles, i.e. burst access
+            }
+            //calculate delay for write command
+            else if (cmd == tlm::TLM_WRITE_COMMAND) {
+                cycles = DECODING_DELAY + MCTRL_IO_WRITE_DELAY(cycles) + 
+                         data_length / gp.get_streaming_width() - 1;        //multiple data cycles, i.e. burst access
+            }
+            //add delay and forward transaction to memory
+            start_idle = t_trans + cycle_time * cycles;
+            delay += cycle_time * cycles;
+            gp.set_streaming_width(4);
+            mctrl_io->b_transport(gp,delay);
+        }
+        else {
+            //IO enable not set: issue error message / failure
+            gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+            //address decoding delay only
+            delay += DECODING_DELAY * cycle_time;
+        }
     }
-  }
-  //access to SRAM adress space
-  else if (Mctrl::sram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk1_e ||
-           Mctrl::sram_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk2_e ||
-           Mctrl::sram_bk3_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk3_e ||
-           Mctrl::sram_bk4_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk4_e ||
-           Mctrl::sram_bk5_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk5_e    ) {
-    //determine streaming width (below bit mask contains bits 5 and 4, so shift is required)
-    if ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WIDTH) >> 5 ) {
-      gp.set_streaming_width(4);
-      //data length must match streaming width unless read-modify-write is enabled
-      if (data_length % 4 && !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RMW) ) {
-        v::error << "Mctrl" << "Attempted disallowed sub-word access to RAM. Streaming width"
-                 << " is 4 Byte. RMW is disabled." << std::endl;
-        gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
-        return;
-      }
+    //access to SRAM adress space
+    else if (Mctrl::sram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk1_e ||
+             Mctrl::sram_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk2_e ||
+             Mctrl::sram_bk3_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk3_e ||
+             Mctrl::sram_bk4_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk4_e ||
+             Mctrl::sram_bk5_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk5_e    ) {
+        //determine streaming width (below bit mask contains bits 5 and 4, so shift is required)
+        if ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WIDTH) >> 5 ) {
+            gp.set_streaming_width(4);
+            //data length must match streaming width unless read-modify-write is enabled
+            if (data_length % 4 && !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RMW) ) {
+                v::error << "Mctrl" << "Attempted disallowed sub-word access to SRAM. Data length is "
+                         << (unsigned int) data_length << ". RMW is disabled." << std::endl;
+                gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+                return;
+            }
+        }
+        else if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WIDTH && ram16) {
+            gp.set_streaming_width(2);
+            //data length must match streaming width unless read-modify-write is enabled
+            if (data_length % 2 && !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RMW) ) {
+                v::error << "Mctrl" << "Attempted disallowed byte access to SRAM. Data length is "
+                         << (unsigned int) data_length << ". RMW is disabled." << std::endl;
+                gp.set_response_status(tlm::TLM_BYTE_ENABLE_ERROR_RESPONSE);
+                return;
+            }
+        }
+        else if (ram8) {
+            gp.set_streaming_width(1);
+        }
+        else {
+            v::error << "Mctrl" << "Attempted disallowed byte access to SRAM. MCFG2 does not match ram8"
+                     << " / ram16 generics. This error should not occur." << std::endl;
+        }
+        //calculate delay for read command
+        if (cmd == tlm::TLM_READ_COMMAND) {
+            cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_READ_WS);
+            cycles = DECODING_DELAY + MCTRL_SRAM_READ_DELAY(cycles) + 
+                     2 * (data_length / gp.get_streaming_width() - 1);  //multiple data1 / data2 cycles, i.e. burst access
+            //set cacheable_access extension (only required for read commands)
+            ahb.validate_extension<amba::amba_cacheable> (gp);
+        }
+        //calculate delay for write command
+        else if (cmd == tlm::TLM_WRITE_COMMAND) {
+            cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WRITE_WS) >> 2;
+            cycles = DECODING_DELAY + MCTRL_SRAM_WRITE_DELAY(cycles) + 
+                     data_length / gp.get_streaming_width() - 1;        //multiple data cycles, i.e. burst access
+        }
+        //check for write protection
+        if (cmd == tlm::TLM_WRITE_COMMAND && wprot) {
+            gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+            cycles = DECODING_DELAY;
+            start_idle = t_trans + cycle_time * cycles;
+            delay += cycle_time * cycles;
+        }
+        //add delay and forward transaction to memory
+        else {
+            start_idle = t_trans + cycle_time * cycles;
+            delay += cycle_time * cycles;
+            mctrl_sram->b_transport(gp,delay);
+        }
     }
-    else if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WIDTH && ram16) {
-      gp.set_streaming_width(2);
-      //data length must match streaming width unless read-modify-write is enabled
-      if (data_length % 2 && !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RMW) ) {
-        v::error << "Mctrl" << "Attempted disallowed byte access to RAM. Streaming width is 2"
-                 << " Byte. RMW is disabled." << std::endl;
-        gp.set_response_status(tlm::TLM_BYTE_ENABLE_ERROR_RESPONSE);
-        return;
-      }
-    }
-    else if (ram8) {
-      gp.set_streaming_width(1);
-    }
-    else {
-      v::error << "Mctrl" << "Attempted disallowed byte access to RAM. MCFG2 does not match ram8"
-               << " / ram16 generics. This error should not occur." << std::endl;
-    }
-    //calculate delay for read command
-    if (cmd == tlm::TLM_READ_COMMAND) {
-      cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_READ_WS);
-      cycles = DECODING_DELAY + MCTRL_SRAM_READ_DELAY(cycles) + 
-               2 * (data_length / gp.get_streaming_width() - 1);  //multiple data1 / data2 cycles, i.e. burst access
-      //set cacheable_access extension (only required for read commands)
-      ahb.validate_extension<amba::amba_cacheable> (gp);
-    }
-    //calculate delay for write command
-    else if (cmd == tlm::TLM_WRITE_COMMAND) {
-      cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_WRITE_WS) >> 2;
-      cycles = DECODING_DELAY + MCTRL_SRAM_WRITE_DELAY(cycles) + 
-               data_length / gp.get_streaming_width() - 1;        //multiple data cycles, i.e. burst access
-    }
-    //check for write protection
-    if (cmd == tlm::TLM_WRITE_COMMAND && wprot) {
-      gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-      cycles = DECODING_DELAY;
-      start_idle = t_trans + cycle_time * cycles;
-      delay += cycle_time * cycles;
-    }
-    //add delay and forward transaction to memory
-    else {
-      start_idle = t_trans + cycle_time * cycles;
-      delay += cycle_time * cycles;
-      mctrl_sram->b_transport(gp,delay);
-    }
-  }
-  //access to SDRAM adress space
-  else if (Mctrl::sdram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk1_e ||
-           Mctrl::sdram_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk2_e    ) {
+    //access to SDRAM adress space
+    else if (Mctrl::sdram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk1_e ||
+             Mctrl::sdram_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk2_e    ) {
 
-      //deep power down: memory is inactive and cannot be accessed
-      //self refresh: system is powered down and should not even try to access memory
-      //write protection: well... write protection.
-      if (  mobile && (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME) && (pmode == 5 || pmode == 2)
-         || cmd == tlm::TLM_WRITE_COMMAND && wprot ) {
-          gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-          cycles = DECODING_DELAY;
-          delay += cycle_time * cycles;
-      }
-      //no deep power down status, so regular access is possible
-      else {
-          //check 64 vs. 32 bit access
-          if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_D64) {
-              gp.set_streaming_width(8);
-              //check for disallowed sub-word access
-              if (data_length % 8 && cmd == tlm::TLM_WRITE_COMMAND) {
-                  v::error << "Mctrl" << "Attempted dis-allowed sub-word access to SDRAM in 64 bit mode."
-                           << std::endl;
-              }
-          }
-          else {
-              gp.set_streaming_width(4);
-              //check for disallowed sub-word access
-              if (data_length % 4 && !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RMW)
-                                  && cmd == tlm::TLM_WRITE_COMMAND) {
-                  v::error << "Mctrl" << "Attempted dis-allowed sub-word access to SDRAM in 32 bit mode."
-                           << "Data length is " << (unsigned int) data_length << ", RMW is disabled."
-                           << std::endl;
-              }
-          }
-          //calculate read delay: trcd, tcas, and trp can all be either 2 or 3
-          cycles = 6;
-          //cycles += 2 if trcd=tcas=3
-          cycles += 2 * ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS)>>26 );
-          //cycles += 1 if trp=3
-          cycles += ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP)>>30 );
-          //calculate delay for read command
-          if (cmd == tlm::TLM_READ_COMMAND) {
-              cycles += (data_length / gp.get_streaming_width() - 1); //multiple data cycles, i.e. burst access
+        //deep power down: memory is inactive and cannot be accessed
+        //self refresh: system is powered down and should not even try to access memory
+        //write protection: well... write protection.
+        if (  mobile && (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME) && (pmode == 5 || pmode == 2)
+           || cmd == tlm::TLM_WRITE_COMMAND && wprot ) {
+            gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+            cycles = DECODING_DELAY;
+            delay += cycle_time * cycles;
+        }
+        //no deep power down status, so regular access is possible
+        else {
+            //check 64 vs. 32 bit access
+            if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_D64) {
+                gp.set_streaming_width(8);
+                //check for disallowed sub-word access
+                if (data_length % 8 && cmd == tlm::TLM_WRITE_COMMAND) {
+                    v::error << "Mctrl" << "Attempted dis-allowed sub-word access to SDRAM in 64 bit mode."
+                             << std::endl;
+                }
+            }
+            else {
+                gp.set_streaming_width(4);
+                //check for disallowed sub-word access
+                if (data_length % 4 && !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RMW)
+                                    && cmd == tlm::TLM_WRITE_COMMAND) {
+                    v::error << "Mctrl" << "Attempted dis-allowed sub-word access to SDRAM in 32 bit mode. "
+                             << "Data length is " << (unsigned int) data_length << ", RMW is disabled."
+                             << std::endl;
+                }
+            }
+            //calculate read delay: trcd, tcas, and trp can all be either 2 or 3
+            cycles = 6;
+            //cycles += 2 if trcd=tcas=3
+            cycles += 2 * ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS)>>26 );
+            //cycles += 1 if trp=3
+            cycles += ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP)>>30 );
+            //calculate delay for read command
+            if (cmd == tlm::TLM_READ_COMMAND) {
+                cycles += (data_length / gp.get_streaming_width() - 1); //multiple data cycles, i.e. burst access
 
-              //calculate number of activated rows during burst access:
-              // 1. calculate row length from bank size and 'column size' field (which in 
-              //    fact determines the number of column address bits, i.e. the row length)
-              uint32_t sdram_row_length;
-                      //bank size of 512MB activates col-sz field of MCFG2; any other bank size causes default col-sz of 2048
-              switch ( sdram_bk1_e - sdram_bk1_s + 1 ) {
-                  case 0x20000000:
-                      sdram_row_length = 256 << ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_COSZ) >> 21);
-                      sdram_row_length *= (sdram_row_length == 2048) ? (2 * gp.get_streaming_width()) : (gp.get_streaming_width());
-                      break;
-                  default:
-                      sdram_row_length = 2048 * gp.get_streaming_width();
-              }
-              //set cacheable_access extension (only required for read commands)
-              ahb.validate_extension<amba::amba_cacheable> (gp);
-          }
-          //every write transaction needs the entire write access time (burst of writes)
-          else if (cmd == tlm::TLM_WRITE_COMMAND) {
-              cycles *= data_length / gp.get_streaming_width();
-          }
-          //if in power down mode, each access will take +1 clock cycle
-          if (mobile>0 && sc_core::sc_time_stamp() - start_idle >=16 * cycle_time) {
-                          //is mobile SDRAM enabled?
-              cycles += ( ((r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME) >> 15) & 
-                          //is mobile SDRAM allowed?
-                          r[MCTRL_MCFG2].get() & 
-                          //power down mode?    --> shift to LSB (=1)
-                          r[MCTRL_MCFG4].get() ) >> 16;
-          }
-          //add decoding delay and complete calculation of transaction delay
-          cycles += DECODING_DELAY;
-          delay += cycle_time * cycles;
-          //add refresh delay after each refresh period
-          // (a) transactions starts during refresh cycle, i.e. transaction is stalled
-          if (t_trans < next_refresh + (trfc * cycle_time) && t_trans >= next_refresh) {
-              delay += next_refresh + trfc * cycle_time - t_trans;
-              next_refresh += cycle_time * (r[MCTRL_MCFG3].get() >> 11);
-          }
-          // (b) transaction starts before and ends after next scheduled refresh command, i.e. refresh is stalled
-          //note: 'callback_delay' must not be counted twice, but it has been added to 'delay' and to 't_trans'
-          else if (t_trans < next_refresh && t_trans + delay - callback_delay > next_refresh) {
-              refresh_stall = t_trans + delay - callback_delay - next_refresh;
-              next_refresh += refresh_stall;
-          }
-          //capture end of transaction and forward transaction to memory
-          start_idle = t_trans + delay;
-          mctrl_sdram->b_transport(gp,delay);
-      }
-  }
-  //no memory device at given address
-  else {
-    v::error << "Mctrl" << "Invalid memory acces: No device at address" << std::hex << std::setfill('0') << std::setw(8)
-             <<  gp.get_address() << "." << std::endl;
-    gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
-  }
-  //end of transaction: reset callback delay variable
-  callback_delay = sc_core::SC_ZERO_TIME;
+                //calculate number of activated rows during burst access:
+                // 1. calculate row length from bank size and 'column size' field (which in 
+                //    fact determines the number of column address bits, i.e. the row length)
+                uint32_t sdram_row_length;
+                        //bank size of 512MB activates col-sz field of MCFG2; any other bank size causes default col-sz of 2048
+                switch ( sdram_bk1_e - sdram_bk1_s + 1 ) {
+                    case 0x20000000:
+                        sdram_row_length = 256 << ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_COSZ) >> 21);
+                        sdram_row_length *= (sdram_row_length == 2048) ? (2 * gp.get_streaming_width()) : (gp.get_streaming_width());
+                        break;
+                    default:
+                        sdram_row_length = 2048 * gp.get_streaming_width();
+                }
+                //set cacheable_access extension (only required for read commands)
+                ahb.validate_extension<amba::amba_cacheable> (gp);
+            }
+            //every write transaction needs the entire write access time (burst of writes)
+            else if (cmd == tlm::TLM_WRITE_COMMAND) {
+                cycles *= data_length / gp.get_streaming_width();
+            }
+            //if in power down mode, each access will take +1 clock cycle
+            if (mobile>0 && sc_core::sc_time_stamp() - start_idle >=16 * cycle_time) {
+                            //is mobile SDRAM enabled?
+                cycles += ( ((r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME) >> 15) & 
+                            //is mobile SDRAM allowed?
+                            r[MCTRL_MCFG2].get() & 
+                            //power down mode?    --> shift to LSB (=1)
+                            r[MCTRL_MCFG4].get() ) >> 16;
+            }
+            //add decoding delay and complete calculation of transaction delay
+            cycles += DECODING_DELAY;
+            delay += cycle_time * cycles;
+            //add refresh delay after each refresh period
+            // (a) transactions starts during refresh cycle, i.e. transaction is stalled
+            if (t_trans < next_refresh + (trfc * cycle_time) && t_trans >= next_refresh) {
+                delay += next_refresh + trfc * cycle_time - t_trans;
+                next_refresh += cycle_time * (r[MCTRL_MCFG3].get() >> 11);
+            }
+            // (b) transaction starts before and ends after next scheduled refresh command, i.e. refresh is stalled
+            //note: 'callback_delay' must not be counted twice, but it has been added to 'delay' and to 't_trans'
+            else if (t_trans < next_refresh && t_trans + delay - callback_delay > next_refresh) {
+                refresh_stall = t_trans + delay - callback_delay - next_refresh;
+                next_refresh += refresh_stall;
+            }
+            //capture end of transaction and forward transaction to memory
+            start_idle = t_trans + delay;
+            mctrl_sdram->b_transport(gp,delay);
+        }
+    }
+    //no memory device at given address
+    else {
+        v::error << "Mctrl" << "Invalid memory acces: No device at address" << std::hex << std::setfill('0') << std::setw(8)
+                 <<  gp.get_address() << "." << std::endl;
+        gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+    }
+    //end of transaction: reset callback delay variable
+    callback_delay = sc_core::SC_ZERO_TIME;
 }
 
 //--------------CALLBACK--FUNCTIONS--------------//
