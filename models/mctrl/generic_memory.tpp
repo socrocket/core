@@ -5,7 +5,7 @@
 /*             implementation of the generic_memory module             */
 /*                                                                     */
 /* Modified on $Date$   */
-/*          at $Revision$                                         */
+/*          at $Revision$                                        */
 /*                                                                     */
 /* Principal:  European Space Agency                                   */
 /* Author:     VLSI working group @ IDA @ TUBS                         */
@@ -111,8 +111,11 @@ read_8(uint32_t address, unsigned char* data_ptr, uint8_t length) {
 
     //Independent from 8, 16, or 32 bit access, 4 adjacent 8 bit words
     //will be read. Address and length have to be aligned!
-    assert(!(address % 4));
-    assert(!(length % 4));
+    if (length % 4 || address % 4) {
+        v::warn << "Mctrl" << "Trying to read " << std::dec << (unsigned int) length 
+                << " bytes from address 0x" << std::hex << (unsigned int) address 
+                << " in 16 bit or 8 bit access mode. Check length and alignment." << std::endl;
+    }
 
     //processor must take care of consistent memory allocation and length parameter in gp
     for (int i = 0; i < length; i++) {
@@ -126,6 +129,12 @@ template<typename T> void Generic_memory<T>::
 read_32(uint32_t address, uint32_t* data_ptr, uint8_t length) {
 
     //processor must take care of consistent memory allocation and length parameter in gp
+    if (length % 4 || address % 4) {
+        v::warn << "Mctrl" << "Trying to read " << std::dec << (unsigned int) length 
+                << " bytes from address 0x" << std::hex << (unsigned int) address 
+                << " in 64 bit or 32 bit access mode. Check length and alignment." << std::endl;
+    }
+    //after warning, try and return data anyway
     for (int i = 0; i < length / 4; i++) {
         data_ptr[i] = memory[address + 4 * i];
     }
@@ -135,13 +144,12 @@ read_32(uint32_t address, uint32_t* data_ptr, uint8_t length) {
 
 //scope
 template<typename T> void Generic_memory<T>::
-//erase sdram
+//erase memory
 erase_memory(uint32_t start_address, uint32_t end_address, unsigned int length) {
+    v::info << "Mctrl" << "ERASING MEMORY: 0x" << std::hex << std::setfill('0') << std::setw(8)
+            << (unsigned int) start_address << " - 0x" << std::setfill('0') << std::setw(8)
+            << (unsigned int) end_address << std::endl;
     for (unsigned int i = start_address; i <= end_address; i += length) {
         memory.erase(i);
     }
 }
-
-//for (i=0, i<8, i++) {
-//  c2 |= (c1 & (1 << i) << (7-i));
-//}

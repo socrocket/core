@@ -52,10 +52,11 @@
 #include <boost/config.hpp>
 #include <systemc.h>
 #include <tlm.h>
+#include "tlm_utils/simple_initiator_socket.h"
 #include <greenreg.h>
 #include <greenreg_ambasocket.h>
 #include "greencontrol/all.h"
-#include "tlm_utils/simple_initiator_socket.h"
+#include "amba.h"
 #include "generic_memory.h"
 #include "grlibdevice.h"
 #include "signalkit.h"
@@ -226,15 +227,15 @@ class Mctrl : public gs::reg::gr_device,
         static const uint32_t MCTRL_MCFG3_SDRAM_RLD_VAL = 0x07FFF000;
 
         //memory configuration register 4
-        static const uint32_t MCTRL_MCFG4_WRITE_MASK = 0xE0FE007F;
-        static const uint32_t MCTRL_MCFG4_ME = 0x80000000;
-        static const uint32_t MCTRL_MCFG4_CE = 0x40000000;
-        static const uint32_t MCTRL_MCFG4_EM = 0x20000000;
-        static const uint32_t MCTRL_MCFG4_TXSR = 0x00F00000;
-        static const uint32_t MCTRL_MCFG4_PMODE = 0x000E0000;
-        static const uint32_t MCTRL_MCFG4_DC = 0x00000060;
-        static const uint32_t MCTRL_MCFG4_TCSR = 0x00000018;
-        static const uint32_t MCTRL_MCFG4_PASR = 0x00000007;
+        static const uint32_t MCTRL_MCFG4_WRITE_MASK = 0xE0F7007F;
+        static const uint32_t MCTRL_MCFG4_ME =         0x80000000;
+        static const uint32_t MCTRL_MCFG4_CE =         0x40000000;
+        static const uint32_t MCTRL_MCFG4_EM =         0x20000000;
+        static const uint32_t MCTRL_MCFG4_TXSR =       0x00F00000;
+        static const uint32_t MCTRL_MCFG4_PMODE =      0x00070000;
+        static const uint32_t MCTRL_MCFG4_DC =         0x00000060;
+        static const uint32_t MCTRL_MCFG4_TCSR =       0x00000018;
+        static const uint32_t MCTRL_MCFG4_PASR =       0x00000007;
 
         //---register default values
 

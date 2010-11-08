@@ -124,6 +124,12 @@ uint32_t Mctrl_tb::read(uint32_t addr, uint32_t width, bool apb) {
     std::cout << " READ " << gp.get_response_string() << ": 0x" << std::hex
             << std::setfill('0') << std::setw(8) << gp.get_address();
     wait(t);
+
+    //check for cacheable_access extension
+//    if (ahb_master_sock.get_extension<amba::amba_cacheable>(gp) ) {
+//      std::cout << std::endl << "CACHE EXT TRANSMITTED" << std::endl;
+//    }
+
     return data;
 }
 
@@ -173,15 +179,18 @@ void Mctrl_tb::run() {
   check (0x00000000, 0x00000008, 4);
   check (0x20000000, 0x20000008, 4);
   check (0x40000000, 0x40000008, 4);
+  check (0x60000000, 0x60000008, 4);
 
   //Does Half-Word access have to be possible in 32 bit mode?
   check (0x0000000C, 0x00000010, 2);
   check (0x2000000C, 0x20000010, 2);
   check (0x4000000C, 0x40000010, 2);
+  check (0x6000000C, 0x60000010, 2);
 
   check (0x00000014, 0x00000017, 1);
   check (0x20000014, 0x20000017, 1);
   check (0x40000014, 0x40000017, 1);
+  check (0x60000014, 0x60000017, 1);
 
   std::cout << std::endl << std::endl << "--------------------------------------------------"
                          << std::endl << "--switching widths to: rom-16, sram-16, sdram-64--"
@@ -220,12 +229,15 @@ void Mctrl_tb::run() {
 
   check (0x00000100, 0x00000108, 4);
   check (0x40000100, 0x40000108, 4);
+  check (0x60000100, 0x60000108, 4);
 
   check (0x0000010C, 0x00000110, 2);
   check (0x4000010C, 0x40000110, 2);
+  check (0x6000010C, 0x60000110, 2);
 
   check (0x00000114, 0x00000117, 1);
   check (0x40000114, 0x40000117, 1);
+  check (0x60000114, 0x60000117, 1);
 
   std::cout << std::endl << std::endl << "--------------------------------------------------"
                          << std::endl << "------- switching widths to: rom-8, sram-8 -------"
@@ -309,12 +321,12 @@ void Mctrl_tb::run() {
             << std::endl
             << "--------------------------------------------------"
             << std::endl;
-/*
+
   //read SDRAM
   for (uint32_t i=0x60000010; i<=0x60000020; i+=8) {
     REG (i, 8, AHB);
   }
-*/
+
     std::cout << std::endl;
 }
 

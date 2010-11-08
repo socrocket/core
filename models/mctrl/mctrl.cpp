@@ -515,6 +515,8 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
       start_idle = t_trans + cycle_time * cycles;
       delay += cycle_time * cycles;
       mctrl_rom->b_transport(gp,delay);
+      //set cacheable_access extension
+      ahb.validate_extension<amba::amba_cacheable> (gp);
     }
   }
   //access to IO adress space
@@ -596,6 +598,8 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
       cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_READ_WS);
       cycles = DECODING_DELAY + MCTRL_SRAM_READ_DELAY(cycles) + 
                2 * (data_length / gp.get_streaming_width() - 1);  //multiple data1 / data2 cycles, i.e. burst access
+      //set cacheable_access extension (only required for read commands)
+      ahb.validate_extension<amba::amba_cacheable> (gp);
     }
     //calculate delay for write command
     else if (cmd == tlm::TLM_WRITE_COMMAND) {
@@ -621,92 +625,94 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
   else if (Mctrl::sdram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk1_e ||
            Mctrl::sdram_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk2_e    ) {
 
-    //deep power down: memory is inactive and cannot be accessed
-    //self refresh: system is powered down and should not even try to access memory
-    //write protection: well... write protection.
-    if ( mobile && (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME) && (pmode == 5 || pmode == 2)
-       | cmd == tlm::TLM_WRITE_COMMAND && wprot ) {
-      gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-      cycles = DECODING_DELAY;
-      delay += cycle_time * cycles;
-    }
-    //no deep power down status, so regular access is possible
-    else {
-      if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_D64) {
-        gp.set_streaming_width(8);
+      //deep power down: memory is inactive and cannot be accessed
+      //self refresh: system is powered down and should not even try to access memory
+      //write protection: well... write protection.
+      if (  mobile && (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME) && (pmode == 5 || pmode == 2)
+         || cmd == tlm::TLM_WRITE_COMMAND && wprot ) {
+          gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+          cycles = DECODING_DELAY;
+          delay += cycle_time * cycles;
       }
+      //no deep power down status, so regular access is possible
       else {
-        gp.set_streaming_width(4);
+          //check 64 vs. 32 bit access
+          if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_D64) {
+              gp.set_streaming_width(8);
+              //check for disallowed sub-word access
+              if (data_length % 8 && cmd == tlm::TLM_WRITE_COMMAND) {
+                  v::error << "Mctrl" << "Attempted dis-allowed sub-word access to SDRAM in 64 bit mode."
+                           << std::endl;
+              }
+          }
+          else {
+              gp.set_streaming_width(4);
+              //check for disallowed sub-word access
+              if (data_length % 4 && !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RMW)
+                                  && cmd == tlm::TLM_WRITE_COMMAND) {
+                  v::error << "Mctrl" << "Attempted dis-allowed sub-word access to SDRAM in 32 bit mode."
+                           << "Data length is " << (unsigned int) data_length << ", RMW is disabled."
+                           << std::endl;
+              }
+          }
+          //calculate read delay: trcd, tcas, and trp can all be either 2 or 3
+          cycles = 6;
+          //cycles += 2 if trcd=tcas=3
+          cycles += 2 * ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS)>>26 );
+          //cycles += 1 if trp=3
+          cycles += ( (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP)>>30 );
+          //calculate delay for read command
+          if (cmd == tlm::TLM_READ_COMMAND) {
+              cycles += (data_length / gp.get_streaming_width() - 1); //multiple data cycles, i.e. burst access
+
+              //calculate number of activated rows during burst access:
+              // 1. calculate row length from bank size and 'column size' field (which in 
+              //    fact determines the number of column address bits, i.e. the row length)
+              uint32_t sdram_row_length;
+                      //bank size of 512MB activates col-sz field of MCFG2; any other bank size causes default col-sz of 2048
+              switch ( sdram_bk1_e - sdram_bk1_s + 1 ) {
+                  case 0x20000000:
+                      sdram_row_length = 256 << ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_COSZ) >> 21);
+                      sdram_row_length *= (sdram_row_length == 2048) ? (2 * gp.get_streaming_width()) : (gp.get_streaming_width());
+                      break;
+                  default:
+                      sdram_row_length = 2048 * gp.get_streaming_width();
+              }
+              //set cacheable_access extension (only required for read commands)
+              ahb.validate_extension<amba::amba_cacheable> (gp);
+          }
+          //every write transaction needs the entire write access time (burst of writes)
+          else if (cmd == tlm::TLM_WRITE_COMMAND) {
+              cycles *= data_length / gp.get_streaming_width();
+          }
+          //if in power down mode, each access will take +1 clock cycle
+          if (mobile>0 && sc_core::sc_time_stamp() - start_idle >=16 * cycle_time) {
+                          //is mobile SDRAM enabled?
+              cycles += ( ((r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME) >> 15) & 
+                          //is mobile SDRAM allowed?
+                          r[MCTRL_MCFG2].get() & 
+                          //power down mode?    --> shift to LSB (=1)
+                          r[MCTRL_MCFG4].get() ) >> 16;
+          }
+          //add decoding delay and complete calculation of transaction delay
+          cycles += DECODING_DELAY;
+          delay += cycle_time * cycles;
+          //add refresh delay after each refresh period
+          // (a) transactions starts during refresh cycle, i.e. transaction is stalled
+          if (t_trans < next_refresh + (trfc * cycle_time) && t_trans >= next_refresh) {
+              delay += next_refresh + trfc * cycle_time - t_trans;
+              next_refresh += cycle_time * (r[MCTRL_MCFG3].get() >> 11);
+          }
+          // (b) transaction starts before and ends after next scheduled refresh command, i.e. refresh is stalled
+          //note: 'callback_delay' must not be counted twice, but it has been added to 'delay' and to 't_trans'
+          else if (t_trans < next_refresh && t_trans + delay - callback_delay > next_refresh) {
+              refresh_stall = t_trans + delay - callback_delay - next_refresh;
+              next_refresh += refresh_stall;
+          }
+          //capture end of transaction and forward transaction to memory
+          start_idle = t_trans + delay;
+          mctrl_sdram->b_transport(gp,delay);
       }
-      //calculate read delay: trcd, tcas, and trp can all be either 2 or 3
-      if (cmd == tlm::TLM_READ_COMMAND) {
-        cycles = 6;
-        if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TCAS) {
-          cycles += 2; //trcd = tcas = 3
-        }
-        //calculate delay for read command
-        if (cmd == tlm::TLM_READ_COMMAND) {
-            cycles = (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_READ_WS);
-            cycles = DECODING_DELAY + MCTRL_SRAM_READ_DELAY(cycles)
-                    + data_length / gp.get_streaming_width() - 1; //multiple data cycles, i.e. burst access
-        }
-        //calculate number of activated rows during burst access:
-        // 1. calculate row length from bank size and 'column size' field (which in 
-        //    fact determines the number of column address bits, i.e. the row length)
-        uint32_t sdram_row_length;
-                //bank size of 512MB activates col-sz field of MCFG2; any other bank size causes default col-sz of 2048
-        switch ( sdram_bk1_e - sdram_bk1_s + 1 ) {
-          case 0x20000000:
-            sdram_row_length = 256 << ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_COSZ) >> 21);
-            sdram_row_length *= (sdram_row_length == 2048) ? (2 * gp.get_streaming_width()) : (gp.get_streaming_width());
-            break;
-          default:
-            sdram_row_length = 2048 * gp.get_streaming_width();
-        }
-        //check for write protection
-        if (cmd == tlm::TLM_WRITE_COMMAND && wprot) {
-            gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-            cycles = DECODING_DELAY;
-            start_idle = t_trans + cycle_time * cycles;
-            delay += cycle_time * cycles;
-        }
-        //add delay and forward transaction to memory
-        else {
-            start_idle = t_trans + cycle_time * cycles;
-            delay += cycle_time * cycles;
-            mctrl_sram->b_transport(gp, delay);
-        }
-        //every write transaction needs the entire write access time (burst of writes)
-        cycles *= data_length / gp.get_streaming_width();
-      }
-      //if in power down mode, each access will take +1 clock cycle
-      if (mobile>0 && sc_core::sc_time_stamp() - start_idle >=16 * cycle_time) {
-                    //is mobile SDRAM enabled?
-        cycles += ( ((r[MCTRL_MCFG4].get() & MCTRL_MCFG4_ME) >> 15) & 
-                   //is mobile SDRAM allowed?
-                   r[MCTRL_MCFG2].get() & 
-                   //power down mode?    --> shift to LSB (=1)
-                   r[MCTRL_MCFG4].get() ) >> 16;
-      }
-      //add decoding delay and complete calculation of transaction delay
-      cycles += DECODING_DELAY;
-      delay += cycle_time * cycles;
-      //add refresh delay after each refresh period
-      // (a) transactions starts during refresh cycle, i.e. transaction is stalled
-      if (t_trans < next_refresh + (trfc * cycle_time) && t_trans >= next_refresh) {
-        delay += next_refresh + trfc * cycle_time - t_trans;
-        next_refresh += cycle_time * (r[MCTRL_MCFG3].get() >> 11);
-      }
-      // (b) transaction starts before and ends after next scheduled refresh command, i.e. refresh is stalled
-      //note: 'callback_delay' must not be counted twice, but it has been added to 'delay' and to 't_trans'
-      else if (t_trans < next_refresh && t_trans + delay - callback_delay > next_refresh) {
-        refresh_stall = t_trans + delay - callback_delay - next_refresh;
-        next_refresh += refresh_stall;
-      }
-      //capture end of transaction and forward transaction to memory
-      start_idle = t_trans + delay;
-      mctrl_sdram->b_transport(gp,delay);
-    }
   }
   //no memory device at given address
   else {
