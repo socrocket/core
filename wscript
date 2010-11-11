@@ -53,17 +53,17 @@ import os
 import os.path
 import fnmatch
 
-from Tools import unittestw
+from waflib.Tools import waf_unit_test
 
-def set_options(ctx): 
+def options(ctx): 
   from os import environ
   conf = ctx.get_option_group("--download")
   
   ctx.tool_options('compiler_cxx')
-  ctx.tool_options('unittestw')
+  ctx.tool_options('waf_unit_test')
   ctx.tool_options('common', tooldir='waftools')
   ctx.tool_options('modelsim', tooldir='waftools')
-  ctx.tool_options('boost', option_group=conf)
+  ctx.load('boost', option_group=conf)
   
   #ctx.add_option('--onlytests', action='store_true', default=True, help='Exec unit tests only', dest='only_tests')
   conf.add_option("--cxxflags", dest="cxxflags", help="C++ compiler flags", default=environ.get("CXXFLAGS",""))
@@ -83,7 +83,7 @@ def set_options(ctx):
   ctx.recurse(get_subdirs(top))
 
 def configure(ctx):
-  from Options import options
+  from waflib.Options import options
   import os.path
   #import waftools
   ctx.env['CXXFLAGS'] += ['-g',
@@ -99,9 +99,9 @@ def configure(ctx):
   #ctx.check_tool('doxygen', tooldir='waftools')
   
   ## Modelsim:
-  ctx.check_tool('modelsim', tooldir='wadtools')
-  ctx.check_tool('unittestw')
-  ctx.check_tool('boost')
+  ctx.load('modelsim', tooldir='wadtools')
+  ctx.load('waf_unit_test')
+  ctx.load('boost')
   from os import environ
   if not options.boostincludes or options.boostincludes == "":
     options.boostincludes = environ.get("BOOST_DIR","")
@@ -196,6 +196,8 @@ def configure(ctx):
     lib          = 'greenreg',
     uselib_store = 'GREENSOCS',
     mandatory    = True,
+    #cxxflags     = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
+    defines      = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     libpath      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greenreg")))),
   ) 
   ctx.check_cxx(
@@ -203,6 +205,8 @@ def configure(ctx):
     uselib_store  = 'GREENSOCS',
     mandatory     = True,
     includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(options.greensocs_home))),
+    #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
+    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     uselib        = 'BOOST SYSC TLM2',
   )
   ctx.check_cxx(
@@ -210,6 +214,8 @@ def configure(ctx):
     uselib_store  = 'GREENSOCS',
     mandatory     = True,
     includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greensocket")))),
+    #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
+    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     uselib        = 'GREENSOCS BOOST SYSC TLM2',
   )
   ctx.check_cxx(
@@ -217,6 +223,8 @@ def configure(ctx):
     uselib_store  = 'GREENSOCS',
     mandatory     = True,
     includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greencontrol")))),
+    #cxflags       = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
+    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     uselib        = 'GREENSOCS BOOST SYSC TLM2',
   )
   ctx.check_cxx(
@@ -224,6 +232,8 @@ def configure(ctx):
     uselib_store  = 'GREENSOCS',
     mandatory     = True,
     includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greenreg")))),
+    #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
+    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     uselib        = 'GREENSOCS BOOST SYSC TLM2',
   )
 
@@ -234,6 +244,8 @@ def configure(ctx):
     uselib_store  = 'AMBA',
     mandatory     = True,
     includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(options.amba_home))),
+    #cxxflags       = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
+    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     uselib        = 'BOOST SYSC TLM2 GREENSOCS',
   )
 
@@ -245,6 +257,8 @@ def configure(ctx):
       uselib_store  = 'GREENSOCS',
       mandatory     = True,
       includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greenreg", "greenreg_socket")))),
+      #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
+      defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
       uselib        = 'GREENSOCS BOOST SYSC TLM2 AMBA',
     )
   except Configure.ConfigurationError:
@@ -265,6 +279,8 @@ def configure(ctx):
     mandatory     = True,
     includes      = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.tlm2_tests, "tlm", "multi_sockets", "include")))),
                      os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.tlm2_home, "unit_test", "tlm", "multi_sockets", "include"))))],
+    #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
+    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     uselib        = 'SYSC TLM2 GREENSOCS',
   )
   
@@ -276,6 +292,6 @@ def configure(ctx):
 
 def build(bld):
   from waftools.common import get_subdirs
-  bld.add_subdirs(get_subdirs())
-  bld.add_post_fun(unittestw.summary)
+  bld.recurse(get_subdirs())
+  bld.add_post_fun(waf_unit_test.summary)
 

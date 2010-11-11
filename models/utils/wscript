@@ -46,7 +46,7 @@
 #*********************************************************************
 top = '..'
 
-def set_options(ctx): 
+def options(ctx): 
   pass
 
 def configure(ctx):
@@ -54,15 +54,15 @@ def configure(ctx):
 
 def build(bld):
   bld(
-    target         = 'utils',
-    features       = 'cxx cstaticlib',
-    source         = [#'ahb_rtl_ct.cpp',
-                      #'apb_ct_rtl.cpp',
-                      'tb_ahb_mem.cpp', 
-                      'grlibdevice.cpp',
-                      'apbtestbench.cpp',
-                     ],
-    export_incdirs = '.',
-    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
-    uselib_local   = 'signalkit common'
+    target          = 'utils',
+    features        = 'cxx cxxstlib',
+    source          = [#'ahb_rtl_ct.cpp',
+                       #'apb_ct_rtl.cpp',
+                       'tb_ahb_mem.cpp', 
+                       'grlibdevice.cpp',
+                       'apbtestbench.cpp',
+                      ],
+    export_includes = '.',
+    uselib          = 'SYSC TLM2 AMBA GREENSOCS',
+    use             = 'signalkit common'
   )

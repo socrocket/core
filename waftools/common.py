@@ -16,14 +16,15 @@
 import os
 import os.path
 import fnmatch
-import Utils, Environment, Options, Build
-from Configure import conf
+#from waflib import Context, Utils, Environment, Options, Build
+from waflib import Context, Utils, Options, Build
+from waflib.Configure import conf
 
 #
 # Find all project targets:
 # ./waf list
 #
-def set_options(opt): 
+def options(opt): 
   conf = opt.get_option_group("--prefix")
   conf.set_title("Common Configuration Options")
   cpp = opt.get_option_group("--check-cxx-compiler")
@@ -34,51 +35,51 @@ def set_options(opt):
   inst.set_title("Configuration Options")
   inst.set_description("""All following options can be provided to the configure rule.""")
   
-def target_list(ctx): 
-  """returns a list of all targets"""
-
-  bld = Build.BuildContext() 
-  proj = Environment.Environment(Options.lockfile) 
-  bld.load_dirs(proj['srcdir'], proj['blddir']) 
-  bld.load_envs()
-
-  bld.add_subdirs([os.path.split(Utils.g_module.root_path)[0]]) 
-
-  nlibs = set([])
-  ntests = set([])
-  napps = set([])
-  for x in bld.all_task_gen:
-    try:
-      if "test" in x.features:
-        ntests.add(x.name or x.target)
-      elif "cprogram" in x.features:
-        napps.add(x.name or x.target)
-      elif "cstaticlib" in x.features:
-        nlibs.add(x.name or x.target)
-        
-    except AttributeError:
-      pass
-
-  libs  = list(nlibs)
-  tests = list(ntests)
-  apps = list(napps)
-  
-  libs.sort()
-  tests.sort()
-  apps.sort()
-  print "Library targets:"
-  for name in libs:
-    print " ", name
-  print ""
-
-  print "Test targets:"
-  for name in tests:
-    print " ", name
-  print ""
-  
-  print "Executable targets:"
-  for name in apps:
-    print " ", name
+#def target_list(ctx): 
+#  """returns a list of all targets"""
+#
+#  bld = Build.BuildContext() 
+#  proj = Environment.Environment(Options.lockfile) 
+#  bld.load_dirs(proj['srcdir'], proj['blddir']) 
+#  bld.load_envs()
+#
+#  bld.add_subdirs([os.path.split(Utils.g_module.root_path)[0]]) 
+#
+#  nlibs = set([])
+#  ntests = set([])
+#  napps = set([])
+#  for x in bld.all_task_gen:
+#    try:
+#      if "test" in x.features:
+#        ntests.add(x.name or x.target)
+#      elif "cprogram" in x.features:
+#        napps.add(x.name or x.target)
+#      elif "cstaticlib" in x.features:
+#        nlibs.add(x.name or x.target)
+#        
+#    except AttributeError:
+#      pass
+#
+#  libs  = list(nlibs)
+#  tests = list(ntests)
+#  apps = list(napps)
+#  
+#  libs.sort()
+#  tests.sort()
+#  apps.sort()
+#  print "Library targets:"
+#  for name in libs:
+#    print " ", name
+#  print ""
+#
+#  print "Test targets:"
+#  for name in tests:
+#    print " ", name
+#  print ""
+#  
+#  print "Executable targets:"
+#  for name in apps:
+#    print " ", name
 
 def target_docs(bld):
   """build source code documentation"""
@@ -96,13 +97,13 @@ def setprops(bld):
   xargs = subprocess.Popen(["xargs", "-I", "{}", "svn", "propset", "svn:keywords", "Author Date Revision", "{}"], stdin=cut.stdout, stdout=subprocess.PIPE)
   print xargs.communicate()[0]        
 
-Utils.g_module.__dict__['list'] = target_list
-Utils.g_module.__dict__['docs'] = target_docs
-Utils.g_module.__dict__['setprops'] = setprops
-if Utils.g_module.__dict__.has_key('install'):
-  del Utils.g_module.__dict__['install']
-if Utils.g_module.__dict__.has_key('uninstall'):
-  del Utils.g_module.__dict__['uninstall']
+#Context.g_module.__dict__['list'] = target_list
+Context.g_module.__dict__['docs'] = target_docs
+Context.g_module.__dict__['setprops'] = setprops
+if Context.g_module.__dict__.has_key('install'):
+  del Context.g_module.__dict__['install']
+if Context.g_module.__dict__.has_key('uninstall'):
+  del Context.g_module.__dict__['uninstall']
 
 def get_subdirs(dir='.'):
   return [name for name in os.listdir(dir) if os.path.isfile(os.path.join(dir, name, "wscript"))]

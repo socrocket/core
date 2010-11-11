@@ -95,7 +95,7 @@ libsm = $MODEL_TECH/libsm.sl
 libhm = $MODEL_TECH/libhm.sl
 """
 
-def set_options(ctx):
+def options(ctx):
   pass 
 
 def configure(ctx):
@@ -103,12 +103,12 @@ def configure(ctx):
 
 def build(bld):
   bld(
-    target         = 'gptimer',
-    features       = 'cxx cstaticlib',
-    source         = 'gptimer.cpp gpcounter.cpp', 
-    export_incdirs = '.',
-    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
-    uselib_local   = 'utils signalkit common'
+    target          = 'gptimer',
+    features        = 'cxx cxxstlib',
+    source          = 'gptimer.cpp gpcounter.cpp', 
+    export_includes = '.',
+    uselib          = 'SYSC TLM2 AMBA GREENSOCS',
+    use             = 'common signalkit utils'
   )
   #bld(
   #  target       = 'speed.gptimer',
@@ -117,7 +117,7 @@ def build(bld):
   #  defines      = 'SPEEDTEST',
   #  includes     = '. tests',
   #  uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-  #  uselib_local = 'utils signalkit',
+  #  use          = 'utils signalkit',
   #)
 
   bld(
@@ -130,6 +130,7 @@ def build(bld):
     uselib       = 'AMBA GREENSOCS',
     defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
     includes     = '../utils ../../signalkit ../../common',
+    use          = 'utils',
     config       =  vsim_conf,
   )
 
@@ -142,7 +143,7 @@ def build(bld):
   #  #generate     = 'gptimer:gptimer2.h',
   #  #uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
   #  uselib       = 'AMBA GREENSOCS',
-  #  uselib_local = 'utils signalkit',
+  #  use          = 'utils signalkit',
   #  config       = vsim_conf,
   #  after        = "gptimer.h",
   #)
@@ -155,7 +156,7 @@ def build(bld):
     defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
     includes     = '. tests',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'gptimer utils signalkit common',
+    use          = 'gptimer utils signalkit common',
   )
 
   bld(
@@ -165,7 +166,7 @@ def build(bld):
     defines      = 'PRESCALERTEST CTBUS DEBUGOUT',
     includes     = '. tests',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'gptimer utils signalkit common',
+    use          = 'gptimer utils signalkit common',
   )
 
   bld(
@@ -175,6 +176,6 @@ def build(bld):
     defines      = 'COUNTERTEST CTBUS DEBUGOUT',
     includes     = '. tests',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'gptimer utils signalkit common',
+    use          = 'gptimer utils signalkit common',
   )
 

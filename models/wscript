@@ -58,11 +58,11 @@ models = [
   'ahbdecoder',
 ]
 
-def set_options(ctx): 
+def options(ctx): 
   ctx.recurse(models)
 
 def configure(ctx):
   ctx.recurse(models)
 
 def build(bld):
-  bld.add_subdirs(models)
+  bld.recurse(models)

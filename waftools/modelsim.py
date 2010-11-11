@@ -67,10 +67,10 @@ TODO: Make flags changable
 TODO: Add testig for flags
 TODO: Integrate CXXFlags ???
 """
-def set_options(opt):
+def options(opt):
   pass
 
-def detect(ctx):
+def configure(ctx):
   """Detect modelsim executables and set default flags"""
   ctx.find_program('vlib', var='VLIB', mandatory=True)
   ctx.env['VLIBFLAGS'] = []
@@ -103,7 +103,7 @@ class vini_task(Task.Task):
       from ConfigParser import ConfigParser
       read = ConfigParser({"root": self.root, "path" : self.path, "target": self.target})
       write = ConfigParser({"root": self.root, "path" : self.path, "target": self.target})
-      oname = self.outputs[0].bldpath(self.env)
+      oname = self.outputs[0].get_bld().abspath()
       if isinstance(self.config, str):
         read.readfp(io.BytesIO(self.config))
       else:
@@ -183,8 +183,8 @@ def modelsim(self):
      vini task as well as dobefore and doafter tasks if needed
   """
   # cxx hack replaces the cpp routine
+  setattr(self,modelsim_sccom.__name__,modelsim_sccom)
   self.mappings['.cpp']=modelsim_sccom
-  self.mapped[modelsim_sccom.__name__]=modelsim_sccom
   
   self.env["VCOMFLAGS"] += ['-work', self.target]
   self.env["VLOGFLAGS"] += ['-work', self.target]
@@ -207,13 +207,24 @@ def modelsim(self):
       
   if hasattr(self, "uselib"):
     for lib in Utils.to_list(self.uselib):
-      for path in self.env["CPPPATH_%s" % lib]:
+      for path in self.env["INCLUDES_%s" % lib]:
         self.env["SCCOMFLAGS"] += ['-I%s' % path]
       for path in self.env["LIBPATH_%s" % lib]:
         self.env["VLINKFLAGS"] += ['-L%s' % path]
       for lib in self.env["LIB_%s" % lib]:
         self.env["VLINKFLAGS"] += ['-l%s' % lib]
   
+  #if hasattr(self, "use"):
+  #  for lib in Utils.to_list(self.use):
+  #    print lib
+  #    print dir(self.bld)
+      #for path in self.env["INCLUDES_%s" % lib]:
+      #  self.env["SCCOMFLAGS"] += ['-I%s' % path]
+      #for path in self.env["LIBPATH_%s" % lib]:
+      #  self.env["VLINKFLAGS"] += ['-L%s' % path]
+      #for lib in self.env["LIB_%s" % lib]:
+      #  self.env["VLINKFLAGS"] += ['-l%s' % lib]
+   
   # Create vlib task on target
   workdir = self.path.find_or_declare(self.target)
   vlib = self.create_task('vlib', tgt=[workdir])
@@ -236,23 +247,24 @@ def modelsim(self):
         import sys
         sys.exit(1)
     tgt = self.path.find_or_declare(ls[1])
-    env = self.env.copy()
+    env = self.env.derive()
     env.append_value("src", ls[0])
-    mod = self.create_task('scgenmod', tgt=tgt, env=env)
-    self.env["SCCOMFLAGS"] += ['-I%s' % tgt.parent.bldpath(self.env)]
-    mod.deps_nodes += self.mdeps
+    mod = self.create_task('scgenmod', tgt=tgt)
+    mod.env = env
+    self.env["SCCOMFLAGS"] += ['-I%s' % tgt.parent.bldpath()]
+    mod.dep_nodes += self.mdeps
 
   # Create modelsim ini task if needed
   tgt = None
   if hasattr(self, "config"):
     tgt = self.path.find_or_declare("modelsim_%s.ini" % self.target)
     tsk = self.create_task('vini', tgt=tgt)
-    tsk.root = os.path.join(self.path.bld.cwd)
-    tsk.path = os.path.join(self.path.bld.cwd, self.path.bldpath(self.env))
+    tsk.root = self.bld.out_dir
+    tsk.path = self.path.get_bld().abspath()
     tsk.target = self.target
     tsk.config = self.path.find_resource(self.config) or self.config
     tsk.set_run_after(vlib)
-    ini = os.path.join(self.path.bld.cwd, tgt.bldpath(self.env))
+    ini = tgt.get_bld().abspath()
     self.env["VSIMFLAGS"] += ['-modelsimini', ini]
     self.env["VCOMFLAGS"] += ['-modelsimini', ini]
     self.env["VLOGFLAGS"] += ['-modelsimini', ini]
@@ -269,9 +281,9 @@ def modelsim(self):
       do = self.dobefore
     self.env["VSIMBEFORE"] += ['-do', do]
     before = self.create_task('vsim_before')
-    before.deps_nodes += self.mdeps
+    before.dep_nodes += self.mdeps
     if tgt:
-      before.deps_nodes += [tgt]
+      before.dep_nodes += [tgt]
     before.dotask = self.dobefore
     before.target = self.target
     
@@ -284,9 +296,9 @@ def modelsim(self):
       do = self.doafter
     self.env["VSIMAFTER"] += ['-do', do]
     after = self.create_task('vsim_after')
-    after.deps_nodes += self.mdeps
+    after.dep_nodes += self.mdeps
     if tgt:
-      after.deps_nodes += [tgt]
+      after.dep_nodes += [tgt]
     after.dotask = self.doafter
     after.target = self.target  
    
@@ -299,7 +311,7 @@ def modelsim_vcom(self, node):
   if tsks:
     tsk.run_after.append(tsks[-1])
   
-  tsk.deps_nodes += self.mdeps
+  tsk.dep_nodes += self.mdeps
     
 @TaskGen.extension('.v')
 def modelsim_vlog(self, node):
@@ -309,7 +321,7 @@ def modelsim_vlog(self, node):
   if tsks:
     tsk.run_after.append(tsks[-1])
 
-  tsk.deps_nodes += self.mdeps
+  tsk.dep_nodes += self.mdeps
 
 #@TaskGen.extension('.cpp')
 def modelsim_sccom(self, node):
@@ -324,5 +336,5 @@ def modelsim_sccom(self, node):
       lnk = self.create_task('sclink')
       lnk.target = self.target
       
-    tsk.deps_nodes += self.mdeps
+    tsk.dep_nodes += self.mdeps
 

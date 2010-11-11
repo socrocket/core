@@ -46,20 +46,19 @@
 #*********************************************************************
 top = '..'
 
-def set_options(ctx):
+def options(ctx):
   from os import environ
   gso = ctx.get_option_group("--amba")
   gso.add_option("--ambaexamples", dest="amba_examples", help="Basedir of your AMBAKit Examples", default=environ.get("AMBA_EXAMPLES",""))
 
 def configure(ctx):
-  from Options import options
+  from waflib.Options import options
   import os.path
+  amba_examples = ''
   if options.amba_examples and options.amba_examples != "":
-    ctx.env["CPPPATH_AMBAMEM"] = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.amba_examples, 'ahb_ct_timing'))))
+    amba_examples = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.amba_examples, 'ahb_ct_timing'))))
   elif options.amba_home and options.amba_home != "":
-    ctx.env["CPPPATH_AMBAMEM"] = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.amba_home, 'examples', 'ahb_ct_timing'))))
-  else:
-    ctx.env["CPPPATH_AMBAMEM"] = ''
+    amba_examples = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.amba_home, 'examples', 'ahb_ct_timing'))))
 
   ctx.check_cxx(
     header_name  = 'ahb_simple_bus.h ahb_simple_slave.h',
@@ -67,6 +66,7 @@ def configure(ctx):
     mandatory    = True,
     uselib       = 'AMBAMEM AMBA GREENSOCS BOOST SYSC TLM2',
     uselib_store = 'AMBAMEM',
+    includes     = amba_examples,
     fragment     = """
                    #ifdef DEBUG_AMBA
                    # define DUMP(name, msg) std::cout<<"@"<<sc_core::sc_time_stamp()<<" /"<<(unsigned)sc_core::sc_delta_count()<<" ("<<name  <<"): "<<msg<<std::endl
@@ -83,11 +83,11 @@ def configure(ctx):
     """,
     execute      = False
   )
-
+  
 def build(bld):
   bld(
     target         = 'mmu_cache',
-    features       = 'cxx cstaticlib',
+    features       = 'cxx cxxstlib',
     source         = [ 'lib/icio_payload_extension.cpp', 
                        'lib/dcio_payload_extension.cpp',
 		       'lib/localram.cpp',
@@ -97,9 +97,9 @@ def build(bld):
 		       'lib/dvectorcache.cpp',
                        'lib/mmu.cpp', 
 		       'lib/mmu_cache.cpp' ],
-    export_incdirs = 'lib',
+    export_includes = 'lib',
     uselib         = 'SYSC TLM2 AMBA GREENSOCS',
-    uselib_local   = 'common',
+    use            = 'common',
   )
 
   bld(
@@ -109,7 +109,7 @@ def build(bld):
                      'lt_ct_default_test/main.cpp'],
     includes     = '.',
     uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    uselib_local = 'mmu_cache common',
+    use          = 'mmu_cache common',
   )
 
   bld(
@@ -119,7 +119,7 @@ def build(bld):
                      'lt_ct_mmu_test/main.cpp'],
     includes     = '.',
     uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    uselib_local = 'mmu_cache common',
+    use          = 'mmu_cache common',
   )
 
   bld(
@@ -129,7 +129,7 @@ def build(bld):
                      'lt_ct_localram_test/main.cpp'],
     includes     = '.',
     uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    uselib_local = 'mmu_cache common',
+    use          = 'mmu_cache common',
   )
 
   bld(
@@ -139,7 +139,7 @@ def build(bld):
                      'lt_ct_cacheline_test/main.cpp'],
     includes     = '.',
     uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    uselib_local = 'mmu_cache common',
+    use          = 'mmu_cache common',
   )
 
   bld(
@@ -149,6 +149,6 @@ def build(bld):
                      'lt_ct_lock_test/main.cpp'],
     includes     = '.',
     uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    uselib_local = 'mmu_cache common',
+    use          = 'mmu_cache common',
   )
 

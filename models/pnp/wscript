@@ -46,7 +46,7 @@
 #*********************************************************************
 top = '..'
 
-def set_options(ctx):
+def options(ctx):
   pass 
 
 def configure(ctx):
@@ -54,12 +54,12 @@ def configure(ctx):
 
 def build(bld):
   bld(
-    target         = 'pnp',
-    features       = 'cxx cstaticlib',
-    source         = 'pnp.cpp', 
-    export_incdirs = '.',
-    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
-    uselib_local   = 'utils common'
+    target          = 'pnp',
+    features        = 'cxx cxxstlib',
+    source          = 'pnp.cpp', 
+    export_includes = '.',
+    uselib          = 'SYSC TLM2 AMBA GREENSOCS',
+    use             = 'utils common'
   )
 
   bld(
@@ -68,7 +68,7 @@ def build(bld):
     source       = 'tests/simple.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'pnp utils common',
+    use          = 'pnp utils common',
   )
   
   bld(
@@ -77,5 +77,5 @@ def build(bld):
     source       = 'tests/amba.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'pnp utils common',
+    use          = 'pnp utils common',
   )

@@ -46,7 +46,7 @@
 #*********************************************************************
 top = '../..'
 
-def set_options(ctx): 
+def options(ctx): 
   pass
 
 def configure(ctx):
@@ -54,12 +54,12 @@ def configure(ctx):
 
 def build(bld):
   bld(
-    target         = 'irqmp',
-    features       = 'cxx cstaticlib',
-    source         = 'irqmp.cpp', 
-    export_incdirs = '.',
-    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
-    uselib_local   = 'utils signalkit common'
+    target          = 'irqmp',
+    features        = 'cxx cxxstlib',
+    source          = 'irqmp.cpp', 
+    export_includes = '.',
+    uselib          = 'SYSC TLM2 AMBA GREENSOCS',
+    use             = 'utils signalkit common'
   )
 
   bld(
@@ -68,6 +68,6 @@ def build(bld):
     target       = 'simple.irqmp',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    uselib_local = 'irqmp utils signalkit common'
+    use          = 'irqmp utils signalkit common'
   )
   

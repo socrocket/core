@@ -46,7 +46,7 @@
 #*********************************************************************
 top = '..'
 
-def set_options(ctx):
+def options(ctx):
   pass 
 
 def configure(ctx):
@@ -55,10 +55,10 @@ def configure(ctx):
 def build(bld):
   bld(
     target         = 'ahbdecoder',
-    features       = 'cxx cstaticlib',
+    features       = 'cxx cxxstlib',
     source         = 'ahbdecoder.cpp', 
-    export_incdirs = '.',
+    export_includes = '.',
     uselib         = 'SYSC TLM2 AMBA GREENSOCS',
-    uselib_local   = 'utils common'
+    use            = 'utils common'
   )
 

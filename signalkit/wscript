@@ -45,7 +45,7 @@
 #*********************************************************************
 top = '..'
 
-def set_options(ctx):
+def options(ctx):
   pass 
 
 def configure(ctx):
@@ -53,10 +53,10 @@ def configure(ctx):
   
 def build(bld):
   bld(
-    name           = 'signalkit',
-    export_incdirs = '.',
-    uselib         = 'BOOST SYSC',
-    uselib_local   = 'common',
+    name            = 'signalkit',
+    export_includes = '.',
+    uselib          = 'BOOST SYSC',
+    use             = 'common',
   )
  
   bld(
@@ -65,7 +65,7 @@ def build(bld):
     source       = 'tests/simple.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC',
-    uselib_local = 'signalkit common',
+    use          = 'signalkit common',
   )
   
   bld(
@@ -74,7 +74,7 @@ def build(bld):
     source       = 'tests/systemc.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC',
-    uselib_local = 'signalkit common',
+    use          = 'signalkit common',
   )
   
   bld(
@@ -83,6 +83,6 @@ def build(bld):
     source       = 'tests/datatypemapping.cpp',
     includes     = '.',
     uselib       = 'BOOST SYSC',
-    uselib_local = 'signalkit common',
+    use          = 'signalkit common',
   )
    
