@@ -59,6 +59,7 @@
 Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm, // Module name
                          uint16_t haddr_, // AMBA AHB address (12 bit)
                          uint16_t hmask_, // AMBA AHB address mask (12 bit)
+                         amba::amba_layer_ids ambaLayer, // abstraction layer
                          char infile[], // Memory initialization file
                          uint32_t addr) : // Address for memory initalization
     sc_module(nm),
@@ -73,7 +74,7 @@ Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm, // Module name
             ),
             ahb("ahb", // sc_module_name
                     amba::amba_AHB, // bus type
-                    amba::amba_LT, // abstraction level
+                    ambaLayer, // abstraction level
                     false // is arbiter
             ), ahbBaseAddress(static_cast<uint32_t> (hmask_ & haddr_) << 20),
             ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1), hmask(
@@ -85,7 +86,14 @@ Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm, // Module name
             << v::setfill('0') << get_base_addr() << " size: 0x" << hex
             << v::setw(8) << v::setfill('0') << get_size() << " byte" << endl;
 
-    ahb.register_b_transport(this, &Ctb_ahb_mem::b_transport);
+    if(ambaLayer==amba::amba_LT) {
+      ahb.register_b_transport(this, &Ctb_ahb_mem::b_transport);
+    }
+
+    if(ambaLayer==amba::amba_AT) {
+      ahb.register_nb_transport_fw(this, &Ctb_ahb_mem::nb_transport_fw, 1);
+    }
+
     if (infile != NULL) {
         readmem(infile, addr);
     }
@@ -94,7 +102,6 @@ Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm, // Module name
 
 /// Destructor
 Ctb_ahb_mem::~Ctb_ahb_mem() {
-
     // Delete memory contents
     mem.clear();
 } // End destructor
@@ -113,7 +120,7 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
         }
 
         // if a byte enable array is present its length must not be zero
-        unsigned char *byteEnablePtr = gp.get_byte_enable_ptr();
+        unsigned char *byteEnablePtr  = gp.get_byte_enable_ptr();
         unsigned int byteEnableLength = gp.get_byte_enable_length();
         assert((byteEnableLength != 0) || (byteEnablePtr == NULL));
 
@@ -164,7 +171,7 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
                 gp.set_response_status(tlm::TLM_OK_RESPONSE);
                 break;
 
-                // Neither read or write command
+            // Neither read or write command
             default:
                 v::warn << name() << "Received unknown command." << endl;
                 gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
@@ -172,6 +179,75 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
         }
     } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
 } // void Ctb_ahb_mem::b_transport()
+
+tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generic_payload& gp,
+                                   tlm::tlm_phase& phase, sc_core::sc_time& delay) {
+
+    // Check address for before doing anything else
+    if (!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
+        // warn if access exceeds slave memory region
+        if ((gp.get_address() + gp.get_data_length()) > (ahbBaseAddress
+                + ahbSize)) {
+            v::warn << name() << "Transaction exceeds slave memory region"
+                    << endl;
+        }
+
+        // if a byte enable array is present its length must not be zero
+        unsigned char *byteEnablePtr  = gp.get_byte_enable_ptr();
+        unsigned int byteEnableLength = gp.get_byte_enable_length();
+        assert((byteEnableLength != 0) || (byteEnablePtr == NULL));
+
+        switch (gp.get_command()) {
+            // Read command
+            case tlm::TLM_READ_COMMAND:
+                if (byteEnablePtr != NULL) {
+                    // Use byte enable
+                    for (uint32_t i = 0; i < gp.get_data_length(); i++) {
+                        if (byteEnablePtr[i % byteEnableLength]
+                                == TLM_BYTE_ENABLED) {
+                            *(gp.get_data_ptr() + i)
+                                    = mem[gp.get_address() + i];
+                        }
+                    }
+                } else {
+                    // no byte enable
+                    for (uint32_t i = 0; i < gp.get_data_length(); i++) {
+                        *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
+                    }
+                }
+                gp.set_response_status(tlm::TLM_OK_RESPONSE);
+                break;
+
+                // Write command
+            case tlm::TLM_WRITE_COMMAND:
+                if (byteEnablePtr != NULL) {
+                    // Use byte enable
+                    for (uint32_t i = 0; i < gp.get_data_length(); i++) {
+                        if (byteEnablePtr[i % byteEnableLength]
+                                == TLM_BYTE_ENABLED) {
+                            mem[gp.get_address() + i]
+                                    = *(gp.get_data_ptr() + i);
+                        }
+                    }
+                } else {
+                    // no byte enable
+                    for (uint32_t i = 0; i < gp.get_data_length(); i++) {
+                        mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
+                    }
+                }
+                gp.set_response_status(tlm::TLM_OK_RESPONSE);
+                break;
+
+            // Neither read or write command
+            default:
+                v::warn << name() << "Received unknown command." << endl;
+                gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+                break;
+        }
+    } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
+
+    return tlm::TLM_COMPLETED;
+}
 
 /// Method to initialize memory contents from a text file
 int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {

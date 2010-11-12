@@ -57,11 +57,12 @@ class Ctb_ahb_mem : public sc_module, public amba_slave_base {
         /// @brief Constructor for the test bench memory class
         /// @param haddr AHB address of the AHB slave socket (12 bit)
         /// @param hmask AHB address mask (12 bit)
+        /// @param ambaLayer Abstraction layer used (AT/LT)
         /// @param infile File name of a text file to initialize the memory from
         /// @param addr Start address for memory initilization
         Ctb_ahb_mem(sc_core::sc_module_name nm, uint16_t haddr_,
-                    uint16_t hmask_ = 0, char infile[] = NULL, uint32_t addr =
-                            0);
+                    uint16_t hmask_ = 0, amba::amba_layer_ids ambaLayer = amba::amba_LT,
+                    char infile[] = NULL, uint32_t addr = 0);
 
         /// Destructor
         ~Ctb_ahb_mem();
@@ -86,6 +87,10 @@ class Ctb_ahb_mem : public sc_module, public amba_slave_base {
         /// TLM blocking transport function
         void b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
                          sc_core::sc_time &delay);
+
+        /// TLM non blocking transport function
+        tlm::tlm_sync_enum nb_transport_fw(unsigned int id, tlm::tlm_generic_payload& gp,
+                                           tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
         /// @brief Delete memory content
         void clear_mem() {
