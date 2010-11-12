@@ -1,4 +1,4 @@
-// ********************************************************************
+// *****************************************************************************
 // Copyright 2010, Institute of Computer and Network Engineering,
 //                 TU-Braunschweig
 // All rights reserved
@@ -21,7 +21,7 @@
 // neither implicit nor explicit. The program and the information in it
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
-// ********************************************************************
+// *****************************************************************************
 // Title:      ahbdecoder.cpp
 //
 // ScssId:
@@ -42,18 +42,30 @@
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Soeren Brinkmann
 // Reviewed:
-// ********************************************************************
+// *****************************************************************************
 
 #include "ahbdecoder.h"
 #include "verbose.h"
 
-CAHBDecoder::CAHBDecoder(sc_core::sc_module_name nm) :
+CAHBDecoder::CAHBDecoder(sc_core::sc_module_name nm,
+                         amba::amba_layer_ids ambaLayer) :
       sc_module(nm),
       ahbIN("ahbIN", amba::amba_AHB, amba::amba_LT, false),    // TODO Both sockets require is_arbiter=true if bug in ambasockets is fixed
       ahbOUT("ahbOUT", amba::amba_AHB, amba::amba_LT, false) {
 
-    // register tlm blocking transport function
-    ahbIN.register_b_transport(this, &CAHBDecoder::b_transport);
+    if(ambaLayer==amba::amba_LT) {
+      // register tlm blocking transport function
+      ahbIN.register_b_transport(this, &CAHBDecoder::b_transport);
+    }
+
+    // Register non blocking transport calls
+    if(ambaLayer==amba::amba_AT) {
+      // register tlm non blocking transport forward path
+      ahbIN.register_nb_transport_fw(this, &CAHBDecoder::nb_transport_fw, 1);
+
+      // register tlm non blocking transport backward path
+      ahbOUT.register_nb_transport_bw(this, &CAHBDecoder::nb_transport_bw, 1);
+    }
 }
 
 CAHBDecoder::~CAHBDecoder() {
@@ -80,23 +92,29 @@ int CAHBDecoder::get_index(const uint32_t address) {
     return -1;
 }
 
+int CAHBDecoder::getMaster2Slave(const uint32_t slaveID) {
+   std::map<uint32_t, int32_t>::iterator it;
+
+   it = MstSlvMap.find(slaveID);
+   return it->second;
+}
+
 void CAHBDecoder::b_transport(uint32_t id,
                               tlm::tlm_generic_payload& ahb_gp,
                               sc_time& delay) {
     std::map<uint32_t, slave_info_t>::iterator it;
 
-    uint32_t index = get_index(ahb_gp.get_address());
+    uint32_t a = 0;
+    socket_t* other_socket = ahbIN.get_other_side(id, a);
+    sc_core::sc_object *mstobj = other_socket->get_parent();
+
+    int index = get_index(ahb_gp.get_address());
 
     // check for a valid index
     if(index >= 0) {
        // *** DEBUG
-       uint32_t a = 0;
-       socket_t *other_socket = ahbOUT.get_other_side(index, a);
+       other_socket = ahbOUT.get_other_side(index, a);
        sc_core::sc_object *obj = other_socket->get_parent();
-
-       other_socket = ahbIN.get_other_side(id, a);
-       sc_core::sc_object *mstobj = other_socket->get_parent();
-
 
        v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
                 << v::setw(8) << ahb_gp.get_address() << ", from master:"
@@ -109,12 +127,106 @@ void CAHBDecoder::b_transport(uint32_t id,
        ahbOUT[index]->b_transport(ahb_gp, delay);
     } else {
        // Invalid index
-       // TODO set response status to what?
-       // Is access to unmapped memory illegal?
-       // Is it successfully ignored?
-       v::warn << name() << "Access to unmapped AHB address space." << endl;
+       ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+       v::warn << name() << "AHB Request@0x" << hex << v::setfill('0')
+               << v::setw(8) << ahb_gp.get_address() << ", from master:"
+               << mstobj->name() << ": Unmapped address space." << endl;
     }
 
+}
+
+// TLM non blocking transport call forward path (from masters to slaves)
+tlm::tlm_sync_enum CAHBDecoder::nb_transport_fw(uint32_t id, tlm::tlm_generic_payload& gp,
+                                                tlm::tlm_phase& phase, sc_core::sc_time& delay) {
+
+   // Obtain slave index for the requested address
+   int index = get_index(gp.get_address());
+
+   uint32_t a = 0;
+   socket_t* other_socket = ahbIN.get_other_side(id, a);
+   sc_core::sc_object *mstobj = other_socket->get_parent();
+
+   if(index>=0) {
+      other_socket = ahbOUT.get_other_side(index,a);
+      sc_core::sc_object *slvobj = other_socket->get_parent();
+
+      if((getMaster2Slave(index)==static_cast<int>(id)) || (getMaster2Slave(index)==-1)) {
+         tlm::tlm_sync_enum returnValue;
+         MstSlvMap[index] = id;
+
+         v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
+                  << v::setw(8) << gp.get_address() << ", from master:"
+                  << mstobj->name() << " forwared to slave:" << slvobj->name()
+                  << ", phase:" << phase << endl;
+
+         // Forward request
+         returnValue = ahbOUT[index]->nb_transport_fw(gp, phase, delay);
+
+         // Clear transaction mapping if transaction finishes
+         if((returnValue==tlm::TLM_COMPLETED) ||
+            ((phase==tlm::END_RESP) && (returnValue==tlm::TLM_ACCEPTED))) {
+            MstSlvMap[index] = -1;
+         }
+
+         // return to initiator
+         return returnValue;
+      } else {
+         // Requested slave is busy. Don't execute command and end
+         // transaction.
+         v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
+                  << v::setw(8) << gp.get_address() << ", from master:"
+                  << mstobj->name() << " to slave:" << slvobj->name()
+                  << ": Slave busy." << endl;
+         return tlm::TLM_COMPLETED;
+      }
+    } else {
+       // Invalid index
+       gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+
+       v::warn << name() << "AHB Request@0x" << hex << v::setfill('0')
+               << v::setw(8) << gp.get_address() << ", from master:"
+               << mstobj->name() << ": Unmapped address space." << endl;
+
+       return tlm::TLM_COMPLETED;
+    }
+}
+
+// TLM non blocking transport call backward path (from slaves to masters)
+tlm::tlm_sync_enum CAHBDecoder::nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& gp,
+                                                tlm::tlm_phase& phase, sc_core::sc_time& delay) {
+
+   int index = getMaster2Slave(id);
+
+   uint32_t a = 0;
+   socket_t* other_socket = ahbOUT.get_other_side(id, a);
+   sc_core::sc_object *slvobj = other_socket->get_parent();
+
+   if(index >= 0) {
+      tlm::tlm_sync_enum returnValue;
+
+      other_socket = ahbIN.get_other_side(index,a);
+      sc_core::sc_object *mstobj = other_socket->get_parent();
+
+      v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
+               << v::setw(8) << gp.get_address() << ", from slave:"
+               << slvobj->name() << " forwarded to master:" << mstobj->name()
+               << ", phase:" << phase << endl;
+
+      // Forward request
+      returnValue = ahbIN[index]->nb_transport_bw(gp, phase, delay);
+      // Reset MstSlvMap if transaction finishes
+      if((returnValue==tlm::TLM_COMPLETED) ||
+         ((phase==tlm::END_RESP) && (returnValue==tlm::TLM_UPDATED))) {
+         MstSlvMap[id] = -1;
+      }
+
+      // Return to initiator
+      return returnValue;
+   } else {
+      v::warn << name() << "Backward path by slave:" << slvobj->name()
+              << ": No active connection found." << endl;
+      return tlm::TLM_COMPLETED;
+   }
 }
 
 void CAHBDecoder::start_of_simulation() {
@@ -134,6 +246,7 @@ void CAHBDecoder::start_of_simulation() {
             uint32_t addr = slave->get_base_addr();
             uint32_t size = slave->get_size();
             setAddressMap(i, addr, size);
+            MstSlvMap.insert(std::pair<uint32_t, int32_t>(i, -1));
             v::info << name() << "Found AHB slave " << obj->name() << "@0x"
                     << hex << v::setw(8) << v::setfill('0') << addr
                     << ", size:" << hex << "0x" << size << endl;
@@ -170,7 +283,6 @@ void CAHBDecoder::checkMemMap() {
                       << v::setfill('0') << it2->second.first << ":0x" << hex
                       << v::setw(8) << v::setfill('0') << (it2->second.second - 1)
                       << endl;
-
          }
       }
    }
