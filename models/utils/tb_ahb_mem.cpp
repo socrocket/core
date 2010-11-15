@@ -1,4 +1,4 @@
-//*********************************************************************
+// *****************************************************************************
 // Copyright 2010, Institute of Computer and Network Engineering,
 //                 TU-Braunschweig
 // All rights reserved
@@ -21,7 +21,7 @@
 // neither implicit nor explicit. The program and the information in it
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
-//*********************************************************************
+// *****************************************************************************
 // Title:      tb_ahb_mem.cpp
 //
 // ScssId:
@@ -48,7 +48,7 @@
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Soeren Brinkmann
 // Reviewed:
-//*********************************************************************
+// *****************************************************************************
 
 #include "tb_ahb_mem.h"
 #include <fstream>
@@ -94,7 +94,7 @@ Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm, // Module name
       ahb.register_nb_transport_fw(this, &Ctb_ahb_mem::nb_transport_fw, 1);
     }
 
-    if (infile != NULL) {
+    if(infile != NULL) {
         readmem(infile, addr);
     }
 } // End constructor
@@ -111,10 +111,10 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
                               sc_core::sc_time &delay) {
 
     // Check address for before doing anything else
-    if (!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
+    if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
         // warn if access exceeds slave memory region
-        if ((gp.get_address() + gp.get_data_length()) > (ahbBaseAddress
-                + ahbSize)) {
+        if((gp.get_address() + gp.get_data_length()) >
+           (ahbBaseAddress + ahbSize)) {
             v::warn << name() << "Transaction exceeds slave memory region"
                     << endl;
         }
@@ -124,7 +124,7 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
         unsigned int byteEnableLength = gp.get_byte_enable_length();
         assert((byteEnableLength != 0) || (byteEnablePtr == NULL));
 
-        switch (gp.get_command()) {
+        switch(gp.get_command()) {
             // Read command
             case tlm::TLM_READ_COMMAND:
                 // wait to make sure data is available
@@ -132,8 +132,8 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
                 delay = sc_core::SC_ZERO_TIME;
                 if (byteEnablePtr != NULL) {
                     // Use byte enable
-                    for (uint32_t i = 0; i < gp.get_data_length(); i++) {
-                        if (byteEnablePtr[i % byteEnableLength]
+                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+                        if(byteEnablePtr[i % byteEnableLength]
                                 == TLM_BYTE_ENABLED) {
                             *(gp.get_data_ptr() + i)
                                     = mem[gp.get_address() + i];
@@ -141,7 +141,7 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
                     }
                 } else {
                     // no byte enable
-                    for (uint32_t i = 0; i < gp.get_data_length(); i++) {
+                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
                         *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
                     }
                 }
@@ -153,9 +153,9 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
                 // wait to make sure data is not available to early
                 wait(delay);
                 delay = sc_core::SC_ZERO_TIME;
-                if (byteEnablePtr != NULL) {
+                if(byteEnablePtr != NULL) {
                     // Use byte enable
-                    for (uint32_t i = 0; i < gp.get_data_length(); i++) {
+                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
                         if (byteEnablePtr[i % byteEnableLength]
                                 == TLM_BYTE_ENABLED) {
                             mem[gp.get_address() + i]
@@ -164,7 +164,7 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
                     }
                 } else {
                     // no byte enable
-                    for (uint32_t i = 0; i < gp.get_data_length(); i++) {
+                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
                         mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
                     }
                 }
@@ -180,14 +180,15 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
     } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
 } // void Ctb_ahb_mem::b_transport()
 
+/// TLM non blocking transport function
 tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generic_payload& gp,
-                                   tlm::tlm_phase& phase, sc_core::sc_time& delay) {
+                                                tlm::tlm_phase& phase, sc_core::sc_time& delay) {
 
     // Check address for before doing anything else
-    if (!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
+    if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
         // warn if access exceeds slave memory region
-        if ((gp.get_address() + gp.get_data_length()) > (ahbBaseAddress
-                + ahbSize)) {
+        if((gp.get_address() + gp.get_data_length()) >
+           (ahbBaseAddress + ahbSize)) {
             v::warn << name() << "Transaction exceeds slave memory region"
                     << endl;
         }
@@ -197,13 +198,13 @@ tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generi
         unsigned int byteEnableLength = gp.get_byte_enable_length();
         assert((byteEnableLength != 0) || (byteEnablePtr == NULL));
 
-        switch (gp.get_command()) {
+        switch(gp.get_command()) {
             // Read command
             case tlm::TLM_READ_COMMAND:
-                if (byteEnablePtr != NULL) {
+                if(byteEnablePtr != NULL) {
                     // Use byte enable
-                    for (uint32_t i = 0; i < gp.get_data_length(); i++) {
-                        if (byteEnablePtr[i % byteEnableLength]
+                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+                        if(byteEnablePtr[i % byteEnableLength]
                                 == TLM_BYTE_ENABLED) {
                             *(gp.get_data_ptr() + i)
                                     = mem[gp.get_address() + i];
@@ -211,7 +212,7 @@ tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generi
                     }
                 } else {
                     // no byte enable
-                    for (uint32_t i = 0; i < gp.get_data_length(); i++) {
+                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
                         *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
                     }
                 }
@@ -220,10 +221,10 @@ tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generi
 
                 // Write command
             case tlm::TLM_WRITE_COMMAND:
-                if (byteEnablePtr != NULL) {
+                if(byteEnablePtr != NULL) {
                     // Use byte enable
-                    for (uint32_t i = 0; i < gp.get_data_length(); i++) {
-                        if (byteEnablePtr[i % byteEnableLength]
+                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+                        if(byteEnablePtr[i % byteEnableLength]
                                 == TLM_BYTE_ENABLED) {
                             mem[gp.get_address() + i]
                                     = *(gp.get_data_ptr() + i);
@@ -231,14 +232,14 @@ tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generi
                     }
                 } else {
                     // no byte enable
-                    for (uint32_t i = 0; i < gp.get_data_length(); i++) {
+                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
                         mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
                     }
                 }
                 gp.set_response_status(tlm::TLM_OK_RESPONSE);
                 break;
 
-            // Neither read or write command
+            // Neither read nor write command
             default:
                 v::warn << name() << "Received unknown command." << endl;
                 gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
@@ -247,7 +248,7 @@ tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generi
     } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
 
     return tlm::TLM_COMPLETED;
-}
+}  // tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw()
 
 /// Method to initialize memory contents from a text file
 int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {
@@ -260,16 +261,16 @@ int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {
     bool processChar = 0;
 
     // Parse input file
-    if (infile.good()) {
-        while (!infile.eof()) {
+    if(infile.good()) {
+        while(!infile.eof()) {
             // Read one byte from file
             infile.read(&buffer, 1);
             // Convert char into binary
             nibbleBuffer = char2nibble(&buffer);
 
             // combine two ascii chars into one byte and write into memory
-            if (!(nibbleBuffer & 0xf0)) {
-                if (nibble) {
+            if(!(nibbleBuffer & 0xf0)) {
+                if(nibble) {
                     data |= nibbleBuffer;
                     mem[addr++] = data;
                     data = 0x0;
@@ -283,7 +284,7 @@ int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {
         } // while(!infile.eof())
 
         // Warn if data stream ended unexpected
-        if (nibble) {
+        if(nibble) {
             v::warn << name() << "Incomplete byte detected in memory file"
                     << endl;
         }
@@ -301,7 +302,7 @@ int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {
 
 /// Method to convert ascii characters into their binary representation
 uint8_t Ctb_ahb_mem::char2nibble(const char *ch) const {
-    switch (*ch) {
+    switch(*ch) {
         case '\n':
             return 0x10;
             break;
@@ -386,11 +387,11 @@ uint8_t Ctb_ahb_mem::char2nibble(const char *ch) const {
 } // uint8_t Ctb_ahb_mem::char2nibble(char *ch) const
 
 
-/// Method to dump the memory content into an text file
+/// Method to dump the memory content into a text file
 int Ctb_ahb_mem::dumpmem(char outfile_[]) {
 
     // check if memory is filled
-    if (mem.empty()) {
+    if(mem.empty()) {
         v::info << name() << "Memory is empty. Nothing do dump." << endl;
         return 1;
     }
@@ -403,25 +404,24 @@ int Ctb_ahb_mem::dumpmem(char outfile_[]) {
     std::map<uint32_t, uint8_t>::iterator it_next = mem.begin();
     it_next++;
 
-    if (outfile.good()) {
+    if(outfile.good()) {
         // print first address in file
         outfile << "@" << hex << v::setw(8) << v::setfill('0') << (it->first
                 & 0xfffffffc) << endl;
 
-        for (it = mem.begin(); it != mem.end(); it++, it_next++) {
+        for(it = mem.begin(); it != mem.end(); it++, it_next++) {
 
             position = it->first % 4;
             word |= (it->second << (8 * position));
 
             // Next byte not within current word
-            if ((3 - position - static_cast<int> (it_next->first - it->first))
-                    < 0) {
+            if((3 - position - static_cast<int> (it_next->first - it->first)) < 0) {
                 // print word
                 outfile << hex << v::setw(8) << v::setfill('0') << word << endl;
                 word = 0;
 
                 // print address if necessary
-                if ((7 - position - static_cast<int> (it_next->first
+                if((7 - position - static_cast<int> (it_next->first
                         - it->first)) < 0) {
                     outfile << "@" << hex << v::setw(8) << v::setfill('0')
                             << (it_next->first & 0xfffffffc) << endl;

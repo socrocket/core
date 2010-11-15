@@ -1,4 +1,4 @@
-//*********************************************************************
+// *****************************************************************************
 // Copyright 2010, Institute of Computer and Network Engineering,
 //                 TU-Braunschweig
 // All rights reserved
@@ -21,7 +21,7 @@
 // neither implicit nor explicit. The program and the information in it
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
-//*********************************************************************
+// *****************************************************************************
 // Title:      tb_ahb_mem.h
 //
 // ScssId:
@@ -38,7 +38,7 @@
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Soeren Brinkmann
 // Reviewed:
-//*********************************************************************
+// *****************************************************************************
 
 #ifndef TB_AHB_MEM_H
 #define TB_AHB_MEM_H
