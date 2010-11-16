@@ -103,52 +103,22 @@ def build(bld):
   )
 
   bld(
-    target       = 'lt_ct_default.test',
+    target       = 'mmucache.test1',
     features     = 'cxx cprogram test',
-    source       = [ 'lt_ct_default_test/testbench.cpp',
-                     'lt_ct_default_test/main.cpp'],
+    source       = [ 'test1/testbench.cpp',
+                     'test1/main.cpp'],
     includes     = '.',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    use          = 'mmu_cache common',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
   )
 
   bld(
-    target       = 'lt_ct_mmu.test',
+    target       = 'mmucache.test2',
     features     = 'cxx cprogram test',
-    source       = [ 'lt_ct_mmu_test/testbench.cpp',
-                     'lt_ct_mmu_test/main.cpp'],
+    source       = [ 'test2/testbench.cpp',
+                     'test2/main.cpp'],
     includes     = '.',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    use          = 'mmu_cache common',
-  )
-
-  bld(
-    target       = 'lt_ct_localram.test',
-    features     = 'cxx cprogram test',
-    source       = [ 'lt_ct_localram_test/testbench.cpp',
-                     'lt_ct_localram_test/main.cpp'],
-    includes     = '.',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    use          = 'mmu_cache common',
-  )
-
-  bld(
-    target       = 'lt_ct_cacheline.test',
-    features     = 'cxx cprogram test',
-    source       = [ 'lt_ct_cacheline_test/testbench.cpp',
-                     'lt_ct_cacheline_test/main.cpp'],
-    includes     = '.',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    use          = 'mmu_cache common',
-  )
-
-  bld(
-    target       = 'lt_ct_lock.test',
-    features     = 'cxx cprogram test',
-    source       = [ 'lt_ct_lock_test/testbench.cpp',
-                     'lt_ct_lock_test/main.cpp'],
-    includes     = '.',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS AMBAMEM',
-    use          = 'mmu_cache common',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
   )
 

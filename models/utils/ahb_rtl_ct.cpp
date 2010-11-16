@@ -50,14 +50,14 @@
 /// @addtogroup utils Model Utils
 /// @{
 
-CAHB_RTL_CT::CAHB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base,
+CAHB_RTL_CT::CAHB_RTL_CT(sc_core::sc_module_name nm, sc_dt::uint64 base,
                          sc_dt::uint64 size) :
     sc_module(nm), clk("CLOCK"), reset("RESET"), ahbo("ahbo"), ahbi("ahbi"),
             hirqi("GR_IRQ_IN"), hirqo("GR_IRQ_OUT"), hconfig_0("GR_CONFIG_0"),
             hconfig_1("GR_CONFIG_1"), hindex("GR_INDEX"), m_hbusreq(
                     "AHB_BUSREQ"), m_hlock("AHB_LOCK"), m_htrans("AHB_TRANS"),
             m_haddr("AHB_ADDRESS"), m_hsize("AHB_SIZE"), m_hburst("AHB_BURST"),
-            m_prot("AHB_PROT"), m_hwrite("AHB_WRITE"), m_hwdata(
+            m_hprot("AHB_PROT"), m_hwrite("AHB_WRITE"), m_hwdata(
                     "AHB_WRITE_DATA"), m_hrdata("AHB_READ_DATA"), m_hresp(
                     "AHB_RESPONSE"), m_hgrant("AHB_GRANT"), m_hreadyin(
                     "AHB_READY_IN"), ct("CT", base, size) {
@@ -81,23 +81,23 @@ CAHB_RTL_CT::CAHB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base,
     sensitive << ahbo;
 
     SC_THREAD(ahbi_ctrl);
-    sensitive << m_hrdata << m_hresp << m_hgrand << m_hreadyin << hirqi;
+    sensitive << m_hrdata << m_hresp << m_hgrant << m_hreadyin << hirqi;
 }
 
 void CAHB_RTL_CT::ahbo_ctrl() {
     while (1) {
-        ahb_mst_out_type val = ahbo.read();
-        m_hbusreq.write(val.hbusreq);
-        m_hlock.write(val.hlock);
+        ahb_mst_out_type_adapter val = ahbo.read();
+        m_hbusreq.write(val.hbusreq.to_bool());
+        m_hlock.write(val.hlock.to_bool());
         m_htrans.write(val.htrans);
         m_haddr.write(val.haddr);
-        m_hwrite.write(val.hwrite);
+        m_hwrite.write(val.hwrite.to_bool());
         m_hsize.write(val.hsize);
         m_hburst.write(val.hburst);
         m_hprot.write(val.hprot);
         m_hwdata.write(val.hwdata);
 
-        hirqo.write(val.hwirq);
+        hirqo.write(val.hirq);
         hconfig_0.write(val.hconfig[0]);
         hconfig_1.write(val.hconfig[1]);
         hindex.write(val.hindex);
@@ -118,7 +118,7 @@ void CAHB_RTL_CT::ahbi_ctrl() {
         val.testrst = false;
         val.scanen = false;
         val.testoen = false;
-        apbi.write(val);
+        ahbi.write(val);
         wait();
     }
 }

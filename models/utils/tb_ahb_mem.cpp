@@ -110,6 +110,8 @@ Ctb_ahb_mem::~Ctb_ahb_mem() {
 void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
                               sc_core::sc_time &delay) {
 
+  v::info << "transaction" << v::endl;
+
     // Check address for before doing anything else
     if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
         // warn if access exceeds slave memory region
