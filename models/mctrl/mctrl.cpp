@@ -292,9 +292,12 @@ void Mctrl::reset_mctrl(const bool &value,
 
         // --- set register values according to generics
         unsigned int set;
-        if (sden && sepbus) {
-            set = r[MCTRL_MCFG2].get() | sdbits << 18;
-            r[MCTRL_MCFG2].set(set);
+        if (sden) {
+            set = r[MCTRL_MCFG2].get() | MCTRL_MCFG2_SDRF;
+            if (sepbus) {
+                set |= sdbits << 18;
+                r[MCTRL_MCFG2].set(set);
+            }
         }
 
         // --- calculate address spaces of the different memory banks
@@ -339,8 +342,11 @@ void Mctrl::reset_mctrl(const bool &value,
 
         //SRAM bank size has to be a power of two, which is not necessarily the case here.
         //Certain combinations of rammask and srbanks might have caused odd numbers here, so
-        // the SRAM bank size is re-calculated from the register values here.
+        //the SRAM bank size is re-calculated from the register values.
         sram_bank_size = 1 << ( 13 + ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_BANK_SIZE) >> 9) );
+
+        //same for SDRAM bank size (in case a strange rammask value has been given)
+        sdram_bank_size = 1 << ( 22 + ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_BANKSZ) >> 23) );
 
         //address spaces in case of SRAM only configuration
         if (!sden || !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE)) {
@@ -442,7 +448,8 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     sc_core::sc_time t_trans = sc_core::sc_time_stamp() + callback_delay;
 
     //refresh handling required for sdram only (deactivated by default)
-    if (sden) {
+    //refresh handling can be deactivated by SDRF bit of MCFG2
+    if (sden && r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRF) {
         //next refresh must end in the future
         while (t_trans > next_refresh + cycle_time * trfc) {
             //start of sdram idle period must be later than end of last refresh
@@ -468,13 +475,28 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     //If present, the burst size extension of the gp is now stored in amba_burst_size.
     //Else, the burst size is set to zero, always indicating that the extension is not present.
 
-    //data length must be multiple of burst size
-    if ( (amba_burst_size->value && data_length % amba_burst_size->value) ) {
-        v::error << "Mctrl" << "Data length (" << (unsigned int) data_length 
-                 << ") does not match burst_size (" << (unsigned int) amba_burst_size->value 
-                 << ")." << std::endl;
-        gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
-        return;
+    if (amba_burst_size->value) {
+        //data length must be multiple of burst size
+        if (data_length % amba_burst_size->value) {
+            v::error << "Mctrl" << "Data length (" << (unsigned int) data_length 
+                     << ") does not match burst_size (" << (unsigned int) amba_burst_size->value 
+                     << ")." << std::endl;
+            //FIXME: add delay
+            gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+            return;
+        }
+        //burst size must be 1, 2, or 4
+        if(amba_burst_size->value > 4 || amba_burst_size->value == 3) {
+            v::error << "Mctrl" << "invalid value to amba_burst_size extension: "
+                     << (unsigned int) amba_burst_size->value << std::endl;
+            //FIXME: add delay
+            gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+            return;
+        }
+        //subword burst access does not make sense, so issue a warning
+        if (amba_burst_size->value < 4 && amba_burst_size->value < data_length) {
+            v::warn << "Mctrl" << "subword burst access detected" << std::endl;
+        }
     }
     //access to ROM adress space
     if (Mctrl::rom_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::rom_bk1_e ||
@@ -492,6 +514,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
         else {
             v::error << "Mctrl" << "Attempted disallowed sub-word access to PROM" << std::endl;
             gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+            //FIXME: add delay?
             return;
         }
         //data length must be multiple of streaming width
@@ -500,6 +523,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
                      << ") does not match streaming width (" << (unsigned int) gp.get_streaming_width() 
                      << ")." << std::endl;
             gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+            //FIXME: add delay?
             return;
         }
         if (cmd == tlm::TLM_WRITE_COMMAND) {
@@ -538,19 +562,24 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     else if (Mctrl::io_s <= gp.get_address() and gp.get_address() <= Mctrl::io_e) {
         //IO enable bit set?
         if (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IOEN) {
-            cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IO_WAITSTATES) >> 20;
-            //check burst size extension to identify sub-word writes
-            if (amba_burst_size->value != 0) {
-                gp.set_streaming_width(amba_burst_size->value);
-                if (amba_burst_size->value < data_length) {
-                    v::warn << "Mctrl" << "subword burst access to IO area" << std::endl;
-                }
+            //determine streaming width by MCFG1[9..8]
+            if ( (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IOBUSW) >> 28) {
+                gp.set_streaming_width(4);
             }
+            else if (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IOBUSW) {
+                gp.set_streaming_width(2);
+            }
+            else {
+                gp.set_streaming_width(1);
+            }
+            cycles = (r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IO_WAITSTATES) >> 20;
+            //data length must match (multiple of) streaming width
             if (data_length % gp.get_streaming_width()) {
             v::error << "Mctrl" << "I/O access: data length (" << (unsigned int) data_length 
                      << ") does not match streaming width (" << (unsigned int) gp.get_streaming_width() 
                      << ")." << std::endl;
             gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+            //FIXME: add delay?
             return;
             }
             //calculate delay for read command
@@ -567,7 +596,13 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
             start_idle = t_trans + cycle_time * cycles;
             delay += cycle_time * cycles;
             gp.set_streaming_width(4);
+            sc_core::sc_time tmp = sc_core::sc_time(delay);
             mctrl_io->b_transport(gp,delay);
+            if (tmp != delay && r[MCTRL_MCFG1].get() & MCTRL_MCFG1_IBRDY) {
+                v::error << "Mctrl" << "IO devices changed delay value, but IBRDY = 0. "
+                         << "The change is undone by Mctrl, data is probably invalid." << std::endl;
+                delay = tmp;
+            }
         }
         else {
             //IO enable not set: issue error message / failure
@@ -590,6 +625,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
                 v::error << "Mctrl" << "Attempted disallowed sub-word access to SRAM. Data length is "
                          << (unsigned int) data_length << ". RMW is disabled." << std::endl;
                 gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+                //FIXME: add delay?
                 return;
             }
         }
@@ -600,6 +636,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
                 v::error << "Mctrl" << "Attempted disallowed byte access to SRAM. Data length is "
                          << (unsigned int) data_length << ". RMW is disabled." << std::endl;
                 gp.set_response_status(tlm::TLM_BYTE_ENABLE_ERROR_RESPONSE);
+                //FIXME: add delay?
                 return;
             }
         }
@@ -635,7 +672,13 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
         else {
             start_idle = t_trans + cycle_time * cycles;
             delay += cycle_time * cycles;
+            sc_core::sc_time tmp = sc_core::sc_time(delay);
             mctrl_sram->b_transport(gp,delay);
+            if (tmp != delay && r[MCTRL_MCFG1].get() & MCTRL_MCFG2_RBRDY) {
+                v::error << "Mctrl" << "RAM devices changed delay value, but RBRDY = 0. "
+                         << "The change is undone by Mctrl, data is probably invalid." << std::endl;
+                delay = tmp;
+            }
         }
     }
     //access to SDRAM adress space
@@ -657,7 +700,8 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
             if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_D64) {
                 gp.set_streaming_width(8);
                 //check for disallowed sub-word access
-                if (data_length % 8 && cmd == tlm::TLM_WRITE_COMMAND) {
+                if (data_length % 8 && !(r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RMW)
+                                    && cmd == tlm::TLM_WRITE_COMMAND) {
                     v::error << "Mctrl" << "Attempted dis-allowed sub-word access to SDRAM in 64 bit mode."
                              << std::endl;
                 }
@@ -745,31 +789,31 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
 
 //write into SDRAM_CMD field of MCFG2
 void Mctrl::launch_sdram_command() {
-  if (!sden) {
-    return;
-  }
-  uint8_t cmd = ( ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_CMD) >> 19) & 0x000000FF);
-  switch (cmd) {
-    // LMR / EMR
-   case 3:
-      // LMR / EMR commands are assumed to be issued right after changes of TCAS, DS, TCSR, PASR.
-      // The delay has already been added in the according callback (configure_sdram).
-      break;
-    // Auto-Refresh: Forces a refresh, which needs idle state! How can that be guaranteed?
-    //               Refresh asap, i.e. right after termination of active command? Always send a precharge before Refresh?
-    //               Whatever, for LT it's as simple as waiting for exactly one refresh cycle:
-    //           --> The previous transaction will always have finished before the Sim Kernel takes note of this callback.
-    case 2:
-        callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + MCTRL_MCFG2_SDRAM_TRFC_DEFAULT >> 30), SC_NS);
-      break;
-    // Precharge: Terminate current burst transaction (no effect in LT) --> wait for tRP
-    case 1:
-      callback_delay += sc_time(BUS_CLOCK_CYCLE * (2 + MCTRL_MCFG2_TRP_DEFAULT >> 29), SC_NS);
-      break;
-  }
-  //clear command bits
-  unsigned int set = static_cast<unsigned int> (r[MCTRL_MCFG2].get() & ~MCTRL_MCFG2_SDRAM_CMD);
-  r[MCTRL_MCFG2].set( set );
+    if (!sden) {
+        return;
+    }
+    uint8_t cmd = ( ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_CMD) >> 19) & 0x000000FF);
+    switch (cmd) {
+        // LMR / EMR
+        case 3:
+            // LMR / EMR commands are assumed to be issued right after changes of TCAS, DS, TCSR, PASR.
+            // The delay has already been added in the according callback (configure_sdram).
+            break;
+        // Auto-Refresh: Forces a refresh, which needs idle state! How can that be guaranteed?
+        //               Refresh asap, i.e. right after termination of active command? Always send a precharge before Refresh?
+        //               Whatever, for LT it's as simple as waiting for exactly one refresh cycle:
+        //           --> The previous transaction will always have finished before the Sim Kernel takes note of this callback.
+        case 2:
+            callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + MCTRL_MCFG2_SDRAM_TRFC_DEFAULT >> 30), SC_NS);
+            break;
+        // Precharge: Terminate current burst transaction (no effect in LT) --> wait for tRP
+        case 1:
+            callback_delay += sc_time(BUS_CLOCK_CYCLE * (2 + MCTRL_MCFG2_TRP_DEFAULT >> 29), SC_NS);
+            break;
+    }
+    //clear command bits
+    unsigned int set = static_cast<unsigned int> (r[MCTRL_MCFG2].get() & ~MCTRL_MCFG2_SDRAM_CMD);
+    r[MCTRL_MCFG2].set( set );
 }
 
 //change of TCAS, DS, TCSR, or PASR
@@ -797,68 +841,67 @@ void Mctrl::erase_sdram() {
     gp.set_data_ptr((unsigned char*)&data);
     gp.set_extension(erase);
 
-  switch (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_PMODE) {
-    case 0x00000000:
-    { 
-      //check previous power down mode
-      uint8_t cycles = 0;
-      uint8_t cycles_after_refresh = 0;
-      switch (pmode) {
-        //leaving self refresh: tXSR + Auto Refresh cycle (tRFC)
-        case 2:
-          cycles = ((r[MCTRL_MCFG4].get() & MCTRL_MCFG4_TXSR) >> 20) +          //tXSR
-                   ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27) + 3; //tRFC
-          break;
-        //leaving deep power down mode: Precharge, 2x Auto-Refresh, LMR, EMR
-        case 5:
-          cycles = 2 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30              +          //precharge (tRP)
-                   2 * ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27) + 3 +          //2 * tRFC
-                   2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;                 //LMR + EMR
-          cycles_after_refresh = 2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;   //LMR + EMR
-      }
-      callback_delay += sc_core::sc_time(BUS_CLOCK_CYCLE * cycles, SC_NS);
-      next_refresh = sc_core::sc_time_stamp() + 
-                     sc_core::sc_time(BUS_CLOCK_CYCLE * (cycles - cycles_after_refresh + trfc), SC_NS);
-      pmode = 0;
-      break;
+    switch (r[MCTRL_MCFG4].get() & MCTRL_MCFG4_PMODE) {
+        case 0x00000000:
+        { 
+          //check previous power down mode
+          uint8_t cycles = 0;
+          uint8_t cycles_after_refresh = 0;
+          switch (pmode) {
+              //leaving self refresh: tXSR + Auto Refresh cycle (tRFC)
+              case 2:
+                  cycles = ((r[MCTRL_MCFG4].get() & MCTRL_MCFG4_TXSR) >> 20) +          //tXSR
+                           ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27) + 3; //tRFC
+                  break;
+              //leaving deep power down mode: Precharge, 2x Auto-Refresh, LMR, EMR
+              case 5:
+                  cycles = 2 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30              +          //precharge (tRP)
+                           2 * ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27) + 3 +          //2 * tRFC
+                           2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;                 //LMR + EMR
+                  cycles_after_refresh = 2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;   //LMR + EMR
+            }
+            callback_delay += sc_core::sc_time(BUS_CLOCK_CYCLE * cycles, SC_NS);
+            next_refresh = sc_core::sc_time_stamp() + 
+                           sc_core::sc_time(BUS_CLOCK_CYCLE * (cycles - cycles_after_refresh + trfc), SC_NS);
+            pmode = 0;
+            break;
+        }
+        //deep power down: erase entire SDRAM
+        case 0x00050000:
+            pmode = 5;
+            //erase bank 1
+            gp.set_address(sdram_bk1_s);
+            mctrl_sdram->b_transport(gp,t);
+            //erase bank 2
+            gp.set_address(sdram_bk2_s);
+            data = sdram_bk2_e;
+            mctrl_sdram->b_transport(gp,t);
+            break;
+        //partial array self refresh: partially erase SDRAM
+        case 0x00020000:
+        {
+            //leaving deep power down mode: Precharge, 2x Auto-Refresh, LMR, EMR
+            uint8_t cycles = 0;
+            if (pmode == 5) {
+                cycles = 2 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30              +  //precharge (tRP)
+                         2 * ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27) + 3 +  //2 * tRFC
+                         2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;         //LMR + EMR
+            }
+            callback_delay += sc_time(BUS_CLOCK_CYCLE * cycles, SC_NS);
+            pmode = 2;
+            uint8_t pasr = r[MCTRL_MCFG4].get() & MCTRL_MCFG4_PASR;
+            if (pasr) {
+                //pasr enabled --> half array max --> always erase bank 2
+                gp.set_address(sdram_bk2_s);
+                data = sdram_bk2_e;
+                mctrl_sdram->b_transport(gp,t);
+                //partially erase lower bank according to PASR bits 
+                gp.set_address(sdram_bk1_s);
+                data = Mctrl::sdram_bk1_e >> (pasr-1);
+                mctrl_sdram->b_transport(gp,t);
+            }
+        }
     }
-    //deep power down: erase entire SDRAM
-    case 0x00050000:
-      pmode = 5;
-      //erase bank 1
-      gp.set_address(sdram_bk1_s);
-      mctrl_sdram->b_transport(gp,t);
-      //erase bank 2
-      gp.set_address(sdram_bk2_s);
-      data = sdram_bk2_e;
-      mctrl_sdram->b_transport(gp,t);
-      break;
-    //partial array self refresh: partially erase SDRAM
-    case 0x00020000:
-    {
-      //leaving deep power down mode: Precharge, 2x Auto-Refresh, LMR, EMR
-      uint8_t cycles = 0;
-      if (pmode == 5) {
-        cycles = 2 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30              +  //precharge (tRP)
-                 2 * ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27) + 3 +  //2 * tRFC
-                 2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;         //LMR + EMR
-      }
-      callback_delay += sc_time(BUS_CLOCK_CYCLE * cycles, SC_NS);
-      pmode = 2;
-      uint8_t pasr = r[MCTRL_MCFG4].get() & MCTRL_MCFG4_PASR;
-      if (pasr) {
-        //pasr enabled --> half array max --> always erase bank 2
-        gp.set_address(sdram_bk2_s);
-        data = sdram_bk2_e;
-        mctrl_sdram->b_transport(gp,t);
-        //partially erase lower bank according to PASR bits 
-        gp.set_address(sdram_bk1_s);
-        data = Mctrl::sdram_bk1_e >> (pasr-1);
-        mctrl_sdram->b_transport(gp,t);
-      }
-    }
-  }
-
 }
 
 // --------- Address space calculation --------- //
@@ -941,18 +984,18 @@ void Mctrl::sdram_enable() {
 
 //recalculate start / end addresses of sram banks after change of sram bank size
 void Mctrl::sram_change_bank_size() {
-  //calculate sram bank size from MCFG2 register
-  // 8KB = 1B << 13
-  //16KB = 1B << 13 + b'0001
-  //32KB = 1B << 13 + b'0010 ...
-  uint32_t sram_bank_size = 1 << ( 13 + ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_BANK_SIZE) >> 9) );
+    //calculate sram bank size from MCFG2 register
+    // 8KB = 1B << 13
+    //16KB = 1B << 13 + b'0001
+    //32KB = 1B << 13 + b'0010 ...
+    uint32_t sram_bank_size = 1 << ( 13 + ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_BANK_SIZE) >> 9) );
 
-  //check for conflicts: 1-4 banks must fit into half of RAM address space
-  if (srbanks * sram_bank_size > static_cast<uint32_t>( ((4096 - rammask) / 2) << 20 )) {
-    v::error << "Mctrl" << "SRAM bank size has been changed. The extended memory banks exceed SRAM addrres space. ["
-             << (unsigned int) srbanks << " * 0x" << std::hex << std::setw(8) << (unsigned int) sram_bank_size << " > 0x"
-             << std::setw(8) << (unsigned int) (4096 - rammask) * 1024 * 512 << "]" << std::endl;
-  }
+    //check for conflicts: 1-4 banks must fit into half of RAM address space
+    if (srbanks * sram_bank_size > static_cast<uint32_t>( ((4096 - rammask) / 2) << 20 )) {
+        v::error << "Mctrl" << "SRAM bank size has been changed. The extended memory banks exceed SRAM addrres space. ["
+                 << (unsigned int) srbanks << " * 0x" << std::hex << std::setw(8) << (unsigned int) sram_bank_size << " > 0x"
+                 << std::setw(8) << (unsigned int) (4096 - rammask) * 1024 * 512 << "]" << std::endl;
+    }
 
     //calculate new bank addresses
     sram_calculate_bank_addresses(sram_bank_size);

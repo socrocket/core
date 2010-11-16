@@ -75,7 +75,6 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
         unsigned char* data8 = reinterpret_cast<unsigned char *>(gp.get_data_ptr());
         write_8( gp.get_address(), data8, length );
       }
-
       //update response status
       gp.set_response_status(tlm::TLM_OK_RESPONSE);
     }

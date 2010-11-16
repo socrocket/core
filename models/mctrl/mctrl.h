@@ -203,7 +203,7 @@ class Mctrl : public gs::reg::gr_device,
         static const uint32_t MCTRL_MCFG1_PROM_READ_WS = 0x0000000F;
 
     //memory configuration register 2
-    static const uint32_t MCTRL_MCFG2_WRITE_MASK      = 0xFFF87EFF;
+    static const uint32_t MCTRL_MCFG2_WRITE_MASK      = 0xFFD07EFF;
     static const uint32_t MCTRL_MCFG2_SDRF            = 0x80000000;
     static const uint32_t MCTRL_MCFG2_TRP             = 0x40000000;
     static const uint32_t MCTRL_MCFG2_SDRAM_TRFC      = 0x38000000;
