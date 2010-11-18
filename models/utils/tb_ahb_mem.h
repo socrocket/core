@@ -60,9 +60,9 @@ class Ctb_ahb_mem : public sc_module, public amba_slave_base {
         /// @param ambaLayer Abstraction layer used (AT/LT)
         /// @param infile File name of a text file to initialize the memory from
         /// @param addr Start address for memory initilization
-        Ctb_ahb_mem(sc_core::sc_module_name nm, uint16_t haddr_,
-                    uint16_t hmask_ = 0, amba::amba_layer_ids ambaLayer = amba::amba_LT,
-                    char infile[] = NULL, uint32_t addr = 0);
+        Ctb_ahb_mem(const sc_core::sc_module_name nm, const uint16_t haddr_,
+                    const uint16_t hmask_ = 0, const amba::amba_layer_ids ambaLayer = amba::amba_LT,
+                    const char infile[] = NULL, uint32_t addr = 0);
 
         /// Destructor
         ~Ctb_ahb_mem();
@@ -77,12 +77,12 @@ class Ctb_ahb_mem : public sc_module, public amba_slave_base {
         /// @param infile File name of a text file to initialize the memory from
         /// @param addr Start address for memory initilization
         /// @return 0 on success, 1 on error
-        int readmem(char infile_[], uint32_t addr = 0);
+        int readmem(const char infile_[], uint32_t addr = 0);
 
         /// @brief Method dumping the memory contents to a text file
         /// @param outfile File name to dump the memory in
         /// @return 0 on success, 1 on error
-        int dumpmem(char outfile_[]);
+        int dumpmem(const char outfile_[]);
 
         /// TLM blocking transport function
         void b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
@@ -104,7 +104,7 @@ class Ctb_ahb_mem : public sc_module, public amba_slave_base {
         }
 
         /// @brief Method returning the memory's size at the AHB bus
-        /// @return Size of the address space occupied by the memory module in B
+        /// @return Size of the address space occupied by the memory module in bytes
         inline sc_dt::uint64 get_size() {
             // ahbSize holds size in bytes. Add shift if other units are required.
             return ahbSize;

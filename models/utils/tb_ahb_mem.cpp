@@ -56,11 +56,11 @@
 #include "verbose.h"
 
 /// Constructor
-Ctb_ahb_mem::Ctb_ahb_mem(sc_core::sc_module_name nm, // Module name
-                         uint16_t haddr_, // AMBA AHB address (12 bit)
-                         uint16_t hmask_, // AMBA AHB address mask (12 bit)
-                         amba::amba_layer_ids ambaLayer, // abstraction layer
-                         char infile[], // Memory initialization file
+Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
+                         const uint16_t haddr_, // AMBA AHB address (12 bit)
+                         const uint16_t hmask_, // AMBA AHB address mask (12 bit)
+                         const amba::amba_layer_ids ambaLayer, // abstraction layer
+                         const char infile[], // Memory initialization file
                          uint32_t addr) : // Address for memory initalization
     sc_module(nm),
             pnpahb(0x04, // vendor_id: ESA
@@ -109,8 +109,6 @@ Ctb_ahb_mem::~Ctb_ahb_mem() {
 /// TLM blocking transport function
 void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
                               sc_core::sc_time &delay) {
-
-  v::info << "transaction" << v::endl;
 
     // Check address for before doing anything else
     if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
@@ -186,6 +184,8 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
 tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generic_payload& gp,
                                                 tlm::tlm_phase& phase, sc_core::sc_time& delay) {
 
+    assert(delay==sc_core::SC_ZERO_TIME);
+
     // Check address for before doing anything else
     if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
         // warn if access exceeds slave memory region
@@ -253,7 +253,7 @@ tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generi
 }  // tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw()
 
 /// Method to initialize memory contents from a text file
-int Ctb_ahb_mem::readmem(char infile_[], uint32_t addr) {
+int Ctb_ahb_mem::readmem(const char infile_[], uint32_t addr) {
 
     std::ifstream infile(infile_, ios::in);
     char buffer = 0;
@@ -390,7 +390,7 @@ uint8_t Ctb_ahb_mem::char2nibble(const char *ch) const {
 
 
 /// Method to dump the memory content into a text file
-int Ctb_ahb_mem::dumpmem(char outfile_[]) {
+int Ctb_ahb_mem::dumpmem(const char outfile_[]) {
 
     // check if memory is filled
     if(mem.empty()) {
