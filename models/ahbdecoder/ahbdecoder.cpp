@@ -153,7 +153,8 @@ tlm::tlm_sync_enum CAHBDecoder::nb_transport_fw(uint32_t id, tlm::tlm_generic_pa
       other_socket = ahbOUT.get_other_side(index,a);
       sc_core::sc_object *slvobj = other_socket->get_parent();
 
-      if((getMaster2Slave(index)==static_cast<int>(id)) || (getMaster2Slave(index)==-1)) {
+      if((getMaster2Slave(index)==static_cast<int>(id)) ||
+         (SlvSemaphore.find(index)->second->trywait()!=-1)) {
          tlm::tlm_sync_enum returnValue;
          MstSlvMap[index] = id;
 
@@ -169,6 +170,7 @@ tlm::tlm_sync_enum CAHBDecoder::nb_transport_fw(uint32_t id, tlm::tlm_generic_pa
          if((returnValue==tlm::TLM_COMPLETED) ||
             ((phase==tlm::END_RESP) && (returnValue==tlm::TLM_ACCEPTED))) {
             MstSlvMap[index] = -1;
+            SlvSemaphore.find(index)->second->post();
          }
 
          // return to initiator
@@ -220,6 +222,7 @@ tlm::tlm_sync_enum CAHBDecoder::nb_transport_bw(uint32_t id, tlm::tlm_generic_pa
       if((returnValue==tlm::TLM_COMPLETED) ||
          ((phase==tlm::END_RESP) && (returnValue==tlm::TLM_UPDATED))) {
          MstSlvMap[id] = -1;
+         SlvSemaphore.find(id)->second->post();
       }
 
       // Return to initiator
