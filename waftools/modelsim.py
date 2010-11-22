@@ -182,16 +182,17 @@ def modelsim(self):
   """Apply Variables for the Target create vlib task and 
      vini task as well as dobefore and doafter tasks if needed
   """
+  env = self.env.derive()
   # cxx hack replaces the cpp routine
   setattr(self,modelsim_sccom.__name__,modelsim_sccom)
   self.mappings['.cpp']=modelsim_sccom
   
-  self.env["VCOMFLAGS"] += ['-work', self.target]
-  self.env["VLOGFLAGS"] += ['-work', self.target]
-  self.env["SCCOMFLAGS"] += ['-work', self.target]
-  self.env["SCGENMODFLAGS"] += ['-lib', self.target]
-  self.env["VSIMFLAGS"] += ['-c', '-lib', self.target]
-  self.env["SCLINKFLAGS"] += ['-work', self.target]
+  self.env["VCOMFLAGS"] += ['-work', 'work']
+  self.env["VLOGFLAGS"] += ['-work', 'work']
+  self.env["SCCOMFLAGS"] += ['-work', 'work']
+  self.env["SCGENMODFLAGS"] += ['-lib', 'work']
+  self.env["VSIMFLAGS"] += ['-c', '-lib', 'work']
+  self.env["SCLINKFLAGS"] += ['-work', 'work']
     
   # Collect sccom flags from defines includes and uselib
   if hasattr(self, "defines"):
@@ -309,7 +310,7 @@ def modelsim_vcom(self, node):
   tsk = self.create_task('vcom', [node])
   tsk.target = self.target
   if tsks:
-    tsk.run_after.append(tsks[-1])
+    tsk.run_after.add(tsks[-1])
   
   tsk.dep_nodes += self.mdeps
     
@@ -319,7 +320,7 @@ def modelsim_vlog(self, node):
   tsks = [n for n in self.tasks if n.name in ['vcom', 'vlog']]
   tsk = self.create_task('vlog', [node])
   if tsks:
-    tsk.run_after.append(tsks[-1])
+    tsk.run_after.add(tsks[-1])
 
   tsk.dep_nodes += self.mdeps
 
@@ -331,7 +332,7 @@ def modelsim_sccom(self, node):
     tsk = self.create_task('sccom', [node])
     tsk.target = self.target
     if tsks:
-      tsk.run_after.append(tsks[-1])
+      tsk.run_after.add(tsks[-1])
     else:
       lnk = self.create_task('sclink')
       lnk.target = self.target
