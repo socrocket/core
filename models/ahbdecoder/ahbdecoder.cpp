@@ -19,7 +19,7 @@
 // The program is provided "as is", there is no warranty that
 // the program is correct or suitable for any purpose,
 // neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
+// contained do not necessarily reflect the policy of the
 // European Space Agency or of TU-Braunschweig.
 // *****************************************************************************
 // Title:      ahbdecoder.cpp
@@ -123,8 +123,12 @@ void CAHBDecoder::b_transport(uint32_t id,
 
        // At this point arbitration and address decoding takes place
 
+       // Wait for semaphore
+       SlvSemaphore.find(index)->second->wait();
        // Forward request to the appropriate slave
        ahbOUT[index]->b_transport(ahb_gp, delay);
+       // Post to semaphore
+       SlvSemaphore.find(index)->second->post();
     } else {
        // Invalid index
        ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
@@ -132,7 +136,6 @@ void CAHBDecoder::b_transport(uint32_t id,
                << v::setw(8) << ahb_gp.get_address() << ", from master:"
                << mstobj->name() << ": Unmapped address space." << endl;
     }
-
 }
 
 // TLM non blocking transport call forward path (from masters to slaves)
@@ -189,12 +192,11 @@ tlm::tlm_sync_enum CAHBDecoder::nb_transport_fw(uint32_t id, tlm::tlm_generic_pa
 
        return tlm::TLM_COMPLETED;
     }
-}
+}  // tlm::tlm_sync_enum CAHBDecoder::nb_transport_fw()
 
 // TLM non blocking transport call backward path (from slaves to masters)
 tlm::tlm_sync_enum CAHBDecoder::nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& gp,
                                                 tlm::tlm_phase& phase, sc_core::sc_time& delay) {
-
    int index = getMaster2Slave(id);
 
    uint32_t a = 0;
@@ -243,10 +245,12 @@ void CAHBDecoder::start_of_simulation() {
         sc_core::sc_object *obj = other_socket->get_parent();
         amba_slave_base *slave = dynamic_cast<amba_slave_base *> (obj);
         if(slave) {
+            sc_core::sc_semaphore* newSema = new sc_core::sc_semaphore(1);
             uint32_t addr = slave->get_base_addr();
             uint32_t size = slave->get_size();
-            setAddressMap(i, addr, size);
+            setAddressMap(i, addr, size); // Insert slave into memory map
             MstSlvMap.insert(std::pair<uint32_t, int32_t>(i, -1));
+            SlvSemaphore.insert(std::pair<uint32_t, sc_core::sc_semaphore*>(i, newSema));
             v::info << name() << "Found AHB slave " << obj->name() << "@0x"
                     << hex << v::setw(8) << v::setfill('0') << addr
                     << ", size:" << hex << "0x" << size << endl;
@@ -254,6 +258,7 @@ void CAHBDecoder::start_of_simulation() {
             v::warn << name() << "Unexpected NULL object." << v::endl;
         }
     }
+    // Check memory map for overlaps
     checkMemMap();
 }
 

@@ -45,6 +45,7 @@
 #ifndef AHBDECODER_H
 #define AHBDECODER_H
 
+#include <deque>
 #include <systemc>
 #include "amba.h"
 
@@ -88,6 +89,7 @@ class CAHBDecoder : public sc_core::sc_module {
         typedef std::pair<uint32_t, uint32_t> slave_info_t;
         std::map<uint32_t, slave_info_t> slave_map;
         std::map<uint32_t, int32_t> MstSlvMap;
+        std::map<uint32_t, sc_core::sc_semaphore*> SlvSemaphore;
 
         // Get slave index for a given address
         int get_index(const uint32_t address);
