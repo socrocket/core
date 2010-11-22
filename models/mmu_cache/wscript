@@ -45,6 +45,55 @@
 # Reviewed:
 #*********************************************************************
 top = '..'
+vsim_conf = """
+[Library]
+modelsim = $GRLIB_TECH
+grlib = $GRLIB_TECH/grlib
+unisim = $GRLIB_TECH/unisim
+dw02 = $GRLIB_TECH/dw02
+synplify = $GRLIB_TECH/synplify
+techmap = $GRLIB_TECH/techmap
+spw = $GRLIB_TECH/spw
+eth = $GRLIB_TECH/eth
+opencores = $GRLIB_TECH/opencores
+gaisler = $GRLIB_TECH/gaisler
+esa = $GRLIB_TECH/esa
+micron = $GRLIB_TECH/micron
+vsys = $GRLIB_TECH/vsys
+std = $MODEL_TECH/../std
+ieee = $MODEL_TECH/../ieee
+vital2000 = $MODEL_TECH/../vital2000
+verilog = $MODEL_TECH/../verilog
+std_developerskit = $MODEL_TECH/../std_developerskit
+synopsys = $MODEL_TECH/../synopsys
+work = %(path)s/%(target)s
+
+[vcom]
+VHDL93 = 1
+Show_source = 1
+Show_Warning1 = 0
+Show_Warning5 = 0
+Quiet = 1
+
+[vlog]
+Quiet = 1
+
+[vsim]
+VoptFlow = 0
+Resolution = 1ps
+UserTimeUnit = ns
+RunLength = 100
+IterationLimit = 5000
+BreakOnAssertion = 3
+DefaultRadix = symbolic
+TranscriptFile = transcript.txt
+PathSeparator = /
+UnbufferedOutput = 0
+
+[lmc]
+libsm = $MODEL_TECH/libsm.sl
+libhm = $MODEL_TECH/libhm.sl
+"""
 
 def options(ctx):
   from os import environ
@@ -122,3 +171,45 @@ def build(bld):
     use          = 'mmu_cache common utils',
   )
 
+"""
+  bld(
+    features     = 'modelsim',
+    target       = 'mmucache_test2_ref_work',
+    name         = 'mmucache.test2_ref',
+    source       = ['test2_ref/typ_adapters.vhd',
+                    'test2_ref/mmu_cache_wrapper.vhd',
+                    '../../common/verbose.cpp',
+                    '../utils/grlibdevice.cpp',
+                    '../utils/ahb_rtl_ct.cpp',
+                    './lib/icio_payload_extension.cpp',
+                    './lib/dcio_payload_extension.cpp',
+                    '../utils/cpu_lt_rtl_adapter.cpp',
+                    'test2_ref/testbench.cpp',
+                    'test2_ref/main.cpp'],
+    uselib       = 'AMBA GREENSOCS AMBAMEM',
+    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+    includes     = './ ./test2_ref ./lib ../utils ../../../signalkit ../../common',
+    config       =  vsim_conf,
+  )
+
+  bld(
+    features     = 'modelsim',
+    target       = 'mmucache_test2_ct_ref_work',
+    name         = 'mmucache.test2_ct_ref',
+    source       = ['test2_ref/typ_adapters.vhd',
+                    'test2_ref/mmu_cache_wrapper.vhd',
+                    '../../common/verbose.cpp',
+                    '../utils/grlibdevice.cpp',
+                    '../utils/ahb_rtl_ct.cpp',
+                    './lib/icio_payload_extension.cpp',
+                    './lib/dcio_payload_extension.cpp',
+                    '../utils/cpu_lt_rtl_adapter.cpp',
+                    'test2_ref/testbench_ct.cpp',
+                    'test2_ref/main_ct.cpp'],
+    uselib       = 'AMBA GREENSOCS AMBAMEM',
+    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+    includes     = './ ./test2_ref ./lib ../utils ../../../signalkit ../../common',
+    config       =  vsim_conf,
+  )
+
+"""

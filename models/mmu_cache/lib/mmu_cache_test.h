@@ -47,7 +47,12 @@
 
 #include <tlm.h>
 #include <ostream>
-#include <tlm_utils/simple_initiator_socket.h>
+
+#if defined(MTI_SYSTEMC) || defined(NO_INCLUDE_PATHS)
+#include "simple_initiator_socket.h"
+#else
+#include "tlm_utils/simple_initiator_socket.h"
+#endif
 
 #include "defines.h"
 
