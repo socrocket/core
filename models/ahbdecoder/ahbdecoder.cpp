@@ -153,6 +153,15 @@ tlm::tlm_sync_enum CAHBDecoder::nb_transport_fw(uint32_t id, tlm::tlm_generic_pa
       other_socket = ahbOUT.get_other_side(index,a);
       sc_core::sc_object *slvobj = other_socket->get_parent();
 
+      // -2 indicates that the master is expected to finish a transaction by
+      // calling with phase END_RESP, while the slave already finished by
+      // returnen COMPLETED on intial call.
+      if(getMaster2Slave(index)==-2) {
+         MstSlvMap[index] = -1;
+         SlvSemaphore.find(index)->second->post();
+         return tlm::TLM_COMPLETED;
+      }
+
       if((getMaster2Slave(index)==static_cast<int>(id)) ||
          (SlvSemaphore.find(index)->second->trywait()!=-1)) {
          tlm::tlm_sync_enum returnValue;
@@ -181,8 +190,16 @@ tlm::tlm_sync_enum CAHBDecoder::nb_transport_fw(uint32_t id, tlm::tlm_generic_pa
          v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
                   << v::setw(8) << gp.get_address() << ", from master:"
                   << mstobj->name() << " to slave:" << slvobj->name()
-                  << ": Slave busy." << endl;
-         return tlm::TLM_COMPLETED;
+                  << ": Slave busy => Request queued." << endl;
+
+         // Requested slave is busy, spawn a new thread waiting to execute the
+         // request
+         sc_core::sc_spawn(sc_bind(&CAHBDecoder::queuedTrans, this, id, index, sc_ref(gp),
+                           sc_ref(phase), sc_ref(delay)));
+
+         // Request is queued. Return state to requesting master.
+         phase = tlm::END_REQ;
+         return tlm::TLM_UPDATED;
       }
     } else {
        // Invalid index
@@ -228,9 +245,58 @@ tlm::tlm_sync_enum CAHBDecoder::nb_transport_bw(uint32_t id, tlm::tlm_generic_pa
       // Return to initiator
       return returnValue;
    } else {
-      v::warn << name() << "Backward path by slave:" << slvobj->name()
-              << ": No active connection found." << endl;
+      // Invalid index
+      v::error << name() << "Backward path by slave:" << slvobj->name()
+               << ": No active connection found." << endl;
       return tlm::TLM_COMPLETED;
+   }
+}
+
+void CAHBDecoder::queuedTrans(uint32_t mstID, uint32_t slvID,
+                 tlm::tlm_generic_payload& gp,
+                 tlm::tlm_phase &phase,
+                 sc_core::sc_time &delay) {
+
+   tlm::tlm_sync_enum returnValue;
+
+   // Wait for Semaphore
+   SlvSemaphore.find(slvID)->second->wait();
+   // Update master slave mapping
+   MstSlvMap[slvID] = mstID;
+   // Forward request to slave
+   returnValue = ahbOUT[slvID]->nb_transport_fw(gp, phase, delay);
+
+   if(returnValue==tlm::TLM_COMPLETED) {
+      // Adapt payload objects for backward path call
+      phase = tlm::BEGIN_RESP;
+      // Forward response to master
+      returnValue = ahbIN[mstID]->nb_transport_bw(gp, phase, delay);
+      // Finish transaction according to protocol
+      if(returnValue==tlm::TLM_ACCEPTED) {
+         // Master will call forward path with end_resp, though slave
+         // already finished transaction.
+         MstSlvMap[slvID] = -2;
+      } else {
+         // Release slave from transaction
+         MstSlvMap[slvID] = -1;
+         SlvSemaphore.find(slvID)->second->post();
+      }
+   }
+
+   if(((returnValue==tlm::TLM_UPDATED) && (phase == tlm::BEGIN_RESP))) {
+      // Adapt payload objects for backward path call
+      phase = tlm::BEGIN_RESP;
+      // Forward response to master
+      returnValue = ahbIN[mstID]->nb_transport_bw(gp, phase, delay);
+      if(((returnValue==tlm::TLM_UPDATED) && (phase == tlm::END_RESP)) ||
+         (returnValue==tlm::TLM_COMPLETED)) {
+         // Call forward path to finish transaction according to protocol
+         phase = tlm::END_RESP;
+         ahbOUT[slvID]->nb_transport_fw(gp, phase, delay);
+      }
+      // Release slave from transaction
+      MstSlvMap[slvID] = -1;
+      SlvSemaphore.find(slvID)->second->post();
    }
 }
 

@@ -98,6 +98,12 @@ class CAHBDecoder : public sc_core::sc_module {
         int getMaster2Slave(const uint32_t slaveID);
 
         void start_of_simulation();
+
+        // Thread which is spawned in AT model when a busy slave is requested.
+        void queuedTrans(uint32_t mstID, uint32_t slvID,
+                         tlm::tlm_generic_payload& gp,
+                         tlm::tlm_phase &phase,
+                         sc_core::sc_time &delay);
 };
 
 #endif // AHBDECODER_H
