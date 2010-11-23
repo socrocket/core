@@ -50,8 +50,8 @@
 CAHBDecoder::CAHBDecoder(sc_core::sc_module_name nm,
                          amba::amba_layer_ids ambaLayer) :
       sc_module(nm),
-      ahbIN("ahbIN", amba::amba_AHB, amba::amba_LT, false),    // TODO Both sockets require is_arbiter=true if bug in ambasockets is fixed
-      ahbOUT("ahbOUT", amba::amba_AHB, amba::amba_LT, false) {
+      ahbIN("ahbIN", amba::amba_AHB, ambaLayer, false),    // TODO Both sockets require is_arbiter=true if bug in ambasockets is fixed
+      ahbOUT("ahbOUT", amba::amba_AHB, ambaLayer, false) {
 
     if(ambaLayer==amba::amba_LT) {
       // register tlm blocking transport function
@@ -61,10 +61,10 @@ CAHBDecoder::CAHBDecoder(sc_core::sc_module_name nm,
     // Register non blocking transport calls
     if(ambaLayer==amba::amba_AT) {
       // register tlm non blocking transport forward path
-      ahbIN.register_nb_transport_fw(this, &CAHBDecoder::nb_transport_fw, 1);
+      ahbIN.register_nb_transport_fw(this, &CAHBDecoder::nb_transport_fw, 0);
 
       // register tlm non blocking transport backward path
-      ahbOUT.register_nb_transport_bw(this, &CAHBDecoder::nb_transport_bw, 1);
+      ahbOUT.register_nb_transport_bw(this, &CAHBDecoder::nb_transport_bw, 0);
     }
 }
 
@@ -167,13 +167,13 @@ tlm::tlm_sync_enum CAHBDecoder::nb_transport_fw(uint32_t id, tlm::tlm_generic_pa
          tlm::tlm_sync_enum returnValue;
          MstSlvMap[index] = id;
 
-         v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
-                  << v::setw(8) << gp.get_address() << ", from master:"
-                  << mstobj->name() << " forwared to slave:" << slvobj->name()
-                  << ", phase:" << phase << endl;
-
          // Forward request
          returnValue = ahbOUT[index]->nb_transport_fw(gp, phase, delay);
+
+         v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
+                  << v::setw(8) << gp.get_address() << ", from master:"
+                  << mstobj->name() << " forwarded to slave:" << slvobj->name()
+                  << ", phase:" << phase << ", return:" << returnValue << endl;
 
          // Clear transaction mapping if transaction finishes
          if((returnValue==tlm::TLM_COMPLETED) ||
@@ -228,13 +228,14 @@ tlm::tlm_sync_enum CAHBDecoder::nb_transport_bw(uint32_t id, tlm::tlm_generic_pa
       other_socket = ahbIN.get_other_side(index,a);
       sc_core::sc_object *mstobj = other_socket->get_parent();
 
+      // Forward request
+      returnValue = ahbIN[index]->nb_transport_bw(gp, phase, delay);
+
       v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
                << v::setw(8) << gp.get_address() << ", from slave:"
                << slvobj->name() << " forwarded to master:" << mstobj->name()
-               << ", phase:" << phase << endl;
+               << ", phase:" << phase << ", return:" << returnValue << endl;
 
-      // Forward request
-      returnValue = ahbIN[index]->nb_transport_bw(gp, phase, delay);
       // Reset MstSlvMap if transaction finishes
       if((returnValue==tlm::TLM_COMPLETED) ||
          ((phase==tlm::END_RESP) && (returnValue==tlm::TLM_UPDATED))) {
@@ -250,12 +251,12 @@ tlm::tlm_sync_enum CAHBDecoder::nb_transport_bw(uint32_t id, tlm::tlm_generic_pa
                << ": No active connection found." << endl;
       return tlm::TLM_COMPLETED;
    }
-}
+}  // tlm::tlm_sync_enum CAHBDecoder::nb_transport_bw()
 
-void CAHBDecoder::queuedTrans(uint32_t mstID, uint32_t slvID,
-                 tlm::tlm_generic_payload& gp,
-                 tlm::tlm_phase &phase,
-                 sc_core::sc_time &delay) {
+void CAHBDecoder::queuedTrans(const uint32_t mstID, const uint32_t slvID,
+                              tlm::tlm_generic_payload& gp,
+                              tlm::tlm_phase &phase,
+                              sc_core::sc_time &delay) {
 
    tlm::tlm_sync_enum returnValue;
 
@@ -266,11 +267,22 @@ void CAHBDecoder::queuedTrans(uint32_t mstID, uint32_t slvID,
    // Forward request to slave
    returnValue = ahbOUT[slvID]->nb_transport_fw(gp, phase, delay);
 
+   v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
+            << v::setw(8) << gp.get_address() << ", from master:"
+            << mstID << " forwarded to slave:" << slvID
+            << ", phase:" << phase << ", return:" << returnValue << endl;
+
    if(returnValue==tlm::TLM_COMPLETED) {
       // Adapt payload objects for backward path call
       phase = tlm::BEGIN_RESP;
       // Forward response to master
       returnValue = ahbIN[mstID]->nb_transport_bw(gp, phase, delay);
+
+      v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
+               << v::setw(8) << gp.get_address() << ", from slave:"
+               << slvID << " forwarded to master:" << mstID
+               << ", phase:" << phase << ", return:" << returnValue << endl;
+
       // Finish transaction according to protocol
       if(returnValue==tlm::TLM_ACCEPTED) {
          // Master will call forward path with end_resp, though slave
@@ -288,17 +300,28 @@ void CAHBDecoder::queuedTrans(uint32_t mstID, uint32_t slvID,
       phase = tlm::BEGIN_RESP;
       // Forward response to master
       returnValue = ahbIN[mstID]->nb_transport_bw(gp, phase, delay);
+
+      v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
+               << v::setw(8) << gp.get_address() << ", from slave:"
+               << slvID << " forwarded to master:" << mstID
+               << ", phase:" << phase << ", return:" << returnValue << endl;
+
       if(((returnValue==tlm::TLM_UPDATED) && (phase == tlm::END_RESP)) ||
          (returnValue==tlm::TLM_COMPLETED)) {
          // Call forward path to finish transaction according to protocol
          phase = tlm::END_RESP;
          ahbOUT[slvID]->nb_transport_fw(gp, phase, delay);
+
+         v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
+                  << v::setw(8) << gp.get_address() << ", from master:"
+                  << mstID << " forwarded to slave:" << slvID
+                  << ", phase:" << phase << ", return:" << returnValue << endl;
       }
       // Release slave from transaction
       MstSlvMap[slvID] = -1;
       SlvSemaphore.find(slvID)->second->post();
    }
-}
+}  // void CAHBDecoder::queuedTrans()
 
 void CAHBDecoder::start_of_simulation() {
     uint32_t num_of_bindings = ahbOUT.size();
@@ -329,7 +352,7 @@ void CAHBDecoder::start_of_simulation() {
     }
     // Check memory map for overlaps
     checkMemMap();
-}
+}  // void CAHBDecoder::start_of_simulation()
 
 void CAHBDecoder::checkMemMap() {
    std::map<uint32_t, slave_info_t>::iterator it;
@@ -360,4 +383,4 @@ void CAHBDecoder::checkMemMap() {
          }
       }
    }
-}
+}  // void CAHBDecoder::checkMemMap()
