@@ -66,7 +66,7 @@ vital2000 = $MODEL_TECH/../vital2000
 verilog = $MODEL_TECH/../verilog
 std_developerskit = $MODEL_TECH/../std_developerskit
 synopsys = $MODEL_TECH/../synopsys
-work = %(path)s/work
+work = %(path)s/%(target)s
 
 [vcom]
 VHDL93 = 1
@@ -120,19 +120,21 @@ def build(bld):
   #  use          = 'utils signalkit',
   #)
 
-  #bld(
-  #  features     = 'modelsim',
-  #  target       = 'work',
-  #  name         = 'gptimer_wrapper',
-  #  generate     = 'gptimer_wrapper:gptimer_wrapper.h',
-  #  source       = ['tests/gptimer_wrapper.vhd',
-  #                  'tests/top_rtl.cpp'],
-  #  uselib       = 'AMBA GREENSOCS',
-  #  defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-  #  includes     = '../utils ../../signalkit ../../common',
-  #  use          = 'utils',
-  #  config       =  vsim_conf,
-  #)
+  bld(
+    features     = 'modelsim',
+    target       = 'work',
+    name         = 'gptimer_wrapper',
+    generate     = 'gptimer_wrapper:gptimer_wrapper.h',
+    source       = ['tests/gptimer_wrapper.vhd',
+                    'tests/top_rtl.cpp',
+                    '../utils/apbtestbench.cpp',
+                    '../../common/verbose.cpp'],
+    uselib       = 'AMBA GREENSOCS',
+    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+    includes     = '. ./test ../utils ../../signalkit ../../common',
+    use          = 'utils',
+    config       =  vsim_conf,
+  )
 
   #bld(
   #  target       = 'function',

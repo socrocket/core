@@ -171,9 +171,8 @@ def build(bld):
     use          = 'mmu_cache common utils',
   )
 
-"""
   bld(
-    features     = 'modelsim',
+    features     = 'modelsim test',
     target       = 'mmucache_test2_ref_work',
     name         = 'mmucache.test2_ref',
     source       = ['test2_ref/typ_adapters.vhd',
@@ -193,7 +192,7 @@ def build(bld):
   )
 
   bld(
-    features     = 'modelsim',
+    features     = 'modelsim test',
     target       = 'mmucache_test2_ct_ref_work',
     name         = 'mmucache.test2_ct_ref',
     source       = ['test2_ref/typ_adapters.vhd',
@@ -212,4 +211,3 @@ def build(bld):
     config       =  vsim_conf,
   )
 
-"""

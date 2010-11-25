@@ -95,13 +95,14 @@ def configure(ctx):
                           '-DSC_INCLUDE_DYNAMIC_PROCESSES']
 
   ctx.check_tool('compiler_cxx')
-  ctx.find_program('doxygen', var='DOXYGEN', mandatory=False)
+  ctx.find_program('doxygen', var='DOXYGEN', mandatory=False, okmsg="ok")
   #ctx.check_tool('doxygen', tooldir='waftools')
   
   ## Modelsim:
   ctx.load('modelsim', tooldir='wadtools')
   ctx.load('waf_unit_test')
   ctx.load('boost')
+  ctx.check_waf_version(mini='1.6.0')
   from os import environ
   if not options.boostincludes or options.boostincludes == "":
     options.boostincludes = environ.get("BOOST_DIR","")
@@ -120,14 +121,16 @@ def configure(ctx):
     uselib_store = 'SYSC',
     mandatory    = True,
     libpath      = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.systemc_home, "lib-*"))))), # not always lib-linux -> lib-* or lib-<target>
-    errormsg     = "SystemC Library not found. Use --systemc option or set $SYSTEMC_HOME."
+    errormsg     = "SystemC Library not found. Use --systemc option or set $SYSTEMC_HOME.",
+    okmsg        = "ok"
   ) 
   ctx.check_cxx(
     header_name  = 'systemc.h',
     uselib_store = 'SYSC',
     mandatory    = True,
     includes     = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.systemc_home, "include")))),
-    uselib       = 'SYSC'
+    uselib       = 'SYSC',
+    okmsg        = "ok"
   ) 
   ctx.check_cxx(
     msg          = "Checking for SystemC 2.2.0 or higher",
@@ -140,6 +143,7 @@ def configure(ctx):
                    }
     """,
     uselib       = 'SYSC',
+    okmsg        = "ok",
   )
  
   # TLM 2.0
@@ -149,6 +153,7 @@ def configure(ctx):
     mandatory    = True,
     includes     = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.tlm2_home, "include/tlm")))),
     uselib       = 'SYSC',
+    okmsg        = "ok",
   ) 
   ctx.check_cxx(
     msg          = "Checking for TLM 2.0.x",
@@ -161,6 +166,7 @@ def configure(ctx):
                    }
     """,
     uselib       = 'SYSC TLM2',
+    okmsg        = "ok",
   )
  
   # TODO: It has to be checked if we realy need them
@@ -199,6 +205,7 @@ def configure(ctx):
     #cxxflags     = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
     defines      = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     libpath      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greenreg")))),
+    okmsg        = "ok",
   ) 
   ctx.check_cxx(
     header_name   = "greensocket/initiator/single_socket.h",
@@ -208,33 +215,40 @@ def configure(ctx):
     #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
     defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     uselib        = 'BOOST SYSC TLM2',
+    okmsg        = "ok",
   )
   ctx.check_cxx(
-    header_name   = "target/single_socket.h",
+    header_name   = "greensocket/target/single_socket.h",
     uselib_store  = 'GREENSOCS',
     mandatory     = True,
-    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greensocket")))),
+    #includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greensocket")))),
+    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(options.greensocs_home))),
     #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
     defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     uselib        = 'GREENSOCS BOOST SYSC TLM2',
+    okmsg        = "ok",
   )
   ctx.check_cxx(
-    header_name   = "config.h",
+    header_name   = "greencontrol/config.h",
     uselib_store  = 'GREENSOCS',
     mandatory     = True,
-    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greencontrol")))),
+    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(options.greensocs_home))),
+    #includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greencontrol")))),
     #cxflags       = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
     defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     uselib        = 'GREENSOCS BOOST SYSC TLM2',
+    okmsg        = "ok",
   )
   ctx.check_cxx(
     header_name   = "greenreg.h",
     uselib_store  = 'GREENSOCS',
     mandatory     = True,
+    #includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(options.greensocs_home))),
     includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greenreg")))),
     #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
     defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     uselib        = 'GREENSOCS BOOST SYSC TLM2',
+    okmsg        = "ok",
   )
 
   # AMBAKit 
@@ -247,8 +261,22 @@ def configure(ctx):
     #cxxflags       = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
     defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     uselib        = 'BOOST SYSC TLM2 GREENSOCS',
+    okmsg        = "ok",
   )
-
+  ctx.check_cxx(
+    msg          = "Checking for AMBAKit Version > 1.0.5",
+    mandatory    = True,
+    execute      = True,
+    fragment     = """
+                   #include <amba.h>
+                   int main(int argc, char *argv[]) {
+                     return !((AMBA_TLM_VERSION_MAJOR >= 1) && (AMBA_TLM_VERSION_MINOR >= 0) && (AMBA_TLM_VERSION_REVISION >= 6));
+                   }
+    """,
+    uselib       = 'BOOST SYSC TLM2 GREENSOCS AMBA',
+    okmsg        = "ok",
+  )
+ 
   # Check for AMBAKit extended GreenSocs
   import Configure
   try:
@@ -260,11 +288,21 @@ def configure(ctx):
       #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
       defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
       uselib        = 'GREENSOCS BOOST SYSC TLM2 AMBA',
+      okmsg        = "ok",
     )
   except Configure.ConfigurationError:
     # use own old files
-    ctx.env["CPPPATH_GREENSOCS"] += os.path.join(ctx.srcdir,'contrib', 'greensocs-4.0.0_patch'),
-    # TODO: Check if it works
+    ctx.check_cxx(
+      header_name   = "greenreg_ambasocket.h",
+      uselib_store  = 'GREENSOCS',
+      mandatory     = True,
+      includes      = os.path.join(ctx.path.abspath(),'contrib', 'greensocs-4.0.0_patch'),
+      #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
+      defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
+      uselib        = 'GREENSOCS BOOST SYSC TLM2 AMBA',
+      okmsg         = "ok",
+      msg           = "Try to use own implementation"
+    )
   
   # Extend GREENSOCS
   ctx.check_cxx(
@@ -282,11 +320,12 @@ def configure(ctx):
     #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
     defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
     uselib        = 'SYSC TLM2 GREENSOCS',
+    okmsg        = "ok",
   )
   
   from waftools.common import get_subdirs
   ctx.recurse(get_subdirs(top))
-  
+   
   ctx.check_cxx(cxxflags=ctx.env['CXXFLAGS'], mandatory=1, msg='Checking for G++ compilation flags')
   ctx.check_cxx(linkflags=ctx.env['LINKFLAGS'], mandatory=1, msg='Checking for link flags')
 
