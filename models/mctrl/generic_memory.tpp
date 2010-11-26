@@ -78,6 +78,9 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
       //update response status
       gp.set_response_status(tlm::TLM_OK_RESPONSE);
     }
+    else {
+      v::warn << "generic_memory" << "Memory received TLM_IGNORE command" << std::endl;
+    }
   }
 }
 

@@ -49,18 +49,18 @@
 
 int sc_main(int argc, char** argv) {
     //set generics
-    const int romasel = 28;
-    const int sdrasel = 29;
-    const int romaddr = 0;
-    const int rommask = 0xE00;
+    const int romasel = 29; //28
+    const int sdrasel = 28; //29
+    const int romaddr = 0x400; //0x000
+    const int rommask = 0xC00; //0xE00
     const int ioaddr = 0x200;
     const int iomask = 0xE00;
-    const int ramaddr = 0x400;
-    const int rammask = 0xC00;
+    const int ramaddr = 0x000; //0x400
+    const int rammask = 0xE00; //0xC00
     const int paddr = 0x0;
     const int pmask = 0xFFF;
     const int wprot = 0;
-    const int srbanks = 4;
+    const int srbanks = 5;
     const int ram8 = 0;
     const int ram16 = 0;
     const int sepbus = 0;

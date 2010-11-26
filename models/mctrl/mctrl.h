@@ -262,7 +262,7 @@ class Mctrl : public gs::reg::gr_device,
     static const uint32_t MCTRL_MCFG2_SDRAM_CMD_DEFAULT       = 0x00000000;
     static const uint32_t MCTRL_MCFG2_D64_DEFAULT             = 0x00000000;
     static const uint32_t MCTRL_MCFG2_MS_DEFAULT              = 0x00000000;
-    static const uint32_t MCTRL_MCFG2_SE_DEFAULT              = 0x00004000;
+    static const uint32_t MCTRL_MCFG2_SE_DEFAULT              = 0x00000000;
     static const uint32_t MCTRL_MCFG2_SI_DEFAULT              = 0x00000000;
     static const uint32_t MCTRL_MCFG2_RAM_BANK_SIZE_DEFAULT   = 0x00001C00;
     static const uint32_t MCTRL_MCFG2_RBRDY_DEFAULT           = 0x00000000;
@@ -271,7 +271,7 @@ class Mctrl : public gs::reg::gr_device,
     static const uint32_t MCTRL_MCFG2_RAM_WRITE_WS_DEFAULT    = 0x0000000C;
     static const uint32_t MCTRL_MCFG2_RAM_READ_WS_DEFAULT     = 0x00000003;
     //                                                      +
-    static const uint32_t MCTRL_MCFG2_DEFAULT                 = 0xFF605C3F;
+    static const uint32_t MCTRL_MCFG2_DEFAULT                 = 0xFF601C3F;
 
         //memory configuration register 3
         static const uint32_t MCTRL_MCFG3_DEFAULT = 0x07FFF000;

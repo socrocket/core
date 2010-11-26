@@ -293,7 +293,7 @@ void Mctrl::reset_mctrl(const bool &value,
         // --- set register values according to generics
         unsigned int set;
         if (sden) {
-            set = r[MCTRL_MCFG2].get() | MCTRL_MCFG2_SDRF;
+            set = r[MCTRL_MCFG2].get() | MCTRL_MCFG2_SDRF | MCTRL_MCFG2_SE;
             if (sepbus) {
                 set |= sdbits << 18;
                 r[MCTRL_MCFG2].set(set);
@@ -306,7 +306,7 @@ void Mctrl::reset_mctrl(const bool &value,
         uint32_t size = (4096 - rommask) << 20;
         rom_bk1_s = static_cast<uint32_t> (romaddr << 20); //   's' --> 'start'
         rom_bk2_e = rom_bk1_s + size - 1; //add full rom size: 'e' --> 'end'
-        rom_bk1_e = rom_bk2_e >> 1; //bk1 ends at half of address space, rounding fits
+        rom_bk1_e = (rom_bk1_s + rom_bk2_e) >> 1; //bk1 ends at half of address space, rounding fits
         rom_bk2_s = rom_bk1_e + 1;
 
         //IO
@@ -319,31 +319,31 @@ void Mctrl::reset_mctrl(const bool &value,
         //SRAM bank size: lower half of RAM address space divided by #banks
         uint32_t sram_bank_size;
         if (srbanks == 5) { //max 4 banks in lower half
-            sram_bank_size = ((4096 - rammask) / 8) << 20;
+            sram_bank_size = ((0x1000 - rammask) / 8) << 20;
         } else {
             sram_bank_size = ((4096 - rammask) / (2 * srbanks)) << 20;
         }
-
+std::cout << "bank size: 0x" << std::hex << std::setfill('0') << std::setw(8) << (unsigned int) sram_bank_size << std::endl;
         //SDRAM bank size: upper half of RAM address space divided by 2 banks
         uint32_t sdram_bank_size = ((4096 - rammask) / 4) << 20;
 
         //write calculated bank sizes into MCFG2
         //SRAM: "0000" --> 8KByte <-- 2^13Byte
-        uint32_t i_sr =
-                static_cast<uint32_t> (log(sram_bank_size) / log(2) - 13);
+        uint32_t i_sr = static_cast<uint32_t> (log(sram_bank_size+1) / log(2) - 13);
         //SDRAM: "000" --> 4MByte <-- 2^22Bte
-        uint32_t i_sdr = static_cast<uint32_t> (log(sdram_bank_size) / log(2)
-                - 22);
+        uint32_t i_sdr = static_cast<uint32_t> (log(sdram_bank_size) / log(2) - 22);
         set = (MCTRL_MCFG2_DEFAULT & ~MCTRL_MCFG2_RAM_BANK_SIZE
                 & ~MCTRL_MCFG2_SDRAM_BANKSZ) | (i_sr << 9
                 & MCTRL_MCFG2_RAM_BANK_SIZE) | (i_sdr << 23
                 & MCTRL_MCFG2_SDRAM_BANKSZ);
         r[MCTRL_MCFG2].set(set);
+std::cout << "i_sr: " << std::dec << (unsigned int) i_sr << std::endl;
 
         //SRAM bank size has to be a power of two, which is not necessarily the case here.
         //Certain combinations of rammask and srbanks might have caused odd numbers here, so
         //the SRAM bank size is re-calculated from the register values.
         sram_bank_size = 1 << ( 13 + ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_BANK_SIZE) >> 9) );
+std::cout << "bank size: 0x" << std::hex << std::setfill('0') << std::setw(8) << (unsigned int) sram_bank_size << std::endl;
 
         //same for SDRAM bank size (in case a strange rammask value has been given)
         sdram_bank_size = 1 << ( 22 + ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_BANKSZ) >> 23) );
@@ -1029,6 +1029,12 @@ void Mctrl::sram_calculate_bank_addresses(uint32_t sram_bank_size) {
     //calculate remaining bank addresses if banks are present
     switch (srbanks) {
         //banks 2 - 4
+        case 5:
+            //set bank 5 values only if SDRAM is disabled
+            if ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE) == 0) {
+                sram_bk5_s = sram_bk1_s + ((4096 - rammask) / 2) << 20;
+                sram_bk5_e = sram_bk1_s + ((4096 - rammask) << 20) - 1;
+            }
         case 4:
             sram_bk4_s = sram_bk1_s + 3 * sram_bank_size;
             sram_bk4_e = sram_bk4_s + sram_bank_size - 1;
@@ -1048,12 +1054,6 @@ void Mctrl::sram_calculate_bank_addresses(uint32_t sram_bank_size) {
         case 2:
             sram_bk2_s = sram_bk1_s + sram_bank_size;
             sram_bk2_e = sram_bk2_s + sram_bank_size - 1;
-    }
-
-    //set bank 5 values only if SDRAM is disabled
-    if (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SE == 0) {
-        sram_bk5_s = sram_bk1_s + ((4096 - rammask) / 2) << 20;
-        sram_bk5_s = sram_bk1_s - 1 + (4096 - rammask) << 20;
     }
 
 }
