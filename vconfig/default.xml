@@ -1,0 +1,20 @@
+<option name="Basic Configuration">
+  <option var="pro" name="Processors" type="int" range="1..16" default="4"
+    hint="General Processor Configuration">
+    <option var="ics" name="Instruction Cache size" type="int" range="32..256" default="64"
+      hint="Size of the Instruction Cache of the given Processor" />
+    <option var="dcs" name="Data Cache size" type="int" range="32..256" default="64"
+      hint="Size of the Data Cache of the given Processor" />
+    <description>
+      <h1>Processors</h1>
+
+    </description>
+  </option>
+  <option name="Peripherals">
+    <option var="timer" name="GPTimer" type="bool" default="true"/>
+    <option var="socwire" name="SoCWire" type="bool" default="false">
+      <option var="socwire.base" name="Base Address" type="int" default="0" range="0..65563"/>
+    </option>
+    <option var="can" name="CAN" type="bool" default="true"/>
+  </option>
+</option>
