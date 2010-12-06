@@ -1,7 +1,7 @@
 from PyQt4 import QtCore, QtGui
 
 class Item(object):
-    def __init__(self, model, name = None, var = None, value = None, type = None, range = None, default = None, description = None, parent=None, data=None, widget=None):    
+    def __init__(self, model, name = None, var = None, value = None, type = None, range = None, default = None, description = None, parent=None, widget=None):    
         self.parentItem = parent
         self.childItems = []
         
@@ -52,7 +52,8 @@ class Item(object):
         return self.value
 
     def setValue(self, value):
-        self.value = value
+        self.value = QtCore.QVariant(value)
+        self.model.layoutChange()
         
 
     def name(self):

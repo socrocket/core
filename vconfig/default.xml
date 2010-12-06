@@ -11,10 +11,39 @@
     </description>
   </option>
   <option name="Peripherals">
-    <option var="timer" name="GPTimer" type="bool" default="true"/>
-    <option var="socwire" name="SoCWire" type="bool" default="false">
-      <option var="socwire.base" name="Base Address" type="int" default="0" range="0..65563"/>
+    <option var="timer" name="GPTimer" type="bool" default="true">
+      <option var="addr" name="APB Base Address" type="int" default="0" range="0..4095"/>
+      <option var="mask" name="APB Base Mask" type="int" default="0" range="0..4095"/>
+      <option var="irq" name="IRQ Line" type="int" default="5" range="0..15"/>
+      <option var="sepirq" name="Seperated IRQs" type="bool" default="true"/>
+      <option var="count" name="Number of Counters" type="int" default="7" range="1..7"/>
+      <option var="sbits" name="Scaler Bits" hint="Defines the number of bits in the scaler" type="int" default="16" range="1..32"/>
+      <option var="nbits" name="Counter Bits" hint="Defines the number of bits in the counters" type="int" default="32" range="1..32"/>
+      <option var="wdog" name="Watchdog" type="bool" default="false"/>
     </option>
-    <option var="can" name="CAN" type="bool" default="true"/>
+    <option var="socwire" name="SoCWire" type="bool" default="false">
+      <option var="addr" name="APB Base Address" type="int" default="0" range="0..4095"/>
+      <option var="mask" name="APB Base Mask" type="int" default="0" range="0..4095"/>
+    </option>
+    <option var="can" name="CAN" type="bool" default="true">
+      <option var="addr" name="APB Base Address" type="int" default="0" range="0..4095"/>
+      <option var="mask" name="APB Base Mask" type="int" default="0" range="0..4095"/>
+    </option>
+    <option var="irqmp" name="IRQ Controller" type="bool" default="true">
+      <option var="addr" name="APB Base Address" type="int" default="0" range="0..4095"/>
+      <option var="mask" name="APB Base Mask" type="int" default="0" range="0..4095"/>
+    </option>
+    <option var="cpu" name="CPU" type="bool" default="true">
+      <option var="addr" name="APB Base Address" type="int" default="0" range="0..4095"/>
+      <option var="mask" name="APB Base Mask" type="int" default="0" range="0..4095"/>
+    </option>
+    <option var="ahb" name="AHB Bus" type="bool" default="true">
+      <option var="addr" name="APB Base Address" type="int" default="0" range="0..4095"/>
+      <option var="mask" name="APB Base Mask" type="int" default="0" range="0..4095"/>
+    </option>
+    <option var="apb" name="APB Bus" type="bool" default="true">
+      <option var="addr" name="APB Base Address" type="int" default="0" range="0..4095"/>
+      <option var="mask" name="APB Base Mask" type="int" default="0" range="0..4095"/>
+    </option>
   </option>
 </option>

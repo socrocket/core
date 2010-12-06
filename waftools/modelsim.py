@@ -148,7 +148,9 @@ class vini_task(Task.Task):
   color = 'BLUE'
   before = ['vcom', 'vlog', 'vsim_before', 'vsim_after', 'sccom', 'sclink']
   quiet = True
-
+  def __str__(self):
+      return "vini: string -> %s" % (self.outputs[0].name())
+    
   def run(self):
       from ConfigParser import ConfigParser
       read = ConfigParser()
@@ -172,7 +174,7 @@ class vini_task(Task.Task):
 vlib_task  = Task.simple_task_type('vlib', 'test -f ${TGT}/_info || vlib ${TGT} 2>&1 > /dev/null', color='BLUE', before=['vcom', 'vlog', 'sccom', 'sclink'], shell=True)
 vlib_task.quiet = True
 def vlib_task_str(self):
-  return "vlib: %s\n" % self.target
+  return "vlib: create %s ...\n" % self.target
 vlib_task.__str__ = vlib_task_str
 
 # Task to execute a do script before any other work on the target is done
@@ -429,7 +431,7 @@ def modelsim_sccom(self, node):
     tsk = self.create_task('sccom', [node], [tgt])
     tsk.target = self.target
     if tsks:
-      tsk.run_after.add(tsks[-1])
+      #tsk.run_after.add(tsks[-1])
       self.link_task.inputs.append(tgt)
     else:
       lib = self.path.find_or_declare('%s/_sc/%s/%s' % (self.target, self.env['VSIM_SC_DIR'], 'systemc.so'))

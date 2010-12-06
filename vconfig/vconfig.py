@@ -16,6 +16,16 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.stack.setCurrentWidget(item.widget)
         item.widget.show()
 
+    def layoutChange(self):
+        self.layoutAboutToBeChanged.emit()
+        self.layoutChanged.emit()
+
+    def dataChange(self, index):
+        self.dataChanged.emit(index, index)
+
+    def treeChange(self):
+        self.modelReset.emit()
+
     def columnCount(self, parent):
         if parent.isValid():
             return parent.internalPointer().columnCount()
@@ -99,7 +109,13 @@ class TreeModel(QtCore.QAbstractItemModel):
             parentItem = parent.internalPointer()
 
         return parentItem.childCount()
-
+      
+    def hasChildren(self, index):
+        item = index.internalPointer()
+        if not hasattr(item, "childCount"):
+            return True
+        return item.childCount() > 0
+      
     def readFile(self, path):
       def readItem(node, parent):
         name = node.getAttribute("name")
@@ -160,13 +176,12 @@ def main(file, args):
     model = TreeModel(file, panel)
     
     def click(index):
-      #print "Click"
       item = index.internalPointer()
-      
-      #print item.value.toString(), index.column()
       info.setText(QtCore.QVariant(item.description).toString())
       model.clicked(item)
 
+    view.activated.connect(click)
+    view.entered.connect(click)
     view.clicked.connect(click)
     view.setModel(model)
     vsplit.resize(800,600)

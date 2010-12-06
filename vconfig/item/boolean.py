@@ -25,30 +25,27 @@ class BooleanItem(Item):
         def setData(value):
           self.value = value
           self.value_obj.setCheckState(value.toBool() * 2)
-          #self.model.dataChanged(self.index, self.index)
         self.setData = setData
         
         def setValue(value):
           if value == 0:
-            self.value = 'false'
+            self.value = QtCore.QVariant(False)
           elif value == 1:
-            self.value = 'false'
+            self.value = QtCore.QVariant(False)
           else:
-            self.value = 'true'
-          self.model.dataChanged.emit(self.index, self.index)
-          print "Boolean emit"
+            self.value = QtCore.QVariant(True)
+          self.model.layoutChange() 
         self.setValue = setValue
         self.value_obj.stateChanged.connect(self.setValue)
-
     
     def child(self, row):
-        if self.value != 0 or self.value != False:
+        if self.value.toInt() != 0:
             return self.childItems[row]
         else:
             return Null
 
     def childCount(self):
-        if self.value != 0 or self.value != False:
+        if self.value.toBool() != False:
             return len(self.childItems)
         else:
             return 0
