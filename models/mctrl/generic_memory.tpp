@@ -20,6 +20,7 @@ Generic_memory(sc_core::sc_module_name name) :
             slave_socket("slave_socket") {
     // register transport functions to sockets
     slave_socket.register_b_transport(this, &Generic_memory::b_transport);
+    slave_socket.register_transport_dbg(this, &Generic_memory::transport_dbg);
 }
 
 //explicit declaration of standard destructor required for linking
@@ -79,9 +80,42 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
       gp.set_response_status(tlm::TLM_OK_RESPONSE);
     }
     else {
-      v::warn << "generic_memory" << "Memory received TLM_IGNORE command" << std::endl;
+      v::warn << name() << "Memory received TLM_IGNORE command" << std::endl;
     }
   }
+}
+
+// Debug interface
+template<typename T> unsigned int Generic_memory<T>::
+transport_dbg(tlm::tlm_generic_payload& gp) {
+
+   tlm::tlm_command cmd = gp.get_command();
+   unsigned int addr    = gp.get_address();
+   unsigned int len     = gp.get_data_length();
+   unsigned char* ptr   = gp.get_data_ptr();
+
+   switch(cmd) {
+      case tlm::TLM_READ_COMMAND:
+         for(unsigned int i=0; i<len; i++) {
+            *(ptr+i) = readByteDBG(addr + i);
+         }
+//          cout << "DEBUG" << name() << "transport_dbg read" << len << ":"
+//               << *(reinterpret_cast<uint32_t*>(ptr)) << "@"
+//               << addr << endl;
+         return len;
+         break;
+      case tlm::TLM_WRITE_COMMAND:
+         for(unsigned int i=0; i<len; i++) {
+            writeByteDBG(addr, *(ptr+i));
+         }
+//          cout << "DEBUG" << name() << "transport_dbg write" << len << ":"
+//               << *(reinterpret_cast<uint32_t*>(ptr)) << "@"
+//               << addr << endl;
+         return len;
+         break;
+      default:
+         return 0;
+   }
 }
 
 //-----------------WRITE--FUNCTIONS----------------//
@@ -104,6 +138,21 @@ write_32(uint32_t address, uint32_t* data, uint8_t length) {
     }
 }
 
+template<typename T> void Generic_memory<T>::
+writeByteDBG(const uint32_t addr, const uint8_t byte) {
+   unsigned int memWidth = sizeof(T);
+   T writeData = 0;
+
+   uint32_t writeOffset = addr % memWidth;
+   uint32_t writeAddr   = addr - writeOffset;
+
+   writeData = memory[writeAddr];
+   writeData &= (~0xff) << (writeOffset * 8);
+   writeData |= static_cast<uint32_t>(byte) << (writeOffset * 8);
+
+   memory[writeAddr] = writeData;
+}
+
 //-----------------READ--FUNCTIONS-----------------//
 
 //scope
@@ -114,7 +163,7 @@ read_8(uint32_t address, unsigned char* data_ptr, uint8_t length) {
     //Independent from 8, 16, or 32 bit access, 4 adjacent 8 bit words
     //will be read. Address and length have to be aligned!
     if (length % 4 || address % 4) {
-        v::warn << "Mctrl" << "Trying to read " << std::dec << (unsigned int) length 
+        v::warn << name() << "Trying to read " << std::dec << (unsigned int) length 
                 << " bytes from address 0x" << std::hex << (unsigned int) address 
                 << " in 16 bit or 8 bit access mode. Check length and alignment." << std::endl;
     }
@@ -132,7 +181,7 @@ read_32(uint32_t address, uint32_t* data_ptr, uint8_t length) {
 
     //processor must take care of consistent memory allocation and length parameter in gp
     if (length % 4 || address % 4) {
-        v::warn << "Mctrl" << "Trying to read " << std::dec << (unsigned int) length 
+        v::warn << name() << "Trying to read " << std::dec << (unsigned int) length 
                 << " bytes from address 0x" << std::hex << (unsigned int) address 
                 << " in 64 bit or 32 bit access mode. Check length and alignment." << std::endl;
     }
@@ -142,13 +191,27 @@ read_32(uint32_t address, uint32_t* data_ptr, uint8_t length) {
     }
 }
 
+template<typename T> uint8_t Generic_memory<T>::
+readByteDBG(const uint32_t addr) {
+   unsigned int memWidth = sizeof(T);
+   T readData = 0;
+
+   uint32_t readOffset = addr % memWidth;
+   uint32_t readAddr   = addr - readOffset;
+
+   readData = memory[readAddr] >> (readOffset * 8);
+   readData &= 0xff;
+
+   return static_cast<uint8_t>(readData);
+}
+
 //-------------SDRAM--ERASE--FUNCTION--------------//
 
 //scope
 template<typename T> void Generic_memory<T>::
 //erase memory
 erase_memory(uint32_t start_address, uint32_t end_address, unsigned int length) {
-    v::info << "Mctrl" << "ERASING MEMORY: 0x" << std::hex << std::setfill('0') << std::setw(8)
+    v::info << name() << "ERASING MEMORY: 0x" << std::hex << std::setfill('0') << std::setw(8)
             << (unsigned int) start_address << " - 0x" << std::setfill('0') << std::setw(8)
             << (unsigned int) end_address << std::endl;
     for (unsigned int i = start_address; i <= end_address; i += length) {

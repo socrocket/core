@@ -146,6 +146,8 @@ class Mctrl : public gs::reg::gr_device,
 
         //define TLM transport functions
         virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
+        // TLM debug interface
+        unsigned int transport_dbg(tlm::tlm_generic_payload& gp);
 
     private:
         //address space variables

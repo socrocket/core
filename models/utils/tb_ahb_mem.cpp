@@ -94,6 +94,8 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
       ahb.register_nb_transport_fw(this, &Ctb_ahb_mem::nb_transport_fw, 1);
     }
 
+    ahb.register_transport_dbg(this, &Ctb_ahb_mem::transport_dbg);
+
     if(infile != NULL) {
         readmem(infile, addr);
     }
@@ -388,6 +390,9 @@ uint8_t Ctb_ahb_mem::char2nibble(const char *ch) const {
     }
 } // uint8_t Ctb_ahb_mem::char2nibble(char *ch) const
 
+void Ctb_ahb_mem::writeByteDBG(const uint32_t address, const uint8_t byte) {
+   mem[address] = byte;
+}
 
 /// Method to dump the memory content into a text file
 int Ctb_ahb_mem::dumpmem(const char outfile_[]) {
@@ -440,3 +445,45 @@ int Ctb_ahb_mem::dumpmem(const char outfile_[]) {
         return 1;
     }
 } // int tb_ahb_mem::dumpmem(char outfile_[])
+
+// TLM debug interface
+unsigned int Ctb_ahb_mem::transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp) {
+    // Check address befor before doing anything else
+    if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
+        // warn if access exceeds slave memory region
+        if((gp.get_address() + gp.get_data_length()) >
+           (ahbBaseAddress + ahbSize)) {
+            v::warn << name() << "Transaction exceeds slave memory region"
+                    << endl;
+        }
+
+        switch(gp.get_command()) {
+            // Read command
+            case tlm::TLM_READ_COMMAND:
+                for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+                    *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
+                }
+                gp.set_response_status(tlm::TLM_OK_RESPONSE);
+                return gp.get_data_length();
+                break;
+
+                // Write command
+            case tlm::TLM_WRITE_COMMAND:
+                for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+                    mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
+                }
+                gp.set_response_status(tlm::TLM_OK_RESPONSE);
+                return gp.get_data_length();
+                break;
+
+            // Neither read nor write command
+            default:
+                v::warn << name() << "Received unknown command." << endl;
+                gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+                return 0;
+                break;
+        }
+    } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
+
+    return 0;
+}

@@ -132,6 +132,7 @@ Mctrl::Mctrl(sc_core::sc_module_name name, int _romasel, int _sdrasel,
 
     // register transport functions to sockets
     ahb.register_b_transport(this, &Mctrl::b_transport);
+    ahb.register_transport_dbg(this, &Mctrl::transport_dbg);
 
     // nb_transport to be added
 
@@ -783,6 +784,42 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     }
     //end of transaction: reset callback delay variable
     callback_delay = sc_core::SC_ZERO_TIME;
+}
+
+
+//debug transport function
+unsigned int Mctrl::transport_dbg(tlm::tlm_generic_payload& gp) {
+
+    //access to ROM adress space
+    if (Mctrl::rom_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::rom_bk1_e ||
+        Mctrl::rom_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::rom_bk2_e    ) {
+       return mctrl_rom->transport_dbg(gp);
+    }
+    //access to IO adress space
+    else if (Mctrl::io_s <= gp.get_address() and gp.get_address() <= Mctrl::io_e) {
+        return mctrl_io->transport_dbg(gp);
+    }
+    //access to SRAM adress space
+    else if (Mctrl::sram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk1_e ||
+             Mctrl::sram_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk2_e ||
+             Mctrl::sram_bk3_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk3_e ||
+             Mctrl::sram_bk4_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk4_e ||
+             Mctrl::sram_bk5_s <= gp.get_address() and gp.get_address() <= Mctrl::sram_bk5_e    ) {
+       return mctrl_sram->transport_dbg(gp);
+    }
+    //access to SDRAM adress space
+    else if (Mctrl::sdram_bk1_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk1_e ||
+             Mctrl::sdram_bk2_s <= gp.get_address() and gp.get_address() <= Mctrl::sdram_bk2_e    ) {
+
+        return mctrl_sdram->transport_dbg(gp);
+    }
+    //no memory device at given address
+    else {
+        v::error << "Mctrl" << "Invalid memory acces: No device at address" << std::hex << std::setfill('0') << std::setw(8)
+                 <<  gp.get_address() << "." << std::endl;
+        gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
+        return 0;
+    }
 }
 
 //--------------CALLBACK--FUNCTIONS--------------//

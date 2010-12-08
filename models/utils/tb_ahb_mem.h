@@ -92,6 +92,9 @@ class Ctb_ahb_mem : public sc_module, public amba_slave_base {
         tlm::tlm_sync_enum nb_transport_fw(unsigned int id, tlm::tlm_generic_payload& gp,
                                            tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
+        // TLM debug interface
+        unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);
+
         /// @brief Delete memory content
         void clear_mem() {
             mem.clear();
@@ -109,6 +112,11 @@ class Ctb_ahb_mem : public sc_module, public amba_slave_base {
             // ahbSize holds size in bytes. Add shift if other units are required.
             return ahbSize;
         }
+
+        /// @brief Method to write a byte into the memory
+        /// @param addr Write address
+        /// @param byte Write data
+        void writeByteDBG(const uint32_t addr, const uint8_t byte);
 
     private:
         /// The actual memory

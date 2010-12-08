@@ -162,16 +162,6 @@ def build(bld):
   )
 
   bld(
-    target       = 'mmucache.test2',
-    features     = 'cxx cprogram test',
-    source       = [ 'test2/testbench.cpp',
-                     'test2/main.cpp'],
-    includes     = '.',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
-  )
-
-  bld(
     features     = 'modelsim test',
     target       = 'mmucache_test2_ref_work',
     name         = 'mmucache.test2_ref',

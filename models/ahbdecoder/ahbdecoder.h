@@ -79,6 +79,9 @@ class CAHBDecoder : public sc_core::sc_module {
         tlm::tlm_sync_enum nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& gp,
                                            tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
+        // TLM debug interface
+        unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);
+
         /// Check memory map for overlaps
         void checkMemMap();
 

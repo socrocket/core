@@ -66,6 +66,8 @@ CAHBDecoder::CAHBDecoder(sc_core::sc_module_name nm,
       // register tlm non blocking transport backward path
       ahbOUT.register_nb_transport_bw(this, &CAHBDecoder::nb_transport_bw, 0);
     }
+
+    ahbIN.register_transport_dbg(this, &CAHBDecoder::transport_dbg);
 }
 
 CAHBDecoder::~CAHBDecoder() {
@@ -384,3 +386,36 @@ void CAHBDecoder::checkMemMap() {
       }
    }
 }  // void CAHBDecoder::checkMemMap()
+
+// TLM debug interface
+unsigned int CAHBDecoder::transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp) {
+    std::map<uint32_t, slave_info_t>::iterator it;
+
+    uint32_t a = 0;
+    socket_t* other_socket = ahbIN.get_other_side(id, a);
+    sc_core::sc_object *mstobj = other_socket->get_parent();
+
+    int index = get_index(gp.get_address());
+
+    // check for a valid index
+    if(index >= 0) {
+       // *** DEBUG
+       other_socket = ahbOUT.get_other_side(index, a);
+       sc_core::sc_object *obj = other_socket->get_parent();
+
+       v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
+                << v::setw(8) << gp.get_address() << ", from master:"
+                << mstobj->name() << ", forwarded to slave:" << obj->name() << endl;
+       // ************
+
+       // Forward request to the appropriate slave
+       return ahbOUT[index]->transport_dbg(gp);
+    } else {
+       // Invalid index
+       gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+       v::warn << name() << "AHB Request@0x" << hex << v::setfill('0')
+               << v::setw(8) << gp.get_address() << ", from master:"
+               << mstobj->name() << ": Unmapped address space." << endl;
+       return 0;
+    }
+}

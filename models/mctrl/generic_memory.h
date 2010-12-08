@@ -74,17 +74,24 @@ class Generic_memory : public sc_core::sc_module {
         //blocking transport functions
         void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
 
+        // Debug interface
+        unsigned int transport_dbg(tlm::tlm_generic_payload& gp);
+
         //read from memory
         //ROM, SRAM: byte addressable
         void read_8(uint32_t address, unsigned char* data_ptr, uint8_t length);
         //IO, SDRAM: word addressable
         void read_32(uint32_t address, uint32_t* data_ptr, uint8_t length);
 
+        uint8_t readByteDBG(const uint32_t addr);
+
         //write into memory
         //ROM, SRAM: byte addressable
         void write_8(uint32_t address, unsigned char* data, uint8_t length);
         //IO, SDRAM: word addressable
         void write_32(uint32_t address, uint32_t* data, uint8_t length);
+
+        void writeByteDBG(const uint32_t addr, const uint8_t byte);
 
         //erase sdram required for deep power down and PASR mode
         void erase_memory(uint32_t start_address, uint32_t end_address,
