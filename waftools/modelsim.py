@@ -65,14 +65,15 @@ TODO: Dependencies between targets are not resolved in the right way.
 TODO: VARIABLES seems to be inhereted between TaskGens. They double each target.
 TODO: uselib_local integration
 TODO: ensure that the env variables are only for modelsim tarets
-TODO: Try to make targetfiles for all tasks or to ensure correct recompilation behaviour somehow else.
+TODO: Try to make targetfiles for all tasks or to ensure correct recompilation behaviour somehow else. Deepcopy env
 TODO: Make this usable
 TODO: Make flags changable
 TODO: Add testig for flags
 TODO: Integrate CXXFlags ???
 """
 def options(opt):
-  pass
+  conf = opt.get_option_group("--download")
+  conf.add_option('--nomodelsim', dest='modelsim', action='store_false', default=True, help='Deactivates the build of all modelsim featured targets')
 
 def configure(ctx):
   """Detect modelsim executables and set default flags"""
@@ -171,7 +172,7 @@ class vini_task(Task.Task):
       return 0
 
 # Task to create a modelsim work library
-vlib_task  = Task.simple_task_type('vlib', 'test -f ${TGT}/_info || vlib ${TGT} 2>&1 > /dev/null', color='BLUE', before=['vcom', 'vlog', 'sccom', 'sclink'], shell=True)
+vlib_task  = Task.simple_task_type('vlib', 'test -f ${TGT}/_info || vlib ${TGT}', color='BLUE', before=['vcom', 'vlog', 'sccom', 'sclink'], shell=True)
 vlib_task.quiet = True
 def vlib_task_str(self):
   return "vlib: create %s ...\n" % self.target
@@ -251,6 +252,12 @@ def modelsim(self):
   """Apply Variables for the Target create vlib task and 
      vini task as well as dobefore and doafter tasks if needed
   """
+  # cxx hack replaces the cpp routine
+  setattr(self,modelsim_sccom.__name__,modelsim_sccom)
+  self.mappings['.cpp']=modelsim_sccom
+
+  if not Options.options.modelsim:
+    return
   self.env = self.env.derive()
   self.env["_VCOMFLAGS"]     = list(self.env["VCOMFLAGS"])
   self.env["_VLOGFLAGS"]     = list(self.env["VLOGFLAGS"])
@@ -260,9 +267,6 @@ def modelsim(self):
   self.env["_SCLINKFLAGS"]   = list(self.env["SCLINKFLAGS"])
   self.env["_VSIMBEFORE"]    = list()
   self.env["_VSIMAFTER"]     = list()
-  # cxx hack replaces the cpp routine
-  setattr(self,modelsim_sccom.__name__,modelsim_sccom)
-  self.mappings['.cpp']=modelsim_sccom
   
   self.env["_VCOMFLAGS"] += ['-work', 'work']
   self.env["_VLOGFLAGS"] += ['-work', 'work']
@@ -384,23 +388,25 @@ def modelsim(self):
 @TaskGen.extension('.vhd')
 def modelsim_vcom(self, node):
   """Create a vcom_task on each vhd file and ensure the order"""
-  tsks = [n for n in self.tasks if n.name in ['vcom', 'vlog']]
-  tsk = self.create_task('vcom', [node])
-  tsk.target = self.target
-  if tsks:
-    tsk.run_after.add(tsks[-1])
+  if 'modelsim' in self.features and Options.options.modelsim:
+    tsks = [n for n in self.tasks if n.name in ['vcom', 'vlog']]
+    tsk = self.create_task('vcom', [node])
+    tsk.target = self.target
+    if tsks:
+      tsk.run_after.add(tsks[-1])
   
-  tsk.dep_nodes += self.mdeps
+    tsk.dep_nodes += self.mdeps
     
 @TaskGen.extension('.v')
 def modelsim_vlog(self, node):
   """Create a vlog_task on each v file and ensure the order"""
-  tsks = [n for n in self.tasks if n.name in ['vcom', 'vlog']]
-  tsk = self.create_task('vlog', [node])
-  if tsks:
-    tsk.run_after.add(tsks[-1])
+  if 'modelsim' in self.features and Options.options.modelsim:
+    tsks = [n for n in self.tasks if n.name in ['vcom', 'vlog']]
+    tsk = self.create_task('vlog', [node])
+    if tsks:
+      tsk.run_after.add(tsks[-1])
 
-  tsk.dep_nodes += self.mdeps
+    tsk.dep_nodes += self.mdeps
 
 VSIM_FAKE_EXEC="""
 #!/bin/bash
@@ -425,7 +431,7 @@ ${VSIM} -modelsimini %(ini)s ${params} %(entry)s -do 'run;exit'
 #@TaskGen.extension('.cpp')
 def modelsim_sccom(self, node):
   """Create a sccom_task on each cpp file and create a system c link task as well"""
-  if 'modelsim' in self.features:
+  if 'modelsim' in self.features and Options.options.modelsim:
     tsks = [n for n in self.tasks if getattr(n, 'name', None) == 'sccom']
     tgt = self.path.find_or_declare('%s/_sc/%s/%s' % (self.target, self.env['VSIM_SC_DIR'], os.path.splitext(node.name)[0]+'.o'))
     tsk = self.create_task('sccom', [node], [tgt])
