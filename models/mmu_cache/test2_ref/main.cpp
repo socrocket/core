@@ -118,6 +118,7 @@ int sc_main(int argc, char** argv) {
   tb.signal_clk(i_clk);
 
   ahb_rtl_ct.clk(tb.clock);
+
   cpu_lt_rtl.clk(tb.clock);
 
   ahb_mem.clk(tb.clock);

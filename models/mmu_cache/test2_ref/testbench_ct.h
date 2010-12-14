@@ -19,29 +19,30 @@ class testbench_ct : public sc_module {
   sc_out<icache_in_type> ici;
   sc_in<icache_out_type> ico;
 
-  sc_out<icache_out_type> ico_buf_out;
-
   sc_out<dcache_in_type> dci;
   sc_in<dcache_out_type> dco;
 
   // create systemc clock
   sc_clock clock;
-  sc_clock clock_slow;
 
+  // clock and reset control
   void clock_gen_thread();
   void reset_gen_thread();
+
+  // main stimuli process
   void initiator_thread();
-  void ico_monitor_thread();
 
-  sc_signal<icache_out_type> ico_buf;
+  // react on cache outputs
+  void ico_listener();
+  void dco_listener();
 
-  void iread(unsigned int address, unsigned int * instr);
-  void dread(unsigned int address, unsigned int * data, unsigned int length, unsigned int asi, unsigned int lock);
-  void dwrite(unsigned int address, unsigned int data, unsigned int length, unsigned int asi, unsigned int lock);
+  // helper functions for writing the ici, dci output ports
+  void instr_gen(unsigned int fpc, bool inull, bool su, bool flush); 
+  void data_gen(unsigned int asi, unsigned int address, unsigned int data, unsigned int size, bool enaddr, bool eenaddr, bool nullify, bool lock, bool read, bool write,bool flush);
 
   SC_HAS_PROCESS(testbench_ct);
 
-  testbench_ct(sc_core::sc_module_name name) : sc_module(name), clock("clock",10,0.5,0,true), clock_slow("clock_slow",100,0.5,0,false), rst("rst"), rst_scl("rst_scl"), signal_clk("signal_clk"), ici("ici"), ico("ico"), dci("dci"), dco("dco"), ico_buf_out("ico_buf_out") {
+  testbench_ct(sc_core::sc_module_name name) : sc_module(name), clock("clock",10,0.5,0,true), rst("rst"), rst_scl("rst_scl"), signal_clk("signal_clk"), ici("ici"), ico("ico"), dci("dci"), dco("dco") {
 
     SC_THREAD(initiator_thread);
     sensitive << clock.posedge_event();
@@ -50,10 +51,13 @@ class testbench_ct : public sc_module {
     SC_THREAD(clock_gen_thread);
     sensitive << clock;
 
-    SC_THREAD(ico_monitor_thread);
-    sensitive << clock.posedge_event();
-
     SC_THREAD(reset_gen_thread);
+
+    SC_THREAD(ico_listener);
+    sensitive << ico;
+
+    SC_THREAD(dco_listener);
+    sensitive << dco;
 
   }
 

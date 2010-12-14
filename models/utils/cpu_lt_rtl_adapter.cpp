@@ -16,6 +16,8 @@ void cpu_lt_rtl_adapter::icio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
   if (cmd == tlm::TLM_READ_COMMAND) {
 
+    std::cout << " transactor read from address " << hex << addr << std::endl;
+
     iread((unsigned int)addr,(unsigned int*)ptr, flush);
 
   } else {
@@ -61,560 +63,178 @@ void cpu_lt_rtl_adapter::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
 }
 
-
-void cpu_lt_rtl_adapter::ico_demux() {
-
-  icache_out_type ico_in;
-
-  while(1) {
-
-    ico_in = ico.read();
-    
-    ico_hold.write(ico_in.hold);
-    ico_mds.write(ico_in.mds);
-
-    wait();
-  }
-}
-
-void cpu_lt_rtl_adapter::mds_capture() {
-
-  icache_out_type ico_in;
-
-  while(1) {
-
-    ico_in = ico.read();
-
-    ihrdata_reg = ico_in.data[0].to_uint();
-
-    wait();
-  }
-}
-
-void cpu_lt_rtl_adapter::dcache_removal() {
-
-  dcache_in_type dci_out;
-
-  while(1) {
-
-    wait(clk.posedge_event());
-
-    dci_out.asi = 9;
-    dci_out.maddress = 0;
-    dci_out.eaddress = 0;
-    dci_out.edata = 0;
-    dci_out.enaddr = 0;
-    dci_out.eenaddr = 0;
-    dci_out.read = SC_LOGIC_0;
-    dci_out.write = SC_LOGIC_0;
-
-    //dci.write(dci_out);
-  }
-}
-
-
-void cpu_lt_rtl_adapter::instruction_gen() {
-
-  icache_in_type ici_out;
-  dcache_in_type dci_out;
-
-  while(1) {
-
-    ici_out.rbranch = 0;
-    ici_out.fbranch = 0;
-    ici_out.inull = 0;
-    ici_out.su  = SC_LOGIC_1;
-    ici_out.flush = 0;
-    ici_out.fline = 0;
-    ici_out.flushl = 0;
-    ici_out.pnull = SC_LOGIC_0; 
-
-    dci_out.asi = 0;
-    dci_out.maddress = 0;
-    dci_out.eaddress = 0;
-    dci_out.edata = 0;
-    dci_out.enaddr = 0;
-    dci_out.eenaddr = 0;
-    dci_out.size = 0;
-    dci_out.nullify = 0;
-    dci_out.lock = SC_LOGIC_0;
-    dci_out.read = SC_LOGIC_0;
-    dci_out.write = SC_LOGIC_0;
-    dci_out.flush = 0;
-    dci_out.flushl = 0;
-    dci_out.dsuen = 0;
-    dci_out.msu = 0;
-    dci_out.esu = 0;
-    dci_out.intack = 0;  
-
-    // ------------------
-
-    ici_out.rpc = 0xC0004;
-    ici_out.fpc = 0xC0004;
-    ici_out.dpc = 0xC0004;
-
-    ici.write(ici_out);
-
-    wait();
-
-    // ------------------
-
-    ici_out.rpc = 0xC0008;
-    ici_out.fpc = 0xC0008;
-    ici_out.dpc = 0xC0008;
-    ici_out.flush = 1;
-
-    ici.write(ici_out);
-
-    dci_out.flush = 1;
-    
-    dci.write(dci_out);
-
-    wait();
-
-    // ------------------
-
-    ici_out.rpc = 0xC0000;
-    ici_out.fpc = 0xC0000;
-    ici_out.dpc = 0xC0000;
-    ici_out.flush = 0;
-
-    ici.write(ici_out);
-    
-    dci_out.flush = 0;
-    dci.write(dci_out);
-
-    wait(1100);
-
-    // ------------------
-
-    dci_out.asi = 2;
-    dci_out.maddress = 0;
-    dci_out.eaddress = 0;
-    dci_out.edata = 0xf;
-    dci_out.enaddr = 1;
-    dci_out.eenaddr = 1;
-    dci_out.size = 2;
-    dci_out.read = SC_LOGIC_0;
-    dci_out.write = SC_LOGIC_1;
-
-    dci.write(dci_out);
-
-    //dcache_removal_event.notify();
-
-    wait();
-
-    // ------------------
-
-    dci_out.asi = 9;
-    dci_out.maddress = 0;
-    dci_out.eaddress = 0;
-    dci_out.edata = 0;
-    dci_out.enaddr = 0;
-    dci_out.eenaddr = 0;
-    dci_out.size = 0;
-    dci_out.read = SC_LOGIC_0;
-    dci_out.write = SC_LOGIC_0;
-
-    dci.write(dci_out);
-
-    ici_out.rpc = 0xC0004;
-    ici_out.fpc = 0xC0004;
-    ici_out.dpc = 0xC0004;
-
-    ici.write(ici_out);
-
-    wait();
-
-    // ------------------
-
-    ici_out.rpc = 0xC0008;
-    ici_out.fpc = 0xC0008;
-    ici_out.dpc = 0xC0008;
-
-    ici.write(ici_out);
-
-    wait();
-
-    // ------------------
-
-    ici_out.rpc = 0xC0000;
-    ici_out.fpc = 0xC0000;
-    ici_out.dpc = 0xC0000;
-
-    ici.write(ici_out);
-
-    wait();
-
-    // ------------------
-
-    ici_out.rpc = 0xC0004;
-    ici_out.fpc = 0xC0004;
-    ici_out.dpc = 0xC0004;
-
-    ici.write(ici_out);
-
-    wait();
-
-    // ------------------
-
-    ici_out.rpc = 0xC0008;
-    ici_out.fpc = 0xC0008;
-    ici_out.dpc = 0xC0008;
-
-    ici.write(ici_out);
-
-    wait();
-
-    // ------------------
-
-    ici_out.rpc = 0xC0000;
-    ici_out.fpc = 0xC0000;
-    ici_out.dpc = 0xC0000;
-
-    ici.write(ici_out);
-
-    wait();
-
-    // ------------------
-
-    sc_stop();
-
-  }
-}
-
 // instruction port service machine
-void cpu_lt_rtl_adapter::icio_service_machine() {
+void cpu_lt_rtl_adapter::cache_transactor() {
 
-  icache_in_type ici_out;
-  icache_out_type ici_in;
-
-  dcache_in_type dci_out;
+  icache_in_type itmp;
+  dcache_in_type dtmp;
 
   while (1) {
 
-    if (!rst) {
+    if (rst == SC_LOGIC_0) {
 
-      ici_out.rpc = 0xC0000;
-      ici_out.fpc = 0xC0000;
-      ici_out.dpc = 0xC0000;
-      ici_out.rbranch = 0;
-      ici_out.fbranch = 0;
-      ici_out.inull = 0;
-      ici_out.su  = SC_LOGIC_1;
-      ici_out.flush = 0;
-      ici_out.fline = 0;
-      ici_out.flushl = 0;
-      ici_out.pnull = SC_LOGIC_0;
+      itmp.rpc = 0;
+      itmp.fpc = 0;
+      itmp.dpc = 0;
+      itmp.rbranch = SC_LOGIC_0;
+      itmp.fbranch = SC_LOGIC_0;
+      itmp.inull = SC_LOGIC_1;
+      itmp.su = SC_LOGIC_1;
+      itmp.flush = 0;
+      itmp.fline = 0;
+      itmp.pnull = SC_LOGIC_0;
 
-      ici.write(ici_out);
+      ici.write(itmp);
 
-      dci_out.asi = 0;
-      dci_out.maddress = 0;
-      dci_out.eaddress = 0;
-      dci_out.edata = 0;
-      dci_out.enaddr = 0;
-      dci_out.eenaddr = 0;
-      dci_out.size = 2;
-      dci_out.nullify = 0;
-      dci_out.lock = SC_LOGIC_0;
-      dci_out.read = SC_LOGIC_0;
-      dci_out.write = SC_LOGIC_0;
-      dci_out.flush = 0;
-      dci_out.flushl = 0;
-      dci_out.dsuen = 0;
-      dci_out.msu = 0;
-      dci_out.esu = 0;
-      dci_out.intack = 0;
+      dtmp.asi = 0xb;
+      dtmp.maddress = 0;
+      dtmp.eaddress = 0;
+      dtmp.edata = 0;
+      dtmp.size = 2;
+      dtmp.enaddr = SC_LOGIC_0;
+      dtmp.eenaddr = SC_LOGIC_0;
+      dtmp.nullify = SC_LOGIC_0;
+      dtmp.lock = 0;
+      dtmp.read = SC_LOGIC_1;
+      dtmp.write = SC_LOGIC_0;
+      dtmp.flush = 0;
+      dtmp.flushl = 0;
+      dtmp.dsuen = SC_LOGIC_0;
+      dtmp.msu = SC_LOGIC_0;
+      dtmp.esu = SC_LOGIC_0;
+      dtmp.intack = SC_LOGIC_0;
 
-      dci.write(dci_out);
-
+      dci.write(dtmp);
 
     } else {
 
+      // write instruction and data port
+      ici.write(ival);
+      dci.write(dval);
+
       if (clk.posedge()) {
 
-	ici_in = ico.read();
+	if ((ico.read().hold == SC_LOGIC_1)&&(dco.read().hold == SC_LOGIC_1)) {
 
-	// assign next address
-	if (ici_in.hold == SC_LOGIC_1) {
-
-	  std::cout << sc_time_stamp() << " hold is 1" << std::endl;
-
-	  next_instruction_event.notify();
-
+	  // done - next instruction
+	  cache_ready.notify();
+	  
 	}
-	else {
-
-	  std::cout << sc_time_stamp() << " hold is not 1" << std::endl;
-        }
       }
     }
 
-   wait();
+    wait();
 
   }
 }
 
 void cpu_lt_rtl_adapter::iread(unsigned int address, unsigned int * data, unsigned int flush) {
 
-  wait(1, SC_PS);
+  icache_in_type itmp;
 
-  icache_in_type ici_out;
+  itmp.rpc = address;
+  itmp.fpc = address;
+  itmp.dpc = address;
+  itmp.rbranch = SC_LOGIC_0;
+  itmp.fbranch = SC_LOGIC_0;
+  itmp.inull = SC_LOGIC_0;
+  itmp.su = SC_LOGIC_1;
+  itmp.flush = (bool)flush;
+  itmp.fline = 0;
+  itmp.pnull = SC_LOGIC_0;
 
-  ici_out.rpc = address;
-  ici_out.fpc = address;
-  ici_out.dpc = address;
-  ici_out.rbranch = SC_LOGIC_0;
-  ici_out.fbranch = SC_LOGIC_0;
-  ici_out.inull = SC_LOGIC_0;
-  ici_out.su = SC_LOGIC_1;
-  ici_out.flush = (bool)flush;
-  ici_out.fline = 0;
-  ici_out.pnull = SC_LOGIC_0;
+  // data to signal
+  ival.write(itmp);
 
-  // drive rtl signals
-  ici.write(ici_out);
-
-  // we have an active request
-  ici_request_pending = true;
-
-  std::cout << sc_time_stamp() << "fuck written" << std::endl;
-
-  // wait for data to become ready
-  wait(icache_ready);
-
-  *data = ihrdata_reg;
+  // wait for instruction cycle to be finished
+  wait(cache_ready);
 
 }
 
-// data port service machine
-void cpu_lt_rtl_adapter::dcio_service_machine() {
-
-  sc_logic mds = SC_LOGIC_1;
-
-  dcache_in_type dci_out;
-  dcache_out_type dci_in;
-  enum dcio_state { REQUEST, READHIT, READMISS, WRITEBUFFERED, WRITEUNBUFFERED } state;
-
-  while (1) {
-
-    if (dci_read_request_pending || dci_write_request_pending) {
-
-      // read data cache outputs
-      dci_in = dco.read();
-
-      switch (state) {
-
-      case REQUEST:
-
-	std::cout << sc_time_stamp() << " DCACHE REQUEST " << std::endl;
-	
-	if (dci_read_request_pending) {
-	  state = READHIT;
-	} else {
-	  state = WRITEBUFFERED;
-	}
-	
-	break;
-
-      case READHIT:
-
-	std::cout << sc_time_stamp() << " DCACHE READHIT CHECK " << std::endl;
-
-	// data is ready if hold signal does not go down
-	if (dci_in.hold == SC_LOGIC_1) {
-
-	  dci_read_request_pending = false;
-
-	  dcache_ready.notify();
-
-	  state = REQUEST;
-	}
-	break;
-
-      case READMISS:
-
-	std::cout << sc_time_stamp() << " DCACHE READMISS CHECK" << std::endl;
-
-	// instruction is ready at posedge of memory data strobe
-	if ((mds==SC_LOGIC_1)&&(dci_in.mds==SC_LOGIC_0)) {
-
-	  std::cout << sc_time_stamp() << " READMISS (Edge detected)" << std::endl;
-
-	  dci_read_request_pending = false;
-
-	  dcache_ready.notify();
-
-	  state = REQUEST;
-	}
-	break;
-
-      case WRITEBUFFERED:
-
-	std::cout << sc_time_stamp() << " DCACHE WRITEBUFFERED CHECK " << std::endl;	
- 
-	// write latency hidden if hold signal does not go down
-	if (dci_in.hold == SC_LOGIC_1) {
-
-	  dci_write_request_pending = false;
-
-	  dcache_ready.notify();
-
-	  state = REQUEST;
-
-	} else {
-
-	  state = WRITEUNBUFFERED;
-
-	}
-	break;
-
-      case WRITEUNBUFFERED:
-
-	std::cout << sc_time_stamp() << " DCACHE WRITEUNBUFFERED CHECK " << std::endl;
-
-	// data is ready at posedge of memory data strobe
-	if ((mds==SC_LOGIC_1)&&(dci_in.mds==SC_LOGIC_0)) {
-
-	  std::cout << sc_time_stamp() << " READMISS (Edge detected)" << std::endl;
-
-	  dci_write_request_pending = false;
-
-	  state = REQUEST;
-
-	}
-	break;	  
-
-      default:
-
-	break;
-
-      }
-   
-    } else {
-
-      dci_out.asi = 9; // bit 3 of asi unsets dcache forcemiss signal
-      dci_out.maddress = 0;
-      dci_out.eaddress = 0;
-      dci_out.edata = 0;
-      dci_out.size = 0;
-      dci_out.enaddr = SC_LOGIC_0;
-      dci_out.eenaddr = SC_LOGIC_0;
-      dci_out.nullify = 0;
-      dci_out.lock = SC_LOGIC_0;
-      dci_out.read = SC_LOGIC_0;
-      dci_out.write = SC_LOGIC_0;
-      dci_out.flush = SC_LOGIC_0;
-      dci_out.flushl = SC_LOGIC_0;
-      dci_out.dsuen = SC_LOGIC_0;
-      dci_out.msu = SC_LOGIC_0;
-      dci_out.esu = SC_LOGIC_0;
-      dci_out.intack = SC_LOGIC_0;
-
-      dci.write(dci_out);
-    }
-
-    mds = dci_in.mds;
-
-    // next posedge clock
-    wait();
-
-  }
-
-}
 
 void cpu_lt_rtl_adapter::dread(unsigned int address, unsigned int * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock) {
 
-  wait(1,SC_PS);
+  dcache_in_type dtmp;
 
-  dcache_in_type dci_out;
-
-  dci_out.asi = asi;
-  dci_out.maddress = address;
-  dci_out.eaddress = address;
-  dci_out.edata = *data;
+  dtmp.asi = asi;
+  dtmp.maddress = address;
+  dtmp.eaddress = address;
+  dtmp.edata = *data;
 
   switch (length) {
 
-    case 1: dci_out.size = 0;
+    case 1: dtmp.size = 0;
       break;
-    case 2: dci_out.size = 1;
+    case 2: dtmp.size = 1;
       break;
-    case 3: dci_out.size = 2;
+    case 3: dtmp.size = 2;
       break;
-    default: dci_out.size = 3;
+    default: dtmp.size = 3;
       break;
 
   }
 
-  dci_out.enaddr = SC_LOGIC_0;
-  dci_out.eenaddr = SC_LOGIC_0;
-  dci_out.nullify = SC_LOGIC_0;
-  dci_out.lock = (bool)lock;
-  dci_out.read = SC_LOGIC_1;
-  dci_out.write = SC_LOGIC_0;
-  dci_out.flush = (bool)flush;
-  dci_out.flushl = (bool)flushl;
-  dci_out.dsuen = SC_LOGIC_0;
-  dci_out.msu = SC_LOGIC_0;
-  dci_out.esu = SC_LOGIC_0;
-  dci_out.intack = SC_LOGIC_0;
+  dtmp.enaddr = SC_LOGIC_0;
+  dtmp.eenaddr = SC_LOGIC_0;
+  dtmp.nullify = SC_LOGIC_0;
+  dtmp.lock = (bool)lock;
+  dtmp.read = SC_LOGIC_1;
+  dtmp.write = SC_LOGIC_0;
+  dtmp.flush = (bool)flush;
+  dtmp.flushl = (bool)flushl;
+  dtmp.dsuen = SC_LOGIC_0;
+  dtmp.msu = SC_LOGIC_0;
+  dtmp.esu = SC_LOGIC_0;
+  dtmp.intack = SC_LOGIC_0;
 
-  // write to icache
-  dci.write(dci_out);
+  // data to signal
+  dval.write(dtmp);
 
-  dci_read_request_pending = true;
-
-  wait(dcache_ready);
-
-  *data = dhrdata_reg;
-    
+  // wait for instruction cycle to be finished
+  wait(cache_ready);
+  
 }
 
 void cpu_lt_rtl_adapter::dwrite(unsigned int address, unsigned int * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock) {
 
-  wait(1,SC_PS);
+  dcache_in_type dtmp;
 
-  dcache_in_type dci_out;
-
-  dci_out.asi = asi;
-  dci_out.maddress = address;
-  dci_out.eaddress = address;
-  dci_out.edata = *data;
+  dtmp.asi = asi;
+  dtmp.maddress = address;
+  dtmp.eaddress = address;
+  dtmp.edata = *data;
 
   switch (length) {
 
-    case 1: dci_out.size = 0;
+    case 1: dtmp.size = 0;
       break;
-    case 2: dci_out.size = 1;
+    case 2: dtmp.size = 1;
       break;
-    case 3: dci_out.size = 2;
+    case 3: dtmp.size = 2;
       break;
-    default: dci_out.size = 3;
+    default: dtmp.size = 3;
       break;
 
   }
 
-  dci_out.enaddr = SC_LOGIC_1;
-  dci_out.eenaddr = SC_LOGIC_1;
-  dci_out.nullify = SC_LOGIC_0;
-  dci_out.lock = dcio_lock;
-  dci_out.read = SC_LOGIC_0;
-  dci_out.write = SC_LOGIC_1;
-  dci_out.flush = (bool)flush;
-  dci_out.flushl = (bool)flushl;
-  dci_out.dsuen = SC_LOGIC_0;
-  dci_out.msu = SC_LOGIC_0;
-  dci_out.esu = SC_LOGIC_0;
-  dci_out.intack = SC_LOGIC_0;
+  dtmp.enaddr = SC_LOGIC_1;
+  dtmp.eenaddr = SC_LOGIC_1;
+  dtmp.nullify = SC_LOGIC_0;
+  dtmp.lock = (bool)lock;
+  dtmp.read = SC_LOGIC_0;
+  dtmp.write = SC_LOGIC_1;
+  dtmp.flush = (bool)flush;
+  dtmp.flushl = (bool)flushl;
+  dtmp.dsuen = SC_LOGIC_0;
+  dtmp.msu = SC_LOGIC_0;
+  dtmp.esu = SC_LOGIC_0;
+  dtmp.intack = SC_LOGIC_0;
 
-  // write to dcache
-  dci.write(dci_out);
+  // data to signal
+  dval.write(dtmp);
 
-  dci_write_request_pending = true;
-
-  wait(dcache_ready);
+  // wait for instruction cycle to be finished
+  wait(cache_ready);
       
 }
 

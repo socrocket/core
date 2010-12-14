@@ -42,7 +42,7 @@ int sc_main(int argc, char** argv) {
   mmu_cache_wrapper mmu_cache("mmu_cache","work.mmu_cache_wrapper");  
 
   // create rtl_ct adapter
-  CAHB_RTL_CT ahb_rtl_ct("ahb_rtl_ct",0, 10000); 
+  CAHB_RTL_CT ahb_rtl_ct("ahb_rtl_ct",0, 0x10000); 
 
   // create memory
   ahb_slave < 32 > ahb_mem("ahb_mem", 0, 0x10000, true);
@@ -57,9 +57,6 @@ int sc_main(int argc, char** argv) {
   sc_core::sc_signal< icache_out_type> i_ico("i_ico");
   tb.ico(i_ico);
   mmu_cache.ico(i_ico);
-
-  sc_core::sc_signal< icache_out_type> test("test");
-  tb.ico_buf_out(test);
 
   sc_signal<dcache_in_type> i_dci("i_dci");
   tb.dci(i_dci);
