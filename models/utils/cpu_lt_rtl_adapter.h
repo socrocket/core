@@ -52,6 +52,11 @@ class cpu_lt_rtl_adapter : public sc_module {
   // transactor thread
   void cache_transactor();
 
+  // capture thread
+  void data_capture();
+
+  void start_of_simulation();
+
   /// Constructor
   SC_HAS_PROCESS(cpu_lt_rtl_adapter);
   cpu_lt_rtl_adapter(sc_core::sc_module_name name) :
@@ -76,12 +81,22 @@ class cpu_lt_rtl_adapter : public sc_module {
     SC_THREAD(cache_transactor);
     sensitive << clk.pos() << ival << dval << ico << dco << rst;
 
+    // capture thread
+    SC_THREAD(data_capture);
+    sensitive << clk.pos() << ico << dco << rst;
+
   }
 
  private:
 
   sc_signal<icache_in_type> ival;
   sc_signal<dcache_in_type> dval;
+
+  unsigned int data;
+  unsigned int instr;
+
+  bool data_mds;
+  bool instr_mds;
 
   sc_event cache_ready;
   
