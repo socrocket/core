@@ -52,8 +52,8 @@
 
 CAPB_CT_RTL::CAPB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base,
                          sc_dt::uint64 size) :
-    sc_module(nm), clk("CLOCK"), rst(&APB_CT_RTL::onreset, "RESET"), apbo(
-            "apbo"), apbi("apbi"), pirqi(&APB_CT_RTL::onirq, "GR_IRQ_IN"),
+    sc_module(nm), clk("CLOCK"), rst("RESET"), apbo(
+            "apbo"), apbi("apbi"), pirqi("GR_IRQ_IN"),
             pirqo("GR_IRQ_OUT"), pconfig_0("GR_CONFIG_0"), pconfig_1(
                     "GR_CONFIG_1"), pindex("GR_INDEX"), m_psel("APB_SELECT"),
             m_penable("APB_ENABLE"), m_pwrite("APB_WRITE"), m_paddr(
@@ -64,15 +64,15 @@ CAPB_CT_RTL::CAPB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base,
     ct.m_clk(clk);
     ct.m_Reset(m_reset);
     m_reset = 1;
-    ct.psel(m_psel);
-    ct.penable(m_penable);
-    ct.pwrite(m_pwrite);
-    ct.paddr(m_paddr);
-    ct.pwdata(m_pwdata);
-    ct.pready(m_pready);
+    ct.m_psel(m_psel);
+    ct.m_penable(m_penable);
+    ct.m_pwrite(m_pwrite);
+    ct.m_paddr(m_paddr);
+    ct.m_pwdata(m_pwdata);
+    ct.m_pready(m_pready);
     m_pready = 1;
-    ct.prdata(m_prdata);
-    ct.pslverr(m_pslverr);
+    ct.m_prdata(m_prdata);
+    ct.m_pslverr(m_pslverr);
     m_pslverr = 0;
 
     SC_THREAD(apbo_ctrl);

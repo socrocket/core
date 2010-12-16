@@ -48,6 +48,8 @@
 #include <systemc.h>
 #include <amba.h>
 #include <adapters/APB_CT_RTL_Slave_Adapter.h>
+#include "mctrl_sc_wrapper.h"
+#include "ahbctrl_sc_wrapper.h"
 #include "signalkit.h"
 
 /// @addtogroup utils
@@ -95,16 +97,16 @@ class CAPB_CT_RTL : public sc_module, public signalkit::signal_module<
 
         SC_HAS_PROCESS( CAPB_CT_RTL);
         sc_core::sc_in_clk clk;
-        signal<bool>::in rst;
+        sc_core::sc_in<bool> rst;
 
         sc_core::sc_in<apb_slv_out_type> apbo;
         sc_core::sc_out<apb_slv_in_type> apbi;
 
-        signal<uint32_t>::in pirqi;
-        signal<uint32_t>::out pirqo;
-        signal<uint32_t>::out pconfig_0;
-        signal<uint32_t>::out pconfig_1;
-        signal<uint16_t>::out pindex;
+        sc_core::sc_in<uint32_t>         pirqi;
+        sc_core::sc_out<uint32_t>        pirqo;
+        sc_core::sc_out<uint32_t>        pconfig_0;
+        sc_core::sc_out<uint32_t>        pconfig_1;
+        sc_core::sc_out<uint16_t>        pindex;
 
     private:
         // Internal Signals to rerout the RTL Signals form the AMBA Adapter to the GRLIB format.

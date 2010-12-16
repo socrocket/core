@@ -60,7 +60,7 @@ int sc_main(int argc, char** argv) {
     const int paddr = 0x0;
     const int pmask = 0xFFF;
     const int wprot = 0;
-    const int srbanks = 5;
+    const int srbanks = 5; //4
     const int ram8 = 0;
     const int ram16 = 0;
     const int sepbus = 0;
