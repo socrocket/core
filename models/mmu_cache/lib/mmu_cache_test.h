@@ -47,6 +47,7 @@
 
 #include <tlm.h>
 #include <ostream>
+#include <ctime>
 
 #if defined(MTI_SYSTEMC) || defined(NO_INCLUDE_PATHS)
 #include "simple_initiator_socket.h"
@@ -79,7 +80,17 @@ class mmu_cache_test : public sc_core::sc_module {
                     "instruction_initiator_socket"), data_initiator_socket(
                     "data_initiator_socket") {
         }
-        ;
+
+	// locals
+	// ------
+	
+	// system time for simulation accuracy measurement
+	sc_core::sc_time phase_systime_start;
+	sc_core::sc_time phase_systime_end;
+
+	// realtime clock for simulation performance measurement
+	clock_t phase_realtime_start;
+	clock_t phase_realtime_end;
 
         // member functions
         // ----------------
@@ -205,6 +216,36 @@ class mmu_cache_test : public sc_core::sc_module {
             // suspend and burn the time
             wait(t);
 
+        }
+
+	/// Use this function to record system time and realtime at the beginning of a test phase
+	void phase_start_timing() {
+
+	  phase_systime_start = sc_core::sc_time_stamp();
+	  phase_realtime_start = std::clock();
+
+	}
+
+	// Use this function to record system time and realtime at the end of a test phase
+	void phase_end_timing() {
+
+	  phase_systime_end = sc_core::sc_time_stamp();
+	  phase_realtime_end = std::clock();
+	
+        }
+
+	// Returns the difference between phase_systime_end and phase_systime_start
+	sc_core::sc_time phase_systime() {
+
+	  return(phase_systime_end - phase_systime_start);
+
+	}
+
+	// Returns the difference between phase_realtime_end and phase_realtime_start in seconds.
+	double phase_realtime() {
+
+	  return((phase_realtime_end - phase_realtime_start)/(double)CLOCKS_PER_SEC);
+	
         }
 
 };
