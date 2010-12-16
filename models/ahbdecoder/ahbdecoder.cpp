@@ -196,8 +196,10 @@ tlm::tlm_sync_enum CAHBDecoder::nb_transport_fw(uint32_t id, tlm::tlm_generic_pa
 
          // Requested slave is busy, spawn a new thread waiting to execute the
          // request
+         // Create a new phase argument, since it's life time seems to end with termination of nb_tranport
+         tlm::tlm_phase* newPhase = new tlm::tlm_phase(phase);
          sc_core::sc_spawn(sc_bind(&CAHBDecoder::queuedTrans, this, id, index, sc_ref(gp),
-                           sc_ref(phase), sc_ref(delay)));
+                           sc_ref(*newPhase), sc_ref(delay)));
 
          // Request is queued. Return state to requesting master.
          phase = tlm::END_REQ;
@@ -257,8 +259,8 @@ tlm::tlm_sync_enum CAHBDecoder::nb_transport_bw(uint32_t id, tlm::tlm_generic_pa
 
 void CAHBDecoder::queuedTrans(const uint32_t mstID, const uint32_t slvID,
                               tlm::tlm_generic_payload& gp,
-                              tlm::tlm_phase &phase,
-                              sc_core::sc_time &delay) {
+                              tlm::tlm_phase& phase,
+                              sc_core::sc_time& delay) {
 
    tlm::tlm_sync_enum returnValue;
 

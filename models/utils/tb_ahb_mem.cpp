@@ -76,7 +76,9 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
                     amba::amba_AHB, // bus type
                     ambaLayer, // abstraction level
                     false // is arbiter
-            ), ahbBaseAddress(static_cast<uint32_t> (hmask_ & haddr_) << 20),
+            ),
+            peq("peq"),
+            ahbBaseAddress(static_cast<uint32_t> (hmask_ & haddr_) << 20),
             ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1), hmask(
                     static_cast<uint32_t> (hmask_ << 20)), haddr(
                     static_cast<uint32_t> (haddr_ << 20)) {
@@ -91,10 +93,12 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
     }
 
     if(ambaLayer==amba::amba_AT) {
-      ahb.register_nb_transport_fw(this, &Ctb_ahb_mem::nb_transport_fw, 1);
+      ahb.register_nb_transport_fw(this, &Ctb_ahb_mem::nb_transport_fw);
     }
 
     ahb.register_transport_dbg(this, &Ctb_ahb_mem::transport_dbg);
+
+    SC_THREAD(processTXN);
 
     if(infile != NULL) {
         readmem(infile, addr);
@@ -186,73 +190,114 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
 tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generic_payload& gp,
                                                 tlm::tlm_phase& phase, sc_core::sc_time& delay) {
 
-    assert(delay==sc_core::SC_ZERO_TIME);
+    // Answer request immediately if possible
+    if(phase==tlm::BEGIN_REQ) {
 
-    // Check address for before doing anything else
-    if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
-        // warn if access exceeds slave memory region
-        if((gp.get_address() + gp.get_data_length()) >
-           (ahbBaseAddress + ahbSize)) {
-            v::warn << name() << "Transaction exceeds slave memory region"
-                    << endl;
-        }
+       // Check address for before doing anything else
+       if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
+           // warn if access exceeds slave memory region
+           if((gp.get_address() + gp.get_data_length()) >
+              (ahbBaseAddress + ahbSize)) {
+               v::warn << name() << "Transaction exceeds slave memory region"
+                       << endl;
+           }
 
-        // if a byte enable array is present its length must not be zero
-        unsigned char *byteEnablePtr  = gp.get_byte_enable_ptr();
-        unsigned int byteEnableLength = gp.get_byte_enable_length();
-        assert((byteEnableLength != 0) || (byteEnablePtr == NULL));
+           // if a byte enable array is present its length must not be zero
+           unsigned char *byteEnablePtr  = gp.get_byte_enable_ptr();
+           unsigned int byteEnableLength = gp.get_byte_enable_length();
+           assert((byteEnableLength != 0) || (byteEnablePtr == NULL));
 
-        switch(gp.get_command()) {
-            // Read command
-            case tlm::TLM_READ_COMMAND:
-                if(byteEnablePtr != NULL) {
-                    // Use byte enable
-                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                        if(byteEnablePtr[i % byteEnableLength]
-                                == TLM_BYTE_ENABLED) {
-                            *(gp.get_data_ptr() + i)
-                                    = mem[gp.get_address() + i];
-                        }
-                    }
-                } else {
-                    // no byte enable
-                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                        *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
-                    }
-                }
-                gp.set_response_status(tlm::TLM_OK_RESPONSE);
-                break;
+           switch(gp.get_command()) {
+               // Read command
+               case tlm::TLM_READ_COMMAND:
+                   if(byteEnablePtr != NULL) {
+                       // Use byte enable
+                       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+                           if(byteEnablePtr[i % byteEnableLength]
+                                   == TLM_BYTE_ENABLED) {
+                               *(gp.get_data_ptr() + i)
+                                       = mem[gp.get_address() + i];
+                           }
+                       }
+                   } else {
+                       // no byte enable
+                       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+                           *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
+                       }
+                   }
+                   gp.set_response_status(tlm::TLM_OK_RESPONSE);
+                   break;
 
-                // Write command
-            case tlm::TLM_WRITE_COMMAND:
-                if(byteEnablePtr != NULL) {
-                    // Use byte enable
-                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                        if(byteEnablePtr[i % byteEnableLength]
-                                == TLM_BYTE_ENABLED) {
-                            mem[gp.get_address() + i]
-                                    = *(gp.get_data_ptr() + i);
-                        }
-                    }
-                } else {
-                    // no byte enable
-                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                        mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
-                    }
-                }
-                gp.set_response_status(tlm::TLM_OK_RESPONSE);
-                break;
+                   // Write command
+               case tlm::TLM_WRITE_COMMAND:
+                   if(byteEnablePtr != NULL) {
+                       // Use byte enable
+                       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+                           if(byteEnablePtr[i % byteEnableLength]
+                                   == TLM_BYTE_ENABLED) {
+                               mem[gp.get_address() + i]
+                                       = *(gp.get_data_ptr() + i);
+                           }
+                       }
+                   } else {
+                       // no byte enable
+                       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+                           mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
+                       }
+                   }
+                   gp.set_response_status(tlm::TLM_OK_RESPONSE);
+                   break;
 
-            // Neither read nor write command
-            default:
-                v::warn << name() << "Received unknown command." << endl;
-                gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-                break;
-        }
-    } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
+               // Neither read nor write command
+               default:
+                   v::warn << name() << "Received unknown command." << endl;
+                   gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+                   break;
+           }
+       } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
 
+       if(delay == sc_core::SC_ZERO_TIME) {
+          return tlm::TLM_COMPLETED;
+       } else {
+          peq.notify(gp, delay);
+          return tlm::TLM_ACCEPTED;
+       }
+    } else if(phase==tlm::END_RESP) {
+       // TODO notify waiting thread
+       e_continueTXN.notify();
+       return tlm::TLM_COMPLETED;
+    }
+    
+    v::warn << name() << "Invalid phase received." << endl;
+    gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
     return tlm::TLM_COMPLETED;
+
 }  // tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw()
+
+void Ctb_ahb_mem::processTXN() {
+
+   sc_core::sc_event& e_newTXN = peq.get_event();
+   tlm::tlm_generic_payload* gp;
+   tlm::tlm_phase phase;
+   sc_core::sc_time delay;
+
+   while(1) {
+      // wait for TXN emerge from queue
+      wait(e_newTXN);
+      gp = peq.get_next_transaction();
+      while(gp != NULL) {
+         phase = tlm::BEGIN_RESP;
+         delay = sc_core::SC_ZERO_TIME;
+
+         if(ahb->nb_transport_bw(*gp, phase, delay) == tlm::TLM_ACCEPTED) {
+            wait(e_continueTXN);
+         }
+
+         // get next TXN
+         gp = peq.get_next_transaction();
+      }
+   }
+}
 
 /// Method to initialize memory contents from a text file
 int Ctb_ahb_mem::readmem(const char infile_[], uint32_t addr) {

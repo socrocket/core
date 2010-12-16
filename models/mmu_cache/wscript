@@ -160,34 +160,3 @@ def build(bld):
     uselib       = 'SYSC TLM2 AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
-
-  bld(
-    target       = 'mmucache.test2',
-    features     = 'cxx cprogram test',
-    source       = ['test2/testbench.cpp',
-                    'test2/sim_model/main.cpp'],
-    includes     = '.',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
-  )    
-
-  bld(
-    features     = 'modelsim test',
-    target       = 'mmucache_ref_test2',
-    name         = 'mmucache.test2_ct_ref',
-    source       = ['test2/sim_ref_tlm/typ_adapters.vhd',
-                    'test2/sim_ref_tlm/mmu_cache_wrapper.vhd',
-                    '../../common/verbose.cpp',
-                    '../utils/grlibdevice.cpp',
-                    '../utils/ahb_rtl_ct.cpp',
-                    './lib/icio_payload_extension.cpp',
-                    './lib/dcio_payload_extension.cpp',
-                    '../utils/cpu_lt_rtl_adapter.cpp',
-                    'test2_ref/testbench_ct.cpp',
-                    'test2_ref/main_ct.cpp'],
-    uselib       = 'AMBA GREENSOCS AMBAMEM',
-    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = './ ./test2_ref ./lib ../utils ../../../signalkit ../../common',
-    config       =  vsim_conf,
-  )
-

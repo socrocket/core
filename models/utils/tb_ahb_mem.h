@@ -46,14 +46,15 @@
 #include <systemc.h>
 #include <tlm.h>
 #include <map>
-#include "amba.h"
+#include <amba.h>
+#include "tlm_utils/peq_with_get.h"
 #include "grlibdevice.h"
 
 class Ctb_ahb_mem : public sc_module, public amba_slave_base {
 
     public:
         /// Constructor
-        SC_HAS_PROCESS( Ctb_ahb_mem);
+        SC_HAS_PROCESS(Ctb_ahb_mem);
         /// @brief Constructor for the test bench memory class
         /// @param haddr AHB address of the AHB slave socket (12 bit)
         /// @param hmask AHB address mask (12 bit)
@@ -123,6 +124,11 @@ class Ctb_ahb_mem : public sc_module, public amba_slave_base {
         std::map<uint32_t, uint8_t> mem;
         /// Method to convert ascii chars into their binary represenation
         uint8_t char2nibble(const char *ch) const;
+
+        void processTXN();
+
+        sc_core::sc_event e_continueTXN;
+        tlm_utils::peq_with_get<tlm::tlm_generic_payload> peq;
 
         /// AHB slave base address and size
         const uint32_t ahbBaseAddress;
