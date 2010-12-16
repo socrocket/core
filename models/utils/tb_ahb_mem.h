@@ -71,7 +71,7 @@ class Ctb_ahb_mem : public sc_module, public amba_slave_base {
         // AMBA pnp devices
         CGrlibDevice pnpahb;
 
-        // AMBA master socket
+        /// AMBA slave socket
         amba::amba_slave_socket<32, 0> ahb;
 
         /// @brief Method to read memory contents from a text file
@@ -93,7 +93,7 @@ class Ctb_ahb_mem : public sc_module, public amba_slave_base {
         tlm::tlm_sync_enum nb_transport_fw(unsigned int id, tlm::tlm_generic_payload& gp,
                                            tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
-        // TLM debug interface
+        /// TLM debug interface
         unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);
 
         /// @brief Delete memory content
@@ -125,9 +125,18 @@ class Ctb_ahb_mem : public sc_module, public amba_slave_base {
         /// Method to convert ascii chars into their binary represenation
         uint8_t char2nibble(const char *ch) const;
 
+        /// Thread processign transactions when they emerge from the PEQ
         void processTXN();
 
+        /// @brief Method executing read/write commands
+        /// @param gp Generic payload object to process
+        /// @return 0 When read/write executed, 1 on unknown command
+        bool execCmd(tlm::tlm_generic_payload& gp);
+
         sc_core::sc_event e_continueTXN;
+
+        /// Payload event queue. Transactions accompanied with a non-zero
+        /// delay argument are queued here in case of AT abstraction level.
         tlm_utils::peq_with_get<tlm::tlm_generic_payload> peq;
 
         /// AHB slave base address and size

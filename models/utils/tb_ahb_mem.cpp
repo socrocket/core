@@ -101,7 +101,7 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
     SC_THREAD(processTXN);
 
     if(infile != NULL) {
-        readmem(infile, addr);
+      readmem(infile, addr);
     }
 } // End constructor
 
@@ -125,63 +125,13 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
                     << endl;
         }
 
-        // if a byte enable array is present its length must not be zero
-        unsigned char *byteEnablePtr  = gp.get_byte_enable_ptr();
-        unsigned int byteEnableLength = gp.get_byte_enable_length();
-        assert((byteEnableLength != 0) || (byteEnablePtr == NULL));
-
-        switch(gp.get_command()) {
-            // Read command
-            case tlm::TLM_READ_COMMAND:
-                // wait to make sure data is available
-                wait(delay);
-                delay = sc_core::SC_ZERO_TIME;
-                if (byteEnablePtr != NULL) {
-                    // Use byte enable
-                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                        if(byteEnablePtr[i % byteEnableLength]
-                                == TLM_BYTE_ENABLED) {
-                            *(gp.get_data_ptr() + i)
-                                    = mem[gp.get_address() + i];
-                        }
-                    }
-                } else {
-                    // no byte enable
-                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                        *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
-                    }
-                }
-                gp.set_response_status(tlm::TLM_OK_RESPONSE);
-                break;
-
-                // Write command
-            case tlm::TLM_WRITE_COMMAND:
-                // wait to make sure data is not available to early
-                wait(delay);
-                delay = sc_core::SC_ZERO_TIME;
-                if(byteEnablePtr != NULL) {
-                    // Use byte enable
-                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                        if (byteEnablePtr[i % byteEnableLength]
-                                == TLM_BYTE_ENABLED) {
-                            mem[gp.get_address() + i]
-                                    = *(gp.get_data_ptr() + i);
-                        }
-                    }
-                } else {
-                    // no byte enable
-                    for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                        mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
-                    }
-                }
-                gp.set_response_status(tlm::TLM_OK_RESPONSE);
-                break;
-
-            // Neither read or write command
-            default:
-                v::warn << name() << "Received unknown command." << endl;
-                gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-                break;
+        wait(delay);
+        delay = sc_core::SC_ZERO_TIME;
+        if(!execCmd(gp)) {
+           gp.set_response_status(tlm::TLM_OK_RESPONSE);
+        } else {
+           v::warn << name() << "Received unknown command." << endl;
+           gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
         }
     } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
 } // void Ctb_ahb_mem::b_transport()
@@ -190,9 +140,8 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
 tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generic_payload& gp,
                                                 tlm::tlm_phase& phase, sc_core::sc_time& delay) {
 
-    // Answer request immediately if possible
+    // New Request
     if(phase==tlm::BEGIN_REQ) {
-
        // Check address for before doing anything else
        if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
            // warn if access exceeds slave memory region
@@ -202,68 +151,23 @@ tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generi
                        << endl;
            }
 
-           // if a byte enable array is present its length must not be zero
-           unsigned char *byteEnablePtr  = gp.get_byte_enable_ptr();
-           unsigned int byteEnableLength = gp.get_byte_enable_length();
-           assert((byteEnableLength != 0) || (byteEnablePtr == NULL));
-
-           switch(gp.get_command()) {
-               // Read command
-               case tlm::TLM_READ_COMMAND:
-                   if(byteEnablePtr != NULL) {
-                       // Use byte enable
-                       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                           if(byteEnablePtr[i % byteEnableLength]
-                                   == TLM_BYTE_ENABLED) {
-                               *(gp.get_data_ptr() + i)
-                                       = mem[gp.get_address() + i];
-                           }
-                       }
-                   } else {
-                       // no byte enable
-                       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                           *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
-                       }
-                   }
-                   gp.set_response_status(tlm::TLM_OK_RESPONSE);
-                   break;
-
-                   // Write command
-               case tlm::TLM_WRITE_COMMAND:
-                   if(byteEnablePtr != NULL) {
-                       // Use byte enable
-                       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                           if(byteEnablePtr[i % byteEnableLength]
-                                   == TLM_BYTE_ENABLED) {
-                               mem[gp.get_address() + i]
-                                       = *(gp.get_data_ptr() + i);
-                           }
-                       }
-                   } else {
-                       // no byte enable
-                       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                           mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
-                       }
-                   }
-                   gp.set_response_status(tlm::TLM_OK_RESPONSE);
-                   break;
-
-               // Neither read nor write command
-               default:
-                   v::warn << name() << "Received unknown command." << endl;
-                   gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-                   break;
+           // Complete transcation
+           if(delay == sc_core::SC_ZERO_TIME) {
+              if(!execCmd(gp)) {
+                 gp.set_response_status(tlm::TLM_OK_RESPONSE);
+              } else {
+                 v::warn << name() << "Received unknown command." << endl;
+                 gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+              }
+              return tlm::TLM_COMPLETED;
+           // or queue until delay passed by
+           } else {
+              peq.notify(gp, delay);
+              return tlm::TLM_ACCEPTED;
            }
        } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
-
-       if(delay == sc_core::SC_ZERO_TIME) {
-          return tlm::TLM_COMPLETED;
-       } else {
-          peq.notify(gp, delay);
-          return tlm::TLM_ACCEPTED;
-       }
     } else if(phase==tlm::END_RESP) {
-       // TODO notify waiting thread
+       // notify waiting thread
        e_continueTXN.notify();
        return tlm::TLM_COMPLETED;
     }
@@ -274,6 +178,8 @@ tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generi
 
 }  // tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw()
 
+/// Thread processing transactions when they emerge from the payload event
+/// queue
 void Ctb_ahb_mem::processTXN() {
 
    sc_core::sc_event& e_newTXN = peq.get_event();
@@ -289,6 +195,12 @@ void Ctb_ahb_mem::processTXN() {
          phase = tlm::BEGIN_RESP;
          delay = sc_core::SC_ZERO_TIME;
 
+         if(!execCmd(*gp)) {
+            gp->set_response_status(tlm::TLM_OK_RESPONSE);
+         } else {
+            v::warn << name() << "Received unknown command." << endl;
+            gp->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+         }
          if(ahb->nb_transport_bw(*gp, phase, delay) == tlm::TLM_ACCEPTED) {
             wait(e_continueTXN);
          }
@@ -297,6 +209,54 @@ void Ctb_ahb_mem::processTXN() {
          gp = peq.get_next_transaction();
       }
    }
+}
+
+/// Method executing read/write commands
+bool Ctb_ahb_mem::execCmd(tlm::tlm_generic_payload& gp) {
+
+   // if a byte enable array is present its length must not be zero
+   unsigned char *byteEnablePtr  = gp.get_byte_enable_ptr();
+   unsigned int byteEnableLength = gp.get_byte_enable_length();
+   assert((byteEnableLength != 0) || (byteEnablePtr == NULL));
+
+   if(gp.is_read()) {
+      // Exec read command
+      if(byteEnablePtr != NULL) {
+          // Use byte enable
+          for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+              if(byteEnablePtr[i % byteEnableLength]
+                      == TLM_BYTE_ENABLED) {
+                  *(gp.get_data_ptr() + i)
+                          = mem[gp.get_address() + i];
+              }
+          }
+      } else {
+          // no byte enable
+          for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+              *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
+          }
+      }
+      return 0;
+   } else {
+      // Exec write command
+      if(byteEnablePtr != NULL) {
+          // Use byte enable
+          for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+              if (byteEnablePtr[i % byteEnableLength]
+                      == TLM_BYTE_ENABLED) {
+                  mem[gp.get_address() + i]
+                          = *(gp.get_data_ptr() + i);
+              }
+          }
+      } else {
+          // no byte enable
+          for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+              mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
+          }
+      }
+      return 0;
+   }
+   return 1;
 }
 
 /// Method to initialize memory contents from a text file
