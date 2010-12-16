@@ -150,7 +150,7 @@ class vini_task(Task.Task):
   before = ['vcom', 'vlog', 'vsim_before', 'vsim_after', 'sccom', 'sclink']
   quiet = True
   def __str__(self):
-      return "vini: string -> %s" % (self.outputs[0].name())
+      return "vini: string -> %s" % (self.outputs[0].name)
     
   def run(self):
       from ConfigParser import ConfigParser
@@ -179,7 +179,7 @@ def vlib_task_str(self):
 vlib_task.__str__ = vlib_task_str
 
 # Task to execute a do script before any other work on the target is done
-vsim_before  = Task.simple_task_type('vsim_before', '${VSIM} ${_VSIMFLAGS} ${_VSIMBEFORE}', color='RED', after=['vlib'], before=['vcom', 'vlog', 'sccom'], vars=['VSIM', '_VSIMFLAGS', '_VSIMBEFORE'])
+vsim_before  = Task.simple_task_type('vsim_before', '${VSIM} ${_VSIMFLAGS} ${_VSIMBEFORE}', color='RED', after=['vlib', 'vinit'], before=['vcom', 'vlog', 'sccom'], vars=['VSIM', '_VSIMFLAGS', '_VSIMBEFORE'])
 
 #Task to execute a do stript after all other work is done on the target
 vsim_after   = Task.simple_task_type('vsim_after',  '${VSIM} ${_VSIMFLAGS} ${_VSIMAFTER}', color='RED', after=['vcom', 'vlog', 'sccom', 'sclink'], vars=['VSIM', '_VSIMFLAGS', '_VSIMAFTER'])
@@ -189,7 +189,7 @@ vsim_before.__str__ = vsim_task_str
 vsim_after.__str__ = vsim_task_str
 
 # Task to compile vhdl files
-vcom_task  = Task.simple_task_type('vcom', '${VCOM} ${_VCOMFLAGS} ${SRC}', color='GREEN', before='cxx', ext_in=".vhd", vars=['VCOM', '_VCOMFLAGS'])
+vcom_task  = Task.simple_task_type('vcom', '${VCOM} ${_VCOMFLAGS} ${SRC}', color='GREEN', before='sccom', ext_in=".vhd", vars=['VCOM', '_VCOMFLAGS'])
 vcom_task.quiet = True
 vcom_task.nocache = True
 def vcom_task_str(self):
@@ -200,7 +200,7 @@ def vcom_task_str(self):
 vcom_task.__str__ = vcom_task_str
 
 # task to compile v files
-vlog_task  = Task.simple_task_type('vlog', '${VLOG} ${_VLOGFLAGS} ${SRC}', color='GREEN', before='cxx', ext_in=".v", vars=['VLOG', '_VLOGFLAGS'])
+vlog_task  = Task.simple_task_type('vlog', '${VLOG} ${_VLOGFLAGS} ${SRC}', color='GREEN', before='sccom', ext_in=".v", vars=['VLOG', '_VLOGFLAGS'])
 vlog_task.quiet = True
 vlog_task.nocache = True
 def vlog_task_str(self):
@@ -253,11 +253,12 @@ def modelsim(self):
      vini task as well as dobefore and doafter tasks if needed
   """
   # cxx hack replaces the cpp routine
-  setattr(self,modelsim_sccom.__name__,modelsim_sccom)
-  self.mappings['.cpp']=modelsim_sccom
+  setattr(self,modelsim_sccom.__name__, modelsim_sccom)
+  self.mappings['.cpp'] = modelsim_sccom
 
   if not Options.options.modelsim:
     return
+  
   self.env = self.env.derive()
   self.env["_VCOMFLAGS"]     = list(self.env["VCOMFLAGS"])
   self.env["_VLOGFLAGS"]     = list(self.env["VLOGFLAGS"])
@@ -345,7 +346,7 @@ def modelsim(self):
     tsk.path = self.path.get_bld().abspath()
     tsk.target = self.target
     tsk.config = self.path.find_resource(self.config) or self.config
-    tsk.set_run_after(vlib)
+    #tsk.set_run_after(vlib)
     ini = tgt.get_bld().abspath()
     self.inifile = ini
     self.env["_VSIMFLAGS"] += ['-modelsimini', ini]
