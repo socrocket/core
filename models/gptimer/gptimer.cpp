@@ -66,10 +66,17 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
     tick("TICK"), irq("IRQ"), wdog("WDOG"), 
     conf_defaults((gsepirq << 8) | ((gpirq & 0xF) << 3) | (ntimers & 0x7)), 
     lasttime(0, sc_core::SC_NS), lastvalue(0), 
-    clockcycle(10.0, sc_core::SC_NS) {
+    clockcycle(10.0, sc_core::SC_NS),
+    sbits(gsbits),
+    nbits(gnbits) {
 
+
+    assert("gsbits has to be between 1 and 32" && gsbits > 0 && gsbits < 33);
+    assert("gnbits has to be between 1 and 32" && gnbits > 0 && gnbits < 33);
+    assert("ntimers has to be between 1 and 7" && ntimers > 0 && ntimers < 8);
+    assert("gwdog has to be between 0 and 2^nbits-1" && gwdog >= 0 && gwdog < (1ULL << gnbits));
     // Display APB slave information
-    v::info << name << "APB slave @0x" << hex << v::setw(8)
+    v::info << this->name() << "APB slave @0x" << hex << v::setw(8)
             << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex
             << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
             << endl;
@@ -80,8 +87,8 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                       0x00,                // offset
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
                       gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      0xFFFFFFFF,          // init value
-                      (2 << (gsbits)) - 1, // write mask
+                      static_cast<unsigned int>((1ULL << gsbits) - 1), // init value
+                      static_cast<unsigned int>((1ULL << gsbits) - 1), // write mask
                       // sbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s.
                       32,                  // Register width. Maximum register with is 32bit sbit must be less than 32.
                       0x00                 // Lock Mask: Not implementet has to be zero.
@@ -91,7 +98,7 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                       0x04, // offset
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |      // config
                       gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      0xFFFFFFFF,                                       // init value
+                      static_cast<unsigned int> ((1ULL << gsbits) - 1), // init value
                       static_cast<unsigned int> ((1ULL << gsbits) - 1), // write mask
                       // sbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s.
                       32,                                               // register width
@@ -103,7 +110,7 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
                       gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
                       conf_defaults,                               // init value
-                      0x00003FFF,                                  // write mask
+                      0x00000200,                                  // write mask
                       32,                                          // register width
                       0x00                                         // lock mask
     );
@@ -285,14 +292,14 @@ void CGPTimer::scaler_write() {
 
 // Callback for configuration register. Updates the content before reads.
 void CGPTimer::conf_read() {
-    r[CONF] = (r[CONF] & 0x0000030) | (conf_defaults & 0x0000000F);
+    r[CONF] = (r[CONF] & 0x0000200) | (conf_defaults & 0x000000FF);
 }
 
 // Calback for the rst signal. Resets the module on true.
 void CGPTimer::do_reset(const bool &value, const sc_core::sc_time &time) {
     if (!value) {
-        r[SCALER] = 0xFFFFFFFF;
-        r[SCRELOAD] = 0xFFFFFFFF;
+        r[SCALER] = static_cast<unsigned int> ((1ULL << sbits) - 1);
+        r[SCRELOAD] = static_cast<unsigned int> ((1ULL << sbits) - 1);
         r[CONF] = conf_defaults;
         lastvalue = 0;
         tick = 0;

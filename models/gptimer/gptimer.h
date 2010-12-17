@@ -233,7 +233,9 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
         ///
         int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b,
                                  int counter, sc_core::sc_time cycletime);
-        
+       
+        const uint32_t sbits;
+        const uint32_t nbits;
       // Register Value Offsets, Masks and Bits
         /// Scaler Value Register Address
         static const uint32_t SCALER = 0x00;
@@ -251,12 +253,12 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
 
         /// Returns Counter Reload Register Address for Counter nr
         static const uint32_t RELOAD(uint8_t nr) {
-            return TIM_AHB_BASE + 0x10 * (nr + 1) + 0x4;
+            return 0x10 * (nr + 1) + 0x4;
         }
 
         /// Returns Counter Control Register Address for Counter nr
         static const uint32_t CTRL(uint8_t nr) {
-            return TIM_AHB_BASE + 0x10 * (nr + 1) + 0x8;
+            return 0x10 * (nr + 1) + 0x8;
         }
 
         /// Position of the Bit in the Scaler Configuration Register

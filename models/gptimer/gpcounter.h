@@ -53,7 +53,6 @@
 #include "greencontrol/all.h"
 #include "signalkit.h"
 
-#include "gptimerregisters.h"
 #include "grlibdevice.h"
 
 #include <string>

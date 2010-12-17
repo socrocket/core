@@ -110,6 +110,27 @@ def build(bld):
     uselib          = 'SYSC TLM2 AMBA GREENSOCS',
     use             = 'common signalkit utils'
   )
+  
+  bld(
+    target       = 'gptimer.1.test',
+    features     = 'cxx cprogram test',
+    source       = ['tests/test1/top_tlm.cpp',
+                    'tests/test1/testbench.cpp'],
+    includes     = '. tests/test1',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    use          = 'gptimer utils signalkit common',
+  )
+
+  bld(
+    target       = 'gptimer.2.test',
+    features     = 'cxx cprogram test',
+    source       = ['tests/test2/top_tlm.cpp',
+                    'tests/test2/testbench.cpp'],
+    includes     = '. tests/test2',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    use          = 'gptimer utils signalkit common',
+  )
+
   #bld(
   #  target       = 'speed.gptimer',
   #  features     = 'cxx cprogram test',
@@ -122,7 +143,7 @@ def build(bld):
 
   bld(
     features     = 'modelsim',
-    target       = 'work',
+    target       = 'modlesim_gptimer_register_test',
     name         = 'gptimer_wrapper',
     generate     = 'gptimer_wrapper:gptimer_wrapper.h',
     source       = ['tests/gptimer_wrapper.vhd',
