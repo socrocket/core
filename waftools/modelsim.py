@@ -426,7 +426,7 @@ fi
 
 params=${params} $@
 
-${VSIM} -modelsimini %(ini)s ${params} %(entry)s -do 'run;exit'
+${VSIM} -modelsimini %(ini)s ${params} %(entry)s -do 'run -all;exit'
 """
 
 #@TaskGen.extension('.cpp')
