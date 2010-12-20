@@ -45,6 +45,55 @@
 # Reviewed:
 #*********************************************************************
 top = '..'
+vsim_conf = """
+[Library]
+modelsim = $GRLIB_TECH
+grlib = $GRLIB_TECH/grlib
+unisim = $GRLIB_TECH/unisim
+dw02 = $GRLIB_TECH/dw02
+synplify = $GRLIB_TECH/synplify
+techmap = $GRLIB_TECH/techmap
+spw = $GRLIB_TECH/spw
+eth = $GRLIB_TECH/eth
+opencores = $GRLIB_TECH/opencores
+gaisler = $GRLIB_TECH/gaisler
+esa = $GRLIB_TECH/esa
+micron = $GRLIB_TECH/micron
+vsys = $GRLIB_TECH/vsys
+std = $MODEL_TECH/../std
+ieee = $MODEL_TECH/../ieee
+vital2000 = $MODEL_TECH/../vital2000
+verilog = $MODEL_TECH/../verilog
+std_developerskit = $MODEL_TECH/../std_developerskit
+synopsys = $MODEL_TECH/../synopsys
+work = %(path)s/%(target)s
+
+[vcom]
+VHDL93 = 1
+Show_source = 1
+Show_Warning1 = 0
+Show_Warning5 = 0
+Quiet = 1
+
+[vlog]
+Quiet = 1
+
+[vsim]
+VoptFlow = 0
+Resolution = 1ps
+UserTimeUnit = ns
+RunLength = 100
+IterationLimit = 5000
+BreakOnAssertion = 3
+DefaultRadix = symbolic
+TranscriptFile = transcript.txt
+PathSeparator = /
+UnbufferedOutput = 0
+
+[lmc]
+libsm = $MODEL_TECH/libsm.sl
+libhm = $MODEL_TECH/libhm.sl
+"""
 
 def options(ctx): 
   pass
@@ -72,4 +121,20 @@ def build(bld):
     use          = 'mctrl utils signalkit common'
     #use          = 'common signalkit utils mctrl'
   )
+
+  bld(
+    features     = 'modelsim',
+    target       = 'mctrl.test.conf001_cosim',
+    name         = 'mctrl.test.conf001.cosim',
+    source       = ['../../../../../../../../group/socrocket/original_ip/grlib-gpl-1.0.21-b3848/lib/contrib/sram32.vhd',
+                    '../../common/verbose.cpp',
+                    '../utils/ct-mst2rtl-ahb.cpp',
+                    './test/mem_type_converter.cpp',
+                    './test/conf001/mctrl_tb.cpp',
+                    './test/conf001/cosim/mctrl_top.cpp'],
+    uselib       = 'AMBA GREENSOCS AMBAMEM',
+    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+    includes     = './ ./test ../utils ../../signalkit ../../common',
+    config       =  vsim_conf,
+  )  
 
