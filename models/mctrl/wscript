@@ -99,7 +99,7 @@ def options(ctx):
   pass
 
 def configure(ctx):
-  pass
+  ctx.env["VCOMFLAGS"] += ["-87", "-explicit"]
 
 def build(bld):
   bld(
@@ -127,6 +127,7 @@ def build(bld):
     target       = 'mctrl.test.conf001_cosim',
     name         = 'mctrl.test.conf001.cosim',
     source       = ['../../../../../../../../group/socrocket/original_ip/grlib-gpl-1.0.21-b3848/lib/contrib/sram32.vhd',
+                    '../../../../../../../../group/socrocket/original_ip/grlib-gpl-1.0.21-b3848/lib/contrib/amba/ahbctrl.vhd',
                     '../../common/verbose.cpp',
                     '../utils/ct-mst2rtl-ahb.cpp',
                     './test/mem_type_converter.cpp',
