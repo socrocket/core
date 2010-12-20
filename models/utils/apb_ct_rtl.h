@@ -191,8 +191,10 @@ void CAPB_CT_RTL::apbo_ctrl() {
         if (!pirqo == val.pirq) {
             pirqo.write(val.pirq);
         }
+        wait();
     }
 }
+
 
 void CAPB_CT_RTL::apbi_ctrl() {
     while (1) {
