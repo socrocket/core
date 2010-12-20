@@ -49,6 +49,7 @@
 #include <amba.h>
 #include <adapters/APB_CT_RTL_Slave_Adapter.h>
 #include "signalkit.h"
+#include "gaisler_record_types.h"
 
 /// @addtogroup utils
 /// @{
@@ -170,7 +171,7 @@ CAPB_CT_RTL::CAPB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base,
 
     SC_THREAD(apbi_ctrl);
     sensitive << m_psel << m_penable << m_paddr << m_pwrite << m_pwdata
-            << m_irqi;
+            << m_irqi;  
 }
 
 void CAPB_CT_RTL::onreset(const bool &value, 
@@ -190,6 +191,24 @@ void CAPB_CT_RTL::apbo_ctrl() {
         if (!pirqo == val.pirq) {
             pirqo.write(val.pirq);
         }
-/// @}
+    }
+}
+
+void CAPB_CT_RTL::apbi_ctrl() {
+    while (1) {
+        apb_slv_in_type val;
+        val.psel = ((bool)m_psel.read())? 0xFFFF : 0x0;
+        val.penable = m_penable.read();
+        val.paddr = m_paddr.read();
+        val.pwrite = m_pwrite.read();
+        val.pwdata = m_pwdata.read();
+        val.pirq = m_irqi.read();
+        val.testen = false;
+        val.scanen = false;
+        val.testoen = false;
+        apbi.write(val);
+        wait();
+    }
+}
 
 #endif
