@@ -77,7 +77,8 @@ def options(ctx):
   gso = ctx.add_option_group("GreenSoCs Configuration Options")
   gso.add_option("--greensocs", dest="greensocs_home", help="Basedir of your GreenSoCs instalation", default=environ.get("GREENSOCS_HOME",""))
   gso.add_option("--amba", dest="amba_home", help="Basedir of your AMBAKit distribution", default=environ.get("AMBA_HOME",""))
-  gso.add_option("--grlib", dest="grlib_home", help="Basedir of your grlib distribution", default=environ.get("GRLIB",""))
+  gso.add_option("--grlib_home", dest="grlib_home", help="Basedir of your grlib distribution", default=environ.get("GRLIB_HOME",""))
+  gso.add_option("--grlib_tech", dest="grlib_tech", help="Basedir of your modelsim grlib work libraries", default=environ.get("GRLIB_TECH",""))
 
   from waftools.common import get_subdirs
   ctx.recurse(get_subdirs(top))
@@ -93,6 +94,8 @@ def configure(ctx):
   ctx.env['CPPFLAGS'] += ['-D_REENTRANT',
                           '-DUSE_STATIC_CASTS',
                           '-DSC_INCLUDE_DYNAMIC_PROCESSES']
+  ctx.env['GRLIB_HOME'] = options.grlib_home
+  ctx.env['GRLIB_TECH'] = options.grlib_tech
 
   ctx.check_tool('compiler_cxx')
   ctx.find_program('doxygen', var='DOXYGEN', mandatory=False, okmsg="ok")

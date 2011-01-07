@@ -276,6 +276,24 @@ def modelsim(self):
   self.env["_VSIMFLAGS"] += ['-c', '-lib', 'work']
   self.env["_SCLINKFLAGS"] += ['-work', 'work']
     
+  if hasattr(self, "vcomflags"):
+    self.env["_VCOMFLAGS"] += Utils.to_list(self.vcomflags)
+
+  if hasattr(self, "vsimflags"):
+    self.env["_VSIMFLAGS"] += Utils.to_list(self.vsimflags)
+
+  if hasattr(self, "vlogflags"):
+    self.env["_VLOGFLAGS"] += Utils.to_list(self.vlogflags)
+
+  if hasattr(self, "sccomflags"):
+    self.env["_SCCOMFLAGS"] += Utils.to_list(self.sccomflags)
+
+  if hasattr(self, "sclinkflags"):
+    self.env["_SCLINKFLAGS"] += Utils.to_list(self.sclinkflags)
+
+  if hasattr(self, "scgenmodflags"):
+    self.env["_SCGENMODFLAGS"] += Utils.to_list(self.scgenmodflags)
+
   # Collect sccom flags from defines includes and uselib
   if hasattr(self, "defines"):
     for define in Utils.to_list(self.defines):

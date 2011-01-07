@@ -42,8 +42,8 @@
 // Reviewed:
 //*********************************************************************
 
-#ifndef APB_CT_RTL_ADAPTER
-#define APB_CT_RTL_ADAPTER
+#ifndef AHB_CT_RTL_ADAPTER
+#define AHB_CT_RTL_ADAPTER
 
 #include <systemc.h>
 #include <amba.h>
