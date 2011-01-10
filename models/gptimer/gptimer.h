@@ -76,7 +76,7 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
         signal<bool>::in dhalt;
         signal<uint8_t>::out tick;
         signal<uint32_t>::out irq;
-        signal<uint32_t>::out wdog;
+        signal<bool>::out wdog;
 
         /// Stores the default config register value
         /// TODO: Might be deprecated.

@@ -98,6 +98,9 @@ def configure(ctx):
   ctx.env['VLOGFLAGS'] = ['-quiet']
   ctx.find_sc_dir()
 
+def targetdir(target):
+  return target.replace('.', '_')
+
 FIND_SC_DIR_CODE = """
 #include <systemc.h>
 
@@ -164,7 +167,7 @@ class vini_task(Task.Task):
       
       for sec in read.sections():
         write.add_section(sec)
-        for key, val in read.items(sec, False, {"root": self.root, "path" : self.path, "target": self.target}):
+        for key, val in read.items(sec, False, {"root": self.root, "path" : self.path, "target": targetdir(self.target)}):
           write.set(sec, key, val)
 
       with open(oname, 'wb') as configfile:
@@ -334,7 +337,7 @@ def modelsim(self):
       #  self.env["VLINKFLAGS"] += ['-l%s' % lib]
    
   # Create vlib task on target
-  workdir = self.path.find_or_declare(self.target)
+  workdir = self.path.find_or_declare(targetdir(self.target))
   vlib = self.create_task('vlib', tgt=[workdir])
   vlib.target = self.target
 
@@ -419,6 +422,7 @@ def modelsim_vcom(self, node):
     tsk = self.create_task('vcom', [node])
     tsk.target = self.target
     if tsks:
+      print tsks
       tsk.run_after.add(tsks[-1])
   
     tsk.dep_nodes += self.mdeps
@@ -459,15 +463,15 @@ def modelsim_sccom(self, node):
   """Create a sccom_task on each cpp file and create a system c link task as well"""
   if 'modelsim' in self.features and Options.options.modelsim:
     tsks = [n for n in self.tasks if getattr(n, 'name', None) == 'sccom']
-    tgt = self.path.find_or_declare('%s/_sc/%s/%s' % (self.target, self.env['VSIM_SC_DIR'], os.path.splitext(node.name)[0]+'.o'))
+    tgt = self.path.find_or_declare('%s/_sc/%s/%s' % (targetdir(self.target), self.env['VSIM_SC_DIR'], os.path.splitext(node.name)[0]+'.o'))
     tsk = self.create_task('sccom', [node], [tgt])
     tsk.target = self.target
     if tsks:
       #tsk.run_after.add(tsks[-1])
       self.link_task.inputs.append(tgt)
     else:
-      lib = self.path.find_or_declare('%s/_sc/%s/%s' % (self.target, self.env['VSIM_SC_DIR'], 'systemc.so'))
-      self.link_task = self.create_task('sclink', [tgt], [self.path.find_or_declare(self.target + '.sh'), lib])
+      lib = self.path.find_or_declare('%s/_sc/%s/%s' % (targetdir(self.target), self.env['VSIM_SC_DIR'], 'systemc.so'))
+      self.link_task = self.create_task('sclink', [tgt], [self.path.find_or_declare(self.target), lib])
       self.link_task.target = self.target
       self.link_task.exec_script = VSIM_FAKE_EXEC
       self.link_task.inifile = self.inifile

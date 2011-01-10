@@ -126,6 +126,7 @@ def build(bld):
     features     = 'modelsim test',
     generate     = 'gptimer_wrapper:tests/test1/gptimer_wrapper.h',
     source       = ['tests/gptimer_wrapper.vhd',
+                    'tests/test1/testbench.cpp',
                     'tests/test1/top_rtl.cpp',
                     '../../common/verbose.cpp'],
     uselib       = 'AMBA GREENSOCS',
@@ -155,7 +156,7 @@ def build(bld):
 
   bld(
     features     = 'modelsim',
-    target       = 'modlesim_gptimer_register_test',
+    target       = 'modlesim.gptimer.register.test',
     name         = 'gptimer_wrapper',
     generate     = 'gptimer_wrapper:gptimer_wrapper.h',
     source       = ['tests/gptimer_wrapper.vhd',

@@ -170,7 +170,6 @@ def build(bld):
                     'test1/sim_ref/mmu_cache_wrapper.vhd',
                     '../../common/verbose.cpp',
                     '../utils/grlibdevice.cpp',
-                    '../utils/ahb_rtl_ct.cpp',
                     './lib/icio_payload_extension.cpp',
                     './lib/dcio_payload_extension.cpp',
                     '../utils/cpu_lt_rtl_adapter.cpp',
@@ -178,7 +177,7 @@ def build(bld):
                     'test1/sim_ref/main.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
     defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = './ ./test1 ./test1/sim_ref ./lib ../utils ../../../signalkit ../../common',
+    includes     = './ ./test1 ./test1/sim_ref ./lib ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )  
 
@@ -200,7 +199,6 @@ def build(bld):
                     'test2/sim_ref/mmu_cache_wrapper.vhd',
                     '../../common/verbose.cpp',
                     '../utils/grlibdevice.cpp',
-                    '../utils/ahb_rtl_ct.cpp',
                     './lib/icio_payload_extension.cpp',
                     './lib/dcio_payload_extension.cpp',
                     '../utils/cpu_lt_rtl_adapter.cpp',
@@ -208,7 +206,7 @@ def build(bld):
                     'test2/sim_ref/main.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
     defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = './ ./test2 ./test2/sim_ref ./lib ../utils ../../../signalkit ../../common',
+    includes     = './ ./test2 ./test2/sim_ref ./lib ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )    
 

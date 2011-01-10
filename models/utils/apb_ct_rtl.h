@@ -68,8 +68,7 @@
 ///>          pconfig_0/1  pindex
 ///>          Device mapper output
 ///
-class CAPB_CT_RTL : public sc_module, public signalkit::signal_module<
-        CAPB_CT_RTL> {
+class CAPB_CT_RTL : public sc_module, public signalkit::signal_module<CAPB_CT_RTL> {
     public:
         /// A small subclass wich wraps the core functionality inhireted by amba::APB_CT_RTL_Slave_Adapter
         /// It has knowledge about addressdecoding and translates between the TLM Port and RTL Signals.

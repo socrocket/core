@@ -124,7 +124,7 @@ def build(bld):
     use          = 'mctrl utils signalkit common'
     #use          = 'common signalkit utils mctrl'
   )
-  print bld.path.get_bld().abspath()
+
   bld(
     features     = 'modelsim',
     target       = 'mctrl.test001.cosim',
