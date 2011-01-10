@@ -92,8 +92,8 @@ class cpu_lt_rtl_adapter : public sc_module {
   sc_signal<icache_in_type> ival;
   sc_signal<dcache_in_type> dval;
 
-  unsigned int data;
-  unsigned int instr;
+  unsigned int hdl_data;
+  unsigned int hdl_instr;
 
   bool data_mds;
   bool instr_mds;

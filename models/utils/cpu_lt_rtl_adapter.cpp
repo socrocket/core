@@ -1,3 +1,48 @@
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      cpu_lt_rtl_adapter.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Implementation of cpu_lt_rtl_adapter.
+//             
+//
+// Method:
+//
+// Modified on $Date: 2010-10-07 19:25:02 +0200 (Thu, 07 Oct 2010) $
+//          at $Revision $
+//          by $Author: HWSWSIM $
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
+
 #include "cpu_lt_rtl_adapter.h"
 
 // TLM forward transport function for icio socket
@@ -78,7 +123,7 @@ void cpu_lt_rtl_adapter::data_capture() {
 	// instruction strobe
 	if (ico.read().mds == SC_LOGIC_0) {
 
-	  instr = ico.read().data[0].to_uint();
+	  hdl_instr = ico.read().data[0].to_uint();
 	  instr_mds = true;
 
         }
@@ -86,7 +131,7 @@ void cpu_lt_rtl_adapter::data_capture() {
 	// data strobe
 	if (dco.read().mds == SC_LOGIC_0) {
 
-	  data = dco.read().data[0].to_uint();
+	  hdl_data = dco.read().data[0].to_uint();
 	  data_mds = true;
 
 	}
@@ -130,13 +175,13 @@ void cpu_lt_rtl_adapter::cache_transactor() {
 
 	    if (!instr_mds) {
 	    
-	      instr = ico.read().data[0].to_uint();
+	      hdl_instr = ico.read().data[0].to_uint();
 
 	    }
 
 	    if (!data_mds) {
 
-	      data = dco.read().data[0].to_uint();
+	      hdl_data = dco.read().data[0].to_uint();
 
 	    }
 
@@ -159,7 +204,7 @@ void cpu_lt_rtl_adapter::iread(unsigned int address, unsigned int * data, unsign
   // make sure we are behind posedge clock
   wait(1,SC_PS);
 
-  instr = 0;
+  hdl_instr = 0;
   instr_mds = 0;
 
   itmp.rpc = address;
@@ -180,7 +225,7 @@ void cpu_lt_rtl_adapter::iread(unsigned int address, unsigned int * data, unsign
   wait(cache_ready);
 
   // data to tlm
-  *data = instr;
+  *data = hdl_instr;
 
   // reset to default
   itmp.rpc = 0;
@@ -203,8 +248,8 @@ void cpu_lt_rtl_adapter::dread(unsigned int address, unsigned int * data, unsign
 
   dcache_in_type dtmp;
 
-  data = 0;
-  instr_mds = 0;
+  hdl_data = 0;
+  data_mds = 0;
 
   // make sure we are behind posedge clock
   wait(1,SC_PS);
@@ -212,23 +257,31 @@ void cpu_lt_rtl_adapter::dread(unsigned int address, unsigned int * data, unsign
   dtmp.asi = asi;
   dtmp.maddress = address;
   dtmp.eaddress = address;
-  dtmp.edata = *data;
 
+  dtmp.edata = 0;
+
+  // The RTL model expects the length parameter
+  // not as the number of bytes.
   switch (length) {
 
+    // byte
     case 1: dtmp.size = 0;
       break;
+    // short
     case 2: dtmp.size = 1;
       break;
-    case 3: dtmp.size = 2;
+    // word
+    case 4: dtmp.size = 2;
       break;
-    default: dtmp.size = 3;
+    // dword
+    case 8: dtmp.size = 3;
       break;
-
+    default: dtmp.size = 2;
+      v::warn << " Invalid access size " << length << v::endl;
   }
 
-  dtmp.enaddr = SC_LOGIC_0;
-  dtmp.eenaddr = SC_LOGIC_0;
+  dtmp.enaddr = SC_LOGIC_1;
+  dtmp.eenaddr = SC_LOGIC_1;
   dtmp.nullify = SC_LOGIC_0;
   dtmp.lock = (bool)lock;
   dtmp.read = SC_LOGIC_1;
@@ -247,7 +300,7 @@ void cpu_lt_rtl_adapter::dread(unsigned int address, unsigned int * data, unsign
   wait(cache_ready);
 
   // data to tlm
-  *data = instr;
+  *data = hdl_data;
 
   // reset to default
   dtmp.asi = 0xb;
@@ -269,8 +322,7 @@ void cpu_lt_rtl_adapter::dread(unsigned int address, unsigned int * data, unsign
   dtmp.intack = SC_LOGIC_0;
 
   dval.write(dtmp);
-
-  
+ 
 }
 
 void cpu_lt_rtl_adapter::dwrite(unsigned int address, unsigned int * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock) {
@@ -285,14 +337,20 @@ void cpu_lt_rtl_adapter::dwrite(unsigned int address, unsigned int * data, unsig
   dtmp.eaddress = address;
   dtmp.edata = *data;
 
+  // The RTL model expects the length parameter
+  // not as the number of bytes.
   switch (length) {
 
+    // byte
     case 1: dtmp.size = 0;
       break;
+    // short
     case 2: dtmp.size = 1;
       break;
+    // word
     case 4: dtmp.size = 2;
       break;
+    // dword
     case 8: dtmp.size = 3;
       break;
     default: dtmp.size = 2;

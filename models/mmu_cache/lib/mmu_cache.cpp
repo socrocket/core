@@ -138,9 +138,7 @@ void mmu_cache::icio_custom_b_transport(tlm::tlm_generic_payload& tran,
     tlm::tlm_command cmd = tran.get_command();
     sc_dt::uint64 adr = tran.get_address();
     unsigned char* ptr = tran.get_data_ptr();
-    unsigned int len = tran.get_data_length();
-    // unsigned char*   byt = tran.get_byte_enable_ptr();
-    // unsigned int     wid = tran.get_streaming_width();
+    //unsigned int len = tran.get_data_length();
 
     // extract extension
     icio_payload_extension * iext;
@@ -152,12 +150,12 @@ void mmu_cache::icio_custom_b_transport(tlm::tlm_generic_payload& tran,
         // instruction scratchpad enabled && address points into selecte 16MB region
         if (m_ilram && (((adr >> 24) & 0xff) == m_ilramstart)) {
 
-            ilocalram->read((unsigned int)adr, ptr, len, &delay, debug);
+            ilocalram->read((unsigned int)adr, ptr, 4, &delay, debug);
 
             // instruction cache access
         } else {
 
-            icache->mem_read((unsigned int)adr, ptr, len, &delay, debug);
+            icache->mem_read((unsigned int)adr, ptr, 4, &delay, debug);
             //v::info << name() << "ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr << v::endl;
         }
     } else if (cmd == tlm::TLM_WRITE_COMMAND) {
@@ -177,9 +175,10 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
     sc_dt::uint64 adr = tran.get_address();
     unsigned char* ptr = tran.get_data_ptr();
     unsigned int len = tran.get_data_length();
-    // unsigned char*   byt = tran.get_byte_enable_ptr();
-    // unsigned int     wid = tran.get_streaming_width();
 
+    // internally
+    len = (unsigned int)pow(2, len);
+    
     // extract extension
     dcio_payload_extension * dext;
     tran.get_extension(dext);
