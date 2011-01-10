@@ -115,9 +115,11 @@ def build(bld):
 
   bld(
     features     = 'cxx cprogram test',
-    source       = 'mctrl_testtop_tlm.cpp mctrl_tb.cpp',
-    target       = 'mctrl.test',
-    includes     = '.',
+    target       = 'mctrl.test001.systemc',
+    source       = ['../../common/verbose.cpp',
+                    './test/conf001/mctrl_tb.cpp',
+                    './test/conf001/systemc/mctrl_top.cpp'],
+    includes     = './ ./test ../utils ../../signalkit ../../common',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
     #use          = 'common signalkit utils mctrl'
