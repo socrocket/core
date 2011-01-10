@@ -50,7 +50,6 @@
 #include <amba.h>
 //#include <adapters/APB_CT_RTL_Slave_Adapter.h>
 #include <adapters/AHB_Master_CT_RTL_Adapter.h>
-#include "gaisler_record_types.h"
 
 /// @addtogroup utils Model Utils
 /// @{

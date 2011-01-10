@@ -49,7 +49,6 @@
 #include <amba.h>
 #include <adapters/APB_CT_RTL_Slave_Adapter.h>
 #include "signalkit.h"
-#include "gaisler_record_types.h"
 
 /// @addtogroup utils
 /// @{

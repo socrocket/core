@@ -48,7 +48,6 @@
 #include <systemc.h>
 #include <amba.h>
 #include <adapters/AHB_CT_RTL_Slave_Adapter.h>
-#include "gaisler_record_types.h"
 
 /// @addtogroup utils Model Utils
 /// @{
