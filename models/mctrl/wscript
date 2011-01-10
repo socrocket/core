@@ -130,8 +130,6 @@ def build(bld):
     target       = 'mctrl.test001.cosim',
     source       = [os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/sram32.vhd'), bld.path.get_src().abspath()),
                     '../../common/verbose.cpp',
-                    '../utils/ct-ahb2rtl-slv.cpp',
-                    './test/mem_type_converter.cpp',
                     './test/conf001/mctrl_tb.cpp',
                     './test/conf001/cosim/mctrl_top.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
