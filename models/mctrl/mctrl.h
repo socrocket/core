@@ -149,6 +149,13 @@ class Mctrl : public gs::reg::gr_device,
         // TLM debug interface
         unsigned int transport_dbg(tlm::tlm_generic_payload& gp);
 
+        //management of the clock cycle length, required for delay calculation
+        sc_core::sc_time cycle_time; //variable to store the clock period
+        //Three functions to set the clockcycle length.
+        void clk(sc_core::sc_clock &clk);   //gets the clock period from an sc_clk instance
+        void clk(sc_core::sc_time &period); //gets the clock period from an sc_time variable
+        void clk(double period, sc_core::sc_time_unit base); //directly gets the clock period and time unit
+
     private:
         //address space variables
         uint32_t rom_bk1_s, rom_bk1_e, rom_bk2_s, rom_bk2_e, io_s, io_e,
@@ -184,6 +191,33 @@ class Mctrl : public gs::reg::gr_device,
         const int mobile;
         const int sden;
     public:
+        //delay definitions (in clock cycles)
+        static const uint32_t DECODING_DELAY = 1;
+        static const uint32_t MCTRL_ROM_READ_DELAY(uint8_t wstates) {
+           //data1, data2, lead-out
+            return(3+wstates);
+        }
+        static const uint32_t MCTRL_ROM_WRITE_DELAY(uint8_t wstates) {
+           //lead-in, data, lead-out
+            return(3+wstates);
+        }
+        static const uint32_t MCTRL_IO_READ_DELAY(uint8_t wstates) {
+            //lead-in, data1, data2, lead-out
+            return(4+wstates);
+        }
+        static const uint32_t MCTRL_IO_WRITE_DELAY(uint8_t wstates) {
+            //lead-in, data, lead-out
+            return(3+wstates);
+        }
+        static const uint32_t MCTRL_SRAM_READ_DELAY(uint8_t wstates) {
+            //data1, data2, lead-out
+            return(3+wstates);
+        }
+        static const uint32_t MCTRL_SRAM_WRITE_DELAY(uint8_t wstates) {
+            //lead-in, data, lead-out
+            return(3+wstates);
+        }
+
         //---constant bit masks for APB register access
 
         //register address offset
@@ -193,16 +227,16 @@ class Mctrl : public gs::reg::gr_device,
         static const uint32_t MCTRL_MCFG4 = 0x0C;
 
         //memory configuration register 1
-        static const uint32_t MCTRL_MCFG1_WRITE_MASK = 0x1FF00BFF;
-        static const uint32_t MCTRL_MCFG1_IOBUSW = 0x18000000;
-        static const uint32_t MCTRL_MCFG1_IBRDY = 0x04000000;
-        static const uint32_t MCTRL_MCFG1_BEXCN = 0x02000000;
+        static const uint32_t MCTRL_MCFG1_WRITE_MASK =    0x1FE808FF;
+        static const uint32_t MCTRL_MCFG1_IOBUSW =        0x18000000;
+        static const uint32_t MCTRL_MCFG1_IBRDY =         0x04000000;
+        static const uint32_t MCTRL_MCFG1_BEXCN =         0x02000000;
         static const uint32_t MCTRL_MCFG1_IO_WAITSTATES = 0x01E00000;
-        static const uint32_t MCTRL_MCFG1_IOEN = 0x00100000;
-        static const uint32_t MCTRL_MCFG1_PWEN = 0x00000800;
-        static const uint32_t MCTRL_MCFG1_PROM_WIDTH = 0x00000300;
+        static const uint32_t MCTRL_MCFG1_IOEN =          0x00080000;
+        static const uint32_t MCTRL_MCFG1_PWEN =          0x00000800;
+        static const uint32_t MCTRL_MCFG1_PROM_WIDTH =    0x00000300;
         static const uint32_t MCTRL_MCFG1_PROM_WRITE_WS = 0x000000F0;
-        static const uint32_t MCTRL_MCFG1_PROM_READ_WS = 0x0000000F;
+        static const uint32_t MCTRL_MCFG1_PROM_READ_WS =  0x0000000F;
 
     //memory configuration register 2
     static const uint32_t MCTRL_MCFG2_WRITE_MASK      = 0xFFD07EFF;
@@ -242,17 +276,17 @@ class Mctrl : public gs::reg::gr_device,
         //---register default values
 
         //memory configuration register 1
-        static const uint32_t MCTRL_MCFG1_IOBUSW_DEFAULT = 0x10000000;
-        static const uint32_t MCTRL_MCFG1_IBRDY_DEFAULT = 0x00000000;
-        static const uint32_t MCTRL_MCFG1_BEXCN_DEFAULT = 0x00000000;
-        static const uint32_t MCTRL_MCFG1_IO_WAITSTATES_DEFAULT = 0x00F00000;
-        static const uint32_t MCTRL_MCFG1_IOEN_DEFAULT = 0x00080000;
-        static const uint32_t MCTRL_MCFG1_PWEN_DEFAULT = 0x00000800;
-        static const uint32_t MCTRL_MCFG1_PROM_WIDTH_DEFAULT = 0x00000200;
+        static const uint32_t MCTRL_MCFG1_IOBUSW_DEFAULT =        0x00000000;
+        static const uint32_t MCTRL_MCFG1_IBRDY_DEFAULT =         0x00000000;
+        static const uint32_t MCTRL_MCFG1_BEXCN_DEFAULT =         0x00000000;
+        static const uint32_t MCTRL_MCFG1_IO_WAITSTATES_DEFAULT = 0x00000000;
+        static const uint32_t MCTRL_MCFG1_IOEN_DEFAULT =          0x00000000;
+        static const uint32_t MCTRL_MCFG1_PWEN_DEFAULT =          0x00000000;
+        static const uint32_t MCTRL_MCFG1_PROM_WIDTH_DEFAULT =    0x00000000;
         static const uint32_t MCTRL_MCFG1_PROM_WRITE_WS_DEFAULT = 0x000000F0;
-        static const uint32_t MCTRL_MCFG1_PROM_READ_WS_DEFAULT = 0x0000000F;
+        static const uint32_t MCTRL_MCFG1_PROM_READ_WS_DEFAULT =  0x0000000F;
         //                                                      +
-        static const uint32_t MCTRL_MCFG1_DEFAULT = 0x10F80AFF;
+        static const uint32_t MCTRL_MCFG1_DEFAULT =               0x000000FF;
 
     //memory configuration register 2
     static const uint32_t MCTRL_MCFG2_SDRF_DEFAULT            = 0x80000000;

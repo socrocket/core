@@ -45,18 +45,6 @@
 
 #include "mctrl.h"
 
-//should be defined somewhere else
-#define BUS_CLOCK_CYCLE 10
-
-//delay definitions (in clock cycles)
-#define DECODING_DELAY 1
-#define MCTRL_ROM_READ_DELAY(wstates) 3+wstates   //data1, data2, lead-out
-#define MCTRL_ROM_WRITE_DELAY(wstates) 3+wstates  //lead-in, data, lead-out
-#define MCTRL_IO_READ_DELAY(wstates) 4+wstates    //lead-in, data1, data2, lead-out
-#define MCTRL_IO_WRITE_DELAY(wstates) 3+wstates   //lead-in, data, lead-out
-#define MCTRL_SRAM_READ_DELAY(wstates) 3+wstates  //data1, data2, lead-out
-#define MCTRL_SRAM_WRITE_DELAY(wstates) 3+wstates //lead-in, data, lead-out
-
 //constructor
 Mctrl::Mctrl(sc_core::sc_module_name name, int _romasel, int _sdrasel,
              int _romaddr, int _rommask, int _ioaddr, int _iomask,
@@ -87,7 +75,7 @@ Mctrl::Mctrl(sc_core::sc_module_name name, int _romasel, int _sdrasel,
             apb( //greenreg_socket
                     "apb", //name
                     r, //register container
-                    (_paddr & _pmask) << 8, //apb base address
+                    ((_paddr & _pmask) << 8), //apb base address
                     (((~_pmask & 0xfff) + 1) << 8), //apb address space size
                     ::amba::amba_APB, //bus type
                     ::amba::amba_LT, //abstraction level
@@ -145,8 +133,8 @@ Mctrl::Mctrl(sc_core::sc_module_name name, int _romasel, int _sdrasel,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
                    // init value (to be calculated from the generics for all 4 registers)
                       MCTRL_MCFG1_DEFAULT,
-                   // write mask
-                      MCTRL_MCFG1_WRITE_MASK & ((_ram8 | _ram16) << 9) ^ ((_ram8 ^ _ram16) << 8),
+                   // write mask             FIXME: check consistency if ram8, ram 16 generics vs. default and mask of PROM WIDTH field
+                      MCTRL_MCFG1_WRITE_MASK,// | ((_ram8 | _ram16) << 9) ^ ((_ram8 ^ _ram16) << 8),
                    // reg width (maximum 32 bit)
                       32,
                    // lock mask: Not implementet, has to be zero.
@@ -155,8 +143,8 @@ Mctrl::Mctrl(sc_core::sc_module_name name, int _romasel, int _sdrasel,
   r.create_register( "MCFG2", "Memory Configuration Register 2",
                       0x04,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      MCTRL_MCFG2_DEFAULT,
-                      MCTRL_MCFG2_WRITE_MASK & ((_ram8 | _ram16) << 5) ^ ((_ram8 ^ _ram16) << 4),
+                      MCTRL_MCFG2_DEFAULT,  //FIXME: check consistency if ram8, ram 16 generics vs. default and mask of RAM WIDTH field
+                      MCTRL_MCFG2_WRITE_MASK,// | ((_ram8 | _ram16) << 5) ^ ((_ram8 ^ _ram16) << 4),
                       32,
                       0x00
                    );
@@ -262,8 +250,7 @@ void Mctrl::reset_mctrl(const bool &value,
 
         //set refresh cycle and schedule first refresh
         trfc = 3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27;
-        next_refresh = sc_core::sc_time(BUS_CLOCK_CYCLE * (r[MCTRL_MCFG3].get()
-                >> 11), SC_NS);
+        next_refresh = cycle_time * (r[MCTRL_MCFG3].get() >> 11);
 
         //set default values of mobile SDRAM
         if (sden) {
@@ -324,7 +311,8 @@ void Mctrl::reset_mctrl(const bool &value,
         } else {
             sram_bank_size = ((4096 - rammask) / (2 * srbanks)) << 20;
         }
-std::cout << "bank size: 0x" << std::hex << std::setfill('0') << std::setw(8) << (unsigned int) sram_bank_size << std::endl;
+        v::debug << "Mctrl" << "SRAM bank size calculated from rammask and srbanks: 0x" 
+                 << std::hex << std::setfill('0') << std::setw(8) << (unsigned int) sram_bank_size << std::endl;
         //SDRAM bank size: upper half of RAM address space divided by 2 banks
         uint32_t sdram_bank_size = ((4096 - rammask) / 4) << 20;
 
@@ -338,13 +326,14 @@ std::cout << "bank size: 0x" << std::hex << std::setfill('0') << std::setw(8) <<
                 & MCTRL_MCFG2_RAM_BANK_SIZE) | (i_sdr << 23
                 & MCTRL_MCFG2_SDRAM_BANKSZ);
         r[MCTRL_MCFG2].set(set);
-std::cout << "i_sr: " << std::dec << (unsigned int) i_sr << std::endl;
+        v::debug << "Mctrl" << "Value stored to MCFG2 field 'SRAM Bank Size': 0x" << std::hex << (unsigned int) i_sr << std::endl;
 
         //SRAM bank size has to be a power of two, which is not necessarily the case here.
         //Certain combinations of rammask and srbanks might have caused odd numbers here, so
         //the SRAM bank size is re-calculated from the register values.
         sram_bank_size = 1 << ( 13 + ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_RAM_BANK_SIZE) >> 9) );
-std::cout << "bank size: 0x" << std::hex << std::setfill('0') << std::setw(8) << (unsigned int) sram_bank_size << std::endl;
+        v::debug << "Mctrl" << "SRAM bank size resulting from MCFG2: 0x"
+                 << std::hex << std::setfill('0') << std::setw(8) << (unsigned int) sram_bank_size << std::endl;
 
         //same for SDRAM bank size (in case a strange rammask value has been given)
         sdram_bank_size = 1 << ( 22 + ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_BANKSZ) >> 23) );
@@ -441,8 +430,7 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     //add delay from previously activated callbacks
     delay += callback_delay;
 
-    //prepare further delay calculation
-    sc_core::sc_time cycle_time(BUS_CLOCK_CYCLE, SC_NS);
+    //variable to count clock cycles for delay calculation
     uint8_t cycles = 0;
 
     //start of transaction (required for refresh delay and in power down mode)
@@ -841,11 +829,11 @@ void Mctrl::launch_sdram_command() {
         //               Whatever, for LT it's as simple as waiting for exactly one refresh cycle:
         //           --> The previous transaction will always have finished before the Sim Kernel takes note of this callback.
         case 2:
-            callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + MCTRL_MCFG2_SDRAM_TRFC_DEFAULT >> 30), SC_NS);
+            callback_delay += cycle_time * (3 + MCTRL_MCFG2_SDRAM_TRFC_DEFAULT >> 30);
             break;
         // Precharge: Terminate current burst transaction (no effect in LT) --> wait for tRP
         case 1:
-            callback_delay += sc_time(BUS_CLOCK_CYCLE * (2 + MCTRL_MCFG2_TRP_DEFAULT >> 29), SC_NS);
+            callback_delay += cycle_time * (2 + MCTRL_MCFG2_TRP_DEFAULT >> 29);
             break;
     }
     //clear command bits
@@ -860,8 +848,7 @@ void Mctrl::configure_sdram() {
 
     //one cycle to write the register + tRP (2+0 or 2+1) to let the changes take effect
     if (sden) {
-        callback_delay += sc_time(BUS_CLOCK_CYCLE * (3 + (r[MCTRL_MCFG2].get()
-                & MCTRL_MCFG2_TRP) >> 30), SC_NS);
+        callback_delay += cycle_time * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30);
     }
 }
 
@@ -897,9 +884,8 @@ void Mctrl::erase_sdram() {
                            2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;                 //LMR + EMR
                   cycles_after_refresh = 2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;   //LMR + EMR
             }
-            callback_delay += sc_core::sc_time(BUS_CLOCK_CYCLE * cycles, SC_NS);
-            next_refresh = sc_core::sc_time_stamp() + 
-                           sc_core::sc_time(BUS_CLOCK_CYCLE * (cycles - cycles_after_refresh + trfc), SC_NS);
+            callback_delay += cycle_time * cycles;
+            next_refresh = sc_core::sc_time_stamp() + cycle_time * (cycles - cycles_after_refresh + trfc);
             pmode = 0;
             break;
         }
@@ -924,7 +910,7 @@ void Mctrl::erase_sdram() {
                          2 * ((r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27) + 3 +  //2 * tRFC
                          2 * (3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_TRP) >> 30) ;         //LMR + EMR
             }
-            callback_delay += sc_time(BUS_CLOCK_CYCLE * cycles, SC_NS);
+            callback_delay += cycle_time * cycles;
             pmode = 2;
             uint8_t pasr = r[MCTRL_MCFG4].get() & MCTRL_MCFG4_PASR;
             if (pasr) {
@@ -1095,7 +1081,22 @@ void Mctrl::sram_calculate_bank_addresses(uint32_t sram_bank_size) {
 
 }
 
+// Function to change the refresh period
 void Mctrl::sdram_change_refresh_cycle() {
     trfc = 3 + (r[MCTRL_MCFG2].get() & MCTRL_MCFG2_SDRAM_TRFC) >> 27;
 }
 
+// Extract basic cycle rate from a sc_clock
+void Mctrl::clk(sc_core::sc_clock &clk) {
+    cycle_time = clk.period();
+}
+
+// Extract basic cycle rate from a clock period
+void Mctrl::clk(sc_core::sc_time &period) {
+    cycle_time = period;
+}
+
+// Extract basic cycle rate from a clock period in double
+void Mctrl::clk(double period, sc_core::sc_time_unit base) {
+    cycle_time = sc_core::sc_time(period, base);
+}
