@@ -95,16 +95,16 @@ class CAPB_CT_RTL : public sc_module, public signalkit::signal_module<
 
         SC_HAS_PROCESS( CAPB_CT_RTL);
         sc_core::sc_in_clk clk;
-        sc_core::sc_in<bool> rst;
+        signal<bool>::in rst;
 
         sc_core::sc_in<apb_slv_out_type> apbo;
         sc_core::sc_out<apb_slv_in_type> apbi;
 
-        sc_core::sc_in<uint32_t>         pirqi;
-        sc_core::sc_out<uint32_t>        pirqo;
-        sc_core::sc_out<uint32_t>        pconfig_0;
-        sc_core::sc_out<uint32_t>        pconfig_1;
-        sc_core::sc_out<uint16_t>        pindex;
+        signal<uint32_t>::in         pirqi;
+        signal<uint32_t>::out        pirqo;
+        signal<uint32_t>::out        pconfig_0;
+        signal<uint32_t>::out        pconfig_1;
+        signal<uint16_t>::out        pindex;
 
     private:
         // Internal Signals to rerout the RTL Signals form the AMBA Adapter to the GRLIB format.
@@ -142,15 +142,15 @@ class CAPB_CT_RTL : public sc_module, public signalkit::signal_module<
 
 CAPB_CT_RTL::CAPB_CT_RTL(sc_core::sc_module_name nm, sc_dt::uint64 base,
                          sc_dt::uint64 size) :
-    sc_module(nm), clk("CLOCK"), rst("RESET"), apbo(
-            "apbo"), apbi("apbi"), pirqi("GR_IRQ_IN"),
-            pirqo("GR_IRQ_OUT"), pconfig_0("GR_CONFIG_0"), pconfig_1(
-                    "GR_CONFIG_1"), pindex("GR_INDEX"), m_psel("APB_SELECT"),
-            m_penable("APB_ENABLE"), m_pwrite("APB_WRITE"), m_paddr(
-                    "APB_ADDRESS"), m_pwdata("APB_WRITE_DATA"), m_pready(
-                    "APB_READY"), m_prdata("APB_READ_DATA"), m_pslverr(
-                    "APB_SLAVE_ERROR"), m_reset("RESET_INTERN"), m_irqi(
-                    "IRQ_IN_INTERN"), ct("CT", base, size) {
+    sc_module(nm), clk("CLOCK"), rst(&CAPB_CT_RTL::onreset, "RESET"), 
+    apbo("apbo"), apbi("apbi"), pirqi(&CAPB_CT_RTL::onirq, "GR_IRQ_IN"),
+    pirqo("GR_IRQ_OUT"), pconfig_0("GR_CONFIG_0"), pconfig_1("GR_CONFIG_1"), 
+    pindex("GR_INDEX"), m_psel("APB_SELECT"), m_penable("APB_ENABLE"), 
+    m_pwrite("APB_WRITE"), m_paddr("APB_ADDRESS"), m_pwdata("APB_WRITE_DATA"), 
+    m_pready("APB_READY"), m_prdata("APB_READ_DATA"), 
+    m_pslverr("APB_SLAVE_ERROR"), m_reset("RESET_INTERN"), 
+    m_irqi("IRQ_IN_INTERN"), ct("CT", base, size) {
+      
     ct.m_clk(clk);
     ct.m_Reset(m_reset);
     m_reset = 1;

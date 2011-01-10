@@ -150,7 +150,7 @@ class vini_task(Task.Task):
   before = ['vcom', 'vlog', 'vsim_before', 'vsim_after', 'sccom', 'sclink']
   quiet = True
   def __str__(self):
-      return "vini: string -> %s" % (self.outputs[0].name)
+      return "vini: string -> %s\n" % (self.outputs[0].name)
     
   def run(self):
       from ConfigParser import ConfigParser
@@ -172,11 +172,18 @@ class vini_task(Task.Task):
       return 0
 
 # Task to create a modelsim work library
-vlib_task  = Task.simple_task_type('vlib', 'test -f ${TGT}/_info || vlib ${TGT}', color='BLUE', before=['vcom', 'vlog', 'sccom', 'sclink'], shell=True)
+vlib_task  = Task.simple_task_type('vlib', 'vlib ${TGT}', color='BLUE', before=['vcom', 'vlog', 'sccom', 'sclink'], shell=True)
 vlib_task.quiet = True
+
 def vlib_task_str(self):
   return "vlib: create %s ...\n" % self.target
 vlib_task.__str__ = vlib_task_str
+
+def vlib_task_runnable_status(self):
+  if os.path.exists(os.path.join(self.outputs[0].abspath(), '_info')):
+    return Task.SKIP_ME # ASK_LATER
+  return Task.RUN_ME
+vlib_task.runnable_status = vlib_task_runnable_status
 
 # Task to execute a do script before any other work on the target is done
 vsim_before  = Task.simple_task_type('vsim_before', '${VSIM} ${_VSIMFLAGS} ${_VSIMBEFORE}', color='RED', after=['vlib', 'vinit'], before=['vcom', 'vlog', 'sccom'], vars=['VSIM', '_VSIMFLAGS', '_VSIMBEFORE'])
