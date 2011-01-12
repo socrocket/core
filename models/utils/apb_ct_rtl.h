@@ -186,7 +186,7 @@ void CAPB_CT_RTL::apbo_ctrl() {
     while (1) {
         apb_slv_out_type val = apbo.read();
         m_prdata.write(val.prdata);
-        if (!pirqo == val.pirq) {
+        if (!(pirqo.read() == val.pirq)) {
             pirqo.write(val.pirq);
         }
         wait();

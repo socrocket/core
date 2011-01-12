@@ -79,7 +79,6 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
         signal<bool>::out wdog;
 
         /// Stores the default config register value
-        /// TODO: Might be deprecated.
         unsigned int conf_defaults;
 
         /// Stores the time when the value of the prescaler was known.
@@ -116,6 +115,7 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
         sc_core::sc_event e_tick;
 
         /// A vector of Counter classes, each representate an internal counter.
+        // TODO Replace by Array instanciated at construction time.
         std::vector<CGPCounter *> counter;
 
         GC_HAS_CALLBACKS();
@@ -236,6 +236,7 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
        
         const uint32_t sbits;
         const uint32_t nbits;
+        const uint32_t wdog_length;
       // Register Value Offsets, Masks and Bits
         /// Scaler Value Register Address
         static const uint32_t SCALER = 0x00;

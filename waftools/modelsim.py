@@ -99,7 +99,7 @@ def configure(ctx):
   ctx.find_sc_dir()
 
 def targetdir(target):
-  return target.replace('.', '_')
+  return target.replace('.', '_')+"_work"
 
 FIND_SC_DIR_CODE = """
 #include <systemc.h>
@@ -199,18 +199,17 @@ vsim_before.__str__ = vsim_task_str
 vsim_after.__str__ = vsim_task_str
 
 # Task to compile vhdl files
-vcom_task  = Task.simple_task_type('vcom', '${VCOM} ${_VCOMFLAGS} ${SRC}', color='GREEN', before='sccom', ext_in=".vhd", vars=['VCOM', '_VCOMFLAGS'])
+vcom_task  = Task.simple_task_type('vcom', 'date +\'%%F %%r %%s\' > ${TGT} && ${VCOM} ${_VCOMFLAGS} ${SRC[0].abspath()}', color='GREEN', shell=True, before=['scgenmod', 'sccom'], ext_in=".vhd", vars=['VCOM', '_VCOMFLAGS'])
+#vcom_task  = Task.simple_task_type('vcom', '${VCOM} ${_VCOMFLAGS} ${SRC}', color='GREEN', before=['scgenmod', 'sccom'], ext_in=".vhd", vars=['VCOM', '_VCOMFLAGS'])
 vcom_task.quiet = True
 vcom_task.nocache = True
 def vcom_task_str(self):
   ins = []
-  for inf in self.inputs:
-    ins.append(inf.name)
-  return "vcom: %s -> %s\n" % (', '.join(ins), self.target)
+  return "vcom: %s -> %s\n" % (self.inputs[0].name, self.target)
 vcom_task.__str__ = vcom_task_str
 
 # task to compile v files
-vlog_task  = Task.simple_task_type('vlog', '${VLOG} ${_VLOGFLAGS} ${SRC}', color='GREEN', before='sccom', ext_in=".v", vars=['VLOG', '_VLOGFLAGS'])
+vlog_task  = Task.simple_task_type('vlog', '${VLOG} ${_VLOGFLAGS} ${SRC}', color='GREEN', before=['scgenmod', 'sccom'], ext_in=".v", vars=['VLOG', '_VLOGFLAGS'])
 vlog_task.quiet = True
 vlog_task.nocache = True
 def vlog_task_str(self):
@@ -225,7 +224,6 @@ scgenmod_task  = Task.simple_task_type('scgenmod', '${SCGENMOD} ${_SCGENMODFLAGS
 scgenmod_task.quiet = True
 
 # task to compile systemc files
-#sccom_task = Task.simple_task_type('sccom', '${SCCOM} ${SCCOMFLAGS} ${CPPFLAGS} ${CPPFLAGS} ${CXXFLAGS} ${INCLUDES} ${SRC}', color='BLUE', ext_in=".cpp", after=['vlib', 'vcom', 'vlog', 'scgenmod'], before=['sclink'], vars=['SCCOM', 'SCCOMFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'INCLUDES'])
 sccom_task = Task.simple_task_type('sccom', '${SCCOM} ${_SCCOMFLAGS} ${SRC}', color='BLUE', ext_in=".cpp", after=['vlib', 'vcom', 'vlog', 'scgenmod'], before=['sclink'], vars=['SCCOM', '_SCCOMFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'INCLUDES'])
 sccom_task.quiet = True
 sccom_task.nocache = True
@@ -418,12 +416,12 @@ def modelsim(self):
 def modelsim_vcom(self, node):
   """Create a vcom_task on each vhd file and ensure the order"""
   if 'modelsim' in self.features and Options.options.modelsim:
+    tgt = self.path.find_or_declare(os.path.join(targetdir(self.target),node.name + ".hdo"))
     tsks = [n for n in self.tasks if n.name in ['vcom', 'vlog']]
-    tsk = self.create_task('vcom', [node])
+    tsk = self.create_task('vcom', [node], [tgt])
     tsk.target = self.target
     if tsks:
-      print tsks
-      tsk.run_after.add(tsks[-1])
+      tsk.set_inputs(tsks[-1].outputs[0])
   
     tsk.dep_nodes += self.mdeps
     
@@ -450,12 +448,17 @@ fi
 params=""
 if [ "${1}" != "--gui" ]; then
   params=-c ${params}
+  if [ "${2}" = "--wave" ]; then
+    params=${params} --do 'add wave -r sim:/sc_main/*'
+  fi
+else
   shift
 fi
 
 params=${params} $@
 
-${VSIM} -modelsimini %(ini)s ${params} %(entry)s -do 'run -all;exit'
+${VSIM} -modelsimini %(ini)s ${params} %(entry)s -do 'run -all;exit' | tee ${0}.log
+test "$(tail -n 1 ${0}.log)" = "# Result: 0"
 """
 
 #@TaskGen.extension('.cpp')

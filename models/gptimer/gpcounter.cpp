@@ -91,12 +91,11 @@ void CGPCounter::ctrl_read() {
 
 void CGPCounter::ctrl_write() {
     p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_DH] = (p.dhalt.read() != 0);
-    v::debug << name()<< "CGPTimer " << nr << " write " << v::endl;
 
     /* Clean irq if desired */
     bool old_pirq = m_pirq;
 
-    m_pirq = p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IP] and m_pirq;
+    m_pirq = p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IP];
     if (old_pirq && !m_pirq) {
         unsigned int irqnr = (p.r[CGPTimer::CONF] >> 3) & 0xF;
         if (p.r[CGPTimer::CONF].b[CGPTimer::CONF_SI]) {
@@ -168,6 +167,7 @@ void CGPCounter::chaining() {
 }
 
 void CGPCounter::ticking() {
+    unsigned int irqnr = 0;
     while (1) {
         // calculate sleep time, CGPCounter timeout
         calculate();
@@ -180,20 +180,29 @@ void CGPCounter::ticking() {
         if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IE]) {
             // p.r[CGPTimer::CTRL].b[CGPTimer::TIM_CTRL_SI] // seperatet interupts
             // APBIRQ addresse beachten -.-
-            unsigned int irqnr = (p.r[CGPTimer::CONF] >> 3) & 0xF;
+            irqnr = (p.r[CGPTimer::CONF] >> 3) & 0xF;
             v::debug << name() << "IRQ: " << irqnr << " CONF "<< hex << (uint32_t)p.r[CGPTimer::CONF] << v::endl;
             if (p.r[CGPTimer::CONF].b[CGPTimer::CONF_SI]) {
                 irqnr += nr;
             }
             p.irq.write(p.irq.read() | (1 << irqnr));
+            m_pirq = true;
+        }
+        if(p.counter.size()-1==nr && p.wdog_length!=0) {
+           p.wdog.write(true);
         }
 #ifdef DEBUGOUT
         if(p.rst) {
             p.tick.write(p.tick.read() | (1<<(nr + 1)));
         }
 #endif
-        m_pirq = true;
         wait(p.clockcycle);
+        if(m_pirq&&irqnr) {
+            p.irq.write(p.irq.read() & ~(1 << irqnr));
+        }
+        if(p.counter.size()-1==nr && p.wdog_length!=0) {
+           p.wdog.write(false);
+        }
 #ifdef DEBUGOUT
         if(p.rst) {
             p.tick.write(p.tick.read() & ~(1<<(nr + 1)));

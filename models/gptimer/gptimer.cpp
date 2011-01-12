@@ -68,13 +68,14 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
     lasttime(0, sc_core::SC_NS), lastvalue(0), 
     clockcycle(10.0, sc_core::SC_NS),
     sbits(gsbits),
-    nbits(gnbits) {
+    nbits(gnbits),
+    wdog_length(gwdog) {
 
 
     assert("gsbits has to be between 1 and 32" && gsbits > 0 && gsbits < 33);
     assert("gnbits has to be between 1 and 32" && gnbits > 0 && gnbits < 33);
     assert("ntimers has to be between 1 and 7" && ntimers > 0 && ntimers < 8);
-    assert("gwdog has to be between 0 and 2^nbits-1" && gwdog >= 0 && gwdog < (1ULL << gnbits));
+    assert("gwdog has to be between 0 and 2^nbits-1" && gwdog >= 0 && gwdog < (1LL << gnbits));
     // Display APB slave information
     v::info << this->name() << "APB slave @0x" << hex << v::setw(8)
             << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex
@@ -282,9 +283,10 @@ void CGPTimer::screload_write() {
 void CGPTimer::scaler_write() {
     lasttime = sc_core::sc_time_stamp();
     lastvalue = r[SCALER];
-    //v::debug << name() << "!Scaler: " << lastvalue << v::endl;
-
-    // TODO: Update all Counter!!!
+    v::debug << name() << "Scaler: " << lastvalue << v::endl;
+    for(std::vector<CGPCounter *>::iterator iter = counter.begin(); iter != counter.end(); iter++) {
+        (*iter)->calculate(); // Recalculate
+    }
 #ifdef DEBUGOUT
     tick_calc();
 #endif
@@ -304,6 +306,7 @@ void CGPTimer::do_reset(const bool &value, const sc_core::sc_time &time) {
         lastvalue = 0;
         tick = 0;
         wdog = 0;
+        irq = 0;
         lasttime = sc_core::sc_time_stamp();
         scaler_write();
         scaler_read();
@@ -311,6 +314,12 @@ void CGPTimer::do_reset(const bool &value, const sc_core::sc_time &time) {
         for (std::vector<CGPCounter *>::iterator iter = counter.begin(); iter
                 != counter.end(); iter++) {
             (*iter)->do_reset();
+        }
+        if(wdog_length) {
+            size_t count = counter.size() -1;
+            r[CGPTimer::RELOAD(count)] = wdog_length;
+            r[CGPTimer::CTRL(count)] = 0xD; // Enabled, Load, Irq
+            counter.back()->ctrl_write();
         }
     }
 }

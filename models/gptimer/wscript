@@ -108,6 +108,7 @@ def build(bld):
     source          = 'gptimer.cpp gpcounter.cpp', 
     export_includes = '.',
     uselib          = 'SYSC TLM2 AMBA GREENSOCS',
+    defines         = 'DEBUGOUT=1',
     use             = 'common signalkit utils'
   )
   
@@ -130,18 +131,31 @@ def build(bld):
                     'tests/test1/top_rtl.cpp',
                     '../../common/verbose.cpp'],
     uselib       = 'AMBA GREENSOCS',
-    includes     = '. ./test ../utils ../../signalkit ../../common',
+    includes     = '. ./tests/test2 ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )
 
   bld(
-    target       = 'gptimer.2.test',
+    target       = 'gptimer.2.tlm.test',
     features     = 'cxx cprogram test',
     source       = ['tests/test2/top_tlm.cpp',
                     'tests/test2/testbench.cpp'],
     includes     = '. tests/test2',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
     use          = 'gptimer utils signalkit common',
+  )
+
+  bld(
+    target       = 'gptimer.2.rtl.test',
+    features     = 'modelsim test',
+    generate     = 'gptimer_wrapper:tests/test2/gptimer_wrapper.h',
+    source       = ['tests/gptimer_wrapper.vhd',
+                    'tests/test2/testbench.cpp',
+                    'tests/test2/top_rtl.cpp',
+                    '../../common/verbose.cpp'],
+    uselib       = 'AMBA GREENSOCS',
+    includes     = '. ./tests/test2 ../utils ../../signalkit ../../common',
+    config       =  vsim_conf,
   )
 
   #bld(
@@ -154,21 +168,21 @@ def build(bld):
   #  use          = 'utils signalkit',
   #)
 
-  bld(
-    features     = 'modelsim',
-    target       = 'modlesim.gptimer.register.test',
-    name         = 'gptimer_wrapper',
-    generate     = 'gptimer_wrapper:gptimer_wrapper.h',
-    source       = ['tests/gptimer_wrapper.vhd',
-                    'tests/top_rtl.cpp',
-                    '../utils/apbtestbench.cpp',
-                    '../../common/verbose.cpp'],
-    uselib       = 'AMBA GREENSOCS',
-    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = '. ./test ../utils ../../signalkit ../../common',
-    use          = 'utils',
-    config       =  vsim_conf,
-  )
+  #bld(
+  #  features     = 'modelsim',
+  #  target       = 'modlesim.gptimer.register.test',
+  #  name         = 'gptimer_wrapper',
+  #  generate     = 'gptimer_wrapper:gptimer_wrapper.h',
+  #  source       = ['tests/gptimer_wrapper.vhd',
+  #                  'tests/top_rtl.cpp',
+  #                  '../utils/apbtestbench.cpp',
+  #                  '../../common/verbose.cpp'],
+  #  uselib       = 'AMBA GREENSOCS',
+  #  defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+  #  includes     = '. ./test ../utils ../../signalkit ../../common',
+  #  use          = 'utils',
+  #  config       =  vsim_conf,
+  #)
 
   #bld(
   #  target       = 'function',
@@ -185,33 +199,33 @@ def build(bld):
   #)
 
   
-  bld(
-    target       = 'function.gptimer',
-    features     = 'cxx cprogram',
-    source       = 'tests/top_tlm.cpp',
-    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = '. tests',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    use          = 'gptimer utils signalkit common',
-  )
+  #bld(
+  #  target       = 'function.gptimer',
+  #  features     = 'cxx cprogram',
+  #  source       = 'tests/top_tlm.cpp',
+  #  defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+  #  includes     = '. tests',
+  #  uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+  #  use          = 'gptimer utils signalkit common',
+  #)
 
-  bld(
-    target       = 'prescaler.gptimer',
-    features     = 'cxx cprogram test',
-    source       = 'tests/top_tlm.cpp',
-    defines      = 'PRESCALERTEST CTBUS DEBUGOUT',
-    includes     = '. tests',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    use          = 'gptimer utils signalkit common',
-  )
+  #bld(
+  #  target       = 'prescaler.gptimer',
+  #  features     = 'cxx cprogram test',
+  #  source       = 'tests/top_tlm.cpp',
+  #  defines      = 'PRESCALERTEST CTBUS DEBUGOUT',
+  #  includes     = '. tests',
+  #  uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+  #  use          = 'gptimer utils signalkit common',
+  #)
 
-  bld(
-    target       = 'counter.gptimer',
-    features     = 'cxx cprogram test',
-    source       = 'tests/top_tlm.cpp',
-    defines      = 'COUNTERTEST CTBUS DEBUGOUT',
-    includes     = '. tests',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    use          = 'gptimer utils signalkit common',
-  )
+  #bld(
+  #  target       = 'counter.gptimer',
+  #  features     = 'cxx cprogram test',
+  #  source       = 'tests/top_tlm.cpp',
+  #  defines      = 'COUNTERTEST CTBUS DEBUGOUT',
+  #  includes     = '. tests',
+  #  uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+  #  use          = 'gptimer utils signalkit common',
+  #)
 
