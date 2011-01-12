@@ -138,3 +138,17 @@ def build(bld):
     config       =  vsim_conf,
   )  
 
+  bld(
+    features     = 'modelsim',
+    target       = 'mctrl.test001.cosim.rtlahb',
+    source       = [os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/sram32.vhd'), bld.path.get_src().abspath()),
+                    os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/amba/ahbctrl.vhd'), bld.path.get_src().abspath()),
+                    '../../common/verbose.cpp',
+                    './test/conf001/mctrl_tb.cpp',
+                    './test/conf001/cosim/mctrl_top.rtl_bus.cpp'],
+    uselib       = 'AMBA GREENSOCS AMBAMEM',
+    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+    includes     = './ ./test ../utils ../../signalkit ../../common',
+    config       =  vsim_conf,
+  )  
+

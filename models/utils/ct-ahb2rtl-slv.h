@@ -22,14 +22,14 @@
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
 //*********************************************************************
-// Title:      ct-ahb2rtl-slv.h
+// Title:      ahb_rtl_ct.h
 //
 // ScssId:
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    header file defining generic AHB CT to RTL SLV adapter
-//             it enables the user to connect a grlib AHB slave model
+// Purpose:    header file defining a generic AHB RTL to CT adapter
+//             it enables the user to connect an grlib AHB model
 //             to an AMBAKit CT bus
 //
 // Modified on $Date$
@@ -212,7 +212,7 @@ void Cct_ahb2rtl_slv::ahbso_ctrl() {
     while (1) {
         ahb_slv_out_type val = ahbso.read();
 
-        m_hreadyout.write(!val.hready);
+        m_hreadyout.write(val.hready);
         m_hresp.write(val.hresp);
         m_hrdata.write(val.hrdata);
         m_hsplit.write(val.hsplit);
@@ -236,7 +236,12 @@ void Cct_ahb2rtl_slv::ahbsi_ctrl() {
     while (1) {
         ahb_slv_in_type val;
 
-        val.hsel      = m_hsel.read();
+        if ( m_hsel.read() ) {
+            val.hsel  = 0xFFFF;
+        }
+        else {
+            val.hsel  = 0;
+        }
         val.hwrite    = m_hwrite.read();
         val.htrans    = m_htrans.read();
         val.haddr     = m_haddr.read();
@@ -245,13 +250,13 @@ void Cct_ahb2rtl_slv::ahbsi_ctrl() {
         val.hprot     = m_hprot.read();
         val.hready    = m_hreadyin.read();
         val.hwdata    = m_hwdata.read();
-        val.hmaster   = m_hmaster.read();
+//        val.hmaster   = m_hmaster.read();
+        val.hmaster   = 0;
         val.hmastlock = m_hmastlock.read();
 
         val.hirq       = hirqi.read();
         val.hmbsel     = hmbsel.read();
-//        val.hirq       = 0;
-//        val.hmbsel     = 0xF;
+        val.hcache     = 0;
 
         ahbsi.write(val);
 
