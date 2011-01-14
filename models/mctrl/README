@@ -1,12 +1,9 @@
-This directory contains a transaction level model of the Gaisler GRIP MCTRL memory controller and a generic memory model that implements all types of memory supported by MCTRL. The model constists of the following files:
-
-mctrl_reg.h
-defines the MCTRL register addresses and write masks
+This directory contains a transaction level model of the Gaisler GRLIB MCTRL memory controller and a generic memory model that implements all types of memory supported by MCTRL. It also contains test systems. The following files and directories are present:
 
 mctrl.h
-defines the MCTRL model as a template class
+class header of the MCTRL model
 
-mctrl.tpp
+mctrl.cpp
 implements the MCTRL model
 
 generic_memory.h
@@ -15,11 +12,11 @@ defines the memory model as a template class
 generic_memory.tpp
 implements the memory model
 
-mctrl_tb.h
-defines a testbench for the MCTRL model as a template class
+ext_erase.h
+defines an extension to the TLM generic payload, which causes deletion of a distinct portion of memory defined in the gp
 
-mctrl_tb.tpp
-implements the testbench
+wscript
+defines targets to the build system
 
-mctrl_testtop_tlm.cpp
-implements the top-level of a simulation of the MCTRL model. Instances of the testbench, MCTRL, and the memory model are built and connected.
+test/
+directory containing the test systems and a readme file like this one

@@ -133,8 +133,8 @@ Mctrl::Mctrl(sc_core::sc_module_name name, int _romasel, int _sdrasel,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
                    // init value (to be calculated from the generics for all 4 registers)
                       MCTRL_MCFG1_DEFAULT,
-                   // write mask             FIXME: check consistency if ram8, ram 16 generics vs. default and mask of PROM WIDTH field
-                      MCTRL_MCFG1_WRITE_MASK,// | ((_ram8 | _ram16) << 9) ^ ((_ram8 ^ _ram16) << 8),
+                   // write mask             FIXME: check consistency of ram8, ram 16 generics vs. default and mask of PROM WIDTH field
+                      MCTRL_MCFG1_WRITE_MASK | _ram16 << 9 | _ram16 << 8 | _ram8 << 9,
                    // reg width (maximum 32 bit)
                       32,
                    // lock mask: Not implementet, has to be zero.
@@ -143,8 +143,8 @@ Mctrl::Mctrl(sc_core::sc_module_name name, int _romasel, int _sdrasel,
   r.create_register( "MCFG2", "Memory Configuration Register 2",
                       0x04,
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      MCTRL_MCFG2_DEFAULT,  //FIXME: check consistency if ram8, ram 16 generics vs. default and mask of RAM WIDTH field
-                      MCTRL_MCFG2_WRITE_MASK,// | ((_ram8 | _ram16) << 5) ^ ((_ram8 ^ _ram16) << 4),
+                      MCTRL_MCFG2_DEFAULT,  //FIXME: check consistency of ram8, ram 16 generics vs. default and mask of RAM WIDTH field
+                      MCTRL_MCFG2_WRITE_MASK | _ram16 << 5 | _ram16 << 4 | _ram8 << 5,
                       32,
                       0x00
                    );
