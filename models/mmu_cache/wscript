@@ -208,5 +208,46 @@ def build(bld):
     defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
     includes     = './ ./test2 ./test2/sim_ref ./lib ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
-  )    
+  ) 
+
+  bld(
+    target       = 'mmucache.test3',
+    features     = 'cxx cprogram test',
+    source       = ['test3/testbench.cpp',
+                    'test3/main.cpp'],
+    includes     = '. ./lib ./test3',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
+  )
+
+  bld(
+    target       = 'mmucache.test4',
+    features     = 'cxx cprogram test',
+    source       = ['test4/testbench.cpp',
+                    'test4/main.cpp'],
+    includes     = '. ./lib ./test4',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
+  )
+   
+  bld(
+    target       = 'mmucache.test5',
+    features     = 'cxx cprogram test',
+    source       = ['test5/testbench.cpp',
+                    'test5/main.cpp'],
+    includes     = '. ./lib ./test5',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
+  )
+ 
+  bld(
+    target       = 'mmucache.test6',
+    features     = 'cxx cprogram test',
+    source       = ['test6/testbench.cpp',
+                    'test6/main.cpp'],
+    includes     = '. ./lib ./test6',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
+  )
+
 

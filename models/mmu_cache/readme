@@ -1,9 +1,24 @@
 This directory contains the mmu_cache TLM implementation + tests:
 
 lib 		- Source code of the mmu_cache implementation.
-test1		- Test for 'small' cache configuration. Icache and dcache are enabled. MMU and localrams are disabled.
+test1		- Co-Sim test for 'SMALL' cache configuration. Icache and dcache are enabled. MMU and localrams are disabled.
 		  Both caches are direct mapped (1 set). The setsize is 1kb (min) and the linesize is 4 words (min).
-test2		- Test for 'large' cache configuration. Icache and dcache are enabled. MMU and localrams are disabled.
+		  The testbench is used for TLM and SystemC/RTL co-simulation.
+test2		- Co-Sim test for 'LARGE' cache configuration. Icache and dcache are enabled. MMU and localrams are disabled.
 		  Both caches have 4 sets (max). The setsize is 256kb (max) and the linesize is 8 words (max).
+		  The testbench is used for TLM and SystemC/RTL co-simulation
+test3		- TLM test of various cache features on a standard cache configuration (default). 
+		  The MMU and the localrams are disabled. Both caches have 4 sets. The setsize is 1kb and 
+		  the linesize 4 words.
+test4		- TLM test with focus on testing instruction and data scratchpads (LOCALRAM).
+		  MMU is disabled. Both caches have 2 sets. The setsize is 256kb and the linesize 4 words.
+		  The scratchpads have the maximum size of 512 kb.
+test5		- TLM test for instruction and data cache (LOCKING). Main purpose is the testing of cache line locking, 
+		  as well as LRR and LRU replacement. MMU and localrams are disabled.
+	          The instruction cache has 2 sets of 8kb with 4 words per line. The data cache consists 
+		  of 3 sets of 8kb with 4 words per line. The icache features LRR replacement, the dcache LRU replacement.
+test6		- TLM test for the memory management unit (MMU). The localrams are disabled. Both caches have
+		  4 sets of 1kb and 4 words per line. The MMU contains 8 instruction and 8 data tlbs. 
+		  The MMU page size is 4KB.
 wscript		- Waf script
 

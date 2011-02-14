@@ -176,9 +176,6 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
     unsigned char* ptr = tran.get_data_ptr();
     unsigned int len = tran.get_data_length();
 
-    // internally
-    len = (unsigned int)pow(2, len);
-    
     // extract extension
     dcio_payload_extension * dext;
     tran.get_extension(dext);

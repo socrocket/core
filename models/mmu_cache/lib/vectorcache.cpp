@@ -47,6 +47,7 @@
 
 #include "vectorcache.h"
 #include "verbose.h"
+#include "math.h"
 
 // constructor
 // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
@@ -61,23 +62,15 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
                          unsigned int repl, unsigned int lram,
                          unsigned int lramstart, unsigned int lramsize) :
     sc_module(name), m_mmu_cache(_mmu_cache), m_tlb_adaptor(_tlb_adaptor),
-            m_burst_en(burst_en), m_pseudo_rand(0), m_sets(sets), m_setsize(
-                    setsize), m_setlock(setlock), m_linesize(linesize),
-            m_wordsperline((unsigned int)pow(2, linesize)), m_bytesperline(
-                    (unsigned int)pow(2, linesize + 2)), m_offset_bits(linesize
-                    + 2), m_number_of_vectors((unsigned int)pow(2, setsize + 8
-                    - linesize)), m_idx_bits(setsize + 8 - linesize),
-            m_tagwidth(32 - m_idx_bits - m_offset_bits), m_repl(repl),
-            m_mmu_en(mmu_en), m_lram(lram), m_lramstart(lramstart), m_lramsize(
-                    lramsize), m_hit_read_response_delay(
-                    hit_read_response_delay), m_miss_read_response_delay(
-                    miss_read_response_delay), m_write_response_delay(
-                    write_response_delay)
+            m_burst_en(burst_en), m_pseudo_rand(0), m_sets(sets-1), m_setsize((unsigned int)log2((double)setsize)), m_setlock(setlock), m_linesize((unsigned int)log2((double)linesize)), m_wordsperline(linesize), m_bytesperline(m_wordsperline << 2), m_offset_bits(m_linesize + 2), m_number_of_vectors((unsigned int)pow(2, setsize + 8 - m_linesize)), m_idx_bits(m_setsize + 8 - m_linesize), m_tagwidth(32 - m_idx_bits - m_offset_bits), m_repl(repl+1), m_mmu_en(mmu_en), m_lram(lram), m_lramstart(lramstart), m_lramsize((unsigned int)log2((double)lramsize)), m_hit_read_response_delay(hit_read_response_delay), m_miss_read_response_delay(miss_read_response_delay), m_write_response_delay(write_response_delay)
 
 {
 
     // initialize cache line allocator
     memset(&m_default_cacheline, 0, sizeof(t_cache_line));
+
+    // cache may have 1 to 4 sets
+    assert((m_sets>=0)&&(m_sets<=3));
 
     // create the cache sets
     for (unsigned int i = 0; i <= m_sets; i++) {
@@ -133,16 +126,40 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     }
 
     // set up configuration register
+    // =============================
     CACHE_CONFIG_REG = (m_mmu_en << 3);
     // config register contains linesize in words
     CACHE_CONFIG_REG |= ((m_lramstart & 0xff) << 4);
+
+    // lramsize must be between 1 and 512 kbyte
+    assert((m_lramsize>=0)&&(m_lramsize<=9));
+    // enter lramsize
     CACHE_CONFIG_REG |= ((m_lramsize & 0xf) << 12);
+
+    // linesize must be 4 (m_linesize = 2) or 8 words (m_linesize = 3)
+    assert((m_linesize==2)||(m_linesize==3));
+    // enter linesize
     CACHE_CONFIG_REG |= ((m_linesize & 0x7) << 16);
     CACHE_CONFIG_REG |= ((m_lram & 0x1) << 19);
-    CACHE_CONFIG_REG |= ((m_setsize & 0xf) << 20);
-    CACHE_CONFIG_REG |= ((m_sets & 0x7) << 24);
-    CACHE_CONFIG_REG |= ((m_repl & 0x3) << 28);
 
+    // setsize must be between 1 and 256 kb (m_setsize 1 - 8)
+    assert((m_setsize>=0)&&(m_setsize<=8));
+    // enter setsize
+    CACHE_CONFIG_REG |= ((m_setsize & 0xf) << 20);
+
+
+    CACHE_CONFIG_REG |= ((m_sets & 0x7) << 24);
+    
+    // REPL: 00 - direct mapped, 01 - LRU, 10 - LRR, 11 - RANDOM
+    if (m_sets == 0) {  
+      // if direct mapped cache set 0
+      m_repl = 0;
+    }
+
+    // check repl range
+    assert((m_repl>=0)&&(m_repl<=3));
+    // enter replacement strategy
+    CACHE_CONFIG_REG |= ((m_repl & 0x3) << 28);
 }
 
 // destructor
@@ -590,6 +607,10 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
     unsigned int idx = ((address << (32 - (m_idx_bits + 5))) >> (32
             - m_idx_bits));
 
+    v::info << this->name() << "Diagnostic tag read set: " << std::hex << set
+            << " idx: " << std::hex << idx << " - tag: " << std::hex << tmp
+            << v::endl;
+
     // find the required cache line
     m_current_cacheline[set] = lookup(set, idx);
 
@@ -599,10 +620,6 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
     tmp |= (*m_current_cacheline[set]).tag.lrr << 9;
     tmp |= (*m_current_cacheline[set]).tag.lock << 8;
     tmp |= (*m_current_cacheline[set]).tag.valid;
-
-    v::info << this->name() << "Diagnostic tag read set: " << std::hex << set
-            << " idx: " << std::hex << idx << " - tag: " << std::hex << tmp
-            << v::endl;
 
     // handover bitmask pointer (the tag)
     *data = tmp;
