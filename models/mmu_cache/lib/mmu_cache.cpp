@@ -207,7 +207,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
             }
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << this->name()
+	    v::info << this->name()
                     << "System Register write with ASI 0x2 - addr:" << std::hex
                     << adr << v::endl;
             if (adr == 0) {
@@ -469,6 +469,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
                 // no dcache present - bypass
             }
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
+
             // instruction scratchpad enabled && address points into selected 16 MB region
             if (m_ilram && (((adr >> 24) & 0xff) == m_ilramstart)) {
 
@@ -483,8 +484,6 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
             } else {
 
                 dcache->mem_write((unsigned int)adr, ptr, len, &delay, debug);
-                //v::info << name() << "DCIO Socket done tlm_write" << v::endl;
-                // no dcache present - bypass
             }
         }
     } else {
@@ -520,6 +519,8 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
     ahb_master.get_extension<amba::amba_id> (m_id, *gp);
     m_id->value = master_id;
     ahb_master.validate_extension<amba::amba_id> (*gp);
+
+    v::info << name() << "AHB write with addr: " << hex << addr << v::endl;
 
     // issue transaction
     ahb_master->b_transport(*gp, delay);

@@ -51,18 +51,18 @@
 /// constructor
 localram::localram(sc_core::sc_module_name name, unsigned int lrsize,
                    unsigned int lrstart) :
-    sc_module(name), m_lrsize((unsigned int)pow(2, (lrsize + 8))), m_lrstart(
-            lrstart << 24) {
+                   sc_module(name), m_lrsize(lrsize<<10), m_lrstart(lrstart << 24) {
+
     // parameter check
     // ---------------
-    // scratchpad size max 512 kbyte (131072 words)
-    assert(m_lrsize < 131073);
+    // scratchpad size max 512 kbyte
+    assert(m_lrsize <= 524288);
 
     // initialize allocator
     m_default_entry.i = 0;
 
     // create the actual ram
-    scratchpad = new t_cache_data[m_lrsize];
+    scratchpad = new t_cache_data[m_lrsize>>2];
 
     v::info << this->name()
             << " ******************************************************************************* "
@@ -92,7 +92,7 @@ localram::~localram() {
 void localram::read(unsigned int addr, unsigned char *data, unsigned int len,
                     sc_core::sc_time *t, unsigned int *debug) {
 
-    assert(addr - m_lrstart < (m_lrsize << 2));
+    assert(addr - m_lrstart < m_lrsize);
 
     // byte offset
     unsigned int byt = addr & 0x3;
@@ -114,7 +114,7 @@ void localram::read(unsigned int addr, unsigned char *data, unsigned int len,
 void localram::write(unsigned int addr, unsigned char *data, unsigned int len,
                      sc_core::sc_time *t, unsigned int *debug) {
 
-    assert(addr - m_lrstart < (m_lrsize << 2));
+    assert(addr - m_lrstart < m_lrsize);
 
     // byte offset
     unsigned int byt = addr & 0x3;

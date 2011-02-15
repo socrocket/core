@@ -62,7 +62,7 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
                          unsigned int repl, unsigned int lram,
                          unsigned int lramstart, unsigned int lramsize) :
     sc_module(name), m_mmu_cache(_mmu_cache), m_tlb_adaptor(_tlb_adaptor),
-            m_burst_en(burst_en), m_pseudo_rand(0), m_sets(sets-1), m_setsize((unsigned int)log2((double)setsize)), m_setlock(setlock), m_linesize((unsigned int)log2((double)linesize)), m_wordsperline(linesize), m_bytesperline(m_wordsperline << 2), m_offset_bits(m_linesize + 2), m_number_of_vectors((unsigned int)pow(2, setsize + 8 - m_linesize)), m_idx_bits(m_setsize + 8 - m_linesize), m_tagwidth(32 - m_idx_bits - m_offset_bits), m_repl(repl+1), m_mmu_en(mmu_en), m_lram(lram), m_lramstart(lramstart), m_lramsize((unsigned int)log2((double)lramsize)), m_hit_read_response_delay(hit_read_response_delay), m_miss_read_response_delay(miss_read_response_delay), m_write_response_delay(write_response_delay)
+            m_burst_en(burst_en), m_pseudo_rand(0), m_sets(sets-1), m_setsize((unsigned int)log2((double)setsize)), m_setlock(setlock), m_linesize((unsigned int)log2((double)linesize)), m_wordsperline(linesize), m_bytesperline(m_wordsperline << 2), m_offset_bits(m_linesize + 2), m_number_of_vectors(setsize*256/linesize), m_idx_bits(m_setsize + 8 - m_linesize), m_tagwidth(32 - m_idx_bits - m_offset_bits), m_repl(repl+1), m_mmu_en(mmu_en), m_lram(lram), m_lramstart(lramstart), m_lramsize((unsigned int)log2((double)lramsize)), m_hit_read_response_delay(hit_read_response_delay), m_miss_read_response_delay(miss_read_response_delay), m_write_response_delay(write_response_delay)
 
 {
 
