@@ -84,7 +84,6 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
                     false), m_restart_pending_req(false) {
     // parameter checks
     // ----------------
-    // todo
 
     // create mmu (if required)
     m_mmu = (mmu_en == 1)? new mmu("mmu", (mmu_cache_if *)this,
