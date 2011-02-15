@@ -251,9 +251,13 @@ bool Ctb_ahb_mem::execCmd(tlm::tlm_generic_payload& gp) {
       } else {
           // no byte enable
           for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+	    
+	    v::info << name() << " Write with address: " << hex << gp.get_address() + i << " and data: " << hex << (unsigned int)*(gp.get_data_ptr() + i) << v::endl;
               mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
           }
       }
+
+      v::info << name() << "Write done - return" << v::endl;
       return 0;
    }
    return 1;
