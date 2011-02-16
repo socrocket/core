@@ -9,6 +9,14 @@ class Null(NullItem):
             return self.parentItem.numbers.index(self)
         return 0
 
+    def getVar(self):
+        if self.parentItem:
+            return int(self.parentItem.numbers.index(self))
+        
+    def load(self, data):
+        for child in self.childItems:
+            child.load(data)
+
 class IntegerItem(Item):
     def __init__(self, model, name = None, var = None, value = None, type = None, range_ = None, default = None, description = None, parent=None, data=None):
         super(IntegerItem, self).__init__(model, name, var, value, type, range_, default, description, parent, data)
@@ -25,8 +33,10 @@ class IntegerItem(Item):
         self.widget = QtGui.QWidget(model.widget)
         self.layout = QtGui.QFormLayout(self.widget)
         r = str(QtCore.QVariant(range_).toString()).split('..')
-        self.min = int(r[0])
-        self.max = int(r[1])
+        if len(r)<2:
+          r = ["0x0","0x0"]
+        self.min = int(r[0], 0)
+        self.max = int(r[1], 0)
         self.name_label = QtGui.QLabel("Name: ", self.widget)
         self.name_obj = QtGui.QLabel(self.name, self.widget)
         self.value_label = QtGui.QLabel("Value: ", self.widget)
@@ -93,4 +103,22 @@ class IntegerItem(Item):
             return self.value.toInt()[0]
         else:
             return 0
+   
+    def save(self):
+        if len(self.childItems)>0:
+            return [self.numbers[n].save() for n in range(self.value.toInt()[0])]
+        else:
+            return self.value.toInt()[0]
+
+    def load(self, data):
+        ownData = data.get(str(self.name), None)
+        if ownData:
+            if isinstance(ownData, int):
+                self.setValue(ownData)
+            elif len(ownData)>0:
+                self.setValue(len(ownData))
+                for i in range(self.value.toInt()[0]):
+                    self.numbers[i].load(ownData[i])
+            else:
+                self.setValue(0)
 

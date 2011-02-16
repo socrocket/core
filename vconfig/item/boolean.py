@@ -50,4 +50,23 @@ class BooleanItem(Item):
         else:
             return 0
 
+    def save(self):
+        if len(self.childItems)>0:
+            if self.value.toInt() != 0:
+                return dict([[str(n.name), n.save()] for n in self.childItems])
+            else:
+                return dict()
+        else:
+            return self.value.toBool()
 
+    def load(self, data):
+        ownData = data.get(str(self.name), None)
+        if ownData:
+            if isinstance(ownData, bool):
+                self.setValue(ownData)
+            elif len(ownData) > 0:
+                self.setValue(True)
+                for child in self.childItems:
+                    child.load(ownData)
+            else:
+                self.setValue(False)

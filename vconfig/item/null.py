@@ -7,3 +7,12 @@ class NullItem(Item):
         super(NullItem, self).__init__(model, name, var, value, type, range, default, description, parent, data)
  
         self.widget = QtGui.QWidget(model.widget)
+
+    def save(self):
+        return dict([[str(n.name), n.save()] for n in self.childItems])
+
+    def load(self, data):
+        ownData = data.get(str(self.name), None)
+        if ownData:
+            for child in self.childItems:
+                child.load(ownData)

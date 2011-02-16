@@ -1,16 +1,14 @@
-#!/usr/bin/env python
 from PyQt4 import QtCore, QtGui
 from item import *
-#import vconfig_rc
 
 class TreeModel(QtCore.QAbstractItemModel):
-    def __init__(self, path, widget, parent=None):
+    def __init__(self, node, widget, parent=None):
         super(TreeModel, self).__init__(parent)
 
         self.widget = widget
         self.stack = QtGui.QStackedLayout(widget)
-        self.rootItem = NullItem(self, name="Name", var="root", value="Value", type="Type")
-        self.readFile(path)
+        self.rootItem = NullItem(self, name="Name", var=None, value="Value", type="Type")
+        self.read(node)
 
     def clicked(self, item):
         self.stack.setCurrentWidget(item.widget)
@@ -116,7 +114,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             return True
         return item.childCount() > 0
       
-    def readFile(self, path):
+    def read(self, node):
       def readItem(node, parent):
         name = node.getAttribute("name")
         var = node.getAttribute("var")
@@ -141,55 +139,13 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.stack.addWidget(item.widget)
         return item
         
-      from xml.dom.minidom import parse
-      dom = parse(path)
-      root = dom.documentElement
-      item = readItem(root, self.rootItem)
-      #self.rootItem.appendChild(item)
-      
-def main(file, args):
-    app = QtGui.QApplication(args)
-
-    view = QtGui.QTreeView()
-    panel = QtGui.QWidget()
-    control = QtGui.QWidget()
-    controllayout = QtGui.QHBoxLayout()
-    info = QtGui.QTextBrowser()
-    load = QtGui.QPushButton("Load ...")
-    save = QtGui.QPushButton("Save ...")
-    cancle = QtGui.QPushButton("Cancle ...")
-    next = QtGui.QPushButton("Continue ...")
-    controllayout.addWidget(load)
-    controllayout.addWidget(save)
-    controllayout.addStretch(1)
-    controllayout.addWidget(cancle)
-    controllayout.addWidget(next)
-    control.setLayout(controllayout)
-    hsplit = QtGui.QSplitter(QtCore.Qt.Vertical)
-    vsplit = QtGui.QSplitter(QtCore.Qt.Horizontal)
-    hsplit.addWidget(panel)
-    hsplit.addWidget(info)
-    hsplit.addWidget(control)
-    vsplit.addWidget(view)
-    vsplit.addWidget(hsplit)
+      item = readItem(node, self.rootItem)
     
-    model = TreeModel(file, panel)
-    
-    def click(index):
-      item = index.internalPointer()
-      info.setText(QtCore.QVariant(item.description).toString())
-      model.clicked(item)
+    def save(self):
+      # We don't want to save the rootItem
+      return self.rootItem.save()
 
-    view.activated.connect(click)
-    view.entered.connect(click)
-    view.clicked.connect(click)
-    view.setModel(model)
-    vsplit.resize(800,600)
-    vsplit.setWindowTitle("System Configurator")
-    vsplit.show()
-    return app.exec_()
-    
-if __name__ == '__main__':
-    import sys
-
-    sys.exit(main("default.xml", sys.argv))
+    def load(self, data):
+      # We have to think about the rootItem "Name":
+      self.rootItem.load({"Name":data})
+ 

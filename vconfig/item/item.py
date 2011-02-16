@@ -24,7 +24,7 @@ class Item(object):
         return len(self.childItems)
 
     def columnCount(self):
-        return 3
+        return 2
 
     def data(self, column):
         if column == 0:
@@ -48,7 +48,7 @@ class Item(object):
     def getWidget(self):
         self.widget
 
-    def value(self):
+    def getValue(self):
         return self.value
 
     def setValue(self, value):
@@ -56,33 +56,44 @@ class Item(object):
         self.model.layoutChange()
         
 
-    def name(self):
+    def getName(self):
         return self.name
 
     def setName(self, value):
-        self.name = name
+        self.name = value
 
-    def type(self):
+    def getVar(self):
+        return self.var
+
+    def setVar(self, value):
+        self.var = value
+
+    def getType(self):
         return self.type
 
     def setType(self, value):
         self.type = value
 
-    def range(self):
+    def getRange(self):
         return self.range
 
     def setRange(self, value):
         self.range = value
 
-    def default(self):
+    def getDefault(self):
         return default
 
     def setDefault(self, value):
         self.default = value
 
-    def description(self):
+    def getDescription(self):
         return self.description
 
     def setDescription(self, value):
         self.description = value
     
+    def save(self):
+        pass
+
+    def load(self, data):
+        pass
