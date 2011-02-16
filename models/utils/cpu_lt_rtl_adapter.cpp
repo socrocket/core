@@ -61,7 +61,7 @@ void cpu_lt_rtl_adapter::icio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
   if (cmd == tlm::TLM_READ_COMMAND) {
 
-    std::cout << " transactor read from address " << hex << addr << std::endl;
+    std::cout << sc_time_stamp() << " transactor iread from address " << hex << addr << std::endl;
 
     iread((unsigned int)addr,(unsigned int*)ptr, flush);
 
@@ -94,9 +94,13 @@ void cpu_lt_rtl_adapter::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
   if (cmd == tlm::TLM_READ_COMMAND) {
 
+    std::cout << sc_time_stamp() << " transactor dread from address " << hex << addr << std::endl;
+
     dread((unsigned int)addr, (unsigned int*)ptr, len, asi, flush, flushl, lock);
 
   } else if (cmd == tlm::TLM_WRITE_COMMAND) {
+
+    std::cout << sc_time_stamp() << " transactor dwrite to address " << hex << addr << std::endl;
 
     dwrite((unsigned int)addr,(unsigned int*)ptr, len, asi, flush, flushl, lock);
   
@@ -108,104 +112,9 @@ void cpu_lt_rtl_adapter::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
 }
 
-void cpu_lt_rtl_adapter::data_capture() {
-
-  // init
-  instr_mds = false;
-  data_mds = false;
-
-  while(1) {
-
-    if (rst == SC_LOGIC_1) {
-
-      if (clk.posedge()) {
-
-	// instruction strobe
-	if (ico.read().mds == SC_LOGIC_0) {
-
-	  hdl_instr = ico.read().data[0].to_uint();
-	  instr_mds = true;
-
-        }
-
-	// data strobe
-	if (dco.read().mds == SC_LOGIC_0) {
-
-	  hdl_data = dco.read().data[0].to_uint();
-	  data_mds = true;
-
-	}
-      }
-    }
-
-    wait();
-  }
-}
-      
-
-// instruction port service machine
-void cpu_lt_rtl_adapter::cache_transactor() {
-
-  unsigned int state;
-
-  while (1) {
-
-    if (rst == SC_LOGIC_1) {
-
-      switch (state) {
-
-        case 0:
-
-	  // write instruction and data port
-	  ici.write(ival);
-	  dci.write(dval);
-
-	  // wait 1 cycle for address sampling
-	  if (clk.posedge()) {
-
-	    state = 1;
-
-	  }
-	  
-	  break;
-	
-        default:
-
-	  if ((ico.read().hold == SC_LOGIC_1)&&(dco.read().hold == SC_LOGIC_1)) {
-
-	    if (!instr_mds) {
-	    
-	      hdl_instr = ico.read().data[0].to_uint();
-
-	    }
-
-	    if (!data_mds) {
-
-	      hdl_data = dco.read().data[0].to_uint();
-
-	    }
-
-	    // done - next instruction
-	    cache_ready.notify();
-	    state = 0;
-	  }
-      }
-    }
-	      
-    wait();
-
-  }
-}
-
 void cpu_lt_rtl_adapter::iread(unsigned int address, unsigned int * data, unsigned int flush) {
 
   icache_in_type itmp;
-
-  // make sure we are behind posedge clock
-  wait(1,SC_PS);
-
-  hdl_instr = 0;
-  instr_mds = 0;
 
   itmp.rpc = address;
   itmp.fpc = address;
@@ -221,11 +130,17 @@ void cpu_lt_rtl_adapter::iread(unsigned int address, unsigned int * data, unsign
   // data to signal
   ival.write(itmp);
 
-  // wait for instruction cycle to be finished
-  wait(cache_ready);
+  // trigger iread
+  iread_pending.write(true);
 
-  // data to tlm
-  *data = hdl_instr;
+  // wait for instruction cycle to be finished
+  wait(iread_done);
+
+  // result to tlm
+  *data = ico_data_reg;
+
+  // iread done
+  iread_pending.write(false);
 
   // reset to default
   itmp.rpc = 0;
@@ -247,12 +162,6 @@ void cpu_lt_rtl_adapter::iread(unsigned int address, unsigned int * data, unsign
 void cpu_lt_rtl_adapter::dread(unsigned int address, unsigned int * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock) {
 
   dcache_in_type dtmp;
-
-  hdl_data = 0;
-  data_mds = 0;
-
-  // make sure we are behind posedge clock
-  wait(1,SC_PS);
 
   dtmp.asi = asi;
   dtmp.maddress = address;
@@ -296,11 +205,14 @@ void cpu_lt_rtl_adapter::dread(unsigned int address, unsigned int * data, unsign
   // data to signal
   dval.write(dtmp);
 
-  // wait for instruction cycle to be finished
-  wait(cache_ready);
+  // trigger dread
+  dread_pending.write(true);
 
-  // data to tlm
-  *data = hdl_data;
+  // result to tlm
+  *data = dco_data_reg;
+
+  // wait for instruction cycle to be finished
+  wait(dread_done);
 
   // reset to default
   dtmp.asi = 0xb;
@@ -325,12 +237,11 @@ void cpu_lt_rtl_adapter::dread(unsigned int address, unsigned int * data, unsign
  
 }
 
+
+
 void cpu_lt_rtl_adapter::dwrite(unsigned int address, unsigned int * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock) {
 
   dcache_in_type dtmp;
-
-  // make sure we are behind posedge clock
-  wait(1,SC_PS);
 
   dtmp.asi = asi;
   dtmp.maddress = address;
@@ -374,8 +285,14 @@ void cpu_lt_rtl_adapter::dwrite(unsigned int address, unsigned int * data, unsig
   // data to signal
   dval.write(dtmp);
 
-  // wait for instruction cycle to be finished
-  wait(cache_ready);
+  // trigger dwrite
+  dwrite_pending.write(true);
+
+  // wait for dwrite_thread to finish
+  wait(dwrite_done);
+
+  // dwrite done
+  dwrite_pending.write(false);
 
   // reset to default
   dtmp.asi = 0xb;
@@ -396,8 +313,180 @@ void cpu_lt_rtl_adapter::dwrite(unsigned int address, unsigned int * data, unsig
   dtmp.esu = SC_LOGIC_0;
   dtmp.intack = SC_LOGIC_0;
 
+  // data to signal
   dval.write(dtmp);
       
+}
+   
+// state transition at clock tick
+void cpu_lt_rtl_adapter::fsm_clock_tick() {
+
+  while(1) {
+
+    if (clk.posedge()) {
+
+      if (rst==SC_LOGIC_1) {
+
+	state = nextstate;
+
+      }
+      
+    }
+
+    wait();
+  }
+}
+
+// determine next state (asynchr)
+void cpu_lt_rtl_adapter::fsm_next_state() {
+
+  while(1) {
+
+    switch(state) {
+
+      case idle:
+      
+	ici.write(ival);
+	dci.write(dval);
+
+        // instruction read
+        if (iread_pending) {
+
+	  nextstate = ireadaddr;
+      
+        }
+
+        // data read
+        if (dread_pending) {
+
+   	  nextstate = dreadaddr;
+
+        }
+
+        // data write
+        if (dwrite_pending) {
+
+  	  nextstate = dwriteaddr;
+
+        }
+
+        break;
+
+      case ireadaddr:
+
+	if (ico.read().hold==SC_LOGIC_1) {
+
+	  nextstate=idle;
+
+	} else {
+
+	  nextstate=ireadmiss;
+
+	}
+
+        break;
+
+      case ireadmiss:
+
+	if (ico.read().mds==SC_LOGIC_0) {
+
+	  ico_data_reg=ico.read().data[0].to_uint();
+	  nextstate=idle;
+
+	}
+
+	break;
+
+      case dreadaddr:
+
+	if (dco.read().hold==SC_LOGIC_1) {
+
+	  nextstate=idle;
+
+	} else {
+
+	  nextstate=dreadmiss;
+
+	}
+
+        break;
+
+      case dreadmiss:
+
+	if (dco.read().mds==SC_LOGIC_0) {
+
+	  dco_data_reg=dco.read().data[0].to_uint();
+	  nextstate=idle;
+
+	}
+
+	break;
+
+      case dwriteaddr:
+
+	if (dco.read().hold==SC_LOGIC_1) {
+
+	  nextstate=idle;
+
+	}
+
+        break;
+
+      default:
+
+        break;
+
+    }
+
+    wait();
+
+  }
+}
+
+// signal assignments according to fsm state
+void cpu_lt_rtl_adapter::fsm_do_state() {
+
+  icache_in_type itmp;
+  dcache_in_type dtmp;
+
+  while (1) {
+
+    itmp = ival.read();
+    dtmp = dval.read();
+
+    switch(state) {
+
+      case ireadaddr:
+
+        break;
+
+      case dreadaddr:
+
+        break;
+
+      case dwriteaddr:
+
+        dtmp.write = SC_LOGIC_0;
+	dtmp.enaddr = SC_LOGIC_0;
+	dtmp.eenaddr = SC_LOGIC_0;
+	dci.write(dtmp);
+
+        break;
+
+      case idle:
+
+	// unblock the master
+	dwrite_done.notify();
+	dread_done.notify();
+	iread_done.notify();
+
+      default:
+        break;
+
+    }
+
+    wait();
+  }
 }
 
 void cpu_lt_rtl_adapter::start_of_simulation() {
