@@ -137,5 +137,11 @@ Color Bold("\033[1m");
 Color Blink("\e[36m");
 Color Beep("\e[36m");
 
+Number uint32("0x", '0', 8, true);
+Number uint16("0x", '0', 4, true);
+Number uint8("0x", '0', 2, true);
+Number uint64("0x", '0', 16, true);
+Number noint("", ' ', 0, false);
+
 } // namespace
 

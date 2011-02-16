@@ -85,6 +85,28 @@ inline ostream &operator <<(ostream &os, const Color &cl) {
     return os;
 }
 
+/// Output colors
+class Number {
+    public:
+        /// Constructor
+        Number(const char *_prefix, char _fill, int _width, bool _hex) :
+          prefix(_prefix), fill(_fill), width(_width), hex(_hex) {}
+    private:
+        const char *prefix;
+        char fill;
+        int width;
+        bool hex;
+        
+        friend ostream &operator <<(ostream &os, const Number &n);
+};
+
+/// Display the color code on the ostream
+inline ostream &operator <<(ostream &os, const Number &n) {
+    os << (n.hex? std::hex : std::dec) << std::setfill(n.fill) << n.prefix << std::setw(n.width);
+    return os;
+}
+
+
 // Colors defined in the cpp file
 extern Color bgBlack;
 extern Color bgWhite;
@@ -109,6 +131,12 @@ extern Color Bold;
 extern Color Blink;
 extern Color Beep;
 
+extern Number uint64;
+extern Number uint32;
+extern Number uint16;
+extern Number uint8;
+extern Number noint;
+
 /// Standard verbosity is 3.
 /// All messages but debug.
 #ifndef VERBOSITY
@@ -123,7 +151,7 @@ class msgstream {
         msgstream(std::streambuf *sb) :
             m_stream(sb) {
         }
-
+        
         template<class T>
         inline msgstream& operator<<(const T &in) {
             if (level < VERBOSITY) {
