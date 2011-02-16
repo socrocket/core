@@ -49,13 +49,15 @@ class cpu_lt_rtl_adapter : public sc_module {
   void dread(unsigned int address, unsigned int * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock);
   void dwrite(unsigned int address, unsigned int * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock);
 
-  // transactor thread
-  void cache_transactor();
-
-  // capture thread
-  void data_capture();
-
   void start_of_simulation();
+
+  // latch output of caches
+  void data_latch();
+
+  // state machine threads
+  void fsm_clock_tick();
+  void fsm_next_state();
+  void fsm_do_state();
 
   /// Constructor
   SC_HAS_PROCESS(cpu_lt_rtl_adapter);
@@ -77,28 +79,54 @@ class cpu_lt_rtl_adapter : public sc_module {
     icio.register_b_transport(this, &cpu_lt_rtl_adapter::icio_custom_b_transport);
     dcio.register_b_transport(this, &cpu_lt_rtl_adapter::dcio_custom_b_transport);
 
-    // transactor thread
-    SC_THREAD(cache_transactor);
-    sensitive << clk.pos() << ival << dval << ico << dco << rst;
+    // 3x threads for state machine implementation
+    // ===========================================
+    
+    // 1. state transition at clock tick
+    SC_THREAD(fsm_clock_tick);
+    sensitive << clk.pos();
 
-    // capture thread
-    SC_THREAD(data_capture);
-    sensitive << clk.pos() << ico << dco << rst;
+    // 2. determine next state (async)
+    SC_THREAD(fsm_next_state);
+    sensitive << iread_pending << dread_pending << dwrite_pending << ico << dco << ival << dval;
+
+    // 3. signal assigments according to fsm state
+    SC_THREAD(fsm_do_state);
+    sensitive << state;
 
   }
 
  private:
 
+  enum adapter_state { idle, ireadaddr, dreadaddr, dwriteaddr, dwritedata, ireadmiss, dreadmiss };
+
+  sc_signal<adapter_state> state;
+  sc_signal<adapter_state> nextstate;
+
   sc_signal<icache_in_type> ival;
   sc_signal<dcache_in_type> dval;
+
+  sc_signal<sc_logic> ico_mds;
+  sc_signal<sc_logic> dco_mds;
+  sc_signal<sc_logic> ico_hold;
+  sc_signal<sc_logic> dco_hold;
+
+  sc_signal<bool> dwrite_pending;
+  sc_signal<bool> dread_pending;
+  sc_signal<bool> iread_pending;
+
+  sc_event dwrite_done;
+  sc_event dread_done;
+  sc_event iread_done;
 
   unsigned int hdl_data;
   unsigned int hdl_instr;
 
-  bool data_mds;
-  bool instr_mds;
+  // buffer cache outputs (data and instruction) @clock
+  unsigned int ico_data_reg;
+  unsigned int dco_data_reg;
 
-  sc_event cache_ready;
+  unsigned int transactor_state;
   
 };  
 

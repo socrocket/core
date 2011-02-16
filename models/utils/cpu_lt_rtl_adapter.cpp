@@ -208,11 +208,14 @@ void cpu_lt_rtl_adapter::dread(unsigned int address, unsigned int * data, unsign
   // trigger dread
   dread_pending.write(true);
 
+  // wait for instruction cycle to be finished
+  wait(dread_done);
+
   // result to tlm
   *data = dco_data_reg;
 
-  // wait for instruction cycle to be finished
-  wait(dread_done);
+  // dread done
+  dread_pending.write(false);
 
   // reset to default
   dtmp.asi = 0xb;
