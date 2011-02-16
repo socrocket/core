@@ -49,6 +49,7 @@
 #include "mmu_cache_if.h"
 #include "mmu_if.h"
 #include "mem_if.h"
+#include "verbose.h"
 
 #include "defines.h"
 
@@ -84,12 +85,14 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
             // mmu enabled
             if (m_mmu->read_mcr() & 0x1) {
 
+	      v::info << name() << "MMU enabled - lookup TLB" << v::endl;
                 paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug);
 
             }
             // mmu in bypass mode
             else {
 
+	      v::info << name() << "MMU disabled - physical addressing" << v::endl;
                 paddr = addr;
 
             }
@@ -109,16 +112,18 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
             // mmu enabled
             if (m_mmu->read_mcr() & 0x1) {
 
+	      v::info << name() << "MMU enabled - lookup TLB" << v::endl;
                 paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug);
 
             }
             // mmu in bypass mode
             else {
 
+	      v::info << name() << "MMU disabled - physical addressing" << v::endl;
                 paddr = addr;
 
             }
-
+ 
             // forward request to mmu amba interface
             m_mmu_cache->mem_write(paddr, data, len, t, debug);
 

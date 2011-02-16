@@ -249,6 +249,10 @@ class mmu : public sc_core::sc_module, public mmu_if {
         unsigned int m_itlbnum;
         /// number of data tlbs
         unsigned int m_dtlbnum;
+	/// log2 version of itlbnum
+	unsigned int m_itlblog2;
+	/// log2 version of dtlbnum
+	unsigned int m_dtlblog2;
         /// tlb type (bit0 - split/combined, bit1 - standard/fast write buffer)
         unsigned int m_tlb_type;
         /// tlb replacment strategy (no inform. found yet - tmp use random)

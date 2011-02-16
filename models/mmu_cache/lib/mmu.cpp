@@ -62,8 +62,10 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
          unsigned int tlb_rep, // tlb replacement strategy
          unsigned int mmupgsz) :
             sc_module(name), // tlb mmu page size (default 4kB)
-            m_mmu_cache(_mmu_cache), m_itlbnum(2 ^ itlbnum), m_dtlbnum(2
-                    ^ dtlbnum), m_tlb_type(tlb_type), m_tlb_rep(tlb_rep),
+            m_mmu_cache(_mmu_cache), m_itlbnum(itlbnum), m_dtlbnum(dtlbnum), 
+	    m_itlblog2((unsigned int)log2((double)m_itlbnum)), 
+	    m_dtlblog2((unsigned int)log2((double)m_dtlbnum)), 
+	    m_tlb_type(tlb_type), m_tlb_rep(tlb_rep),
             m_mmupgsz(mmupgsz), m_itlb_hit_response_delay(
                     itlb_hit_response_delay), m_itlb_miss_response_delay(
                     itlb_miss_response_delay), m_dtlb_hit_response_delay(
@@ -72,8 +74,13 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
 
     // initialize internal registers
 
+    // the number of instruction and data tlbs must be in the range of 2-32
+    assert((m_itlbnum>=2)&&(m_itlbnum<=32));
+    assert((m_dtlbnum>=2)&&(m_dtlbnum<=32));
+
     // initialize MMU control register (ITLB, DTLB)
-    MMU_CONTROL_REG = (itlbnum << 21) || (dtlbnum << 18);
+    MMU_CONTROL_REG = 0;
+    MMU_CONTROL_REG = ((m_itlblog2 << 21) | (m_dtlblog2 << 18));
 
     MMU_CONTEXT_TABLE_POINTER_REG = 0;
     MMU_CONTEXT_REG = 0;
@@ -86,12 +93,15 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
             m_itlbnum);
 
     // are we in split tlb mode?
-    if (m_tlb_type & 0x1) {
+    if (m_tlb_type == 0x0) {
 
         // generate another associative memory (map) for data tlb
         dtlb = new std::map<t_VAT, t_PTE_context>;
-        itlb_adaptor = new tlb_adaptor("dtlb_adaptor", _mmu_cache, this, dtlb,
+        dtlb_adaptor = new tlb_adaptor("dtlb_adaptor", _mmu_cache, this, dtlb,
                 m_dtlbnum);
+
+        // update MMU control register (ST)
+        MMU_CONTROL_REG |= (1 << 14);
 
         v::info << this->name() << "Created split instruction and data TLBs."
                 << v::endl;
@@ -104,9 +114,6 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
 
         v::info << this->name()
                 << "Created combined instruction and data TLBs." << v::endl;
-
-        // update MMU control register (ST)
-        MMU_CONTROL_REG |= (1 << 14);
 
     }
 
@@ -162,6 +169,13 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
             assert(false);
     }
 
+    v::info << this->name() << " ******************************************************************************* " << v::endl;
+    v::info << this->name() << " * Created mmu with following parameters: " << v::endl;
+    v::info << this->name() << " * number of instruction tlbs: " << m_itlbnum << v::endl;
+    v::info << this->name() << " * number of data tlbs: " << m_dtlbnum << v::endl;
+    v::info << this->name() << " * tlb type (0 - split, 1 - shared): " << m_tlb_type << v::endl;
+    v::info << this->name() << " * MMU_CONTROL_REG: " << hex << MMU_CONTROL_REG << v::endl;
+    v::info << this->name() << " * ***************************************************************************** " << v::endl;
 }
 
 // look up a tlb (page descriptor cache)
