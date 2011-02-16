@@ -157,6 +157,30 @@ def build(bld):
     includes     = '. ./tests/test2 ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )
+  
+  bld(
+    target       = 'gptimer.r3.tlm.test',
+    features     = 'cxx cprogram test',
+    source       = ['tests/test3/top_tlm.cpp',
+                    'tests/test3/testbench.cpp'],
+    includes     = '. tests/test3',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    use          = 'gptimer utils signalkit common',
+  )
+
+  bld(
+    target       = 'gptimer.3.rtl.test',
+    features     = 'modelsim test',
+    generate     = 'gptimer_wrapper:tests/test3/gptimer_wrapper.h',
+    source       = ['tests/gptimer_wrapper.vhd',
+                    'tests/test3/testbench.cpp',
+                    'tests/test3/top_rtl.cpp',
+                    '../../common/verbose.cpp'],
+    uselib       = 'AMBA GREENSOCS',
+    includes     = '. ./tests/test3 ../utils ../../signalkit ../../common',
+    config       =  vsim_conf,
+  )
+
 
   #bld(
   #  target       = 'speed.gptimer',
