@@ -115,9 +115,9 @@ def build(bld):
   bld(
     features     = 'cxx cprogram test',
     target       = 'mctrl.1.tlm.test',
-    source       = ['test/test1/testbench.cpp',
-                    'test/test1/top_tlm.cpp'],
-    includes     = './ test test/test1',
+    source       = ['tests/test1/testbench.cpp',
+                    'tests/test1/top_tlm.cpp'],
+    includes     = './ tests tests/test1',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )
@@ -127,11 +127,11 @@ def build(bld):
     target       = 'mctrl.1.rtl.test',
     source       = [os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/sram32.vhd'), bld.path.get_src().abspath()),
                     '../../common/verbose.cpp',
-                    'test/test1/testbench.cpp',
-                    'test/test1/top_rtl.cpp'],
+                    'tests/test1/testbench.cpp',
+                    'tests/test1/top_rtl.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
     defines      = 'TESTLENGTH=1',
-    includes     = '. test ../utils ../../signalkit ../../common',
+    includes     = '. tests tests/test1 ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )  
 
@@ -141,11 +141,11 @@ def build(bld):
     source       = [os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/sram32.vhd'), bld.path.get_src().abspath()),
                     os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/amba/ahbctrl.vhd'), bld.path.get_src().abspath()),
                     '../../common/verbose.cpp',
-                    './test/conf001/mctrl_tb.cpp',
-                    './test/conf001/cosim/mctrl_top_rtl_bus.cpp'],
+                    './tests/conf001/mctrl_tb.cpp',
+                    './tests/conf001/cosim/mctrl_top_rtl_bus.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
     defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = './ ./test ../utils ../../signalkit ../../common',
+    includes     = './ ./tests ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )  
 
@@ -155,11 +155,11 @@ def build(bld):
     source       = ['../utils/sram16.vhd',
                     os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/amba/ahbctrl.vhd'), bld.path.get_src().abspath()),
                     '../../common/verbose.cpp',
-                    './test/conf004/mctrl_tb.cpp',
-                    './test/conf004/cosim/mctrl_top_rtl_bus.cpp'],
+                    './tests/conf004/mctrl_tb.cpp',
+                    './tests/conf004/cosim/mctrl_top_rtl_bus.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
     defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = './ ./test ../utils ../../signalkit ../../common',
+    includes     = './ ./tests ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )  
 
