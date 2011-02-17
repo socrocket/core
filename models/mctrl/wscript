@@ -110,31 +110,28 @@ def build(bld):
     export_includes = '.',
     uselib          = 'BOOST SYSC TLM2 AMBA GREENSOCS',
     use             = 'utils signalkit common'
-    #use             = 'common signalkit utils'
   )
 
   bld(
     features     = 'cxx cprogram test',
-    target       = 'mctrl.test001.systemc',
-    source       = ['../../common/verbose.cpp',
-                    './test/conf001/mctrl_tb.cpp',
-                    './test/conf001/systemc/mctrl_top.cpp'],
-    includes     = './ ./test ../utils ../../signalkit ../../common',
+    target       = 'mctrl.1.tlm.test',
+    source       = ['test/test1/testbench.cpp',
+                    'test/test1/top_tlm.cpp'],
+    includes     = './ test test/test1',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
-    #use          = 'common signalkit utils mctrl'
   )
 
   bld(
-    features     = 'modelsim',
-    target       = 'mctrl.test001.cosim',
+    features     = 'modelsim test',
+    target       = 'mctrl.1.rtl.test',
     source       = [os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/sram32.vhd'), bld.path.get_src().abspath()),
                     '../../common/verbose.cpp',
-                    './test/conf001/mctrl_tb.cpp',
-                    './test/conf001/cosim/mctrl_top.cpp'],
+                    'test/test1/testbench.cpp',
+                    'test/test1/top_rtl.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
-    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = './ ./test ../utils ../../signalkit ../../common',
+    defines      = 'TESTLENGTH=1',
+    includes     = '. test ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )  
 
