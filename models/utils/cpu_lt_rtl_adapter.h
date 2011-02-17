@@ -88,7 +88,7 @@ class cpu_lt_rtl_adapter : public sc_module {
 
     // 2. determine next state (async)
     SC_THREAD(fsm_next_state);
-    sensitive << iread_pending << dread_pending << dwrite_pending << ico << dco << ival << dval;
+    sensitive << state << iread_pending << dread_pending << dwrite_pending << ico << dco << ival << dval;
 
     // 3. signal assigments according to fsm state
     SC_THREAD(fsm_do_state);

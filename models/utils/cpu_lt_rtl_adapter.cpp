@@ -348,37 +348,42 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
     switch(state) {
 
       case idle:
-      
+	
+	//std::cout << sc_time_stamp() << name() << " IDLE" << std::endl;
+
 	ici.write(ival);
 	dci.write(dval);
 
         // instruction read
-        if (iread_pending) {
+        if (iread_pending && (ico.read().hold == SC_LOGIC_1) && (dco.read().hold == SC_LOGIC_1)) {
 
 	  nextstate = ireadaddr;
       
-        }
-
-        // data read
-        if (dread_pending) {
+	// data read
+        } else if (dread_pending && (ico.read().hold == SC_LOGIC_1) && (dco.read().hold == SC_LOGIC_1)) {
 
    	  nextstate = dreadaddr;
 
-        }
-
-        // data write
-        if (dwrite_pending) {
+	// data write
+        } else if (dwrite_pending) {
 
   	  nextstate = dwriteaddr;
 
-        }
+        } else {
+
+	  nextstate = idle;
+
+	}
 
         break;
 
       case ireadaddr:
 
+	// std::cout << sc_time_stamp() << name() << " IREADADDR" << std::endl;
+
 	if (ico.read().hold==SC_LOGIC_1) {
 
+	  ico_data_reg=ico.read().data[0].to_uint();
 	  nextstate=idle;
 
 	} else {
@@ -391,10 +396,15 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
 
       case ireadmiss:
 
+	// std::cout << sc_time_stamp() << name() << " IREADMISS" << std::endl;
 	if (ico.read().mds==SC_LOGIC_0) {
 
 	  ico_data_reg=ico.read().data[0].to_uint();
 	  nextstate=idle;
+
+	} else {
+
+	  nextstate=ireadmiss;
 
 	}
 
@@ -402,8 +412,10 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
 
       case dreadaddr:
 
+	// std::cout << sc_time_stamp() << name() << " DREADADDR" << std::endl;
 	if (dco.read().hold==SC_LOGIC_1) {
 
+	  dco_data_reg=dco.read().data[0].to_uint();
 	  nextstate=idle;
 
 	} else {
@@ -415,23 +427,33 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
         break;
 
       case dreadmiss:
-
+	
+	// std::cout << sc_time_stamp() << name() << " DREADMISS" << std::endl;
 	if (dco.read().mds==SC_LOGIC_0) {
 
 	  dco_data_reg=dco.read().data[0].to_uint();
 	  nextstate=idle;
+
+	} else {
+
+	  nextstate=dreadmiss;
 
 	}
 
 	break;
 
       case dwriteaddr:
-
+	
+	// std::cout << sc_time_stamp() << name() << " DWRITEADDR" << std::endl;
 	if (dco.read().hold==SC_LOGIC_1) {
 
 	  nextstate=idle;
 
-	}
+	} else {
+
+	  nextstate=dwriteaddr;
+
+        }
 
         break;
 
@@ -440,6 +462,8 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
         break;
 
     }
+
+    // std::cout << sc_time_stamp() << name() << " Current state: " << state << " Next state: " << nextstate << std::endl;
 
     wait();
 
