@@ -86,19 +86,15 @@ class cpu_lt_rtl_adapter : public sc_module {
     SC_THREAD(fsm_clock_tick);
     sensitive << clk.pos();
 
-    // 2. determine next state (async)
+    // 2. assign signals and determine next state (async)
     SC_THREAD(fsm_next_state);
     sensitive << state << iread_pending << dread_pending << dwrite_pending << ico << dco << ival << dval;
-
-    // 3. signal assigments according to fsm state
-    SC_THREAD(fsm_do_state);
-    sensitive << state;
 
   }
 
  private:
 
-  enum adapter_state { idle, ireadaddr, dreadaddr, dwriteaddr, dwritedata, ireadmiss, dreadmiss };
+  enum adapter_state { idle, ireadaddr, dreadaddr, dwriteaddr, dwritemiss, ireadmiss, dreadmiss };
 
   sc_signal<adapter_state> state;
   sc_signal<adapter_state> nextstate;

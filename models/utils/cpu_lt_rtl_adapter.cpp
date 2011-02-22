@@ -61,7 +61,7 @@ void cpu_lt_rtl_adapter::icio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
   if (cmd == tlm::TLM_READ_COMMAND) {
 
-    std::cout << sc_time_stamp() << " transactor iread from address " << hex << addr << std::endl;
+    v::info << sc_time_stamp() << " Transactor iread from address " << hex << addr << std::endl;
 
     iread((unsigned int)addr,(unsigned int*)ptr, flush);
 
@@ -94,13 +94,13 @@ void cpu_lt_rtl_adapter::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
   if (cmd == tlm::TLM_READ_COMMAND) {
 
-    std::cout << sc_time_stamp() << " transactor dread from address " << hex << addr << std::endl;
+    v::info << sc_time_stamp() << " Transactor dread from address " << hex << addr << v::endl;
 
     dread((unsigned int)addr, (unsigned int*)ptr, len, asi, flush, flushl, lock);
 
   } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-    std::cout << sc_time_stamp() << " transactor dwrite to address " << hex << addr << std::endl;
+    v::info << sc_time_stamp() << " Transactor dwrite to address " << hex << addr << v::endl;
 
     dwrite((unsigned int)addr,(unsigned int*)ptr, len, asi, flush, flushl, lock);
   
@@ -129,6 +129,9 @@ void cpu_lt_rtl_adapter::iread(unsigned int address, unsigned int * data, unsign
 
   // data to signal
   ival.write(itmp);
+
+  // async reset transactor
+  state = idle;
 
   // trigger iread
   iread_pending.write(true);
@@ -204,6 +207,9 @@ void cpu_lt_rtl_adapter::dread(unsigned int address, unsigned int * data, unsign
 
   // data to signal
   dval.write(dtmp);
+
+  // async reset transactor state
+  state = idle;
 
   // trigger dread
   dread_pending.write(true);
@@ -288,6 +294,9 @@ void cpu_lt_rtl_adapter::dwrite(unsigned int address, unsigned int * data, unsig
   // data to signal
   dval.write(dtmp);
 
+  // async reset transactor
+  state = idle;
+
   // trigger dwrite
   dwrite_pending.write(true);
 
@@ -343,14 +352,14 @@ void cpu_lt_rtl_adapter::fsm_clock_tick() {
 // determine next state (asynchr)
 void cpu_lt_rtl_adapter::fsm_next_state() {
 
+  dcache_in_type dtmp;
+
   while(1) {
 
     switch(state) {
 
       case idle:
 	
-	//std::cout << sc_time_stamp() << name() << " IDLE" << std::endl;
-
 	ici.write(ival);
 	dci.write(dval);
 
@@ -379,16 +388,20 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
 
       case ireadaddr:
 
-	// std::cout << sc_time_stamp() << name() << " IREADADDR" << std::endl;
-
-	if (ico.read().hold==SC_LOGIC_1) {
+	if ((ico.read().hold==SC_LOGIC_1)&&(iread_pending)) {
 	  
+	  ico_data_reg=ico.read().data[ico.read().set.to_uint()].to_uint();
 	  nextstate=idle;
+
+	  // ready for next instruction
+	  iread_done.notify(5, SC_NS);
 
 	} else {
 
 	  nextstate=ireadmiss;
 
+	  // not ready for next instruction
+	  iread_done.cancel();
 	}
 
 	ico_data_reg=ico.read().data[ico.read().set.to_uint()].to_uint();
@@ -397,15 +410,20 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
 
       case ireadmiss:
 
-	// std::cout << sc_time_stamp() << name() << " IREADMISS" << std::endl;
-	if (ico.read().mds==SC_LOGIC_0) {
+	if ((ico.read().mds==SC_LOGIC_0)&&(iread_pending)) {
 
 	  ico_data_reg=ico.read().data[0].to_uint();
 	  nextstate=idle;
+	  
+	  // ready for next instruction
+	  iread_done.notify(5, SC_NS);
 
 	} else {
 
 	  nextstate=ireadmiss;
+
+	  // not ready for next instruction
+	  iread_done.cancel();
 
 	}
 
@@ -413,15 +431,20 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
 
       case dreadaddr:
 
-	// std::cout << sc_time_stamp() << name() << " DREADADDR" << std::endl;
-	if (dco.read().hold==SC_LOGIC_1) {
+	if ((dco.read().hold==SC_LOGIC_1)&&(dread_pending)) {
 
 	  dco_data_reg=dco.read().data[dco.read().set.to_uint()].to_uint();
 	  nextstate=idle;
 
+	  // ready for next instruction
+	  dread_done.notify(5, SC_NS);
+
 	} else {
 
 	  nextstate=dreadmiss;
+
+	  // not ready for next instruction
+	  dread_done.cancel();
 
 	}
 
@@ -429,15 +452,26 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
 
       case dreadmiss:
 	
-	// std::cout << sc_time_stamp() << name() << " DREADMISS" << std::endl;
-	if (dco.read().mds==SC_LOGIC_0) {
+	if ((dco.read().mds==SC_LOGIC_0)&&(dread_pending)) {
 
 	  dco_data_reg=dco.read().data[0].to_uint();
 	  nextstate=idle;
 
+	  // ready for next instruction
+	  dread_done.notify(5, SC_NS);
+
 	} else {
 
 	  nextstate=dreadmiss;
+
+	  // remove address enables
+	  dtmp = dval.read();
+	  dtmp.enaddr = SC_LOGIC_0;
+	  dtmp.eenaddr = SC_LOGIC_0;
+	  dci.write(dval);
+	  
+	  // not ready for next instruction
+	  dread_done.cancel();
 
 	}
 
@@ -445,14 +479,42 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
 
       case dwriteaddr:
 	
-	// std::cout << sc_time_stamp() << name() << " DWRITEADDR" << std::endl;
-	if (dco.read().hold==SC_LOGIC_1) {
+	if ((dco.read().hold==SC_LOGIC_1)&&(dwrite_pending)) {
 
 	  nextstate=idle;
+	  
+	  // ready for next instruction
+	  dwrite_done.notify(5,SC_NS);
 
 	} else {
 
-	  nextstate=dwriteaddr;
+	  nextstate=dwritemiss;
+	  dwrite_done.cancel();
+
+        }
+
+	break;
+
+      case dwritemiss:
+
+	// remove address and write enables
+	dtmp = dval.read();
+	dtmp.enaddr = SC_LOGIC_0;
+	dtmp.eenaddr = SC_LOGIC_0;
+	dtmp.write = SC_LOGIC_0;
+	dci.write(dtmp);
+
+	if ((dco.read().hold==SC_LOGIC_1)&&(dwrite_pending)) {
+
+	  nextstate=idle;
+
+	  // ready for next instruction
+	  dwrite_done.notify(5,SC_NS);
+
+	} else {
+
+	  nextstate=dwritemiss;
+	  dwrite_done.cancel();
 
         }
 
@@ -464,58 +526,11 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
 
     }
 
-    // std::cout << sc_time_stamp() << name() << " Current state: " << state << " Next state: " << nextstate << std::endl;
-
     wait();
 
   }
 }
 
-// signal assignments according to fsm state
-void cpu_lt_rtl_adapter::fsm_do_state() {
-
-  icache_in_type itmp;
-  dcache_in_type dtmp;
-
-  while (1) {
-
-    itmp = ival.read();
-    dtmp = dval.read();
-
-    switch(state) {
-
-      case ireadaddr:
-
-        break;
-
-      case dreadaddr:
-
-        break;
-
-      case dwriteaddr:
-
-        dtmp.write = SC_LOGIC_0;
-	dtmp.enaddr = SC_LOGIC_0;
-	dtmp.eenaddr = SC_LOGIC_0;
-	dci.write(dtmp);
-
-        break;
-
-      case idle:
-
-	// unblock the master
-	dwrite_done.notify();
-	dread_done.notify();
-	iread_done.notify();
-
-      default:
-        break;
-
-    }
-
-    wait();
-  }
-}
 
 void cpu_lt_rtl_adapter::start_of_simulation() {
 
