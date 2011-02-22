@@ -163,7 +163,7 @@ def build(bld):
   )
 
   bld(
-    features     = 'modelsim',
+    features     = 'modelsim test',
     target       = 'mmucache.test1_ref',
     name         = 'mmucache_test1_ref',
     source       = ['test1/sim_ref/typ_adapters.vhd',
@@ -192,7 +192,7 @@ def build(bld):
   )
 
   bld(
-    features     = 'modelsim',
+    features     = 'modelsim test',
     target       = 'mmucache.test2_ref',
     name         = 'mmucache_test2_ref',
     source       = ['test2/sim_ref/typ_adapters.vhd',

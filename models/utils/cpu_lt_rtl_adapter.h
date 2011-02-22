@@ -57,7 +57,6 @@ class cpu_lt_rtl_adapter : public sc_module {
   // state machine threads
   void fsm_clock_tick();
   void fsm_next_state();
-  void fsm_do_state();
 
   /// Constructor
   SC_HAS_PROCESS(cpu_lt_rtl_adapter);

@@ -418,6 +418,9 @@ void vectorcache::mem_read(unsigned int address, unsigned char *data,
         // update debug information
         CACHEBYPASS_SET(*debug);
 
+        // increment time
+        *t += m_miss_read_response_delay;
+
     }
 }
 

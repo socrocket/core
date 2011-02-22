@@ -73,6 +73,7 @@ void cpu_lt_rtl_adapter::icio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
 }
 
+// 
 // TLM forward transport function for dcio socket
 void cpu_lt_rtl_adapter::dcio_custom_b_transport(tlm::tlm_generic_payload& tran, sc_core::sc_time &delay) {
 
