@@ -382,8 +382,7 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
 	// std::cout << sc_time_stamp() << name() << " IREADADDR" << std::endl;
 
 	if (ico.read().hold==SC_LOGIC_1) {
-
-	  ico_data_reg=ico.read().data[0].to_uint();
+	  
 	  nextstate=idle;
 
 	} else {
@@ -392,6 +391,8 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
 
 	}
 
+	ico_data_reg=ico.read().data[ico.read().set.to_uint()].to_uint();
+   
         break;
 
       case ireadmiss:
@@ -415,7 +416,7 @@ void cpu_lt_rtl_adapter::fsm_next_state() {
 	// std::cout << sc_time_stamp() << name() << " DREADADDR" << std::endl;
 	if (dco.read().hold==SC_LOGIC_1) {
 
-	  dco_data_reg=dco.read().data[0].to_uint();
+	  dco_data_reg=dco.read().data[dco.read().set.to_uint()].to_uint();
 	  nextstate=idle;
 
 	} else {
