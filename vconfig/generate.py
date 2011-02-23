@@ -40,7 +40,7 @@ class GeneratePage(QtGui.QWizardPage):
         steps = 2 + len(files) + len(gen)
         self.progress.setValue(1 * 100 / steps)
         # mkdir
-        path = os.path.join("platforms", '-'.join((str(self.template.template.base), str(self.name.conf)))) 
+        path = os.path.join("platforms", '-'.join((str(self.template.template.base), str(self.name.conf.conf)))) 
         if os.path.isdir(path):
             shutil.rmtree(path)
         os.makedirs(path)
