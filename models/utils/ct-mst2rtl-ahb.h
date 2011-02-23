@@ -1,4 +1,4 @@
-//*********************************************************************
+//*****************************************************************************
 // Copyright 2010, Institute of Computer and Network Engineering,
 //                 TU-Braunschweig
 // All rights reserved
@@ -21,7 +21,7 @@
 // neither implicit nor explicit. The program and the information in it
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
-//*********************************************************************
+//*****************************************************************************
 // Title:      ahb_rtl_ct.h
 //
 // ScssId:
@@ -40,7 +40,7 @@
 // Author:     VLSI working group @ IDA @ TU Braunschweig
 // Maintainer: Rolf Meyer
 // Reviewed:
-//*********************************************************************
+//*****************************************************************************
 
 #ifndef CT_AHB_MASTER_RTL_AHB_BUS_ADAPTER
 #define CT_AHB_MASTER_RTL_AHB_BUS_ADAPTER
@@ -92,16 +92,16 @@ class Cmst_ct_rtl_ahb : public sc_module {
         sc_core::sc_out<sc_uint<32> > hconfig_7;
         sc_core::sc_out<sc_uint<16> > hindex;
 
-        /// A small subclass which wraps the core functionality inhireted by amba::AHB_Master_RTL_CT_Adapter
-        /// It has knowledge about addressdecoding and translates between the TLM Port and RTL Signals.
+        /// A small subclass which wraps the core functionality inhireted by 
+        /// amba::AHB_Master_RTL_CT_Adapter
+        /// It has knowledge about addressdecoding and translates between the 
+        /// TLM Port and RTL Signals.
         /// But we need another class to map the RTL Signals to GRLIB Signals.
-        class ct : public AHB_Master_CT_RTL_Adapter<32, ct> ,
-                   public amba_slave_base {
+        class ct : public AHB_Master_CT_RTL_Adapter<32, ct>, public amba_slave_base {
             public:
                 ct(sc_core::sc_module_name nm, sc_dt::uint64 base,
                    sc_dt::uint64 size) :
-                    AHB_Master_CT_RTL_Adapter<32, ct> (nm), m_base(base),
-                            m_size(size) {
+                    AHB_Master_CT_RTL_Adapter<32, ct> (nm), m_base(base), m_size(size) {
                 }
 
                 sc_dt::uint64 get_base_addr() {
@@ -136,14 +136,17 @@ class Cmst_ct_rtl_ahb : public sc_module {
 
     public:
         /// Constructor: Simply give name, baseaddress and size as an argument.
-        /// After construction ensure that interrupt ports ahbi ahbo and the TLM Port
-        /// are connected before starting the simulation.
-        Cmst_ct_rtl_ahb(sc_core::sc_module_name nm, sc_dt::uint64 base, sc_dt::uint64 size);
+        /// After construction ensure that interrupt ports ahbi ahbo and the 
+        /// TLM Port are connected before starting the simulation.
+        Cmst_ct_rtl_ahb(sc_core::sc_module_name nm, sc_dt::uint64 base, 
+                        sc_dt::uint64 size);
 
-        /// Takes ahbo inputs and converts them into TLM communication and irq signals.
+        /// Takes ahbo inputs and converts them into TLM communication and 
+        /// irq signals.
         void ahbo_ctrl();
 
-        /// Collectes all data from the input ports and writes them into the ahbi record for the GRLIB Model.
+        /// Collectes all data from the input ports and writes them into the 
+        /// ahbi record for the GRLIB Model.
         void ahbi_ctrl();
 };
 
@@ -190,7 +193,8 @@ Cmst_ct_rtl_ahb::Cmst_ct_rtl_ahb(sc_core::sc_module_name nm, sc_dt::uint64 base,
     ct.m_HREADYIN(m_hreadyin);
 
     SC_THREAD( ahbo_ctrl);
-    sensitive << m_hbusreq << m_hlock << m_htrans << m_haddr << m_hwrite << m_hsize << m_hburst << m_hprot << m_hwdata;
+    sensitive << m_hbusreq << m_hlock << m_htrans << m_haddr << m_hwrite 
+              << m_hsize << m_hburst << m_hprot << m_hwdata;
 
     SC_THREAD(ahbi_ctrl);
     sensitive << ahbi;
