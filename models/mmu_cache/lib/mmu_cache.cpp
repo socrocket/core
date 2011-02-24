@@ -155,14 +155,22 @@ void mmu_cache::icio_custom_b_transport(tlm::tlm_generic_payload& tran,
         } else {
 
             icache->mem_read((unsigned int)adr, ptr, 4, &delay, debug);
-            //v::info << name() << "ICIO Socket data received (tlm_read): " << hex << *(unsigned int*)ptr << v::endl;
-        }
-    } else if (cmd == tlm::TLM_WRITE_COMMAND) {
-        v::info << name()
-                << "Command not valid for instruction cache (tlm_write)"
-                << v::endl;
-    }
 
+        }
+
+        // Setting gp response status to OK
+        tran.set_response_status(tlm::TLM_OK_RESPONSE);
+	return;
+
+    } else {
+        v::error << name()
+                 << "Command not valid for instruction cache (tlm_write)"
+                 << v::endl;
+
+	tran.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+	return;
+
+    }
 }
 
 /// TLM forward transport for dcio socket
@@ -190,45 +198,96 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
             v::info << this->name()
                     << "System Registers read with ASI 0x2 - addr:" << std::hex
                     << adr << v::endl;
+
             if (adr == 0) {
+
                 // cache control register
                 *(unsigned int *)ptr = read_ccr();
+		// Setting response status
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
+
             } else if (adr == 8) {
+
                 // instruction cache configuration register
                 *(unsigned int *)ptr = icache->read_config_reg(&delay);
+		// Setting response status
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
+
             } else if (adr == 0x0c) {
+
                 // data cache configuration register
                 *(unsigned int *)ptr = dcache->read_config_reg(&delay);
+		// Setting response status
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
+
             } else {
-                v::warn << this->name()
-                        << "Address not valid for read with ASI 0x2" << v::endl;
-                *ptr = 0;
+
+                v::error << name()
+                         << "Address not valid for read with ASI 0x2" 
+			 << v::endl;
+		
+		// set TLM response
+		tran.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+		return;
             }
+
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
 	    v::info << this->name()
                     << "System Register write with ASI 0x2 - addr:" << std::hex
                     << adr << v::endl;
+
             if (adr == 0) {
+
                 // cache control register
                 write_ccr(ptr, len, &delay);
-            }
+		// Setting response status
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
+
+
             // TRIGGER DEBUG OUTPUT / NOT A SPARC SYSTEM REGISTER
-            else if (adr == 0xfe) {
+            } else if (adr == 0xfe) {
+
                 // icache debug output (arg: line)
                 icache->dbg_out(*ptr);
+		// Setting response status
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
+
+
             } else if (adr == 0xff) {
+
                 // dcache debug output (arg: line)
                 dcache->dbg_out(*ptr);
+		// Setting response status
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
+
             } else {
-                v::warn << this->name()
-                        << "Address not valid for write with ASI 0x2 (or read only)"
-                        << v::endl;
-                // ignore (cache configuration regs (0x8, 0xc) are read only)
+
+                v::error << name()
+                         << "Address not valid for write with ASI 0x2 (or read only)"
+                         << v::endl;
+
+		// set TLM response
+		tran.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+		return;
             }
+
         } else {
-            v::info << this->name() << "Unvalid TLM Command" << v::endl;
-            assert(false);
+
+            v::error << name() 
+		     << "Unvalid TLM Command" 
+		     << v::endl;
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+	    return;
+	    
         }
     }
     // diagnostic access to instruction PDC
@@ -239,20 +298,47 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
             v::info << this->name()
                     << "Diagnostic read from instruction PDC (ASI 0x5)"
                     << v::endl;
+
             if (m_mmu_en) {
+
                 m_mmu->diag_read_itlb(adr, (unsigned int *)ptr);
+		// set TLM response
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
+
             } else {
-                assert(false);
+
+	        v::error << name()
+		       << "MMU not present" 
+		       << v::endl;
+
+  	        // set TLM response
+	        tran.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+	        return;
             }
+
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
             v::info << this->name()
                     << "Diagnostic write to instruction PDC (ASI 0x5)"
                     << v::endl;
+
             if (m_mmu_en) {
+
                 m_mmu->diag_write_itlb(adr, (unsigned int *)ptr);
+		// set TLM response
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
+
             } else {
-                assert(false);
+
+	        v::error << name()
+		       << "MMU not present" 
+		       << v::endl;
+
+	        // set TLM response
+	        tran.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+	        return;
             }
         }
     }
@@ -261,88 +347,212 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << this->name()
+            v::info << name()
                     << "Diagnostic read from data (or shared) PDC (ASI 0x6)"
                     << v::endl;
+
             if (m_mmu_en) {
+
                 m_mmu->diag_read_dctlb(adr, (unsigned int *)ptr);
+		// set TLM response
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
+
             } else {
-                assert(false);
+
+	        v::error << name()
+		         << "MMU not present" 
+		         << v::endl;
+
+	        // set TLM response
+	        tran.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+	        return;
             }
+
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << this->name()
+            v::info << name()
                     << "Diagnostic write to data (or shared) PDC (ASI 0x6)"
                     << v::endl;
+
             if (m_mmu_en) {
+
                 m_mmu->diag_write_dctlb(adr, (unsigned int *)ptr);
+		// set TLM response
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
+
             } else {
-                assert(false);
+
+	        v::error << name()
+		         << "MMU not present" 
+		         << v::endl;
+
+  	        // set TLM response
+	        tran.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+		return;
+
             }
-        }
+	}
     }
     // access instruction cache tags
     else if (asi == 0xc) {
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-            v::info << this->name() << "ASI read instruction cache tags"
+
+            v::info << name() 
+		    << "ASI read instruction cache tags"
                     << v::endl;
+
             icache->read_cache_tag((unsigned int)adr, (unsigned int*)ptr,
                     &delay);
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+	    return;
+
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
-            v::info << this->name() << "ASI write instruction cache tags"
+
+            v::info << name() << "ASI write instruction cache tags"
                     << v::endl;
+
             icache->write_cache_tag((unsigned int)adr, (unsigned int*)ptr,
                     &delay);
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+	    return;
+
         } else {
-            v::warn << this->name() << "Unvalid TLM Command" << v::endl;
+
+            v::error << name() 
+		     << "Unvalid TLM Command" 
+		     << v::endl;
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+	    return;
         }
     }
     // access instruction cache data
     else if (asi == 0xd) {
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-            v::info << this->name() << "ASI read instruction cache entry"
+
+            v::info << name() 
+		    << "ASI read instruction cache entry"
                     << v::endl;
+
             icache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr,
                     &delay);
+	    
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+	    return;
+
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
-            v::info << this->name() << "ASI write instruction cache entry"
+
+            v::info << name() 
+		    << "ASI write instruction cache entry"
                     << v::endl;
+
             icache->write_cache_entry((unsigned int)adr, (unsigned int*)ptr,
                     &delay);
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+	    return;
+
         } else {
-            v::warn << this->name() << "Unvalid TLM Command" << v::endl;
+
+            v::error << name() 
+		     << "Unvalid TLM Command" 
+		     << v::endl;
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+	    return;
         }
     }
     // access data cache tags
     else if (asi == 0xe) {
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-            v::info << this->name() << "ASI read data cache tags" << v::endl;
+
+            v::info << name() 
+		    << "ASI read data cache tags" 
+		    << v::endl;
+
             dcache->read_cache_tag((unsigned int)adr, (unsigned int*)ptr,
                     &delay);
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+	    return;
+
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
-            v::info << this->name() << "ASI write data cache tags" << v::endl;
+
+            v::info << name() 
+		    << "ASI write data cache tags" 
+		    << v::endl;
+
             dcache->write_cache_tag((unsigned int)adr, (unsigned int*)ptr,
                     &delay);
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+	    return;
+
         } else {
-            v::warn << this->name() << "Unvalid TLM Command" << v::endl;
+
+            v::error << name() 
+		     << "Unvalid TLM Command" 
+		     << v::endl;
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+	    return;
+
         }
     }
     // access data cache data
     else if (asi == 0xf) {
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-            v::info << this->name() << "ASI read data cache entry" << v::endl;
+
+            v::info << name() 
+		    << "ASI read data cache entry" 
+		    << v::endl;
+
             dcache->read_cache_entry((unsigned int)adr, (unsigned int*)ptr,
                     &delay);
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+	    return;
+
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
-            v::info << this->name() << "ASI write data cache entry" << v::endl;
+
+            v::info << name() 
+		    << "ASI write data cache entry" 
+		    << v::endl;
+
             dcache->write_cache_entry((unsigned int)adr, (unsigned int*)ptr,
                     &delay);
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+	    return;
+
         } else {
-            v::warn << this->name() << "Unvalid TLM Command" << v::endl;
+
+            v::error << name() 
+		     << "Unvalid TLM Command" 
+		     << v::endl;
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+	    return;
         }
     }
     // flush instruction cache
@@ -350,10 +560,26 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         // icache is flushed on any write with ASI 0x10
         if (cmd == tlm::TLM_WRITE_COMMAND) {
-            v::info << this->name() << "ASI flush instruction cache" << v::endl;
+
+            v::info << name() 
+		    << "ASI flush instruction cache" 
+		    << v::endl;
+
             icache->flush(&delay, debug);
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+	    return;
+
         } else {
-            v::warn << this->name() << "Unvalid TLM Command" << v::endl;
+
+            v::error << name() 
+		     << "Unvalid TLM Command" 
+		     << v::endl;
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+	    return;
         }
     }
     // flush data cache
@@ -361,10 +587,26 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         // dcache is flushed on any write with ASI 0x11
         if (cmd == tlm::TLM_WRITE_COMMAND) {
-            v::info << this->name() << "ASI flush data cache" << v::endl;
+
+            v::info << name() 
+		    << "ASI flush data cache" 
+		    << v::endl;
+
             dcache->flush(&delay, debug);
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+	    return;
+
         } else {
-            v::warn << this->name() << "Unvalid TLM Command" << v::endl;
+
+            v::error << name() 
+		     << "Unvalid TLM Command" 
+		     << v::endl;
+
+	    // set TLM response
+	    tran.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+	    return;
         }
     }
     // access MMU internal registers
@@ -375,73 +617,149 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
             if (cmd == tlm::TLM_READ_COMMAND) {
 
-                v::info << this->name()
+                v::info << name()
                         << "MMU register read with ASI 0x19 - addr:"
-                        << std::hex << adr << v::endl;
+                        << std::hex 
+			<< adr 
+			<< v::endl;
+
                 if (adr == 0x000) {
+
                     // MMU Control Register
-                    v::info << this->name() << "ASI read MMU Control Register"
+                    v::info << name() 
+			    << "ASI read MMU Control Register"
                             << v::endl;
+
                     *(unsigned int *)ptr = m_mmu->read_mcr();
+		    // set TLM response
+		    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		    return;
+
                 } else if (adr == 0x100) {
+
                     // Context Pointer Register
-                    v::info << this->name()
+                    v::info << name()
                             << "ASI read MMU Context Pointer Register"
                             << v::endl;
+
                     *(unsigned int *)ptr = m_mmu->read_mctpr();
+		    // set TLM response
+		    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		    return;
+
                 } else if (adr == 0x200) {
+
                     // Context Register
-                    v::info << this->name() << "ASI read MMU Context Register"
+                    v::info << name() 
+			    << "ASI read MMU Context Register"
                             << v::endl;
+
                     *(unsigned int *)ptr = m_mmu->read_mctxr();
+		    // set TLM response
+		    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		    return;
+
                 } else if (adr == 0x300) {
+
                     // Fault Status Register
-                    v::info << this->name()
-                            << "ASI read MMU Fault Status Register" << v::endl;
+                    v::info << name()
+                            << "ASI read MMU Fault Status Register" 
+			    << v::endl;
+
                     *(unsigned int *)ptr = m_mmu->read_mfsr();
+		    // set TLM response
+		    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		    return;
+
                 } else if (adr == 0x400) {
+
                     // Fault Address Register
-                    v::info << this->name()
-                            << "ASI read MMU Fault Address Register" << v::endl;
+                    v::info << name()
+                            << "ASI read MMU Fault Address Register" 
+			    << v::endl;
+
                     *(unsigned int *)ptr = m_mmu->read_mfar();
+		    // set TLM response
+		    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		    return;
+
                 } else {
-                    v::warn << this->name()
-                            << "Address not valid for read with ASI 0x19"
-                            << v::endl;
-                    *(unsigned int *)ptr = 0;
+                    
+		    v::error << name()
+                             << "Address not valid for read with ASI 0x19"
+                             << v::endl;
+
+		    // Setting TLM response
+		    tran.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+		    return;
+
                 }
+
             } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-                v::info << this->name()
+                v::info << name()
                         << "MMU register write with ASI 0x19 - addr:"
-                        << std::hex << adr << v::endl;
+                        << std::hex 
+			<< adr 
+			<< v::endl;
+
                 if (adr == 0x000) {
+
                     // MMU Control Register
-                    v::info << this->name() << "ASI write MMU Control Register"
+                    v::info << name() 
+			    << "ASI write MMU Control Register"
                             << v::endl;
+
                     m_mmu->write_mcr((unsigned int *)ptr);
+		    // set TLM response
+		    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		    return;
+
                 } else if (adr == 0x100) {
+
                     // Context Table Pointer Register
-                    v::info << this->name()
+                    v::info << name()
                             << "ASI write MMU Context Table Pointer Register"
                             << v::endl;
+
                     m_mmu->write_mctpr((unsigned int*)ptr);
+		    // set TLM response
+		    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		    return;
+
                 } else if (adr == 0x200) {
+
                     // Context Register
-                    v::info << this->name() << "ASI write MMU Context Register"
+                    v::info << name() 
+			    << "ASI write MMU Context Register"
                             << v::endl;
+
                     m_mmu->write_mctxr((unsigned int*)ptr);
+		    // set TLM response
+		    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		    return;
+
                 } else {
-                    v::warn << this->name()
-                            << "Address not valid for write with ASI 0x19 (or read-only)"
-                            << v::endl;
+                    
+		    v::error << name()
+                             << "Address not valid for write with ASI 0x19 (or read-only)"
+                             << v::endl;
+
+		    // Setting TLM response
+		    tran.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+		    return;
                 }
             }
-        } else {
+ 
+       } else {
 
-            v::warn << this->name()
-                    << "Access to MMU registers, but MMU not present!"
-                    << v::endl;
+            v::error << name()
+                     << "Access to MMU registers, but MMU not present!"
+                     << v::endl;
+
+	    // Setting TLM response
+	    tran.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+	    return;
 
         }
     }
@@ -454,42 +772,76 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
             if (m_ilram && (((adr >> 24) & 0xff) == m_ilramstart)) {
 
                 ilocalram->read((unsigned int)adr, ptr, len, &delay, debug);
+		// set TLM response
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
 
                 // data scratchpad enabled && address points into selected 16MB region
             } else if (m_dlram && (((adr >> 24) & 0xff) == m_dlramstart)) {
 
                 dlocalram->read((unsigned int)adr, ptr, len, &delay, debug);
+		// set TLM response
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
 
                 // cache access || bypass || direct mmu
             } else {
 
                 dcache->mem_read((unsigned int)adr, ptr, len, &delay, debug);
-                // v::info << name() << "DCIO Socket data received (tlm_read): " << std::hex << *(unsigned int*)ptr << v::endl;
-                // no dcache present - bypass
+		// set TLM response
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
             }
+
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
             // instruction scratchpad enabled && address points into selected 16 MB region
             if (m_ilram && (((adr >> 24) & 0xff) == m_ilramstart)) {
 
                 ilocalram->write((unsigned int)adr, ptr, len, &delay, debug);
+		// set TLM response
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
 
-                // data scratchpad enabled && address points into selected 16MB region
+            // data scratchpad enabled && address points into selected 16MB region
             } else if (m_dlram && (((adr >> 24) & 0xff) == m_dlramstart)) {
 
                 dlocalram->write((unsigned int)adr, ptr, len, &delay, debug);
+		// set TLM response
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
 
-                // cache access (write through) || bypass || direct mmu
+            // cache access (write through) || bypass || direct mmu
             } else {
 
                 dcache->mem_write((unsigned int)adr, ptr, len, &delay, debug);
+		// set TLM response
+		tran.set_response_status(tlm::TLM_OK_RESPONSE);
+		return;
             }
-        }
+
+        } else {
+
+            v::error << name()
+                     << "TLM command not valid"
+                     << v::endl;
+
+	    // Setting TLM response
+	    tran.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+	    return;
+	}
+
     } else {
 
-        v::warn << name() << "ASI not recognized: " << std::hex << asi
-                << v::endl;
-        assert(0);
+        v::error << name() 
+		 << "ASI not recognized: " 
+		 << std::hex 
+		 << asi
+		 << v::endl;
+	
+	// Setting TLM response
+	tran.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+	return;
     }
 }
 

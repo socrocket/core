@@ -174,8 +174,13 @@ class mmu_cache_test : public sc_core::sc_module {
             // send
             data_initiator_socket->b_transport(gp, t);
 
+	    // check response
+	    assert(gp.get_response_status()==tlm::TLM_OK_RESPONSE);
+
             // suspend and burn the time
             wait(t);
+
+	    
 
             return (data);
         }
@@ -212,6 +217,9 @@ class mmu_cache_test : public sc_core::sc_module {
 
             // send
             data_initiator_socket->b_transport(gp, t);
+
+	    // check response
+	    assert(gp.get_response_status()==tlm::TLM_OK_RESPONSE);
 
             // suspend and burn the time
             wait(t);

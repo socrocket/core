@@ -61,13 +61,20 @@ void cpu_lt_rtl_adapter::icio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
   if (cmd == tlm::TLM_READ_COMMAND) {
 
-    v::info << sc_time_stamp() << " Transactor iread from address " << hex << addr << std::endl;
+    v::debug << sc_time_stamp() << " Transactor iread from address " << hex << addr << std::endl;
 
     iread((unsigned int)addr,(unsigned int*)ptr, flush);
+    // Setting gp response status to OK
+    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+    return;    
+
 
   } else {
 
     v::error << "tlm command not allowed on instruction socket" << v::endl;
+    // Setting gp response status to OK
+    tran.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+    return;
 
   }
 
@@ -98,16 +105,26 @@ void cpu_lt_rtl_adapter::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
     v::info << sc_time_stamp() << " Transactor dread from address " << hex << addr << v::endl;
 
     dread((unsigned int)addr, (unsigned int*)ptr, len, asi, flush, flushl, lock);
+    // Setting gp response status to OK
+    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+    return;
 
   } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
     v::info << sc_time_stamp() << " Transactor dwrite to address " << hex << addr << v::endl;
 
     dwrite((unsigned int)addr,(unsigned int*)ptr, len, asi, flush, flushl, lock);
+    // Setting gp response status to OK
+    tran.set_response_status(tlm::TLM_OK_RESPONSE);
+    return;   
+
   
   } else {
 
-    v::error << "tlm command not allowed on data socket" << v::endl;
+    v::error << "Invalid TLM command" << v::endl;
+    // Set gp response status 
+    tran.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+    return;
 
   }
 

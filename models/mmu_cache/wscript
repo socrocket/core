@@ -153,7 +153,7 @@ def build(bld):
   )
 
   bld(
-    target       = 'mmucache.test1',
+    target       = 'mmu_cache.1.tlm.test',
     features     = 'cxx cprogram test',
     source       = ['test1/testbench.cpp',
                     'test1/sim_model/main.cpp'],
@@ -164,8 +164,8 @@ def build(bld):
 
   bld(
     features     = 'modelsim test',
-    target       = 'mmucache.test1_ref',
-    name         = 'mmucache_test1_ref',
+    target       = 'mmu_cache.1.rtl.test',
+    name         = 'mmu_cache.1.rtl.test',
     source       = ['test1/sim_ref/typ_adapters.vhd',
                     'test1/sim_ref/mmu_cache_wrapper.vhd',
                     '../../common/verbose.cpp',
@@ -182,7 +182,7 @@ def build(bld):
   )  
 
   bld(
-    target       = 'mmucache.test2',
+    target       = 'mmu_cache.2.tlm.test',
     features     = 'cxx cprogram test',
     source       = ['test2/testbench.cpp',
                     'test2/sim_model/main.cpp'],
@@ -193,8 +193,8 @@ def build(bld):
 
   bld(
     features     = 'modelsim test',
-    target       = 'mmucache.test2_ref',
-    name         = 'mmucache_test2_ref',
+    target       = 'mmu_cache.2.rtl.test',
+    name         = 'mmu_cache.2.rtl.test',
     source       = ['test2/sim_ref/typ_adapters.vhd',
                     'test2/sim_ref/mmu_cache_wrapper.vhd',
                     '../../common/verbose.cpp',
@@ -211,7 +211,7 @@ def build(bld):
   ) 
 
   bld(
-    target       = 'mmucache.test3',
+    target       = 'mmu_cache.3.tlm.test',
     features     = 'cxx cprogram test',
     source       = ['test3/testbench.cpp',
                     'test3/main.cpp'],
@@ -221,7 +221,7 @@ def build(bld):
   )
 
   bld(
-    target       = 'mmucache.test4',
+    target       = 'mmu_cache.4.tlm.test',
     features     = 'cxx cprogram test',
     source       = ['test4/testbench.cpp',
                     'test4/main.cpp'],
@@ -231,7 +231,7 @@ def build(bld):
   )
    
   bld(
-    target       = 'mmucache.test5',
+    target       = 'mmu_cache.5.tlm.test',
     features     = 'cxx cprogram test',
     source       = ['test5/testbench.cpp',
                     'test5/main.cpp'],
@@ -241,7 +241,7 @@ def build(bld):
   )
  
   bld(
-    target       = 'mmucache.test6',
+    target       = 'mmu_cache.6.tlm.test',
     features     = 'cxx cprogram test',
     source       = ['test6/testbench.cpp',
                     'test6/main.cpp'],
