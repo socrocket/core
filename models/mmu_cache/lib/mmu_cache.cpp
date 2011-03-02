@@ -16,7 +16,7 @@
 // This program may be freely used, copied, modified, and redistributed
 // by the European Space Agency for the Agency's own requirements.
 //
-// The program is provided "as is", there is no warranty that
+// The program is provided "as is", ther is no warranty that
 // the program is correct or suitable for any purpose,
 // neither implicit nor explicit. The program and the information in it
 // contained do not necessarily reflect the policy of the 
@@ -77,13 +77,16 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     sc_module(name), icio("icio"), dcio("dcio"), ahb_master(
             "ahb_master_socket", amba::amba_AHB, amba::amba_LT, false), m_icen(
             icen), m_dcen(dcen), m_ilram(ilram), m_ilramstart(ilramstart),
-            m_dlram(dlram), m_dlramstart(dlramstart), m_mmu_en(mmu_en),
+            m_dlram(dlram), m_dlramstart(dlramstart), m_cached(cached), m_mmu_en(mmu_en),
             master_id(id), m_txn_count(0), m_data_count(0),
             m_bus_granted(false), current_trans(NULL),
             m_request_pending(false), m_data_pending(false), m_bus_req_pending(
                     false), m_restart_pending_req(false) {
     // parameter checks
     // ----------------
+
+    // check range of cacheability mask (0x0 - 0xffff)
+    assert((m_cached>=0)&&(m_cached<=0xffff));
 
     // create mmu (if required)
     m_mmu = (mmu_en == 1)? new mmu("mmu", (mmu_cache_if *)this,
@@ -882,10 +885,11 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
 }
 
 /// Function for read access to AHB master socket
-void mmu_cache::mem_read(unsigned int addr, unsigned char * data,
+bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
                          unsigned int len, sc_core::sc_time * t,
                          unsigned int * debug) {
 
+    bool cacheable;
     sc_core::sc_time delay;
 
     // init transaction
@@ -908,15 +912,32 @@ void mmu_cache::mem_read(unsigned int addr, unsigned char * data,
     m_id->value = master_id;
     ahb_master.validate_extension<amba::amba_id> (*gp);
 
-    //amba::cacheable_access* cachable;
-    //ahb_master.validate_extension<amba::cacheable_access>(*gp);
-
     // issue transaction
     ahb_master->b_transport(*gp, delay);
 
+    // Check cacheability:
+    // -------------------
+    // Cacheable areas are defined by the 'cached' parameter.
+    // In case 'cached' is zero, plug & play information will be used.
+    if (m_cached != 0) {
+
+	// use fixed mask
+	cacheable = (m_cached & (1 << (addr >> 28))) ? true : false;
+
+    } else {
+
+	// use PNP - information is carried by protection extension
+	cacheable = (ahb_master.get_extension<amba::amba_cacheable>(*gp)) ? true : false;
+	
+    }    
+
+    // release transaction
+    ahb_master.release_transaction(gp);
+
     // burn the time
     wait(delay);
-    ahb_master.release_transaction(gp);
+
+    return cacheable;
 }
 
 /// writes the cache control register and handles the commands

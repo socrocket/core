@@ -67,7 +67,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         // external interface functions
         // -----------------------------------------------------------
         /// read from cache
-        virtual void mem_read(unsigned int address, unsigned char * data,
+        virtual bool mem_read(unsigned int address, unsigned char * data,
                               unsigned int len, sc_core::sc_time * t,
                               unsigned int * debug);
         /// write through cache

@@ -105,7 +105,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
         /// @dlram         enable data scratch pad
         /// @dlramsize     size of the data scratch pad (in kbytes)
         /// @dlramstart    start address of the data scratch pad
-        /// @cached
+        /// @cached        fixed cacheability mask
         /// @mmu_en        mmu enable
         /// @itlb_num      number of instruction TLBs
         /// @dtlb_num      number of data TLBs
@@ -159,7 +159,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
         virtual void mem_write(unsigned int addr, unsigned char * data,
                                unsigned int length, sc_core::sc_time * t,
                                unsigned int * debug);
-        virtual void mem_read(unsigned int addr, unsigned char * data,
+        virtual bool mem_read(unsigned int addr, unsigned char * data,
                               unsigned int length, sc_core::sc_time * t,
                               unsigned int * debug);
 
@@ -202,12 +202,18 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
         unsigned int m_icen;
         unsigned int m_dcen;
 
+	// instruction scratchpad settings
         unsigned int m_ilram;
         unsigned int m_ilramstart;
 
+	// data scratchpad settings
         unsigned int m_dlram;
         unsigned int m_dlramstart;
 
+	// fixed cacheability mask
+	unsigned int m_cached;
+
+	// mmu enable
         unsigned int m_mmu_en;
 
         // amba related

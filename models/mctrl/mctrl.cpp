@@ -451,7 +451,9 @@ void Mctrl::reset_mctrl(const bool &value,
 
 //blocking transport function
 void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
+
     uint32_t addr = gp.get_address();
+
     //add delay from previously activated callbacks
     delay += callback_delay;
 

@@ -62,12 +62,12 @@ void nocache::mem_write(unsigned int addr, unsigned char *data,
 }
 
 /// memory interface read functions: forwards calls to mmu or bus interface
-void nocache::mem_read(unsigned int addr, unsigned char * data,
+bool nocache::mem_read(unsigned int addr, unsigned char * data,
                        unsigned int length, sc_core::sc_time *t,
                        unsigned int * debug) {
 
-    m_mem_adapter->mem_read(addr, data, length, t, debug);
-
+    return(m_mem_adapter->mem_read(addr, data, length, t, debug));
+    
 }
 
 /// forbidden access to flush

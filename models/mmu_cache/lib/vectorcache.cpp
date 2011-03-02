@@ -170,7 +170,7 @@ vectorcache::~vectorcache() {
 // ----------------------------
 
 /// read from cache
-void vectorcache::mem_read(unsigned int address, unsigned char *data,
+bool vectorcache::mem_read(unsigned int address, unsigned char *data,
                            unsigned int len, sc_core::sc_time *t,
                            unsigned int * debug) {
 
@@ -287,11 +287,11 @@ void vectorcache::mem_read(unsigned int address, unsigned char *data,
 
             }
 
-            m_tlb_adaptor->mem_read(((address >> 2) << 2), ahb_data, burst_len,
-                    t, debug);
+	    // Access ahb interface or mmu - return true if data is cacheable
+            if (m_tlb_adaptor->mem_read(((address >> 2) << 2), ahb_data, burst_len, t, debug)) {
 
-            // check for unvalid data which can be replaced without harm
-            for (unsigned int i = 0; i <= m_sets; i++) {
+	      // check for unvalid data which can be replaced without harm
+	      for (unsigned int i = 0; i <= m_sets; i++) {
 
                 if (((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow(
                         (double)2, (double)(offset >> 2)))) == 0) {
@@ -303,10 +303,10 @@ void vectorcache::mem_read(unsigned int address, unsigned char *data,
                             << v::endl;
                     break;
                 }
-            }
+	      }
 
-            // Check for cache freeze
-            if (check_mode() & 0x2) {
+	      // Check for cache freeze
+	      if (check_mode() & 0x2) {
 
                 // Cache not frozen !!
 
@@ -363,7 +363,7 @@ void vectorcache::mem_read(unsigned int address, unsigned char *data,
                     }
                 }
 
-            } else {
+              } else {
 
                 // Cache is frozen !!
 
@@ -394,16 +394,16 @@ void vectorcache::mem_read(unsigned int address, unsigned char *data,
 
                 }
 
-            }
+	      }
+
+	    }
 
             // update debug information
             CACHEREADMISS_SET(*debug, set_select);
 
             // copy the data requested by the processor
             memcpy(data, ahb_data + byt, len);
-            //for (unsigned int j=0; j<len; j++) { data[j] = ahb_data[byt+j]; };
 
-            //v::info << this->name() << "Updated entry: " << std::hex << (*m_current_cacheline[set_select]).entry[offset >> 2].i << " valid bits: " << std::hex << (*m_current_cacheline[set_select]).tag.valid << v::endl;
         }
 
     } else {
@@ -422,6 +422,9 @@ void vectorcache::mem_read(unsigned int address, unsigned char *data,
         *t += m_miss_read_response_delay;
 
     }
+
+    // always return true - cacheability only matters on bus mem_if
+    return true;
 }
 
 // write to/through cache:

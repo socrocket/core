@@ -76,7 +76,7 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
         }
 
         /// implementation of mem_read function from mem_if.h
-        virtual void mem_read(unsigned int addr, unsigned char * data,
+        virtual bool mem_read(unsigned int addr, unsigned char * data,
                               unsigned int len, sc_core::sc_time * t,
                               unsigned int * debug) {
 
@@ -97,8 +97,10 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
 
             }
 
-            // forward request to amba interface
-            m_mmu_cache->mem_read(paddr, data, len, t, debug);
+            // forward request to amba interface - return cacheability
+            return (m_mmu_cache->mem_read(paddr, data, len, t, debug));
+
+	    
 
         }
 

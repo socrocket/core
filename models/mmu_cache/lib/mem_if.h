@@ -55,9 +55,10 @@ class mem_if {
                                unsigned int * debug) {
         }
         ;
-        virtual void mem_read(unsigned int addr, unsigned char * data,
+        virtual bool mem_read(unsigned int addr, unsigned char * data,
                               unsigned int length, sc_core::sc_time * t,
                               unsigned int * debug) {
+	  return true;
         }
         ;
 
