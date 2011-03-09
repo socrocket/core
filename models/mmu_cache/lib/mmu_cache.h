@@ -83,7 +83,9 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
         tlm_utils::simple_target_socket<mmu_cache> dcio;
 
         // amba master socket
-        amba::amba_master_socket<32, 0> ahb_master;
+        amba::amba_master_socket<32> ahb_master;
+
+	SC_HAS_PROCESS(mmu_cache);
 
         /// @brief Constructor of the top-level class of the memory sub-system (caches and mmu).
         /// @icen          instruction cache enable
@@ -114,6 +116,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
         /// @mmupgsz       MMU page size
         /// @name                               SystemC module name
         /// @id                                 ID of the AHB master
+	/// @abstractionLevel                   Select LT or AT abstraction
         /// @icache_hit_read_response_delay     Delay on an instruction cache hit
         /// @icache_miss_read_response_delay    Delay on an instruction cache miss
         /// @dcache_hit_read_response_delay     Delay on a data cache read hit
@@ -136,6 +139,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
                   unsigned int dtlb_num, unsigned int tlb_type,
                   unsigned int tlb_rep, unsigned int mmupgsz,
                   sc_core::sc_module_name name, unsigned int id,
+		  amba::amba_layer_ids abstractionLevel,
                   sc_core::sc_time icache_hit_read_response_delay,
                   sc_core::sc_time icache_miss_read_response_delay,
                   sc_core::sc_time dcache_hit_read_response_delay,
@@ -148,12 +152,24 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
 
         // member functions
         // ----------------
-        // forward transport function for icio socket
-        void icio_custom_b_transport(tlm::tlm_generic_payload &payload,
-                                     sc_core::sc_time &delay_time);
-        // forward transport function for dcio socket
-        void dcio_custom_b_transport(tlm::tlm_generic_payload &payload,
-                                     sc_core::sc_time &delay_time);
+        // TLM blocking forward transport function for icio socket
+        void icio_custom_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay_time);
+        // TLM blocking forward transport function for dcio socket
+        void dcio_custom_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay_time);
+
+	// TLM non-blocking forward transport function for icio socket
+	tlm::tlm_sync_enum icio_custom_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
+	// TLM non-blocking forward transport function for dcio socket
+	tlm::tlm_sync_enum dcio_custom_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
+	
+	// TLM non-blocking backward transport function for ahb_master socket
+	tlm::tlm_sync_enum ahb_custom_nb_transport_bw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
+
+	// Instruction service thread for AT
+	void icio_service_thread();
+
+	// Data service thread for AT
+	void dcio_service_thread();
 
         // interface to AMBA master socket (impl. mem_if)
         virtual void mem_write(unsigned int addr, unsigned char * data,
@@ -170,6 +186,13 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
 
         // data members
         // ------------
+	
+	// icio payload event queue (for AT)
+	tlm_utils::peq_with_get<tlm::tlm_generic_payload> icio_PEQ;
+
+	// dcio payload event queue (for AT)
+	tlm_utils::peq_with_get<tlm::tlm_generic_payload> dcio_PEQ;
+
         /// instruction cache pointer
         cache_if * icache;
         /// data cache pointer
@@ -218,6 +241,8 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
 
         // amba related
         unsigned int master_id;
+	amba::amba_layer_ids m_abstractionLevel;
+
         unsigned int m_txn_count;
         unsigned int m_data_count;
 
@@ -227,6 +252,9 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
         bool m_data_pending;
         bool m_bus_req_pending;
         bool m_restart_pending_req;
+
+	// events
+	sc_event ahb_transaction_response;
 
 };
 

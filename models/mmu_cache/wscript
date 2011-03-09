@@ -250,4 +250,14 @@ def build(bld):
     use          = 'mmu_cache common utils',
   )
 
+  bld(
+    target       = 'mmu_cache.at.tlm.test',
+    features     = 'cxx cprogram test',
+    source       = ['test_at/testbench.cpp',
+                    'test_at/main.cpp'],
+    includes     = '. ./lib ./test_at',
+    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
+  )
+
 
