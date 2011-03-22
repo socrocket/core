@@ -77,15 +77,16 @@ class signal_out : public signal_base<TYPE, MODULE> ,
         ///
         /// @param receiver Input interface to bind with.
         /// @param channel  The channel which has to be bind.
-        virtual void bind(signal_in_if<TYPE> &receiver,
+        virtual signal_out_bind_if<TYPE> *bind(signal_in_if<TYPE> &receiver,
                           const unsigned int &channel = 0) {
             for (typename t_receiver::iterator iter = m_receiver.begin(); iter
                     != m_receiver.end(); iter++) {
                 if (*iter == &receiver) {
-                    return;
+                    return this;
                 }
             }
             m_receiver.push_back(&receiver);
+            return this;
         }
 
         /// Write the value of a signal.
@@ -96,8 +97,8 @@ class signal_out : public signal_base<TYPE, MODULE> ,
         virtual void write(const TYPE &value, const sc_core::sc_time &time =
                 sc_core::SC_ZERO_TIME) {
             this->m_value = value;
-            for (typename t_receiver::iterator i = m_receiver.begin(); i
-                    != m_receiver.end(); i++) {
+            for (typename t_receiver::iterator i = m_receiver.begin();
+                 i != m_receiver.end(); i++) {
                 (*i)->update((signal_out_if<TYPE> *)this, time);
             }
         }

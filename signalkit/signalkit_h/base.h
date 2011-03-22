@@ -43,7 +43,6 @@
 #define SIGNALKIT_BASE_H
 
 #include <systemc>
-#include "verbose.h"
 
 namespace signalkit {
 

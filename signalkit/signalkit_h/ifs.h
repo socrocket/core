@@ -105,7 +105,7 @@ class signal_out_bind_if {
         ///
         /// @param t       Input interface to bind with.
         /// @param channel The channel which has to be bind.
-        virtual void bind(signal_in_if<TYPE> &t, const unsigned int &channel = 0) = 0;
+        virtual signal_out_bind_if<TYPE> *bind(signal_in_if<TYPE> &t, const unsigned int &channel = 0) = 0;
 };
 
 /// Signal output interface
@@ -191,5 +191,17 @@ TYPE signal_out_if<TYPE>::operator=(const signal_if<TYPE> &t) {
 /// @}
 
 } // signalkit
+
+#include <ext/hash_map>
+
+namespace __gnu_cxx {
+template<>
+struct hash<signalkit::signal_out_if<int> *> { 
+  size_t operator()(signalkit::signal_out_if<int> *__x) const { 
+    return (size_t)(__x); 
+  }
+};
+
+} // __gnu_cxx
 
 #endif // SIGNALKIT_IFS_H

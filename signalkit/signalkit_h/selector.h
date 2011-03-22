@@ -42,10 +42,18 @@
 #ifndef SIGNALKIT_SELECTOR_H
 #define SIGNALKIT_SELECTOR_H
 
-#include <map>
 #include "signalkit_h/base.h"
 #include "signalkit_h/ifs.h"
 #include "signalkit_h/out.h"
+
+#ifdef EN_HASH
+#define MAP MAP
+#include <ext/MAP>
+namespace std { using namespace __gnu_cxx; }
+#else
+#define MAP map
+#include <map>
+#endif
 
 namespace signalkit {
 
@@ -77,7 +85,7 @@ class signal_selector : public signal_base<TYPE, MODULE> ,
         ///
         /// @param receiver Input interface to bind with.
         /// @param channel  The channel which has to be bind.
-        virtual void bind(signal_in_if<TYPE> &receiver,
+        virtual signal_out_bind_if<TYPE> *bind(signal_in_if<TYPE> &receiver,
                           const unsigned int &channel) {
             // TODO: Make work multipel selector<->infield channels
             signal_out<TYPE, MODULE> *item = NULL;
@@ -90,6 +98,7 @@ class signal_selector : public signal_base<TYPE, MODULE> ,
                 outs.insert(std::make_pair(channel, item));
             }
             item->bind(receiver);
+            return item;
         }
 
         /// Write the value of a signal.
@@ -100,8 +109,8 @@ class signal_selector : public signal_base<TYPE, MODULE> ,
         /// @param time The delay from sc_timestamp() at propagation.
         virtual void write(const unsigned int &mask, const TYPE &value,
                            const sc_core::sc_time &time = sc_core::SC_ZERO_TIME) {
-            for (typename t_map::iterator i = outs.begin(); i != outs.end(); i++) {
-                if (mask & (1 << i->first)) {
+            for (typename t_map::iterator i = outs.begin(); i != outs.end() && (mask >= (unsigned int)(1 << i->first)); i++) {
+                if(mask & (1 << i->first)) {
                     i->second->write(value, time);
                 }
             }
@@ -125,7 +134,7 @@ class signal_selector : public signal_base<TYPE, MODULE> ,
 
     private:
         /// Channels to outputs list type.
-        typedef std::map<unsigned int, signal_out<TYPE, MODULE> *> t_map;
+        typedef std::MAP<unsigned int, signal_out<TYPE, MODULE> *> t_map;
         /// Stores the output list
         t_map outs;
 };
