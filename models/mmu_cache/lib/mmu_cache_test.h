@@ -527,7 +527,7 @@ class mmu_cache_test : public sc_core::sc_module {
             ext->debug = debug;
 
             // send BEGIN_REQ
-            data_initiator_socket->nb_transport_fw(gp, phase, t);
+            status = data_initiator_socket->nb_transport_fw(gp, phase, t);
 
 	    // check status
 	    switch(status) {

@@ -1816,6 +1816,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
     gp->set_address(addr);
     gp->set_data_length(len);
     gp->set_data_ptr(data);
+    gp->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
     // set the burst size
     amba::amba_burst_size* size_ext;
@@ -1838,33 +1839,33 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
       // blocking transport
       ahb_master->b_transport(*gp, delay);
 
-    } else if (m_abstractionLevel == amba::amba_AT) {
+    } else {
 
       // initial phase for AT
       tlm::tlm_phase phase = tlm::BEGIN_REQ;
 
       // non-blocking transport
       tlm::tlm_sync_enum status = ahb_master->nb_transport_fw(*gp,phase,delay);
-      assert((status==tlm::TLM_ACCEPTED)&&(status==tlm::TLM_COMPLETED));
+      assert(status==tlm::TLM_COMPLETED);
 
-      // @AT level will be mem_write will be indirectly called from icio/dcio_service_thread (SC_METHOD)
-      if (status==tlm::TLM_ACCEPTED) {
+      // wait for service thread
+      if (status==tlm::TLM_COMPLETED) {
 
-	next_trigger(ahb_transaction_response);
+	// backward path not used for write
+
+	//wait(ahb_transaction_response);
 
       }
 
-    } else {
-
-      v::error << name() << " Invalid TLM abstraction at AHB master interface!" << v::endl;
-      assert(0);
-
-    }
+    } 
 
     v::debug << name() << " AHB transaction done (mem_write) - delay: " << delay << v::endl;
 
     // increment time
-    *t += delay;
+    //*t += delay;
+
+    // temp hack: memory has no delay yet
+    *t += sc_core::sc_time(10, SC_NS);
 
     // release transaction
     ahb_master.release_transaction(gp);
@@ -1908,26 +1909,30 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
       // blocking transport
       ahb_master->b_transport(*gp, delay);
 
-    } else if (m_abstractionLevel == amba::amba_AT) {
+    } else {
 
       // initial phase for AT
       tlm::tlm_phase phase = tlm::BEGIN_REQ;
       
       // non-blocking transport
       tlm::tlm_sync_enum status = ahb_master->nb_transport_fw(*gp,phase,delay);
-      assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_COMPLETED));
+      assert((status==tlm::TLM_UPDATED)||(status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_COMPLETED));
 
-      // @AT level mem_read will be indirectly called from icio/dcio_service_thread (SC_METHOD)
-      if (status==tlm::TLM_ACCEPTED) {
+      // @AT level mem_read will be indirectly called from icio/dcio_service_thread
+      if (status==tlm::TLM_UPDATED) {
 	
-	next_trigger(ahb_transaction_response);
+	wait(ahb_transaction_response);
       
+      } else if (status==tlm::TLM_ACCEPTED) {
+
+	// not really correct - but ok for this testbench
+	wait(ahb_transaction_response);
+
+      } else {
+
+	// completed - nothing to do
+
       }
-
-    } else {
-
-      v::error << name() << " Invalid TLM abstraction at AHB master interface!" << v::endl;
-      assert(0);
 
     }
 
