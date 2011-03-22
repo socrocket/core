@@ -61,7 +61,7 @@ class CIrqmp : public gs::reg::gr_device, public signalkit::signal_module<
         CIrqmp> {
     public:
         /// Slave socket with delayed switch; responsible for all bus communication
-        gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;
+        gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb_slv;
 
         /// Reset input signal
         signal<bool>::in rst;
@@ -76,8 +76,10 @@ class CIrqmp : public gs::reg::gr_device, public signalkit::signal_module<
         signal<uint32_t>::infield irq_ack;
 
         /// IRQ input signals from other devices
-        signal<uint32_t>::infield irq_in;
+        signal<bool>::infield irq_in;
+        sc_event signal;
 
+        SC_HAS_PROCESS(CIrqmp);
         GC_HAS_CALLBACKS();
 
         /// Constructor. Takes vhdl generics as parameters
@@ -100,12 +102,9 @@ class CIrqmp : public gs::reg::gr_device, public signalkit::signal_module<
         /// Write to MP status register
         void mpstat_write();
 
-        /// One read function for all registers
-        void register_read();
-
         /// Processor communication
-        void register_irq(const uint32_t &cleared_irq,
-                          const unsigned int &i_cpu, 
+        void register_irq(const bool &value,
+                          const uint32_t &channel, 
                           const sc_core::sc_time &time);
 
         /// Bus and processor communication
@@ -123,116 +122,104 @@ class CIrqmp : public gs::reg::gr_device, public signalkit::signal_module<
         const int eirq;
 
     public:
+        /// power down status of CPUs (1 = power down)
+        inline uint32_t MP_STAT_STAT() const {
+            return (0x00000000 | ncpu);
+        }
+
         //---register address offset
-        static const uint32_t IRQMP_IR_LEVEL = 0x00;
-        static const uint32_t IRQMP_IR_PENDING = 0x04;
-        static const uint32_t IRQMP_IR_FORCE = 0x08;
-        static const uint32_t IRQMP_IR_CLEAR = 0x0C;
-        static const uint32_t IRQMP_MP_STAT = 0x10;
-        static const uint32_t IRQMP_BROADCAST = 0x14;
-        static const uint32_t IRQMP_PROC_IR_MASK(int CPU_INDEX) {
+        static const uint32_t IR_LEVEL           = 0x00;
+        static const uint32_t IR_PENDING         = 0x04;
+        static const uint32_t IR_FORCE           = 0x08;
+        static const uint32_t IR_CLEAR           = 0x0C;
+        static const uint32_t MP_STAT            = 0x10;
+        static const uint32_t BROADCAST          = 0x14;
+        inline static const uint32_t PROC_IR_MASK(int CPU_INDEX) {
             return (0x40 + 0x4 * CPU_INDEX);
         }
-        static const uint32_t IRQMP_PROC_IR_FORCE(int CPU_INDEX) {
+        inline static const uint32_t PROC_IR_FORCE(int CPU_INDEX) {
             return (0x80 + 0x4 * CPU_INDEX);
         }
-        static const uint32_t IRQMP_PROC_EXTIR_ID(int CPU_INDEX) {
+        inline static const uint32_t PROC_EXTIR_ID(int CPU_INDEX) {
             return (0xC0 + 0x4 * CPU_INDEX);
         }
 
         /// register contents (config bit masks)
-
         /// interrupt level register
-
         /// interrupt priority level (0 or 1)
-        static const uint32_t IRQMP_IR_LEVEL_IL = 0x0000FFFE;
-
-        ///interrupt pending register
-
-        /// extended interrupt pending (true or false)
-        static const uint32_t IRQMP_IR_PENDING_EIP = 0xFFFE0000;
-
-        /// interrupt pending (true or false)
-        static const uint32_t IRQMP_IR_PENDING_IP = 0x0000FFFE;
-
-        /// interrupt force register
-
-        /// force interrupt (true or false)
-        static const uint32_t IRQMP_IR_FORCE_IF = 0x0000FFFE;
-
-        /// interrupt clear register
-
-        /// n=1 to clear interrupt n
-        static const uint32_t IRQMP_IR_CLEAR_IC = 0x0000FFFE;
-
-        /// multiprocessor status register
-
-        /// number of CPUs in the system
-        static const uint32_t IRQMP_MP_STAT_NCPU = 0xF0000000;
-
-        /// interrupt number used for extended interrupts
-        static const uint32_t IRQMP_MP_STAT_EIRQ = 0x000F0000;
-
-        /// power down status of CPUs (1 = power down)
-        inline uint32_t IRQMP_MP_STAT_STAT() const {
-            return (0x00000000 or ncpu);
-        }
-
-        /// broadcast register (applicable if NCPU>1)
-
-        /// broadcast mask: if n=1, interrupt n is broadcasted
-        static const uint32_t IRQMP_BROADCAST_BM = 0x0000FFFE;
-
-        ///processor mask register
-
-        /// interrupt mask for extended interrupts
-        static const uint32_t IRQMP_PROC_MASK_EIM = 0xFFFE0000;
-
-        /// interrupt mask (0 = masked)
-        static const uint32_t IRQMP_PROC_MASK_IM = 0x0000FFFE;
-
-        /// processor interrupt force register
-
-        /// interrupt force clear
-        static const uint32_t IRQMP_PROC_IR_FORCE_IFC = 0xFFFE0000;
-
-        /// interrupt force
-        static const uint32_t IRQMP_PROC_IR_FORCE_IF = 0x0000FFFE;
-
-        /// extended interrupt identification register
-
-        /// ID of the acknowledged extended interrupt (16..31)
-        static const uint32_t IRQMP_PROC_EXTIR_ID_EID = 0x0000001F;
-
-        /// register default values
-
-        /// interrupt level register
-        static const uint32_t IRQMP_LEVEL_DEFAULT = 0x00000000;
+        static const uint32_t IR_LEVEL_IL        = 0x0000FFFE;
 
         /// interrupt pending register
-        static const uint32_t IRQMP_PENDING_DEFAULT = 0x00000000;
+        /// extended interrupt pending (true or false)
+        static const uint32_t IR_PENDING_EIP     = 0xFFFF0000;
+
+        /// interrupt pending (true or false)
+        static const uint32_t IR_PENDING_IP      = 0x0000FFFE;
 
         /// interrupt force register
-        static const uint32_t IRQMP_FORCE_DEFAULT = 0x00000000;
+        /// force interrupt (true or false)
+        static const uint32_t IR_FORCE_IF        = 0x0000FFFE;
 
         /// interrupt clear register
-        static const uint32_t IRQMP_CLEAR_DEFAULT = 0x00000000;
+        /// n=1 to clear interrupt n
+        static const uint32_t IR_CLEAR_IC        = 0xFFFFFFFE;
 
         /// multiprocessor status register
-        static const uint32_t IRQMP_MP_STAT_DEFAULT = 0x00000001;
+        /// number of CPUs in the system
+        static const uint32_t MP_STAT_NCPU       = 0xF0000000;
 
-        /// broadcast register
-        static const uint32_t IRQMP_BROADCAST_DEFAULT = 0x00000000;
+        /// interrupt number used for extended interrupts
+        static const uint32_t MP_STAT_EIRQ       = 0x000F0000;
 
-        /// interrupt mask register
-        static const uint32_t IRQMP_MASK_DEFAULT = 0xFFFFFFFE;
+        /// broadcast register (applicable if NCPU>1)
+        /// broadcast mask: if n=1, interrupt n is broadcasted
+        static const uint32_t BROADCAST_BM       = 0x0000FFFE;
+
+        ///processor mask register
+        /// interrupt mask for extended interrupts
+        static const uint32_t PROC_MASK_EIM      = 0xFFFF0000;
+
+        /// interrupt mask (0 = masked)
+        static const uint32_t PROC_MASK_IM       = 0x0000FFFE;
 
         /// processor interrupt force register
-        static const uint32_t IRQMP_PROC_FORCE_DEFAULT = 0x00000000;
+        /// interrupt force clear
+        static const uint32_t PROC_IR_FORCE_IFC  = 0xFFFE0000;
+
+        /// interrupt force
+        static const uint32_t PROC_IR_FORCE_IF   = 0x0000FFFE;
 
         /// extended interrupt identification register
-        static const uint32_t IRQMP_EXTIR_ID_DEFAULT = 0x00000000;
+        /// ID of the acknowledged extended interrupt (16..31)
+        static const uint32_t PROC_EXTIR_ID_EID  = 0x0000001F;
 
+        /// register default values
+        /// interrupt level register
+        static const uint32_t LEVEL_DEFAULT      = 0x00000000;
+
+        /// interrupt pending register
+        static const uint32_t PENDING_DEFAULT    = 0x00000000;
+
+        /// interrupt force register
+        static const uint32_t FORCE_DEFAULT      = 0x00000000;
+
+        /// interrupt clear register
+        static const uint32_t CLEAR_DEFAULT      = 0x00000000;
+
+        /// multiprocessor status register
+        static const uint32_t MP_STAT_DEFAULT    = 0x00000001;
+
+        /// broadcast register
+        static const uint32_t BROADCAST_DEFAULT  = 0x00000000;
+
+        /// interrupt mask register
+        static const uint32_t MASK_DEFAULT       = 0xFFFFFFFE;
+
+        /// processor interrupt force register
+        static const uint32_t PROC_FORCE_DEFAULT = 0x00000000;
+
+        /// extended interrupt identification register
+        static const uint32_t EXTIR_ID_DEFAULT   = 0x00000000;
 };
 
 /// @}

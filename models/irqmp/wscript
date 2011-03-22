@@ -46,6 +46,56 @@
 #*********************************************************************
 top = '../..'
 
+vsim_conf = """
+[Library]
+modelsim = $GRLIB_TECH
+grlib = $GRLIB_TECH/grlib
+unisim = $GRLIB_TECH/unisim
+dw02 = $GRLIB_TECH/dw02
+synplify = $GRLIB_TECH/synplify
+techmap = $GRLIB_TECH/techmap
+spw = $GRLIB_TECH/spw
+eth = $GRLIB_TECH/eth
+opencores = $GRLIB_TECH/opencores
+gaisler = $GRLIB_TECH/gaisler
+esa = $GRLIB_TECH/esa
+micron = $GRLIB_TECH/micron
+vsys = $GRLIB_TECH/vsys
+std = $MODEL_TECH/../std
+ieee = $MODEL_TECH/../ieee
+vital2000 = $MODEL_TECH/../vital2000
+verilog = $MODEL_TECH/../verilog
+std_developerskit = $MODEL_TECH/../std_developerskit
+synopsys = $MODEL_TECH/../synopsys
+work = %(path)s/%(target)s
+
+[vcom]
+VHDL93 = 1
+Show_source = 1
+Show_Warning1 = 0
+Show_Warning5 = 0
+Quiet = 1
+
+[vlog]
+Quiet = 1
+
+[vsim]
+VoptFlow = 0
+Resolution = 1ps
+UserTimeUnit = ns
+RunLength = 100
+IterationLimit = 5000
+BreakOnAssertion = 3
+DefaultRadix = symbolic
+TranscriptFile = %(path)s/%(target)s.transcript.txt
+PathSeparator = /
+UnbufferedOutput = 0
+
+[lmc]
+libsm = $MODEL_TECH/libsm.sl
+libhm = $MODEL_TECH/libhm.sl
+"""
+
 def options(ctx): 
   pass
 
@@ -64,10 +114,25 @@ def build(bld):
 
   bld(
     features     = 'cxx cprogram test',
-    source       = 'tests/top_tlm.cpp tests/testbench.cpp',
-    target       = 'simple.irqmp',
+    source       = 'tests/test1/top_tlm.cpp tests/test1/testbench.cpp',
+    target       = 'irqmp.1.tlm.test',
     includes     = '.',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
     use          = 'irqmp utils signalkit common'
   )
   
+  bld(
+    features     = 'modelsim test',
+    target       = 'irqmp.1.rtl.test',
+    generate     = 'irqmp_wrapper:tests/test1/irqmp_wrapper.h',
+    source       = ['tests/irqmp_wrapper.vhd',
+                    'tests/test1/testbench.cpp',
+                    'tests/test1/top_rtl.cpp',
+                    '../../common/verbose.cpp'],
+    uselib       = 'AMBA GREENSOCS AMBAMEM',
+    defines      = 'TESTLENGTH=1',
+    includes     = '. tests tests/test1 ../utils ../../signalkit ../../common',
+    config       =  vsim_conf,
+  )  
+
+   
