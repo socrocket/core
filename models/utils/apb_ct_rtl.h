@@ -99,7 +99,7 @@ class CAPB_CT_RTL : public sc_module, public signalkit::signal_module<CAPB_CT_RT
         sc_core::sc_in<apb_slv_out_type> apbo;
         sc_core::sc_out<apb_slv_in_type> apbi;
 
-        signal<uint32_t>::in         pirqi;
+        signal<bool>::infield        pirqi;
         signal<uint32_t>::out        pirqo;
         signal<uint32_t>::out        pconfig_0;
         signal<uint32_t>::out        pconfig_1;
@@ -130,7 +130,7 @@ class CAPB_CT_RTL : public sc_module, public signalkit::signal_module<CAPB_CT_RT
 
         void onreset(const bool &value, const sc_core::sc_time &time);
 
-        void onirq(const uint32_t &value, const sc_core::sc_time &time);
+        void onirq(const bool &value, const uint32_t &channel, const sc_core::sc_time &time);
 
         /// Takes apbo inputs and converts them into TLM communication and irq signals.
         void apbo_ctrl();
@@ -177,9 +177,11 @@ void CAPB_CT_RTL::onreset(const bool &value,
     m_reset.write(value);
 }
 
-void CAPB_CT_RTL::onirq(const uint32_t &value,
+void CAPB_CT_RTL::onirq(const bool &value, const uint32_t &channel,
                         const sc_core::sc_time &time) {
-    m_irqi.write(value);
+    static uint32_t status = 0;
+    status = (value << channel) | (status & ~(1 << channel));
+    m_irqi.write(status);
 }
 
 void CAPB_CT_RTL::apbo_ctrl() {
