@@ -44,7 +44,7 @@
 # Maintainer: Rolf Meyer
 # Reviewed:
 #*********************************************************************
-top = '..'
+top = '../..'
 vsim_conf = """
 [Library]
 modelsim = $GRLIB_TECH
@@ -86,7 +86,7 @@ RunLength = 100
 IterationLimit = 5000
 BreakOnAssertion = 3
 DefaultRadix = symbolic
-TranscriptFile = transcript.txt
+TranscriptFile = %(path)s/%(target)s.transcript.txt
 PathSeparator = /
 UnbufferedOutput = 0
 
