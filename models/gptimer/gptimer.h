@@ -53,6 +53,7 @@
 
 #include "greencontrol/all.h"
 #include "signalkit.h"
+#include "verbose.h"
 
 #include "grlibdevice.h"
 #include "gpcounter.h"
