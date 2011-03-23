@@ -181,7 +181,9 @@ void CAPB_CT_RTL::onirq(const bool &value, const uint32_t &channel,
                         const sc_core::sc_time &time) {
     static uint32_t status = 0;
     status = (value << channel) | (status & ~(1 << channel));
-    m_irqi.write(status);
+    if(status) {
+      m_irqi.write(status);
+    }
 }
 
 void CAPB_CT_RTL::apbo_ctrl() {

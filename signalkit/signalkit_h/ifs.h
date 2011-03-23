@@ -192,6 +192,7 @@ TYPE signal_out_if<TYPE>::operator=(const signal_if<TYPE> &t) {
 
 } // signalkit
 
+#ifdef EN_HASH
 #include <ext/hash_map>
 
 namespace __gnu_cxx {
@@ -201,7 +202,7 @@ struct hash<signalkit::signal_out_if<int> *> {
     return (size_t)(__x); 
   }
 };
-
 } // __gnu_cxx
+#endif
 
 #endif // SIGNALKIT_IFS_H

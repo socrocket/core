@@ -135,4 +135,49 @@ def build(bld):
     config       =  vsim_conf,
   )  
 
-   
+  bld(
+    features     = 'cxx cprogram test',
+    source       = 'tests/test2/top_tlm.cpp tests/test2/testbench.cpp',
+    target       = 'irqmp.2.tlm.test',
+    includes     = '.',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    use          = 'irqmp utils signalkit common'
+  )
+  
+  bld(
+    features     = 'modelsim test',
+    target       = 'irqmp.2.rtl.test',
+    generate     = 'irqmp_wrapper:tests/test2/irqmp_wrapper.h',
+    source       = ['tests/irqmp_wrapper.vhd',
+                    'tests/test2/testbench.cpp',
+                    'tests/test2/top_rtl.cpp',
+                    '../../common/verbose.cpp'],
+    uselib       = 'AMBA GREENSOCS AMBAMEM',
+    defines      = 'TESTLENGTH=1',
+    includes     = '. tests tests/test2 ../utils ../../signalkit ../../common',
+    config       =  vsim_conf,
+  )  
+  
+  bld(
+    features     = 'cxx cprogram test',
+    source       = 'tests/test3/top_tlm.cpp tests/test3/testbench.cpp',
+    target       = 'irqmp.3.tlm.test',
+    includes     = '.',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    use          = 'irqmp utils signalkit common'
+  )
+  
+  bld(
+    features     = 'modelsim test',
+    target       = 'irqmp.3.rtl.test',
+    generate     = 'irqmp_wrapper:tests/test3/irqmp_wrapper.h',
+    source       = ['tests/irqmp_wrapper.vhd',
+                    'tests/test3/testbench.cpp',
+                    'tests/test3/top_rtl.cpp',
+                    '../../common/verbose.cpp'],
+    uselib       = 'AMBA GREENSOCS AMBAMEM',
+    defines      = 'TESTLENGTH=1',
+    includes     = '. tests tests/test3 ../utils ../../signalkit ../../common',
+    config       =  vsim_conf,
+  )  
+

@@ -63,7 +63,7 @@
 CIrqmp::CIrqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, int _eirq) :
             gr_device(name, //sc_module name
                     gs::reg::ALIGNED_ADDRESS, //address mode (options: aligned / indexed)
-                    48 + 4 * _ncpu, //dword size (of register file)
+                    0xFF, //dword size (of register file)
                     NULL //parent module
             ),
             apb_slv(
@@ -77,10 +77,11 @@ CIrqmp::CIrqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, 
             ), 
             rst(&CIrqmp::reset_registers, "RESET"), 
             cpu_rst("CPU_RESET"), irq_req("CPU_REQUEST"), 
-            irq_ack(&CIrqmp::clear_acknowledged_irq,"IRQ_ACKNOWLEDGE"), 
+            irq_ack(&CIrqmp::acknowledged_irq,"IRQ_ACKNOWLEDGE"), 
             irq_in(&CIrqmp::register_irq, "IRQ_INPUT"), 
             ncpu(_ncpu), eirq(_eirq) {
 
+            forcereg = new uint32_t[ncpu];
    // Display APB slave information
    v::info << name << "APB slave @0x" << hex << v::setw(8)
            << v::setfill('0') << apb_slv.get_base_addr() << " size: 0x" << hex
@@ -145,7 +146,7 @@ CIrqmp::CIrqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, 
                 "Interrupt Force Register", 0x80 + 0x4 * i,
                 gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
                         | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                0x00000000, PROC_IR_FORCE_IFC | IR_FORCE_IF, 32,
+                0x00000000, PROC_IR_FORCE_IFC | PROC_IR_FORCE_IF, 32,
                 0x00);
         r.create_register(gen_unique_name("eir_id", false),
                 "Extended Interrupt Identification Register", 0xC0 + 0x4 * i,
@@ -166,34 +167,23 @@ CIrqmp::~CIrqmp() {
 void CIrqmp::end_of_elaboration() {
 
     // send interrupts to processors after write to pending / force regs
-    GR_FUNCTION(CIrqmp, launch_irq); // args: module name, callback function name
-    GR_SENSITIVE(r[CIrqmp::IR_PENDING].add_rule(gs::reg::POST_WRITE, // function to be called after register write
-            "launch_irq", // function name
-            gs::reg::NOTIFY)); // notification on every register access
-    for (int i_cpu = 0; i_cpu < ncpu; i_cpu++) {
-        GR_FUNCTION(CIrqmp, launch_irq);
-        GR_SENSITIVE(r[CIrqmp::PROC_IR_FORCE(i_cpu)].add_rule(
-                gs::reg::POST_WRITE, gen_unique_name("launch_irq", false),
-                gs::reg::NOTIFY));
-    }
+    GR_FUNCTION(CIrqmp, pending_write); // args: module name, callback function name
+    GR_SENSITIVE(r[IR_PENDING].add_rule(gs::reg::POST_WRITE,"pending_write", gs::reg::NOTIFY));
 
     // unset pending bits of cleared interrupts
     GR_FUNCTION(CIrqmp, clear_write);
-    GR_SENSITIVE(r[CIrqmp::IR_CLEAR].add_rule(gs::reg::POST_WRITE, "clear_write",
-            gs::reg::NOTIFY));
+    GR_SENSITIVE(r[IR_CLEAR].add_rule(gs::reg::POST_WRITE, "clear_write", gs::reg::NOTIFY));
 
     // unset pending bits of cleared interrupts
-    GR_FUNCTION(CIrqmp, clear_forced_ir);
     for (int i_cpu = 0; i_cpu < ncpu; i_cpu++) {
+        GR_FUNCTION(CIrqmp, force_write);
         GR_SENSITIVE(r[PROC_IR_FORCE(i_cpu)].add_rule(
-                gs::reg::POST_WRITE, gen_unique_name("clear_forced_ir", false),
-                gs::reg::NOTIFY));
+                gs::reg::POST_WRITE, gen_unique_name("force_write", false), gs::reg::NOTIFY));
     }
 
     // manage cpu run / reset signals after write into MP status reg
     GR_FUNCTION(CIrqmp, mpstat_write);
-    GR_SENSITIVE(r[MP_STAT].add_rule(gs::reg::POST_WRITE, "mpstat_write",
-            gs::reg::NOTIFY));
+    GR_SENSITIVE(r[MP_STAT].add_rule(gs::reg::POST_WRITE, "mpstat_write", gs::reg::NOTIFY));
 }
 
 //P R O C E S S   I M P L E M E N T A T I O N
@@ -215,10 +205,11 @@ void CIrqmp::reset_registers(const bool &value, const sc_core::sc_time &time) {
         r[IR_CLEAR] = static_cast<uint32_t>(CLEAR_DEFAULT);
         r[MP_STAT] = MP_STAT_DEFAULT | stat_ncpu | stat_eirq;
         r[BROADCAST] = static_cast<uint32_t>(BROADCAST_DEFAULT);
-        for(int i_cpu = 0; i_cpu < ncpu; i_cpu++) {
-            r[PROC_IR_MASK(i_cpu)]  = static_cast<uint32_t>(MASK_DEFAULT);
-            r[PROC_IR_FORCE(i_cpu)] = static_cast<uint32_t>(PROC_FORCE_DEFAULT);
-            r[PROC_EXTIR_ID(i_cpu)] = static_cast<uint32_t>(EXTIR_ID_DEFAULT);
+        for(int cpu = 0; cpu < ncpu; cpu++) {
+            r[PROC_IR_MASK(cpu)]  = static_cast<uint32_t>(MASK_DEFAULT);
+            r[PROC_IR_FORCE(cpu)] = static_cast<uint32_t>(PROC_FORCE_DEFAULT);
+            r[PROC_EXTIR_ID(cpu)] = static_cast<uint32_t>(EXTIR_ID_DEFAULT);
+            forcereg[cpu] = 0;
         }
     }
 }
@@ -241,10 +232,11 @@ void CIrqmp::register_irq(const bool &value, const uint32_t &irq,
     }
     
     // EIRs cannot be forced
-    if(r[BROADCAST].bit_get(irq)&&irq < 16) {
+    if(r[BROADCAST].bit_get(irq) && (irq < 16)) {
         //set force registers for broadcasted interrupts
-        for(int32_t i_cpu = 0; i_cpu < ncpu; i_cpu++) { 
-            r[PROC_IR_FORCE(i_cpu)].bit_set(irq, t);
+        for(int32_t cpu = 0; cpu < ncpu; cpu++) { 
+            r[PROC_IR_FORCE(cpu)].bit_set(irq, t);
+            forcereg[cpu] |= (t << irq);
         }
     }
     // Pending and force regs are set now. To call an explicit launch_irq signal is set here
@@ -265,11 +257,11 @@ void CIrqmp::launch_irq() {
     bool eirq_en;
     while(1) {
         wait(signal);
-        for(int i_cpu = 0; i_cpu < ncpu; i_cpu++) {
+        for(int cpu = 0; cpu < ncpu; cpu++) {
             // process call might be triggered by acknowledge of forced IR by writing to IFC bits of IF register
             // masked = (pending || force) && mask
-            pending = r[IR_PENDING] & r[PROC_IR_MASK(i_cpu)];
-            masked  = pending | r[PROC_IR_FORCE(i_cpu)];
+            pending = r[IR_PENDING] & r[PROC_IR_MASK(cpu)];
+            masked  = pending | (r[PROC_IR_FORCE(cpu)] & IR_FORCE_IF);
             // any pending extended interrupts?
             if(eirq != 0) {
                 eirq_en = masked & IR_PENDING_EIP;
@@ -277,29 +269,29 @@ void CIrqmp::launch_irq() {
             } else {
                 eirq_en = 0;
             }
-            all = pending | (eirq_en << eirq) | r[PROC_IR_FORCE(i_cpu)];
-
+            all = pending | (eirq_en << eirq) | (r[PROC_IR_FORCE(cpu)] & IR_FORCE_IF);
+            
             // prioritize interrupts
             // (pending or force) and mask and level
             masked = (all & r[IR_LEVEL]) & IR_PENDING_IP;
-            for(high=15; high > -1; high--) {
+            for(high = 15; high > 0; high--) {
                 if(masked & (1 << high)) {
                     break;
                 }
             }
 
             // If no IR on level 1, check level 0.
-            if(high == -1) {
+            if(high == 0) {
                 // (pending or force) and mask and not level
                 masked = (all & ~r[IR_LEVEL]) & IR_PENDING_IP;
-                for (high = 15; high > -1; high--) {
+                for(high = 15; high > 0; high--) {
                     if(masked & (1 << high)) {
                         break;
                     }
                 }
             }
-            if(high!=-1) {
-                irq_req.write(1 << i_cpu, 0xF & high);
+            if(high!=0) {
+                irq_req.write(1 << cpu, 0xF & high);
             }
         }
     }
@@ -317,11 +309,10 @@ void CIrqmp::launch_irq() {
 /// callback registered on interrupt clear register
 void CIrqmp::clear_write() {
     // pending reg only: forced IRs are cleared in the next function
-    for(int i_cpu = 0; i_cpu < ncpu; i_cpu++) {
+    for(int cpu = 0; cpu < ncpu; cpu++) {
         if(eirq != 0) {
-            r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(i_cpu)]);
-            r[PROC_IR_FORCE(i_cpu)] = r[PROC_IR_FORCE(i_cpu)] & ~(1 << r[PROC_EXTIR_ID(i_cpu)]);
-            r[PROC_EXTIR_ID(i_cpu)] = 0;
+            r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
+            r[PROC_EXTIR_ID(cpu)] = 0;
         }
     }
     uint32_t cleared_vector = r[IR_PENDING] & ~r[IR_CLEAR];
@@ -331,47 +322,46 @@ void CIrqmp::clear_write() {
 }
 
 /// callback registered on interrupt force registers
-void CIrqmp::clear_forced_ir() {
-    for(int i_cpu = 0; i_cpu < ncpu; i_cpu++) {
-        if(eirq != 0) {
-            r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(i_cpu)]);
-            r[PROC_IR_FORCE(i_cpu)] = r[PROC_IR_FORCE(i_cpu)] & ~(1 << r[PROC_EXTIR_ID(i_cpu)]);
-            r[PROC_EXTIR_ID(i_cpu)] = 0;
-        }
-        uint32_t ir_force_reg = r[PROC_IR_FORCE(i_cpu)];
+void CIrqmp::force_write() {
+    for(int cpu = 0; cpu < ncpu; cpu++) {
+        forcereg[cpu] |= r[PROC_IR_FORCE(cpu)];
         //write mask clears IFC bits:
         //IF && !IFC && write_mask
-        ir_force_reg = ir_force_reg & ~(ir_force_reg >> 16) & PROC_IR_FORCE_IF;
-        r[PROC_IR_FORCE(i_cpu)] = ir_force_reg;
+        forcereg[cpu] &= (~(forcereg[cpu] >> 16) & PROC_IR_FORCE_IF);
+        r[PROC_IR_FORCE(cpu)] = forcereg[cpu];
     }
     signal.notify(2 * CLOCK_PERIOD, SC_NS);
 }
 
 /// process sensitive to ack_irq
-void CIrqmp::clear_acknowledged_irq(const uint32_t &cleared_irq,
-                                    const uint32_t &i_cpu,
-                                    const sc_core::sc_time &time) {
-    bool false_var = false;
-
+void CIrqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_core::sc_time &time) {
+    bool f = false;
     //extended IR handling: Identify highest pending EIR
-    if (eirq != 0 && cleared_irq == (uint32_t)eirq) {
-        r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(i_cpu)]);
-        r[PROC_EXTIR_ID(i_cpu)] = 0;
+    if(eirq != 0 && irq == (uint32_t)eirq && !(eirq&r[BROADCAST])) {
+        r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
+        r[PROC_IR_FORCE(cpu)] = r[PROC_IR_FORCE(cpu)] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
+        forcereg[cpu] &= ~(1 << r[PROC_EXTIR_ID(cpu)]) & 0xFFFE;
     } else {
         //clear interrupt from pending and force register
-        r[IR_PENDING].bit_set(static_cast<uint32_t>(cleared_irq), false_var);
-        if(r[BROADCAST].bit_get(cleared_irq)) {
-            r[PROC_IR_FORCE(i_cpu)].bit_set(static_cast<uint32_t> (cleared_irq), false_var);
+        r[IR_PENDING].bit_set(irq, f);
+        if(r[BROADCAST].bit_get(irq)) {
+            r[PROC_IR_FORCE(cpu)].bit_set(irq, f);
+            forcereg[cpu] &= ~(1 << irq) & 0xFFFE;
         }
     }
+    r[PROC_EXTIR_ID(cpu)] = 0;
     signal.notify(2 * CLOCK_PERIOD, SC_NS);
 }
 
 /// reset cpus after write to cpu status register
 /// callback registered on mp status register
 void CIrqmp::mpstat_write() {
-    //v::info << name() << "mpstat_write" << v::endl;
     cpu_rst.write(0xFFFFFFFF, true);
 }
+
+void CIrqmp::pending_write() {
+    signal.notify(2 * CLOCK_PERIOD, SC_NS);
+}
+
 
 /// @}

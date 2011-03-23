@@ -97,10 +97,13 @@ class CIrqmp : public gs::reg::gr_device, public signalkit::signal_module<
         void clear_write();
 
         /// Write to IFC bits of IR force register
-        void clear_forced_ir();
+        void force_write();
 
         /// Write to MP status register
         void mpstat_write();
+
+        /// Write to pending register
+        void pending_write();
 
         /// Processor communication
         void register_irq(const bool &value,
@@ -113,13 +116,16 @@ class CIrqmp : public gs::reg::gr_device, public signalkit::signal_module<
         void launch_irq();
 
         ///processor communication
-        void clear_acknowledged_irq(const uint32_t &cleared_irq,
-                                    const unsigned int &i_cpu,
-                                    const sc_core::sc_time &time);
+        void acknowledged_irq(const uint32_t &cleared_irq,
+                              const unsigned int &i_cpu,
+                              const sc_core::sc_time &time);
 
     private:
         const int ncpu;
         const int eirq;
+
+        // Old status of the force registers
+        uint32_t *forcereg;
 
     public:
         /// power down status of CPUs (1 = power down)
