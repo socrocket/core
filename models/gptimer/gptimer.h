@@ -70,7 +70,7 @@
 class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
         CGPTimer>, public CGrlibDevice {
     public:
-        /// Slave socket with delayed switchi
+        /// APB Slave socket for all bus communication
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;
 
         signal<bool>::in rst;

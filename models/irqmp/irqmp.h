@@ -37,14 +37,12 @@
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Dennis Bode
+// Maintainer: Rolf Meyer
 // Reviewed:
 //*********************************************************************
 
 #ifndef IRQMP_H
 #define IRQMP_H
-
-#define CLOCK_PERIOD 2
 
 #include <boost/config.hpp>
 #include <systemc.h>
@@ -60,7 +58,7 @@
 class CIrqmp : public gs::reg::gr_device, public signalkit::signal_module<
         CIrqmp> {
     public:
-        /// Slave socket with delayed switch; responsible for all bus communication
+        /// Slave socket responsible for all bus communication
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb_slv;
 
         /// Reset input signal
@@ -77,55 +75,140 @@ class CIrqmp : public gs::reg::gr_device, public signalkit::signal_module<
 
         /// IRQ input signals from other devices
         signal<bool>::infield irq_in;
+
+        /// Internal signal to decouple inputs and outputs. Furthermore it addes the needed delays
         sc_event signal;
 
         SC_HAS_PROCESS(CIrqmp);
         GC_HAS_CALLBACKS();
 
-        /// Constructor. Takes vhdl generics as parameters
-        CIrqmp(sc_core::sc_module_name name, int _paddr = 0,
-               int _pmask = 0xFFF, int _ncpu = 2, int _eirq = 1); // interrupt cascade for extended interrupts
+        /// Constructor
+        /// 
+        ///  The constructor is taking the VHDL generics as parameters.
+        ///
+        /// @param name SystemC instance name.
+        /// @param _paddr Upper 12bit of the APB address.
+        /// @param _pmask Upper 12bit of the APB mask.
+        /// @param _ncpu  Number of CPU which receive interupts.
+        /// @param _eirq  Interrupt channel which hides all the extended interrupt channels.
+        CIrqmp(sc_module_name name, int _paddr = 0, int _pmask = 0xFFF, int _ncpu = 2, int _eirq = 1); 
+
+        /// Default destructor
+        ///
+        ///  Frees all dynamic object members.
         ~CIrqmp();
 
-        //function prototypes
+       // function prototypes
+       
+        /// SystemC end of elaboration implementation
         void end_of_elaboration();
-        void reset_registers(const bool &value, const sc_core::sc_time &time);
-
-        /// bus communication
+       
+        /// Recalculates the output for the CPUs.
+        ///
+        ///  This function is called whenever an interrupt is triggered.
+        ///  It will change the output state.
+        void launch_irq();
+        
+       // Bus Register Callbacks
 
         /// Write to IR clear register
+        ///
+        ///  Triggers the cleaning of an interupt bit in the IR clear register.
+        ///  Will force a recalculation of a new interrupt.
         void clear_write();
 
-        /// Write to IFC bits of IR force register
+        /// Write to the IR force register
+        ///
+        ///  If a write is done to the interrupt force register this function will recalculate
+        ///  the interrupt force settings and trigger a recalculation of the outputs.
         void force_write();
 
         /// Write to MP status register
+        ///
+        ///  Triggers reset of processors.
         void mpstat_write();
 
         /// Write to pending register
+        ///
+        ///  Addes new interrupts to the current pending register.
+        ///  It will trigger the recalculation of the outputs.
         void pending_write();
 
-        /// Processor communication
-        void register_irq(const bool &value,
-                          const uint32_t &channel, 
-                          const sc_core::sc_time &time);
+       // Signal Callbacks 
+        /// Reset Callback
+        ///
+        ///  This function is called when the reset signal is triggert.
+        ///  The reset whill reset all registers and bring the IRQ controler in a valid state.
+        ///
+        /// @param value Value of the reset signal the reset is active as long the signal is false.
+        ///              Therefore the reset is done on the transition from false to true.
+        /// @param time  Delay to the current simulation time. Is not used in this callback.
+        void onreset(const bool &value, const sc_time &time);
 
-        /// Bus and processor communication
+        /// Incomming interrupts
+        ///
+        ///  This Callback is registert to the interrupt input signal.
+        ///  It will set the corresponding register bits and trigger a recalculation of the outputs.
+        ///
+        /// @param value The value of the Interrupt.
+        ///              A value of false will be ignored due to the fact that interrupts can only
+        ///              be cleared in the interrupt controler.
+        /// @param irq   The interrupt line which is triggered.
+        /// @param time  Delay to the simulation time. Not used in this signal.
+        void incomming_irq(const bool &value, const uint32_t &irq, const sc_time &time);
 
-        ///processor communication
-        void launch_irq();
 
-        ///processor communication
-        void acknowledged_irq(const uint32_t &cleared_irq,
-                              const unsigned int &i_cpu,
-                              const sc_core::sc_time &time);
+        /// Acknowledged Irq Callback
+        ///
+        ///  This Callback is called if the direct acknowledge way is used.
+        ///  It will clean the coressponding bit out of the pending and force registers.
+        ///
+        /// @param irq  The Interrupt to clean.
+        /// @param cpu  The CPU which acknowleged the Interrupt
+        /// @param time Delay to the simulation time. Not used with this signal.
+        void acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_time &time);
+
+        /// Set the clockcycle length.
+        ///
+        ///  With this function you can set the clockcycle length of the gptimer instance.
+        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
+        ///
+        /// @param clk An sc_clk instance. The function will extract the clockcycle length from the instance.
+        void clk(sc_core::sc_clock &clk);
+
+        /// Set the clockcycle length.
+        ///
+        ///  With this function you can set the clockcycle length of the gptimer instance.
+        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
+        ///
+        /// @param period An sc_time variable which holds the clockcycle length.
+        void clk(sc_core::sc_time &period);
+
+        /// Set the clockcycle length.
+        ///
+        ///  With this function you can set the clockcycle length of the gptimer instance.
+        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
+        ///
+        /// @param period A double wich holds the clockcycle length in a unit stored in base.
+        /// @param base   The unit of the clockcycle length stored in period.
+        void clk(double period, sc_core::sc_time_unit base);
 
     private:
+        /// Number of CPUs in the System
+        /// Needet to determ the number of receiver lines.
         const int ncpu;
+
+        /// Extended Interrupt Number
+        /// Behind this interrupt are all extended interrupt cascaded.
         const int eirq;
 
-        // Old status of the force registers
+        /// Status of the force registers
+        /// To determ the change in the status force fields.
         uint32_t *forcereg;
+
+        /// Clock cycle length.
+        /// To define all wait periodes.
+        sc_time   cc;
 
     public:
         /// power down status of CPUs (1 = power down)

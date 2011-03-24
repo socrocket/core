@@ -159,7 +159,7 @@ def build(bld):
   )
   
   bld(
-    target       = 'gptimer.r3.tlm.test',
+    target       = 'gptimer.3.tlm.test',
     features     = 'cxx cprogram test',
     source       = ['tests/test3/top_tlm.cpp',
                     'tests/test3/testbench.cpp'],
