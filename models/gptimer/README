@@ -1,33 +1,35 @@
 = This Folder contains the TLM Module of the GPTimer =
 == TLM Model ==
-gptimer.h          - The GPTimer TLM Header
-gptimer.cpp        - The GPTimer TLM Implementation
-gpcounter.h        - Counter Class Header (A counter instance inside the Timer)
-gpcounter.cpp      - Counter Class Implementation
+ gptimer.h                   - The GPTimer TLM Header
+ gptimer.cpp                 - The GPTimer TLM Implementation
+ gpcounter.h                 - Counter Class Header (A counter instance inside the Timer)
+ gpcounter.cpp               - Counter Class Implementation
 
 == RTL Wrapper ==
-tests/gptimer_warpper.vhd
+ tests/gptimer_warpper.vhd   - For RTL Model co-simulation purpose: 
+                               A wrapter for the GRLIB Model of the GPTimer
+ tests/gptimer_adapter.h     - Contains an adapter to connect the GRLIB GPTimer RTL Model to the LT testbenches
 
 == Tests ==
-tests/testbench.h        - A generic LT Testbench to stimulate RTL and TLM Models
+ tests/test1                 - Register access test
+ tests/test2                 - Prescaler and Counter test
+ tests/test3                 - Dhalt and chaning test
 
-tests/functiontest.h
-tests/registertest.h
-tests/prescalertest.h
-
-== Test Utils ==
-tests/test.sh            - A script to automate a serie of Tests
-tests/gptimertestbench.h - A generic testbench class for a GPTimer instance
-tests/top.h              - A Headerfile which selects the Test
-tests/top_LT.cpp         - The Top-Level-File for the TLM Model Test
-tests/top_CT.cpp         - The Top-Level-File for the RTL Model Test
+== Test Structure ==
+Every testcase will contain the following files:
+ testbench.h                 - The test definition
+ testbench.cpp               - The test implementation
+ top_tlm.cpp                 - Top-level class and parametrisation for a test with tlm model tested
+ top_ctb.cpp                 - Top-level class and parametrisation for a test with tlm model but ct busses
+                               This is needed to compare timing of the tlm model with the rtl model
+ top_rtl.cpp                 - Top-level class and parametrisation for a test with rtl model
 
 == Others ==
-wscript                  - Build instructions for waf
-README                   - This file
+wscript                      - Build instructions for waf
+README                       - This file
 
 = How to build =
-The best way to build it is to use the top-level waf build system:
+The best way to build and execute everything is to use the top-level waf build system:
 >>> ./waf configure
 >>> ./waf
 

@@ -131,7 +131,7 @@ def build(bld):
                     'tests/test1/top_rtl.cpp',
                     '../../common/verbose.cpp'],
     uselib       = 'AMBA GREENSOCS',
-    includes     = '. ./tests/test2 ../utils ../../signalkit ../../common',
+    includes     = '. ./tests ./tests/test1 ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )
 
@@ -154,7 +154,7 @@ def build(bld):
                     'tests/test2/top_rtl.cpp',
                     '../../common/verbose.cpp'],
     uselib       = 'AMBA GREENSOCS',
-    includes     = '. ./tests/test2 ../utils ../../signalkit ../../common',
+    includes     = '. ./tests ./tests/test2 ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )
   
@@ -177,7 +177,7 @@ def build(bld):
                     'tests/test3/top_rtl.cpp',
                     '../../common/verbose.cpp'],
     uselib       = 'AMBA GREENSOCS',
-    includes     = '. ./tests/test3 ../utils ../../signalkit ../../common',
+    includes     = '. ./tests ./tests/test3 ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )
 

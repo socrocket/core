@@ -306,7 +306,7 @@ void CGPTimer::do_reset(const bool &value, const sc_core::sc_time &time) {
         lastvalue = 0;
         tick = 0;
         wdog = 0;
-        irq = 0;
+        // TODO Reset Irqs: irq = 0;
         lasttime = sc_core::sc_time_stamp();
         scaler_write();
         scaler_read();

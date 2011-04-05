@@ -199,7 +199,7 @@ vsim_before.__str__ = vsim_task_str
 vsim_after.__str__ = vsim_task_str
 
 # Task to compile vhdl files
-vcom_task  = Task.simple_task_type('vcom', 'date +\'%%F %%r %%s\' > ${TGT} && ${VCOM} ${_VCOMFLAGS} ${SRC[0].abspath()}', color='GREEN', shell=True, before=['scgenmod', 'sccom'], ext_in=".vhd", vars=['VCOM', '_VCOMFLAGS'])
+vcom_task  = Task.simple_task_type('vcom', 'date +\'%%F %%r %%s\' > ${TGT[0].abspath()} && ${VCOM} ${_VCOMFLAGS} ${SRC[0].abspath()}', color='GREEN', shell=True, before=['scgenmod', 'sccom'], ext_in=".vhd", vars=['VCOM', '_VCOMFLAGS'])
 #vcom_task  = Task.simple_task_type('vcom', '${VCOM} ${_VCOMFLAGS} ${SRC}', color='GREEN', before=['scgenmod', 'sccom'], ext_in=".vhd", vars=['VCOM', '_VCOMFLAGS'])
 vcom_task.quiet = True
 vcom_task.nocache = True
@@ -209,7 +209,7 @@ def vcom_task_str(self):
 vcom_task.__str__ = vcom_task_str
 
 # task to compile v files
-vlog_task  = Task.simple_task_type('vlog', '${VLOG} ${_VLOGFLAGS} ${SRC}', color='GREEN', before=['scgenmod', 'sccom'], ext_in=".v", vars=['VLOG', '_VLOGFLAGS'])
+vlog_task  = Task.simple_task_type('vlog', '${VLOG} ${_VLOGFLAGS} ${SRC[0].abspath()}', color='GREEN', before=['scgenmod', 'sccom'], ext_in=".v", vars=['VLOG', '_VLOGFLAGS'])
 vlog_task.quiet = True
 vlog_task.nocache = True
 def vlog_task_str(self):
@@ -220,11 +220,11 @@ def vlog_task_str(self):
 vlog_task.__str__ = vlog_task_str
 
 # Task to generate systemc headers out of a work library
-scgenmod_task  = Task.simple_task_type('scgenmod', '${SCGENMOD} ${_SCGENMODFLAGS} ${SCGENMODMAP} ${src} > ${TGT}', color='BLUE', after=['vlib', 'vlog', 'vcom'], before=['sccom'], ext_out=".h", vars=['SCGENMOD', '_SCGENMODFLAGS', 'SCGENMAP'])
+scgenmod_task  = Task.simple_task_type('scgenmod', '${SCGENMOD} ${_SCGENMODFLAGS} ${SCGENMODMAP} ${src} > ${TGT[0].abspath()}', color='BLUE', after=['vlib', 'vlog', 'vcom'], before=['sccom'], ext_out=".h", vars=['SCGENMOD', '_SCGENMODFLAGS', 'SCGENMAP'])
 scgenmod_task.quiet = True
 
 # task to compile systemc files
-sccom_task = Task.simple_task_type('sccom', '${SCCOM} ${_SCCOMFLAGS} ${SRC}', color='BLUE', ext_in=".cpp", after=['vlib', 'vcom', 'vlog', 'scgenmod'], before=['sclink'], vars=['SCCOM', '_SCCOMFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'INCLUDES'])
+sccom_task = Task.simple_task_type('sccom', '${SCCOM} ${_SCCOMFLAGS} ${SRC[0].abspath()}', color='BLUE', ext_in=".cpp", after=['vlib', 'vcom', 'vlog', 'scgenmod'], before=['sclink'], vars=['SCCOM', '_SCCOMFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'INCLUDES'])
 sccom_task.quiet = True
 sccom_task.nocache = True
 def sccom_task_str(self):
@@ -233,12 +233,6 @@ def sccom_task_str(self):
     ins.append(inf.name)
   return "sccom: %s -> %s\n" % (', '.join(ins), self.target)
 sccom_task.__str__ = sccom_task_str
-sccom_task.oldrun = sccom_task.run
-def sccom_task_run(self):
-  result = self.oldrun()
-  time.sleep(0.2)
-  return result
-sccom_task.run = sccom_task_run
 
 # task to link systemc files
 sclink_task = Task.simple_task_type('sclink', '${SCCOM} ${_SCLINKFLAGS} -link', color='YELLOW', after=['vlib', 'vcom', 'vlog', 'sccom'], vars=['SCCOM', '_SCLINKFLAGS'])
@@ -360,7 +354,7 @@ def modelsim(self):
     env.append_value("src", ls[0])
     mod = self.create_task('scgenmod', tgt=tgt)
     mod.env = env
-    self.env["_SCCOMFLAGS"] += ['-I%s' % tgt.parent.bldpath()]
+    self.env["_SCCOMFLAGS"] += ['-I%s' % tgt.parent.abspath()]
     mod.dep_nodes += self.mdeps
 
   # Create modelsim ini task if needed
@@ -466,9 +460,11 @@ def modelsim_sccom(self, node):
   """Create a sccom_task on each cpp file and create a system c link task as well"""
   if 'modelsim' in self.features and Options.options.modelsim:
     tsks = [n for n in self.tasks if getattr(n, 'name', None) == 'sccom']
+    cwd = self.path.find_or_declare(targetdir(self.target))
     tgt = self.path.find_or_declare('%s/_sc/%s/%s' % (targetdir(self.target), self.env['VSIM_SC_DIR'], os.path.splitext(node.name)[0]+'.o'))
     tsk = self.create_task('sccom', [node], [tgt])
     tsk.target = self.target
+    tsk.cwd = cwd.abspath()
     if tsks:
       #tsk.run_after.add(tsks[-1])
       self.link_task.inputs.append(tgt)

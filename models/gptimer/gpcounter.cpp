@@ -96,6 +96,7 @@ void CGPCounter::ctrl_write() {
     bool old_pirq = m_pirq;
 
     m_pirq = p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IP];
+    /* // Unset IRQ
     if (old_pirq && !m_pirq) {
         unsigned int irqnr = (p.r[CGPTimer::CONF] >> 3) & 0xF;
         if (p.r[CGPTimer::CONF].b[CGPTimer::CONF_SI]) {
@@ -103,7 +104,7 @@ void CGPCounter::ctrl_write() {
         }
         p.irq.write(p.irq.read() & ~(1 << irqnr));
     }
-
+    */
     /* Prepare for chainging */
     if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) {
         chain_run = false;
@@ -185,7 +186,7 @@ void CGPCounter::ticking() {
             if (p.r[CGPTimer::CONF].b[CGPTimer::CONF_SI]) {
                 irqnr += nr;
             }
-            p.irq.write(p.irq.read() | (1 << irqnr));
+            p.irq.write((1 << irqnr), true);
             m_pirq = true;
         }
         if(p.counter.size()-1==nr && p.wdog_length!=0) {
@@ -198,7 +199,7 @@ void CGPCounter::ticking() {
 #endif
         wait(p.clockcycle);
         if(m_pirq&&irqnr) {
-            p.irq.write(p.irq.read() & ~(1 << irqnr));
+            p.irq.write(1 << irqnr, false);
         }
         if(p.counter.size()-1==nr && p.wdog_length!=0) {
            p.wdog.write(false);

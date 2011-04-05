@@ -49,6 +49,7 @@
 #include <amba.h>
 #include <adapters/APB_CT_RTL_Slave_Adapter.h>
 #include "signalkit.h"
+#include "verbose.h"
 
 /// @addtogroup utils
 /// @{
@@ -100,7 +101,7 @@ class CAPB_CT_RTL : public sc_module, public signalkit::signal_module<CAPB_CT_RT
         sc_core::sc_out<apb_slv_in_type> apbi;
 
         signal<bool>::infield        pirqi;
-        signal<uint32_t>::out        pirqo;
+        signal<bool>::selector       pirqo;
         signal<uint32_t>::out        pconfig_0;
         signal<uint32_t>::out        pconfig_1;
         signal<uint16_t>::out        pindex;
@@ -181,17 +182,24 @@ void CAPB_CT_RTL::onirq(const bool &value, const uint32_t &channel,
                         const sc_core::sc_time &time) {
     static uint32_t status = 0;
     status = (value << channel) | (status & ~(1 << channel));
-    if(status) {
-      m_irqi.write(status);
-    }
+    m_irqi.write(status);
 }
 
 void CAPB_CT_RTL::apbo_ctrl() {
-    while (1) {
+    static uint32_t oldirq = 0;
+    while(1) {
         apb_slv_out_type val = apbo.read();
         m_prdata.write(val.prdata);
-        if (!(pirqo.read() == val.pirq)) {
-            pirqo.write(val.pirq);
+        if(!(oldirq == val.pirq)) {
+            for(int i=0;i<32;++i) {
+                if(oldirq&(~val.pirq)&(1<<i)) {
+                    pirqo.write((1 << i), false);
+                }
+                if(val.pirq&(~oldirq)&(1<<i)) {
+                    pirqo.write((1 << i), true);
+                }
+            }
+            oldirq = val.pirq;
         }
         wait();
     }
@@ -199,7 +207,7 @@ void CAPB_CT_RTL::apbo_ctrl() {
 
 
 void CAPB_CT_RTL::apbi_ctrl() {
-    while (1) {
+    while(1) {
         apb_slv_in_type val;
         val.psel = ((bool)m_psel.read())? 0xFFFF : 0x0;
         val.penable = m_penable.read();

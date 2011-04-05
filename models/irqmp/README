@@ -1,32 +1,33 @@
-This directory contains a transaction level model of the Gaisler GRIP IRQMP interrupt controller. The model constists of the following files:
+= This directory contains a TLM of the Gaisler GRIP IRQMP interrupt controller =
+== TLM Model ==
+ irqmp.h                     - The IRQMP TLM Header
+ irqmp.cpp                   - The IRQMP TLM Implementation
 
-irqmp_reg.h
-defines the IRQMP register addresses, write masks, and default values
+== RTL Wrapper ==
+ tests/irqmp_wrapper.vhd     - For RTL Model co-simulation purpose: 
+                               A wrapter for the GRLIB Model of the IRQMP
+ tests/irqmp_adapter.h       - Contains an adapter to connect the GRLIB IRQMP RTL Model to the LT testbenches
 
-irqmp.h
-defines the IRQMP model as a template class
+== Tests ==
+ tests/test1                 - Pending registers and masking test
+ tests/test2                 - Broadcasting irqs and force registers test
+ tests/test3                 - Deactivated eirq settings test
 
-irqmp.tpp
-implements the IRQMP model
+== Test Structure ==
+Every testcase will contain the following files:
+ testbench.h                 - The test definition
+ testbench.cpp               - The test implementation
+ top_tlm.cpp                 - Top-level class and parametrisation for a test with tlm model tested
+ top_ctb.cpp                 - Top-level class and parametrisation for a test with tlm model but ct busses
+                               This is needed to compare timing of the tlm model with the rtl model
+ top_rtl.cpp                 - Top-level class and parametrisation for a test with rtl model
+  
+== Others ==
+wscript                      - Build instructions for waf
+README                       - This file
 
-irqmp_tb.h
-defines a testbench for the IRQMP model as a template class. The testbench can be used for TLM or RTL simulation.
-
-irqmp_tb.tpp
-implements the testbench
-
-irqmp_testtop_tlm.cpp
-implements the top-level of a TLM simulation of the IRQMP model. Instances of the testbench and teh IRQMP model are built and connected.
-
-irqmp_vhdl_wrapper.vhd
-is a wrapper around the original IRQMP VHDL implementation. The wrapper is used to break up vectors of VHDL records into single records for enabling automatic translation of the VHDL entity into an SC_MODULE via the Modelsim builtin command sc_genmod.
-
-irqmp_sc_wrapper.h
-is a systemc_wrapper around the VHDL wrapper. This wrapper is used to connect the VHDL model to the SystemC testbench in a VHDL-SystemC Co-Simulation with Modelsim.
-
-ct_rtl.h
-is a model-specific SystemC adapter that translates socket communication into SystemC signal communication. Using this adapter, the TLM testbench can be used for VHDL simulation.
-
-irqmp_testtop_ct.cpp
-implements the top-level of a TLM-VHDL Co-Simulation of the IRQMP model. Instances of the testbench, the IRQMP TLM model (sc_wrapper), the IRQMP VHDL model (vhdl_wrapper), and the ct-rtl-adapter are built and connected.
+= How to build =
+The best way to build and execute everything is to use the top-level waf build system:
+>>> ./waf configure
+>>> ./waf
 

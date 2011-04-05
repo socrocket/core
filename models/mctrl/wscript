@@ -122,46 +122,46 @@ def build(bld):
     use          = 'mctrl utils signalkit common'
   )
 
-  bld(
-    features     = 'modelsim test',
-    target       = 'mctrl.1.rtl.test',
-    source       = [os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/sram32.vhd'), bld.path.get_src().abspath()),
-                    '../../common/verbose.cpp',
-                    'tests/test1/testbench.cpp',
-                    'tests/test1/top_rtl.cpp'],
-    uselib       = 'AMBA GREENSOCS AMBAMEM',
-    defines      = 'TESTLENGTH=1',
-    includes     = '. tests tests/test1 ../utils ../../signalkit ../../common',
-    config       =  vsim_conf,
-  )  
+  #bld(
+  #  features     = 'modelsim test',
+  #  target       = 'mctrl.1.rtl.test',
+  #  source       = [os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/sram32.vhd'), bld.path.get_src().abspath()),
+  #                  '../../common/verbose.cpp',
+  #                  'tests/test1/testbench.cpp',
+  #                  'tests/test1/top_rtl.cpp'],
+  #  uselib       = 'AMBA GREENSOCS AMBAMEM',
+  #  defines      = 'TESTLENGTH=1',
+  #  includes     = '. tests tests/test1 ../utils ../../signalkit ../../common',
+  #  config       =  vsim_conf,
+  #)  
 
-  bld(
-    features     = 'modelsim',
-    target       = 'mctrl.test001.cosim.rtlahb',
-    source       = [os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/sram32.vhd'), bld.path.get_src().abspath()),
-                    os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/amba/ahbctrl.vhd'), bld.path.get_src().abspath()),
-                    '../../common/verbose.cpp',
-                    './tests/conf001/mctrl_tb.cpp',
-                    './tests/conf001/cosim/mctrl_top_rtl_bus.cpp'],
-    uselib       = 'AMBA GREENSOCS AMBAMEM',
-    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = './ ./tests ../utils ../../signalkit ../../common',
-    config       =  vsim_conf,
-  )  
+  #bld(
+  #  features     = 'modelsim',
+  #  target       = 'mctrl.test001.cosim.rtlahb',
+  #  source       = [os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/sram32.vhd'), bld.path.get_src().abspath()),
+  #                  os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/amba/ahbctrl.vhd'), bld.path.get_src().abspath()),
+  #                  '../../common/verbose.cpp',
+  #                  './tests/conf001/mctrl_tb.cpp',
+  #                  './tests/conf001/cosim/mctrl_top_rtl_bus.cpp'],
+  #  uselib       = 'AMBA GREENSOCS AMBAMEM',
+  #  defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+  #  includes     = './ ./tests ../utils ../../signalkit ../../common',
+  #  config       =  vsim_conf,
+  #)  
 
-  bld(
-    features     = 'modelsim',
-    target       = 'mctrl.test004.cosim.rtlahb',
-    source       = ['../utils/sram16.vhd',
-                    os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/amba/ahbctrl.vhd'), bld.path.get_src().abspath()),
-                    '../../common/verbose.cpp',
-                    './tests/conf004/mctrl_tb.cpp',
-                    './tests/conf004/cosim/mctrl_top_rtl_bus.cpp'],
-    uselib       = 'AMBA GREENSOCS AMBAMEM',
-    defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = './ ./tests ../utils ../../signalkit ../../common',
-    config       =  vsim_conf,
-  )  
+  #bld(
+  #  features     = 'modelsim',
+  #  target       = 'mctrl.test004.cosim.rtlahb',
+  #  source       = ['../utils/sram16.vhd',
+  #                  os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/amba/ahbctrl.vhd'), bld.path.get_src().abspath()),
+  #                  '../../common/verbose.cpp',
+  #                  './tests/conf004/mctrl_tb.cpp',
+  #                  './tests/conf004/cosim/mctrl_top_rtl_bus.cpp'],
+  #  uselib       = 'AMBA GREENSOCS AMBAMEM',
+  #  defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+  #  includes     = './ ./tests ../utils ../../signalkit ../../common',
+  #  config       =  vsim_conf,
+  #)  
   
   bld(
     features     = 'cxx cprogram test',
