@@ -220,45 +220,58 @@ bool Ctb_ahb_mem::execCmd(tlm::tlm_generic_payload& gp) {
    assert((byteEnableLength != 0) || (byteEnablePtr == NULL));
 
    if(gp.is_read()) {
-      // Exec read command
-      if(byteEnablePtr != NULL) {
-          // Use byte enable
-          for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-              if(byteEnablePtr[i % byteEnableLength]
-                      == TLM_BYTE_ENABLED) {
-                  *(gp.get_data_ptr() + i)
-                          = mem[gp.get_address() + i];
-              }
-          }
-      } else {
-          // no byte enable
-          for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-              *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
-          }
-      }
-      return 0;
-   } else {
-      // Exec write command
-      if(byteEnablePtr != NULL) {
-          // Use byte enable
-          for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-              if (byteEnablePtr[i % byteEnableLength]
-                      == TLM_BYTE_ENABLED) {
-                  mem[gp.get_address() + i]
-                          = *(gp.get_data_ptr() + i);
-              }
-          }
-      } else {
-          // no byte enable
-          for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-	    
-	    v::info << name() << " Write with address: " << hex << gp.get_address() + i << " and data: " << hex << (unsigned int)*(gp.get_data_ptr() + i) << v::endl;
-              mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
-          }
-      }
+     
+     // Exec read command
+     if(byteEnablePtr != NULL) {
+     
+       // Use byte enable
+       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+       
+	 if(byteEnablePtr[i % byteEnableLength] == TLM_BYTE_ENABLED) {
+                  *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
+         }
+       }
 
-      v::info << name() << "Write done - return" << v::endl;
-      return 0;
+     } else {
+     
+       // no byte enable
+       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+       
+	 v::debug << name() << "Read with address: " << hex << gp.get_address() + i << " to return: " << hex << (unsigned int)*(gp.get_data_ptr() + i) << v::endl;
+	 *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
+         
+       }
+     }
+     
+     v::debug << name() << "Read done - return" << v::endl;
+     return 0;
+
+   } else {
+
+     // Exec write command
+     if(byteEnablePtr != NULL) {
+     
+       // Use byte enable
+       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+       
+	 if (byteEnablePtr[i % byteEnableLength] == TLM_BYTE_ENABLED) {
+                  mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
+         }
+       }
+
+     } else {
+
+        // no byte enable
+        for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+	    
+	  v::debug << name() << "Write with address: " << hex << gp.get_address() + i << " and data: " << hex << (unsigned int)*(gp.get_data_ptr() + i) << v::endl;
+          mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
+        }
+     }  
+
+     v::debug << name() << "Write done - return" << v::endl;
+     return 0;
+
    }
    return 1;
 }

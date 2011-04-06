@@ -1,0 +1,158 @@
+#! /usr/bin/env python
+# encoding: utf-8
+#*********************************************************************
+# Copyright 2010, Institute of Computer and Network Engineering,
+#                 TU-Braunschweig
+# All rights reserved
+# Any reproduction, use, distribution or disclosure of this program,
+# without the express, prior written consent of the authors is
+# strictly prohibited.
+#
+# University of Technology Braunschweig
+# Institute of Computer and Network Engineering
+# Hans-Sommer-Str. 66
+# 38118 Braunschweig, Germany
+#
+# ESA SPECIAL LICENSE
+#
+# This program may be freely used, copied, modified, and redistributed
+# by the European Space Agency for the Agency's own requirements.
+#
+# The program is provided "as is", there is no warranty that
+# the program is correct or suitable for any purpose,
+# neither implicit nor explicit. The program and the information in it
+# contained do not necessarily reflect the policy of the European
+# Space Agency or of TU-Braunschweig.
+#*********************************************************************
+# Title:      wscripto
+#
+# ScssId:
+#
+# Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+#
+# Purpose:    this file contains the build system for the grlib pnp
+#             mechanism model and all its testbenches
+#
+# Method:     $ ./waf configure; ./waf # to build it on top level
+#
+# Modified on $Date: 2010-10-07 19:02:15 +0200 (Thu, 07 Oct 2010) $
+#          at $Revision: 165 $
+#          by $Author: HWSWSIM $
+#
+# Principal:  European Space Agency
+# Author:     VLSI working group @ IDA @ TUBS
+# Maintainer: Rolf Meyer
+# Reviewed:
+#*********************************************************************
+top = '..'
+vsim_conf = """
+[Library]
+modelsim = $GRLIB_TECH
+grlib = $GRLIB_TECH/grlib
+unisim = $GRLIB_TECH/unisim
+dw02 = $GRLIB_TECH/dw02
+synplify = $GRLIB_TECH/synplify
+techmap = $GRLIB_TECH/techmap
+spw = $GRLIB_TECH/spw
+eth = $GRLIB_TECH/eth
+opencores = $GRLIB_TECH/opencores
+gaisler = $GRLIB_TECH/gaisler
+esa = $GRLIB_TECH/esa
+micron = $GRLIB_TECH/micron
+vsys = $GRLIB_TECH/vsys
+std = $MODEL_TECH/../std
+ieee = $MODEL_TECH/../ieee
+vital2000 = $MODEL_TECH/../vital2000
+verilog = $MODEL_TECH/../verilog
+std_developerskit = $MODEL_TECH/../std_developerskit
+synopsys = $MODEL_TECH/../synopsys
+work = %(path)s/%(target)s
+
+[vcom]
+VHDL93 = 1
+Show_source = 1
+Show_Warning1 = 0
+Show_Warning5 = 0
+Quiet = 1
+
+[vlog]
+Quiet = 1
+
+[vsim]
+VoptFlow = 0
+Resolution = 1ps
+UserTimeUnit = ns
+RunLength = 100
+IterationLimit = 5000
+BreakOnAssertion = 3
+DefaultRadix = symbolic
+TranscriptFile = transcript.txt
+PathSeparator = /
+UnbufferedOutput = 0
+
+[lmc]
+libsm = $MODEL_TECH/libsm.sl
+libhm = $MODEL_TECH/libhm.sl
+"""
+
+def options(ctx):
+  pass
+
+def configure(ctx):
+  pass
+
+def build(bld):
+  bld(
+    target         = 'ahbctrl',
+    features       = 'cxx cxxstlib',
+    source         = 'ahbctrl.cpp',
+    export_includes = '.',
+    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
+    use            = 'utils common'
+  )
+
+  bld(
+    target         = 'ahbctrl.1.lt.test',
+    features       = 'cxx cprogram test',
+    source         = ['./test1/testbench.cpp',
+                      './test1/testbench_tlm.cpp',
+                      './test1/sim_lt/main.cpp'],
+    includes       = '. ./test1 ./test1/sim_lt',
+    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
+    use            = 'common utils ahbctrl',
+  )
+  
+  bld(
+    features       = 'modelsim test',
+    target         = 'ahbctrl.1.rtl.test',
+    name           = 'ahbctrl.1.rtl.test',
+    source         = ['./ahbtbp.vhd',
+                      './test1/sim_ref/ahb_m1_s1.vhd',
+		      '../../common/verbose.cpp',
+                      '../utils/grlibdevice.cpp',
+                      '../utils/tb_ahb_mem.cpp',
+		      './test1/testbench.cpp',
+                      './test1/testbench_rtl.cpp',
+		      './test1/sim_ref/main.cpp'],
+    uselib         = 'AMBA GREENSOCS',
+    vcomflags      = '-93 -explicit',
+    defines        = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+    includes       = './ ./test1 ./test1/sim_ref ../../common ../../signalkit ../utils',
+    config         =  vsim_conf,
+  )
+
+#  bld(
+#    features       = 'modelsim',
+#    target         = 'ahbctrl.rtl.test',
+#    name           = 'ahbctrl.rtl.test',
+#    source         = ['./ahbtbp.vhd',
+#                      './test1/sim_ref/ahb_m1_s1.vhd',
+#                      './test1/sim_ref/tb.vhd'],
+#    uselib         = 'AMBA GREENSOCS',
+#    vcomflags      = '-93 -explicit',
+#    defines        = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+#    config         =  vsim_conf,
+#  )  
+
+  
+

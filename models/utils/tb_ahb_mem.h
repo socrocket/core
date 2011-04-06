@@ -47,7 +47,13 @@
 #include <tlm.h>
 #include <map>
 #include <amba.h>
+
+#if defined(MTI_SYSTEMC)
+#include "peq_with_get.h"
+#else
 #include "tlm_utils/peq_with_get.h"
+#endif
+
 #include "grlibdevice.h"
 
 class Ctb_ahb_mem : public sc_module, public amba_slave_base {
