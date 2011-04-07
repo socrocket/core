@@ -103,14 +103,15 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
     if(infile != NULL) {
       readmem(infile, addr);
     }
-} // End constructor
+}
 
 
 /// Destructor
 Ctb_ahb_mem::~Ctb_ahb_mem() {
+
     // Delete memory contents
     mem.clear();
-} // End destructor
+} 
 
 /// TLM blocking transport function
 void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
@@ -118,23 +119,30 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
 
     // Check address for before doing anything else
     if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
+
         // warn if access exceeds slave memory region
         if((gp.get_address() + gp.get_data_length()) >
            (ahbBaseAddress + ahbSize)) {
+
             v::warn << name() << "Transaction exceeds slave memory region"
                     << endl;
         }
 
         wait(delay);
         delay = sc_core::SC_ZERO_TIME;
+
         if(!execCmd(gp)) {
+
            gp.set_response_status(tlm::TLM_OK_RESPONSE);
+
         } else {
+
            v::warn << name() << "Received unknown command." << endl;
            gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+
         }
-    } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
-} // void Ctb_ahb_mem::b_transport()
+    }
+}
 
 /// TLM non blocking transport function
 tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generic_payload& gp,
@@ -176,7 +184,7 @@ tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generi
     gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
     return tlm::TLM_COMPLETED;
 
-}  // tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw()
+}
 
 /// Thread processing transactions when they emerge from the payload event
 /// queue
@@ -217,6 +225,7 @@ bool Ctb_ahb_mem::execCmd(tlm::tlm_generic_payload& gp) {
    // if a byte enable array is present its length must not be zero
    unsigned char *byteEnablePtr  = gp.get_byte_enable_ptr();
    unsigned int byteEnableLength = gp.get_byte_enable_length();
+
    assert((byteEnableLength != 0) || (byteEnablePtr == NULL));
 
    if(gp.is_read()) {
@@ -237,7 +246,7 @@ bool Ctb_ahb_mem::execCmd(tlm::tlm_generic_payload& gp) {
        // no byte enable
        for(uint32_t i = 0; i < gp.get_data_length(); i++) {
        
-	 v::debug << name() << "Read with address: " << hex << gp.get_address() + i << " to return: " << hex << (unsigned int)*(gp.get_data_ptr() + i) << v::endl;
+	 v::debug << name() << "Read with address: " << hex << gp.get_address() + i << " to return: " << hex << (unsigned int)mem[gp.get_address() + i] << v::endl;
 	 *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
          
        }

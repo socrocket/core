@@ -52,7 +52,8 @@ CAHBCTRL::CAHBCTRL(sc_core::sc_module_name nm,
                          amba::amba_layer_ids ambaLayer) :
       sc_module(nm),
       ahbIN("ahbIN", amba::amba_AHB, ambaLayer, false),
-      ahbOUT("ahbOUT", amba::amba_AHB, ambaLayer, false) {
+      ahbOUT("ahbOUT", amba::amba_AHB, ambaLayer, false),
+      clockcycle(10.0, sc_core::SC_NS) {
 
     if(ambaLayer==amba::amba_LT) {
       // register tlm blocking transport function
@@ -103,7 +104,7 @@ int CAHBCTRL::getMaster2Slave(const uint32_t slaveID) {
    return it->second;
 }
 
-//
+/// TLM blocking transport function
 void CAHBCTRL::b_transport(uint32_t id, tlm::tlm_generic_payload& ahb_gp, sc_time& delay) {
 
     std::map<uint32_t, slave_info_t>::iterator it;
@@ -123,9 +124,9 @@ void CAHBCTRL::b_transport(uint32_t id, tlm::tlm_generic_payload& ahb_gp, sc_tim
        v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
                 << v::setw(8) << ahb_gp.get_address() << ", from master:"
                 << mstobj->name() << ", forwarded to slave:" << obj->name() << endl;
-       // ************
 
-       // At this point arbitration and address decoding takes place
+       // add delay of address phase
+       delay += clockcycle;
 
        // Wait for semaphore
        SlvSemaphore.find(index)->second->wait();
@@ -133,6 +134,7 @@ void CAHBCTRL::b_transport(uint32_t id, tlm::tlm_generic_payload& ahb_gp, sc_tim
        ahbOUT[index]->b_transport(ahb_gp, delay);
        // Post to semaphore
        SlvSemaphore.find(index)->second->post();
+
     } else {
        // Invalid index
        ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
@@ -217,9 +219,9 @@ tlm::tlm_sync_enum CAHBCTRL::nb_transport_fw(uint32_t id, tlm::tlm_generic_paylo
 
        return tlm::TLM_COMPLETED;
     }
-}  // tlm::tlm_sync_enum CAHBCTRL::nb_transport_fw()
+}
 
-// TLM non blocking transport call backward path (from slaves to masters)
+/// TLM non-blocking transport call backward path (from slaves to masters)
 tlm::tlm_sync_enum CAHBCTRL::nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& gp,
                                                 tlm::tlm_phase& phase, sc_core::sc_time& delay) {
    int index = getMaster2Slave(id);
@@ -257,7 +259,7 @@ tlm::tlm_sync_enum CAHBCTRL::nb_transport_bw(uint32_t id, tlm::tlm_generic_paylo
                << ": No active connection found." << endl;
       return tlm::TLM_COMPLETED;
    }
-}  // tlm::tlm_sync_enum CAHBCTRL::nb_transport_bw()
+}
 
 void CAHBCTRL::queuedTrans(const uint32_t mstID, const uint32_t slvID,
                               tlm::tlm_generic_payload& gp,
@@ -327,7 +329,7 @@ void CAHBCTRL::queuedTrans(const uint32_t mstID, const uint32_t slvID,
       MstSlvMap[slvID] = -1;
       SlvSemaphore.find(slvID)->second->post();
    }
-}  // void CAHBCTRL::queuedTrans()
+}
 
 void CAHBCTRL::start_of_simulation() {
     uint32_t num_of_bindings = ahbOUT.size();
@@ -358,7 +360,7 @@ void CAHBCTRL::start_of_simulation() {
     }
     // Check memory map for overlaps
     checkMemMap();
-}  // void CAHBCTRL::start_of_simulation()
+}
 
 void CAHBCTRL::checkMemMap() {
    std::map<uint32_t, slave_info_t>::iterator it;
@@ -389,9 +391,9 @@ void CAHBCTRL::checkMemMap() {
          }
       }
    }
-}  // void CAHBCTRL::checkMemMap()
+}
 
-// TLM debug interface
+/// TLM debug interface
 unsigned int CAHBCTRL::transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp) {
     std::map<uint32_t, slave_info_t>::iterator it;
 
@@ -403,6 +405,7 @@ unsigned int CAHBCTRL::transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp) 
 
     // check for a valid index
     if(index >= 0) {
+
        // *** DEBUG
        other_socket = ahbOUT.get_other_side(index, a);
        sc_core::sc_object *obj = other_socket->get_parent();
@@ -414,7 +417,9 @@ unsigned int CAHBCTRL::transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp) 
 
        // Forward request to the appropriate slave
        return ahbOUT[index]->transport_dbg(gp);
+
     } else {
+
        // Invalid index
        gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
        v::warn << name() << "AHB Request@0x" << hex << v::setfill('0')
@@ -422,4 +427,25 @@ unsigned int CAHBCTRL::transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp) 
                << mstobj->name() << ": Unmapped address space." << endl;
        return 0;
     }
+}
+
+/// Helper for setting clock cycle latency using sc_clock argument
+void CAHBCTRL::clk(sc_core::sc_clock &clk) {
+
+  clockcycle = clk.period();
+
+}
+
+/// Helper for setting clock cycle latency using sc_time argument
+void CAHBCTRL::clk(sc_core::sc_time &period) {
+
+  clockcycle = period;
+
+}
+
+/// Helper for setting clock cycle latency using a value-time_unit pair
+void CAHBCTRL::clk(double period, sc_core::sc_time_unit base) {
+
+  clockcycle = sc_core::sc_time(period, base);
+
 }

@@ -51,6 +51,11 @@
 
 class CAHBCTRL : public sc_core::sc_module {
     public:
+
+        /// AMBA sockets
+        amba::amba_slave_socket<32, 0>  ahbIN;
+        amba::amba_master_socket<32, 0> ahbOUT;
+
         SC_HAS_PROCESS(CAHBCTRL);
         /// Constructor
         CAHBCTRL(sc_core::sc_module_name nm,
@@ -58,10 +63,6 @@ class CAHBCTRL : public sc_core::sc_module {
 
         /// Desctructor
         ~CAHBCTRL();
-
-        /// AMBA interfaces
-        amba::amba_slave_socket<32, 0>  ahbIN;
-        amba::amba_master_socket<32, 0> ahbOUT;
 
         void setAddressMap(const uint32_t i,
                            const uint32_t baseAddr,
@@ -79,11 +80,16 @@ class CAHBCTRL : public sc_core::sc_module {
         tlm::tlm_sync_enum nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& gp,
                                            tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
-        // TLM debug interface
+        /// TLM debug interface
         unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);
 
         /// Check memory map for overlaps
         void checkMemMap();
+
+	/// Helper functions for definition of clock cycle
+	void clk(sc_core::sc_clock &clk);
+	void clk(sc_core::sc_time &period);
+	void clk(double period, sc_core::sc_time_unit base);
 
     private:
         typedef tlm::tlm_generic_payload payload_t;
@@ -107,6 +113,10 @@ class CAHBCTRL : public sc_core::sc_module {
                          tlm::tlm_generic_payload& gp,
                          tlm::tlm_phase &phase,
                          sc_core::sc_time &delay);
+
+
+	/// Clock cycle time
+	sc_core::sc_time clockcycle;
 };
 
 #endif // AHBCTRL_H
