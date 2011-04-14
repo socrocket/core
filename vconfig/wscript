@@ -61,8 +61,8 @@ def build(bld):
   pass 
 
 def conf(bld):
-  from vconfig import vconfig
-  vconfig.main("vconfig/default.xml", [])
+  from vconfig.wizard import main
+  main()
   
 from waflib import Context
 Context.g_module.__dict__['conf'] = conf

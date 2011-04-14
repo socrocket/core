@@ -25,14 +25,16 @@ class Wizard(QtGui.QWizard):
     self.addPage(gen)
     self.addPage(IntroPage())
 
-if __name__ == '__main__':
-  import sys
-  
-  app = QtGui.QApplication(sys.argv)
-  
-  wizard = Wizard()
-  wizard.setWindowTitle("SoCRocket - Configuration Wizard")
-  wizard.show()
+def main():
+    import sys
+    app = QtGui.QApplication([])
 
-  sys.exit(wizard.exec_())
+    wizard = Wizard()
+    wizard.setWindowTitle("SoCRocket - Configuration Wizard")
+    wizard.show()
+
+    sys.exit(wizard.exec_())
+
+if __name__ == '__main__':
+    main
   

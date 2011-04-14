@@ -123,6 +123,16 @@ def build(bld):
   )
   
   bld(
+    target       = 'gptimer.1.ctb.test',
+    features     = 'cxx cprogram test',
+    source       = ['tests/test1/top_ctb.cpp',
+                    'tests/test1/testbench.cpp'],
+    includes     = '. tests/test1',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    use          = 'gptimer utils signalkit common',
+  )
+  
+  bld(
     target       = 'gptimer.1.rtl.test',
     features     = 'modelsim test',
     generate     = 'gptimer_wrapper:tests/test1/gptimer_wrapper.h',
@@ -146,6 +156,16 @@ def build(bld):
   )
 
   bld(
+    target       = 'gptimer.2.ctb.test',
+    features     = 'cxx cprogram test',
+    source       = ['tests/test2/top_ctb.cpp',
+                    'tests/test2/testbench.cpp'],
+    includes     = '. tests/test2',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    use          = 'gptimer utils signalkit common',
+  )
+
+  bld(
     target       = 'gptimer.2.rtl.test',
     features     = 'modelsim test',
     generate     = 'gptimer_wrapper:tests/test2/gptimer_wrapper.h',
@@ -162,6 +182,16 @@ def build(bld):
     target       = 'gptimer.3.tlm.test',
     features     = 'cxx cprogram test',
     source       = ['tests/test3/top_tlm.cpp',
+                    'tests/test3/testbench.cpp'],
+    includes     = '. tests/test3',
+    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    use          = 'gptimer utils signalkit common',
+  )
+
+  bld(
+    target       = 'gptimer.3.ctb.test',
+    features     = 'cxx cprogram test',
+    source       = ['tests/test3/top_ctb.cpp',
                     'tests/test3/testbench.cpp'],
     includes     = '. tests/test3',
     uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
