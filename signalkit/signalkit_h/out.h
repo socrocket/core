@@ -44,6 +44,7 @@
 
 #include "signalkit_h/base.h"
 #include "signalkit_h/ifs.h"
+#include <stdint.h>
 
 namespace signalkit {
 
@@ -78,7 +79,7 @@ class signal_out : public signal_base<TYPE, MODULE> ,
         /// @param receiver Input interface to bind with.
         /// @param channel  The channel which has to be bind.
         virtual signal_out_bind_if<TYPE> *bind(signal_in_if<TYPE> &receiver,
-                          const unsigned int &channel = 0) {
+                          const uint32_t &channel = 0) {
             for (typename t_receiver::iterator iter = m_receiver.begin(); iter
                     != m_receiver.end(); iter++) {
                 if (*iter == &receiver) {

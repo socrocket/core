@@ -46,6 +46,8 @@
 #ifndef SIGNALKIT_IFS_H
 #define SIGNALKIT_IFS_H
 
+#include <stdint.h>
+
 namespace signalkit {
 
 /// @addtogroup signalkit

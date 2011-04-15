@@ -45,6 +45,7 @@
 
 #include "signalkit_h/base.h"
 #include "signalkit_h/ifs.h"
+#include <stdint.h>
 
 #ifdef EN_HASH
 #define MAP MAP
@@ -76,7 +77,7 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
         /// @param channel The input channel of the signal.
         /// @param time The delay of the signal.
         typedef void(MODULE::*t_callback)(const TYPE &value,
-                                          const unsigned int &channel,
+                                          const uint32_t &channel,
                                           const sc_core::sc_time &time);
 
         /// Constructor without callback
@@ -106,7 +107,7 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
         /// @param sender  Input interface to bind with.
         /// @param channel The channel which has to be bind.
         virtual void bind(signal_out_bind_if<TYPE> &sender,
-                          const unsigned int &channel = 0) {
+                          const uint32_t &channel = 0) {
             // TODO: Make it work with multible sender per channel
             TYPE v = TYPE();
             signal_out_if<TYPE> *out =
@@ -128,12 +129,12 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
             // The content of each channel is stored with it's channel number.
             // So first we have to get the channel number from the interface.
             // Then we have to update the value to the channel.
-            typename std::MAP<signal_out_if<TYPE> *, unsigned int>::iterator
+            typename std::MAP<signal_out_if<TYPE> *, uint32_t>::iterator
                     channel = this->m_channel.find(sender);
             if (channel == m_channel.end()) {
                 return;
             }
-            typename std::MAP<unsigned int, TYPE>::iterator value =
+            typename std::MAP<uint32_t, TYPE>::iterator value =
                     this->m_value.find(channel->second);
             if (value == m_value.end()) {
                 return;
@@ -152,8 +153,8 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
         ///
         /// @param channel The channel to read from.
         /// @return        The value of the channel.
-        TYPE read(const unsigned int &channel) const {
-            typename std::MAP<unsigned int, TYPE>::iterator item =
+        TYPE read(const uint32_t &channel) const {
+            typename std::MAP<uint32_t, TYPE>::iterator item =
                     this->m_value.find(channel);
             if(item == this->m_value.end()) {
                //v::error << this->name() << "No value is register to channel number " 
@@ -169,8 +170,8 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
         /// @param channel       The channel to read from.
         /// @param default_value The default value to read in case of an error.
         /// @return              The value of the channel.
-        TYPE read(const unsigned int &channel, const TYPE &default_value) const {
-            typename std::MAP<unsigned int, TYPE>::iterator item =
+        TYPE read(const uint32_t &channel, const TYPE &default_value) const {
+            typename std::MAP<uint32_t, TYPE>::iterator item =
                     this->m_value.find(channel);
             if (item != this->m_value.end()) {
                 return item->second;
@@ -180,22 +181,22 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
         }
 
         /// Gets the value of a specific channel.
-        TYPE operator[](const unsigned int &channel) const {
+        TYPE operator[](const uint32_t &channel) const {
             return read(channel);
         }
 
         /// Connect the infield with an output on a specific channel.
-        void operator()(signal_out_bind_if<TYPE> &sender, unsigned int channel) {
+        void operator()(signal_out_bind_if<TYPE> &sender, uint32_t channel) {
             this->bind(sender);
             sender.bind(*this);
         }
 
     private:
         /// Stores output interfaces to channel information.
-        std::MAP<signal_out_if<TYPE> *, unsigned int> m_channel;
+        std::MAP<signal_out_if<TYPE> *, uint32_t> m_channel;
 
         /// Stores the values of each channel.
-        std::MAP<unsigned int, TYPE> m_value;
+        std::MAP<uint32_t, TYPE> m_value;
 
         /// Stores the callback.
         t_callback m_callback;

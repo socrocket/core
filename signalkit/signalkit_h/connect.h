@@ -46,7 +46,7 @@
 
 #include "signalkit_h/ifs.h"
 #include "signalkit_h/adapter.h"
-
+#include <stdint.h>
 namespace signalkit {
 
 /// @addtogroup signalkit

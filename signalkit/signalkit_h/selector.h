@@ -45,6 +45,7 @@
 #include "signalkit_h/base.h"
 #include "signalkit_h/ifs.h"
 #include "signalkit_h/out.h"
+#include <stdint.h>
 
 #ifdef EN_HASH
 #define MAP MAP
@@ -86,7 +87,7 @@ class signal_selector : public signal_base<TYPE, MODULE> ,
         /// @param receiver Input interface to bind with.
         /// @param channel  The channel which has to be bind.
         virtual signal_out_bind_if<TYPE> *bind(signal_in_if<TYPE> &receiver,
-                          const unsigned int &channel) {
+                          const uint32_t &channel) {
             // TODO: Make work multipel selector<->infield channels
             signal_out<TYPE, MODULE> *item = NULL;
             typename t_map::iterator iter = outs.find(channel);
@@ -107,9 +108,9 @@ class signal_selector : public signal_base<TYPE, MODULE> ,
         /// @param mask  The write mask with all channels to write to.
         /// @param value The new value of the signal.
         /// @param time The delay from sc_timestamp() at propagation.
-        virtual void write(const unsigned int &mask, const TYPE &value,
+        virtual void write(const uint32_t &mask, const TYPE &value,
                            const sc_core::sc_time &time = sc_core::SC_ZERO_TIME) {
-            for (typename t_map::iterator i = outs.begin(); i != outs.end() && (mask >= (unsigned int)(1 << i->first)); i++) {
+            for (typename t_map::iterator i = outs.begin(); i != outs.end() && (mask >= (uint32_t)(1 << i->first)); i++) {
                 if(mask & (1 << i->first)) {
                     i->second->write(value, time);
                 }
@@ -127,14 +128,14 @@ class signal_selector : public signal_base<TYPE, MODULE> ,
         /// @param receiver The input signal to connect with.
         /// @param channel  The channel which gets connected.
         void operator()(signal_in_if<TYPE> &receiver,
-                        const unsigned int &channel) {
+                        const uint32_t &channel) {
             this->bind(receiver, channel);
             receiver.bind(*this);
         }
 
     private:
         /// Channels to outputs list type.
-        typedef std::MAP<unsigned int, signal_out<TYPE, MODULE> *> t_map;
+        typedef std::MAP<uint32_t, signal_out<TYPE, MODULE> *> t_map;
         /// Stores the output list
         t_map outs;
 };

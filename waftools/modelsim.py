@@ -77,26 +77,33 @@ def options(opt):
 
 def configure(ctx):
   """Detect modelsim executables and set default flags"""
-  ctx.find_program('vlib', var='VLIB', mandatory=True, okmsg="ok")
-  ctx.env['VLIBFLAGS'] = []
-  
-  ctx.find_program('vsim', var='VSIM', mandatory=True, okmsg="ok")
-  ctx.env['VSIMFLAGS'] = ['-quiet']
-  
-  ctx.find_program('sccom', var='SCCOM', mandatory=True, okmsg="ok")
-  ctx.env['SCCOMFLAGS'] = ['-nologo']
-  ctx.env['SCLINKFLAGS'] = ['-nologo']
-  
-  ctx.find_program('scgenmod', var='SCGENMOD', mandatory=True, okmsg="ok")
-  ctx.env['SCGENMODFLAGS'] = []
-  ctx.env['SCGENMODMAP'] = ['-bool', '-map', "std_logic_vector=sc_uint", '-createtemplate']
-  
-  ctx.find_program('vcom', var='VCOM', mandatory=True, okmsg="ok")
-  ctx.env['VCOMFLAGS'] = ['-quiet']
-  
-  ctx.find_program('vlog', var='VLOG', mandatory=True, okmsg="ok")
-  ctx.env['VLOGFLAGS'] = ['-quiet']
-  ctx.find_sc_dir()
+  if not Options.options.modelsim:
+    ctx.env["MODELSIM"] = False
+  else: 
+    try:
+      ctx.find_program('vlib', var='VLIB', okmsg="ok")
+      ctx.env['VLIBFLAGS'] = []
+      
+      ctx.find_program('vsim', var='VSIM', okmsg="ok")
+      ctx.env['VSIMFLAGS'] = ['-quiet']
+      
+      ctx.find_program('sccom', var='SCCOM', okmsg="ok")
+      ctx.env['SCCOMFLAGS'] = ['-nologo']
+      ctx.env['SCLINKFLAGS'] = ['-nologo']
+      
+      ctx.find_program('scgenmod', var='SCGENMOD', okmsg="ok")
+      ctx.env['SCGENMODFLAGS'] = []
+      ctx.env['SCGENMODMAP'] = ['-bool', '-map', "std_logic_vector=sc_uint", '-createtemplate']
+      
+      ctx.find_program('vcom', var='VCOM', okmsg="ok")
+      ctx.env['VCOMFLAGS'] = ['-quiet']
+      
+      ctx.find_program('vlog', var='VLOG', okmsg="ok")
+      ctx.env['VLOGFLAGS'] = ['-quiet']
+      ctx.find_sc_dir()
+      ctx.env["MODELSIM"] = True
+    except ctx.errors.ConfigurationError:
+      ctx.env["MODELSIM"] = False
 
 def targetdir(target):
   return target.replace('.', '_')+"_work"
@@ -258,7 +265,7 @@ def modelsim(self):
   setattr(self,modelsim_sccom.__name__, modelsim_sccom)
   self.mappings['.cpp'] = modelsim_sccom
 
-  if not Options.options.modelsim:
+  if not Options.options.modelsim and self.env["MODELSIM"]:
     return
   
   self.env = self.env.derive()
@@ -409,7 +416,7 @@ def modelsim(self):
 @TaskGen.extension('.vhd')
 def modelsim_vcom(self, node):
   """Create a vcom_task on each vhd file and ensure the order"""
-  if 'modelsim' in self.features and Options.options.modelsim:
+  if 'modelsim' in self.features and Options.options.modelsim and self.env["MODELSIM"]:
     tgt = self.path.find_or_declare(os.path.join(targetdir(self.target),node.name + ".hdo"))
     tsks = [n for n in self.tasks if n.name in ['vcom', 'vlog']]
     tsk = self.create_task('vcom', [node], [tgt])
@@ -422,7 +429,7 @@ def modelsim_vcom(self, node):
 @TaskGen.extension('.v')
 def modelsim_vlog(self, node):
   """Create a vlog_task on each v file and ensure the order"""
-  if 'modelsim' in self.features and Options.options.modelsim:
+  if 'modelsim' in self.features and Options.options.modelsim and self.env["MODELSIM"]:
     tsks = [n for n in self.tasks if n.name in ['vcom', 'vlog']]
     tsk = self.create_task('vlog', [node])
     if tsks:
@@ -458,7 +465,7 @@ test "$(tail -n 1 ${0}.log)" = "# Result: 0"
 #@TaskGen.extension('.cpp')
 def modelsim_sccom(self, node):
   """Create a sccom_task on each cpp file and create a system c link task as well"""
-  if 'modelsim' in self.features and Options.options.modelsim:
+  if 'modelsim' in self.features and Options.options.modelsim and self.env["MODELSIM"]:
     tsks = [n for n in self.tasks if getattr(n, 'name', None) == 'sccom']
     cwd = self.path.find_or_declare(targetdir(self.target))
     tgt = self.path.find_or_declare('%s/_sc/%s/%s' % (targetdir(self.target), self.env['VSIM_SC_DIR'], os.path.splitext(node.name)[0]+'.o'))

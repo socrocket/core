@@ -44,6 +44,7 @@
 
 #include "signalkit_h/out.h"
 #include "signalkit_h/in.h"
+#include <stdint.h>
 
 namespace signalkit {
 
