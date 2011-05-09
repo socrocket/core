@@ -29,6 +29,7 @@ class SavePage(QtGui.QWizardPage):
 
     def validatePage(self):
         name = os.path.join("configurations", '.'.join((str((self.template.template.base)), str(self.view.text()), "cfg")))
+        self.name.conf = str(self.view.text())
         #if os.path.exists(name):
         #self.conf = self.view.text()
         self.conf.save(name)
