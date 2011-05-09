@@ -53,18 +53,19 @@
 #include <systemc.h>
 #include <tlm.h>
 #include "tlm_utils/simple_initiator_socket.h"
-#include <greenreg.h>
-#include <greenreg_ambasocket.h>
+#include <greenreg_ambasockets.h>
 #include "greencontrol/all.h"
 #include "amba.h"
 #include "generic_memory.h"
-#include "grlibdevice.h"
+#include "ahbdevice.h"
+#include "apbdevice.h"
 #include "signalkit.h"
 #include "verbose.h"
 #include "ext_erase.h"
 
 class Mctrl : public gs::reg::gr_device,
-              public amba_slave_base,
+              public AHBDevice,
+              public APBDevice,
               public signalkit::signal_module<Mctrl> {
     public:
         //constructor / destructor
@@ -77,9 +78,6 @@ class Mctrl : public gs::reg::gr_device,
               int _ram8 = 0, int _ram16 = 0, int _sepbus = 0, 
               int _sdbits = 32, int _mobile = 0, int _sden = 0);
         ~Mctrl();
-
-        //plug and play devices for AHB and APB
-        CGrlibDevice pnpahb, pnpapb;
 
         //APB slave socket: connects mctrl config registers to apb
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb;

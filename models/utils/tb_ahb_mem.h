@@ -54,9 +54,10 @@
 #include "tlm_utils/peq_with_get.h"
 #endif
 
-#include "grlibdevice.h"
+#include "ahbdevice.h"
 
-class Ctb_ahb_mem : public sc_module, public amba_slave_base {
+class Ctb_ahb_mem : public sc_module, 
+                    public AHBDevice {
 
     public:
         /// Constructor
@@ -73,9 +74,6 @@ class Ctb_ahb_mem : public sc_module, public amba_slave_base {
 
         /// Destructor
         ~Ctb_ahb_mem();
-
-        // AMBA pnp devices
-        CGrlibDevice pnpahb;
 
         /// AMBA slave socket
         amba::amba_slave_socket<32, 0> ahb;

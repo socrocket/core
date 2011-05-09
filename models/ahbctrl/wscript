@@ -129,7 +129,7 @@ def build(bld):
     source         = ['./ahbtbp.vhd',
                       './test1/sim_ref/ahb_m1_s1.vhd',
 		      '../../common/verbose.cpp',
-                      '../utils/grlibdevice.cpp',
+                      '../utils/abhdevice.cpp',
                       '../utils/tb_ahb_mem.cpp',
 		      './test1/testbench.cpp',
                       './test1/testbench_rtl.cpp',

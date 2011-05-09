@@ -48,14 +48,13 @@
 
 #include <boost/config.hpp>
 #include <systemc>
-#include <greenreg.h>
-#include <greenreg_ambasocket.h>
+#include <greenreg_ambasockets.h>
 
 #include "greencontrol/all.h"
 #include "signalkit.h"
 #include "verbose.h"
 
-#include "grlibdevice.h"
+#include "apbdevice.h"
 #include "gpcounter.h"
 
 #include <string>
@@ -68,7 +67,7 @@
 /// @brief This class is a tlm model of the gaisler aeroflex grlib gptimer.
 ///
 class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
-        CGPTimer>, public CGrlibDevice {
+        CGPTimer>, public APBDevice {
     public:
         /// APB Slave socket for all bus communication
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;

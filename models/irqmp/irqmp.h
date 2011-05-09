@@ -46,8 +46,8 @@
 
 #include <boost/config.hpp>
 #include <systemc.h>
-#include <greenreg.h>
-#include <greenreg_ambasocket.h>
+#include <greenreg_ambasockets.h>
+#include "apbdevice.h"
 
 #include "greencontrol/all.h"
 
@@ -55,8 +55,9 @@
 /// @addtogroup irqmp IRQMP
 /// @{
 
-class CIrqmp : public gs::reg::gr_device, public signalkit::signal_module<
-        CIrqmp> {
+class CIrqmp : public gs::reg::gr_device, 
+               public signalkit::signal_module<CIrqmp>,
+               public APBDevice {
     public:
         /// Slave socket responsible for all bus communication
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb_slv;

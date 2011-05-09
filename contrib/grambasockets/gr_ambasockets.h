@@ -42,8 +42,8 @@
 // Reviewed:
 //*********************************************************************
 
-#ifndef _GR_AMBASOCKET_H_
-#define _GR_AMBASOCKET_H_
+#ifndef GR_AMBASOCKETS_H
+#define GR_AMBASOCKETS_H
 
 #include <systemc>
 #include "greenreg/greenreg.h"
@@ -229,10 +229,10 @@ class amba_slave : public generic_slave_base,
             return m_high - m_base;
         }
 
-        virtual sc_core::sc_object *get_parent() {
-            std::cout << "my get_parent" << std::endl;
-            return this;
-        }
+        //virtual sc_core::sc_object *get_parent() {
+        //    std::cout << "my get_parent" << std::endl;
+        //    return this;
+        //}
 
         inline void set_delay() {
         }

@@ -109,7 +109,7 @@ def build(bld):
     source          = 'irqmp.cpp', 
     export_includes = '.',
     uselib          = 'SYSC TLM2 AMBA GREENSOCS',
-    use             = 'utils signalkit common'
+    use             = 'BOOST utils signalkit common'
   )
 
   bld(

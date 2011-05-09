@@ -63,11 +63,11 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
                          const char infile[], // Memory initialization file
                          uint32_t addr) : // Address for memory initalization
     sc_module(nm),
-            pnpahb(0x04, // vendor_id: ESA
+            AHBDevice(0x04, // vendor_id: ESA
                     0, // device: TODO: get real device ID
                     0, //
                     0, // IRQ
-                    GrlibBAR(CGrlibDevice::AHBMEM, hmask_, 0, 0, haddr), // GrlibBAR 0
+                    BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr), // GrlibBAR 0
                     0, // GrlibBAR 1
                     0, // GrlibBAR 2
                     0 // GrlibBAR 3

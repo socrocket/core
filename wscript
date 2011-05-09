@@ -280,32 +280,18 @@ def configure(ctx):
     okmsg        = "ok",
   )
  
-  # Check for AMBAKit extended GreenSocs
-  import Configure
-  try:
-    ctx.check_cxx(
-      header_name   = "greenreg_ambasocket.h",
-      uselib_store  = 'GREENSOCS',
-      mandatory     = True,
-      includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greenreg", "greenreg_socket")))),
-      #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
-      defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
-      uselib        = 'GREENSOCS BOOST SYSC TLM2 AMBA',
-      okmsg        = "ok",
-    )
-  except Configure.ConfigurationError:
-    # use own old files
-    ctx.check_cxx(
-      header_name   = "greenreg_ambasocket.h",
-      uselib_store  = 'GREENSOCS',
-      mandatory     = True,
-      includes      = os.path.join(ctx.path.abspath(),'contrib', 'greensocs-4.0.0_patch'),
-      #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
-      defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
-      uselib        = 'GREENSOCS BOOST SYSC TLM2 AMBA',
-      okmsg         = "ok",
-      msg           = "Try to use own implementation"
-    )
+  # Check for AMBAKit extended GreenSocs from contrib
+  ctx.check_cxx(
+    header_name   = "greenreg_ambasockets.h",
+    uselib_store  = 'GREENSOCS',
+    mandatory     = True,
+    includes      = os.path.join(ctx.path.abspath(),'contrib', 'grambasockets'),
+    #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
+    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
+    uselib        = 'GREENSOCS BOOST SYSC TLM2 AMBA',
+    okmsg         = "ok",
+    msg           = "Check compatibility of AMBAKit and GreenReg"
+  )
   
   # Extend GREENSOCS
   ctx.check_cxx(

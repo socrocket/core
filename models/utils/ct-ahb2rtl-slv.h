@@ -47,6 +47,7 @@
 
 #include <systemc.h>
 #include <amba.h>
+#include <signalkit.h>
 #include <adapters/AHB_CT_RTL_Slave_Adapter.h>
 
 /// @addtogroup utils Model Utils
@@ -68,28 +69,28 @@
 ///>          Device mapper output
 ///
 
-class Cct_ahb2rtl_slv : public sc_module {
+class Cct_ahb2rtl_slv : public sc_module, public signalkit::signal_module<Cct_ahb2rtl_slv> {
     public:
 
         SC_HAS_PROCESS (Cct_ahb2rtl_slv);
         sc_core::sc_in_clk clk;
-        sc_core::sc_in<bool> reset;
+        signal<bool>::in reset;
 
         sc_core::sc_out<ahb_slv_in_type> ahbsi;
         sc_core::sc_in<ahb_slv_out_type> ahbso;
 
-        sc_core::sc_in<sc_uint<32> > hirqi;
-        sc_core::sc_out<sc_uint<32> > hirqo;
-        sc_core::sc_out<sc_uint<4> > hmbsel;
-        sc_core::sc_out<sc_uint<32> > hconfig_0;
-        sc_core::sc_out<sc_uint<32> > hconfig_1;
-        sc_core::sc_out<sc_uint<32> > hconfig_2;
-        sc_core::sc_out<sc_uint<32> > hconfig_3;
-        sc_core::sc_out<sc_uint<32> > hconfig_4;
-        sc_core::sc_out<sc_uint<32> > hconfig_5;
-        sc_core::sc_out<sc_uint<32> > hconfig_6;
-        sc_core::sc_out<sc_uint<32> > hconfig_7;
-        sc_core::sc_out<sc_uint<16> > hindex;
+        signal<uint32_t>::in hirqi;
+        signal<uint32_t>::out hirqo;
+        signal<uint8_t>::out hmbsel;
+        signal<uint32_t>::out hconfig_0;
+        signal<uint32_t>::out hconfig_1;
+        signal<uint32_t>::out hconfig_2;
+        signal<uint32_t>::out hconfig_3;
+        signal<uint32_t>::out hconfig_4;
+        signal<uint32_t>::out hconfig_5;
+        signal<uint32_t>::out hconfig_6;
+        signal<uint32_t>::out hconfig_7;
+        signal<uint16_t>::out hindex;
 
         /// A small subclass which wraps the core functionality inhireted by 
         /// amba::AHB_Master_RTL_CT_Adapter
@@ -118,10 +119,12 @@ class Cct_ahb2rtl_slv : public sc_module {
 
     private:
         //sc_out of ahb_ct_rtl_slv_adapter (output must be ahbsi signals)
+        sc_core::sc_signal<bool> m_reset;
         sc_core::sc_signal<bool> m_hsel;
         sc_core::sc_signal<bool> m_hwrite;
         sc_core::sc_signal<sc_dt::sc_uint<2> > m_htrans;
         sc_core::sc_signal<sc_dt::sc_uint<32> > m_haddr;
+        sc_core::sc_signal<sc_dt::sc_uint<32> > m_hirqi;
         sc_core::sc_signal<sc_dt::sc_uint<3> > m_hsize;
         sc_core::sc_signal<sc_dt::sc_uint<3> > m_hburst;
         sc_core::sc_signal<sc_dt::sc_uint<4> > m_hprot;
@@ -145,6 +148,10 @@ class Cct_ahb2rtl_slv : public sc_module {
         Cct_ahb2rtl_slv(sc_core::sc_module_name nm, 
                         sc_dt::uint64 base, sc_dt::uint64 size);
 
+        void onreset(const bool &value, const sc_time &time);
+
+        void onirq(const uint32_t &value, const sc_time &time);
+        
         /// Takes ahbo inputs and converts them into TLM communication and irq signals.
         void ahbso_ctrl();
 
@@ -157,10 +164,10 @@ Cct_ahb2rtl_slv::Cct_ahb2rtl_slv(sc_core::sc_module_name nm,
                                  sc_dt::uint64 base, sc_dt::uint64 size) :
     sc_module(nm),
     clk("CLOCK"),
-    reset("RESET"),
+    reset(&Cct_ahb2rtl_slv::onreset, "RESET"),
     ahbso("ahbso"),
-    ahbsi("ahbsi"),
-    hirqi("GR_IRQ_IN"),
+ahbsi("ahbsi"),
+    hirqi(&Cct_ahb2rtl_slv::onirq, "GR_IRQ_IN"),
     hirqo("GR_IRQ_OUT"),
     hconfig_0("GR_CONFIG_0"),
     hconfig_1("GR_CONFIG_1"),
@@ -188,7 +195,7 @@ Cct_ahb2rtl_slv::Cct_ahb2rtl_slv(sc_core::sc_module_name nm,
 	  m_hsplit("AHB_HSPLIT"),
     ct("CT", base, size) {
     ct.m_clk(clk);
-    ct.m_Reset(reset);
+    ct.m_Reset(m_reset);
     ct.m_HSEL(m_hsel);
     ct.m_HWRITE(m_hwrite);
     ct.m_HTRANS(m_htrans);
@@ -211,6 +218,14 @@ Cct_ahb2rtl_slv::Cct_ahb2rtl_slv(sc_core::sc_module_name nm,
     SC_THREAD(ahbsi_ctrl);
     sensitive << m_hsel << m_hwrite << m_htrans << m_haddr << m_hsize << m_hburst 
               << m_hprot << m_hreadyin << m_hwdata << m_hmaster << m_hmastlock;
+}
+
+void Cct_ahb2rtl_slv::onreset(const bool &value, const sc_core::sc_time &time) {
+      m_reset.write(value);
+}
+
+void Cct_ahb2rtl_slv::onirq(const uint32_t &value, const sc_core::sc_time &time) {
+      m_hirqi.write(value);
 }
 
 void Cct_ahb2rtl_slv::ahbso_ctrl() {
@@ -259,7 +274,7 @@ void Cct_ahb2rtl_slv::ahbsi_ctrl() {
         val.hmaster   = 0;
         val.hmastlock = m_hmastlock.read();
 
-        val.hirq       = hirqi.read();
+        val.hirq       = m_hirqi.read();
         val.hmbsel     = hmbsel.read();
         val.hcache     = 0;
 
@@ -268,6 +283,8 @@ void Cct_ahb2rtl_slv::ahbsi_ctrl() {
         wait();
     }
 }
+
+
 
 /// @}
 

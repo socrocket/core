@@ -109,7 +109,7 @@ def build(bld):
     export_includes = '.',
     uselib          = 'SYSC TLM2 AMBA GREENSOCS',
     defines         = 'DEBUGOUT=1',
-    use             = 'common signalkit utils'
+    use             = 'BOOST common signalkit utils'
   )
   
   bld(

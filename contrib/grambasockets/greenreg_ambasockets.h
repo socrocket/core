@@ -42,13 +42,10 @@
 // Reviewed:
 //*********************************************************************
 
-#ifndef __GREENREG_AMBASOCKET_H__
-#define __GREENREG_AMBASOCKET_H__
+#ifndef GREENREG_AMBASOCKETS_H
+#define GREENREG_AMBASOCKETS_H
 
-// [greebus protocol Header file]
-//#include "greenbus.h"
-
-#include "gr_ambasocket.h"
+#include "gr_ambasockets.h"
 #include "greenreg.h"
 
 namespace gs {

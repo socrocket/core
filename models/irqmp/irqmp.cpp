@@ -57,6 +57,7 @@ CIrqmp::CIrqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, 
                     0xFF, //dword size (of register file)
                     NULL //parent module
             ),
+            APBDevice(0x01, 0x00D, 3, 0, APBDevice::APBIO, _pmask, false, false, _paddr),
             apb_slv(
                     "APB_SLAVE", //name
                     r, //register container
@@ -221,7 +222,7 @@ void CIrqmp::incomming_irq(const bool &value, const uint32_t &irq, const sc_time
         r[IR_PENDING].bit_set(irq, t);
     }
     
-    // If it is not listed and not an extended interrupt it goes into the force registers.
+    // If it is not listed n the broadcast register and not an extended interrupt it goes into the force registers.
     // EIRs cannot be forced
     if(r[BROADCAST].bit_get(irq) && (irq < 16)) {
         //set force registers for broadcasted interrupts

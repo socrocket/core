@@ -51,12 +51,11 @@ models = [
   'irqmp', 
   'mmu_cache', 
   'mctrl', 
-  'pnp',
   'utils',
-  'apbbridge',
+  #'apbbridge',
   'socwire',
-  'ahbdecoder',
-  'ahbctrl',
+  #'ahbdecoder',
+  #'ahbctrl',
 ]
 
 def options(ctx): 

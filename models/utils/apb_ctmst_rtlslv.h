@@ -22,7 +22,7 @@
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
 //*********************************************************************
-// Title:      apb_ct_rtl.h
+// Title:      apb_ctmst_rtlslv.h
 //
 // ScssId:
 //
@@ -42,8 +42,8 @@
 // Reviewed:
 //*********************************************************************
 
-#ifndef APB_CT_RTL_ADAPTER
-#define APB_CT_RTL_ADAPTER
+#ifndef APB_CTMST_RTLSLV_ADAPTER
+#define APB_CTMST_RTLSLV_ADAPTER
 
 #include <systemc.h>
 #include <amba.h>

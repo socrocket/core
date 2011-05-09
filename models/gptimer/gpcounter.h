@@ -53,8 +53,6 @@
 #include "greencontrol/all.h"
 #include "signalkit.h"
 
-#include "grlibdevice.h"
-
 #include <string>
 #include <ostream>
 #include <vector>

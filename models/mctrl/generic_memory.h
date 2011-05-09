@@ -45,12 +45,8 @@
 #define GENERIC_MEMORY_H
 
 #include <map>
-#include <boost/config.hpp>
 #include <systemc.h>
 #include <tlm.h>
-#include <greenreg.h>
-#include <greenreg_ambasocket.h>
-#include "greencontrol/all.h"
 #include "tlm_utils/simple_target_socket.h"
 #include "ext_erase.h"
 #include <assert.h>

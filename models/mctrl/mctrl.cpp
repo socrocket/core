@@ -59,27 +59,26 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                     16,
                     NULL
             ),
-            pnpahb(
+            AHBDevice(
                     0x04, //vendor: ESA
                     0x0F, //device: MCTRL
                     0,
                     0, //irq
-                    GrlibBAR(CGrlibDevice::AHBMEM, rommask, true, true, romaddr),
-                    GrlibBAR(CGrlibDevice::AHBMEM, iomask, false, false, ioaddr),
-                    GrlibBAR(CGrlibDevice::AHBMEM, rammask, true, true, ramaddr),
+                    BAR(AHBDevice::AHBMEM, rommask, true, true, romaddr),
+                    BAR(AHBDevice::AHBMEM, iomask, false, false, ioaddr),
+                    BAR(AHBDevice::AHBMEM, rammask, true, true, ramaddr),
                     0),
-            pnpapb(
+            APBDevice(
                     0x04, //vendor: ESA
                     0x0F, //device: MCTRL
                     0,
                     0, //irq
-                    GrlibBAR(CGrlibDevice::APBIO, _pmask, 0, 0, _paddr),
-                    0, 0, 0),
+                    APBDevice::APBIO, _pmask, 0, 0, _paddr),
             apb( //greenreg_socket
                     "apb", //name
                     r, //register container
-                    ((_paddr & _pmask) << 8), //apb base address
-                    (((~_pmask & 0xfff) + 1) << 8), //apb address space size
+                    APBDevice::get_base_addr_(), //apb base address
+                    APBDevice::get_size_(), //apb address space size
                     ::amba::amba_APB, //bus type
                     ::amba::amba_LT, //abstraction level
                     false //socket is not used for arbitration

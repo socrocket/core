@@ -265,7 +265,7 @@ def modelsim(self):
   setattr(self,modelsim_sccom.__name__, modelsim_sccom)
   self.mappings['.cpp'] = modelsim_sccom
 
-  if not Options.options.modelsim and self.env["MODELSIM"]:
+  if not (Options.options.modelsim and self.env["MODELSIM"]):
     return
   
   self.env = self.env.derive()
