@@ -55,7 +55,7 @@ models = [
   #'apbbridge',
   'socwire',
   #'ahbdecoder',
-  #'ahbctrl',
+  'ahbctrl',
 ]
 
 def options(ctx): 

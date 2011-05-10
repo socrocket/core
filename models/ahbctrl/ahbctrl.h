@@ -48,26 +48,16 @@
 #include <deque>
 #include <systemc>
 #include "amba.h"
+#include "ahbdevice.h"
 
-class CAHBCTRL : public sc_core::sc_module {
+class AHBCtrl : public sc_core::sc_module {
     public:
 
-        /// AMBA sockets
+        /// AMBA multi-sockets
         amba::amba_slave_socket<32, 0>  ahbIN;
         amba::amba_master_socket<32, 0> ahbOUT;
 
-        SC_HAS_PROCESS(CAHBCTRL);
-        /// Constructor
-        CAHBCTRL(sc_core::sc_module_name nm,
-                    amba::amba_layer_ids ambaLayer = amba::amba_LT);
-
-        /// Desctructor
-        ~CAHBCTRL();
-
-        void setAddressMap(const uint32_t i,
-                           const uint32_t baseAddr,
-                           const uint32_t size);
-
+	/// Member functions
 
         /// TLM blocking transport method
         void b_transport(uint32_t id, tlm::tlm_generic_payload& gp, sc_core::sc_time& delay);
@@ -81,7 +71,13 @@ class CAHBCTRL : public sc_core::sc_module {
                                            tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
         /// TLM debug interface
-        unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);
+        unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);	
+
+	/// Helper function for creating slave map decoder entries
+        void setAddressMap(const uint32_t i, const uint32_t baseAddr, const uint32_t size);
+
+	/// Returns a PNP register from the configuration area
+	unsigned int getPNPReg(const uint32_t address);
 
         /// Check memory map for overlaps
         void checkMemMap();
@@ -91,21 +87,92 @@ class CAHBCTRL : public sc_core::sc_module {
 	void clk(sc_core::sc_time &period);
 	void clk(double period, sc_core::sc_time_unit base);
 
+        SC_HAS_PROCESS(AHBCtrl);
+
+        /// Constructor
+        AHBCtrl(sc_core::sc_module_name nm, // SystemC name
+		 unsigned int ioaddr,  // The MSB address of the I/O area
+		 unsigned int iomask,  // The I/O area address mask
+		 unsigned int cfgaddr, // The MSB address of the configuration area (PNP)
+		 unsigned int cfgmask, // The address mask of the configuration area
+		 bool rrobin,          // 1 - round robin, 0 - fixed priority arbitration (only AT)
+		 bool split,           // Enable support for AHB SPLIT response (only AT)
+		 unsigned int defmast, // ID of the default master
+		 bool ioen,            // AHB I/O area enable
+		 bool fixbrst,         // Enable support for fixed-length bursts
+		 bool fpnpen,          // Enable full decoding of PnP configuration records.
+		 bool mcheck,          // Check if there are any intersections between core memory regions.
+                 amba::amba_layer_ids ambaLayer = amba::amba_LT);		 
+		 
+		 
+	// Omitted parameters:
+	// -------------------
+	// nahbm  - Number of AHB masters
+	// nahbs  - Number of AHB slaves
+	// It is checked that the number of binding does not raise above 16.
+	// Apart from that the parameters are not required.
+	// debug  - Print configuration
+	// Not required. Use verbosity outputs instead.
+	// icheck - Check bus index
+	// Not required.
+	// enbusmon - Enable AHB bus monitor
+	// assertwarn - Enable assertions for AMBA recommendations.
+	// asserterr - Enable assertion for AMBA requirements
+
+        /// Desctructor
+        ~AHBCtrl();
+
+
     private:
+
+	// The MSB address of the I/O area
+	unsigned int mioaddr;
+	// The I/O area address mask
+	unsigned int miomask;
+	// The MSB address of the configuration area (PNP)
+	unsigned int mcfgaddr;
+	// The address mask of the configuration area
+	unsigned int mcfgmask;
+	// 1 - round robin, 0 - fixed priority arbitration (only AT)
+	bool mrrobin;
+	// Enable support for AHB SPLIT response (only AT)
+	bool msplit;
+	// ID of the default master
+	unsigned int mdefmast;
+	// AHB I/O area enable
+	bool mioen;
+	// Enable support for fixed-length bursts
+	bool mfixbrst;
+	// Enable support for fixed-length bursts
+	bool mfpnpen;
+	// Check if there are any intersections between core memory regions
+	bool mmcheck;
+
         typedef tlm::tlm_generic_payload payload_t;
-        typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types>
-                socket_t;
+        typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;
         typedef std::pair<uint32_t, uint32_t> slave_info_t;
+
+	/// Decoding address table (slave index, (bar addr, mask))
         std::map<uint32_t, slave_info_t> slave_map;
+	/// Iterator for slave map
+	std::map<uint32_t, slave_info_t>::iterator it;
+
         std::map<uint32_t, int32_t> MstSlvMap;
         std::map<uint32_t, sc_core::sc_semaphore*> SlvSemaphore;
 
-        // Get slave index for a given address
+	/// Array of slave device information (PNP)
+	const uint32_t *mSlaves[64];
+
+	/// Array of master device information (PNP)
+	const uint32_t *mMasters[64];
+
+        /// Get slave index for a given address
         int get_index(const uint32_t address);
 
-        // Get master index for a given slave
+        /// Get master index for a given slave
         int getMaster2Slave(const uint32_t slaveID);
 
+	/// Set up slave map and collect plug & play information
         void start_of_simulation();
 
         // Thread which is spawned in AT model when a busy slave is requested.
@@ -113,7 +180,6 @@ class CAHBCTRL : public sc_core::sc_module {
                          tlm::tlm_generic_payload& gp,
                          tlm::tlm_phase &phase,
                          sc_core::sc_time &delay);
-
 
 	/// Clock cycle time
 	sc_core::sc_time clockcycle;

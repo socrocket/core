@@ -62,12 +62,12 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
                          const amba::amba_layer_ids ambaLayer, // abstraction layer
                          const char infile[], // Memory initialization file
                          uint32_t addr) : // Address for memory initalization
-    sc_module(nm),
+            sc_module(nm),
             AHBDevice(0x04, // vendor_id: ESA
                     0, // device: TODO: get real device ID
                     0, //
                     0, // IRQ
-                    BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr), // GrlibBAR 0
+                    BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr_), // GrlibBAR 0
                     0, // GrlibBAR 1
                     0, // GrlibBAR 2
                     0 // GrlibBAR 3
@@ -81,7 +81,10 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
             ahbBaseAddress(static_cast<uint32_t> (hmask_ & haddr_) << 20),
             ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1), hmask(
                     static_cast<uint32_t> (hmask_ << 20)), haddr(
-                    static_cast<uint32_t> (haddr_ << 20)) {
+                    static_cast<uint32_t> (haddr_ << 20)),
+	    mhaddr(haddr_),
+	    mhmask(hmask_),
+            clockcycle(10.0, sc_core::SC_NS) {
 
     // Display AHB slave information
     v::info << name() << "AHB slave @0x" << hex << v::setw(8)
@@ -117,31 +120,42 @@ Ctb_ahb_mem::~Ctb_ahb_mem() {
 void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
                               sc_core::sc_time &delay) {
 
-    // Check address for before doing anything else
-    if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
+  // Check address for before doing anything else
+  //if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
 
-        // warn if access exceeds slave memory region
-        if((gp.get_address() + gp.get_data_length()) >
-           (ahbBaseAddress + ahbSize)) {
+  if(!((mhaddr ^ (gp.get_address() >> 20)) & mhmask)) {
 
-            v::warn << name() << "Transaction exceeds slave memory region"
-                    << endl;
-        }
+    // warn if access exceeds slave memory region
+    if((gp.get_address() + gp.get_data_length()) >
 
-        wait(delay);
-        delay = sc_core::SC_ZERO_TIME;
-
-        if(!execCmd(gp)) {
-
-           gp.set_response_status(tlm::TLM_OK_RESPONSE);
-
-        } else {
-
-           v::warn << name() << "Received unknown command." << endl;
-           gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-
-        }
+      (ahbBaseAddress + ahbSize)) {
+       v::warn << name() << "Transaction exceeds slave memory region" << endl;
     }
+
+    // consume router delay (address phase)
+    wait(delay);
+
+    // reset timing
+    delay = sc_core::SC_ZERO_TIME;
+
+    if(!execCmd(gp, delay)) {
+
+      gp.set_response_status(tlm::TLM_OK_RESPONSE);
+
+    } else {
+
+       v::error << name() << "Received unknown command." << endl;
+       gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+
+    }
+
+  // address not valid
+  } else {
+
+    v::error << name() << "Address not within permissable slave memory space" << v::endl;
+    gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+
+  }
 }
 
 /// TLM non blocking transport function
@@ -161,7 +175,7 @@ tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generi
 
            // Complete transcation
            if(delay == sc_core::SC_ZERO_TIME) {
-              if(!execCmd(gp)) {
+              if(!execCmd(gp, delay)) {
                  gp.set_response_status(tlm::TLM_OK_RESPONSE);
               } else {
                  v::warn << name() << "Received unknown command." << endl;
@@ -203,7 +217,7 @@ void Ctb_ahb_mem::processTXN() {
          phase = tlm::BEGIN_RESP;
          delay = sc_core::SC_ZERO_TIME;
 
-         if(!execCmd(*gp)) {
+         if(!execCmd(*gp, delay)) {
             gp->set_response_status(tlm::TLM_OK_RESPONSE);
          } else {
             v::warn << name() << "Received unknown command." << endl;
@@ -220,7 +234,7 @@ void Ctb_ahb_mem::processTXN() {
 }
 
 /// Method executing read/write commands
-bool Ctb_ahb_mem::execCmd(tlm::tlm_generic_payload& gp) {
+bool Ctb_ahb_mem::execCmd(tlm::tlm_generic_payload& gp, sc_core::sc_time& delay) {
 
    // if a byte enable array is present its length must not be zero
    unsigned char *byteEnablePtr  = gp.get_byte_enable_ptr();
@@ -237,8 +251,13 @@ bool Ctb_ahb_mem::execCmd(tlm::tlm_generic_payload& gp) {
        for(uint32_t i = 0; i < gp.get_data_length(); i++) {
        
 	 if(byteEnablePtr[i % byteEnableLength] == TLM_BYTE_ENABLED) {
-                  *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
+
+	   // read simulation memory
+	   *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
          }
+
+	 // one cycle delay per memory access
+	 delay += clockcycle;
        }
 
      } else {
@@ -247,7 +266,12 @@ bool Ctb_ahb_mem::execCmd(tlm::tlm_generic_payload& gp) {
        for(uint32_t i = 0; i < gp.get_data_length(); i++) {
        
 	 v::debug << name() << "Read with address: " << hex << gp.get_address() + i << " to return: " << hex << (unsigned int)mem[gp.get_address() + i] << v::endl;
+
+	 // read simulation memory
 	 *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
+
+	 // one cycle delay per memory access
+	 delay += clockcycle;
          
        }
      }
@@ -264,7 +288,13 @@ bool Ctb_ahb_mem::execCmd(tlm::tlm_generic_payload& gp) {
        for(uint32_t i = 0; i < gp.get_data_length(); i++) {
        
 	 if (byteEnablePtr[i % byteEnableLength] == TLM_BYTE_ENABLED) {
-                  mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
+
+	   // write simulation memory
+           mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
+
+	   // one cycle delay per memory access
+	   delay += clockcycle;
+
          }
        }
 
@@ -274,7 +304,13 @@ bool Ctb_ahb_mem::execCmd(tlm::tlm_generic_payload& gp) {
         for(uint32_t i = 0; i < gp.get_data_length(); i++) {
 	    
 	  v::debug << name() << "Write with address: " << hex << gp.get_address() + i << " and data: " << hex << (unsigned int)*(gp.get_data_ptr() + i) << v::endl;
+
+	  // write simulation memory
           mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
+
+	  // one cycle delay per memory access
+	  delay += clockcycle;
+
         }
      }  
 
@@ -517,4 +553,25 @@ unsigned int Ctb_ahb_mem::transport_dbg(uint32_t id, tlm::tlm_generic_payload &g
     } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
 
     return 0;
+}
+
+/// Helper for setting clock cycle latency using sc_clock argument
+void Ctb_ahb_mem::clk(sc_core::sc_clock &clk) {
+
+  clockcycle = clk.period();
+
+}
+
+/// Helper for setting clock cycle latency using sc_time argument
+void Ctb_ahb_mem::clk(sc_core::sc_time &period) {
+
+  clockcycle = period;
+
+}
+
+/// Helper for setting clock cycle latency using a value-time_unit pair
+void Ctb_ahb_mem::clk(double period, sc_core::sc_time_unit base) {
+
+  clockcycle = sc_core::sc_time(period, base);
+
 }

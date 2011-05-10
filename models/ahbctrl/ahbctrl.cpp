@@ -47,57 +47,111 @@
 #include "ahbctrl.h"
 #include "verbose.h"
 
-// constructor
-CAHBCTRL::CAHBCTRL(sc_core::sc_module_name nm,
-                         amba::amba_layer_ids ambaLayer) :
+/// Constructor of class AHBCtrl
+AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
+		 unsigned int ioaddr,  // The MSB address of the I/O area
+		 unsigned int iomask,  // The I/O area address mask
+		 unsigned int cfgaddr, // The MSB address of the configuration area (PNP)
+		 unsigned int cfgmask, // The address mask of the configuration area
+		 bool rrobin,          // 1 - round robin, 0 - fixed priority arbitration (only AT)
+		 bool split,           // Enable support for AHB SPLIT response (only AT)
+		 unsigned int defmast, // ID of the default master
+		 bool ioen,            // AHB I/O area enable
+		 bool fixbrst,         // Enable support for fixed-length bursts
+		 bool fpnpen,          // Enable full decoding of PnP configuration records
+		 bool mcheck,          // Check if there are any intersections between core memory regions
+		 amba::amba_layer_ids ambaLayer) :
       sc_module(nm),
       ahbIN("ahbIN", amba::amba_AHB, ambaLayer, false),
       ahbOUT("ahbOUT", amba::amba_AHB, ambaLayer, false),
+      mioaddr(ioaddr),
+      miomask(iomask),
+      mcfgaddr(cfgaddr),
+      mcfgmask(cfgmask),
+      mrrobin(rrobin),
+      msplit(split),
+      mdefmast(defmast),
+      mioen(ioen),
+      mfixbrst(fixbrst),
+      mfpnpen(fpnpen),
+      mmcheck(mcheck),
       clockcycle(10.0, sc_core::SC_NS) {
 
-    if(ambaLayer==amba::amba_LT) {
-      // register tlm blocking transport function
-      ahbIN.register_b_transport(this, &CAHBCTRL::b_transport);
-    }
+  if(ambaLayer==amba::amba_LT) {
 
-    // Register non blocking transport calls
-    if(ambaLayer==amba::amba_AT) {
-      // register tlm non blocking transport forward path
-      ahbIN.register_nb_transport_fw(this, &CAHBCTRL::nb_transport_fw, 0);
+    // register tlm blocking transport function
+    ahbIN.register_b_transport(this, &AHBCtrl::b_transport);
 
-      // register tlm non blocking transport backward path
-      ahbOUT.register_nb_transport_bw(this, &CAHBCTRL::nb_transport_bw, 0);
-    }
+  }
 
-    ahbIN.register_transport_dbg(this, &CAHBCTRL::transport_dbg);
+  // Register non blocking transport functions
+  if(ambaLayer==amba::amba_AT) {
+
+    // register tlm non blocking transport forward path
+    ahbIN.register_nb_transport_fw(this, &AHBCtrl::nb_transport_fw, 0);
+
+    // register tlm non blocking transport backward path
+    ahbOUT.register_nb_transport_bw(this, &AHBCtrl::nb_transport_bw, 0);
+  }
+
+  // register debug transport
+  ahbIN.register_transport_dbg(this, &AHBCtrl::transport_dbg);
+
 }
 
 // destructor
-CAHBCTRL::~CAHBCTRL() {
+AHBCtrl::~AHBCtrl() {
+
 }
 
-void CAHBCTRL::setAddressMap(const uint32_t i, const uint32_t baseAddr,
-                                const uint32_t size) {
-    uint32_t highAddr = baseAddr + size;
-    slave_map.insert(std::pair<uint32_t, slave_info_t>
-                        (i, slave_info_t(baseAddr, highAddr)));
+/// Helper function for creating slave map decoder entries
+void AHBCtrl::setAddressMap(const uint32_t i, const uint32_t addr, const uint32_t mask) {
+
+    // Create slave map entry from slave ID and address range descriptor (slave_info_t)
+    // Why std::map: Contains only the bar entries, which are actually valid.
+    // A static array would have holes -> far slower, especially if number of slaves is small.
+    slave_map.insert(std::pair<uint32_t, slave_info_t>(i, slave_info_t(addr, mask)));
 }
 
-int CAHBCTRL::get_index(const uint32_t address) {
-    std::map<uint32_t, slave_info_t>::iterator it;
+/// Find slave index by address
+int AHBCtrl::get_index(const uint32_t address) {
 
-    for (it = slave_map.begin(); it != slave_map.end(); it++) {
-        slave_info_t info = it->second;
-        if (address >= info.first && address < info.second) {
-            return it->first;
-        }
-    }
-    v::warn << name() << "No address -> slave mapping found." << endl;
+  // Use 12 bit segment address for decoding
+  uint32_t addr = address >> 20;
 
-    return -1;
+  // Make global ??
+  std::map<uint32_t, slave_info_t>::iterator it;
+
+  for (it = slave_map.begin(); it != slave_map.end(); it++) {
+
+      slave_info_t info = it->second;
+  
+      if (((addr ^ info.first) & info.second) == 0) {
+
+	return ((it->first)>>2);
+
+      }
+  }
+
+  // no slave found
+  return -1;
 }
 
-int CAHBCTRL::getMaster2Slave(const uint32_t slaveID) {
+/// Returns a PNP register from the configuration area
+unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
+
+  // Calculate address offset in configuration area
+  unsigned int addr   = address - ((mcfgaddr & mcfgmask) << 20);
+  // Calculate index of the device in mSlaves pointer array (32 byte per device)
+  unsigned int device = addr >> 3;
+  // Calculate offset within device information
+  unsigned int offset = addr & 0x7;
+
+  return(mSlaves[device][offset]);
+
+}
+
+int AHBCtrl::getMaster2Slave(const uint32_t slaveID) {
    std::map<uint32_t, int32_t>::iterator it;
 
    it = MstSlvMap.find(slaveID);
@@ -105,47 +159,95 @@ int CAHBCTRL::getMaster2Slave(const uint32_t slaveID) {
 }
 
 /// TLM blocking transport function
-void CAHBCTRL::b_transport(uint32_t id, tlm::tlm_generic_payload& ahb_gp, sc_time& delay) {
+void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& ahb_gp, sc_time& delay) {
 
-    std::map<uint32_t, slave_info_t>::iterator it;
+  // -- For Debug only --
+  uint32_t a = 0;
+  socket_t* other_socket = ahbIN.get_other_side(id, a);
+  sc_core::sc_object *mstobj = other_socket->get_parent();
+  // --------------------
 
-    uint32_t a = 0;
-    socket_t* other_socket = ahbIN.get_other_side(id, a);
-    sc_core::sc_object *mstobj = other_socket->get_parent();
+  // Extract data pointer from payload
+  unsigned int *data  = (unsigned int *)ahb_gp.get_data_ptr();
+  // Extract address from payload
+  unsigned int addr   = ahb_gp.get_address();
+  // Extract length from payload
+  unsigned int length = ahb_gp.get_data_length();
 
-    int index = get_index(ahb_gp.get_address());
+  // Is this an access to configuration area
+  if (mfpnpen && ((((addr >> 20) ^ mcfgaddr) & mcfgmask)==0)) {
 
-    // check for a valid index
-    if(index >= 0) {
-       // *** DEBUG
-       other_socket = ahbOUT.get_other_side(index, a);
-       sc_core::sc_object *obj = other_socket->get_parent();
+    // Configuration area is read only
+    if (ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
 
-       v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
-                << v::setw(8) << ahb_gp.get_address() << ", from master:"
-                << mstobj->name() << ", forwarded to slave:" << obj->name() << endl;
+      // No subword access supported here!
+      assert(length%4==0);
 
-       // add delay of address phase
-       delay += clockcycle;
+      // Get registers from config area
+      for (uint32_t i = 0 ; i < (length >> 2); i++) {
 
-       // Wait for semaphore
-       SlvSemaphore.find(index)->second->wait();
-       // Forward request to the appropriate slave
-       ahbOUT[index]->b_transport(ahb_gp, delay);
-       // Post to semaphore
-       SlvSemaphore.find(index)->second->post();
+	data[i] = getPNPReg(addr);
+
+	// one cycle delay per 32bit register
+	delay += clockcycle;
+
+      }
+      
+      ahb_gp.set_response_status(tlm::TLM_OK_RESPONSE);
+      return;
 
     } else {
-       // Invalid index
-       ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
-       v::warn << name() << "AHB Request@0x" << hex << v::setfill('0')
+
+      v::error << name() << " Forbidden write to AHBCTRL configuration area (PNP)!" << v::endl;
+      ahb_gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+      return;
+    }
+  }
+
+  // Find slave by address / returns slave index or -1 for not mapped
+  int index = get_index(ahb_gp.get_address());
+
+  // For valid slave index
+  if(index >= 0) {
+
+    // -- For Debug only --
+    other_socket = ahbOUT.get_other_side(index, a);
+    sc_core::sc_object *obj = other_socket->get_parent();
+
+    v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
+             << v::setw(8) << ahb_gp.get_address() << ", from master:"
+             << mstobj->name() << ", forwarded to slave:" << obj->name() << endl;
+
+    // -------------------
+
+    // add delay of address phase
+    delay += clockcycle;
+
+    // Wait for semaphore
+    //SlvSemaphore.find(index)->second->wait();
+    
+    // Forward request to the selected slave
+    ahbOUT[index]->b_transport(ahb_gp, delay);
+
+    // Post to semaphore
+    //SlvSemaphore.find(index)->second->post();
+
+    return;
+
+  } else {
+    
+    v::error << name() << "AHB Request 0x" << hex << v::setfill('0')
                << v::setw(8) << ahb_gp.get_address() << ", from master:"
                << mstobj->name() << ": Unmapped address space." << endl;
-    }
+
+    // Invalid index
+    ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+    return;
+  }
 }
 
 // TLM non blocking transport call forward path (from masters to slaves)
-tlm::tlm_sync_enum CAHBCTRL::nb_transport_fw(uint32_t id, tlm::tlm_generic_payload& gp,
+tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t id, tlm::tlm_generic_payload& gp,
                                                 tlm::tlm_phase& phase, sc_core::sc_time& delay) {
 
    // Obtain slave index for the requested address
@@ -202,7 +304,7 @@ tlm::tlm_sync_enum CAHBCTRL::nb_transport_fw(uint32_t id, tlm::tlm_generic_paylo
          // request
          // Create a new phase argument, since it's life time seems to end with termination of nb_tranport
          tlm::tlm_phase* newPhase = new tlm::tlm_phase(phase);
-         sc_core::sc_spawn(sc_bind(&CAHBCTRL::queuedTrans, this, id, index, sc_ref(gp),
+         sc_core::sc_spawn(sc_bind(&AHBCtrl::queuedTrans, this, id, index, sc_ref(gp),
                            sc_ref(*newPhase), sc_ref(delay)));
 
          // Request is queued. Return state to requesting master.
@@ -222,7 +324,7 @@ tlm::tlm_sync_enum CAHBCTRL::nb_transport_fw(uint32_t id, tlm::tlm_generic_paylo
 }
 
 /// TLM non-blocking transport call backward path (from slaves to masters)
-tlm::tlm_sync_enum CAHBCTRL::nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& gp,
+tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& gp,
                                                 tlm::tlm_phase& phase, sc_core::sc_time& delay) {
    int index = getMaster2Slave(id);
 
@@ -261,7 +363,7 @@ tlm::tlm_sync_enum CAHBCTRL::nb_transport_bw(uint32_t id, tlm::tlm_generic_paylo
    }
 }
 
-void CAHBCTRL::queuedTrans(const uint32_t mstID, const uint32_t slvID,
+void AHBCtrl::queuedTrans(const uint32_t mstID, const uint32_t slvID,
                               tlm::tlm_generic_payload& gp,
                               tlm::tlm_phase& phase,
                               sc_core::sc_time& delay) {
@@ -331,38 +433,87 @@ void CAHBCTRL::queuedTrans(const uint32_t mstID, const uint32_t slvID,
    }
 }
 
-void CAHBCTRL::start_of_simulation() {
-    uint32_t num_of_bindings = ahbOUT.size();
+/// Set up slave map and collect plug & play information
+void AHBCtrl::start_of_simulation() {
 
-    v::info << name()
-            << "Start_of_simulation,mapping the memory ranges of all slaves"
-            << v::endl;
+ 
+  // get number of binding at master socket (number of connected slaves)
+  uint32_t num_of_bindings = ahbOUT.size();
 
-    for (uint32_t i = 0; i < num_of_bindings; i++) {
-         uint32_t a = 0;
+  v::info << name() << "******************************************************************************* " << v::endl;
+  v::info << name() << "* DECODER INITIALIZATION " << v::endl;
+  v::info << name() << "* ---------------------- " << v::endl;
 
-        socket_t *other_socket = ahbOUT.get_other_side(i, a);
-        sc_core::sc_object *obj = other_socket->get_parent();
-        amba_slave_base *slave = dynamic_cast<amba_slave_base *> (obj);
-        if(slave) {
-            sc_core::sc_semaphore* newSema = new sc_core::sc_semaphore(1);
-            uint32_t addr = slave->get_base_addr();
-            uint32_t size = slave->get_size();
-            setAddressMap(i, addr, size); // Insert slave into memory map
-            MstSlvMap.insert(std::pair<uint32_t, int32_t>(i, -1));
-            SlvSemaphore.insert(std::pair<uint32_t, sc_core::sc_semaphore*>(i, newSema));
-            v::info << name() << "Found AHB slave " << obj->name() << "@0x"
-                    << hex << v::setw(8) << v::setfill('0') << addr
-                    << ", size:" << hex << "0x" << size << endl;
-        } else {
-            v::warn << name() << "Unexpected NULL object." << v::endl;
-        }
+  // iterate the registered slaves
+  for (uint32_t i = 0; i < (num_of_bindings<<2); i+=4) {
+
+    uint32_t a = 0;
+
+    // get pointer to socket of slave i
+    socket_t *other_socket = ahbOUT.get_other_side(i, a);
+
+    // get parent object containing slave socket i
+    sc_core::sc_object *obj = other_socket->get_parent();
+
+    // valid slaves implement the AHBDevice interface
+    AHBDevice *slave = dynamic_cast<AHBDevice *> (obj);
+
+    v::info << name() << "* SLAVE name: " << obj->name() << v::endl;
+
+    // slave is valid (implements AHBDevice)
+    if(slave) {
+
+      // to be checked: do I need one 
+      //sc_core::sc_semaphore* newSema = new sc_core::sc_semaphore(1);
+
+      // get pointer to device information
+      const uint32_t * deviceinfo = slave->get_device_info();
+
+      // map device information into PNP region
+      if (mfpnpen) {
+	
+	mSlaves[i] = deviceinfo;
+
+      }
+
+      // each slave may hold up to four subdevices
+      for (uint32_t j = 0; i < 4; i++) {
+
+	// check 'type' field of bar[i]
+	// must be != to be valid 
+	if (slave->get_bar_type(i)) {
+
+	  // get base address and maks from bar[i]
+	  uint32_t addr = slave->get_bar_base(i);
+	  uint32_t mask = slave->get_bar_mask(i);
+
+	  v::info << name() << "* bar" << j << " with MSB addr: " << hex << addr << " and mask: " << mask <<  v::endl; 
+
+	  // insert slave region into memory map
+	  setAddressMap(i+j, addr, mask);
+
+	  // What is this good for ???
+	  MstSlvMap.insert(std::pair<uint32_t, int32_t>(i, -1));
+	  //SlvSemaphore.insert(std::pair<uint32_t, sc_core::sc_semaphore*>(i, newSema));
+	}
+      
+      } 
+
+      // end of decoder initialization
+      v::info << name() << "******************************************************************************* " << v::endl;
+
+    } else {
+      
+      v::warn << name() << "Slave bound to socket ahbout is not a valid AHBDevice" << v::endl;
+
     }
-    // Check memory map for overlaps
-    checkMemMap();
+  }
+
+  // Check memory map for overlaps
+  checkMemMap();
 }
 
-void CAHBCTRL::checkMemMap() {
+void AHBCtrl::checkMemMap() {
    std::map<uint32_t, slave_info_t>::iterator it;
    std::map<uint32_t, slave_info_t>::iterator it2;
 
@@ -394,7 +545,7 @@ void CAHBCTRL::checkMemMap() {
 }
 
 /// TLM debug interface
-unsigned int CAHBCTRL::transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp) {
+unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp) {
     std::map<uint32_t, slave_info_t>::iterator it;
 
     uint32_t a = 0;
@@ -430,21 +581,21 @@ unsigned int CAHBCTRL::transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp) 
 }
 
 /// Helper for setting clock cycle latency using sc_clock argument
-void CAHBCTRL::clk(sc_core::sc_clock &clk) {
+void AHBCtrl::clk(sc_core::sc_clock &clk) {
 
   clockcycle = clk.period();
 
 }
 
 /// Helper for setting clock cycle latency using sc_time argument
-void CAHBCTRL::clk(sc_core::sc_time &period) {
+void AHBCtrl::clk(sc_core::sc_time &period) {
 
   clockcycle = period;
 
 }
 
 /// Helper for setting clock cycle latency using a value-time_unit pair
-void CAHBCTRL::clk(double period, sc_core::sc_time_unit base) {
+void AHBCtrl::clk(double period, sc_core::sc_time_unit base) {
 
   clockcycle = sc_core::sc_time(period, base);
 
