@@ -66,39 +66,48 @@ AHBDevice::AHBDevice(uint8_t vendorid, uint16_t deviceid,
 AHBDevice::~AHBDevice() {
 }
 
+// Output APB slave information
 void AHBDevice::print_device_info(char *name) const {
-    // Display APB slave information
+
     v::info << name << "AHB slave @" << v::uint32 << (uint32_t)get_base_addr_()
                     << " size: " << v::uint32 << (uint32_t)get_size_() << " byte" << v::endl;
 }
 
+// Returns the device info record of the device
 const uint32_t *AHBDevice::get_device_info() const {
     return m_register;
 }
 
+// Returns the device type entry for BAR bar
 const AHBDevice::device_type AHBDevice::get_bar_type(uint32_t bar) const {
     return static_cast<AHBDevice::device_type>(m_register[4 + bar]>>30); 
 }
 
+// Extracts the 12bit MSB address for BAR bar
 const uint32_t AHBDevice::get_bar_base(uint32_t bar) const {
     return (m_register[4 + bar] >> 20) & 0xFFF;
 }
 
+// Extracts the 12bit address mask for BAR bar.
 const uint32_t AHBDevice::get_bar_mask(uint32_t bar) const {
     return  (m_register[4 + bar] >>  4) & 0xFFF;
 }
 
+// Calculates the base address (32bit) of the device for BAR bar.
 const uint32_t AHBDevice::get_bar_addr(uint32_t bar) const {
     uint32_t addr = get_bar_base(bar);
     uint32_t mask = get_bar_mask(bar);
     return (addr & mask) << 20;
 }
 
+// Calculates the size in bytes of the device address space for BAR bar.
 const uint32_t AHBDevice::get_bar_size(uint32_t bar) const {
     uint32_t mask = get_bar_mask(bar);
     return (((~mask & 0xFFF) + 1) << 20);
 }
 
+// Returns the base address (32bit) of the device (lowest of the BAR entries)
+// (Required by GreenSocs dependencies)
 sc_dt::uint64 AHBDevice::get_base_addr() {
     uint32_t addr = get_bar_addr(0);
     if(get_bar_addr(1)) {
@@ -113,6 +122,7 @@ sc_dt::uint64 AHBDevice::get_base_addr() {
     return addr;
 }
 
+// Returns the base address (32bit) of the device (lowest of the BAR entries)
 const uint32_t AHBDevice::get_base_addr_() const {
     uint32_t addr = get_bar_addr(0);
     if(get_bar_addr(1)) {
@@ -127,6 +137,8 @@ const uint32_t AHBDevice::get_base_addr_() const {
     return addr;
 }
 
+// Returns the total size (bytes) of the device address space (all BARs)
+// (Required by GreenSocs dependencies)
 sc_dt::uint64 AHBDevice::get_size() {
     uint32_t addr = get_bar_addr(0);
     uint32_t size = get_bar_size(0);
@@ -155,6 +167,7 @@ sc_dt::uint64 AHBDevice::get_size() {
     return (addr + size) - get_base_addr();
 }
 
+// Returns the total size (bytes) of the device address space (all BARs)
 const uint32_t AHBDevice::get_size_() const {
     uint32_t addr = get_bar_addr(0);
     uint32_t size = get_bar_size(0);

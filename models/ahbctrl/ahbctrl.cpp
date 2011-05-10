@@ -99,7 +99,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
 
 }
 
-// destructor
+// Destructor
 AHBCtrl::~AHBCtrl() {
 
 }
@@ -107,10 +107,10 @@ AHBCtrl::~AHBCtrl() {
 /// Helper function for creating slave map decoder entries
 void AHBCtrl::setAddressMap(const uint32_t i, const uint32_t addr, const uint32_t mask) {
 
-    // Create slave map entry from slave ID and address range descriptor (slave_info_t)
-    // Why std::map: Contains only the bar entries, which are actually valid.
-    // A static array would have holes -> far slower, especially if number of slaves is small.
-    slave_map.insert(std::pair<uint32_t, slave_info_t>(i, slave_info_t(addr, mask)));
+  // Create slave map entry from slave ID and address range descriptor (slave_info_t)
+  // Why std::map: Contains only the bar entries, which are actually valid.
+  // A static array would have holes -> far slower, especially if number of slaves is small.
+  slave_map.insert(std::pair<uint32_t, slave_info_t>(i, slave_info_t(addr, mask)));
 }
 
 /// Find slave index by address
@@ -119,15 +119,14 @@ int AHBCtrl::get_index(const uint32_t address) {
   // Use 12 bit segment address for decoding
   uint32_t addr = address >> 20;
 
-  // Make global ??
-  std::map<uint32_t, slave_info_t>::iterator it;
-
   for (it = slave_map.begin(); it != slave_map.end(); it++) {
 
       slave_info_t info = it->second;
   
       if (((addr ^ info.first) & info.second) == 0) {
 
+	// There may be up to four BARs per device.
+	// Only return device ID.
 	return ((it->first)>>2);
 
       }
@@ -158,8 +157,8 @@ int AHBCtrl::getMaster2Slave(const uint32_t slaveID) {
    return it->second;
 }
 
-/// TLM blocking transport function
-void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& ahb_gp, sc_time& delay) {
+/// TLM blocking transport function (multi-sock)
+void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& ahb_gp, sc_core::sc_time& delay) {
 
   // -- For Debug only --
   uint32_t a = 0;
@@ -184,7 +183,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& ahb_gp, sc_time
       assert(length%4==0);
 
       // Get registers from config area
-      for (uint32_t i = 0 ; i < (length >> 2); i++) {
+      for (uint32_t i = 0; i < (length >> 2); i++) {
 
 	data[i] = getPNPReg(addr);
 
@@ -220,7 +219,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& ahb_gp, sc_time
 
     // -------------------
 
-    // add delay of address phase
+    // Add delay for AHB address phase
     delay += clockcycle;
 
     // Wait for semaphore
@@ -437,8 +436,11 @@ void AHBCtrl::queuedTrans(const uint32_t mstID, const uint32_t slvID,
 void AHBCtrl::start_of_simulation() {
 
  
-  // get number of binding at master socket (number of connected slaves)
+  // Get number of bindings at master socket (number of connected slaves)
   uint32_t num_of_bindings = ahbOUT.size();
+
+  // max. 16 AHB slaves allowed
+  assert(num_of_bindings<=16);
 
   v::info << name() << "******************************************************************************* " << v::endl;
   v::info << name() << "* DECODER INITIALIZATION " << v::endl;
@@ -466,28 +468,27 @@ void AHBCtrl::start_of_simulation() {
       // to be checked: do I need one 
       //sc_core::sc_semaphore* newSema = new sc_core::sc_semaphore(1);
 
-      // get pointer to device information
+      // Get pointer to device information
       const uint32_t * deviceinfo = slave->get_device_info();
 
-      // map device information into PNP region
+      // Map device information into PNP region
       if (mfpnpen) {
 	
 	mSlaves[i] = deviceinfo;
 
       }
 
-      // each slave may hold up to four subdevices
+      // Each slave may have up to four subdevices (BARs)
       for (uint32_t j = 0; i < 4; i++) {
 
-	// check 'type' field of bar[i]
-	// must be != to be valid 
+	// check 'type' field of bar[i] (must be != 0)
 	if (slave->get_bar_type(i)) {
 
-	  // get base address and maks from bar[i]
+	  // get base address and maks from BAR i
 	  uint32_t addr = slave->get_bar_base(i);
 	  uint32_t mask = slave->get_bar_mask(i);
 
-	  v::info << name() << "* bar" << j << " with MSB addr: " << hex << addr << " and mask: " << mask <<  v::endl; 
+	  v::info << name() << "* BAR" << j << " with MSB addr: " << hex << addr << " and mask: " << mask <<  v::endl; 
 
 	  // insert slave region into memory map
 	  setAddressMap(i+j, addr, mask);
@@ -499,20 +500,26 @@ void AHBCtrl::start_of_simulation() {
       
       } 
 
-      // end of decoder initialization
-      v::info << name() << "******************************************************************************* " << v::endl;
-
     } else {
       
-      v::warn << name() << "Slave bound to socket ahbout is not a valid AHBDevice" << v::endl;
+      v::error << name() << "Slave bound to socket 'ahbout' is not a valid AHBDevice" << v::endl;
+      assert(0);
 
     }
   }
 
+  // End of decoder initialization
+  v::info << name() << "******************************************************************************* " << v::endl;
+
   // Check memory map for overlaps
-  checkMemMap();
+  if (mmcheck) {
+
+    checkMemMap();
+
+  }
 }
 
+/// Check the memory map for overlaps
 void AHBCtrl::checkMemMap() {
    std::map<uint32_t, slave_info_t>::iterator it;
    std::map<uint32_t, slave_info_t>::iterator it2;
@@ -545,37 +552,74 @@ void AHBCtrl::checkMemMap() {
 }
 
 /// TLM debug interface
-unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp) {
-    std::map<uint32_t, slave_info_t>::iterator it;
+unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &ahb_gp) {
 
+    // -- For Debug only --
     uint32_t a = 0;
     socket_t* other_socket = ahbIN.get_other_side(id, a);
     sc_core::sc_object *mstobj = other_socket->get_parent();
+    // --------------------
 
-    int index = get_index(gp.get_address());
+    // Extract data pointer from payload
+    unsigned int *data  = (unsigned int *)ahb_gp.get_data_ptr();
+    // Extract address from payload
+    unsigned int addr   = ahb_gp.get_address();
+    // Extract length from payload
+    unsigned int length = ahb_gp.get_data_length(); 
 
-    // check for a valid index
+    // Is this an access to configuration area
+    if (mfpnpen && ((((addr >> 20) ^ mcfgaddr) & mcfgmask)==0)) {
+
+      // Configuration area is read only
+      if (ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
+
+	// No subword access supported here!
+	assert(length%4==0);
+
+	// Get registers from config area
+	for (uint32_t i = 0 ; i < (length >> 2); i++) {
+
+	  data[i] = getPNPReg(addr);
+
+        }
+	
+	ahb_gp.set_response_status(tlm::TLM_OK_RESPONSE);
+	return length;
+
+      } else {
+
+	v::error << name() << " Forbidden write to AHBCTRL configuration area (PNP)!" << v::endl;
+	ahb_gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+	return 0;
+      }
+    }    
+
+    // Find slave by address / returns slave index or -1 for not mapped
+    int index = get_index(ahb_gp.get_address());
+
+    // For valid slave index
     if(index >= 0) {
 
-       // *** DEBUG
+       // -- For Debug only --
        other_socket = ahbOUT.get_other_side(index, a);
        sc_core::sc_object *obj = other_socket->get_parent();
 
        v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
-                << v::setw(8) << gp.get_address() << ", from master:"
+                << v::setw(8) << ahb_gp.get_address() << ", from master:"
                 << mstobj->name() << ", forwarded to slave:" << obj->name() << endl;
-       // ************
+       // --------------------
 
-       // Forward request to the appropriate slave
-       return ahbOUT[index]->transport_dbg(gp);
+       // Forward request to the selected slave
+       return ahbOUT[index]->transport_dbg(ahb_gp);
 
     } else {
 
-       // Invalid index
-       gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
        v::warn << name() << "AHB Request@0x" << hex << v::setfill('0')
-               << v::setw(8) << gp.get_address() << ", from master:"
+               << v::setw(8) << ahb_gp.get_address() << ", from master:"
                << mstobj->name() << ": Unmapped address space." << endl;
+
+       // Invalid index
+       ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
        return 0;
     }
 }

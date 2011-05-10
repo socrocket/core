@@ -54,9 +54,9 @@ def configure(ctx):
 
 def build(bld):
   bld(
-    target          = 'apbbridge',
+    target          = 'apbctrl',
     features        = 'cxx cxxstlib',
-    source          = 'apbbridge.cpp', 
+    source          = 'apbctrl.cpp', 
     export_includes = '.',
     uselib          = 'SYSC TLM2 AMBA GREENSOCS',
     use             = 'utils common'

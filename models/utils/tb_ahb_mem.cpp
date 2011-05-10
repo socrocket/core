@@ -67,10 +67,10 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
                     0, // device: TODO: get real device ID
                     0, //
                     0, // IRQ
-                    BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr_), // GrlibBAR 0
-                    0, // GrlibBAR 1
-                    0, // GrlibBAR 2
-                    0 // GrlibBAR 3
+                    BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr_), // BAR 0
+                    0, // BAR 1
+                    0, // BAR 2
+                    0  // BAR 3
             ),
             ahb("ahb", // sc_module_name
                     amba::amba_AHB, // bus type
@@ -91,12 +91,18 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
             << v::setfill('0') << get_base_addr() << " size: 0x" << hex
             << v::setw(8) << v::setfill('0') << get_size() << " byte" << endl;
 
+    // For LT register blocking transport
     if(ambaLayer==amba::amba_LT) {
+
       ahb.register_b_transport(this, &Ctb_ahb_mem::b_transport);
+
     }
 
+    // For AT register non-blocking transport
     if(ambaLayer==amba::amba_AT) {
+
       ahb.register_nb_transport_fw(this, &Ctb_ahb_mem::nb_transport_fw);
+
     }
 
     ahb.register_transport_dbg(this, &Ctb_ahb_mem::transport_dbg);
@@ -120,9 +126,7 @@ Ctb_ahb_mem::~Ctb_ahb_mem() {
 void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
                               sc_core::sc_time &delay) {
 
-  // Check address for before doing anything else
-  //if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
-
+  // Is the address for me
   if(!((mhaddr ^ (gp.get_address() >> 20)) & mhmask)) {
 
     // warn if access exceeds slave memory region

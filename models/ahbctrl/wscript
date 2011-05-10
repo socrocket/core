@@ -122,24 +122,24 @@ def build(bld):
     use            = 'common utils ahbctrl',
   )
   
-  bld(
-    features       = 'modelsim',
-    target         = 'ahbctrl.1.rtl.test',
-    name           = 'ahbctrl.1.rtl.test',
-    source         = ['./ahbtbp.vhd',
-                      './test1/sim_ref/ahb_m1_s1.vhd',
-		      '../../common/verbose.cpp',
-                      '../utils/abhdevice.cpp',
-                      '../utils/tb_ahb_mem.cpp',
-		      './test1/testbench.cpp',
-                      './test1/testbench_rtl.cpp',
-		      './test1/sim_ref/main.cpp'],
-    uselib         = 'AMBA GREENSOCS',
-    vcomflags      = '-93 -explicit',
-    defines        = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes       = './ ./test1 ./test1/sim_ref ../../common ../../signalkit ../utils',
-    config         =  vsim_conf,
-  )
+#  bld(
+#    features       = 'modelsim',
+#    target         = 'ahbctrl.1.rtl.test',
+#    name           = 'ahbctrl.1.rtl.test',
+#    source         = ['./ahbtbp.vhd',
+#                      './test1/sim_ref/ahb_m1_s1.vhd',
+#		      '../../common/verbose.cpp',
+#                      '../utils/abhdevice.cpp',
+#                      '../utils/tb_ahb_mem.cpp',
+#		      './test1/testbench.cpp',
+#                      './test1/testbench_rtl.cpp',
+#		      './test1/sim_ref/main.cpp'],
+#    uselib         = 'AMBA GREENSOCS',
+#    vcomflags      = '-93 -explicit',
+#    defines        = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+#    includes       = './ ./test1 ./test1/sim_ref ../../common ../../signalkit ../utils',
+#    config         =  vsim_conf,
+#  )
 
 #  bld(
 #    features       = 'modelsim',

@@ -62,11 +62,11 @@ class AHBCtrl : public sc_core::sc_module {
         /// TLM blocking transport method
         void b_transport(uint32_t id, tlm::tlm_generic_payload& gp, sc_core::sc_time& delay);
 
-        /// TLM non blocking forward path
+        /// TLM non-blocking transport forward (for AHB slave multi-sock)
         tlm::tlm_sync_enum nb_transport_fw(uint32_t id, tlm::tlm_generic_payload& gp,
                                            tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
-        /// TLM non blocking backward path
+        /// TLM non-blocking transport backward (for AHB master multi-sock)
         tlm::tlm_sync_enum nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& gp,
                                            tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
@@ -74,7 +74,10 @@ class AHBCtrl : public sc_core::sc_module {
         unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);	
 
 	/// Helper function for creating slave map decoder entries
-        void setAddressMap(const uint32_t i, const uint32_t baseAddr, const uint32_t size);
+        void setAddressMap(const uint32_t i, const uint32_t addr, const uint32_t mask);
+
+	/// Get slave index for a given address
+        int get_index(const uint32_t address);
 
 	/// Returns a PNP register from the configuration area
 	unsigned int getPNPReg(const uint32_t address);
@@ -102,7 +105,7 @@ class AHBCtrl : public sc_core::sc_module {
 		 bool fixbrst,         // Enable support for fixed-length bursts
 		 bool fpnpen,          // Enable full decoding of PnP configuration records.
 		 bool mcheck,          // Check if there are any intersections between core memory regions.
-                 amba::amba_layer_ids ambaLayer = amba::amba_LT);		 
+                 amba::amba_layer_ids ambaLayer);		 
 		 
 		 
 	// Omitted parameters:
@@ -152,7 +155,7 @@ class AHBCtrl : public sc_core::sc_module {
         typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;
         typedef std::pair<uint32_t, uint32_t> slave_info_t;
 
-	/// Decoding address table (slave index, (bar addr, mask))
+	/// Address decoder table (slave index, (bar addr, mask))
         std::map<uint32_t, slave_info_t> slave_map;
 	/// Iterator for slave map
 	std::map<uint32_t, slave_info_t>::iterator it;
@@ -165,9 +168,6 @@ class AHBCtrl : public sc_core::sc_module {
 
 	/// Array of master device information (PNP)
 	const uint32_t *mMasters[64];
-
-        /// Get slave index for a given address
-        int get_index(const uint32_t address);
 
         /// Get master index for a given slave
         int getMaster2Slave(const uint32_t slaveID);

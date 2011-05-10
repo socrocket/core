@@ -52,9 +52,9 @@ models = [
   'mmu_cache', 
   'mctrl', 
   'utils',
-  #'apbbridge',
+  'apbctrl',
   'socwire',
-  #'ahbdecoder',
+  #,ahbdecoder',
   'ahbctrl',
 ]
 
