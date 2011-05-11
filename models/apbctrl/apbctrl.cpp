@@ -117,7 +117,7 @@ void APBCtrl::setAddressMap(const uint32_t i, const uint32_t addr, const uint32_
 int APBCtrl::get_index(const uint32_t address) {
 
   // Use 12 bit segment address for decoding
-  uint32_t addr = address >> 20;
+  uint32_t addr = (address >> 8) & 0xfff;
 
   for (it = slave_map.begin(); it != slave_map.end(); it++) {
 
