@@ -52,10 +52,6 @@
 
 mmu::mmu(sc_core::sc_module_name name, // sysc module name,
          mmu_cache_if * _mmu_cache, // pointer to memory interface
-         sc_core::sc_time itlb_hit_response_delay, // delay on an instruction tlb hit
-         sc_core::sc_time itlb_miss_response_delay, // delay on an instruction tlb miss (per page table lookup)
-         sc_core::sc_time dtlb_hit_response_delay, // delay on a data tlb hit
-         sc_core::sc_time dtlb_miss_response_delay, // delay on a data tlb miss (per page table lookup)
          unsigned int itlbnum, // number of instruction tlbs
          unsigned int dtlbnum, // number of data tlbs
          unsigned int tlb_type, // tlb type
@@ -66,11 +62,7 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
 	    m_itlblog2((unsigned int)log2((double)m_itlbnum)), 
 	    m_dtlblog2((unsigned int)log2((double)m_dtlbnum)), 
 	    m_tlb_type(tlb_type), m_tlb_rep(tlb_rep),
-            m_mmupgsz(mmupgsz), m_itlb_hit_response_delay(
-                    itlb_hit_response_delay), m_itlb_miss_response_delay(
-                    itlb_miss_response_delay), m_dtlb_hit_response_delay(
-                    dtlb_hit_response_delay), m_dtlb_miss_response_delay(
-                    dtlb_miss_response_delay) {
+            m_mmupgsz(mmupgsz), clockcycle(10, sc_core::SC_NS) {
 
     // initialize internal registers
 
@@ -574,5 +566,26 @@ tlb_adaptor * mmu::get_itlb_if() {
 tlb_adaptor * mmu::get_dtlb_if() {
 
     return (dtlb_adaptor);
+
+}
+
+// Helper for setting clock cycle latency using sc_clock argument
+void mmu::clk(sc_core::sc_clock &clk) {
+
+  clockcycle = clk.period();
+
+}
+
+// Helper for setting clock cycle latency using sc_time argument
+void mmu::clk(sc_core::sc_time &period) {
+
+  clockcycle = period;
+
+}
+
+// Helper for setting clock cycle latency using a value-time_unit pair
+void mmu::clk(double period, sc_core::sc_time_unit base) {
+
+  clockcycle = sc_core::sc_time(period, base);
 
 }

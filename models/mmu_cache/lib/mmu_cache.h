@@ -139,16 +139,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
                   unsigned int dtlb_num, unsigned int tlb_type,
                   unsigned int tlb_rep, unsigned int mmupgsz,
                   sc_core::sc_module_name name, unsigned int id,
-		  amba::amba_layer_ids abstractionLevel,
-                  sc_core::sc_time icache_hit_read_response_delay,
-                  sc_core::sc_time icache_miss_read_response_delay,
-                  sc_core::sc_time dcache_hit_read_response_delay,
-                  sc_core::sc_time dcache_miss_read_response_delay,
-                  sc_core::sc_time dcache_write_response_delay,
-                  sc_core::sc_time itlb_hit_response_delay,
-                  sc_core::sc_time itlb_miss_response_delay,
-                  sc_core::sc_time dtlb_hit_response_delay,
-                  sc_core::sc_time dtlb_miss_response_delay);
+		  amba::amba_layer_ids abstractionLevel);
 
         // member functions
         // ----------------
@@ -183,6 +174,11 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
         void write_ccr(unsigned char * data, unsigned int len,
                        sc_core::sc_time *delay);
         virtual unsigned int read_ccr();
+
+	/// Helper functions for definition of clock cycle
+	void clk(sc_core::sc_clock &clk);
+	void clk(sc_core::sc_time &period);
+	void clk(double period, sc_core::sc_time_unit base);
 
         // data members
         // ------------
@@ -255,6 +251,9 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
 
 	// events
 	sc_event ahb_transaction_response;
+
+	/// Clock cycle time
+	sc_core::sc_time clockcycle;
 
 };
 

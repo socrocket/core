@@ -65,25 +65,34 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
                      unsigned int tlb_type, unsigned int tlb_rep,
                      unsigned int mmupgsz, sc_core::sc_module_name name,
                      unsigned int id,
-		     amba::amba_layer_ids abstractionLevel,
-                     sc_core::sc_time icache_hit_read_response_delay,
-                     sc_core::sc_time icache_miss_read_response_delay,
-                     sc_core::sc_time dcache_hit_read_response_delay,
-                     sc_core::sc_time dcache_miss_read_response_delay,
-                     sc_core::sc_time dcache_write_response_delay,
-                     sc_core::sc_time itlb_hit_response_delay,
-                     sc_core::sc_time itlb_miss_response_delay,
-                     sc_core::sc_time dtlb_hit_response_delay,
-                     sc_core::sc_time dtlb_miss_response_delay) :
-    sc_module(name), icio("icio"), dcio("dcio"), ahb_master(
-            "ahb_master_socket", amba::amba_AHB, abstractionLevel, false), 
-            icio_PEQ("icio_PEQ"), dcio_PEQ("dcio_PEQ"), 
-            m_icen(icen), m_dcen(dcen), m_ilram(ilram), m_ilramstart(ilramstart),
-            m_dlram(dlram), m_dlramstart(dlramstart), m_cached(cached), m_mmu_en(mmu_en),
-            master_id(id), m_abstractionLevel(abstractionLevel), m_txn_count(0), m_data_count(0),
-            m_bus_granted(false), current_trans(NULL),
-            m_request_pending(false), m_data_pending(false), m_bus_req_pending(
-                    false), m_restart_pending_req(false) {
+		     amba::amba_layer_ids abstractionLevel) :
+
+    sc_module(name), 
+    icio("icio"), 
+    dcio("dcio"), 
+    ahb_master("ahb_master_socket", amba::amba_AHB, abstractionLevel, false), 
+    icio_PEQ("icio_PEQ"), 
+    dcio_PEQ("dcio_PEQ"),
+    m_icen(icen), 
+    m_dcen(dcen), 
+    m_ilram(ilram), 
+    m_ilramstart(ilramstart),
+    m_dlram(dlram),
+    m_dlramstart(dlramstart),
+    m_cached(cached),
+    m_mmu_en(mmu_en),
+    master_id(id), 
+    m_abstractionLevel(abstractionLevel), 
+    m_txn_count(0), 
+    m_data_count(0),
+    m_bus_granted(false), 
+    current_trans(NULL),
+    m_request_pending(false), 
+    m_data_pending(false), 
+    m_bus_req_pending(false), 
+    m_restart_pending_req(false),
+    clockcycle(10, sc_core::SC_NS) {
+
     // parameter checks
     // ----------------
 
@@ -91,16 +100,18 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     assert((m_cached>=0)&&(m_cached<=0xffff));
 
     // create mmu (if required)
-    m_mmu = (mmu_en == 1)? new mmu("mmu", (mmu_cache_if *)this,
-            itlb_hit_response_delay, itlb_miss_response_delay,
-            dtlb_hit_response_delay, dtlb_miss_response_delay, itlb_num,
-            dtlb_num, tlb_type, tlb_rep, mmupgsz) : NULL;
+    m_mmu = (mmu_en == 1)? new mmu("mmu", 
+				   (mmu_cache_if *)this,
+				   itlb_num,
+				   dtlb_num,
+				   tlb_type,
+				   tlb_rep,
+				   mmupgsz) : NULL;
 
     // create icache
     icache = (icen == 1)? (cache_if*)new ivectorcache("ivectorcache",
             (mmu_cache_if *)this, (mmu_en)? (mem_if *)m_mmu->get_itlb_if()
                                            : (mem_if *)this, mmu_en,
-            icache_hit_read_response_delay, icache_miss_read_response_delay,
             isets, isetsize, isetlock, ilinesize, irepl, ilram, ilramstart,
             ilramsize) : (cache_if*)new nocache("no_icache",
             (mmu_en)? (mem_if *)m_mmu->get_itlb_if() : (mem_if *)this);
@@ -109,11 +120,9 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     dcache = (dcen == 1)? (cache_if*)new dvectorcache("dvectorcache",
             (mmu_cache_if *)this, (mmu_en)? (mem_if *)m_mmu->get_dtlb_if()
                                            : (mem_if *)this, mmu_en,
-            dcache_hit_read_response_delay, dcache_miss_read_response_delay,
-            dcache_write_response_delay, dsets, dsetsize, dsetlock, dlinesize,
-            drepl, dlram, dlramstart, dlramsize) : (cache_if*)new nocache(
-            "no_dcache", (mmu_en)? (mem_if *)m_mmu->get_dtlb_if()
-                                  : (mem_if *)this);
+            dsets, dsetsize, dsetlock, dlinesize, drepl, dlram, dlramstart, 
+	    dlramsize) : (cache_if*)new nocache("no_dcache", 
+	    (mmu_en)? (mem_if *)m_mmu->get_dtlb_if() : (mem_if *)this);
 
     // create instruction scratchpad
     // (! only allowed with mmu disabled !)
@@ -2014,4 +2023,91 @@ void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
 unsigned int mmu_cache::read_ccr() {
 
     return (CACHE_CONTROL_REG);
+}
+
+// Helper for setting clock cycle latency using sc_clock argument
+void mmu_cache::clk(sc_core::sc_clock &clk) {
+
+  // Set local clock
+  clockcycle = clk.period();
+
+  // Set icache clock
+  if (m_icen) { 
+    
+    icache->clk(clk);
+
+  }
+
+  // Set dcache clock
+  if (m_dcen) {
+
+    dcache->clk(clk);
+
+  }
+
+  // Set mmu clock
+  if (m_mmu_en) {
+
+    m_mmu->clk(clk);
+
+  }
+
+}
+
+// Helper for setting clock cycle latency using sc_time argument
+void mmu_cache::clk(sc_core::sc_time &period) {
+
+  // Set local clock
+  clockcycle = period;
+
+  // Set icache clock
+  if (m_icen) { 
+    
+    icache->clk(period);
+
+  }
+
+  // Set dcache clock
+  if (m_dcen) {
+
+    dcache->clk(period);
+
+  }
+
+  // Set mmu clock
+  if (m_mmu_en) {
+
+    m_mmu->clk(period);
+
+  }
+
+}
+
+// Helper for setting clock cycle latency using a value-time_unit pair
+void mmu_cache::clk(double period, sc_core::sc_time_unit base) {
+
+  // Set local clock
+  clockcycle = sc_core::sc_time(period, base);
+
+  // Set icache clock
+  if (m_icen) { 
+    
+    icache->clk(period, base);
+
+  }
+
+  // Set dcache clock
+  if (m_dcen) {
+
+    dcache->clk(period, base);
+
+  }
+
+  // Set mmu clock
+  if (m_mmu_en) {
+
+    m_mmu->clk(period, base);
+
+  }
+
 }

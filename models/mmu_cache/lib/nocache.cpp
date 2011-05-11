@@ -131,3 +131,24 @@ void nocache::dbg_out(unsigned int line) {
             << v::endl;
 
 }
+
+// Helper for setting clock cycle latency using sc_clock argument
+void nocache::clk(sc_core::sc_clock &clk) {
+
+  // nothing to do
+
+}
+
+// Helper for setting clock cycle latency using sc_time argument
+void nocache::clk(sc_core::sc_time &period) {
+
+  // nothing to do
+
+}
+
+// Helper for setting clock cycle latency using a value-time_unit pair
+void nocache::clk(double period, sc_core::sc_time_unit base) {
+
+  // nothing to do
+
+}

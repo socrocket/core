@@ -54,15 +54,12 @@
 vectorcache::vectorcache(sc_core::sc_module_name name,
                          mmu_cache_if * _mmu_cache, mem_if *_tlb_adaptor,
                          unsigned int mmu_en, unsigned int burst_en,
-                         sc_core::sc_time hit_read_response_delay,
-                         sc_core::sc_time miss_read_response_delay,
-                         sc_core::sc_time write_response_delay,
                          unsigned int sets, unsigned int setsize,
                          unsigned int setlock, unsigned int linesize,
                          unsigned int repl, unsigned int lram,
                          unsigned int lramstart, unsigned int lramsize) :
     sc_module(name), m_mmu_cache(_mmu_cache), m_tlb_adaptor(_tlb_adaptor),
-            m_burst_en(burst_en), m_pseudo_rand(0), m_sets(sets-1), m_setsize((unsigned int)log2((double)setsize)), m_setlock(setlock), m_linesize((unsigned int)log2((double)linesize)), m_wordsperline(linesize), m_bytesperline(m_wordsperline << 2), m_offset_bits(m_linesize + 2), m_number_of_vectors(setsize*256/linesize), m_idx_bits(m_setsize + 8 - m_linesize), m_tagwidth(32 - m_idx_bits - m_offset_bits), m_repl(repl+1), m_mmu_en(mmu_en), m_lram(lram), m_lramstart(lramstart), m_lramsize((unsigned int)log2((double)lramsize)), m_hit_read_response_delay(hit_read_response_delay), m_miss_read_response_delay(miss_read_response_delay), m_write_response_delay(write_response_delay)
+    m_burst_en(burst_en), m_pseudo_rand(0), m_sets(sets-1), m_setsize((unsigned int)log2((double)setsize)), m_setlock(setlock), m_linesize((unsigned int)log2((double)linesize)), m_wordsperline(linesize), m_bytesperline(m_wordsperline << 2), m_offset_bits(m_linesize + 2), m_number_of_vectors(setsize*256/linesize), m_idx_bits(m_setsize + 8 - m_linesize), m_tagwidth(32 - m_idx_bits - m_offset_bits), m_repl(repl+1), m_mmu_en(mmu_en), m_lram(lram), m_lramstart(lramstart), m_lramsize((unsigned int)log2((double)lramsize)), clockcycle(10, sc_core::SC_NS)
 
 {
 
@@ -238,7 +235,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
                         //for(unsigned int j=0; j<len; j++) { *(data+j) = (*m_current_cacheline[i]).entry[offset>>2].c[byt+j]; }
 
                         // increment time
-                        *t += m_hit_read_response_delay;
+                        *t += clockcycle;
 
                         // valid data in set i
                         cache_hit = i;
@@ -269,7 +266,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
         if (cache_hit == -1) {
 
             // increment time
-            *t += m_miss_read_response_delay;
+            *t += clockcycle;
 
             // Set length of bus transfer depending on mode:
             // ---------------------------------------------
@@ -419,7 +416,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
         CACHEBYPASS_SET(*debug);
 
         // increment time
-        *t += m_miss_read_response_delay;
+        *t += clockcycle;
 
     }
 
@@ -493,7 +490,7 @@ void vectorcache::mem_write(unsigned int address, unsigned char * data,
                     // valid is already set
 
                     // increment time
-                    *t += m_write_response_delay;
+                    *t += clockcycle;
 
                     break;
                 } else {
@@ -631,7 +628,7 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
     *data = tmp;
 
     // increment time
-    *t += m_hit_read_response_delay;
+    *t += clockcycle;
 
 }
 
@@ -671,7 +668,7 @@ void vectorcache::write_cache_tag(unsigned int address, unsigned int * data,
             << (*m_current_cacheline[set]).tag.valid << v::endl;
 
     // increment time
-    *t += m_hit_read_response_delay;
+    *t += clockcycle;
 
 }
 
@@ -698,7 +695,7 @@ void vectorcache::read_cache_entry(unsigned int address, unsigned int * data,
             << " - data: " << std::hex << *data << v::endl;
 
     // increment time
-    *t += m_hit_read_response_delay;
+    *t += clockcycle;
 
 }
 
@@ -725,14 +722,14 @@ void vectorcache::write_cache_entry(unsigned int address, unsigned int * data,
             << " - data: " << std::hex << *data << v::endl;
 
     // increment time
-    *t += m_hit_read_response_delay;
+    *t += clockcycle;
 
 }
 
 // read cache configuration register
 unsigned int vectorcache::read_config_reg(sc_core::sc_time *t) {
 
-    *t += m_hit_read_response_delay;
+    *t += clockcycle;
 
     return (CACHE_CONFIG_REG);
 
@@ -906,3 +903,23 @@ void vectorcache::dbg_out(unsigned int line) {
     }
 }
 
+// Helper for setting clock cycle latency using sc_clock argument
+void vectorcache::clk(sc_core::sc_clock &clk) {
+
+  clockcycle = clk.period();
+
+}
+
+// Helper for setting clock cycle latency using sc_time argument
+void vectorcache::clk(sc_core::sc_time &period) {
+
+  clockcycle = period;
+
+}
+
+// Helper for setting clock cycle latency using a value-time_unit pair
+void vectorcache::clk(double period, sc_core::sc_time_unit base) {
+
+  clockcycle = sc_core::sc_time(period, base);
+
+}

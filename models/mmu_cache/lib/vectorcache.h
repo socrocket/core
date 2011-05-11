@@ -99,6 +99,11 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         /// display of cache lines for debug
         virtual void dbg_out(unsigned int line);
 
+	/// Helper functions for definition of clock cycle
+	void clk(sc_core::sc_clock &clk);
+	void clk(sc_core::sc_time &period);
+	void clk(double period, sc_core::sc_time_unit base);
+
     protected:
 
         // internal behavioral functions
@@ -120,9 +125,6 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         /// @param _mmu_cache                        Pointer to top-level class of cache subsystem (mmu_cache) for access to AHB bus interface
         /// @param _tlb_adaptor                      Pointer to memory management unit
         /// @param burst_en                          Allows the cache to be switched in burst fetch mode (by CCR setting)
-        /// @param hit_read_response_delay           Delay for a cache read hit
-        /// @param miss_read_response_delay          Delay for a cache read miss
-        /// @param write_response_delay              Delay for a cache write access (hit/miss)
         /// @param sets                              Number of cache sets
         /// @param setsize                           Size of a cache set (in kbytes)
         /// @param linesize                          Size of a cache line (in bytes)
@@ -133,9 +135,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         vectorcache(sc_core::sc_module_name name, mmu_cache_if * _mmu_cache,
                     mem_if * _tlb_adaptor, unsigned int mmu_en,
                     unsigned int burst_en,
-                    sc_core::sc_time hit_read_response_delay,
-                    sc_core::sc_time miss_read_response_delay,
-                    sc_core::sc_time write_response_delay, unsigned int sets,
+		    unsigned int sets,
                     unsigned int setsize, unsigned int setlock,
                     unsigned int linesize, unsigned int repl,
                     unsigned int lram, unsigned int lramstart,
@@ -231,6 +231,9 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         sc_core::sc_time m_hit_read_response_delay;
         sc_core::sc_time m_miss_read_response_delay;
         sc_core::sc_time m_write_response_delay;
+
+	/// Clock cycle time
+	sc_core::sc_time clockcycle;
 
 };
 

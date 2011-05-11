@@ -87,9 +87,6 @@ class dvectorcache : public vectorcache {
         /// @param lramsize                          Size of local ram (size in kbyte = 2^lramsize)
         dvectorcache(sc_core::sc_module_name name, mmu_cache_if * _mmu_cache,
                      mem_if * _tlb_adaptor, unsigned int mmu_en,
-                     sc_core::sc_time dcache_hit_read_response_delay,
-                     sc_core::sc_time dcache_miss_read_response_delay,
-                     sc_core::sc_time dcache_write_response_delay,
                      unsigned int sets, unsigned int setsize,
                      unsigned int setlock, unsigned int linesize,
                      unsigned int repl, unsigned int lram,
@@ -98,9 +95,7 @@ class dvectorcache : public vectorcache {
                     _tlb_adaptor,
                     mmu_en,
                     0, // burst fetch forbidden
-                    dcache_hit_read_response_delay,
-                    dcache_miss_read_response_delay,
-                    dcache_write_response_delay, sets, setsize, setlock,
+		    sets, setsize, setlock,
                     linesize, repl, lram, lramstart, lramsize) {
         }
 

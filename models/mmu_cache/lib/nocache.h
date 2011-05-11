@@ -85,6 +85,11 @@ class nocache : public sc_core::sc_module, public cache_if {
 
         virtual unsigned int check_mode();
 
+	/// Helper functions for definition of clock cycle
+	void clk(sc_core::sc_clock &clk);
+	void clk(sc_core::sc_time &period);
+	void clk(double period, sc_core::sc_time_unit base);
+
         // debug and helper functions
         // --------------------------
         /// display of cache lines for debug

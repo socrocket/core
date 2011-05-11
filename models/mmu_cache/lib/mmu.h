@@ -67,20 +67,13 @@ class mmu : public sc_core::sc_module, public mmu_if {
 
         /// @brief Constructor of the Memory Management Unit
         /// @param name                       SystemC module name,
-        /// @param itlb_hit_response_delay    Delay on an instruction TLB hit
-        /// @param itlb_miss_response_delay   Delay on an instruction TLB miss (per page table lookup)
-        /// @param dtlb_hit_response_delay    Delay on a data TLB hit
-        /// @param dtlb_miss_response_delay   Delay on a data TLB miss (per page table lookup)
         /// @param itlbnum                    Number of instruction TLBs
         /// @param dtlbnum                    Number of data TLBs
         /// @param tlb_type                   Type of TLB (shared or distinct)
         /// @param tlb_rep                    TLB replacement strategy
         /// @param mmupgsz                    MMU page size (default 4kB)
         mmu(sc_core::sc_module_name name, mmu_cache_if * _mmu_cache,
-            sc_core::sc_time itlb_hit_response_delay,
-            sc_core::sc_time itlb_miss_response_delay,
-            sc_core::sc_time dtlb_hit_response_delay,
-            sc_core::sc_time dtlb_miss_response_delay, unsigned int itlbnum,
+	    unsigned int itlbnum,
             unsigned int dtlbnum, unsigned int tlb_type, unsigned int tlb_rep,
             unsigned int mmupgsz);
 
@@ -111,6 +104,11 @@ class mmu : public sc_core::sc_module, public mmu_if {
         // return pointer to tlb interface objects
         tlb_adaptor * get_itlb_if();
         tlb_adaptor * get_dtlb_if();
+
+	/// Helper functions for definition of clock cycle
+	void clk(sc_core::sc_clock &clk);
+	void clk(sc_core::sc_time &period);
+	void clk(double period, sc_core::sc_time_unit base);
 
     public:
 
@@ -271,12 +269,8 @@ class mmu : public sc_core::sc_module, public mmu_if {
         /// total width of vtag
         unsigned int m_vtag_width;
 
-        // delay parameters
-        // ----------------
-        sc_core::sc_time m_itlb_hit_response_delay;
-        sc_core::sc_time m_itlb_miss_response_delay;
-        sc_core::sc_time m_dtlb_hit_response_delay;
-        sc_core::sc_time m_dtlb_miss_response_delay;
+	/// Clock cycle time
+	sc_core::sc_time clockcycle;
 
 };
 

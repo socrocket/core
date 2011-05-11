@@ -71,6 +71,11 @@ class cache_if : public mem_if {
 
         virtual unsigned int check_mode() = 0;
 
+	/// Helper functions for definition of clock cycle
+	virtual void clk(sc_core::sc_clock &clk) = 0;
+	virtual void clk(sc_core::sc_time &period) = 0;
+	virtual void clk(double period, sc_core::sc_time_unit base) = 0;
+
         // debug and helper functions
         // --------------------------
         /// display of cache lines for debug

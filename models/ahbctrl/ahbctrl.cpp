@@ -47,7 +47,7 @@
 #include "ahbctrl.h"
 #include "verbose.h"
 
-/// Constructor of class AHBCtrl
+// Constructor of class AHBCtrl
 AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
 		 unsigned int ioaddr,  // The MSB address of the I/O area
 		 unsigned int iomask,  // The I/O area address mask
@@ -104,7 +104,7 @@ AHBCtrl::~AHBCtrl() {
 
 }
 
-/// Helper function for creating slave map decoder entries
+// Helper function for creating slave map decoder entries
 void AHBCtrl::setAddressMap(const uint32_t i, const uint32_t addr, const uint32_t mask) {
 
   // Create slave map entry from slave ID and address range descriptor (slave_info_t)
@@ -113,7 +113,7 @@ void AHBCtrl::setAddressMap(const uint32_t i, const uint32_t addr, const uint32_
   slave_map.insert(std::pair<uint32_t, slave_info_t>(i, slave_info_t(addr, mask)));
 }
 
-/// Find slave index by address
+// Find slave index by address
 int AHBCtrl::get_index(const uint32_t address) {
 
   // Use 12 bit segment address for decoding
@@ -136,7 +136,7 @@ int AHBCtrl::get_index(const uint32_t address) {
   return -1;
 }
 
-/// Returns a PNP register from the configuration area
+// Returns a PNP register from the configuration area
 unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 
   // Calculate address offset in configuration area
@@ -157,7 +157,7 @@ int AHBCtrl::getMaster2Slave(const uint32_t slaveID) {
    return it->second;
 }
 
-/// TLM blocking transport function (multi-sock)
+// TLM blocking transport function (multi-sock)
 void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& ahb_gp, sc_core::sc_time& delay) {
 
   // -- For Debug only --
@@ -322,7 +322,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t id, tlm::tlm_generic_payloa
     }
 }
 
-/// TLM non-blocking transport call backward path (from slaves to masters)
+// TLM non-blocking transport call backward path (from slaves to masters)
 tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& gp,
                                                 tlm::tlm_phase& phase, sc_core::sc_time& delay) {
    int index = getMaster2Slave(id);
@@ -432,7 +432,7 @@ void AHBCtrl::queuedTrans(const uint32_t mstID, const uint32_t slvID,
    }
 }
 
-/// Set up slave map and collect plug & play information
+// Set up slave map and collect plug & play information
 void AHBCtrl::start_of_simulation() {
 
  
@@ -524,7 +524,7 @@ void AHBCtrl::start_of_simulation() {
   }
 }
 
-/// Check the memory map for overlaps
+// Check the memory map for overlaps
 void AHBCtrl::checkMemMap() {
    std::map<uint32_t, slave_info_t>::iterator it;
    std::map<uint32_t, slave_info_t>::iterator it2;
@@ -556,7 +556,7 @@ void AHBCtrl::checkMemMap() {
    }
 }
 
-/// TLM debug interface
+// TLM debug interface
 unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &ahb_gp) {
 
     // -- For Debug only --
@@ -629,21 +629,21 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &ahb_g
     }
 }
 
-/// Helper for setting clock cycle latency using sc_clock argument
+// Helper for setting clock cycle latency using sc_clock argument
 void AHBCtrl::clk(sc_core::sc_clock &clk) {
 
   clockcycle = clk.period();
 
 }
 
-/// Helper for setting clock cycle latency using sc_time argument
+// Helper for setting clock cycle latency using sc_time argument
 void AHBCtrl::clk(sc_core::sc_time &period) {
 
   clockcycle = period;
 
 }
 
-/// Helper for setting clock cycle latency using a value-time_unit pair
+// Helper for setting clock cycle latency using a value-time_unit pair
 void AHBCtrl::clk(double period, sc_core::sc_time_unit base) {
 
   clockcycle = sc_core::sc_time(period, base);

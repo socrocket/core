@@ -54,8 +54,8 @@ models = [
   'utils',
   'apbctrl',
   'socwire',
-  #,ahbdecoder',
   'ahbctrl',
+  #'extern',
 ]
 
 def options(ctx): 

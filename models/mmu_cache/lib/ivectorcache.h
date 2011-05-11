@@ -71,8 +71,6 @@ class ivectorcache : public vectorcache {
         /// @param name                              SystemC module name
         /// @param mmu_cache                         Pointer to top-level class of cache subsystem (mmu_cache) for access to AHB bus interface
         /// @param tlb_adaptor                       Pointer to memory management unit
-        /// @param icache_hit_read_response_delay    Delay for a cache read hit
-        /// @param icache_miss_read_response_delay   Delay for a cache read miss
         /// @param sets                              Number of cache sets
         /// @param setsize                           Size of a cache set (in kbytes)
         /// @param linesize                          Size of a cache line (in bytes)
@@ -82,8 +80,6 @@ class ivectorcache : public vectorcache {
         /// @param lramsize                          Size of local ram (size in kbyte = 2^lramsize)
         ivectorcache(sc_core::sc_module_name name, mmu_cache_if * _mmu_cache,
                      mem_if * _tlb_adaptor, unsigned int mmu_en,
-                     sc_core::sc_time icache_hit_read_response_delay,
-                     sc_core::sc_time icache_miss_read_response_delay,
                      unsigned int sets, unsigned int setsize,
                      unsigned int setlock, unsigned int linesize,
                      unsigned int repl, unsigned int lram,
@@ -91,9 +87,7 @@ class ivectorcache : public vectorcache {
             vectorcache(name, _mmu_cache, _tlb_adaptor,
                     mmu_en,
                     1, // burst fetch allowed
-                    icache_hit_read_response_delay,
-                    icache_miss_read_response_delay, sc_core::sc_time(0,
-                            sc_core::SC_NS), sets, setsize, setlock, linesize,
+		    sets, setsize, setlock, linesize,
                     repl, lram, lramstart, lramsize) {
         }
 
