@@ -1,0 +1,11 @@
+%rename link                old_link
+%rename lib                old_lib
+
+*link:
+-T osemu.ld%s %(old_link)
+
+*lib:
+%(old_lib) -lc
+
+*startfile:
+osemu-irq-crt0%O%s crti%O%s crtbegin%O%s exceptionTrap-irq%O%s libcStub%O%s

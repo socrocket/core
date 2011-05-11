@@ -30,8 +30,7 @@
 #
 # Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 #
-# Purpose:    this file contains the build system for the grlib pnp
-#             mechanism model and all its testbenches
+# Purpose:    Recursive build for the LEON3 ISS 
 #
 # Method:     $ ./waf configure; ./waf # to build it on top level
 #
@@ -46,36 +45,15 @@
 #*********************************************************************
 top = '..'
 
-def options(ctx):
-  pass 
+simulator = [
+  'simulatorSources', 
+]
+
+def options(ctx): 
+  ctx.recurse(simulator)
 
 def configure(ctx):
-  pass
+  ctx.recurse(simulator)
 
 def build(bld):
-  bld(
-    target          = 'pnp',
-    features        = 'cxx cxxstlib',
-    source          = 'pnp.cpp', 
-    export_includes = '.',
-    uselib          = 'SYSC TLM2 AMBA GREENSOCS',
-    use             = 'utils common'
-  )
-
-  bld(
-    target       = 'simple.pnp',
-    features     = 'cxx cprogram test',
-    source       = 'tests/simple.cpp',
-    includes     = '.',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    use          = 'pnp utils common',
-  )
-  
-  bld(
-    target       = 'amba.pnp',
-    features     = 'cxx cprogram test',
-    source       = 'tests/amba.cpp',
-    includes     = '.',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
-    use          = 'pnp utils common',
-  )
+  bld.recurse(simulator)
