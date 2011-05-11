@@ -300,7 +300,7 @@ void APBCtrl::start_of_simulation() {
       // check 'type'filed of bar[i] (must be != 0)
       if (slave->get_type()) {
 
-	// get base address and mask from BAR
+  	// get base address and mask from BAR
         uint32_t addr = slave->get_base();
         uint32_t mask = slave->get_mask();
 
@@ -325,7 +325,7 @@ void APBCtrl::start_of_simulation() {
   // Check memory map for overlaps
   if (mmcheck) {
 
-    checkMemMap();
+    //checkMemMap();
 
   }
 }

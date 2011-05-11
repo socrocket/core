@@ -72,7 +72,7 @@ const uint32_t *APBDevice::get_device_info() const {
 }
 
 const APBDevice::device_type APBDevice::get_type() const {
-    return static_cast<APBDevice::device_type>(m_register[0]>>30);
+    return static_cast<APBDevice::device_type>(m_register[1] & 0xf);
 }
 
 const uint32_t APBDevice::get_base() const {

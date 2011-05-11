@@ -80,7 +80,7 @@ const uint32_t *AHBDevice::get_device_info() const {
 
 // Returns the device type entry for BAR bar
 const AHBDevice::device_type AHBDevice::get_bar_type(uint32_t bar) const {
-    return static_cast<AHBDevice::device_type>(m_register[4 + bar]>>30); 
+    return static_cast<AHBDevice::device_type>(m_register[4 + bar] & 0xf); 
 }
 
 // Extracts the 12bit MSB address for BAR bar

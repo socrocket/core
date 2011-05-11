@@ -452,7 +452,7 @@ void AHBCtrl::start_of_simulation() {
     uint32_t a = 0;
 
     // get pointer to socket of slave i
-    socket_t *other_socket = ahbOUT.get_other_side(i, a);
+    socket_t *other_socket = ahbOUT.get_other_side(i>>2, a);
 
     // get parent object containing slave socket i
     sc_core::sc_object *obj = other_socket->get_parent();
@@ -479,14 +479,14 @@ void AHBCtrl::start_of_simulation() {
       }
 
       // Each slave may have up to four subdevices (BARs)
-      for (uint32_t j = 0; i < 4; i++) {
+      for (uint32_t j = 0; j < 4; j++) {
 
-	// check 'type' field of bar[i] (must be != 0)
-	if (slave->get_bar_type(i)) {
+	// check 'type' field of bar[j] (must be != 0)
+	if (slave->get_bar_type(j)) {
 
 	  // get base address and maks from BAR i
-	  uint32_t addr = slave->get_bar_base(i);
-	  uint32_t mask = slave->get_bar_mask(i);
+	  uint32_t addr = slave->get_bar_base(j);
+	  uint32_t mask = slave->get_bar_mask(j);
 
 	  v::info << name() << "* BAR" << j << " with MSB addr: " << hex << addr << " and mask: " << mask <<  v::endl; 
 
@@ -496,6 +496,11 @@ void AHBCtrl::start_of_simulation() {
 	  // What is this good for ???
 	  MstSlvMap.insert(std::pair<uint32_t, int32_t>(i, -1));
 	  //SlvSemaphore.insert(std::pair<uint32_t, sc_core::sc_semaphore*>(i, newSema));
+
+	} else {
+
+	  v::info << name() << "* BAR" << j << " not used." << v::endl;
+
 	}
       
       } 
@@ -514,7 +519,7 @@ void AHBCtrl::start_of_simulation() {
   // Check memory map for overlaps
   if (mmcheck) {
 
-    checkMemMap();
+    //checkMemMap();
 
   }
 }

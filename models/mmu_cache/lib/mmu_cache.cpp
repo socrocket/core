@@ -152,7 +152,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 
     } else {
 
-      v::error << this->name() << " Abstraction Layer not valid!!" << v::endl;
+      v::error << this->name() << "Abstraction Layer not valid!!" << v::endl;
       assert(0);
 
     }

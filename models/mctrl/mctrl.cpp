@@ -63,24 +63,24 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                     0x04, //vendor: ESA
                     0x0F, //device: MCTRL
                     0,
-                    0, //irq
-                    BAR(AHBDevice::AHBMEM, rommask, true, true, romaddr),
-                    BAR(AHBDevice::AHBMEM, iomask, false, false, ioaddr),
-                    BAR(AHBDevice::AHBMEM, rammask, true, true, ramaddr),
+                    0,    //irq
+                    BAR(AHBDevice::AHBMEM, _rommask, true, true, _romaddr),
+                    BAR(AHBDevice::AHBMEM, _iomask, false, false, _ioaddr),
+                    BAR(AHBDevice::AHBMEM, _rammask, true, true, _ramaddr),
                     0),
             APBDevice(
                     0x04, //vendor: ESA
                     0x0F, //device: MCTRL
                     0,
-                    0, //irq
+                    0,    //irq
                     APBDevice::APBIO, _pmask, 0, 0, _paddr),
             apb( //greenreg_socket
                     "apb", //name
                     r, //register container
                     APBDevice::get_base_addr_(), //apb base address
-                    APBDevice::get_size_(), //apb address space size
-                    ::amba::amba_APB, //bus type
-                    ::amba::amba_LT, //abstraction level
+                    APBDevice::get_size_(),      //apb address space size
+                    ::amba::amba_APB,            //bus type
+                    ::amba::amba_LT,             //abstraction level
                     false //socket is not used for arbitration
             ),
             ahb("ahb", ::amba::amba_AHB, //bus type
