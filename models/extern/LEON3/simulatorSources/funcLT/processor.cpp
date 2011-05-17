@@ -112,7 +112,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
                 instrQueueElem.address = curPC;
             }
             #endif
-            unsigned int bitString = this->instrMem.read_word(curPC);
+            unsigned int bitString = this->instrMem.read_instr(curPC,0);
             template_map< unsigned int, CacheElem >::iterator cachedInstr = this->instrCache.find(bitString);
             if(cachedInstr != instrCacheEnd){
                 Instruction * curInstrPtr = cachedInstr->second.instr;

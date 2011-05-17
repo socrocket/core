@@ -50,20 +50,20 @@ namespace leon3_funclt_trap{
     class MemoryInterface{
 
         public:
-        virtual sc_dt::uint64 read_dword( const unsigned int & address ) throw() = 0;
-        virtual unsigned int read_word( const unsigned int & address ) throw() = 0;
-        virtual unsigned short int read_half( const unsigned int & address ) throw() = 0;
-        virtual unsigned char read_byte( const unsigned int & address ) throw() = 0;
+        virtual sc_dt::uint64 read_dword( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
+        virtual unsigned int read_word( const unsigned int & address , const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
+        virtual unsigned short int read_half( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
+        virtual unsigned char read_byte( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
         virtual sc_dt::uint64 read_dword_dbg( const unsigned int & address );
+        virtual unsigned int read_instr( const unsigned int & address, const unsigned int flush) throw() = 0;
         virtual unsigned int read_word_dbg( const unsigned int & address );
         virtual unsigned short int read_half_dbg( const unsigned int & address );
         virtual unsigned char read_byte_dbg( const unsigned int & address );
-        virtual void write_dword( const unsigned int & address, sc_dt::uint64 datum ) throw() \
-            = 0;
-        virtual void write_word( const unsigned int & address, unsigned int datum ) throw() = 0;
-        virtual void write_half( const unsigned int & address, unsigned short int datum ) \
+        virtual void write_dword( const unsigned int & address, sc_dt::uint64 datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
+        virtual void write_word( const unsigned int & address, unsigned int datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
+        virtual void write_half( const unsigned int & address, unsigned short int datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) \
             throw() = 0;
-        virtual void write_byte( const unsigned int & address, unsigned char datum ) throw() = 0;
+        virtual void write_byte( const unsigned int & address, unsigned char datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
         virtual void write_dword_dbg( const unsigned int & address, sc_dt::uint64 datum );
         virtual void write_word_dbg( const unsigned int & address, unsigned int datum );
         virtual void write_half_dbg( const unsigned int & address, unsigned short int datum );
@@ -119,14 +119,14 @@ namespace leon3_funclt_trap{
 
             return datum;
         }
-        unsigned short int read_half( const unsigned int & address ) throw();
-        unsigned char read_byte( const unsigned int & address ) throw();
+        unsigned short int read_half( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
+        unsigned char read_byte( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
         sc_dt::uint64 read_dword_dbg( const unsigned int & address ) throw();
         unsigned int read_word_dbg( const unsigned int & address ) throw();
         unsigned short int read_half_dbg( const unsigned int & address ) throw();
         unsigned char read_byte_dbg( const unsigned int & address ) throw();
-        void write_dword( const unsigned int & address, sc_dt::uint64 datum ) throw();
-        inline void write_word( const unsigned int & address, unsigned int datum ) throw(){
+        void write_dword( const unsigned int & address, sc_dt::uint64 datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
+        inline void write_word( const unsigned int & address, unsigned int datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw(){
             if(address >= this->size){
                 THROW_ERROR("Address " << std::hex << std::showbase << address << " out of memory");
             }
@@ -143,8 +143,8 @@ namespace leon3_funclt_trap{
 
             *(unsigned int *)(this->memory + (unsigned long)address) = datum;
         }
-        void write_half( const unsigned int & address, unsigned short int datum ) throw();
-        void write_byte( const unsigned int & address, unsigned char datum ) throw();
+        void write_half( const unsigned int & address, unsigned short int datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
+        void write_byte( const unsigned int & address, unsigned char datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
         void write_dword_dbg( const unsigned int & address, sc_dt::uint64 datum ) throw();
         void write_word_dbg( const unsigned int & address, unsigned int datum ) throw();
         void write_half_dbg( const unsigned int & address, unsigned short int datum ) throw();
