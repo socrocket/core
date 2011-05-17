@@ -22,14 +22,14 @@
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
 //*********************************************************************
-// Title:      ahbdevice.cpp
+// Title:      apbdevice.cpp
 //
 // ScssId:
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    contains the implementation of a baseclass
-//             for all ahb tlm models. It implements the the device
+// Purpose:    Contains the implementation of a baseclass
+//             for all apb tlm models. It implements the the device
 //             information register needed for the plug and play
 //             interface.
 //

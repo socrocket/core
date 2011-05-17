@@ -58,6 +58,7 @@
 #include "dcio_payload_extension.h"
 
 #include "amba.h"
+#include "ahbdevice.h"
 
 #include "verbose.h"
 #include "cache_if.h"
@@ -69,7 +70,7 @@
 #include "localram.h"
 
 /// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
-class mmu_cache : public sc_core::sc_module, public mmu_cache_if {
+class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevice {
 
     public:
 

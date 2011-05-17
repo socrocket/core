@@ -67,7 +67,16 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
                      unsigned int id,
 		     amba::amba_layer_ids abstractionLevel) :
 
-    sc_module(name), 
+    sc_module(name),
+    AHBDevice(
+      0x04, // vendor: ESA
+      0x00,  // device: ??
+      0,
+      0,
+      0,
+      0,
+      0,
+      0),
     icio("icio"), 
     dcio("dcio"), 
     ahb_master("ahb_master_socket", amba::amba_AHB, abstractionLevel, false), 

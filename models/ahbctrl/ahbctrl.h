@@ -79,9 +79,9 @@ class AHBCtrl : public sc_core::sc_module {
 	/// Get slave index for a given address
         int get_index(const uint32_t address);
 
-	/// Returns a PNP register from the configuration area
+	/// Returns a PNP register from the slave configuration area
 	unsigned int getPNPReg(const uint32_t address);
-
+	
         /// Check memory map for overlaps
         void checkMemMap();
 

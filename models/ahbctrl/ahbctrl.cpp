@@ -136,17 +136,35 @@ int AHBCtrl::get_index(const uint32_t address) {
   return -1;
 }
 
-// Returns a PNP register from the configuration area
+// Returns a PNP register from the slave configuration area
 unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 
-  // Calculate address offset in configuration area
+  // Calculate address offset in configuration area (slave info starts from 0x800)
   unsigned int addr   = address - ((mcfgaddr & mcfgmask) << 20);
-  // Calculate index of the device in mSlaves pointer array (32 byte per device)
-  unsigned int device = addr >> 3;
-  // Calculate offset within device information
-  unsigned int offset = addr & 0x7;
 
-  return(mSlaves[device][offset]);
+  // Slave area
+  if (addr >= 0x800) {
+
+    addr -= 0x800;
+
+    // Calculate index of the device in mSlaves pointer array (32 byte per device)
+    unsigned int device = addr >> 3;
+    // Calculate offset within device information
+    unsigned int offset = addr & 0x7;
+
+    return(mSlaves[device][offset]);
+
+  } else {
+
+    
+    // Calculate index of the device in mMasters pointer array (32 byte per device)
+    unsigned int device = addr >> 3;
+    // Calculate offset within device information
+    unsigned int offset = addr & 0x7;
+
+    return(mMasters[device][offset]);
+
+  }
 
 }
 
@@ -437,17 +455,23 @@ void AHBCtrl::start_of_simulation() {
 
  
   // Get number of bindings at master socket (number of connected slaves)
-  uint32_t num_of_bindings = ahbOUT.size();
+  uint32_t num_of_slave_bindings = ahbOUT.size();
+  // Get number of bindings at slave socket (number of connected masters)
+  uint32_t num_of_master_bindings = ahbIN.size();
 
   // max. 16 AHB slaves allowed
-  assert(num_of_bindings<=16);
+  assert(num_of_slave_bindings<=16);
+
+  // max. 16 AHB masters allowed
+  assert(num_of_master_bindings<=16);
 
   v::info << name() << "******************************************************************************* " << v::endl;
   v::info << name() << "* DECODER INITIALIZATION " << v::endl;
   v::info << name() << "* ---------------------- " << v::endl;
 
-  // iterate the registered slaves
-  for (uint32_t i = 0; i < (num_of_bindings<<2); i+=4) {
+  // Iterate/detect the registered slaves
+  // ------------------------------------
+  for (uint32_t i = 0; i < (num_of_slave_bindings<<2); i+=4) {
 
     uint32_t a = 0;
 
@@ -508,6 +532,67 @@ void AHBCtrl::start_of_simulation() {
     } else {
       
       v::error << name() << "Slave bound to socket 'ahbout' is not a valid AHBDevice" << v::endl;
+      assert(0);
+
+    }
+  }
+
+  // Iterate/detect the registered masters
+  // ------------------------------------
+  for (uint32_t i = 0; i < (num_of_master_bindings<<2); i+=4) {
+
+    uint32_t a = 0;
+
+    // get pointer to socket of slave i
+    socket_t *other_socket = ahbIN.get_other_side(i>>2, a);
+
+    // get parent object containing slave socket i
+    sc_core::sc_object *obj = other_socket->get_parent();
+
+    // valid slaves implement the AHBDevice interface
+    AHBDevice *master = dynamic_cast<AHBDevice *> (obj);
+
+    v::info << name() << "* Master name: " << obj->name() << v::endl;
+
+    // master is valid (implements AHBDevice)
+    if(master) {
+
+      // to be checked: do I need one 
+      //sc_core::sc_semaphore* newSema = new sc_core::sc_semaphore(1);
+
+      // Get pointer to device information
+      const uint32_t * deviceinfo = master->get_device_info();
+
+      // Map device information into PNP region
+      if (mfpnpen) {
+	
+	mMasters[i] = deviceinfo;
+
+      }
+
+      // Each master may have up to four subdevices (BARs)
+      for (uint32_t j = 0; j < 4; j++) {
+
+	// check 'type' field of bar[j] (must be != 0)
+	if (master->get_bar_type(j)) {
+
+	  // get base address and maks from BAR i
+	  uint32_t addr = master->get_bar_base(j);
+	  uint32_t mask = master->get_bar_mask(j);
+
+	  v::info << name() << "* BAR" << j << " with MSB addr: " << hex << addr << " and mask: " << mask <<  v::endl; 
+
+	} else {
+
+	  v::info << name() << "* BAR" << j << " not used." << v::endl;
+
+	}
+      
+      } 
+
+    } else {
+      
+      v::error << name() << "Master bound to socket 'ahbin' is not a valid AHBDevice" << v::endl;
       assert(0);
 
     }
