@@ -60,6 +60,8 @@
 #include <osEmulator.hpp>
 #include <systemc.h>
 
+#include "irqGenerator.hpp"
+
 std::string banner = std::string("\n\
 \t\n\
 \t      _/        _/_/_/_/    _/_/    _/      _/   _/_/_/\n\
@@ -258,6 +260,10 @@ int sc_main( int argc, char * * argv ){
     SparseMemoryLT<2, 32> mem("procMem", 10485760, sc_time(latency*0, SC_US));
     procInst.instrMem.initSocket.bind(*(mem.socket[0]));
     procInst.dataMem.initSocket.bind(*(mem.socket[1]));
+
+    IrqGenerator irqGen("irqGen", sc_time(latency*1000, SC_US));
+    irqGen.initSignal(procInst.IRQ_port.irq_signal);
+    procInst.irqAck.initSignal(irqGen.targSignal);
 
     std::cout << std::endl << "Loading the application and initializing the tools ..." \
         << std::endl;

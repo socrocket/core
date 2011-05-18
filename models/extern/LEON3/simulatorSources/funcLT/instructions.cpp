@@ -286,7 +286,7 @@ void leon3_funclt_trap::Instruction::RaiseException( unsigned int pcounter, unsi
         }
         if(exceptionId > TRAP_INSTRUCTION && exceptionId < IMPL_DEP_EXC){
             // finally I acknowledge the interrupt on the external pin port
-            irqAck.send_pin_req(IMPL_DEP_EXC - exceptionId, 0);
+            irqAck.send_pin_req(IMPL_DEP_EXC - exceptionId);
         }
         flush();
         annull();
