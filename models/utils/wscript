@@ -64,6 +64,6 @@ def build(bld):
                        'apbtestbench.cpp',
                       ],
     export_includes = '.',
-    uselib          = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib          = 'SYSTEMC TLM AMBA GREENSOCS',
     use             = 'signalkit common'
   )

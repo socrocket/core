@@ -66,8 +66,7 @@
 
 /// @brief This class is a tlm model of the gaisler aeroflex grlib gptimer.
 ///
-class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<
-        CGPTimer>, public APBDevice {
+class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPTimer>, public APBDevice {
     public:
         /// APB Slave socket for all bus communication
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;

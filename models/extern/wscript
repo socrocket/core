@@ -46,8 +46,8 @@
 top = '..'
 
 extern = [
-  'LEON2', 
-  'LEON3', 
+#  'LEON2', 
+#  'LEON3', 
 ]
 
 def options(ctx): 

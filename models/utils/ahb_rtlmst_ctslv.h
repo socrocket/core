@@ -47,7 +47,7 @@
 
 #include <systemc.h>
 #include <amba.h>
-#include <adapters/AHB_Master_RTL_CT_Adapter.h>
+#include <AHB_Master_RTL_CT_Adapter.h>
 #include <signalkit.h>
 
 /// @addtogroup utils Model Utils
@@ -69,10 +69,10 @@
 ///>          Device mapper output
 ///
 
-class CAHB_RTL_CT : public sc_module, public signalkit::signal_module<CAHB_RTL_CT> {
+class AHB_RTLMST_CT_SLV : public sc_module, public signalkit::signal_module<AHB_RTLMST_CT_SLV> {
     public:
 
-        SC_HAS_PROCESS(CAHB_RTL_CT);
+        SC_HAS_PROCESS(AHB_RTLMST_CT_SLV);
         sc_core::sc_in_clk clk;
         signal<bool>::in reset;
 
@@ -133,7 +133,7 @@ class CAHB_RTL_CT : public sc_module, public signalkit::signal_module<CAHB_RTL_C
         /// Constructor: Simply give name, baseaddress and size as an argument.
         /// After construction ensure that interrupt ports ahbi ahbo and the TLM Port
         /// are connected before starting the simulation.
-        CAHB_RTL_CT(sc_core::sc_module_name nm, sc_dt::uint64 base, sc_dt::uint64 size);
+        AHB_RTLMST_CT_SLV(sc_core::sc_module_name nm, sc_dt::uint64 base, sc_dt::uint64 size);
 
         void onreset(const bool &value, const sc_core::sc_time &time);
 
@@ -148,10 +148,10 @@ class CAHB_RTL_CT : public sc_module, public signalkit::signal_module<CAHB_RTL_C
 
 /// @}
 
-CAHB_RTL_CT::CAHB_RTL_CT(sc_core::sc_module_name nm, sc_dt::uint64 base,
+AHB_RTLMST_CT_SLV::AHB_RTLMST_CT_SLV(sc_core::sc_module_name nm, sc_dt::uint64 base,
                          sc_dt::uint64 size) :
-    sc_module(nm), clk("CLOCK"), reset(&CAHB_RTL_CT::onreset, "RESET"), 
-    ahbo("ahbo"), ahbi("ahbi"), hirqi(&CAHB_RTL_CT::onirq, "GR_IRQ_IN"), 
+    sc_module(nm), clk("CLOCK"), reset(&AHB_RTLMST_CT_SLV::onreset, "RESET"), 
+    ahbo("ahbo"), ahbi("ahbi"), hirqi(&AHB_RTLMST_CT_SLV::onirq, "GR_IRQ_IN"), 
     hirqo("GR_IRQ_OUT"), hconfig_0("GR_CONFIG_0"), hconfig_1("GR_CONFIG_1"), 
     hindex("GR_INDEX"), m_reset("RESET_INTERN"), m_hbusreq("AHB_BUSREQ"), 
     m_hlock("AHB_LOCK"), m_htrans("AHB_TRANS"), m_haddr("AHB_ADDRESS"), m_hirqi("GR_IRQ_IN_INTERN"), 
@@ -182,17 +182,17 @@ CAHB_RTL_CT::CAHB_RTL_CT(sc_core::sc_module_name nm, sc_dt::uint64 base,
     sensitive << m_hrdata << m_hresp << m_hgrant << m_hreadyin << m_hirqi;
 }
 
-void CAHB_RTL_CT::onreset(const bool &value, 
+void AHB_RTLMST_CT_SLV::onreset(const bool &value, 
                           const sc_core::sc_time &time) {
       m_reset.write(value);
 }
 
-void CAHB_RTL_CT::onirq(const uint32_t &value, 
+void AHB_RTLMST_CT_SLV::onirq(const uint32_t &value, 
                         const sc_core::sc_time &time) {
       m_hirqi.write(value);
 }
 
-void CAHB_RTL_CT::ahbo_ctrl() {
+void AHB_RTLMST_CT_SLV::ahbo_ctrl() {
     while (1) {
         ahb_mst_out_type_adapter val = ahbo.read();
         m_hbusreq.write(val.hbusreq.to_bool());
@@ -213,7 +213,7 @@ void CAHB_RTL_CT::ahbo_ctrl() {
     }
 }
 
-void CAHB_RTL_CT::ahbi_ctrl() {
+void AHB_RTLMST_CT_SLV::ahbi_ctrl() {
     while (1) {
         ahb_mst_in_type val;
         val.hgrant = (m_hgrant.read())? 0xFFFFFFFF : 0x0;

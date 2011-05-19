@@ -48,8 +48,8 @@
 
 #include <systemc.h>
 #include <amba.h>
-//#include <adapters/APB_CT_RTL_Slave_Adapter.h>
-#include <adapters/AHB_Master_CT_RTL_Adapter.h>
+//#include <APB_CT_RTL_Slave_Adapter.h>
+#include <AHB_Master_CT_RTL_Adapter.h>
 
 /// @addtogroup utils Model Utils
 /// @{

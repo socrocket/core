@@ -107,7 +107,7 @@ def build(bld):
     features       = 'cxx cxxstlib',
     source         = 'ahbctrl.cpp',
     export_includes = '.',
-    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'utils common'
   )
 
@@ -118,7 +118,7 @@ def build(bld):
                       './test1/testbench_tlm.cpp',
                       './test1/sim_lt/main.cpp'],
     includes       = '. ./test1 ./test1/sim_lt',
-    uselib         = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'common utils ahbctrl',
   )
   

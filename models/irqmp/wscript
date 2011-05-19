@@ -108,8 +108,8 @@ def build(bld):
     features        = 'cxx cxxstlib',
     source          = 'irqmp.cpp', 
     export_includes = '.',
-    uselib          = 'SYSC TLM2 AMBA GREENSOCS',
-    use             = 'BOOST utils signalkit common'
+    uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
+    use             = 'utils signalkit common'
   )
 
   bld(
@@ -117,7 +117,7 @@ def build(bld):
     source       = 'tests/test1/top_tlm.cpp tests/test1/testbench.cpp',
     target       = 'irqmp.1.tlm.test',
     includes     = '.',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     use          = 'irqmp utils signalkit common'
   )
   
@@ -126,7 +126,7 @@ def build(bld):
     source       = 'tests/test1/top_ctb.cpp tests/test1/testbench.cpp',
     target       = 'irqmp.1.ctb.test',
     includes     = '.',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     use          = 'irqmp utils signalkit common'
   )
   
@@ -149,7 +149,7 @@ def build(bld):
     source       = 'tests/test2/top_tlm.cpp tests/test2/testbench.cpp',
     target       = 'irqmp.2.tlm.test',
     includes     = '.',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     use          = 'irqmp utils signalkit common'
   )
   
@@ -158,7 +158,7 @@ def build(bld):
     source       = 'tests/test2/top_ctb.cpp tests/test2/testbench.cpp',
     target       = 'irqmp.2.ctb.test',
     includes     = '.',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     use          = 'irqmp utils signalkit common'
   )
   
@@ -181,7 +181,7 @@ def build(bld):
     source       = 'tests/test3/top_tlm.cpp tests/test3/testbench.cpp',
     target       = 'irqmp.3.tlm.test',
     includes     = '.',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     use          = 'irqmp utils signalkit common'
   )
   
@@ -190,7 +190,7 @@ def build(bld):
     source       = 'tests/test3/top_ctb.cpp tests/test3/testbench.cpp',
     target       = 'irqmp.3.ctb.test',
     includes     = '.',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     use          = 'irqmp utils signalkit common'
   )
    

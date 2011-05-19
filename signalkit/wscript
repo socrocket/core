@@ -55,7 +55,7 @@ def build(bld):
   bld(
     name            = 'signalkit',
     export_includes = '.',
-    uselib          = 'BOOST SYSC',
+    uselib          = 'BOOST SYSTEMC',
     use             = 'common',
   )
  
@@ -64,7 +64,7 @@ def build(bld):
     features     = 'cxx cprogram test',
     source       = 'tests/simple.cpp',
     includes     = '.',
-    uselib       = 'BOOST SYSC',
+    uselib       = 'BOOST SYSTEMC',
     use          = 'signalkit common',
   )
   
@@ -73,7 +73,7 @@ def build(bld):
     features     = 'cxx cprogram test',
     source       = 'tests/systemc.cpp',
     includes     = '.',
-    uselib       = 'BOOST SYSC',
+    uselib       = 'BOOST SYSTEMC',
     use          = 'signalkit common',
   )
   
@@ -82,7 +82,7 @@ def build(bld):
     features     = 'cxx cprogram test',
     source       = 'tests/datatypemapping.cpp',
     includes     = '.',
-    uselib       = 'BOOST SYSC',
+    uselib       = 'BOOST SYSTEMC',
     use          = 'signalkit common',
   )
    

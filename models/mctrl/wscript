@@ -108,7 +108,7 @@ def build(bld):
     features        = 'cxx cxxstlib',
     source          = 'mctrl.cpp', 
     export_includes = '.',
-    uselib          = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib          = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use             = 'utils signalkit common'
   )
 
@@ -118,7 +118,7 @@ def build(bld):
     source       = ['tests/test1/testbench.cpp',
                     'tests/test1/top_tlm.cpp'],
     includes     = './ tests tests/test1',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )
 
@@ -134,21 +134,20 @@ def build(bld):
   #  includes     = '. tests tests/test1 ../utils ../../signalkit ../../common',
   #  config       =  vsim_conf,
   #)  
-
+  """
   bld(
     features     = 'modelsim test',
     target       = 'mctrl.test001.cosim.rtlahb',
-    source       = [os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/sram32.vhd'), bld.path.get_src().abspath()),
+    source       = [(os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/sram32.vhd'), bld.path.get_src().abspath()),
                     os.path.relpath(os.path.join(bld.env['GRLIB_HOME'], 'lib/contrib/amba/ahbctrl.vhd'), bld.path.get_src().abspath()),
                     '../../common/verbose.cpp',
                     './tests/conf001/mctrl_tb.cpp',
                     './tests/conf001/cosim/mctrl_top_rtl_bus.cpp'],
-    uselib       = 'AMBA GREENSOCS AMBAMEM',
+    uselib       = 'BOOST_PROGRAM_OPTIONS AMBA GREENSOCS AMBAMEM',
     defines      = 'TESTLENGTH=1 DEBUGOUT=1',
     includes     = './ ./tests ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )  
-
   bld(
     features     = 'modelsim test',
     target       = 'mctrl.test001.cosim.ahb',
@@ -158,10 +157,10 @@ def build(bld):
                     './tests/conf001/mctrl_tb.cpp',
                     './tests/conf001/cosim/mctrl_top.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
-    defines      = 'TESTLENGTH=1 DEBUGOUT=1',
     includes     = './ ./tests ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )  
+  """
 
   #bld(
   #  features     = 'modelsim',
@@ -172,7 +171,6 @@ def build(bld):
   #                  './tests/conf004/mctrl_tb.cpp',
   #                  './tests/conf004/cosim/mctrl_top_rtl_bus.cpp'],
   #  uselib       = 'AMBA GREENSOCS AMBAMEM',
-  #  defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
   #  includes     = './ ./tests ../utils ../../signalkit ../../common',
   #  config       =  vsim_conf,
   #)  
@@ -183,7 +181,7 @@ def build(bld):
     source       = ['tests/test2/testbench.cpp',
                     'tests/test2/top_tlm.cpp'],
     includes     = '. tests tests/test2',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )
 
@@ -193,7 +191,7 @@ def build(bld):
     source       = ['tests/test3/testbench.cpp',
                     'tests/test3/top_tlm.cpp'],
     includes     = '. tests tests/test3',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )
 

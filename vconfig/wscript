@@ -51,7 +51,7 @@ def options(ctx):
 
 def configure(ctx):
   try:
-    ctx.load("qt4 python")
+    ctx.load("python")
     ctx.check_python_version((2,4,0))
     ctx.check_python_module('PyQt4')
   except ctx.errors.ConfigurationError:

@@ -1,5 +1,6 @@
 #! /usr/bin/env python
-# encoding: utf-8
+# -*- coding: utf-8 -*-
+# vim: set expandtab:ts=4:sw=4:setfiletype python
 #*********************************************************************
 # Copyright 2010, Institute of Computer and Network Engineering,
 #                 TU-Braunschweig
@@ -43,283 +44,709 @@
 # Maintainer: Rolf Meyer
 # Reviewed:
 #*********************************************************************
-APPNAME = 'hwswtlmmodels'
-VERSION = '0.5'
+APPNAME = 'SoCRocket'
+VERSION = '$Revision$'
 top = '.'
 out = 'build'
-dirs = ['outkit', 'signalkit', 'models', 'tests']
 
-import os
-import os.path
-import fnmatch
+import os, sys
 
-from waflib.Tools import waf_unit_test
+def build(self):
+    from waflib.Tools import waf_unit_test  
+    from waftools.common import get_subdirs
+    self.recurse(get_subdirs())
+    self.add_post_fun(waf_unit_test.summary)
 
-def options(ctx): 
-  from os import environ
-  conf = ctx.get_option_group("--download")
-  
-  ctx.tool_options('compiler_cxx')
-  ctx.tool_options('waf_unit_test')
-  ctx.tool_options('common', tooldir='waftools')
-  ctx.tool_options('modelsim', tooldir='waftools')
-  ctx.load('boost', option_group=conf)
-  
-  #ctx.add_option('--onlytests', action='store_true', default=True, help='Exec unit tests only', dest='only_tests')
-  conf.add_option("--cxxflags", dest="cxxflags", help="C++ compiler flags", default=environ.get("CXXFLAGS",""))
-  
-  sysc = ctx.add_option_group("SystemC configuration Options")
-  sysc.add_option("--systemc", dest="systemc_home", help="Basedir of your SystemC installation", default=environ.get("SYSTEMC_HOME",""))
-  sysc.add_option("--tlm2", dest="tlm2_home", help="Basedir of your TLM-2.0 distribution", default=environ.get("TLM2_HOME",""))
-  sysc.add_option("--tlm2tests", dest="tlm2_tests", help="Example of your TLM-2.0 distribution", default=environ.get("TLM2_TESTS",""))
-  sysc.add_option("--scv", dest="scv_home", help="Basedir of your SCV distribution", default=environ.get("SCV_HOME",""))
-  
-  gso = ctx.add_option_group("GreenSoCs Configuration Options")
-  gso.add_option("--greensocs", dest="greensocs_home", help="Basedir of your GreenSoCs instalation", default=environ.get("GREENSOCS_HOME",""))
-  gso.add_option("--amba", dest="amba_home", help="Basedir of your AMBAKit distribution", default=environ.get("AMBA_HOME",""))
-  gso.add_option("--grlib_home", dest="grlib_home", help="Basedir of your grlib distribution", default=environ.get("GRLIB_HOME",""))
-  gso.add_option("--grlib_tech", dest="grlib_tech", help="Basedir of your modelsim grlib work libraries", default=environ.get("GRLIB_TECH",""))
+def check_trap_linking(ctx, libName, libPaths, symbol):
+    for libpath in libPaths:
+        libFile = os.path.join(libpath, ctx.env['cxxshlib_PATTERN'].split('%s')[0] + libName + ctx.env['cxxshlib_PATTERN'].split('%s')[1])
+        if os.path.exists(libFile):
+            libDump = os.popen(ctx.env.NM + ' -r ' + libFile).readlines()
+            for line in libDump:
+                if line.find(symbol) != -1:
+                    return True
+            break
+        libFile = os.path.join(libpath, ctx.env['cxxstlib_PATTERN'].split('%s')[0] + libName + ctx.env['cxxstlib_PATTERN'].split('%s')[1])
+        if os.path.exists(libFile):
+            libDump = os.popen(ctx.env.NM + ' -r ' + libFile).readlines()
+            for line in libDump:
+                if line.find(symbol) != -1:
+                    return True
+            break
+    return False
 
-  from waftools.common import get_subdirs
-  ctx.recurse(get_subdirs(top))
 
 def configure(ctx):
-  from waflib.Options import options
-  import os.path
-  #import waftools
-  ctx.env['CXXFLAGS'] += ['-g',
-                          '-Wall',
-                          '-O2'] + options.cxxflags.split()
+    import os.path
+    import glob
 
-  ctx.env['CPPFLAGS'] += ['-D_REENTRANT',
-                          '-DUSE_STATIC_CASTS',
-                          '-DSC_INCLUDE_DYNAMIC_PROCESSES']
-  ctx.env['GRLIB_HOME'] = options.grlib_home
-  ctx.env['GRLIB_TECH'] = options.grlib_tech
+    #############################################################
+    # Check for doxygen
+    #############################################################
+    ctx.find_program('doxygen', var='DOXYGEN', mandatory=False, okmsg="ok")
+    #ctx.check_tool('doxygen', tooldir='waftools')
+ 
+    ctx.find_program('nm', mandatory=1, var='NM')
+    #############################################################
+    # Small hack to adjust common usage of CPPFLAGS
+    #############################################################
+    for flag in ctx.env['CPPFLAGS']:
+        if flag.startswith('-D'):
+            ctx.env.append_unique('DEFINES', flag[2:])
 
-  ctx.check_tool('compiler_cxx')
-  ctx.find_program('doxygen', var='DOXYGEN', mandatory=False, okmsg="ok")
-  #ctx.check_tool('doxygen', tooldir='waftools')
-  
-  ## Modelsim:
-  ctx.load('modelsim', tooldir='wadtools')
-  ctx.load('waf_unit_test')
-  ctx.load('boost')
-  ctx.check_waf_version(mini='1.6.0')
-  from os import environ
-  if not options.boostincludes or options.boostincludes == "":
-    options.boostincludes = environ.get("BOOST_DIR","")
+    # Check for standard tools
+    ctx.check_waf_version(mini='1.6.0')
+
+    # Check for standard tools
+    ctx.load('compiler_cxx')
+    if ctx.env.CC_VERSION:
+        if int(ctx.env.CC_VERSION[0]) > 3:
+            ctx.msg('Checking for compiler version', 'ok - ' + '.'.join(ctx.env.CC_VERSION))
+        else:
+            ctx.fatal('Compiler Version' + '.'.join(ctx.env.CC_VERSION) + ' too old: at least version 4.x required')
+
+    # Check for python
+    ctx.load('python')
+
+    if ctx.options.static_build:
+        ctx.env['SHLIB_MARKER'] = ''
+        ctx.env['STLIB_MARKER'] = '-static'
+
+
+    ##############################################################
+    # Since I want to build fast simulators, if the user didn't
+    # specify any flags I set optimized flags
+    #############################################################
+    if not ctx.env['CXXFLAGS'] and not ctx.env['CCFLAGS']:
+        testFlags = ['-O2', '-march=native', '-pipe', '-finline-functions', '-ftracer', '-fomit-frame-pointer']
+        if ctx.check_cxx(cxxflags=testFlags, msg='Checking for g++ optimization flags', mandatory=False) and ctx.check_cc(cflags=testFlags, msg='Checking for gcc optimization flags'):
+            ctx.env.append_unique('CXXFLAGS', testFlags)
+            ctx.env.append_unique('CCFLAGS', testFlags)
+            if not ctx.options.debug:
+              ctx.env.append_unique('DEFINES', 'NDEBUG')
+        else:
+            testFlags = ['-O2', '-pipe', '-finline-functions', '-fomit-frame-pointer']
+            if ctx.check_cxx(cxxflags=testFlags, msg='Checking for g++ optimization flags') and ctx.check_cc(cflags=testFlags, msg='Checking for gcc optimization flags'):
+                ctx.env.append_unique('CXXFLAGS', testFlags)
+                ctx.env.append_unique('CCFLAGS', testFlags)
+                if not ctx.options.debug:
+                    ctx.env.append_unique('DEFINES', 'NDEBUG')
+
+    if ctx.env['CFLAGS']:
+        ctx.check_cc(cflags=ctx.env['CFLAGS'], mandatory=True, msg='Checking for C compilation flags')
+    if ctx.env['CCFLAGS'] and ctx.env['CCFLAGS'] != ctx.env['CFLAGS']:
+        ctx.check_cc(cflags=ctx.env['CCFLAGS'], mandatory=True, msg='Checking for C compilation flags')
+    if ctx.env['CXXFLAGS']:
+        ctx.check_cxx(cxxflags=ctx.env['CXXFLAGS'], mandatory=True, msg='Checking for C++ compilation flags')
+    if ctx.env['LINKFLAGS']:
+        ctx.check_cxx(linkflags=ctx.env['LINKFLAGS'], mandatory=True, msg='Checking for link flags')
+
+    #############################################################
+    # Check support for debugging
+    #############################################################
+    if ctx.options.debug:
+        if not '-g' in ctx.env['CCFLAGS']:
+            ctx.env.append_unique('CCFLAGS', '-g')
+        if not '-Wall' in ctx.env['CCFLAGS']:
+            ctx.env.append_unique('CCFLAGS', '-Wall')
+        if not '-g' in ctx.env['CXXFLAGS']:
+            ctx.env.append_unique('CXXFLAGS', '-g')
+        if not '-Wall' in ctx.env['CXXFLAGS']:
+            ctx.env.append_unique('CXXFLAGS', '-Wall')
+        if not ctx.options.verbosity:
+            ctx.env.append_unique('DEFINES', 'VERBOSITY=10')
+
+    #############################################################
+    # Check support for profilers
+    #############################################################
+    if ctx.options.enable_gprof and ctx.options.enable_vprof:
+        ctx.fatal('Only one profiler among gprof and vprof can be enabled at the same time')
+    if ctx.options.enable_gprof:
+        if not '-g' in ctx.env['CCFLAGS']:
+            ctx.env.append_unique('CCFLAGS', '-g')
+        if not '-g' in ctx.env['CXXFLAGS']:
+            ctx.env.append_unique('CXXFLAGS', '-g')
+        if '-fomit-frame-pointer' in ctx.env['CCFLAGS']:
+            ctx.env['CCFLAGS'].remove('-fomit-frame-pointer')
+        if '-fomit-frame-pointer' in ctx.env['CXXFLAGS']:
+            ctx.env['CXXFLAGS'].remove('-fomit-frame-pointer')
+        ctx.env.append_unique('CCFLAGS', '-pg')
+        ctx.env.append_unique('CXXFLAGS', '-pg')
+        ctx.env.append_unique('LINKFLAGS', '-pg')
+        ctx.env.append_unique('STLINKFLAGS', '-pg')
+    if ctx.options.enable_vprof:
+        if not '-g' in ctx.env['CCFLAGS']:
+            ctx.env.append_unique('CCFLAGS', '-g')
+        if not '-g' in ctx.env['CXXFLAGS']:
+            ctx.env.append_unique('CXXFLAGS', '-g')
+        # I have to check for the vprof and papi libraries and for the
+        # vmonauto_gcc.o object file
+        vmonautoPath = ''
+        if not ctx.options.vprofdir:
+            ctx.check_cxx(lib='vmon', uselib_store='VPROF', mandatory=True)
+            for directory in searchDirs:
+                if 'vmonauto_gcc.o' in os.listdir(directory):
+                    vmonautoPath = os.path.abspath(os.path.expanduser(os.path.expandvars(directory)))
+                    break;
+        else:
+            ctx.check_cxx(lib='vmon', uselib_store='VPROF', mandatory=True, libpath = os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.vprofdir))))
+            ctx.env.append_unique('RPATH', ctx.env['LIBPATH_VPROF'])
+            ctx.env.append_unique('LIBPATH', ctx.env['LIBPATH_VPROF'])
+            vmonautoPath = ctx.env['LIBPATH_VPROF'][0]
+        ctx.env.append_unique('LIB', 'vmon')
+
+        if not ctx.options.papidir:
+            ctx.check_cxx(lib='papi', uselib_store='PAPI', mandatory=True)
+        else:
+            ctx.check_cxx(lib='papi', uselib_store='PAPI', mandatory=True, libpath = os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.papidir))))
+            ctx.env.append_unique('RPATH', ctx.env['LIBPATH_PAPI'])
+            ctx.env.append_unique('LIBPATH', ctx.env['LIBPATH_PAPI'])
+        ctx.env.append_unique('LIB', 'papi')
+
+        # now I check for the vmonauto_gcc.o object file
+        taskEnv = ctx.env.copy()
+        taskEnv.append_unique('LINKFLAGS', os.path.join(vmonautoPath, 'vmonauto_gcc.o'))
+        ctx.check_cxx(fragment='int main(){return 0;}', uselib='VPROF', mandatory=True, env=taskEnv)
+        ctx.env.append_unique('LINKFLAGS', os.path.join(vmonautoPath, 'vmonauto_gcc.o'))
     
-  if not options.boostlibs or options.boostlibs == "":
-    options.boostlibs = environ.get("BOOST_LIB","")
-  
-  # It seems that we just need the header for static & shared pointer, algorithem trim but libs for program_options in greensocs, tokenizer filesystem and iostream in greenreg
-  boostLibs = 'program_options filesystem iostream' # Trap: 'regex thread program_options filesystem system'
-  ctx.check_boost(lib=boostLibs, static='both', min_version='1.35.0', mandatory = True, errmsg = 'Unable to find ' + boostLibs + ' boost libraries of at least version 1.35, please install them and specify their location with the --boost-includes and --boost-libs configuration options')
-  import glob
-  
-  # SystemC
-  ctx.check_cxx(
-    lib          = 'systemc',
-    uselib_store = 'SYSC',
-    mandatory    = True,
-    libpath      = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.systemc_home, "lib-*"))))), # not always lib-linux -> lib-* or lib-<target>
-    errormsg     = "SystemC Library not found. Use --systemc option or set $SYSTEMC_HOME.",
-    okmsg        = "ok"
-  ) 
-  ctx.check_cxx(
-    header_name  = 'systemc.h',
-    uselib_store = 'SYSC',
-    mandatory    = True,
-    includes     = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.systemc_home, "include")))),
-    uselib       = 'SYSC',
-    okmsg        = "ok"
-  ) 
-  ctx.check_cxx(
-    msg          = "Checking for SystemC 2.2.0 or higher",
-    mandatory    = True,
-    execute      = True,
-    fragment     = """
-                   #include <systemc.h>
-                   int main(int argc, char *argv[]) {
-                     return !(SYSTEMC_VERSION > 20070313);
-                   }
-    """,
-    uselib       = 'SYSC',
-    okmsg        = "ok",
-  )
- 
-  # TLM 2.0
-  ctx.check_cxx(
-    header_name  = 'tlm.h',
-    uselib_store = 'TLM2',
-    mandatory    = True,
-    includes     = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.tlm2_home, "include/tlm")))),
-    uselib       = 'SYSC',
-    okmsg        = "ok",
-  ) 
-  ctx.check_cxx(
-    msg          = "Checking for TLM 2.0.x",
-    mandatory    = True,
-    execute      = True,
-    fragment     = """
-                   #include <tlm.h>
-                   int main(int argc, char *argv[]) {
-                     return !((TLM_VERSION_MAJOR == 2) && (TLM_VERSION_MINOR == 0));
-                   }
-    """,
-    uselib       = 'SYSC TLM2',
-    okmsg        = "ok",
-  )
- 
-  # TODO: It has to be checked if we realy need them
-  # SCV
-  #ctx.check_cxx(
-  #  lib          = 'scv',
-  #  uselib_store = 'SCV',
-  #  mandatory    = True,
-  #  libpath      = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.scv_home, "lib-linux"))))), # not always lib-linux -> lib-* or lib-<target>
-  #  errormsg     = "SystemC Verification Library not found. Use --scv option or set $SYSTEMC_HOME."
-  #) 
-  #ctx.check_cxx(
-  #  header_name  = 'scv.h',
-  #  uselib_store = 'SYSC',
-  #  mandatory    = True,
-  #  includes     = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.scv_home, "include")))),
-  #  uselib       = 'SYSC SCV'
-  #) 
-  #ctx.check_cxx(
-  #  msg          = "Checking for SCV Library 2.2 or higher",
-  #  mandatory    = True,
-  #  execute      = True,
-  #  fragment     = """
-  #                 #include <scv.h>
-  #                 int main(int argc, char *argv[]) {
-  #                   return !(SC_VERSION > 2001999);
-  #                 }
-  #  """,
-  #  uselib       = 'BOOST SYSC SCV',
-  #)
-  
-  ctx.check_cxx(
-    lib          = 'greenreg',
-    uselib_store = 'GREENSOCS',
-    mandatory    = True,
-    #cxxflags     = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
-    defines      = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
-    libpath      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greenreg")))),
-    okmsg        = "ok",
-  ) 
-  ctx.check_cxx(
-    header_name   = "greensocket/initiator/single_socket.h",
-    uselib_store  = 'GREENSOCS',
-    mandatory     = True,
-    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(options.greensocs_home))),
-    #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
-    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
-    uselib        = 'BOOST SYSC TLM2',
-    okmsg        = "ok",
-  )
-  ctx.check_cxx(
-    header_name   = "greensocket/target/single_socket.h",
-    uselib_store  = 'GREENSOCS',
-    mandatory     = True,
-    #includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greensocket")))),
-    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(options.greensocs_home))),
-    #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
-    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
-    uselib        = 'GREENSOCS BOOST SYSC TLM2',
-    okmsg        = "ok",
-  )
-  ctx.check_cxx(
-    header_name   = "greencontrol/config.h",
-    uselib_store  = 'GREENSOCS',
-    mandatory     = True,
-    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(options.greensocs_home))),
-    #includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greencontrol")))),
-    #cxflags       = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
-    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
-    uselib        = 'GREENSOCS BOOST SYSC TLM2',
-    okmsg        = "ok",
-  )
-  ctx.check_cxx(
-    header_name   = "greenreg.h",
-    uselib_store  = 'GREENSOCS',
-    mandatory     = True,
-    #includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(options.greensocs_home))),
-    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.greensocs_home, "greenreg")))),
-    #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
-    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
-    uselib        = 'GREENSOCS BOOST SYSC TLM2',
-    okmsg        = "ok",
-  )
+    ########################################
+    # Setting the host endianess
+    ########################################
+    if sys.byteorder == "little":
+        ctx.env.append_unique('DEFINES', 'LITTLE_ENDIAN_BO')
+        ctx.msg('Checking for host endianness', 'little')
+    else:
+        ctx.env.append_unique('DEFINES', 'BIG_ENDIAN_BO')
+        ctx.msg('Checking for host endianness', 'big')
 
-  # AMBAKit 
-  # TODO: Check for version, its included in the new version
-  ctx.check_cxx(
-    header_name   = "amba.h",
-    uselib_store  = 'AMBA',
-    mandatory     = True,
-    includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(options.amba_home))),
-    #cxxflags       = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
-    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
-    uselib        = 'BOOST SYSC TLM2 GREENSOCS',
-    okmsg        = "ok",
-  )
-  ctx.check_cxx(
-    msg          = "Checking for AMBAKit Version > 1.0.5",
-    mandatory    = True,
-    execute      = True,
-    fragment     = """
-                   #include <amba.h>
+    ########################################
+    # Check for boost libraries
+    ########################################
+    ctx.load('boost')
+    # Try to load options from env if not given
+    if not ctx.options.boost_includes or options.boost_includes == "":
+      ctx.options.boost_includes = os.environ.get("BOOST_DIR",None)
+    if not ctx.options.boost_libs or options.boost_libs == "":
+      ctx.options.boost_libs = os.environ.get("BOOST_LIB",None)
+
+    boostLibs = 'thread regex date_time program_options filesystem unit_test_framework system'
+    boostErrorMessage = 'Unable to find ' + boostLibs + ' boost libraries of at least version 1.35, please install them and/or specify their location with the --boost-includes and --boost-libs configuration options. It can also happen that you have more than one boost version installed in a system-wide location: in this case remove the unnecessary versions.'
+    
+    boostLibs = 'thread regex date_time program_options filesystem system'
+
+    ctx.check_boost(lib=boostLibs, static=ctx.options.static_build, mandatory=True, errmsg = boostErrorMessage)
+    if int(ctx.env.BOOST_VERSION.split('_')[1]) < 35:
+        ctx.fatal(boostErrorMessage)
+    if not ctx.options.static_build:
+        ctx.env.append_unique('RPATH', ctx.env['LIBPATH_BOOST_THREAD'])
+
+    #######################################################
+    # Determining gcc search dirs
+    #######################################################
+    compilerExecutable = ''
+    if len(ctx.env['CXX']):
+        compilerExecutable = ctx.env['CXX'][0]
+    elif len(ctx.env['CC']):
+        compilerExecutable = ctx.env['CC'][0]
+    else:
+        ctx.fatal('CC or CXX environment variables not defined: Error, is the compiler correctly detected?')
+
+    result = os.popen(compilerExecutable + ' -print-search-dirs')
+    searchDirs = []
+    localLibPath = os.path.join('/', 'usr', 'lib64')
+    if os.path.exists(localLibPath):
+        searchDirs.append(localLibPath)
+    localLibPath = os.path.join('/', 'usr', 'local', 'lib')
+    if os.path.exists(localLibPath):
+        searchDirs.append(localLibPath)
+    localLibPath = os.path.join('/', 'sw', 'lib')
+    if os.path.exists(localLibPath):
+        searchDirs.append(localLibPath)
+    gccLines = result.readlines()
+    for curLine in gccLines:
+        startFound = curLine.find('libraries: =')
+        if startFound != -1:
+            curLine = curLine[startFound + 12:-1]
+            searchDirs_ = curLine.split(':')
+            for i in searchDirs_:
+                if os.path.exists(i) and not os.path.abspath(i) in searchDirs:
+                    searchDirs.append(os.path.abspath(i))
+            break
+    ctx.msg('Determining gcc search path', 'ok')
+
+    ########################################
+    # Parsing command options
+    ########################################
+    if not ctx.options.enable_tools:
+        ctx.env.append_unique('DEFINES', 'DISABLE_TOOLS')
+    if ctx.options.static_build:
+        ctx.env['FULLSTATIC'] = True
+    if ctx.options.enable_history:
+        ctx.env.append_unique('DEFINES', 'ENABLE_HISTORY')
+    # We need toc export the GRLIB Paths to vsim subshells for co-simulation
+    if ctx.options.grlibdir:
+      ctx.env['GRLIB_HOME'] = ctx.options.grlibdir
+    if ctx.options.grlibtech:
+      ctx.env['GRLIB_TECH'] = ctx.options.grlibtech
+    # Set verbosity level
+    if ctx.options.verbosity:
+      ctx.env.append_unique('DEFINES', 'VERBOSITY=%s' % ctx.options.verbosity)
+
+
+    ########################################
+    # Adding the custom preprocessor macros
+    ########################################
+    if ctx.options.define_tsim_compatibility:
+        ctx.env.append_unique('DEFINES', 'TSIM_COMPATIBILITY')
+
+    ########################################
+    # Load unit test framework
+    ########################################
+    ctx.load('modelsim', tooldir='wadtools')
+
+    ########################################
+    # Load modelsim and check for dependenies
+    ########################################
+    ctx.load('waf_unit_test')
+    ###########################################################
+    # Check for ELF library and headers
+    ###########################################################
+    ctx.check(header_name='cxxabi.h', features='cxx cprogram', mandatory=True)
+    ctx.check_cxx(function_name='abi::__cxa_demangle', header_name="cxxabi.h", mandatory=True)
+    if ctx.options.elfdir:
+        elfIncPath=[os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.elfdir, 'include')))),
+                    os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.elfdir, 'include', 'libelf'))))]
+        elfLibPath=os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.elfdir, 'lib'))))
+        if not os.path.exists(os.path.join(elfLibPath, ctx.env['cxxstlib_PATTERN'] % 'elf')) and  not os.path.exists(os.path.join(elfLibPath, ctx.env['cxxshlib_PATTERN'] % 'elf')):
+            ctx.fatal('Unable to find libelf in specified path ' + elfLibPath)
+        elfHeaderFound = False
+        for path in elfIncPath:
+            if os.path.exists(os.path.join(path, 'libelf.h')) and os.path.exists(os.path.join(path, 'gelf.h')):
+                elfHeaderFound = True
+                break
+        if not elfHeaderFound:
+            ctx.fatal('Unable to find libelf.h and/or gelf.h headers in specified path ' + str(elfIncPath))
+        if ctx.check_cxx(lib='elf', uselib_store='ELF_LIB', mandatory=False, libpath = elfLibPath):
+            ctx.check(header_name='libelf.h', uselib='ELF_LIB', uselib_store='ELF_LIB', features='cxx cprogram', mandatory=True, includes = elfIncPath)
+            ctx.check(header_name='gelf.h', uselib='ELF_LIB', uselib_store='ELF_LIB', features='cxx cprogram', mandatory=True, includes = elfIncPath)
+        foundShared = glob.glob(os.path.join(elfLibPath, ctx.env['cxxshlib_PATTERN'] % 'elf'))
+        if foundShared:
+            ctx.env.append_unique('RPATH', elfLibPath)
+    else:
+        if ctx.check_cxx(lib='elf', uselib_store='ELF_LIB', mandatory = True):
+            ctx.check(header_name='libelf.h', uselib='ELF_LIB', uselib_store='ELF_LIB', features='cxx cprogram', mandatory=True)
+            ctx.check(header_name='gelf.h', uselib='ELF_LIB', uselib_store='ELF_LIB', features='cxx cprogram', mandatory=True)
+    if 'elf' in ctx.env['LIB_ELF_LIB']:
+        pass
+        ctx.check_cxx(fragment='''
+            #include <libelf.h>
+            
+            int main(int argc, char *argv[]){
+                void * funPtr = (void *)elf_getphdrnum;
+                return 0;
+            }
+        ''', msg='Checking for function elf_getphdrnum', use='ELF_LIB', mandatory=True, errmsg='Error, elf_getphdrnum not present in libelf; try to update to a newest version')
+
+
+    #########################################################
+    # Check for the winsock library
+    #########################################################
+    if sys.platform == 'cygwin':
+        ctx.check_cxx(lib='ws2_32', uselib_store='WINSOCK', mandatory=True)
+
+    ##################################################
+    # Check for pthread library/flag
+    ##################################################
+    if not ctx.check_cxx(linkflags='-pthread') or not ctx.check_cc(cxxflags='-pthread') or sys.platform == 'cygwin':
+        ctx.env.append_unique('LIB', 'pthread')
+    else:
+        ctx.env.append_unique('LINKFLAGS', '-pthread')
+        ctx.env.append_unique('CXXFLAGS', '-pthread')
+        ctx.env.append_unique('CFLAGS', '-pthread')
+        ctx.env.append_unique('CCFLAGS', '-pthread')
+
+    ##################################################
+    # Is SystemC compiled? Check for SystemC library
+    # Notice that we can't rely on lib-linux, therefore I have to find the actual platform...
+    ##################################################
+    # First I set the clafgs needed by TLM 2.0  and GreenSocs for including systemc dynamic process
+    # creation and so on
+    ctx.env.append_unique('DEFINES', '_REENTRANT')
+    ctx.env.append_unique('DEFINES', 'USE_STATIC_CASTS')
+    ctx.env.append_unique('DEFINES', 'SC_INCLUDE_DYNAMIC_PROCESSES')
+    syscpath = None
+    if ctx.options.systemcdir:
+        syscpath = ([os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.systemcdir, 'include'))))])
+
+    sysclib = ''
+    if syscpath:
+        sysclib = glob.glob(os.path.join(os.path.abspath(os.path.join(syscpath[0], '..')), 'lib-*'))
+    ctx.check_cxx(lib='systemc', uselib_store='SYSTEMC', mandatory=True, libpath=sysclib, errmsg='not found, use --systemc option')
+
+    ######################################################
+    # Check if systemc is compiled with quick threads or not
+    ######################################################
+    if not os.path.exists(os.path.join(syscpath[0] , 'sysc' , 'qt')):
+        ctx.env.append_unique('DEFINES', 'SC_USE_PTHREADS')
+    elif sys.platform == 'cygwin':
+        ctx.fatal('SystemC under cygwin must be compiled with PThread support: recompile it using the "make pthreads" command')
+
+    ##################################################
+    # Check for SystemC header and test the library
+    ##################################################
+    if not sys.platform == 'cygwin':
+        systemCerrmsg='Error, at least version 2.2.0 required'
+    else:
+        systemCerrmsg='Error, at least version 2.2.0 required.\nSystemC also needs patching under cygwin:\nplease controll that lines 175 and 177 of header systemc.h are commented;\nfor more details refer to http://www.ht-lab.com/howto/sccygwin/sccygwin.html\nhttp://www.dti.dk/_root/media/27325_SystemC_Getting_Started_artikel.pdf'
+    ctx.check_cxx(header_name='systemc.h', use='SYSTEMC', uselib_store='SYSTEMC', mandatory=True, includes=syscpath)
+    ctx.check_cxx(fragment='''
+        #include <systemc.h>
+
+        #ifndef SYSTEMC_VERSION
+        #error SYSTEMC_VERSION not defined in file sc_ver.h
+        #endif
+
+        #if SYSTEMC_VERSION < 20070314
+        #error Wrong SystemC version
+        #endif
+
+        extern "C" {
+            int sc_main(int argc, char** argv) {
+                wif_trace_file trace("");
+                trace.set_time_unit(1, SC_NS);
+                return 0;
+            };
+        }
+''', msg='Checking for SystemC version', use='SYSTEMC', mandatory=True, errmsg=systemCerrmsg)
+
+    ##################################################
+    # Check for TLM header
+    ##################################################
+    tlmPath = ''
+    if ctx.options.tlmdir:
+        tlmPath = os.path.normpath(os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.tlmdir))))
+    if not tlmPath.endswith('include'):
+        tlmPath = os.path.join(tlmPath, 'include')
+    tlmPath = [os.path.join(tlmPath, 'tlm')]
+
+    ctx.check_cxx(header_name='tlm.h', use='SYSTEMC', uselib_store='TLM', mandatory=True, includes=tlmPath, errmsg='not found, use --tlm option')
+    ctx.check_cxx(fragment='''
+        #include <systemc.h>
+        #include <tlm.h>
+
+        #ifndef TLM_VERSION_MAJOR
+        #error TLM_VERSION_MAJOR undefined in the TLM library
+        #endif
+        #ifndef TLM_VERSION_MINOR
+        #error TLM_VERSION_MINOR undefined in the TLM library
+        #endif
+        #ifndef TLM_VERSION_PATCH
+        #error TLM_VERSION_PATCH undefined in the TLM library
+        #endif
+
+        #if TLM_VERSION_MAJOR < 2
+        #error Wrong TLM version; required 2.0
+        #endif
+
+        extern "C" int sc_main(int argc, char **argv){
+            return 0;
+        }
+''', msg='Check for TLM version', use='SYSTEMC TLM', mandatory=True, errmsg='Error, at least version 2.0 required')
+
+    ##################################################
+    # Check for TRAP runtime libraries and headers
+    ##################################################
+    trapRevisionNum = 772
+    trapDirLib = ''
+    trapDirInc = ''
+    trapLibErrmsg = 'not found, use --trapgen option. It might also be that the trap library is compiled '
+    trapLibErrmsg += 'against libraries (bfd/libelf, boost, etc.) different from the ones being used now; in case '
+    trapLibErrmsg += 'try recompiling trap library.'
+    if ctx.options.trapdir:
+        trapDirLib = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'lib'))))
+        trapDirInc = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'include'))))
+        ctx.check_cxx(lib='trap', use='ELF_LIB BOOST_FILESYSTEM BOOST_THREAD BOOST_SYSTEM SYSTEMC', uselib_store='TRAP', mandatory=True, libpath=trapDirLib, errmsg=trapLibErrmsg)
+        foundShared = glob.glob(os.path.join(trapDirLib, ctx.env['cxxshlib_PATTERN'] % 'trap'))
+        if foundShared:
+            ctx.env.append_unique('RPATH', ctx.env['LIBPATH_TRAP'])
+
+
+        if not check_trap_linking(ctx, 'trap', ctx.env['LIBPATH_TRAP'], 'elf_begin') and 'bfd' not in ctx.env['LIB_ELF_LIB']:
+            ctx.fatal('TRAP library not linked with libelf library: BFD library needed (you might need to re-create the processor specifying a GPL license) or compile TRAP using its LGPL flavour ')
+
+        ctx.check_cxx(header_name='trap.hpp', use='TRAP ELF_LIB BOOST_FILESYSTEM BOOST_THREAD BOOST_SYSTEM SYSTEMC', uselib_store='TRAP', mandatory=True, includes=trapDirInc)
+        ctx.check_cxx(fragment='''
+            #include "trap.hpp"
+
+            #ifndef TRAP_REVISION
+            #error TRAP_REVISION not defined in file trap.hpp
+            #endif
+
+            #if TRAP_REVISION < ''' + str(trapRevisionNum) + '''
+            #error Wrong version of the TRAP runtime: too old
+            #endif
+
+            int main(int argc, char * argv[]){return 0;}
+''', msg='Check for TRAP version', use='TRAP ELF_LIB BOOST_FILESYSTEM BOOST_THREAD BOOST_SYSTEM SYSTEMC', mandatory=True, includes=trapDirInc, errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required')
+    else:
+        ctx.check_cxx(lib='trap', use='ELF_LIB BOOST_FILESYSTEM BOOST_THREAD BOOST_SYSTEM SYSTEMC', uselib_store='TRAP', mandatory=True, errmsg=trapLibErrmsg)
+
+
+        if not check_trap_linking(ctx, 'trap', ctx.env['LIBPATH_TRAP'], 'elf_begin') and 'bfd' not in ctx.env['LIB_ELF_LIB']:
+            ctx.fatal('TRAP library not linked with libelf library: BFD library needed (you might need to re-create the processor specifying a GPL license) or compile TRAP using its LGPL flavour ')
+
+        ctx.check_cxx(header_name='trap.hpp', use='TRAP ELF_LIB BOOST_FILESYSTEM BOOST_THREAD BOOST_SYSTEM SYSTEMC', uselib_store='TRAP', mandatory=True)
+        ctx.check_cxx(fragment='''
+            #include "trap.hpp"
+
+            #ifndef TRAP_REVISION
+            #error TRAP_REVISION not defined in file trap.hpp
+            #endif
+
+            #if TRAP_REVISION < ''' + str(trapRevisionNum) + '''
+            #error Wrong version of the TRAP runtime: too old
+            #endif
+
+            int main(int argc, char * argv[]){return 0;}
+''', msg='Check for TRAP version', use='TRAP ELF_LIB BOOST_FILESYSTEM BOOST_THREAD BOOST_SYSTEM SYSTEMC', mandatory=1, errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required')
+
+    """
+    ##################################################
+    # Check for Lua Library and Headers
+    ##################################################
+    ctx.check_cxx(
+      lib          = 'lua',
+      uselib_store = 'LUA',
+      mandatory    = True,
+      libpath      = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.luadir, "lib"))))),
+      errmsg       = "LUA Library not found. Use --lua option or set $LUA_HOME.",
+      okmsg        = "ok"
+    ) 
+    ctx.check_cxx(
+      header_name  = 'lua.h',
+      uselib_store = 'LUA',
+      mandatory    = True,
+      includes     = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.luadir, "include")))),
+      uselib       = 'LUA',
+      okmsg        = "ok"
+    ) 
+    """
+    '''
+    ctx.check_cxx(
+      msg          = "Checking for Lua 5.1.4 or higher",
+      mandatory    = True,
+      execute      = True,
+      fragment     = """
+                     #include <lua.h>
+                     int main(int argc, char *argv[]) {
+                       return !(LUA_VERSION_NUM > 501);
+                     }
+                   """,
+      uselib       = 'LUA',
+      okmsg        = "ok",
+    )
+    '''
+
+    '''
+    ##################################################
+    # Check for SystemC Verification Library
+    ##################################################
+    # TODO: It has to be checked if we realy need them
+    ctx.check_cxx(
+      lib          = 'scv',
+      uselib_store = 'SCV',
+      mandatory    = True,
+      libpath      = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.scvdir, "lib-*"))))),
+      errmsg     = "SystemC Verification Library not found. Use --scv option or set $SCV."
+    ) 
+    ctx.check_cxx(
+      header_name  = 'scv.h',
+      uselib_store = 'SCV',
+      mandatory    = True,
+      includes     = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.scvdir, "include")))),
+      uselib       = 'SYSTEMC SCV'
+    ) 
+    ctx.check_cxx(
+      msg          = "Checking for SCV Library 2.2 or higher",
+      mandatory    = True,
+      execute      = True,
+      fragment     = """
+                   #include <scv.h>
                    int main(int argc, char *argv[]) {
-                     return !((AMBA_TLM_VERSION_MAJOR >= 1) && (AMBA_TLM_VERSION_MINOR >= 0) && (AMBA_TLM_VERSION_REVISION >= 6));
+                     return !(SC_VERSION > 2001999);
                    }
-    """,
-    uselib       = 'BOOST SYSC TLM2 GREENSOCS AMBA',
-    okmsg        = "ok",
-  )
- 
-  # Check for AMBAKit extended GreenSocs from contrib
-  ctx.check_cxx(
-    header_name   = "greenreg_ambasockets.h",
-    uselib_store  = 'GREENSOCS',
-    mandatory     = True,
-    includes      = os.path.join(ctx.path.abspath(),'contrib', 'grambasockets'),
-    #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
-    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
-    uselib        = 'GREENSOCS BOOST SYSC TLM2 AMBA',
-    okmsg         = "ok",
-    msg           = "Check compatibility of AMBAKit and GreenReg"
-  )
-  
-  # Extend GREENSOCS
-  ctx.check_cxx(
-    header_name   = [ "tlm.h",
-                      "tlm_utils/multi_passthrough_initiator_socket.h",
-                      "tlm_utils/multi_passthrough_target_socket.h",
-                      "simpleAddressMap.h",
-                      "extensionPool.h"
-                    ],
-    uselib_store  = 'GREENSOCS',
-    msg           = "Checking for extensionPool.h from TLM2",
-    mandatory     = True,
-    includes      = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.tlm2_tests, "tlm", "multi_sockets", "include")))),
-                     os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.tlm2_home, "unit_test", "tlm", "multi_sockets", "include"))))],
-    #cxxflags      = ['-g', '-Wall', '-O2'] + options.cxxflags.split(),
-    defines       = ['_REENTRANT', 'USE_STATIC_CASTS', 'SC_INCLUDE_DYNAMIC_PROCESSES'],
-    uselib        = 'SYSC TLM2 GREENSOCS',
-    okmsg        = "ok",
-  )
-  
-  from waftools.common import get_subdirs
-  ctx.recurse(get_subdirs(top))
+      """,
+      uselib       = 'SYSTEMC SCV',
+    )
+    '''
+
+    ##################################################
+    # Check for GreenSocs GreenSockets Header
+    ##################################################
+    ctx.check_cxx(
+      header_name   = "greensocket/initiator/single_socket.h",
+      uselib_store  = 'GREENSOCS',
+      mandatory     = True,
+      includes      = [os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.greensocsdir))),
+                       ctx.env['INCLUDES_BOOST']],
+      uselib        = 'BOOST SYSTEMC TLM',
+      okmsg        = "ok",
+    )
+    ctx.check_cxx(
+      header_name   = "greensocket/target/single_socket.h",
+      uselib_store  = 'GREENSOCS',
+      mandatory     = True,
+      includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.greensocsdir))),
+      uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
+      okmsg        = "ok",
+    )
+
+    ##################################################
+    # Check for GreenSocs GreenControl
+    ##################################################
+    ctx.check_cxx(
+      header_name   = "greencontrol/config.h",
+      uselib_store  = 'GREENSOCS',
+      mandatory     = True,
+      includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.greensocsdir))),
+      uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
+      okmsg        = "ok",
+    )
+
+    ##################################################
+    # Check for GreenSocs GreenReg Library
+    ##################################################
+    ctx.check_cxx(
+      lib          = 'greenreg',
+      uselib_store = 'GREENSOCS',
+      mandatory    = True,
+      libpath      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.greensocsdir, "greenreg")))),
+      okmsg        = "ok",
+    ) 
+
+    ##################################################
+    # Check for GreenSocs GreenReg Header
+    ##################################################
+    ctx.check_cxx(
+      header_name   = "greenreg.h",
+      uselib_store  = 'GREENSOCS',
+      mandatory     = True,
+      includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.greensocsdir, "greenreg")))),
+      uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
+      okmsg        = "ok",
+    )
+
+    ##################################################
+    # Check for GreenSocs GreenReg Library
+    ##################################################
+    ctx.check_cxx(
+      header_name   = "amba.h",
+      uselib_store  = 'AMBA',
+      mandatory     = True,
+      includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.ambadir))),
+      uselib        = 'BOOST SYSTEMC TLM GREENSOCS',
+      okmsg        = "ok",
+    )
+
+    ##################################################
+    # Check for AMBAKit Headers
+    ##################################################
+    ctx.check_cxx(
+      msg          = "Checking for AMBAKit Version > 1.0.5",
+      mandatory    = True,
+      execute      = True,
+      fragment     = """
+                     #include <amba.h>
+                     int main(int argc, char *argv[]) {
+                       return !((AMBA_TLM_VERSION_MAJOR >= 1) && (AMBA_TLM_VERSION_MINOR >= 0) && (AMBA_TLM_VERSION_REVISION >= 6));
+                     }
+                     """,
+      uselib       = 'BOOST SYSTEMC TLM GREENSOCS AMBA',
+      okmsg        = "ok",
+    )
    
-  ctx.check_cxx(cxxflags=ctx.env['CXXFLAGS'], mandatory=1, msg='Checking for G++ compilation flags')
-  ctx.check_cxx(linkflags=ctx.env['LINKFLAGS'], mandatory=1, msg='Checking for link flags')
+    ##################################################
+    # Check for AMBAKit extended GreenSocs from contrib
+    ##################################################
+    ctx.check_cxx(
+      header_name   = "greenreg_ambasockets.h",
+      uselib_store  = 'GREENSOCS',
+      mandatory     = True,
+      includes      = [os.path.join(ctx.path.abspath(),'contrib', 'grambasockets'), os.path.join(ctx.path.abspath(), 'contrib', 'transactors')],
+      uselib        = 'GREENSOCS BOOST SYSTEMC TLM AMBA',
+      okmsg         = "ok",
+      msg           = "Check compatibility of AMBAKit and GreenReg"
+    )
+    
+    ##################################################
+    # Extend GreenSocs with TLM extensionPool.h
+    ##################################################
+    ctx.check_cxx(
+      header_name   = [ "tlm.h",
+                        "tlm_utils/multi_passthrough_initiator_socket.h",
+                        "tlm_utils/multi_passthrough_target_socket.h",
+                        "simpleAddressMap.h",
+                        "extensionPool.h"
+                      ],
+      uselib_store  = 'GREENSOCS',
+      msg           = "Checking for extensionPool.h from TLM",
+      mandatory     = True,
+      includes      = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.tlmdir, "unit_test", "tlm", "multi_sockets", "include"))))],
+      uselib        = 'SYSTEMC TLM GREENSOCS',
+      okmsg        = "ok",
+    )
+    
+    ##################################################
+    # Collect checks from other libraries
+    ##################################################
+    from waftools.common import get_subdirs
+    ctx.recurse(get_subdirs(top))
 
-def build(bld):
-  from waftools.common import get_subdirs
-  bld.recurse(get_subdirs())
-  bld.add_post_fun(waf_unit_test.summary)
+def options(ctx): 
+    from os import environ
+    configuration_options = ctx.get_option_group("--download")
+  
+    ctx.load('python', option_group=configuration_options)
+    ctx.load('compiler_c', option_group=configuration_options)
+    ctx.load('compiler_cxx', option_group=configuration_options)
+    ctx.load('boost', option_group=configuration_options)
+    ctx.load('waf_unit_test', option_group=configuration_options)
+    ctx.load('common', option_group=configuration_options, tooldir='waftools')
+    ctx.load('modelsim', option_group=configuration_options, tooldir='waftools')
+  
+    #ctx.add_option('--onlytests', action='store_true', default=True, help='Exec unit tests only', dest='only_tests')
+    # Specify SystemC and TLM options
+    sysc = ctx.add_option_group("SystemC configuration Options")
+    ctx.add_option('--systemc', type='string', help='SystemC installation directory', dest='systemcdir', default=environ.get("SYSTEMC"))
+    ctx.add_option('--tlm', type='string', help='TLM installation directory', dest='tlmdir', default=environ.get("TLM"))
+    ctx.add_option('--trapgen', type='string', help='TRAP libraries and headers installation directory', dest='trapdir', default=environ.get("TRAP"))
+  
+    gso = ctx.add_option_group("GreenSoCs Configuration Options")
+    gso.add_option("--greensocs", dest="greensocsdir", help="Basedir of your GreenSoCs instalation", default=environ.get("GREENSOCS"))
+    gso.add_option("--lua", type='string', dest="luadir", help="Basedir of your Lua installation", default=environ.get("LUA"))
+    gso.add_option("--amba", type='string', dest="ambadir", help="Basedir of your AMBAKit distribution", default=environ.get("AMBA"))
+    gso.add_option("--grlib", type='string', dest="grlibdir", help="Basedir of your grlib distribution", default=environ.get("GRLIB"))
+    gso.add_option("--grlib_tech", type='string', dest="grlibtech", help="Basedir of your modelsim grlib work libraries", default=environ.get("GRLIB_TECH"))
+
+    trap = ctx.add_option_group("TrapGen Configuration Options")
+    # Specify libELF library path
+    trap.add_option('--with-elf', type='string', help='libELF installation directory', dest='elfdir', default=environ.get("ELF"))
+    trap.add_option('--static', default=False, action="store_true", help='Triggers a static build, with no dependences from any dynamic library', dest='static_build')
+    # Specify if OS emulation support should be compiled inside processor models
+    trap.add_option('-T', '--disable-tools', default=True, action="store_false", help='Disables support for support tools (debuger, os-emulator, etc.) (switch)', dest='enable_tools')
+    # Specify if instruction history has to be kept
+    trap.add_option('-s', '--enable-history', default=False, action='store_true', help='Enables the history of executed instructions', dest='enable_history')
+    prof = ctx.add_option_group("TrapGen Configuration Options")
+    # Specify support for the profilers: gprof, vprof
+    prof.add_option('-D', '--nodebug', default=True, action='store_false', help='Disables debugging support for the targets', dest='debug')
+    #prof.add_option('-D', '--debug', default=True, action='store_true', help='Enables debugging support for the targets', dest='debug')
+    prof.add_option('-P', '--gprof', default=False, action='store_true', help='Enables profiling with gprof profiler', dest='enable_gprof')
+    prof.add_option('-V', '--vprof', default=False, action='store_true', help='Enables profiling with vprof profiler', dest='enable_vprof')
+    prof.add_option('--with-vprof', type='string', help='vprof installation folder', dest='vprofdir')
+    prof.add_option('--with-papi', type='string', help='papi installation folder', dest='papidir')
+    # Custom Options
+    prof.add_option('--tsim-comp', default=False, action='store_true', help='Defines the TSIM_COMPATIBILITY directive', dest='define_tsim_compatibility')
+
+    ctx.add_option("--verbosity", dest="verbosity", help="Defines the verbosity for the build", default=environ.get("VERBOSITY",""))
+
 

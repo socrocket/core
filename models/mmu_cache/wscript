@@ -103,6 +103,7 @@ def options(ctx):
 def configure(ctx):
   from waflib.Options import options
   import os.path
+  '''
   amba_examples = ''
   if options.amba_examples and options.amba_examples != "":
     amba_examples = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.amba_examples, 'ahb_ct_timing'))))
@@ -113,7 +114,7 @@ def configure(ctx):
     header_name  = 'ahb_simple_bus.h ahb_simple_slave.h',
     msg          = "Checking for AMBAKit Example Mem",
     mandatory    = True,
-    uselib       = 'AMBAMEM AMBA GREENSOCS BOOST SYSC TLM2',
+    uselib       = 'AMBAMEM AMBA GREENSOCS BOOST SYSTEMC TLM',
     uselib_store = 'AMBAMEM',
     includes     = amba_examples,
     fragment     = """
@@ -132,6 +133,7 @@ def configure(ctx):
     """,
     execute      = False
   )
+  '''
   
 def build(bld):
 
@@ -148,7 +150,7 @@ def build(bld):
                        'lib/mmu.cpp', 
 		       'lib/mmu_cache.cpp' ],
     export_includes = 'lib',
-    uselib         = 'SYSC TLM2 AMBA AMBAMEM GREENSOCS',
+    uselib         = 'SYSTEMC TLM AMBA AMBAMEM GREENSOCS',
     use            = 'common utils',
   )
 
@@ -158,7 +160,7 @@ def build(bld):
     source       = ['test1/testbench.cpp',
                     'test1/sim_model/main.cpp'],
     includes     = '. ./lib ./test1',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
 
@@ -188,7 +190,7 @@ def build(bld):
     source       = ['test2/testbench.cpp',
                     'test2/sim_model/main.cpp'],
     includes     = '. ./lib ./test2',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
 
@@ -218,7 +220,7 @@ def build(bld):
     source       = ['test3/testbench.cpp',
                     'test3/main.cpp'],
     includes     = '. ./lib ./test3',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
 
@@ -228,7 +230,7 @@ def build(bld):
     source       = ['test4/testbench.cpp',
                     'test4/main.cpp'],
     includes     = '. ./lib ./test4',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
    
@@ -238,7 +240,7 @@ def build(bld):
     source       = ['test5/testbench.cpp',
                     'test5/main.cpp'],
     includes     = '. ./lib ./test5',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
  
@@ -248,7 +250,7 @@ def build(bld):
     source       = ['test6/testbench.cpp',
                     'test6/main.cpp'],
     includes     = '. ./lib ./test6',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
 
@@ -258,7 +260,7 @@ def build(bld):
     source       = ['test_at/testbench.cpp',
                     'test_at/main.cpp'],
     includes     = '. ./lib ./test_at',
-    uselib       = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
 

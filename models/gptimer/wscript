@@ -107,7 +107,7 @@ def build(bld):
     features        = 'cxx cxxstlib',
     source          = 'gptimer.cpp gpcounter.cpp', 
     export_includes = '.',
-    uselib          = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib          = 'SYSTEMC TLM AMBA GREENSOCS',
     defines         = 'DEBUGOUT=1',
     use             = 'BOOST common signalkit utils'
   )
@@ -118,7 +118,7 @@ def build(bld):
     source       = ['tests/test1/top_tlm.cpp',
                     'tests/test1/testbench.cpp'],
     includes     = '. tests/test1',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'gptimer utils signalkit common',
   )
   
@@ -128,7 +128,7 @@ def build(bld):
     source       = ['tests/test1/top_ctb.cpp',
                     'tests/test1/testbench.cpp'],
     includes     = '. tests/test1',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'gptimer utils signalkit common',
   )
   
@@ -151,7 +151,7 @@ def build(bld):
     source       = ['tests/test2/top_tlm.cpp',
                     'tests/test2/testbench.cpp'],
     includes     = '. tests/test2',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'gptimer utils signalkit common',
   )
 
@@ -161,7 +161,7 @@ def build(bld):
     source       = ['tests/test2/top_ctb.cpp',
                     'tests/test2/testbench.cpp'],
     includes     = '. tests/test2',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'gptimer utils signalkit common',
   )
 
@@ -184,7 +184,7 @@ def build(bld):
     source       = ['tests/test3/top_tlm.cpp',
                     'tests/test3/testbench.cpp'],
     includes     = '. tests/test3',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'gptimer utils signalkit common',
   )
 
@@ -194,7 +194,7 @@ def build(bld):
     source       = ['tests/test3/top_ctb.cpp',
                     'tests/test3/testbench.cpp'],
     includes     = '. tests/test3',
-    uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'gptimer utils signalkit common',
   )
 
@@ -218,7 +218,7 @@ def build(bld):
   #  source       = 'tests/top_tlm.cpp',
   #  defines      = 'SPEEDTEST',
   #  includes     = '. tests',
-  #  uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+  #  uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
   #  use          = 'utils signalkit',
   #)
 
@@ -245,7 +245,7 @@ def build(bld):
   #  defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
   #  includes     = '. tests ../utils ../../signalkit',
   #  #generate     = 'gptimer:gptimer2.h',
-  #  #uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+  #  #uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
   #  uselib       = 'AMBA GREENSOCS',
   #  use          = 'utils signalkit',
   #  config       = vsim_conf,
@@ -259,7 +259,7 @@ def build(bld):
   #  source       = 'tests/top_tlm.cpp',
   #  defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
   #  includes     = '. tests',
-  #  uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+  #  uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
   #  use          = 'gptimer utils signalkit common',
   #)
 
@@ -269,7 +269,7 @@ def build(bld):
   #  source       = 'tests/top_tlm.cpp',
   #  defines      = 'PRESCALERTEST CTBUS DEBUGOUT',
   #  includes     = '. tests',
-  #  uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+  #  uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
   #  use          = 'gptimer utils signalkit common',
   #)
 
@@ -279,7 +279,7 @@ def build(bld):
   #  source       = 'tests/top_tlm.cpp',
   #  defines      = 'COUNTERTEST CTBUS DEBUGOUT',
   #  includes     = '. tests',
-  #  uselib       = 'BOOST SYSC TLM2 AMBA GREENSOCS',
+  #  uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
   #  use          = 'gptimer utils signalkit common',
   #)
 

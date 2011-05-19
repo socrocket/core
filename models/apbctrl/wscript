@@ -58,7 +58,7 @@ def build(bld):
     features        = 'cxx cxxstlib',
     source          = 'apbctrl.cpp', 
     export_includes = '.',
-    uselib          = 'SYSC TLM2 AMBA GREENSOCS',
+    uselib          = 'SYSTEMC TLM AMBA GREENSOCS',
     use             = 'utils common'
   )
 

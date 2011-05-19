@@ -61,7 +61,7 @@ def build(bld):
     features        = 'cxx cxxstlib',
     source          = 'verbose.cpp', 
     export_includes = '.',
-    uselib          = 'SYSC'
+    uselib          = 'SYSTEMC'
   )
   
   bld(
@@ -69,7 +69,7 @@ def build(bld):
     features        = 'cxx cprogram test',
     source          = 'tests/simple.cpp',
     includes        = '.',
-    uselib          = 'SYSC',
+    uselib          = 'SYSTEMC',
     use             = 'common'
   )
  

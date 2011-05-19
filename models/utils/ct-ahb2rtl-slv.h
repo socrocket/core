@@ -48,7 +48,7 @@
 #include <systemc.h>
 #include <amba.h>
 #include <signalkit.h>
-#include <adapters/AHB_CT_RTL_Slave_Adapter.h>
+#include <AHB_CT_RTL_Slave_Adapter.h>
 
 /// @addtogroup utils Model Utils
 /// @{

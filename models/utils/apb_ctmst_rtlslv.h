@@ -47,7 +47,7 @@
 
 #include <systemc.h>
 #include <amba.h>
-#include <adapters/APB_CT_RTL_Slave_Adapter.h>
+#include <APB_CT_RTL_Slave_Adapter.h>
 #include "signalkit.h"
 #include "verbose.h"
 

@@ -196,7 +196,7 @@ def vlib_task_runnable_status(self):
 vlib_task.runnable_status = vlib_task_runnable_status
 
 # Task to execute a do script before any other work on the target is done
-vsim_before  = Task.simple_task_type('vsim_before', '${VSIM} ${_VSIMFLAGS} ${_VSIMBEFORE}', color='RED', after=['vlib', 'vinit'], before=['vcom', 'vlog', 'sccom'], vars=['VSIM', '_VSIMFLAGS', '_VSIMBEFORE'])
+vsim_before  = Task.simple_task_type('vsim_before', '${VSIM} ${_VSIMFLAGS} ${_VSIMBEFORE}', color='RED', after=['vlib'], before=['vcom', 'vlog', 'sccom'], vars=['VSIM', '_VSIMFLAGS', '_VSIMBEFORE'])
 
 #Task to execute a do stript after all other work is done on the target
 vsim_after   = Task.simple_task_type('vsim_after',  '${VSIM} ${_VSIMFLAGS} ${_VSIMAFTER}', color='RED', after=['vcom', 'vlog', 'sccom', 'sclink'], vars=['VSIM', '_VSIMFLAGS', '_VSIMAFTER'])
@@ -212,7 +212,7 @@ vcom_task.quiet = True
 vcom_task.nocache = True
 def vcom_task_str(self):
   ins = []
-  return "vcom: %s -> %s\n" % (self.inputs[0].name, self.target)
+  return "vcom: %s -> %s\n" % (self.inputs[0].name, self.target, str(self.env))
 vcom_task.__str__ = vcom_task_str
 
 # task to compile v files
@@ -255,19 +255,17 @@ def sclink_task_run(self):
   return self.oldrun() #super(sclink_task, self).run()
 sclink_task.run = sclink_task_run
 
-@TaskGen.before('apply_core')
+@TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('modelsim')
 def modelsim(self):
   """Apply Variables for the Target create vlib task and 
      vini task as well as dobefore and doafter tasks if needed
   """
   # cxx hack replaces the cpp routine
-  setattr(self,modelsim_sccom.__name__, modelsim_sccom)
-  self.mappings['.cpp'] = modelsim_sccom
-
+  setattr(self.__class__, create_compiled_task.__name__, create_compiled_task) 
+  self.apply_incpaths()
   if not (Options.options.modelsim and self.env["MODELSIM"]):
     return
-  
   self.env = self.env.derive()
   self.env["_VCOMFLAGS"]     = list(self.env["VCOMFLAGS"])
   self.env["_VLOGFLAGS"]     = list(self.env["VLOGFLAGS"])
@@ -315,8 +313,8 @@ def modelsim(self):
       if i:
         self.env["_SCCOMFLAGS"] += ['-I%s' % i.abspath()]
       
-  if hasattr(self, "uselib"):
-    for lib in Utils.to_list(self.uselib):
+  if hasattr(self, "use"):
+    for lib in Utils.to_list(self.use):
       for path in self.env["INCLUDES_%s" % lib]:
         self.env["_SCCOMFLAGS"] += ['-I%s' % path]
       for path in self.env["LIBPATH_%s" % lib]:
@@ -339,14 +337,15 @@ def modelsim(self):
   workdir = self.path.find_or_declare(targetdir(self.target))
   vlib = self.create_task('vlib', tgt=[workdir])
   vlib.target = self.target
+  vlib.env = self.env
 
-  self.mdeps = []
-  if hasattr(self, "after"):
-    lst = [n for n in self.bld.all_task_gen if "modelsim" in n.features and n.target == self.after]
-    for l in lst:
-      for t in l.tasks:
-        if len(t.outputs) > 0:
-          self.mdeps += t.outputs
+  #self.mdeps = []
+  #if hasattr(self, "after"):
+  #  lst = [n for n in self.bld.all_task_gen if "modelsim" in n.features and n.target == self.after]
+  #  for l in lst:
+  #    for t in l.tasks:
+  #      if len(t.outputs) > 0:
+  #        self.mdeps += t.outputs
 
   # If given generate scgenmod tasks to get systemc header
   if hasattr(self, "generate"):
@@ -362,13 +361,14 @@ def modelsim(self):
     mod = self.create_task('scgenmod', tgt=tgt)
     mod.env = env
     self.env["_SCCOMFLAGS"] += ['-I%s' % tgt.parent.abspath()]
-    mod.dep_nodes += self.mdeps
+    #mod.dep_nodes += self.mdeps
 
   # Create modelsim ini task if needed
   tgt = None
   if hasattr(self, "config"):
     tgt = self.path.find_or_declare("modelsim_%s.ini" % self.target)
     tsk = self.create_task('vini', tgt=tgt)
+    tsk.env = self.env
     tsk.root = self.bld.out_dir
     tsk.path = self.path.get_bld().abspath()
     tsk.target = self.target
@@ -392,7 +392,8 @@ def modelsim(self):
       do = self.dobefore
     self.env["_VSIMBEFORE"] += ['-do', do]
     before = self.create_task('vsim_before')
-    before.dep_nodes += self.mdeps
+    before.env = self.env
+    #before.dep_nodes += self.mdeps
     if tgt:
       before.dep_nodes += [tgt]
     before.dotask = self.dobefore
@@ -407,7 +408,8 @@ def modelsim(self):
       do = self.doafter
     self.env["_VSIMAFTER"] += ['-do', do]
     after = self.create_task('vsim_after')
-    after.dep_nodes += self.mdeps
+    after.env = self.env
+    #after.dep_nodes += self.mdeps
     if tgt:
       after.dep_nodes += [tgt]
     after.dotask = self.doafter
@@ -420,11 +422,12 @@ def modelsim_vcom(self, node):
     tgt = self.path.find_or_declare(os.path.join(targetdir(self.target),node.name + ".hdo"))
     tsks = [n for n in self.tasks if n.name in ['vcom', 'vlog']]
     tsk = self.create_task('vcom', [node], [tgt])
+    tsk.env = self.env
     tsk.target = self.target
     if tsks:
       tsk.set_inputs(tsks[-1].outputs[0])
   
-    tsk.dep_nodes += self.mdeps
+    #tsk.dep_nodes += self.mdeps
     
 @TaskGen.extension('.v')
 def modelsim_vlog(self, node):
@@ -432,10 +435,11 @@ def modelsim_vlog(self, node):
   if 'modelsim' in self.features and Options.options.modelsim and self.env["MODELSIM"]:
     tsks = [n for n in self.tasks if n.name in ['vcom', 'vlog']]
     tsk = self.create_task('vlog', [node])
+    tsk.env = self.env
     if tsks:
       tsk.run_after.add(tsks[-1])
 
-    tsk.dep_nodes += self.mdeps
+    #tsk.dep_nodes += self.mdeps
 
 VSIM_FAKE_EXEC="""
 #!/bin/bash
@@ -470,6 +474,7 @@ def modelsim_sccom(self, node):
     cwd = self.path.find_or_declare(targetdir(self.target))
     tgt = self.path.find_or_declare('%s/_sc/%s/%s' % (targetdir(self.target), self.env['VSIM_SC_DIR'], os.path.splitext(node.name)[0]+'.o'))
     tsk = self.create_task('sccom', [node], [tgt])
+    tsk.env = self.env
     tsk.target = self.target
     tsk.cwd = cwd.abspath()
     if tsks:
@@ -485,5 +490,11 @@ def modelsim_sccom(self, node):
         self.default_install_path=None
         test = self.create_task('utest', self.link_task.outputs[0])
         test.ut_exec = ['sh', self.link_task.outputs[0].abspath()]
-    tsk.dep_nodes += self.mdeps
+    #tsk.dep_nodes += self.mdeps
 
+def create_compiled_task(self, name, node):
+  if 'modelsim' in self.features:
+    modelsim_sccom(self, node)
+  else:
+    from waflib.Tools.ccroot import create_compiled_task
+    create_compiled_task(self, name, node)
