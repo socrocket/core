@@ -212,7 +212,7 @@ vcom_task.quiet = True
 vcom_task.nocache = True
 def vcom_task_str(self):
   ins = []
-  return "vcom: %s -> %s\n" % (self.inputs[0].name, self.target, str(self.env))
+  return "vcom: %s -> %s\n" % (self.inputs[0].name, self.target)
 vcom_task.__str__ = vcom_task_str
 
 # task to compile v files
@@ -313,8 +313,8 @@ def modelsim(self):
       if i:
         self.env["_SCCOMFLAGS"] += ['-I%s' % i.abspath()]
       
-  if hasattr(self, "use"):
-    for lib in Utils.to_list(self.use):
+  if hasattr(self, "uselib"):
+    for lib in Utils.to_list(self.uselib):
       for path in self.env["INCLUDES_%s" % lib]:
         self.env["_SCCOMFLAGS"] += ['-I%s' % path]
       for path in self.env["LIBPATH_%s" % lib]:

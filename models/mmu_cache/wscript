@@ -163,7 +163,7 @@ def build(bld):
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
-
+  """
   bld(
     features     = 'modelsim test',
     target       = 'mmu_cache.1.rtl.test',
@@ -183,7 +183,7 @@ def build(bld):
     includes     = './ ./test1 ./test1/sim_ref ./lib ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   )  
-
+  """
   bld(
     target       = 'mmu_cache.2.tlm.test',
     features     = 'cxx cprogram test',
@@ -193,7 +193,7 @@ def build(bld):
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
-
+  """
   bld(
     features     = 'modelsim test',
     target       = 'mmu_cache.2.rtl.test',
@@ -213,7 +213,7 @@ def build(bld):
     includes     = './ ./test2 ./test2/sim_ref ./lib ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
   ) 
-
+  """
   bld(
     target       = 'mmu_cache.3.tlm.test',
     features     = 'cxx cprogram test',
