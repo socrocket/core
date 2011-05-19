@@ -43,18 +43,22 @@
 # Maintainer: Rolf Meyer
 # Reviewed:
 #*********************************************************************
-top = '..'
+top = '../..'
 
 extern = [
-#  'LEON2', 
-#  'LEON3', 
+  'LEON2/simulatorSources/funcAT', 
+  'LEON2/simulatorSources/funcLT', 
+  #'LEON3/simulatorSources/funcAT', 
+  #'LEON3/simulatorSources/funcLT', 
 ]
 
 def options(ctx): 
-  ctx.recurse(extern)
+  pass
+  #ctx.recurse(extern)
 
 def configure(ctx):
-  ctx.recurse(extern)
+  pass
+  #ctx.recurse(extern)
 
 def build(bld):
   bld.recurse(extern)

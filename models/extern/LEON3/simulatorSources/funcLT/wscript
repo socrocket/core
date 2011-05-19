@@ -18,6 +18,7 @@ def build(bld):
         externalPins.cpp
     """
     uselib = 'BOOST BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM TRAP'
+    use = 'mmu_cache utils signalkit common'
     objects = ''
     includes = '.'
     target = 'funcLT_objs'
