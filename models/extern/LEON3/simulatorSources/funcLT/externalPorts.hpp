@@ -271,7 +271,7 @@ namespace leon3_funclt_trap{
                 dcio_payload_extension* dcioExt = new dcio_payload_extension();
                 dcioExt->asi = asi;
 		dcioExt->flush = flush;
-		dcioExt->lock = lock
+		dcioExt->lock = lock;
 
                 unsigned int* debug = new unsigned int;
                 dcioExt->debug = debug;

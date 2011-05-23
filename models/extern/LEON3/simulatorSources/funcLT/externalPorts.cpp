@@ -77,9 +77,9 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword( const unsigned int & add
 
 	// Create & init data payload extension
 	dcio_payload_extension* dcioExt = new dcio_payload_extension();
-	dcio->asi   = asi;
-	dcio->flush = flush;
-	dcio->lock  = lock;
+	dcioExt->asi   = asi;
+	dcioExt->flush = flush;
+	dcioExt->lock  = lock;
 
 	unsigned int* debug = new unsigned int;
 	dcioExt->debug = debug;
@@ -123,7 +123,7 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword( const unsigned int & add
 }
 
 // read half word
-unsigned short int leon3_funclt_trap::TLMMemory::read_half( const unsigned int & address, \ 
+unsigned short int leon3_funclt_trap::TLMMemory::read_half( const unsigned int & address,
 							    const unsigned int asi,
 							    const unsigned int flush,
 							    const unsigned int lock) throw(){

@@ -103,8 +103,8 @@ namespace leon3_funclt_trap{
         public:
         LocalMemory( unsigned int size );
         void setDebugger( MemoryToolsIf< unsigned int > * debugger );
-        sc_dt::uint64 read_dword( const unsigned int & address ) throw();
-        inline unsigned int read_word( const unsigned int & address ) throw(){
+        sc_dt::uint64 read_dword( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
+        inline unsigned int read_word( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw(){
             if(address >= this->size){
                 THROW_ERROR("Address " << std::hex << std::showbase << address << " out of memory");
             }

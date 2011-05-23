@@ -45,42 +45,42 @@ using namespace leon3_funclt_trap;
 using namespace trap;
 sc_dt::uint64 leon3_funclt_trap::MemoryInterface::read_dword_dbg( const unsigned \
     int & address ){
-    return this->read_dword(address);
+    return this->read_dword(address, 0x8, 0, 0);
 }
 
 unsigned int leon3_funclt_trap::MemoryInterface::read_word_dbg( const unsigned int \
     & address ){
-    return this->read_word(address);
+    return this->read_word(address, 0x8, 0, 0);
 }
 
 unsigned short int leon3_funclt_trap::MemoryInterface::read_half_dbg( const unsigned \
     int & address ){
-    return this->read_half(address);
+    return this->read_half(address, 0x8, 0, 0);
 }
 
 unsigned char leon3_funclt_trap::MemoryInterface::read_byte_dbg( const unsigned int \
     & address ){
-    return this->read_byte(address);
+    return this->read_byte(address, 0x8, 0, 0);
 }
 
 void leon3_funclt_trap::MemoryInterface::write_dword_dbg( const unsigned int & address, \
     sc_dt::uint64 datum ){
-    this->write_dword(address, datum);
+    this->write_dword(address, datum, 0x8, 0, 0);
 }
 
 void leon3_funclt_trap::MemoryInterface::write_word_dbg( const unsigned int & address, \
     unsigned int datum ){
-    this->write_word(address, datum);
+    this->write_word(address, datum, 0x8, 0, 0);
 }
 
 void leon3_funclt_trap::MemoryInterface::write_half_dbg( const unsigned int & address, \
     unsigned short int datum ){
-    this->write_half(address, datum);
+    this->write_half(address, datum, 0x8, 0, 0);
 }
 
 void leon3_funclt_trap::MemoryInterface::write_byte_dbg( const unsigned int & address, \
     unsigned char datum ){
-    this->write_byte(address, datum);
+    this->write_byte(address, datum, 0x8, 0, 0);
 }
 
 leon3_funclt_trap::MemoryInterface::~MemoryInterface(){
