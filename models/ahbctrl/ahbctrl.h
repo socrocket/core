@@ -53,11 +53,16 @@
 class AHBCtrl : public sc_core::sc_module {
     public:
 
-        /// AMBA multi-sockets
+        // AMBA sockets
+        // ------------------
+      
+        /// AHB slave multi-socket
         amba::amba_slave_socket<32, 0>  ahbIN;
+	/// AHB master multi-socket
         amba::amba_master_socket<32, 0> ahbOUT;
 
-	/// Member functions
+	// Member functions
+	// ----------------
 
         /// TLM blocking transport method
         void b_transport(uint32_t id, tlm::tlm_generic_payload& gp, sc_core::sc_time& delay);
@@ -73,6 +78,15 @@ class AHBCtrl : public sc_core::sc_module {
         /// TLM debug interface
         unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);	
 
+	/// The arbiter thread
+	void ArbitrationThread();
+
+	/// The request thread (for com. with nb_trans_fw of slaves)
+	void RequestThread();
+
+	/// The response thread (for com. with nb_trans_bw of masters)
+	void ResponseThread();
+
 	/// Helper function for creating slave map decoder entries
         void setAddressMap(const uint32_t i, const uint32_t addr, const uint32_t mask);
 
@@ -82,6 +96,9 @@ class AHBCtrl : public sc_core::sc_module {
 	/// Returns a PNP register from the slave configuration area
 	unsigned int getPNPReg(const uint32_t address);
 	
+	/// Keeps track of master-payload relation
+	void addPendingTransaction(tlm::tlm_generic_payload& trans, uint32_t master_id);
+
         /// Check memory map for overlaps
         void checkMemMap();
 
@@ -155,13 +172,20 @@ class AHBCtrl : public sc_core::sc_module {
         typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;
         typedef std::pair<uint32_t, uint32_t> slave_info_t;
 
+	/// The internal state of the bus controller (concerning arbitration)
+	enum AHBStateType {INIT, IDLE, BUSY};
+	AHBStateType AHBState;
+
+	/// The round robin pointer
+	unsigned int robin;
+
 	/// Address decoder table (slave index, (bar addr, mask))
         std::map<uint32_t, slave_info_t> slave_map;
 	/// Iterator for slave map
 	std::map<uint32_t, slave_info_t>::iterator it;
 
-        std::map<uint32_t, int32_t> MstSlvMap;
-        std::map<uint32_t, sc_core::sc_semaphore*> SlvSemaphore;
+	/// Keeps track on where the transactions have been coming from
+	std::map<payload_t*, uint32_t> pending_map;
 
 	/// Array of slave device information (PNP)
 	const uint32_t *mSlaves[64];
@@ -169,20 +193,25 @@ class AHBCtrl : public sc_core::sc_module {
 	/// Array of master device information (PNP)
 	const uint32_t *mMasters[64];
 
-        /// Get master index for a given slave
-        int getMaster2Slave(const uint32_t slaveID);
+	/// PEQs for arbitration, request notification and responses
+	tlm_utils::peq_with_get<payload_t> mArbiterPEQ;
+	tlm_utils::peq_with_get<payload_t> mRequestPEQ;
+	tlm_utils::peq_with_get<payload_t> mResponsePEQ;	
+
+	/// Event triggered by transport_fw to notify response thread about END_RESP
+	sc_event mEndResponseEvent;
+	/// Event triggered by transport_bw to notify request thread about END_REQ
+	sc_event mEndRequestEvent;
 
 	/// Set up slave map and collect plug & play information
         void start_of_simulation();
 
-        // Thread which is spawned in AT model when a busy slave is requested.
-        void queuedTrans(const uint32_t mstID, const uint32_t slvID,
-                         tlm::tlm_generic_payload& gp,
-                         tlm::tlm_phase &phase,
-                         sc_core::sc_time &delay);
-
 	/// Clock cycle time
 	sc_core::sc_time clockcycle;
+
+	// The number of slaves, masters in the system
+	unsigned int num_of_slave_bindings;
+	unsigned int num_of_master_bindings;
 };
 
 #endif // AHBCTRL_H
