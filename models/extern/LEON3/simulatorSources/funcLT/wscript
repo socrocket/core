@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-1 -*-
-
+TOP = '../../../../..'
 import os
 
 
@@ -23,7 +23,7 @@ def build(bld):
     includes = '.'
     target = 'funcLT_objs'
 
-    bld.objects(source = sources, target = target, use = uselib + ' ' + objects, includes = includes)
+    bld.objects(source = sources, target = target, uselib = uselib, use = use + ' ' + objects, includes = includes)
     sources = 'main.cpp'
     includes = '.'
     uselib = 'TRAP ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
@@ -35,4 +35,4 @@ def build(bld):
     objects = 'funcLT_objs'
     target = 'funcLT'
 
-    bld.program(source = sources, target = target, use = uselib + ' ' + objects, includes = includes, defines = cppflags_custom)
+    bld.program(source = sources, target = target, uselib = uselib, use = use + ' ' + objects, includes = includes, defines = cppflags_custom)
