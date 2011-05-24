@@ -155,21 +155,32 @@ def build(bld):
   )
 
   bld(
-    target       = 'mmu_cache.1.tlm.test',
+    target       = 'mmu_cache.1.lt.test',
     features     = 'cxx cprogram test',
     source       = ['test1/testbench.cpp',
-                    'test1/sim_model/main.cpp'],
+                    'test1/sim_lt/main.cpp'],
     includes     = '. ./lib ./test1',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
+
+  bld(
+    target       = 'mmu_cache.1.at.test',
+    features     = 'cxx cprogram test',
+    source       = ['test1/testbench.cpp',
+                    'test1/sim_at/main.cpp'],
+    includes     = '. ./lib ./test1',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
+  )  
+
   """
   bld(
     features     = 'modelsim test',
     target       = 'mmu_cache.1.rtl.test',
     name         = 'mmu_cache.1.rtl.test',
-    source       = ['test1/sim_ref/typ_adapters.vhd',
-                    'test1/sim_ref/mmu_cache_wrapper.vhd',
+    source       = ['test1/sim_rtl/typ_adapters.vhd',
+                    'test1/sim_rtl/mmu_cache_wrapper.vhd',
                     '../../common/verbose.cpp',
                     '../utils/ahbdevice.cpp',
                     '../utils/apbdevice.cpp',
@@ -177,29 +188,41 @@ def build(bld):
                     './lib/dcio_payload_extension.cpp',
                     '../utils/cpu_lt_rtl_adapter.cpp',
                     'test1/testbench.cpp',
-                    'test1/sim_ref/main.cpp'],
+                    'test1/sim_rtl/main.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
     defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = './ ./test1 ./test1/sim_ref ./lib ../utils ../../signalkit ../../common',
+    includes     = './ ./test1 ./test1/sim_rtl ./lib ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
-  )  
+  )
   """
+
   bld(
-    target       = 'mmu_cache.2.tlm.test',
+    target       = 'mmu_cache.2.lt.test',
     features     = 'cxx cprogram test',
     source       = ['test2/testbench.cpp',
-                    'test2/sim_model/main.cpp'],
+                    'test2/sim_lt/main.cpp'],
     includes     = '. ./lib ./test2',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
+
+  bld(
+    target       = 'mmu_cache.2.at.test',
+    features     = 'cxx cprogram test',
+    source       = ['test2/testbench.cpp',
+                    'test2/sim_at/main.cpp'],
+    includes     = '. ./lib ./test2',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
+  )
+
   """
   bld(
     features     = 'modelsim test',
     target       = 'mmu_cache.2.rtl.test',
     name         = 'mmu_cache.2.rtl.test',
-    source       = ['test2/sim_ref/typ_adapters.vhd',
-                    'test2/sim_ref/mmu_cache_wrapper.vhd',
+    source       = ['test2/sim_rtl/typ_adapters.vhd',
+                    'test2/sim_rtl/mmu_cache_wrapper.vhd',
                     '../../common/verbose.cpp',
                     '../utils/ahbdevice.cpp',
                     '../utils/apbdevice.cpp',
@@ -207,48 +230,90 @@ def build(bld):
                     './lib/dcio_payload_extension.cpp',
                     '../utils/cpu_lt_rtl_adapter.cpp',
                     'test2/testbench.cpp',
-                    'test2/sim_ref/main.cpp'],
+                    'test2/sim_rtl/main.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
     defines      = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
-    includes     = './ ./test2 ./test2/sim_ref ./lib ../utils ../../signalkit ../../common',
+    includes     = './ ./test2 ./test2/sim_rtl ./lib ../utils ../../signalkit ../../common',
     config       =  vsim_conf,
-  ) 
+  )
   """
+
   bld(
-    target       = 'mmu_cache.3.tlm.test',
+    target       = 'mmu_cache.3.lt.test',
     features     = 'cxx cprogram test',
     source       = ['test3/testbench.cpp',
-                    'test3/main.cpp'],
+                    'test3/sim_lt/main.cpp'],
     includes     = '. ./lib ./test3',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
 
   bld(
-    target       = 'mmu_cache.4.tlm.test',
+    target       = 'mmu_cache.3.at.test',
+    features     = 'cxx cprogram test',
+    source       = ['test3/testbench.cpp',
+                    'test3/sim_at/main.cpp'],
+    includes     = '. ./lib ./test3',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
+  )
+
+  bld(
+    target       = 'mmu_cache.4.lt.test',
     features     = 'cxx cprogram test',
     source       = ['test4/testbench.cpp',
-                    'test4/main.cpp'],
+                    'test4/sim_lt/main.cpp'],
     includes     = '. ./lib ./test4',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
    
   bld(
-    target       = 'mmu_cache.5.tlm.test',
+    target       = 'mmu_cache.4.at.test',
+    features     = 'cxx cprogram test',
+    source       = ['test4/testbench.cpp',
+                    'test4/sim_at/main.cpp'],
+    includes     = '. ./lib ./test4',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
+  )
+
+  bld(
+    target       = 'mmu_cache.5.lt.test',
     features     = 'cxx cprogram test',
     source       = ['test5/testbench.cpp',
-                    'test5/main.cpp'],
+                    'test5/sim_lt/main.cpp'],
     includes     = '. ./lib ./test5',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
+
+  bld(
+    target       = 'mmu_cache.5.at.test',
+    features     = 'cxx cprogram test',
+    source       = ['test5/testbench.cpp',
+                    'test5/sim_at/main.cpp'],
+    includes     = '. ./lib ./test5',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
+  )
+
  
   bld(
-    target       = 'mmu_cache.6.tlm.test',
+    target       = 'mmu_cache.6.lt.test',
     features     = 'cxx cprogram test',
     source       = ['test6/testbench.cpp',
-                    'test6/main.cpp'],
+                    'test6/sim_lt/main.cpp'],
+    includes     = '. ./lib ./test6',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mmu_cache common utils',
+  )
+
+  bld(
+    target       = 'mmu_cache.6.at.test',
+    features     = 'cxx cprogram test',
+    source       = ['test6/testbench.cpp',
+                    'test6/sim_at/main.cpp'],
     includes     = '. ./lib ./test6',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
