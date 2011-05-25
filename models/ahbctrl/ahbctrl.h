@@ -61,7 +61,7 @@ class AHBCtrl : public sc_core::sc_module {
 	/// AHB master multi-socket
         amba::amba_master_socket<32, 0> ahbOUT;
 
-	// Member functions
+	// Public functions
 	// ----------------
 
         /// TLM blocking transport method
@@ -80,27 +80,6 @@ class AHBCtrl : public sc_core::sc_module {
 
 	/// The arbiter thread
 	void ArbitrationThread();
-
-	/// The request thread (for com. with nb_trans_fw of slaves)
-	void RequestThread();
-
-	/// The response thread (for com. with nb_trans_bw of masters)
-	void ResponseThread();
-
-	/// Helper function for creating slave map decoder entries
-        void setAddressMap(const uint32_t i, const uint32_t addr, const uint32_t mask);
-
-	/// Get slave index for a given address
-        int get_index(const uint32_t address);
-
-	/// Returns a PNP register from the slave configuration area
-	unsigned int getPNPReg(const uint32_t address);
-	
-	/// Keeps track of master-payload relation
-	void addPendingTransaction(tlm::tlm_generic_payload& trans, uint32_t master_id);
-
-        /// Check memory map for overlaps
-        void checkMemMap();
 
 	/// Helper functions for definition of clock cycle
 	void clk(sc_core::sc_clock &clk);
@@ -145,6 +124,9 @@ class AHBCtrl : public sc_core::sc_module {
 
     private:
 
+	// Data Members
+	// ------------
+
 	// The MSB address of the I/O area
 	unsigned int mioaddr;
 	// The I/O area address mask
@@ -185,7 +167,8 @@ class AHBCtrl : public sc_core::sc_module {
 	std::map<uint32_t, slave_info_t>::iterator it;
 
 	/// Keeps track on where the transactions have been coming from
-	std::map<payload_t*, uint32_t> pending_map;
+	typedef std::pair<uint32_t, uint32_t> connection_t;
+	std::map<payload_t*, connection_t> pending_map;
 
 	/// Array of slave device information (PNP)
 	const uint32_t *mSlaves[64];
@@ -203,15 +186,40 @@ class AHBCtrl : public sc_core::sc_module {
 	/// Event triggered by transport_bw to notify request thread about END_REQ
 	sc_event mEndRequestEvent;
 
-	/// Set up slave map and collect plug & play information
-        void start_of_simulation();
-
 	/// Clock cycle time
 	sc_core::sc_time clockcycle;
 
 	// The number of slaves, masters in the system
 	unsigned int num_of_slave_bindings;
 	unsigned int num_of_master_bindings;
+
+	// Private functions
+	// -----------------
+
+	/// Set up slave map and collect plug & play information
+        void start_of_simulation();
+
+	/// The request thread (for com. with nb_trans_fw of slaves)
+	void RequestThread();
+
+	/// The response thread (for com. with nb_trans_bw of masters)
+	void ResponseThread();
+
+	/// Helper function for creating slave map decoder entries
+        void setAddressMap(const uint32_t i, const uint32_t addr, const uint32_t mask);
+
+	/// Get slave index for a given address
+        int get_index(const uint32_t address);
+
+	/// Returns a PNP register from the slave configuration area
+	unsigned int getPNPReg(const uint32_t address);
+	
+	/// Keeps track of master-payload relation
+	void addPendingTransaction(tlm::tlm_generic_payload& trans, connection_t connection);
+
+        /// Check memory map for overlaps
+        void checkMemMap();
+
 };
 
 #endif // AHBCTRL_H

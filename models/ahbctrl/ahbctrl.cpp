@@ -272,7 +272,9 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
 // Non-blocking forward transport function for ahb_slave multi-socket
 // A master may send BEGIN_REQ or END_RESP. The model replies with
 // TLM_ACCEPTED or TLM_COMPLETED, respectively.
-tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t id, tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time &delay) {
+tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time &delay) {
+
+  connection_t connection;
 
   v::info << name() << "nb_transport_fw received phase: " << phase << v::endl;
 
@@ -280,7 +282,10 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t id, tlm::tlm_generic_payloa
   if (phase == tlm::BEGIN_REQ) {
 
     // Memorize the master this was coming from
-    addPendingTransaction(trans, id);
+    // The slave info (second) will be filled in after decoding
+    connection.first = master_id;
+    connection.second = 0;
+    addPendingTransaction(trans, connection);
 
     // All new transactions go in a PEQ to wait for sync
     mArbiterPEQ.notify(trans, delay);
@@ -293,6 +298,8 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t id, tlm::tlm_generic_payloa
     // Let the response thread know that END_RESP
     // came in on the forward path.
     mEndResponseEvent.notify(delay);
+
+    wait(delay);
 
     // Transaction completed
     return tlm::TLM_COMPLETED;
@@ -324,6 +331,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(uint32_t id, tlm::tlm_generic_payloa
   // New response - goes into response PEQ
   } else if (phase == tlm::BEGIN_RESP) {
 
+    mEndRequestEvent.notify();
     mResponsePEQ.notify(trans, delay);
 
   } else {
@@ -343,16 +351,18 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(uint32_t id, tlm::tlm_generic_payloa
 // round 'robin' counter is select. All others get delayed.
 void AHBCtrl::ArbitrationThread() {
 
+  connection_t connection;
   int grand_id, master_id;
   payload_t* trans; 
   payload_t* selected_transaction = NULL;
+
 
   while(1) {
 
     // Wait for the next scheduled transaction
     wait(mArbiterPEQ.get_event());
 
-    v::info << "ArbiterThread received new transaction" << v::endl;
+    v::info << name() << "ArbiterThread received new transaction" << v::endl;
 
     // Increment round robin pointer
     robin=(robin++)%(num_of_master_bindings-1);
@@ -373,7 +383,8 @@ void AHBCtrl::ArbitrationThread() {
       } else {
 
 	// Get master id of transaction
-	master_id = pending_map[trans];
+	connection = pending_map[trans];
+	master_id = connection.first;
 
 	// Fixed priority arbitration
 	if (mrrobin==0) {
@@ -438,14 +449,19 @@ void AHBCtrl::RequestThread() {
   tlm::tlm_phase phase;
   sc_core::sc_time delay;
   tlm::tlm_sync_enum status;
+  connection_t connection;
 
   while(true) {
+
+    v::debug << name() << "Request thread waiting for new request" << v::endl;
 
     // Wait for arbiter to deliver next transaction
     wait(mRequestPEQ.get_event());
 
     // Get transaction from Queue
     trans = mRequestPEQ.get_next_transaction();
+
+    v::debug << name() << "Request Thread unblocked" << v::endl;
     
     // Extract address from payload
     unsigned int addr   = trans->get_address();
@@ -455,6 +471,8 @@ void AHBCtrl::RequestThread() {
     // Is this an access to configuration area
     // ---------------------------------------
     if (mfpnpen && ((((addr >> 20) ^ mcfgaddr) & mcfgmask)==0)) {
+
+      v::info << name() << "Access to configuration area" << v::endl;
 
       // Configuration area is read only
       if (trans->get_command() == tlm::TLM_READ_COMMAND) {
@@ -488,79 +506,90 @@ void AHBCtrl::RequestThread() {
 
       }
 
-    // Ordinary access to slave domain
-    // -------------------------------
-    } else {
+      // Ordinary access to slave domain
+      // -------------------------------
+      } else {
 
-      // Find slave by address / returns slave index or -1 for not mapped
-      int index = get_index(trans->get_address());
+        // Find slave by address / returns slave index or -1 for not mapped
+        int slave_id = get_index(trans->get_address());
 
-      if (index >= 0) {
+        v::debug << name() << "Decoder: slave " << index << " address " << hex << addr << v::endl;
 
-        phase = tlm::BEGIN_REQ;
+        if (index >= 0) {
 
-        // One cycle delay for addressing
-        delay = sc_core::sc_time(10, SC_NS);
+	  // Add slave id to connection info
+	  connection = pending_map[trans];
+	  connection.second = slave_id;
+	  pending_map[trans] = connection;
+
+          phase = tlm::BEGIN_REQ;
+
+          // One cycle delay for addressing
+          delay = sc_core::sc_time(10, SC_NS);
       
-	v::info << name() << "Call to nb_transport_fw with phase " << phase << v::endl;
+	  v::debug << name() << "Call to nb_transport_fw with phase " << phase << v::endl;
 
-        // Forward request to the selected slave
-        status = ahbOUT[index]->nb_transport_fw(*trans, phase, delay);
+          // Forward request to the selected slave
+          status = ahbOUT[slave_id]->nb_transport_fw(*trans, phase, delay);
 
-	v::info << name() << "nb_transport_fw returned status" << status << v::endl;
+	  v::debug << name() << "nb_transport_fw returned status " << status << v::endl;
 
-        switch (status) {
+          switch (status) {
 
-          case tlm::TLM_ACCEPTED:
-          case tlm::TLM_UPDATED:
+            case tlm::TLM_ACCEPTED:
+            case tlm::TLM_UPDATED:
 
-	    if (phase == tlm::BEGIN_REQ) {
+	      if (phase == tlm::BEGIN_REQ) {
 
-	      // Probably TLM_ACCEPTED.
-	      // Request phase is not completed yet.
-	      // Have to wait for END_REQ phase to come
-	      // in on backward path.
-	      // (mEndRequestEvent has delayed notification)
-	      wait(mEndRequestEvent);
+	        // Probably TLM_ACCEPTED.
+	        // Request phase is not completed yet.
+	        // Have to wait for END_REQ phase to come
+	        // in on backward path.
+	        // (mEndRequestEvent has delayed notification)
 
-	    } else if (phase == tlm::END_REQ) {
+		v::debug << name() << "Request thread waiting for EndRequestEvent" << v::endl;
+	        wait(mEndRequestEvent);
 
-	      // End of request via return path.
-	      // Burn annotated delay.
+	      } else if (phase == tlm::END_REQ) {
+
+	        // End of request via return path.
+	        // Burn annotated delay.
+	        wait(delay);
+
+	      } else if (phase == tlm::BEGIN_RESP) {
+
+	        // Begin of response initiated via return path.
+	        // Put into response queue.
+
+	        mResponsePEQ.notify(*trans, delay);
+	  
+              } else {
+
+	        // END_RESP may only come from master
+	        v::error << name() << "Invalid phase in return path from call to nb_transport_fw!" << v::endl;
+	        trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+
+	      }
+
+	      break;
+
+            case tlm::TLM_COMPLETED:
+
+	      // Slave directly jumps to TLM_COMPLETED (Pseudo AT).
+	      // Put response into queue.
+	      mResponsePEQ.notify(*trans, delay);
 	      wait(delay);
 
-	    } else if (phase == tlm::BEGIN_RESP) {
+	      break;
 
-	      // Begin of response initiate via return path.
-	      // Put into response queue.
-	      mResponsePEQ.notify(*trans, delay);
-	  
-            } else {
+            default:
 
-	      // END_RESP may only come from master
-	      v::error << name() << "Invalid phase in return path from call to nb_transport_fw" << v::endl;
+	      v::error << name() << "Invalid return value from call to nb_transport_fw" << v::endl;
 	      trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
-	    }
-
-	    break;
-
-          case tlm::TLM_COMPLETED:
-
-	    // Slave directly jumps to TLM_COMPLETED (pseudo AT).
-	    // Put response into queue.
-	    mResponsePEQ.notify(*trans, delay);
-
-	    break;
-
-          default:
-
-	    v::error << name() << "Invalid return value from call to nb_transport_fw" << v::endl;
-	    trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-
-        }
+          }
      
-      } else {
+        } else {
 
         v::error << name() << "No slave found for address: " << hex << addr << v::endl;
         trans->set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
@@ -576,12 +605,15 @@ void AHBCtrl::RequestThread() {
 void AHBCtrl::ResponseThread() {
 
   payload_t* trans;
-  unsigned int index;
+  unsigned int master_id, slave_id;
   tlm::tlm_phase phase;
   sc_core::sc_time delay;
   tlm::tlm_sync_enum status;
+  connection_t connection;
 
   while(1) {
+
+    v::debug << name() << "Response thread waiting for new response" << v::endl;
 
     // Wait for response from slave (inserted in transport_bw)
     wait(mResponsePEQ.get_event());
@@ -591,15 +623,23 @@ void AHBCtrl::ResponseThread() {
     // (no concurrent master-slave connections allowed)
     trans = mResponsePEQ.get_next_transaction();
 
+    v::debug << name() << "Response thread unblocked" << v::endl;
+
     // Retrieve master id
-    index = pending_map[trans];
+    connection = pending_map[trans];
+    master_id  = connection.first;
+    slave_id   = connection.second;
 
     // Prepare BEGIN_REQ
     phase = tlm::BEGIN_RESP;
-    delay = sc_core::SC_ZERO_TIME;
+    delay = SC_ZERO_TIME;
+
+    v::debug << name() << "Call to nb_transport_bw with phase " << phase << v::endl; 
 
     // Call nb_transport of master
-    status = ahbIN[index]->nb_transport_bw(*trans, phase, delay);
+    status = ahbIN[master_id]->nb_transport_bw(*trans, phase, delay);
+
+    v::debug << name() << "nb_transport_bw returned with phase " << phase << " and status " << status << v::endl;
 
     switch (status) {
 
@@ -611,6 +651,8 @@ void AHBCtrl::ResponseThread() {
 	  // Probably TLM_ACCEPTED.
 	  // Wait for END_RESP to come in on forward path.
 	  // (mEndResponseEvent has delayed notification)
+
+	  v::debug << name() << "Response thread waiting for EndResponseEvent" << v::endl;
 	  wait(mEndResponseEvent);
 
         } else if (phase == tlm::END_RESP) {
@@ -642,9 +684,18 @@ void AHBCtrl::ResponseThread() {
 
     }
 
+    // Let slave know, we are done.
+    // (Must be done, because we return TLM_ACCEPTED on BEGIN_RESP)
+    phase=tlm::END_RESP;
+    delay=SC_ZERO_TIME;
+    status = ahbOUT[slave_id]->nb_transport_fw(*trans, phase, delay);
+    assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
+
     // Cleanup
     // -------
     // Remove connection info form pending_map
+  
+    v::debug << name() << "Remove transaction from pending_map." << v::endl;
     pending_map.erase(trans);
     // Release transaction
     trans->release();
@@ -657,13 +708,13 @@ void AHBCtrl::ResponseThread() {
 // Keeps track of master-payload relation. All incoming transactions
 // are entered into the 'pending_map'. This way we can identify their origin
 // once the fall out of the RequestPEQ.
-void AHBCtrl::addPendingTransaction(payload_t& trans, uint32_t master_id) {
+void AHBCtrl::addPendingTransaction(payload_t& trans, connection_t connection) {
 
   // Transaction must be unique
   assert(pending_map.find(&trans) == pending_map.end());
 
   // Enter transaction
-  pending_map[&trans] = master_id;
+  pending_map[&trans] = connection;
 
 }
 
@@ -676,10 +727,10 @@ void AHBCtrl::start_of_simulation() {
   // Get number of bindings at slave socket (number of connected masters)
   num_of_master_bindings = ahbIN.size();
 
-  // max. 16 AHB slaves allowed
+  // Max. 16 AHB slaves allowed
   assert(num_of_slave_bindings<=16);
 
-  // max. 16 AHB masters allowed
+  // Max. 16 AHB masters allowed
   assert(num_of_master_bindings<=16);
 
   v::info << name() << "******************************************************************************* " << v::endl;
@@ -703,7 +754,7 @@ void AHBCtrl::start_of_simulation() {
 
     v::info << name() << "* SLAVE name: " << obj->name() << v::endl;
 
-    // slave is valid (implements AHBDevice)
+    // Slave is valid (implements AHBDevice)
     if(slave) {
 
       // Get pointer to device information
