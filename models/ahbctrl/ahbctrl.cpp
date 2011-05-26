@@ -276,7 +276,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
 
   connection_t connection;
 
-  v::info << name() << "nb_transport_fw received phase: " << phase << v::endl;
+  v::debug << name() << "nb_transport_fw received phase: " << phase << v::endl;
 
   // The master has sent BEGIN_REQ
   if (phase == tlm::BEGIN_REQ) {
@@ -319,7 +319,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
 // with TLM_ACCEPTED.
 tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time &delay) {
 
-  v::info << name() << "nb_transport_bw received phase: " << phase << v::endl;
+  v::debug << name() << "nb_transport_bw received phase: " << phase << v::endl;
 
   // The slave has sent END_REQ
   if (phase == tlm::END_REQ) {
@@ -362,7 +362,7 @@ void AHBCtrl::ArbitrationThread() {
     // Wait for the next scheduled transaction
     wait(mArbiterPEQ.get_event());
 
-    v::info << name() << "ArbiterThread received new transaction" << v::endl;
+    v::debug << name() << "ArbiterThread received new transaction" << v::endl;
 
     // Increment round robin pointer
     robin=(robin++)%(num_of_master_bindings-1);
@@ -428,7 +428,7 @@ void AHBCtrl::ArbitrationThread() {
     // Is there a winner?
     if (grand_id != -1) { 
 
-      v::info << name() << "Master " << grand_id << " has won arbitration." << v::endl; 
+      v::debug << name() << "Master " << grand_id << " has won arbitration." << v::endl; 
 
       // Block all masters
       AHBState = BUSY;
@@ -472,7 +472,7 @@ void AHBCtrl::RequestThread() {
     // ---------------------------------------
     if (mfpnpen && ((((addr >> 20) ^ mcfgaddr) & mcfgmask)==0)) {
 
-      v::info << name() << "Access to configuration area" << v::endl;
+      v::debug << name() << "Access to configuration area" << v::endl;
 
       // Configuration area is read only
       if (trans->get_command() == tlm::TLM_READ_COMMAND) {

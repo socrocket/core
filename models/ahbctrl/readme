@@ -1,3 +1,6 @@
 ./test1 - Testbench for minimum bus configuration containing 1 master and 1 slave
-./test2 - Testbench for bus configuration with 2 masters and 2 slaves (under construction)
-
+./test2 - Testbench for bus configuration with 2 masters and 2 slaves
+./test3 - Configuration with 16 masters (max) and 1 slave
+./test4 - Configuration with 1 master and 16 slaves (max)
+./test5 - Confiugration with 16 masters (max) and 16 slaves (max)
+ 

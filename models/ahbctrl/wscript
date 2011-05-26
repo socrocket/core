@@ -114,8 +114,8 @@ def build(bld):
   bld(
     target         = 'ahbctrl.1.lt.test',
     features       = 'cxx cprogram test',
-    source         = ['./test1/testbench.cpp',
-                      './test1/testbench_tlm.cpp',
+    source         = ['./ahbctrl_test.cpp',
+                      './test1/testbench.cpp',
                       './test1/sim_lt/main.cpp'],
     includes       = '. ./test1 ./test1/sim_lt',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
@@ -125,8 +125,8 @@ def build(bld):
   bld(
     target         = 'ahbctrl.1.at.test',
     features       = 'cxx cprogram test',
-    source         = ['./test1/testbench.cpp',
-                      './test1/testbench_tlm.cpp',
+    source         = ['./ahbctrl_test.cpp',
+                      './test1/testbench.cpp',
                       './test1/sim_at/main.cpp'],
     includes       = '. ./test1 ./test1/sim_at',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
