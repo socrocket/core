@@ -132,6 +132,28 @@ def build(bld):
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'common utils ahbctrl',
   )
+
+  bld(
+    target         = 'ahbctrl.2.lt.test',
+    features       = 'cxx cprogram test',
+    source         = ['./ahbctrl_test.cpp',
+                      './test2/testbench.cpp',
+                      './test2/sim_lt/main.cpp'],
+    includes       = '. ./test2 ./test2/sim_lt',
+    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
+    use            = 'common utils ahbctrl',
+  )
+ 
+  bld(
+    target         = 'ahbctrl.2.at.test',
+    features       = 'cxx cprogram test',
+    source         = ['./ahbctrl_test.cpp',
+                      './test2/testbench.cpp',
+                      './test2/sim_at/main.cpp'],
+    includes       = '. ./test2 ./test2/sim_at',
+    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
+    use            = 'common utils ahbctrl',
+  )
  
 #  bld(
 #    features       = 'modelsim',

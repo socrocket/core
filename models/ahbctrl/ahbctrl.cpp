@@ -40,7 +40,7 @@
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: 
+// Maintainer: Thomas Schuster
 // Reviewed:
 // *****************************************************************************
 
@@ -61,9 +61,10 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
 		 bool fpnpen,          // Enable full decoding of PnP configuration records
 		 bool mcheck,          // Check if there are any intersections between core memory regions
 		 amba::amba_layer_ids ambaLayer) :
-      sc_module(nm),
+      sc_module(nm),      
       ahbIN("ahbIN", amba::amba_AHB, ambaLayer, false),
       ahbOUT("ahbOUT", amba::amba_AHB, ambaLayer, false),
+      snoop("snoop"),
       mioaddr(ioaddr),
       miomask(iomask),
       mcfgaddr(cfgaddr),
@@ -185,6 +186,9 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 // TLM blocking transport function (multi-sock)
 void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
+  // master-address pair for dcache snooping
+  std::pair<uint32_t, uint32_t> snoopy;
+
   // -- For Debug only --
   uint32_t a = 0;
   socket_t* other_socket = ahbIN.get_other_side(id, a);
@@ -248,6 +252,17 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
              << mstobj->name() << ", forwarded to slave:" << obj->name() << endl;
 
     // -------------------
+
+    // Broadcast master_id and address for dcache snooping
+    if (trans.get_command() == tlm::TLM_WRITE_COMMAND) {
+
+      snoopy.first  = id;
+      snoopy.second = addr;
+
+      // Send to signal socket
+      snoop.write(snoopy);
+
+    }
 
     // Add delay for AHB address phase
     delay += clockcycle;
@@ -451,6 +466,9 @@ void AHBCtrl::RequestThread() {
   tlm::tlm_sync_enum status;
   connection_t connection;
 
+  // master-address pair for dcache snooping
+  std::pair<uint32_t, uint32_t> snoopy;
+
   while(true) {
 
     v::debug << name() << "Request thread waiting for new request" << v::endl;
@@ -521,6 +539,19 @@ void AHBCtrl::RequestThread() {
 	  connection = pending_map[trans];
 	  connection.second = slave_id;
 	  pending_map[trans] = connection;
+
+	  // Broadcast master_id and write address for snooping
+	  if (trans->get_command()==tlm::TLM_WRITE_COMMAND) {
+
+	    v::debug << name() << "Broadcast snooping info!" << v::endl;
+
+	    snoopy.first = connection.first;
+	    snoopy.second = addr;
+
+	    // Broadcast snoop information
+	    snoop.write(snoopy);
+	  
+	  }
 
           phase = tlm::BEGIN_REQ;
 

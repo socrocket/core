@@ -38,7 +38,7 @@
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: 
+// Maintainer: Thomas Schuster
 // Reviewed:
 // ********************************************************************
 
@@ -49,8 +49,9 @@
 #include <systemc>
 #include "amba.h"
 #include "ahbdevice.h"
+#include "signalkit.h"
 
-class AHBCtrl : public sc_core::sc_module {
+class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCtrl> {
     public:
 
         // AMBA sockets
@@ -60,6 +61,9 @@ class AHBCtrl : public sc_core::sc_module {
         amba::amba_slave_socket<32, 0>  ahbIN;
 	/// AHB master multi-socket
         amba::amba_master_socket<32, 0> ahbOUT;
+	/// Broadcast of master_id and write address for dcache snooping
+	signal<std::pair<uint32_t, uint32_t> >::out snoop;
+	
 
 	// Public functions
 	// ----------------
