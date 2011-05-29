@@ -30,8 +30,7 @@
 #
 # Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 #
-# Purpose:    this file contains the build system for the grlib pnp
-#             mechanism model and all its testbenches
+# Purpose:    The WAF-Script for building the AHBCTRL files and tests.
 #
 # Method:     $ ./waf configure; ./waf # to build it on top level
 #
@@ -154,7 +153,74 @@ def build(bld):
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'common utils ahbctrl',
   )
+
+  bld(
+    target         = 'ahbctrl.3.lt.test',
+    features       = 'cxx cprogram test',
+    source         = ['./ahbctrl_test.cpp',
+                      './test3/testbench.cpp',
+                      './test3/sim_lt/main.cpp'],
+    includes       = '. ./test3 ./test3/sim_lt',
+    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
+    use            = 'common utils ahbctrl',
+  )
  
+  bld(
+    target         = 'ahbctrl.3.at.test',
+    features       = 'cxx cprogram test',
+    source         = ['./ahbctrl_test.cpp',
+                      './test3/testbench.cpp',
+                      './test3/sim_at/main.cpp'],
+    includes       = '. ./test3 ./test3/sim_at',
+    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
+    use            = 'common utils ahbctrl',
+  )
+
+  bld(
+    target         = 'ahbctrl.4.lt.test',
+    features       = 'cxx cprogram test',
+    source         = ['./ahbctrl_test.cpp',
+                      './test4/testbench.cpp',
+                      './test4/sim_lt/main.cpp'],
+    includes       = '. ./test4 ./test4/sim_lt',
+    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
+    use            = 'common utils ahbctrl',
+  )
+ 
+  bld(
+    target         = 'ahbctrl.4.at.test',
+    features       = 'cxx cprogram test',
+    source         = ['./ahbctrl_test.cpp',
+                      './test4/testbench.cpp',
+                      './test4/sim_at/main.cpp'],
+    includes       = '. ./test4 ./test4/sim_at',
+    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
+    use            = 'common utils ahbctrl',
+  )
+
+  bld(
+    target         = 'ahbctrl.5.lt.test',
+    features       = 'cxx cprogram test',
+    source         = ['./ahbctrl_test.cpp',
+                      './test5/testbench.cpp',
+                      './test5/sim_lt/main.cpp'],
+    includes       = '. ./test5 ./test5/sim_lt',
+    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
+    use            = 'common utils ahbctrl',
+  )
+ 
+  bld(
+    target         = 'ahbctrl.5.at.test',
+    features       = 'cxx cprogram test',
+    source         = ['./ahbctrl_test.cpp',
+                      './test5/testbench.cpp',
+                      './test5/sim_at/main.cpp'],
+    includes       = '. ./test5 ./test5/sim_at',
+    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
+    use            = 'common utils ahbctrl',
+  )
+
+
 #  bld(
 #    features       = 'modelsim',
 #    target         = 'ahbctrl.1.rtl.test',
@@ -186,6 +252,4 @@ def build(bld):
 #    defines        = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
 #    config         =  vsim_conf,
 #  )  
-
-  
 
