@@ -187,7 +187,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
   // master-address pair for dcache snooping
-  std::pair<uint32_t, uint32_t> snoopy;
+  t_snoop snoopy;
 
   // -- For Debug only --
   uint32_t a = 0;
@@ -247,17 +247,18 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     other_socket = ahbOUT.get_other_side(index, a);
     sc_core::sc_object *obj = other_socket->get_parent();
 
-    v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
-             << v::setw(8) << trans.get_address() << ", from master:"
-             << mstobj->name() << ", forwarded to slave:" << obj->name() << endl;
+    v::debug << name() << "AHB Request for address: " << hex << v::setfill('0')
+             << v::setw(8) << trans.get_address() << ", from master: "
+             << mstobj->name() << ", forwarded to slave: " << obj->name() << endl;
 
     // -------------------
 
     // Broadcast master_id and address for dcache snooping
     if (trans.get_command() == tlm::TLM_WRITE_COMMAND) {
 
-      snoopy.first  = id;
-      snoopy.second = addr;
+      snoopy.master_id  = id;
+      snoopy.address = addr;
+      snoopy.length = length;
 
       // Send to signal socket
       snoop.write(snoopy);
@@ -466,8 +467,8 @@ void AHBCtrl::RequestThread() {
   tlm::tlm_sync_enum status;
   connection_t connection;
 
-  // master-address pair for dcache snooping
-  std::pair<uint32_t, uint32_t> snoopy;
+  // Snooping info (master_id, address, length)
+  t_snoop snoopy;
 
   while(true) {
 
@@ -540,13 +541,14 @@ void AHBCtrl::RequestThread() {
 	  connection.second = slave_id;
 	  pending_map[trans] = connection;
 
-	  // Broadcast master_id and write address for snooping
+	  // Broadcast master_id, write address and length for snooping
 	  if (trans->get_command()==tlm::TLM_WRITE_COMMAND) {
 
 	    v::debug << name() << "Broadcast snooping info!" << v::endl;
 
-	    snoopy.first = connection.first;
-	    snoopy.second = addr;
+	    snoopy.master_id = connection.first;
+	    snoopy.address   = addr;
+	    snoopy.length    = length;
 
 	    // Broadcast snoop information
 	    snoop.write(snoopy);

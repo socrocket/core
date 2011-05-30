@@ -50,6 +50,7 @@
 #include <tlm.h>
 #include <ctime>
 #include "amba.h"
+#include "socrocket.h"
 
 #include "verbose.h"
 #include "ahbdevice.h"
@@ -65,7 +66,7 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
   amba::amba_master_socket<32, 0> ahb;
 
   /// Snooping port
-  signal<std::pair<unsigned int, unsigned int> >::in snoop;
+  signal<t_snoop>::in snoop;
 
   // Member functions
   // ----------------
@@ -74,10 +75,16 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
   void random_write(unsigned int length);
 
   /// Generates random read operations within haddr/hmask region
-  void random_read(unsigned int length);
+  bool random_read(unsigned int length);
+
+  /// Write operation / write data will be cached in local storage
+  void check_write(unsigned int addr, unsigned char * data, unsigned int length);
+
+  /// Read operation / results will be checked against data in local storage
+  bool check_read(unsigned int addr, unsigned char * data, unsigned int length);
 
   /// Callback for snooping
-  void snoopingCallBack(const std::pair<unsigned int, unsigned int>& snoop, const sc_core::sc_time & delay);
+  void snoopingCallBack(const t_snoop & snoop, const sc_core::sc_time & delay);
 
   /// Write data to ahb
   void ahbwrite(unsigned int addr, unsigned char *data, unsigned int length, unsigned int burst_size);

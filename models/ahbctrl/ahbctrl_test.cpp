@@ -22,7 +22,7 @@
 // contained do not necessarily reflect the policy of the
 // European Space Agency or of TU-Braunschweig.
 // ********************************************************************
-// Title:      ahbctrl.h
+// Title:      ahbctrl_test.cpp
 //
 // ScssId:
 //
@@ -216,9 +216,65 @@ void ahbctrl_test::ahbwrite(unsigned int addr, unsigned char * data, unsigned in
  
 }
 
-// Generates random read operations within haddr/hmask region
-void ahbctrl_test::random_read(unsigned int length) {
+// Read operation / result will be checked against locally cached data
+bool ahbctrl_test::check_read(unsigned int addr, unsigned char* data, unsigned int length) {
 
+  bool is_valid = true;
+  unsigned int i;
+
+  t_entry tmp;
+  tmp.data = 0;
+  tmp.valid = 0;
+
+  // Read from AHB
+  ahbread(addr, data, length, 4);
+
+  v::debug << name() << "Read data returned!" << v::endl;
+
+  // Check result
+  for (i=0;i<length;i++) {
+
+    // Look up local cache
+    it = localcache.find(addr+i);
+
+    // Assume 0, if location was never written before
+    if (it != localcache.end()) {
+
+      // We (this master) wrote to this address before.
+      tmp = it->second;
+
+    } else {
+
+      // Address was not written by this master before.
+      tmp.data = 0;
+      tmp.valid = false;
+
+    }
+
+    // Combine all valid flags
+    is_valid &= tmp.valid;
+
+    v::debug << name() << "ADDR: " << hex << addr+i << " DATA: " << (unsigned int)data[i] << " EXPECTED: " << tmp.data << " VALID: " << tmp.valid << v::endl;
+   
+    if (tmp.valid == true) {
+
+      assert(data[i] == tmp.data);
+
+    } else {
+
+      v::debug << name() << "No local reference for checking or data invalidated by snooping!" << v::endl;
+
+    }
+  }
+
+  // Only returns true, if all valid bits are switched one.
+  return is_valid;
+}
+
+// Generates random read operations within haddr/hmask region
+bool ahbctrl_test::random_read(unsigned int length) {
+
+  bool is_valid = true;
   unsigned int i;
 
   t_entry tmp;
@@ -266,15 +322,21 @@ void ahbctrl_test::random_read(unsigned int length) {
     // Assume 0, if location was never written before
     if (it != localcache.end()) {
 
+      // We (this master) wrote to this address before.
       tmp = it->second;
 
     } else {
 
+      // Address was not written by this master before.
       tmp.data = 0;
+      tmp.valid = false;
 
     }
 
-    v::debug << "ADDR: " << hex << addr+i << " DATA: " << (unsigned int)data[i] << " EXPECTED: " << tmp.data << " VALID: " << tmp.valid << v::endl;
+    // Combine all valid flags
+    is_valid &= tmp.valid;
+
+    v::debug << name() << "ADDR: " << hex << addr+i << " DATA: " << (unsigned int)data[i] << " EXPECTED: " << tmp.data << " VALID: " << tmp.valid << v::endl;
    
     if (tmp.valid == true) {
 
@@ -282,9 +344,31 @@ void ahbctrl_test::random_read(unsigned int length) {
 
     } else {
 
-      v::debug << "Local data was invalidated by another master (snooping)!" << v::endl;
+      v::debug << name() << "No local reference for checking or data invalidated by snooping!" << v::endl;
 
     }
+  }
+
+  // Only returns true, if all valid bits are switched one.
+  return is_valid;
+}
+
+// Write operation / write data will be cached in local storage
+void ahbctrl_test::check_write(unsigned int addr, unsigned char * data, unsigned int length) {
+
+  unsigned int i;
+  t_entry entry;
+
+  // Write to AHB
+  ahbwrite(addr, data, length, 4);  
+
+  // Keep track in local cache
+  for (i=0;i<length;i++) {
+
+    entry.data = data[i];
+    entry.valid = true;
+
+    localcache[addr+i] = entry;
 
   }
 }
@@ -357,24 +441,30 @@ void ahbctrl_test::random_write(unsigned int length) {
 }
 
 // Snooping function - invalidates dirty cache entries
-void ahbctrl_test::snoopingCallBack(const std::pair<unsigned int, unsigned int > &snoop, const sc_core::sc_time & delay) {
+void ahbctrl_test::snoopingCallBack(const t_snoop & snoop, const sc_core::sc_time & delay) {
 
-  // Look up local cache
-  it = localcache.find(snoop.second);
-
-  v::debug << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.first << " ADDR: " << hex << snoop.second << ")" << v::endl;
+  v::debug << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.master_id << " ADDR: " \
+	   << hex << snoop.address << " LENGTH: " << snoop.length << ")" << v::endl;
 
   // Make sure we are not snooping ourself ;)
   // Check if address was used for a random instruction from this master.
-  if ((snoop.first != m_master_id) && (it != localcache.end())) {
+  if (snoop.master_id != m_master_id) {
 
-    v::debug << name() << "Invalidate data at address: " << hex << snoop.second << v::endl;
+    for (unsigned int i = 0; i < snoop.length; i++) {
 
-    // Delete the valid bit
-    (it->second).valid = false;
+      // Look up local cache
+      it = localcache.find(snoop.address + i);
 
+      if (it != localcache.end()) {
+
+	v::debug << name() << "Invalidate data at address: " << hex << snoop.address + i << v::endl;
+
+	// Delete the valid bit
+	(it->second).valid = false;
+
+      }
+    }
   }
-
 }
 
 // The transaction processor
