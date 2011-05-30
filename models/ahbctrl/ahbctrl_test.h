@@ -53,16 +53,31 @@
 
 #include "verbose.h"
 #include "ahbdevice.h"
+#include "signalkit.h"
 
-class ahbctrl_test : public sc_module, public AHBDevice {
+// public signalkit::signal_module(ahbctrl_test)
+
+class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signal_module<ahbctrl_test> {
 
  public:
 
   /// AMBA master socket
   amba::amba_master_socket<32, 0> ahb;
 
+  /// Snooping port
+  signal<std::pair<unsigned int, unsigned int> >::in snoop;
+
   // Member functions
   // ----------------
+
+  /// Generates random write operations within haddr/hmask region
+  void random_write(unsigned int length);
+
+  /// Generates random read operations within haddr/hmask region
+  void random_read(unsigned int length);
+
+  /// Callback for snooping
+  void snoopingCallBack(const std::pair<unsigned int, unsigned int>& snoop, const sc_core::sc_time & delay);
 
   /// Write data to ahb
   void ahbwrite(unsigned int addr, unsigned char *data, unsigned int length, unsigned int burst_size);
@@ -88,7 +103,12 @@ class ahbctrl_test : public sc_module, public AHBDevice {
   SC_HAS_PROCESS(ahbctrl_test);
 
   /// Constructor
-  ahbctrl_test(sc_core::sc_module_name, amba::amba_layer_ids abstractionLayer, unsigned int master_id);
+  ahbctrl_test(sc_core::sc_module_name name,
+	       unsigned int haddr, // haddr for random instr. generation
+	       unsigned int hmask, // hmask for random instr. generation
+	       unsigned int master_id, // id of the bus master
+	       sc_core::sc_time inter, // interval of random instructions (waiting period)
+	       amba::amba_layer_ids abstractionLayer);
 
   // data members
   // ------------
@@ -101,11 +121,35 @@ class ahbctrl_test : public sc_module, public AHBDevice {
   clock_t phase_realtime_start;
   clock_t phase_realtime_end;
 
-  /// AMBA abstraction layer (LT/AT)
-  amba::amba_layer_ids m_abstractionLayer;
+  /// Typ for local cache entry
+  typedef struct {
+
+    unsigned int data;
+    bool valid;
+
+  } t_entry;
+
+  /// Memory for keeping track of write operations
+  std::map<unsigned int, t_entry> localcache;
+  std::map<unsigned int, t_entry>::iterator it;
+
+  // Address range for random instruction generation
+  unsigned int m_haddr;
+  unsigned int m_hmask;
+
+  unsigned int m_addr_range_lower_bound;
+  unsigned int m_addr_range_upper_bound;
 
   /// ID of the master socket
   unsigned int m_master_id;
+
+  // Intervall between operations
+  // (The time we wait after return of an transaction,
+  // before generating the next one.)
+  sc_core::sc_time m_inter;
+
+  /// AMBA abstraction layer (LT/AT)
+  amba::amba_layer_ids m_abstractionLayer;
 
  private:
 

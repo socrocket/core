@@ -47,11 +47,14 @@
 #include "ahbctrl_test.h"
 
 // Constructor
-ahbctrl_test::ahbctrl_test(sc_core::sc_module_name name, amba::amba_layer_ids abstractionLayer, unsigned int master_id) : 
-
-  sc_module(name),
+ahbctrl_test::ahbctrl_test(sc_core::sc_module_name name,
+			   unsigned int haddr, // haddr for random instr. generation
+			   unsigned int hmask, // hmask for random instr. generation
+			   unsigned int master_id, // id of the bus master
+			   sc_core::sc_time inter, // interval of random instructions (waiting period)
+			   amba::amba_layer_ids abstractionLayer) : sc_module(name),
   AHBDevice(
-      0x04, // vendor: ESA
+      0x04,  // vendor: ESA
       0x00,  // device: ??
       0,
       0,
@@ -60,9 +63,30 @@ ahbctrl_test::ahbctrl_test(sc_core::sc_module_name name, amba::amba_layer_ids ab
       0,
       0),
   ahb("ahb", amba::amba_AHB, abstractionLayer, false),
-  m_abstractionLayer(abstractionLayer),
+  snoop(&ahbctrl_test::snoopingCallBack,"SNOOP"),
+  m_haddr(haddr),
+  m_hmask(hmask),
   m_master_id(master_id),
+  m_inter(inter),
+  m_abstractionLayer(abstractionLayer),
   mResponsePEQ("ResponsePEQ") {
+
+  // Calculate address bound for random instruction generation
+  // from haddr/hmask
+  m_addr_range_lower_bound = (m_haddr & m_hmask) << 20;
+  m_addr_range_upper_bound = m_addr_range_lower_bound + (((~m_hmask & 0xfff) + 1) << 20);
+
+  // Sanity check range
+  assert(m_addr_range_upper_bound > m_addr_range_lower_bound);
+
+  v::info << this->name() << "***************************************************       " << v::endl;
+  v::info << this->name() << "* Testbench master " << m_master_id << " configured to    " << v::endl;
+  v::info << this->name() << "* generate instructions with following parameters:        " << v::endl;
+  v::info << this->name() << "* Lower address bound: " << hex << m_addr_range_lower_bound << v::endl;
+  v::info << this->name() << "* Upper address bound: " << hex << m_addr_range_upper_bound << v::endl;
+  v::info << this->name() << "* Interval: " << m_inter << v::endl;
+  v::info << this->name() << "***************************************************" << v::endl;
+
 
   // For AT abstraction layer
   if (m_abstractionLayer == amba::amba_AT) {
@@ -190,6 +214,167 @@ void ahbctrl_test::ahbwrite(unsigned int addr, unsigned char * data, unsigned in
 
   ahb.release_transaction(trans);
  
+}
+
+// Generates random read operations within haddr/hmask region
+void ahbctrl_test::random_read(unsigned int length) {
+
+  unsigned int i;
+
+  t_entry tmp;
+  tmp.data = 0;
+  tmp.valid = 0;
+
+  unsigned char data[4];
+
+  // Random address
+  unsigned int addr = (rand() % (m_addr_range_upper_bound-m_addr_range_lower_bound)) + m_addr_range_lower_bound;
+
+  // Align address with respect to data length
+  switch (length) {
+
+  case 1:
+    // byte address
+    break;
+
+  case 2:
+    // half-word boundary
+    addr = addr & 0xfffffffe;
+    break;
+
+  case 4:
+    // word boundary
+    addr = addr & 0xfffffffc;
+    break;
+
+  default:
+
+    v::error << "Length not valid in random_write!" << v::endl;
+  }
+
+  // Read from AHB
+  ahbread(addr, data, length, 4);
+
+  v::debug << name() << "Read data returned!" << v::endl;
+
+  // Check result
+  for (i=0;i<length;i++) {
+
+    // Look up local cache
+    it = localcache.find(addr+i);
+
+    // Assume 0, if location was never written before
+    if (it != localcache.end()) {
+
+      tmp = it->second;
+
+    } else {
+
+      tmp.data = 0;
+
+    }
+
+    v::debug << "ADDR: " << hex << addr+i << " DATA: " << (unsigned int)data[i] << " EXPECTED: " << tmp.data << " VALID: " << tmp.valid << v::endl;
+   
+    if (tmp.valid == true) {
+
+      assert(data[i] == tmp.data);
+
+    } else {
+
+      v::debug << "Local data was invalidated by another master (snooping)!" << v::endl;
+
+    }
+
+  }
+}
+
+// Generates random write operations within haddr/hmask region
+void ahbctrl_test::random_write(unsigned int length) {
+
+  unsigned int i;
+  unsigned char data[4];
+
+  t_entry entry;
+
+  // Random address
+  unsigned int addr = (rand() % (m_addr_range_upper_bound-m_addr_range_lower_bound)) + m_addr_range_lower_bound;
+
+  // Align address with respect to data length
+  switch (length) {
+
+  case 1:
+    // byte address
+    break;
+
+  case 2:
+    // half-word boundary
+    addr = addr & 0xfffffffe;
+    break;
+
+  case 4:
+    // word boundary
+    addr = addr & 0xfffffffc;
+    break;
+
+  default:
+
+    v::error << "Length not valid in random_write!" << v::endl;
+  }
+  
+  v::debug << name() << "New random write!" << v::endl;
+
+  // Random data
+  for (i=0;i<4;i++) {
+
+    if (i < length) {
+
+      data[i] = rand() % 256;
+
+      v::debug << "addr: " << hex << addr+i << " data: " << (unsigned int)data[i] << v::endl;
+
+    } else {
+
+      data[i] = 0;
+
+    }
+  
+  }
+
+  // Write to AHB
+  ahbwrite(addr, data, length, 4);
+
+  // Keep track in local cache
+  for (i=0;i<length;i++) {
+
+    entry.data = data[i];
+    entry.valid = true;
+
+    localcache[addr+i] = entry;
+
+  }
+
+}
+
+// Snooping function - invalidates dirty cache entries
+void ahbctrl_test::snoopingCallBack(const std::pair<unsigned int, unsigned int > &snoop, const sc_core::sc_time & delay) {
+
+  // Look up local cache
+  it = localcache.find(snoop.second);
+
+  v::debug << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.first << " ADDR: " << hex << snoop.second << ")" << v::endl;
+
+  // Make sure we are not snooping ourself ;)
+  // Check if address was used for a random instruction from this master.
+  if ((snoop.first != m_master_id) && (it != localcache.end())) {
+
+    v::debug << name() << "Invalidate data at address: " << hex << snoop.second << v::endl;
+
+    // Delete the valid bit
+    (it->second).valid = false;
+
+  }
+
 }
 
 // The transaction processor
