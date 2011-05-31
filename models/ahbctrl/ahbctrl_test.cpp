@@ -592,35 +592,3 @@ void ahbctrl_test::ResponseThread() {
     mEndResponseEvent.notify();
   }
 }
-
-/// Use this function to record system time and realtime at the beginning of a test phase
-void ahbctrl_test::phase_start_timing() {
-
-  phase_systime_start = sc_core::sc_time_stamp();
-  phase_realtime_start = std::clock();
-
-}
-
-/// Use this function to record system time and realtime at the end of a test phase
-void ahbctrl_test::phase_end_timing() {
-
-  phase_systime_end = sc_core::sc_time_stamp();
-  phase_realtime_end = std::clock();
-	
-}
-
-/// Returns the difference between phase_systime_end and phase_systime_start
-sc_core::sc_time ahbctrl_test::phase_systime() {
-
-  return(phase_systime_end - phase_systime_start);
-
-}
-
-/// Returns the difference between phase_realtime_end and phase_realtime_start in seconds.
-double ahbctrl_test::phase_realtime() {
-
-  return((phase_realtime_end - phase_realtime_start)/(double)CLOCKS_PER_SEC);
-	
-}
- 
-

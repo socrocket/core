@@ -101,12 +101,6 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
   /// TLM non-blocking transport backward
   tlm::tlm_sync_enum nb_transport_bw(unsigned int id, tlm::tlm_generic_payload& gp, tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
-  // helpers for timing measurement
-  void phase_start_timing();
-  void phase_end_timing();
-  sc_core::sc_time phase_systime();
-  double phase_realtime();
-
   SC_HAS_PROCESS(ahbctrl_test);
 
   /// Constructor

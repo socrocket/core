@@ -59,9 +59,10 @@ def build(bld):
   bld(
     target          = 'common',
     features        = 'cxx cxxstlib',
-    source          = 'verbose.cpp', 
+    source          = ['verbose.cpp',
+                       'timingmonitor.cpp'],
     export_includes = '.',
-    uselib          = 'SYSTEMC'
+    uselib          = 'SYSTEMC TLM'
   )
   
   bld(
