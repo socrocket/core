@@ -102,7 +102,7 @@ void localram::read(unsigned int addr, unsigned char *data, unsigned int len,
         *(data + i) = scratchpad[(addr - m_lrstart) >> 2].c[byt + i];
     }
 
-    v::info << this->name() << "Read from address: " << std::hex << addr
+    v::debug << this->name() << "Read from address: " << std::hex << addr
             << v::endl;
 
     // update debug information
@@ -124,7 +124,7 @@ void localram::write(unsigned int addr, unsigned char *data, unsigned int len,
         scratchpad[(addr - m_lrstart) >> 2].c[byt + i] = *(data + i);
     }
 
-    v::info << this->name() << "Write to address: " << std::hex << addr
+    v::debug << this->name() << "Write to address: " << std::hex << addr
             << v::endl;
 
     // update debug information

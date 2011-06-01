@@ -86,10 +86,16 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
 	    mhmask(hmask_),
             clockcycle(10.0, sc_core::SC_NS) {
 
+    // haddr and hmask must be 12 bit
+  assert(!((mhaddr|mhmask)>>12));
+
     // Display AHB slave information
-    v::info << name() << "AHB slave @0x" << hex << v::setw(8)
-            << v::setfill('0') << get_base_addr() << " size: 0x" << hex
-            << v::setw(8) << v::setfill('0') << get_size() << " byte" << endl;
+    v::info << name() << "********************************************************************" << v::endl;
+    v::info << name() << "* Create AHB simulation memory with following parameters:           " << v::endl;
+    v::info << name() << "* haddr/hmask: " << hex << mhaddr << "/" << mhmask                    << v::endl;
+    v::info << name() << "* Slave base address: " << hex << get_base_addr()                     << v::endl;
+    v::info << name() << "* Slave size (bytes): " << hex << get_size()                          << v::endl;
+    v::info << name() << "********************************************************************" << v::endl;
 
     // For LT register blocking transport
     if(ambaLayer==amba::amba_LT) {

@@ -47,7 +47,6 @@
 
 #include <tlm.h>
 #include <ostream>
-#include <ctime>
 
 #if defined(MTI_SYSTEMC) || defined(NO_INCLUDE_PATHS)
 #include "simple_initiator_socket.h"
@@ -62,12 +61,12 @@
 #include "icio_payload_extension.h"
 #include "dcio_payload_extension.h"
 
-/// helper class for building testbenchs for mmu_cache
+/// All mmu_cache tests inherit from this class
 class mmu_cache_test : public sc_core::sc_module {
 
     public:
 
-        // TLM2.0 initiator sockets for instructions and data
+        /// TLM2.0 initiator sockets for instructions and data
         tlm_utils::simple_initiator_socket<mmu_cache_test> instruction_initiator_socket;
         tlm_utils::simple_initiator_socket<mmu_cache_test> data_initiator_socket;
 
@@ -89,14 +88,6 @@ class mmu_cache_test : public sc_core::sc_module {
 
 	// locals
 	// ------
-	
-	// system time for simulation accuracy measurement
-	sc_core::sc_time phase_systime_start;
-	sc_core::sc_time phase_systime_end;
-
-	// realtime clock for simulation performance measurement
-	clock_t phase_realtime_start;
-	clock_t phase_realtime_end;
 
 	// events for notifification of the testbench threads on completed transactions
 	sc_event icio_completed;
@@ -582,36 +573,6 @@ class mmu_cache_test : public sc_core::sc_module {
 	      assert(0);
 	    }
 
-        }
-
-	/// Use this function to record system time and realtime at the beginning of a test phase
-	void phase_start_timing() {
-
-	  phase_systime_start = sc_core::sc_time_stamp();
-	  phase_realtime_start = std::clock();
-
-	}
-
-	// Use this function to record system time and realtime at the end of a test phase
-	void phase_end_timing() {
-
-	  phase_systime_end = sc_core::sc_time_stamp();
-	  phase_realtime_end = std::clock();
-	
-        }
-
-	// Returns the difference between phase_systime_end and phase_systime_start
-	sc_core::sc_time phase_systime() {
-
-	  return(phase_systime_end - phase_systime_start);
-
-	}
-
-	// Returns the difference between phase_realtime_end and phase_realtime_start in seconds.
-	double phase_realtime() {
-
-	  return((phase_realtime_end - phase_realtime_start)/(double)CLOCKS_PER_SEC);
-	
         }
 
 };

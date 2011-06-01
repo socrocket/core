@@ -246,7 +246,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << this->name()
+            v::debug << this->name()
                     << "System Registers read with ASI 0x2 - addr:" << std::hex
                     << addr << v::endl;
 
@@ -287,7 +287,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-	    v::info << this->name()
+	    v::debug << this->name()
                     << "System Register write with ASI 0x2 - addr:" << std::hex
                     << addr << v::endl;
 
@@ -346,7 +346,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << this->name()
+            v::debug << this->name()
                     << "Diagnostic read from instruction PDC (ASI 0x5)"
                     << v::endl;
 
@@ -370,7 +370,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << this->name()
+            v::debug << this->name()
                     << "Diagnostic write to instruction PDC (ASI 0x5)"
                     << v::endl;
 
@@ -398,7 +398,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << name()
+            v::debug << name()
                     << "Diagnostic read from data (or shared) PDC (ASI 0x6)"
                     << v::endl;
 
@@ -422,7 +422,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name()
+            v::debug << name()
                     << "Diagnostic write to data (or shared) PDC (ASI 0x6)"
                     << v::endl;
 
@@ -451,7 +451,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << name() 
+            v::debug << name() 
 		    << "ASI read instruction cache tags"
                     << v::endl;
 
@@ -464,7 +464,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name() << "ASI write instruction cache tags"
+            v::debug << name() << "ASI write instruction cache tags"
                     << v::endl;
 
             icache->write_cache_tag((unsigned int)addr, (unsigned int*)ptr,
@@ -490,7 +490,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << name() 
+            v::debug << name() 
 		    << "ASI read instruction cache entry"
                     << v::endl;
 
@@ -503,7 +503,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name() 
+            v::debug << name() 
 		    << "ASI write instruction cache entry"
                     << v::endl;
 
@@ -530,7 +530,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << name() 
+            v::debug << name() 
 		    << "ASI read data cache tags" 
 		    << v::endl;
 
@@ -543,7 +543,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name() 
+            v::debug << name() 
 		    << "ASI write data cache tags" 
 		    << v::endl;
 
@@ -571,9 +571,9 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << name() 
-		    << "ASI read data cache entry" 
-		    << v::endl;
+            v::debug << name() 
+		     << "ASI read data cache entry" 
+		     << v::endl;
 
             dcache->read_cache_entry((unsigned int)addr, (unsigned int*)ptr,
                     &delay);
@@ -584,9 +584,9 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name() 
-		    << "ASI write data cache entry" 
-		    << v::endl;
+            v::debug << name() 
+		     << "ASI write data cache entry" 
+		     << v::endl;
 
             dcache->write_cache_entry((unsigned int)addr, (unsigned int*)ptr,
                     &delay);
@@ -612,9 +612,9 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
         // icache is flushed on any write with ASI 0x10
         if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name() 
-		    << "ASI flush instruction cache" 
-		    << v::endl;
+            v::debug << name() 
+		     << "ASI flush instruction cache" 
+		     << v::endl;
 
             icache->flush(&delay, debug);
 
@@ -639,9 +639,9 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
         // dcache is flushed on any write with ASI 0x11
         if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name() 
-		    << "ASI flush data cache" 
-		    << v::endl;
+            v::debug << name() 
+		     << "ASI flush data cache" 
+		     << v::endl;
 
             dcache->flush(&delay, debug);
 
@@ -668,16 +668,16 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
             if (cmd == tlm::TLM_READ_COMMAND) {
 
-                v::info << name()
-                        << "MMU register read with ASI 0x19 - addr:"
-                        << std::hex 
-			<< addr 
-			<< v::endl;
+                v::debug << name()
+                         << "MMU register read with ASI 0x19 - addr:"
+                         << std::hex 
+			 << addr 
+			 << v::endl;
 
                 if (addr == 0x000) {
 
                     // MMU Control Register
-                    v::info << name() 
+                    v::debug << name() 
 			    << "ASI read MMU Control Register"
                             << v::endl;
 
@@ -689,7 +689,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
                 } else if (addr == 0x100) {
 
                     // Context Pointer Register
-                    v::info << name()
+                    v::debug << name()
                             << "ASI read MMU Context Pointer Register"
                             << v::endl;
 
@@ -701,9 +701,9 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
                 } else if (addr == 0x200) {
 
                     // Context Register
-                    v::info << name() 
-			    << "ASI read MMU Context Register"
-                            << v::endl;
+                    v::debug << name() 
+			     << "ASI read MMU Context Register"
+                             << v::endl;
 
                     *(unsigned int *)ptr = m_mmu->read_mctxr();
 		    // set TLM response
@@ -713,9 +713,9 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
                 } else if (addr == 0x300) {
 
                     // Fault Status Register
-                    v::info << name()
-                            << "ASI read MMU Fault Status Register" 
-			    << v::endl;
+                    v::debug << name()
+                             << "ASI read MMU Fault Status Register" 
+			     << v::endl;
 
                     *(unsigned int *)ptr = m_mmu->read_mfsr();
 		    // set TLM response
@@ -725,9 +725,9 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
                 } else if (addr == 0x400) {
 
                     // Fault Address Register
-                    v::info << name()
-                            << "ASI read MMU Fault Address Register" 
-			    << v::endl;
+                    v::debug << name()
+                             << "ASI read MMU Fault Address Register" 
+			     << v::endl;
 
                     *(unsigned int *)ptr = m_mmu->read_mfar();
 		    // set TLM response
@@ -748,18 +748,18 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
 
             } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-                v::info << name()
-                        << "MMU register write with ASI 0x19 - addr:"
-                        << std::hex 
-			<< addr 
-			<< v::endl;
+                v::debug << name()
+                         << "MMU register write with ASI 0x19 - addr:"
+                         << std::hex 
+		 	 << addr 
+			 << v::endl;
 
                 if (addr == 0x000) {
 
                     // MMU Control Register
-                    v::info << name() 
-			    << "ASI write MMU Control Register"
-                            << v::endl;
+                    v::debug << name() 
+			     << "ASI write MMU Control Register"
+                             << v::endl;
 
                     m_mmu->write_mcr((unsigned int *)ptr);
 		    // set TLM response
@@ -769,9 +769,9 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
                 } else if (addr == 0x100) {
 
                     // Context Table Pointer Register
-                    v::info << name()
-                            << "ASI write MMU Context Table Pointer Register"
-                            << v::endl;
+                    v::debug << name()
+                             << "ASI write MMU Context Table Pointer Register"
+                             << v::endl;
 
                     m_mmu->write_mctpr((unsigned int*)ptr);
 		    // set TLM response
@@ -781,9 +781,9 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
                 } else if (addr == 0x200) {
 
                     // Context Register
-                    v::info << name() 
-			    << "ASI write MMU Context Register"
-                            << v::endl;
+                    v::debug << name() 
+			     << "ASI write MMU Context Register"
+                             << v::endl;
 
                     m_mmu->write_mctxr((unsigned int*)ptr);
 		    // set TLM response
@@ -1150,9 +1150,9 @@ void mmu_cache::dcio_service_thread() {
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << this->name()
-                    << "System Registers read with ASI 0x2 - addr:" << std::hex
-                    << addr << v::endl;
+            v::debug << this->name()
+                     << "System Registers read with ASI 0x2 - addr:" << std::hex
+                     << addr << v::endl;
 
             if (addr == 0) {
 
@@ -1187,9 +1187,9 @@ void mmu_cache::dcio_service_thread() {
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-	    v::info << this->name()
-                    << "System Register write with ASI 0x2 - addr:" << std::hex
-                    << addr << v::endl;
+	    v::debug << this->name()
+                     << "System Register write with ASI 0x2 - addr:" << std::hex
+                     << addr << v::endl;
 
             if (addr == 0) {
 
@@ -1240,9 +1240,9 @@ void mmu_cache::dcio_service_thread() {
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << this->name()
-                    << "Diagnostic read from instruction PDC (ASI 0x5)"
-                    << v::endl;
+            v::debug << this->name()
+                     << "Diagnostic read from instruction PDC (ASI 0x5)"
+                     << v::endl;
 
             if (m_mmu_en) {
 
@@ -1262,9 +1262,9 @@ void mmu_cache::dcio_service_thread() {
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << this->name()
-                    << "Diagnostic write to instruction PDC (ASI 0x5)"
-                    << v::endl;
+            v::debug << this->name()
+                     << "Diagnostic write to instruction PDC (ASI 0x5)"
+                     << v::endl;
 
             if (m_mmu_en) {
 
@@ -1288,9 +1288,9 @@ void mmu_cache::dcio_service_thread() {
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << name()
-                    << "Diagnostic read from data (or shared) PDC (ASI 0x6)"
-                    << v::endl;
+            v::debug << name()
+                     << "Diagnostic read from data (or shared) PDC (ASI 0x6)"
+                     << v::endl;
 
             if (m_mmu_en) {
 
@@ -1310,9 +1310,9 @@ void mmu_cache::dcio_service_thread() {
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name()
-                    << "Diagnostic write to data (or shared) PDC (ASI 0x6)"
-                    << v::endl;
+            v::debug << name()
+                     << "Diagnostic write to data (or shared) PDC (ASI 0x6)"
+                     << v::endl;
 
             if (m_mmu_en) {
 
@@ -1337,9 +1337,9 @@ void mmu_cache::dcio_service_thread() {
       
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << name() 
-		    << "ASI read instruction cache tags"
-                    << v::endl;
+            v::debug << name() 
+		     << "ASI read instruction cache tags"
+                     << v::endl;
 
             icache->read_cache_tag((unsigned int)addr, (unsigned int*)ptr,
                     &delay);
@@ -1349,8 +1349,8 @@ void mmu_cache::dcio_service_thread() {
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name() << "ASI write instruction cache tags"
-                    << v::endl;
+            v::debug << name() << "ASI write instruction cache tags"
+                     << v::endl;
 
             icache->write_cache_tag((unsigned int)addr, (unsigned int*)ptr,
                     &delay);
@@ -1373,9 +1373,9 @@ void mmu_cache::dcio_service_thread() {
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << name() 
-		    << "ASI read instruction cache entry"
-                    << v::endl;
+            v::debug << name() 
+		     << "ASI read instruction cache entry"
+                     << v::endl;
 
             icache->read_cache_entry((unsigned int)addr, (unsigned int*)ptr,
                     &delay);
@@ -1385,9 +1385,9 @@ void mmu_cache::dcio_service_thread() {
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name() 
-		    << "ASI write instruction cache entry"
-                    << v::endl;
+            v::debug << name() 
+		     << "ASI write instruction cache entry"
+                     << v::endl;
 
             icache->write_cache_entry((unsigned int)addr, (unsigned int*)ptr,
                     &delay);
@@ -1410,9 +1410,9 @@ void mmu_cache::dcio_service_thread() {
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << name() 
-		    << "ASI read data cache tags" 
-		    << v::endl;
+            v::debug << name() 
+		     << "ASI read data cache tags" 
+		     << v::endl;
 
             dcache->read_cache_tag((unsigned int)addr, (unsigned int*)ptr,
                     &delay);
@@ -1422,9 +1422,9 @@ void mmu_cache::dcio_service_thread() {
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name() 
-		    << "ASI write data cache tags" 
-		    << v::endl;
+            v::debug << name() 
+		     << "ASI write data cache tags" 
+		     << v::endl;
 
             dcache->write_cache_tag((unsigned int)addr, (unsigned int*)ptr,
                     &delay);
@@ -1448,9 +1448,9 @@ void mmu_cache::dcio_service_thread() {
 
         if (cmd == tlm::TLM_READ_COMMAND) {
 
-            v::info << name() 
-		    << "ASI read data cache entry" 
-		    << v::endl;
+            v::debug << name() 
+		     << "ASI read data cache entry" 
+		     << v::endl;
 
             dcache->read_cache_entry((unsigned int)addr, (unsigned int*)ptr,
                     &delay);
@@ -1460,9 +1460,9 @@ void mmu_cache::dcio_service_thread() {
 
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name() 
-		    << "ASI write data cache entry" 
-		    << v::endl;
+            v::debug << name() 
+		     << "ASI write data cache entry" 
+		     << v::endl;
 
             dcache->write_cache_entry((unsigned int)addr, (unsigned int*)ptr,
                     &delay);
@@ -1486,9 +1486,9 @@ void mmu_cache::dcio_service_thread() {
         // icache is flushed on any write with ASI 0x10
         if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name() 
-		    << "ASI flush instruction cache" 
-		    << v::endl;
+            v::debug << name() 
+		     << "ASI flush instruction cache" 
+		     << v::endl;
 
             icache->flush(&delay, debug);
 
@@ -1511,9 +1511,9 @@ void mmu_cache::dcio_service_thread() {
         // dcache is flushed on any write with ASI 0x11
         if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-            v::info << name() 
-		    << "ASI flush data cache" 
-		    << v::endl;
+            v::debug << name() 
+		     << "ASI flush data cache" 
+		     << v::endl;
 
             dcache->flush(&delay, debug);
 
@@ -1538,18 +1538,18 @@ void mmu_cache::dcio_service_thread() {
 
             if (cmd == tlm::TLM_READ_COMMAND) {
 
-                v::info << name()
-                        << "MMU register read with ASI 0x19 - addr:"
-                        << std::hex 
-			<< addr 
-			<< v::endl;
+                v::debug << name()
+                         << "MMU register read with ASI 0x19 - addr:"
+                         << std::hex 
+			 << addr 
+			 << v::endl;
 
                 if (addr == 0x000) {
 
                     // MMU Control Register
-                    v::info << name() 
-			    << "ASI read MMU Control Register"
-                            << v::endl;
+                    v::debug << name() 
+			     << "ASI read MMU Control Register"
+                             << v::endl;
 
                     *(unsigned int *)ptr = m_mmu->read_mcr();
 		    // set TLM response
@@ -1558,9 +1558,9 @@ void mmu_cache::dcio_service_thread() {
                 } else if (addr == 0x100) {
 
                     // Context Pointer Register
-                    v::info << name()
-                            << "ASI read MMU Context Pointer Register"
-                            << v::endl;
+                    v::debug << name()
+                             << "ASI read MMU Context Pointer Register"
+                             << v::endl;
 
                     *(unsigned int *)ptr = m_mmu->read_mctpr();
 		    // set TLM response
@@ -1569,9 +1569,9 @@ void mmu_cache::dcio_service_thread() {
                 } else if (addr == 0x200) {
 
                     // Context Register
-                    v::info << name() 
-			    << "ASI read MMU Context Register"
-                            << v::endl;
+                    v::debug << name() 
+			     << "ASI read MMU Context Register"
+                             << v::endl;
 
                     *(unsigned int *)ptr = m_mmu->read_mctxr();
 		    // set TLM response
@@ -1580,9 +1580,9 @@ void mmu_cache::dcio_service_thread() {
                 } else if (addr == 0x300) {
 
                     // Fault Status Register
-                    v::info << name()
-                            << "ASI read MMU Fault Status Register" 
-			    << v::endl;
+                    v::debug << name()
+                             << "ASI read MMU Fault Status Register" 
+			     << v::endl;
 
                     *(unsigned int *)ptr = m_mmu->read_mfsr();
 		    // set TLM response
@@ -1591,9 +1591,9 @@ void mmu_cache::dcio_service_thread() {
                 } else if (addr == 0x400) {
 
                     // Fault Address Register
-                    v::info << name()
-                            << "ASI read MMU Fault Address Register" 
-			    << v::endl;
+                    v::debug << name()
+                             << "ASI read MMU Fault Address Register" 
+			     << v::endl;
 
                     *(unsigned int *)ptr = m_mmu->read_mfar();
 		    // set TLM response
@@ -1612,16 +1612,16 @@ void mmu_cache::dcio_service_thread() {
 
             } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
-                v::info << name()
-                        << "MMU register write with ASI 0x19 - addr:"
-                        << std::hex 
-			<< addr 
-			<< v::endl;
+                v::debug << name()
+                         << "MMU register write with ASI 0x19 - addr:"
+                         << std::hex 
+			 << addr 
+			 << v::endl;
 
                 if (addr == 0x000) {
 
                     // MMU Control Register
-                    v::info << name() 
+                    v::debug << name() 
 			    << "ASI write MMU Control Register"
                             << v::endl;
 
@@ -1632,9 +1632,9 @@ void mmu_cache::dcio_service_thread() {
                 } else if (addr == 0x100) {
 
                     // Context Table Pointer Register
-                    v::info << name()
-                            << "ASI write MMU Context Table Pointer Register"
-                            << v::endl;
+                    v::debug << name()
+                             << "ASI write MMU Context Table Pointer Register"
+                             << v::endl;
 
                     m_mmu->write_mctpr((unsigned int*)ptr);
 		    // set TLM response
@@ -1643,9 +1643,9 @@ void mmu_cache::dcio_service_thread() {
                 } else if (addr == 0x200) {
 
                     // Context Register
-                    v::info << name() 
-			    << "ASI write MMU Context Register"
-                            << v::endl;
+                    v::debug << name() 
+			     << "ASI write MMU Context Register"
+                             << v::endl;
 
                     m_mmu->write_mctxr((unsigned int*)ptr);
 		    // set TLM response
