@@ -85,7 +85,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
 
   if(ambaLayer==amba::amba_LT) {
 
-    // register tlm blocking transport function
+    // Register tlm blocking transport function
     ahbIN.register_b_transport(this, &AHBCtrl::b_transport);
 
   }
@@ -93,14 +93,14 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
   // Register non blocking transport functions
   if(ambaLayer==amba::amba_AT) {
 
-    // register tlm non blocking transport forward path
+    // Register tlm non blocking transport forward path
     ahbIN.register_nb_transport_fw(this, &AHBCtrl::nb_transport_fw, 0);
 
-    // register tlm non blocking transport backward path
+    // Register tlm non blocking transport backward path
     ahbOUT.register_nb_transport_bw(this, &AHBCtrl::nb_transport_bw, 0);
   }
 
-  // register debug transport
+  // Register debug transport
   ahbIN.register_transport_dbg(this, &AHBCtrl::transport_dbg);
 
   // Register arbiter thread
@@ -480,7 +480,7 @@ void AHBCtrl::RequestThread() {
     // Get transaction from Queue
     trans = mRequestPEQ.get_next_transaction();
 
-    v::debug << name() << "Request Thread unblocked" << v::endl;
+    v::debug << name() << "Request thread unblocked" << v::endl;
     
     // Extract address from payload
     unsigned int addr   = trans->get_address();

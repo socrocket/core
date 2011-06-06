@@ -92,7 +92,7 @@ ahbctrl_test::ahbctrl_test(sc_core::sc_module_name name,
   if (m_abstractionLayer == amba::amba_AT) {
 
     // Register non-blocking backward transport
-    ahb.register_nb_transport_bw(this, &ahbctrl_test::nb_transport_bw, 0);
+    ahb.register_nb_transport_bw(this, &ahbctrl_test::nb_transport_bw);
 
     // Register thread for response synchronization
     SC_THREAD(ResponseThread);
@@ -101,7 +101,7 @@ ahbctrl_test::ahbctrl_test(sc_core::sc_module_name name,
 }
 
 // TLM non-blocking backward transport function
-tlm::tlm_sync_enum ahbctrl_test::nb_transport_bw(unsigned int id, tlm::tlm_generic_payload &trans, tlm::tlm_phase &phase, sc_core::sc_time &delay) {
+tlm::tlm_sync_enum ahbctrl_test::nb_transport_bw(tlm::tlm_generic_payload &trans, tlm::tlm_phase &phase, sc_core::sc_time &delay) {
 
   v::debug << name() << "nb_transport_bw received phase: " << phase << v::endl;
 

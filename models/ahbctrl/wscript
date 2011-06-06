@@ -133,6 +133,29 @@ def build(bld):
   )
 
   bld(
+    features       = 'modelsim',
+    target         = 'ahbctrl.1.rtl.test',
+    name           = 'ahbctrl.1.rtl.test',
+    source         = ['./test1/sim_rtl/typ_adapters.vhd',
+		      './test1/sim_rtl/ahbctrl_wrapper.vhd',
+                      './ahbctrl_test.cpp',
+		      './test1/testbench.cpp',
+                      './test1/sim_rtl/main.cpp',
+		      '../../common/verbose.cpp',
+                      '../../common/timingmonitor.cpp',
+                      '../utils/ahbdevice.cpp',
+                      '../utils/tb_ahb_mem.cpp',
+                      '../utils/clock_gen.cpp',
+		      './adapters/ahb_tlmmaster_rtlbus_transactor.cpp',
+                      './adapters/ahb_rtlbus_tlmslave_transactor.cpp'],
+    uselib         = 'AMBA GREENSOCS',
+    vcomflags      = '-93 -explicit',
+    defines        = 'FUNCTIONTEST SCVAL=10 T1VAL=6 T2VAL=3 TVAL3=2 TVAL4=8 TESTLENGTH=1 DEBUGOUT=1',
+    includes       = './ ./test1 ./test1/sim_rtl ./adapters ../../common ../../signalkit ../utils',
+    config         =  vsim_conf,
+  )
+  
+  bld(
     target         = 'ahbctrl.2.lt.test',
     features       = 'cxx cprogram test',
     source         = ['./ahbctrl_test.cpp',
