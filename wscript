@@ -651,7 +651,8 @@ def configure(ctx):
       header_name   = "amba.h",
       uselib_store  = 'AMBA',
       mandatory     = True,
-      includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.ambadir))),
+      includes      = [os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.ambadir))),
+                      os.path.join(os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.ambadir))), "dependencies", "AMBA-PV", "include")],
       uselib        = 'BOOST SYSTEMC TLM GREENSOCS',
       okmsg        = "ok",
     )

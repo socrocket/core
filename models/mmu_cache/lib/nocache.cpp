@@ -132,6 +132,13 @@ void nocache::dbg_out(unsigned int line) {
 
 }
 
+// dummy snooping function
+void nocache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time& delay) {
+
+  v::warn << this->name() << "Can not snoop non-existing cache!" << v::endl;
+
+}
+
 // Helper for setting clock cycle latency using sc_clock argument
 void nocache::clk(sc_core::sc_clock &clk) {
 

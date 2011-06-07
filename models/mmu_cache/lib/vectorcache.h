@@ -49,7 +49,6 @@
 #include "tlm.h"
 
 #include <vector>
-#include <iostream>
 #include "math.h"
 
 #include "defines.h"
@@ -92,7 +91,11 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         /// read cache configuration register (ASI 0x2)
         virtual unsigned int read_config_reg(sc_core::sc_time *t);
 
+	/// returns the mode bits of the cache
         virtual unsigned int check_mode()=0;
+
+	/// snooping function (invalidates cache line(s))
+	virtual void snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time& delay);
 
         // debug and helper functions
         // --------------------------
@@ -103,6 +106,9 @@ class vectorcache : public sc_core::sc_module, public cache_if {
 	void clk(sc_core::sc_clock &clk);
 	void clk(sc_core::sc_time &period);
 	void clk(double period, sc_core::sc_time_unit base);
+
+	/// Transforms a cache-line offset into a valid mask
+	inline unsigned int offset2valid(unsigned int offset);
 
     protected:
 
@@ -177,6 +183,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         // helpers for cache handling
         t_cache_line m_default_cacheline;
         std::vector<t_cache_line*> m_current_cacheline;
+	std::vector<t_cache_line*> m_snoop_cacheline;
 
         /// indicates whether the cache can be put in burst mode or not
         unsigned int m_burst_en;
@@ -234,6 +241,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
 
 	/// Clock cycle time
 	sc_core::sc_time clockcycle;
+
 
 };
 

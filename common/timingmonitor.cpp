@@ -53,7 +53,7 @@ void TimingMonitor::phase_start_timing(const unsigned int id, const char * name)
 
   t_timing_rec tmp;
 
-  tmp.name = name;
+  tmp.name = (char *)name;
   tmp.st_start = sc_core::sc_time_stamp();
   tmp.rt_start = std::clock();
   tmp.st_end = sc_core::SC_ZERO_TIME;
@@ -152,7 +152,7 @@ void TimingMonitor::report_timing() {
     tmp = it->second;
 
     v::info << "TimingMonitor" << "* Phase: " << id << v::endl;
-    // v::info << "TimingMonitor" << "* Name: " << (it->second).name << v::endl;
+    v::info << "TimingMonitor" << "* Name: " << (it->second).name << v::endl;
     v::info << "TimingMonitor" << "* SystemC Time: " << TimingMonitor::phase_systime(id) \
 	    << " (Start: " << tmp.st_start << " End: " << tmp.st_end << ")" << v::endl;
     v::info << "TimingMonitor" << "* Real Time: " << TimingMonitor::phase_realtime(id) << " sec " << v::endl;

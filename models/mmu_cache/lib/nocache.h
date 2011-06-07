@@ -46,6 +46,7 @@
 #define __NOCACHE_H_
 
 #include "tlm.h"
+#include "signalkit.h"
 
 #include "verbose.h"
 #include "cache_if.h"
@@ -67,23 +68,26 @@ class nocache : public sc_core::sc_module, public cache_if {
                                unsigned int * debug);
         /// flush cache
         virtual void flush(sc_core::sc_time * t, unsigned int * debug);
+
         /// read data cache tags (ASI 0xe)
-        virtual void read_cache_tag(unsigned int address, unsigned int * data,
-                                    sc_core::sc_time *t);
+        virtual void read_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);
+
         /// write data cache tags (ASI 0xe)
-        virtual void write_cache_tag(unsigned int address, unsigned int * data,
-                                     sc_core::sc_time *t);
+        virtual void write_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);
+
         /// read data cache entries/data (ASI 0xf)
-        virtual void read_cache_entry(unsigned int address,
-                                      unsigned int * data, sc_core::sc_time *t);
+        virtual void read_cache_entry(unsigned int address, unsigned int * data, sc_core::sc_time *t);
+
         /// write data cache entries/data (ASI 0xf)
-        virtual void
-                write_cache_entry(unsigned int address, unsigned int * data,
-                                  sc_core::sc_time *t);
+        virtual void write_cache_entry(unsigned int address, unsigned int * data, sc_core::sc_time *t);
+
         /// read cache configuration register (ASI 0x2)
         virtual unsigned int read_config_reg(sc_core::sc_time *t);
 
         virtual unsigned int check_mode();
+
+	/// dummy snooping function
+	virtual void snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time& delay);
 
 	/// Helper functions for definition of clock cycle
 	void clk(sc_core::sc_clock &clk);

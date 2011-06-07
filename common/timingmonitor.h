@@ -59,11 +59,11 @@ class TimingMonitor {
   /// Content of a timing_map entry
   typedef struct {
 
-    const char * name;           // name of phase
+    char * name;                 // name of phase
     sc_core::sc_time st_start;   // sim time start
     sc_core::sc_time st_end;     // sim time end
-    clock_t rt_start;             // real time start
-    clock_t rt_end;               // real time end
+    clock_t rt_start;            // real time start
+    clock_t rt_end;              // real time end
  
   } t_timing_rec;
 

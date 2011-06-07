@@ -83,28 +83,16 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
         m_current_cacheline.push_back(current_cacheline);
     }
 
-    v::info << this->name()
-            << " ******************************************************************************* "
-            << v::endl;
-    v::info << this->name()
-            << " * Created cache memory with following parameters:                               "
-            << v::endl;
-    v::info << this->name() << " * number of cache sets " << (m_sets + 1)
-            << v::endl;
-    v::info << this->name() << " * size of each cache set "
-            << (unsigned int)pow(2, m_setsize) << " kb" << v::endl;
-    v::info << this->name() << " * bytes per line " << m_bytesperline
-            << " (offset bits: " << m_offset_bits << ")" << v::endl;
-    v::info << this->name() << " * number of cache lines per set "
-            << m_number_of_vectors << " (index bits: " << m_idx_bits << ")"
-            << v::endl;
-    v::info << this->name() << " * Width of cache tag in bits " << m_tagwidth
-            << v::endl;
+    v::info << this->name() << " ******************************************************************************* " << v::endl;
+    v::info << this->name() << " * Created cache memory with following parameters:                               " << v::endl;
+    v::info << this->name() << " * Number of cache sets " << (m_sets + 1)            << v::endl;
+    v::info << this->name() << " * Size of each cache set " << (unsigned int)pow(2, m_setsize) << " kb" << v::endl;
+    v::info << this->name() << " * Bytes per line " << m_bytesperline << " (offset bits: " << m_offset_bits << ")" << v::endl;
+    v::info << this->name() << " * Number of cache lines per set " << m_number_of_vectors << " (index bits: " << m_idx_bits << ")" << v::endl;
+    v::info << this->name() << " * Width of cache tag in bits " << m_tagwidth << v::endl;
     v::info << this->name() << " * Replacement strategy: " << m_repl << v::endl;
     v::info << this->name() << " * Line Locking: " << m_setlock << v::endl;
-    v::info << this->name()
-            << " ******************************************************************************* "
-            << v::endl;
+    v::info << this->name() << " ******************************************************************************* "  << v::endl;
 
     // lru counter saturation
     switch (m_sets) {
@@ -208,18 +196,15 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
             // asi == 1 forces cache miss
             if (asi != 1) {
 
-                // check the cache tag
+                // Check the cache tag
                 if ((*m_current_cacheline[i]).tag.atag == tag) {
 
                     //v::debug << this->name() <<  "Correct atag found in set " << i << v::endl;
 
-                    // check the valid bit (math.h pow is mapped to the coproc, hence it should be pretty fast)
-                    if (((*m_current_cacheline[i]).tag.valid
-                            & (unsigned int)(pow((double)2, (double)(offset
-                                    >> 2)))) != 0) {
+                    // Check the valid bit
+                    if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset)) != 0) {
 
-                        v::debug << this->name() << "Cache Hit in Set " << i
-                                << v::endl;
+                        v::debug << this->name() << "Cache Hit in Set " << i << v::endl;
 
                         // update debug information
                         CACHEREADHIT_SET(*debug,i);
@@ -230,26 +215,23 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
                         }
 
                         // write data pointer
-                        memcpy(data, &(*m_current_cacheline[i]).entry[offset
-                                >> 2].c[byt], len);
-                        //for(unsigned int j=0; j<len; j++) { *(data+j) = (*m_current_cacheline[i]).entry[offset>>2].c[byt+j]; }
+                        memcpy(data, &(*m_current_cacheline[i]).entry[offset >> 2].c[byt], len);
 
                         // increment time
                         *t += clockcycle;
 
                         // valid data in set i
                         cache_hit = i;
+
                         break;
                     } else {
 
-                        v::debug << this->name()
-                                << "Tag Hit but data not valid in set " << i
-                                << v::endl;
+                        v::debug << this->name() << "Tag Hit but data not valid in set " << i  << v::endl;
                     }
+
                 } else {
 
-                    v::debug << this->name() << "Cache miss in set " << i
-                            << v::endl;
+                    v::debug << this->name() << "Cache miss in set " << i << v::endl;
 
                 }
             } else {
@@ -290,8 +272,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 	      // check for unvalid data which can be replaced without harm
 	      for (unsigned int i = 0; i <= m_sets; i++) {
 
-                if (((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow(
-                        (double)2, (double)(offset >> 2)))) == 0) {
+                if ((((*m_current_cacheline[i]).tag.valid) & offset2valid(offset)) == 0) {
 
                     // select unvalid data for replacement
                     set_select = i;
@@ -334,9 +315,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
                     // .. and switch on the ones for the new entries
                     for (unsigned int i = offset; i <= replacer_limit; i += 4) {
 
-                        (*m_current_cacheline[set_select]).tag.valid
-                                |= (unsigned int)(pow((double)2, (double)(i
-                                        >> 2)));
+                        ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(offset));
 
                     }
 
@@ -353,9 +332,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
                     // switch on the valid bits for the new entries
                     for (unsigned int i = offset; i <= replacer_limit; i += 4) {
 
-                        (*m_current_cacheline[set_select]).tag.valid
-                                |= (unsigned int)(pow((double)2, (double)(i
-                                        >> 2)));
+                        ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(offset));
 
                     }
                 }
@@ -378,9 +355,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
                     // switch on the valid bits for the new entries
                     for (unsigned int i = offset; i <= replacer_limit; i += 4) {
 
-                        (*m_current_cacheline[set_select]).tag.valid
-                                |= (unsigned int)(pow((double)2, (double)(i
-                                        >> 2)));
+                        ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(offset));
 
                     }
 
@@ -440,12 +415,10 @@ void vectorcache::mem_write(unsigned int address, unsigned char * data,
     if (check_mode() & 0x1) {
 
         // extract index and tag from address
-        unsigned int tag = (address >> (m_idx_bits + m_offset_bits));
-        unsigned int idx = ((address << m_tagwidth) >> (m_tagwidth
-                + m_offset_bits));
-        unsigned int offset = ((address << (32 - m_offset_bits)) >> (32
-                - m_offset_bits));
-        unsigned int byt = (address & 0x3);
+        unsigned int tag    = (address >> (m_idx_bits + m_offset_bits));
+        unsigned int idx    = ((address << m_tagwidth) >> (m_tagwidth + m_offset_bits));
+        unsigned int offset = ((address << (32 - m_offset_bits)) >> (32 - m_offset_bits));
+        unsigned int byt    = (address & 0x3);
 
         bool is_hit = false;
 
@@ -460,17 +433,15 @@ void vectorcache::mem_write(unsigned int address, unsigned char * data,
 
             //v::debug << this->name() <<  "Set :" << i << " atag: " << (*m_current_cacheline[i]).tag.atag << " valid: " << (*m_current_cacheline[i]).tag.valid << " entry: " << (*m_current_cacheline[i]).entry[offset>>2].i << v::endl;
 
-            // check the cache tag
+            // Check the cache tag
             if ((*m_current_cacheline[i]).tag.atag == tag) {
 
                 //v::debug << this->name() << "Correct atag found in set " << i << v::endl;
 
-                // check the valid bit (math.h pow is mapped to the coproc, hence it should be pretty fast)
-                if ((*m_current_cacheline[i]).tag.valid & (unsigned int)(pow(
-                        (double)2, (double)(offset >> 2))) != 0) {
+                // Check the valid bit
+                if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset)) != 0) {
 
-                    v::debug << this->name() << "Cache Hit in Set " << i
-                            << v::endl;
+                    v::debug << this->name() << "Cache Hit in Set " << i << v::endl;
 
                     // update lru history
                     if (m_repl == 1) {
@@ -483,8 +454,7 @@ void vectorcache::mem_write(unsigned int address, unsigned char * data,
 
                     // write data to cache
                     for (unsigned int j = 0; j < len; j++) {
-                        (*m_current_cacheline[i]).entry[offset >> 2].c[byt + j]
-                                = *(data + j);
+                        (*m_current_cacheline[i]).entry[offset >> 2].c[byt + j] = *(data + j);
                     }
 
                     // valid is already set
@@ -875,6 +845,41 @@ void vectorcache::lru_update(unsigned int set_select) {
     }
 }
 
+/// Snooping function (invalidates cache lines)
+void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time& delay) {
+
+  unsigned int address;
+  unsigned int tag;
+  unsigned int idx;
+  unsigned int offset;
+
+  // Is the cache enabled
+  if ((check_mode() & 0x11) == 0x11) {
+
+    for (address = snoop.address; address < snoop.address + snoop.length; address+=4) {
+
+      // Extract index and tag from address
+      tag    = (address >> (m_idx_bits + m_offset_bits));
+      idx    = ((address << m_tagwidth) >> (m_tagwidth + m_offset_bits));
+      offset = ((address << (32 - m_offset_bits)) >> (32 - m_offset_bits));
+
+      // Lookup all cachesets
+      for (unsigned int i = 0; i <= m_sets; i++) {
+
+	m_snoop_cacheline[i] = lookup(i, idx);
+
+	// Check the cache tag
+	if (((*m_snoop_cacheline[i]).tag.atag) == tag) {
+
+	  // Delete the valid bit
+	  ((*m_snoop_cacheline[i]).tag.valid & (~offset2valid(offset)));
+
+	}
+      }
+    }
+  }
+}
+
 // debug and helper functions
 // --------------------------
 
@@ -902,6 +907,25 @@ void vectorcache::dbg_out(unsigned int line) {
         }
     }
 }
+
+// Transforms a cache-line offset into a valid mask
+inline unsigned int vectorcache::offset2valid(unsigned int offset) {
+
+  switch(offset>>2) {
+
+  case 0x0: return 0x01;
+  case 0x1: return 0x02;
+  case 0x2: return 0x04;
+  case 0x3: return 0x08;
+  case 0x4: return 0x10;
+  case 0x5: return 0x20;
+  case 0x6: return 0x40;
+  case 0x7: return 0x80;
+  default: v::warn << name() << "Odd offset for calculation of valid mask!" << v::endl;
+    return 0x00;
+  }
+}
+
 
 // Helper for setting clock cycle latency using sc_clock argument
 void vectorcache::clk(sc_core::sc_clock &clk) {

@@ -52,12 +52,13 @@
 #include <tlm_utils/simple_target_socket.h>
 
 #include <math.h>
-#include <ostream>
 
 #include "icio_payload_extension.h"
 #include "dcio_payload_extension.h"
 
 #include "amba.h"
+#include "socrocket.h"
+#include "signalkit.h"
 #include "ahbdevice.h"
 
 #include "verbose.h"
@@ -70,7 +71,7 @@
 #include "localram.h"
 
 /// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
-class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevice {
+class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevice, public signalkit::signal_module<mmu_cache> {
 
     public:
 
@@ -85,6 +86,9 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 
         // amba master socket
         amba::amba_master_socket<32> ahb_master;
+
+	// snooping port
+	signal<t_snoop>::in snoop;
 
 	SC_HAS_PROCESS(mmu_cache);
 
@@ -172,9 +176,11 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
                               unsigned int * debug);
 
         // read/write cache control register
-        void write_ccr(unsigned char * data, unsigned int len,
-                       sc_core::sc_time *delay);
+        void write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time *delay);
         virtual unsigned int read_ccr();
+
+	// Snooping function (For calling dcache->snoop_invalidate)
+	void snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& delay);
 
 	/// Helper functions for definition of clock cycle
 	void clk(sc_core::sc_clock &clk);
@@ -219,8 +225,13 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
         // [23] - Data cache snoop enable (DS) - If set, will enable data cache snooping.
         unsigned int CACHE_CONTROL_REG;
 
+	// icache enabled
         unsigned int m_icen;
+	// dcache enabled
         unsigned int m_dcen;
+
+	// dcache snooping enabled
+	unsigned int m_dsnoop;
 
 	// instruction scratchpad settings
         unsigned int m_ilram;
@@ -237,7 +248,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
         unsigned int m_mmu_en;
 
         // amba related
-        unsigned int master_id;
+        unsigned int m_master_id;
 	amba::amba_layer_ids m_abstractionLevel;
 
         unsigned int m_txn_count;

@@ -44,6 +44,7 @@
 #define __CACHE_IF_H__
 
 #include "tlm.h"
+#include "socrocket.h"
 #include "mem_if.h"
 
 class cache_if : public mem_if {
@@ -69,9 +70,13 @@ class cache_if : public mem_if {
         /// read cache configuration register (ASI 0x2)
         virtual unsigned int read_config_reg(sc_core::sc_time *t) = 0;
 
+	/// returns the mode bits of the cache
         virtual unsigned int check_mode() = 0;
 
-	/// Helper functions for definition of clock cycle
+	/// snooping function (invalidates cache line(s))
+	virtual void snoop_invalidate(const t_snoop &snoop, const sc_core::sc_time& delay) = 0;
+
+	// Helper functions for definition of clock cycle
 	virtual void clk(sc_core::sc_clock &clk) = 0;
 	virtual void clk(sc_core::sc_time &period) = 0;
 	virtual void clk(double period, sc_core::sc_time_unit base) = 0;

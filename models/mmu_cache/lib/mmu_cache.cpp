@@ -79,18 +79,20 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
       0),
     icio("icio"), 
     dcio("dcio"), 
-    ahb_master("ahb_master_socket", amba::amba_AHB, abstractionLevel, false), 
+    ahb_master("ahb_master_socket", amba::amba_AHB, abstractionLevel, false),
+    snoop(&mmu_cache::snoopingCallBack,"SNOOP"),
     icio_PEQ("icio_PEQ"), 
     dcio_PEQ("dcio_PEQ"),
     m_icen(icen), 
-    m_dcen(dcen), 
+    m_dcen(dcen),
+    m_dsnoop(dsnoop),
     m_ilram(ilram), 
     m_ilramstart(ilramstart),
     m_dlram(dlram),
     m_dlramstart(dlramstart),
     m_cached(cached),
     m_mmu_en(mmu_en),
-    master_id(id), 
+    m_master_id(id), 
     m_abstractionLevel(abstractionLevel), 
     m_txn_count(0), 
     m_data_count(0),
@@ -1845,7 +1847,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
     // set the id of the master
     amba::amba_id* m_id;
     ahb_master.get_extension<amba::amba_id> (m_id, *gp);
-    m_id->value = master_id;
+    m_id->value = m_master_id;
     ahb_master.validate_extension<amba::amba_id> (*gp);
 
     sc_core::sc_time delay = SC_ZERO_TIME;
@@ -1915,7 +1917,7 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
     // set the id of the master
     amba::amba_id* m_id;
     ahb_master.get_extension<amba::amba_id> (m_id, *gp);
-    m_id->value = master_id;
+    m_id->value = m_master_id;
     ahb_master.validate_extension<amba::amba_id> (*gp);
 
     sc_core::sc_time delay = SC_ZERO_TIME;
@@ -2032,6 +2034,24 @@ void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
 unsigned int mmu_cache::read_ccr() {
 
     return (CACHE_CONTROL_REG);
+}
+
+// Snooping function
+void mmu_cache::snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& delay) {
+
+  v::debug << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.master_id << " ADDR: " \
+	   << hex << snoop.address << " LENGTH: " << snoop.length << ")" << v::endl;
+
+  // Make sure we are not snooping ourself ;)
+  if (snoop.master_id != m_master_id) {
+
+    // If dcache and snooping enabled
+    if (m_dcen && m_dsnoop) {
+
+      dcache->snoop_invalidate(snoop, delay);
+
+    }
+  }
 }
 
 // Helper for setting clock cycle latency using sc_clock argument
