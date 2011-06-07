@@ -45,6 +45,7 @@
 #ifndef __SOCROCKET_H__
 #define __SOCROCKET_H__
 
+// Snooping information (AHBCTRL -> MMU_CACHE) 
 typedef struct {
 
   unsigned int master_id;
@@ -53,4 +54,7 @@ typedef struct {
 
 } t_snoop;
 
+
 #endif // __SOCROCKET_H__
+
+
