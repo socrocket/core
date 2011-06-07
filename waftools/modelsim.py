@@ -492,6 +492,11 @@ def modelsim_sccom(self, node):
         test.ut_exec = ['sh', self.link_task.outputs[0].abspath()]
     #tsk.dep_nodes += self.mdeps
 
+@TaskGen.before('process_source', 'process_rule')
+@TaskGen.feature('sparc')
+def sparc(self):
+  self.env = self.bld.env_of_name('sparc')
+
 def create_compiled_task(self, name, node):
   if 'modelsim' in self.features:
     modelsim_sccom(self, node)

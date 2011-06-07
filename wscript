@@ -57,6 +57,10 @@ def build(self):
     self.recurse(get_subdirs())
     self.add_post_fun(waf_unit_test.summary)
 
+def conf(bld):
+  from vconfig.wizard import main
+  main()
+  
 def check_trap_linking(ctx, libName, libPaths, symbol):
     for libpath in libPaths:
         libFile = os.path.join(libpath, ctx.env['cxxshlib_PATTERN'].split('%s')[0] + libName + ctx.env['cxxshlib_PATTERN'].split('%s')[1])
@@ -98,6 +102,7 @@ def configure(ctx):
     ctx.check_waf_version(mini='1.6.0')
 
     # Check for standard tools
+    ctx.load('compiler_cc')
     ctx.load('compiler_cxx')
     if ctx.env.CC_VERSION:
         if int(ctx.env.CC_VERSION[0]) > 3:
@@ -105,8 +110,11 @@ def configure(ctx):
         else:
             ctx.fatal('Compiler Version' + '.'.join(ctx.env.CC_VERSION) + ' too old: at least version 4.x required')
 
+    sparc_env = ctx.env.copy()
     # Check for python
     ctx.load('python')
+    ctx.check_python_version((2,4,0))
+    ctx.check_python_module('PyQt4')
 
     if ctx.options.static_build:
         ctx.env['SHLIB_MARKER'] = ''
@@ -224,9 +232,9 @@ def configure(ctx):
     ########################################
     ctx.load('boost')
     # Try to load options from env if not given
-    if not ctx.options.boost_includes or options.boost_includes == "":
+    if not ctx.options.boost_includes or ctx.options.boost_includes == "":
       ctx.options.boost_includes = os.environ.get("BOOST_DIR",None)
-    if not ctx.options.boost_libs or options.boost_libs == "":
+    if not ctx.options.boost_libs or ctx.options.boost_libs == "":
       ctx.options.boost_libs = os.environ.get("BOOST_LIB",None)
 
     boostLibs = 'thread regex date_time program_options filesystem unit_test_framework system'
@@ -465,7 +473,7 @@ def configure(ctx):
     if ctx.options.trapdir:
         trapDirLib = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'lib'))))
         trapDirInc = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'include'))))
-        ctx.check_cxx(lib='trap', use='ELF_LIB BOOST_FILESYSTEM BOOST_THREAD BOOST_SYSTEM SYSTEMC', uselib_store='TRAP', mandatory=True, libpath=trapDirLib, errmsg=trapLibErrmsg)
+        ctx.check_cxx(lib='trap', use='ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True, libpath=trapDirLib, errmsg=trapLibErrmsg)
         foundShared = glob.glob(os.path.join(trapDirLib, ctx.env['cxxshlib_PATTERN'] % 'trap'))
         if foundShared:
             ctx.env.append_unique('RPATH', ctx.env['LIBPATH_TRAP'])
@@ -474,7 +482,7 @@ def configure(ctx):
         if not check_trap_linking(ctx, 'trap', ctx.env['LIBPATH_TRAP'], 'elf_begin') and 'bfd' not in ctx.env['LIB_ELF_LIB']:
             ctx.fatal('TRAP library not linked with libelf library: BFD library needed (you might need to re-create the processor specifying a GPL license) or compile TRAP using its LGPL flavour ')
 
-        ctx.check_cxx(header_name='trap.hpp', use='TRAP ELF_LIB BOOST_FILESYSTEM BOOST_THREAD BOOST_SYSTEM SYSTEMC', uselib_store='TRAP', mandatory=True, includes=trapDirInc)
+        ctx.check_cxx(header_name='trap.hpp', use='TRAP ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True, includes=trapDirInc)
         ctx.check_cxx(fragment='''
             #include "trap.hpp"
 
@@ -487,15 +495,15 @@ def configure(ctx):
             #endif
 
             int main(int argc, char * argv[]){return 0;}
-''', msg='Check for TRAP version', use='TRAP ELF_LIB BOOST_FILESYSTEM BOOST_THREAD BOOST_SYSTEM SYSTEMC', mandatory=True, includes=trapDirInc, errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required')
+''', msg='Check for TRAP version', use='TRAP ELF_LIB BOOST SYSTEMC', mandatory=True, includes=trapDirInc, errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required')
     else:
-        ctx.check_cxx(lib='trap', use='ELF_LIB BOOST_FILESYSTEM BOOST_THREAD BOOST_SYSTEM SYSTEMC', uselib_store='TRAP', mandatory=True, errmsg=trapLibErrmsg)
+        ctx.check_cxx(lib='trap', use='ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True, errmsg=trapLibErrmsg)
 
 
         if not check_trap_linking(ctx, 'trap', ctx.env['LIBPATH_TRAP'], 'elf_begin') and 'bfd' not in ctx.env['LIB_ELF_LIB']:
             ctx.fatal('TRAP library not linked with libelf library: BFD library needed (you might need to re-create the processor specifying a GPL license) or compile TRAP using its LGPL flavour ')
 
-        ctx.check_cxx(header_name='trap.hpp', use='TRAP ELF_LIB BOOST_FILESYSTEM BOOST_THREAD BOOST_SYSTEM SYSTEMC', uselib_store='TRAP', mandatory=True)
+        ctx.check_cxx(header_name='trap.hpp', use='TRAP ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True)
         ctx.check_cxx(fragment='''
             #include "trap.hpp"
 
@@ -508,7 +516,7 @@ def configure(ctx):
             #endif
 
             int main(int argc, char * argv[]){return 0;}
-''', msg='Check for TRAP version', use='TRAP ELF_LIB BOOST_FILESYSTEM BOOST_THREAD BOOST_SYSTEM SYSTEMC', mandatory=1, errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required')
+''', msg='Check for TRAP version', use='TRAP ELF_LIB BOOST SYSTEMC', mandatory=1, errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required')
 
     """
     ##################################################
@@ -695,12 +703,49 @@ def configure(ctx):
       uselib        = 'SYSTEMC TLM GREENSOCS',
       okmsg        = "ok",
     )
+     
+    ctx.setenv('sparc')
+    ctx.load('compiler_c')
+    #sparc_env = ctx.env.copy()
+    # Check if the compiler is present
+    crosscc = crossxx = path = None
+    try:
+        path = os.path.abspath(os.path.expanduser(getattr(ctx.options,'sparc_cross')))
+        crosscc = [ctx.find_program('sparc-elf-gcc', os.path.join(path, 'bin'))]
+        crossxx = [ctx.find_program('sprac-elf-g++', os.path.join(path, 'bin'))]
+        crossar = [ctx.find_program('sprac-elf-ar', os.path.join(path, 'bin'))]
+    except AttributeError:
+        # If the path was not specified look in the search PATH
+        crosscc = [ctx.find_program('sparc-elf-gcc')]
+        crossxx = [ctx.find_program('sparc-elf-g++')]
+        crossar = [ctx.find_program('sparc-elf-ar')]
+    ctx.env['CC'] = ctx.env['LINK_CC'] = crosscc
+    ctx.env['CXX'] = ctx.env['LINK_CXX'] = crossxx
+    ctx.env['AR'] = crossar
+    ctx.env['']
+    #ctx.set_env_name('sparc', sparc_env)
+    sparcFlags = ['-Wall', '-static', '-O3', '-specs=osemu.specs']
+    ctx.env.append_unique('LINKFLAGS', sparcFlags);
+    ctx.env.append_unique('CFLAGS', sparcFlags)
+    ctx.env.append_unique('CCFLAGS', sparcFlags)
+    #ctx.env.append_unique('CXXFLAGS', sparcFlags)
     
+    if ctx.env['CFLAGS']:
+        ctx.check_cc(cflags=ctx.env['CFLAGS'], mandatory=True, msg='Checking for C compilation flags')
+    if ctx.env['CCFLAGS'] and ctx.env['CCFLAGS'] != ctx.env['CFLAGS']:
+        ctx.check_cc(cflags=ctx.env['CCFLAGS'], mandatory=True, msg='Checking for C compilation flags')
+    #if ctx.env['CXXFLAGS']:
+    #    ctx.check_cxx(cxxflags=ctx.env['CXXFLAGS'], mandatory=True, msg='Checking for C++ compilation flags')
+    if ctx.env['LINKFLAGS']:
+        ctx.check_cc(linkflags=ctx.env['LINKFLAGS'], mandatory=True, msg='Checking for link flags')
+
+    
+
     ##################################################
     # Collect checks from other libraries
     ##################################################
-    from waftools.common import get_subdirs
-    ctx.recurse(get_subdirs(top))
+    #from waftools.common import get_subdirs
+    #ctx.recurse(get_subdirs(top))
 
 def options(ctx): 
     from os import environ
@@ -732,6 +777,7 @@ def options(ctx):
     # Specify libELF library path
     trap.add_option('--with-elf', type='string', help='libELF installation directory', dest='elfdir', default=environ.get("ELF"))
     trap.add_option('--static', default=False, action="store_true", help='Triggers a static build, with no dependences from any dynamic library', dest='static_build')
+    trap.add_option('--sparc-cross', default=None, help='Triggers a static build, with no dependences from any dynamic library', dest='sparc_cross')
     # Specify if OS emulation support should be compiled inside processor models
     trap.add_option('-T', '--disable-tools', default=True, action="store_false", help='Disables support for support tools (debuger, os-emulator, etc.) (switch)', dest='enable_tools')
     # Specify if instruction history has to be kept

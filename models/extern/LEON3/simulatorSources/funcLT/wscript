@@ -21,7 +21,7 @@ def build(bld):
     use = 'mmu_cache utils signalkit common'
     objects = ''
     includes = '.'
-    target = 'funcLT_objs'
+    target = 'LEON3_funcLT_objs'
 
     bld.objects(source = sources, target = target, uselib = uselib, use = use + ' ' + objects, includes = includes)
     sources = 'main.cpp'
@@ -32,7 +32,7 @@ def build(bld):
     if sys.platform == 'cygwin':
         cppflags_custom = ' -D__USE_W32_SOCKETS'
         uselib += ' WINSOCK'
-    objects = 'funcLT_objs'
+    objects = 'LEON3_funcLT_objs'
     target = 'funcLT'
 
     bld.program(source = sources, target = target, uselib = uselib, use = use + ' ' + objects, includes = includes, defines = cppflags_custom)

@@ -20,7 +20,7 @@ def build(bld):
     uselib = 'BOOST BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM TRAP'
     objects = ''
     includes = '.'
-    target = 'funcAT_objs'
+    target = 'LEON3_funcAT_objs'
 
     bld.objects(source = sources, target = target, use = uselib + ' ' + objects, includes = includes)
     sources = 'main.cpp'
@@ -31,7 +31,7 @@ def build(bld):
     if sys.platform == 'cygwin':
         cppflags_custom = ' -D__USE_W32_SOCKETS'
         uselib += ' WINSOCK'
-    objects = 'funcAT_objs'
+    objects = 'LEON3_funcAT_objs'
     target = 'funcAT'
 
     bld.program(source = sources, target = target, use = uselib + ' ' + objects, includes = includes, defines = cppflags_custom)

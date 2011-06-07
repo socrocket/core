@@ -47,8 +47,8 @@
 top = '..'
 
 models = [
-  #'gptimer', 
-  #'irqmp', 
+  'gptimer', 
+  'irqmp', 
   'mmu_cache', 
   'mctrl', 
   'utils',
