@@ -59,7 +59,7 @@ def build(self):
 
 def conf(bld):
   from vconfig.wizard import main
-  main()
+  main(bld.options.template, bld.options.configuration)
   
 def check_trap_linking(ctx, libName, libPaths, symbol):
     for libpath in libPaths:
@@ -796,4 +796,6 @@ def options(ctx):
 
     ctx.add_option("--verbosity", dest="verbosity", help="Defines the verbosity for the build", default=environ.get("VERBOSITY",""))
 
-
+    conf = ctx.add_option_group("'./waf conf' Options")
+    conf.add_option('-t', '--template', default=None, type='string', help='Defines a template to generate a new platform', dest='template')
+    conf.add_option('-l', '--load', default=None, type='string', help='Load given configuration of the template', dest='configuration')

@@ -2,7 +2,7 @@ from PyQt4 import QtCore, QtGui
 
 from item import Item
 
-class BooleanItem(Item):
+class StringItem(Item):
     def __init__(self, model, name = None, var = None, value = None, type = None, range = None, default = None, description = None, parent=None, data=None):
         super(BooleanItem, self).__init__(model, name, var, value, type, range, default, description, parent, data)
         
@@ -12,9 +12,9 @@ class BooleanItem(Item):
           self.name_label = QtGui.QLabel("Name: ", self.widget)
           self.name_obj = QtGui.QLabel(self.name, self.widget)
           self.value_label = QtGui.QLabel("Value: ", self.widget)
-          self.value_obj = QtGui.QCheckBox("", self.widget)
+          self.value_obj = QtGui.QLineExit(self.value.toString(), self.widget)
           self.type_label = QtGui.QLabel("Type: ", self.widget)
-          self.type_obj = QtGui.QLabel("Boolean", self.widget)
+          self.type_obj = QtGui.QLabel("String", self.widget)
           self.default_label = QtGui.QLabel("Default: ", self.widget)
           self.default_obj = QtGui.QLabel(self.default.toString(), self.widget)
           self.layout.addRow(self.name_label)
@@ -29,50 +29,26 @@ class BooleanItem(Item):
         def setData(value):
           self.value = value
           if self.widget:
-            self.value_obj.setCheckState(value.toBool() * 2)
+            self.value_obj.setText(value.toString())
         self.setData = setData
         
         def setValue(value):
-          if value == 0:
-            self.value = QtCore.QVariant(False)
-          elif value == 1:
-            self.value = QtCore.QVariant(False)
-          else:
-            self.value = QtCore.QVariant(True)
+          self.value = QtCore.QVariant(value)
           self.model.layoutChange() 
         self.setValue = setValue
         if self.widget:
-          self.value_obj.stateChanged.connect(self.setValue)
+          self.value_obj.textChanged.connect(self.setValue)
     
     def child(self, row):
-        if self.value.toInt() != 0:
-            return self.childItems[row]
-        else:
             return Null
 
     def childCount(self):
-        if self.value.toBool() != False:
-            return len(self.childItems)
-        else:
             return 0
 
     def save(self):
-        if len(self.childItems)>0:
-            if self.value.toInt() != 0:
-                return dict([[str(n.name), n.save()] for n in self.childItems])
-            else:
-                return dict()
-        else:
-            return self.value.toBool()
+        return self.value.toString()
 
     def load(self, data):
         ownData = data.get(str(self.name), None)
-        if ownData:
-            if isinstance(ownData, bool):
+        if ownData and isinstance(ownData, string):
                 self.setData(QtCore.QVariant(ownData))
-            elif len(ownData) > 0:
-                self.setData(QtCore.QVariant(True))
-                for child in self.childItems:
-                    child.load(ownData)
-            else:
-                self.setData(QtCore.QVariant(False))

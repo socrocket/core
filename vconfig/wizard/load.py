@@ -1,12 +1,11 @@
 from PyQt4 import QtCore, QtGui
-import os
 
 class LoadPage(QtGui.QWizardPage):
-    def __init__(self, template, parent=None):
+    def __init__(self, templates, parent=None):
         super(LoadPage, self).__init__(parent)
 
-        self.setTitle("Load Configuration")
-        self.setSubTitle("Choose the configuration you whant to use to alter it.")
+        #self.setTitle("Load Configuration")
+        #self.setSubTitle("Choose the configuration you whant to use to alter it.")
         #self.setPixmap(QtGui.QWizard.WatermarkPixmap,
         #        QtGui.QPixmap(':/images/watermark1.png'))
 
@@ -16,7 +15,7 @@ class LoadPage(QtGui.QWizardPage):
         self.radio2 = QtGui.QRadioButton("vvv")
         self.radio1.setChecked(True)
         self.view = QtGui.QListWidget()
-        self.template = template
+        self.templates = templates
         self.conf = None
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self.label1)
@@ -47,9 +46,11 @@ class LoadPage(QtGui.QWizardPage):
         self.ready = False
         self.view.setFocus(QtCore.Qt.ActiveWindowFocusReason)
         self.completeChanged.emit()
-        for file in os.listdir('configurations'):
-            lst = file.split('.')
-            if len(lst) == 3:
-                tmpl, name, ext = file.split('.')
-                if tmpl == self.template.template.base and ext == 'cfg':
-                    self.view.addItem(name)
+        for conf in self.templates.listConfigurations():
+          self.view.addItem(conf)
+    
+    def validatePage(self):
+        if self.radio2.isChecked():
+          self.templates.loadConfiguration(str(self.conf))
+        return True
+    

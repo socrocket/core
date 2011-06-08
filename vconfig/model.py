@@ -6,9 +6,13 @@ class TreeModel(QtCore.QAbstractItemModel):
         super(TreeModel, self).__init__(parent)
 
         self.widget = widget
-        self.stack = QtGui.QStackedLayout(widget)
+        if widget:
+          self.stack = QtGui.QStackedLayout(widget)
+        else:
+          self.stack = None
         self.rootItem = NullItem(self, name="Name", var=None, value="Value", type="Type")
         self.read(node)
+          
 
     def clicked(self, item):
         self.stack.setCurrentWidget(item.widget)
@@ -135,10 +139,11 @@ class TreeModel(QtCore.QAbstractItemModel):
         for cnode in node.childNodes:
           if cnode.nodeName == "option":
             citem = readItem(cnode, item)
-          elif cnode.nodeName == "description":
-            item.description += cnode.nodeName.toxml()[14:-15]
+          #elif cnode.nodeName == "description":
+          #  item.description += cnode.nodeName.toxml()[14:-15]
         parent.appendChild(item)
-        self.stack.addWidget(item.widget)
+        if self.widget:
+          self.stack.addWidget(item.widget)
         return item
         
       item = readItem(node, self.rootItem)
@@ -146,8 +151,23 @@ class TreeModel(QtCore.QAbstractItemModel):
     def save(self):
       # We don't want to save the rootItem
       return self.rootItem.save()
+    
+    def saveToJsonFile(self, name):
+      import json
+      data = self.save()
+      file = open(name, 'w')
+      file.write(json.dumps(data, sort_keys=True, indent=2))
+      file.close()
 
     def load(self, data):
       # We have to think about the rootItem "Name":
       self.rootItem.load({"Name":data})
  
+    def loadFromJsonFile(self, name):
+      import json
+      file = open(name, 'r')
+      data = ' '.join(file.readlines())
+      file.close()
+      data = json.loads(data)
+      self.load(data)
+      

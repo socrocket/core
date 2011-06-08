@@ -491,8 +491,8 @@ class LicensePage(QtGui.QWizardPage):
     def __init__(self, parent=None):
         super(LicensePage, self).__init__(parent)
 
-        self.setTitle("License")
-        self.setSubTitle("Please agree to our license to continue")
+        #self.setTitle("License")
+        #self.setSubTitle("Please agree to our license to continue")
         #self.setPixmap(QtGui.QWizard.WatermarkPixmap,
         #        QtGui.QPixmap(':/images/watermark1.png'))
 

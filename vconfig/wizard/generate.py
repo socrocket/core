@@ -3,11 +3,11 @@ import os
 import shutil
 
 class GeneratePage(QtGui.QWizardPage):
-    def __init__(self, template, name, conf, parent=None):
+    def __init__(self, templates, parent=None):
         super(GeneratePage, self).__init__(parent)
 
-        self.setTitle("Generate Platform")
-        self.setSubTitle("Please wait while the wizard is crafting your platform...")
+        #self.setTitle("Generate Platform")
+        #self.setSubTitle("Please wait while the wizard is crafting your platform...")
         #self.setPixmap(QtGui.QWizard.WatermarkPixmap,
         #        QtGui.QPixmap(':/images/watermark1.png'))
 
@@ -15,9 +15,7 @@ class GeneratePage(QtGui.QWizardPage):
         self.progress = QtGui.QProgressBar()
         self.label2 = QtGui.QLabel("Details:")
         self.list = QtGui.QListWidget()
-        self.template = template
-        self.name = name
-        self.conf = conf
+        self.templates = templates
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self.label1)
         layout.addWidget(self.progress)
@@ -34,6 +32,8 @@ class GeneratePage(QtGui.QWizardPage):
         self.list.clear()
         self.ready = False
         self.progress.setValue(0)
+        self.templates.generate()
+        """
         # gather informations
         gen = self.template.template.generators()
         files = self.template.template.files()
@@ -65,6 +65,7 @@ class GeneratePage(QtGui.QWizardPage):
             file.write(f.generate(self.conf.model))
             num += 1
             self.progress.setValue(num * 100 / steps)
-        
+        """
+        self.progress.setValue(100)
         self.ready = True
         self.completeChanged.emit()
