@@ -56,7 +56,7 @@ models = [
   'socwire',
   'ahbctrl',
   'extern',
-  'probe',
+  #'probe',
 ]
 
 def options(ctx): 

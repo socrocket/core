@@ -794,7 +794,7 @@ def options(ctx):
     # Custom Options
     prof.add_option('--tsim-comp', default=False, action='store_true', help='Defines the TSIM_COMPATIBILITY directive', dest='define_tsim_compatibility')
 
-    ctx.add_option("--verbosity", dest="verbosity", help="Defines the verbosity for the build", default=environ.get("VERBOSITY",""))
+    ctx.add_option("--verbosity", dest="verbosity", help="Defines the verbosity for the build", default=environ.get("VERBOSITY",None))
 
     conf = ctx.add_option_group("'./waf conf' Options")
     conf.add_option('-t', '--template', default=None, type='string', help='Defines a template to generate a new platform', dest='template')

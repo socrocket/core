@@ -61,15 +61,9 @@ the cpp-File Handler of the c complier. wich might be used in the same prject fo
 Therfore we need to abuse som waf internals. We remove the cpp handler from our Target TaskGen 
 object and replace it with our own (modelsim_sccom)
 
-TODO: Dependencies between targets are not resolved in the right way.
 TODO: VARIABLES seems to be inhereted between TaskGens. They double each target.
 TODO: uselib_local integration
-TODO: ensure that the env variables are only for modelsim tarets
-TODO: Try to make targetfiles for all tasks or to ensure correct recompilation behaviour somehow else. Deepcopy env
-TODO: Make this usable
-TODO: Make flags changable
 TODO: Add testig for flags
-TODO: Integrate CXXFlags ???
 """
 def options(opt):
   conf = opt.get_option_group("--download")
@@ -306,13 +300,17 @@ def modelsim(self):
     for define in Utils.to_list(self.defines):
       self.env["_SCCOMFLAGS"] += ['-D%s' % define]
       self.env["_VLINKFLAGS"] += ['-D%s' % define]
-      
+  
+  for d in self.env["DEFINES"]:
+    if not d.startswith("PYTHONARCHDIR="):
+      self.env.append_unique("_SCCOMFLAGS", "-D%s" % (d))
+  
   if hasattr(self, "includes"):
     for inc in Utils.to_list(self.includes):
       i = self.path.find_dir(inc)
       if i:
         self.env["_SCCOMFLAGS"] += ['-I%s' % i.abspath()]
-      
+  
   if hasattr(self, "uselib"):
     for lib in Utils.to_list(self.uselib):
       for path in self.env["INCLUDES_%s" % lib]:
