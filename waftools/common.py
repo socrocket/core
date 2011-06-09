@@ -121,7 +121,7 @@ def getdirs(base = '.', excludes = []):
         result.append(root)
     return result
 
-def getfiles(base, ext, excludes):
+def getfiles(base = '.', ext = ['*'], excludes = []):
     """Return recursively all files in base with an extension in ext excluding all who matching excludes"""
     result = []
     for root, dirs, files in os.walk(base):

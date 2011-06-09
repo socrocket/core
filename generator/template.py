@@ -57,8 +57,14 @@ class Template:
                 elif node.nodeName == "file":
                     file = File()
                     file.name = node.getAttribute("name")
-                    file.type = node.getAttribute("type")
-                    file.data = node.childNodes[0].data
+                    if node.hasAttribute("type"):
+                        file.type = node.getAttribute("type")
+                    else:
+                        file.type = None
+                    file.data = ""
+                    for child in node.childNodes:
+                      file.data += child.data
+                    
                     self._files.append(file)
 
     def getModel(self, widget=None, parent=None):
@@ -118,11 +124,18 @@ class Template:
         # writing files
         num = 2
         for f in files:
-            fpath = os.path.join(path, f.type, f.name)
-            if not os.path.isdir(os.path.join(path, f.type)):
-                os.makedirs(os.path.join(path, f.type))
-            file = open(fpath, "w")
-            file.write(f.data)
+            from string import Template
+            if f.type == None:
+                fdir = path
+                ffile = os.path.join(path, f.name)
+            else:
+                fdir = os.path.join(path, f.type)
+                ffile = os.path.join(path, f.type, f.name)
+            if not os.path.isdir(fdir):
+                os.makedirs(fdir)
+            file = open(ffile, "w")
+            file.write(Template(f.data.strip()).safe_substitute({'template':self.base, 'configuration':self.configuration}))
+            #file.write(f.data)
             num += 1
             progress(num * 100 / steps)
         

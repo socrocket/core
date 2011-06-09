@@ -52,13 +52,5 @@ extern = [
   'LEON3/simulatorSources/funcLT', 
 ]
 
-def options(ctx): 
-  pass
-  #ctx.recurse(extern)
-
-def configure(ctx):
-  pass
-  #ctx.recurse(extern)
-
 def build(bld):
   bld.recurse(extern)
