@@ -158,7 +158,14 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 
         typedef tlm::tlm_generic_payload payload_t;
         typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;
-        typedef std::pair<uint32_t, uint32_t> slave_info_t;
+
+	typedef struct {
+
+	  uint32_t hindex;
+	  uint32_t haddr;
+	  uint32_t hmask;
+	
+	} slave_info_t;
 
 	/// The internal state of the bus controller (concerning arbitration)
 	enum AHBStateType {INIT, IDLE, BUSY};
@@ -212,7 +219,7 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 	void ResponseThread();
 
 	/// Helper function for creating slave map decoder entries
-        void setAddressMap(const uint32_t i, const uint32_t addr, const uint32_t mask);
+        void setAddressMap(const uint32_t binding, const uint32_t hindex, const uint32_t haddr, const uint32_t hmask);
 
 	/// Get slave index for a given address
         int get_index(const uint32_t address);

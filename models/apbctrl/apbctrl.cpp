@@ -107,12 +107,16 @@ APBCtrl::~APBCtrl() {
 }
 
 /// Helper function for creating slave map decoder entries
-void APBCtrl::setAddressMap(const uint32_t i, const uint32_t addr, const uint32_t mask) {
+void APBCtrl::setAddressMap(const uint32_t binding, const uint32_t pindex, const uint32_t paddr, const uint32_t pmask) {
 
   // Create slave map entry from slave ID and address range descriptor (slave_info_t)
-  // Why std::map: Contains only the bar entries, which are actually valid.
-  // A static array would have holes -> far slower, especially if number of slaves is small.
-  slave_map.insert(std::pair<uint32_t, slave_info_t>(i, slave_info_t(addr, mask)));
+  slave_info_t tmp;
+
+  tmp.pindex = pindex;
+  tmp.paddr = paddr;
+  tmp.pmask  = pmask;
+
+  slave_map.insert(std::pair<uint32_t, slave_info_t>(binding, tmp));
 }
 
 /// Find slave index by address
@@ -125,7 +129,7 @@ int APBCtrl::get_index(const uint32_t address) {
 
     slave_info_t info = it->second;
 
-    if (((addr ^ info.first) & info.second) == 0) {
+    if (((addr ^ info.paddr) & info.pmask) == 0) {
 
       // APB: Device == BAR)
       return(it->first);
@@ -246,18 +250,21 @@ void APBCtrl::ahb_custom_b_transport(tlm::tlm_generic_payload& ahb_gp,sc_core::s
 tlm::tlm_sync_enum APBCtrl::ahb_custom_nb_transport_fw(tlm::tlm_generic_payload& gp, tlm::tlm_phase& phase, sc_core::sc_time& delay) {
 
   // todo
+  return tlm::TLM_COMPLETED;
   
 }
 
 tlm::tlm_sync_enum APBCtrl::apb_custom_nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& gp, tlm::tlm_phase& phase, sc_core::sc_time& delay) {
 
   // todo
+  return tlm::TLM_COMPLETED;
 
 }
 
 unsigned int APBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp) {
 
   // todo
+  return tlm::TLM_COMPLETED;
 
 }
 
@@ -296,8 +303,11 @@ void APBCtrl::start_of_simulation() {
       // Get pointer to device information
       const uint32_t * deviceinfo = slave->get_device_info();
 
+      // Get slave id (pindex)
+      const uint32_t sbusid = slave->get_busid();
+
       // Map device information into PNP region
-      mSlaves[i] = deviceinfo;
+      mSlaves[sbusid] = deviceinfo;
 
       // check 'type'filed of bar[i] (must be != 0)
       if (slave->get_type()) {
@@ -309,7 +319,7 @@ void APBCtrl::start_of_simulation() {
 	v::info << name() << "* BAR with MSB addr: " << hex << addr << " and mask: " << mask << v::endl;
 
 	// insert slave region into memory map
-        setAddressMap(i, addr, mask);
+        setAddressMap(i, sbusid, addr, mask);
 
       }
 
@@ -337,6 +347,7 @@ void APBCtrl::checkMemMap() {
    std::map<uint32_t, slave_info_t>::iterator it;
    std::map<uint32_t, slave_info_t>::iterator it2;
 
+   /*
    for(it=slave_map.begin(), it2=slave_map.begin(); it!=slave_map.end(); it++, it2++) {
       for(it2++; it2!=slave_map.end(); it2++) {
          if(((it2->second.first >= it->second.first) &&
@@ -363,6 +374,8 @@ void APBCtrl::checkMemMap() {
          }
       }
    }
+
+   */
 }
 
 /// Helper for setting clock cycle latency using sc_clock argument

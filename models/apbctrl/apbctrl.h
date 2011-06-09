@@ -74,7 +74,7 @@ class APBCtrl : public sc_core::sc_module,
 	unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);
 
 	/// Helper function for creating slave map decoder entries
-        void setAddressMap(const uint32_t i, const uint32_t addr, const uint32_t mask);
+        void setAddressMap(const uint32_t binding, const uint32_t pindex, const uint32_t paddr, const uint32_t pmask);
 
 	/// Get slave index for a given address
         int get_index(const uint32_t address);
@@ -143,7 +143,14 @@ class APBCtrl : public sc_core::sc_module,
 
         typedef tlm::tlm_generic_payload payload_t;
         typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;
-        typedef std::pair<uint32_t, uint32_t> slave_info_t;
+
+	typedef struct {
+
+	  uint32_t pindex;
+	  uint32_t paddr;
+	  uint32_t pmask;
+
+	} slave_info_t;
 
 	/// Address decoder table (slave index, (bar addr, mask))
         std::map<uint32_t, slave_info_t> slave_map;

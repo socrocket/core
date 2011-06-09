@@ -120,12 +120,16 @@ AHBCtrl::~AHBCtrl() {
 }
 
 // Helper function for creating slave map decoder entries
-void AHBCtrl::setAddressMap(const uint32_t i, const uint32_t addr, const uint32_t mask) {
+void AHBCtrl::setAddressMap(const uint32_t binding,const uint32_t hindex, const uint32_t haddr, const uint32_t hmask) {
+
+  slave_info_t tmp;
+
+  tmp.hindex = hindex;
+  tmp.haddr  = haddr;
+  tmp.hmask  = hmask;
 
   // Create slave map entry from slave ID and address range descriptor (slave_info_t)
-  // Why std::map: Contains only the bar entries, which are actually valid.
-  // A static array would have holes -> far slower, especially if number of slaves is small.
-  slave_map.insert(std::pair<uint32_t, slave_info_t>(i, slave_info_t(addr, mask)));
+  slave_map.insert(std::pair<uint32_t, slave_info_t>(binding, tmp));
 }
 
 // Find slave index by address
@@ -138,7 +142,7 @@ int AHBCtrl::get_index(const uint32_t address) {
 
       slave_info_t info = it->second;
   
-      if (((addr ^ info.first) & info.second) == 0) {
+      if (((addr ^ info.haddr) & info.hmask) == 0) {
 
 	// There may be up to four BARs per device.
 	// Only return device ID.
@@ -772,7 +776,7 @@ void AHBCtrl::start_of_simulation() {
 
   // Iterate/detect the registered slaves
   // ------------------------------------
-  for (uint32_t i = 0; i < (num_of_slave_bindings<<2); i+=4) {
+  for (uint32_t i = 0; i < num_of_slave_bindings<<2; i+=4) {
 
     uint32_t a = 0;
 
@@ -792,11 +796,15 @@ void AHBCtrl::start_of_simulation() {
 
       // Get pointer to device information
       const uint32_t * deviceinfo = slave->get_device_info();
+      
+      // Get bus id (hindex oder master id)
+      const uint32_t sbusid = slave->get_busid();
+      assert(sbusid < 16);
 
       // Map device information into PNP region
       if (mfpnpen) {
 	
-	mSlaves[i] = deviceinfo;
+	mSlaves[sbusid] = deviceinfo;
 
       }
 
@@ -813,7 +821,7 @@ void AHBCtrl::start_of_simulation() {
 	  v::info << name() << "* BAR" << j << " with MSB addr: " << hex << addr << " and mask: " << mask <<  v::endl; 
 
 	  // Insert slave region into memory map
-	  setAddressMap(i+j, addr, mask);
+	  setAddressMap(i+j, sbusid, addr, mask);
 
 	} else {
 
@@ -858,10 +866,14 @@ void AHBCtrl::start_of_simulation() {
       // Get pointer to device information
       const uint32_t * deviceinfo = master->get_device_info();
 
+      // Get id of the master
+      const uint32_t mbusid = master->get_busid();
+      assert(mbusid < 16);
+
       // Map device information into PNP region
       if (mfpnpen) {
 	
-	mMasters[i] = deviceinfo;
+	mMasters[mbusid] = deviceinfo;
 
       }
 
@@ -909,6 +921,7 @@ void AHBCtrl::checkMemMap() {
    std::map<uint32_t, slave_info_t>::iterator it;
    std::map<uint32_t, slave_info_t>::iterator it2;
 
+   /*
    for(it=slave_map.begin(), it2=slave_map.begin(); it!=slave_map.end(); it++, it2++) {
       for(it2++; it2!=slave_map.end(); it2++) {
          if(((it2->second.first >= it->second.first) &&
@@ -934,6 +947,7 @@ void AHBCtrl::checkMemMap() {
          }
       }
    }
+   */
 }
 
 // TLM debug interface
