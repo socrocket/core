@@ -321,14 +321,14 @@ int sc_main(int argc, char** argv) {
             conf_mmu_cache_mmu_en_itlb_num, //  int itlb_num = 8 (8 itlbs - not present)
             conf_mmu_cache_mmu_en_dtlb_num, //  int dtlb_num = 8 (8 dtlbs - not present)
             conf_mmu_cache_mmu_en_tlb_type, //  int tlb_type = 0 (split tlb mode - not present)
-            conf_mmu_cache_mmu_en_tlb_req,  //  int tlb_rep = 1 (random replacement)
+            conf_mmu_cache_mmu_en_tlb_rep,  //  int tlb_rep = 1 (random replacement)
             conf_mmu_cache_mmu_en_mmupgsz,  //  int mmupgsz = 0 (4kB mmu page size)>
-            "mmu_cache",               // name of sysc module
-		        //conf_mmu_cache_addr,            // The MSB address of the AHB area. Sets the 12 MSBs of the AHB address
-		        //conf_mmu_cache_mask,            // The 12bit AHB area address mask
-            //conf_mmu_cache_dsu,             // Enable debug support unit interface
-            CACHE_MASTER_ID,           // - id of the AHB master
-	          amba::amba_LT,             // LT abstraction
+            "mmu_cache",                    // name of sysc module
+		        //conf_mmu_cache_addr,          // The MSB address of the AHB area. Sets the 12 MSBs of the AHB address
+		        //conf_mmu_cache_mask,          // The 12bit AHB area address mask
+            //conf_mmu_cache_dsu,           // Enable debug support unit interface
+            CACHE_MASTER_ID,                // - id of the AHB master
+	          amba::amba_LT                   // LT abstraction
     );
     
     // Connecting AHB Master
@@ -339,26 +339,6 @@ int sc_main(int argc, char** argv) {
     leon3.instrMem.initSocket(mmu_cache.icio);
     leon3.dataMem.initSocket(mmu_cache.dcio);
    
-    // Initialize memory
-    ExecLoader loader(application); 
-    unsigned char* execData = loader.getProgData();
-    for(unsigned int i=0; i<loader.getProgDim(); i++) {
-       generic_memory_sram.writeByteDBG(loader.getDataStart() + i, execData[i]);
-    }
-    leon3.ENTRY_POINT   = loader.getProgStart();
-    leon3.PROGRAM_LIMIT = loader.getProgDim() + loader.getDataStart();
-    leon3.PROGRAM_START = loader.getDataStart();
-    assert((loader.getProgDim() + loader.getDataStart()) < 0x1fffffff);
-    
-    OSEmulator< unsigned int> osEmu(*(leon3.abiIf));
-    osEmu.initSysCalls(application);
-    std::vector<std::string> options;
-    options.push_back(application);
-    OSEmulatorBase::set_program_args(options);
-
-    leon3.toolManager.addTool(osEmu);
-    leon3.enableHistory("cmdHistLTSys"); 
-    
     // Set clock
     mmu_cache.clk(LOCAL_CLOCK,SC_NS);
     
@@ -367,8 +347,8 @@ int sc_main(int argc, char** argv) {
     APBCtrl apbctrl("apbctrl", 
 		    conf_apbctrl_ioaddr,                // The MSB address of the AHB area. Sets the 12 MSBs of the AHB address
 		    conf_apbctrl_iomask,                // The 12bit AHB area address mask
-		    //conf_apbctrl_cfgaddr,               // The MSB address of the AHB area. Sets the 12 MSBs of the AHB address
-		    //conf_apbctrl_cfgmask,               // The 12bit AHB area address mask
+		    //conf_apbctrl_cfgaddr,             // The MSB address of the AHB area. Sets the 12 MSBs of the AHB address
+		    //conf_apbctrl_cfgmask,             // The 12bit AHB area address mask
 		    conf_apbctrl_check,                 // Check if there are any intersections between APB slave memory regions 
 		    amba::amba_LT
     );
@@ -483,6 +463,26 @@ int sc_main(int argc, char** argv) {
     // Connect socwire ports as loopback
     u_ahb2socwire.master_socket(u_ahb2socwire.slave_socket);
 #endif
+    
+    // Initialize memory
+    ExecLoader loader(application); 
+    unsigned char* execData = loader.getProgData();
+    for(unsigned int i=0; i<loader.getProgDim(); i++) {
+       generic_memory_sram.writeByteDBG(loader.getDataStart() + i, execData[i]);
+    }
+    leon3.ENTRY_POINT   = loader.getProgStart();
+    leon3.PROGRAM_LIMIT = loader.getProgDim() + loader.getDataStart();
+    leon3.PROGRAM_START = loader.getDataStart();
+    assert((loader.getProgDim() + loader.getDataStart()) < 0x1fffffff);
+    
+    OSEmulator< unsigned int> osEmu(*(leon3.abiIf));
+    osEmu.initSysCalls(application);
+    std::vector<std::string> options;
+    options.push_back(application);
+    OSEmulatorBase::set_program_args(options);
+
+    leon3.toolManager.addTool(osEmu);
+    leon3.enableHistory("cmdHistLTSys"); 
 
     // start simulation
     sc_core::sc_start();
@@ -557,7 +557,7 @@ def build(bld):
         features     = 'cxx cprogram test',
         source       = [ 'sc_main.cpp' ],
         includes     = '.',
-        use          = 'ahbctrl leonLT irqmp gptimer apbctrl socwire mmu_cache mctrl utils signalkit common TRAP BOOST ELF SYSTEMC AMBA TLM GREENSOCS',
+        use          = 'ahbctrl leon3.functlt irqmp gptimer apbctrl socwire mmu_cache mctrl utils signalkit common TRAP BOOST ELF SYSTEMC AMBA TLM GREENSOCS',
     )
 
 -->

@@ -8,7 +8,7 @@ class TemplatePage(QtGui.QWizardPage):
         #self.setSubTitle("Choose the template you whant to use.")
         #self.setPixmap(QtGui.QWizard.WatermarkPixmap,
         #        QtGui.QPixmap(':/images/watermark1.png'))
-        self.setStyleSheet("* { background: yellow;}")
+        #self.setStyleSheet("* { background: yellow;}")
         self.templates = templates
         layout = QtGui.QVBoxLayout(self)
         self.hsplit = QtGui.QSplitter(self)
