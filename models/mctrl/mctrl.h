@@ -76,7 +76,8 @@ class Mctrl : public gs::reg::gr_device,
               int _paddr = 0x0, int _pmask = 0xFFF, 
               int _wprot = 0, int _srbanks = 4, 
               int _ram8 = 0, int _ram16 = 0, int _sepbus = 0, 
-              int _sdbits = 32, int _mobile = 0, int _sden = 0);
+              int _sdbits = 32, int _mobile = 0, int _sden = 0, 
+	      unsigned int hindex = 0, unsigned int pindex = 0);
         ~Mctrl();
 
         //APB slave socket: connects mctrl config registers to apb

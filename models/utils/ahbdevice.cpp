@@ -51,7 +51,7 @@
 
 using namespace std;
 
-AHBDevice::AHBDevice(uint8_t vendorid, uint16_t deviceid,
+AHBDevice::AHBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
                      uint8_t version, uint8_t irq, uint32_t bar0,
                      uint32_t bar1, uint32_t bar2, uint32_t bar3) {
     m_register[0] = (irq & 0x1F) | ((version & 0x1F) << 5)
@@ -61,6 +61,8 @@ AHBDevice::AHBDevice(uint8_t vendorid, uint16_t deviceid,
     m_register[5] = bar1;
     m_register[6] = bar2;
     m_register[7] = bar3;
+
+    m_busid = busid;
 }
 
 AHBDevice::~AHBDevice() {
@@ -202,3 +204,9 @@ uint32_t BAR(AHBDevice::device_type type, uint16_t mask, bool cacheable,
             | (prefetchable << 17) | (address << 20));
 }
 
+// Returns the bus id of the device
+const uint32_t AHBDevice::get_busid() const {
+
+  return m_busid;
+
+}

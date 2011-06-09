@@ -61,16 +61,18 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
                          const uint16_t hmask_, // AMBA AHB address mask (12 bit)
                          const amba::amba_layer_ids ambaLayer, // abstraction layer
                          const char infile[], // Memory initialization file
-                         uint32_t addr) : // Address for memory initalization
+                         uint32_t addr, // Address for memory initialization
+			 const uint32_t slave_id) :
             sc_module(nm),
-            AHBDevice(0x04, // vendor_id: ESA
-                    0, // device: TODO: get real device ID
-                    0, //
-                    0, // IRQ
-                    BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr_), // BAR 0
-                    0, // BAR 1
-                    0, // BAR 2
-                    0  // BAR 3
+            AHBDevice(slave_id,
+		      0x04, // vendor_id: ESA
+		      0, // device: TODO: get real device ID
+		      0, //
+		      0, // IRQ
+		      BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr_), // BAR 0
+		      0, // BAR 1
+		      0, // BAR 2
+		      0  // BAR 3
             ),
             ahb("ahb", // sc_module_name
                     amba::amba_AHB, // bus type
@@ -476,7 +478,7 @@ int Ctb_ahb_mem::dumpmem(const char outfile_[]) {
 
     // check if memory is filled
     if(mem.empty()) {
-        v::info << name() << "Memory is empty. Nothing do dump." << endl;
+        v::debug << name() << "Memory is empty. Nothing do dump." << endl;
         return 1;
     }
 

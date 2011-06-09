@@ -51,13 +51,13 @@
 #include <string>
 
 /// Constructor
-CIrqmp::CIrqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, int _eirq) :
+CIrqmp::CIrqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, int _eirq, unsigned int pindex) :
             gr_device(name, //sc_module name
                     gs::reg::ALIGNED_ADDRESS, //address mode (options: aligned / indexed)
                     0xFF, //dword size (of register file)
                     NULL //parent module
             ),
-            APBDevice(0x01, 0x00D, 3, 0, APBDevice::APBIO, _pmask, false, false, _paddr),
+            APBDevice(pindex, 0x01, 0x00D, 3, 0, APBDevice::APBIO, _pmask, false, false, _paddr),
             apb_slv(
                     "APB_SLAVE", //name
                     r, //register container

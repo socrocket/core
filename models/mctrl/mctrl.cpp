@@ -53,13 +53,14 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
              int _romaddr, int _rommask, int _ioaddr, int _iomask,
              int _ramaddr, int _rammask, int _paddr, int _pmask, int _wprot,
              int _srbanks, int _ram8, int _ram16, int _sepbus, int _sdbits,
-             int _mobile, int _sden) :
+             int _mobile, int _sden, unsigned int hindex, unsigned int pindex) :
             gr_device(name,
                     gs::reg::ALIGNED_ADDRESS,
                     16,
                     NULL
             ),
             AHBDevice(
+		    hindex,
                     0x04, //vendor: ESA
                     0x0F, //device: MCTRL
                     0,
@@ -69,6 +70,7 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                     BAR(AHBDevice::AHBMEM, _rammask, true, true, _ramaddr),
                     0),
             APBDevice(
+		    pindex,
                     0x04, //vendor: ESA
                     0x0F, //device: MCTRL
                     0,

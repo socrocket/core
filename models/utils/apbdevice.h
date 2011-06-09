@@ -69,7 +69,7 @@ class APBDevice : public amba_slave_base {
 
         /// All device informations are needed while constructing a device.
         /// The register content is formed here.
-        APBDevice(uint8_t vendorid, uint16_t deviceid, uint8_t version,
+        APBDevice(uint32_t bus_id, uint8_t vendorid, uint16_t deviceid, uint8_t version,
                   uint8_t irq, APBDevice::device_type type, uint16_t mask, 
                   bool cacheable, bool prefetchable, uint16_t address);
 
@@ -105,11 +105,17 @@ class APBDevice : public amba_slave_base {
         virtual sc_dt::uint64 get_size();
         virtual const uint32_t get_size_() const;
 
+	/// Returns the bus id of the module (pindex)
+	const uint32_t get_busid() const;
+
         /// Prints the device info of the device.
         virtual void print_device_info(char *name) const;
     private:
         /// Impementation of the device register file.
         uint32_t m_register[2];
+
+	/// The slave bus id of the device (pindex)
+	uint32_t m_busid;
 };
 
 #endif

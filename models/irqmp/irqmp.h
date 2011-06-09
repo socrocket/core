@@ -92,7 +92,7 @@ class CIrqmp : public gs::reg::gr_device,
         /// @param _pmask Upper 12bit of the APB mask.
         /// @param _ncpu  Number of CPU which receive interupts.
         /// @param _eirq  Interrupt channel which hides all the extended interrupt channels.
-        CIrqmp(sc_module_name name, int _paddr = 0, int _pmask = 0xFFF, int _ncpu = 2, int _eirq = 1); 
+        CIrqmp(sc_module_name name, int _paddr = 0, int _pmask = 0xFFF, int _ncpu = 2, int _eirq = 1, unsigned int pindex = 0); 
 
         /// Default destructor
         ///

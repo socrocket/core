@@ -54,8 +54,9 @@ ahbctrl_test::ahbctrl_test(sc_core::sc_module_name name,
 			   sc_core::sc_time inter, // interval of random instructions (waiting period)
 			   amba::amba_layer_ids abstractionLayer) : sc_module(name),
   AHBDevice(
-      0x04,  // vendor: ESA
-      0x00,  // device: ??
+      master_id, // bus id (hindex)
+      0x04,      // vendor: ESA
+      0x00,      // device: ??
       0,
       0,
       0,

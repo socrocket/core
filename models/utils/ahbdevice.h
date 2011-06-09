@@ -69,7 +69,7 @@ class AHBDevice : public amba_slave_base {
 
         /// All device informations are needed while constructing a device.
         /// The register content is formed here.
-        AHBDevice(uint8_t vendorid, uint16_t deviceid, uint8_t version,
+        AHBDevice(uint32_t bus_id, uint8_t vendorid, uint16_t deviceid, uint8_t version,
                   uint8_t irq, uint32_t bar0, uint32_t bar1 = 0,
                   uint32_t bar2 = 0, uint32_t bar3 = 0);
 
@@ -119,11 +119,17 @@ class AHBDevice : public amba_slave_base {
         /// @param bar The selected bar
         virtual const uint32_t get_bar_size(uint32_t bar) const;
 
+	/// Returns the bus id of the module (hindex)
+	const uint32_t get_busid() const;
+
         /// Prints the device info of the device.
         virtual void print_device_info(char *name) const;
     private:
         /// Impementation of the device register file.
         uint32_t m_register[8];
+	
+	/// The master of slave bus id of the device
+	uint32_t m_busid;
 };
 
 /// This function returns a grlib bank address register.

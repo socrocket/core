@@ -55,9 +55,9 @@
 // Store configuration default value in conf_defaults.
 CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                    int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq,
-                   int gsbits, int gnbits, int gwdog) :
+                   int gsbits, int gnbits, int gwdog, unsigned int pindex) :
     gr_device(name, gs::reg::ALIGNED_ADDRESS, 4 * (1 + ntimers), NULL),
-    APBDevice(0x1, 0x11, 0, gpirq, APBIO, gpmask, false, false, gpaddr), 
+    APBDevice(pindex, 0x1, 0x11, 0, gpirq, APBIO, gpmask, false, false, gpaddr), 
     bus("bus", r, (gpaddr & gpmask) << 8, (((~gpmask & 0xfff) + 1) << 8), ::amba::amba_APB, 
             ::amba::amba_LT, false), 
     rst(&CGPTimer::do_reset, "RESET"), 

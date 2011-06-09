@@ -51,17 +51,19 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
 		 uint32_t haddr_,            // The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
                  uint32_t hmask_,            // The 12bit AHB area address mask
 		 bool mcheck,                // Check if there are any intersections between APB slave memory regions
+		 uint32_t hindex,            // AHB bus index
 		 amba::amba_layer_ids ambaLayer) :
 
       sc_module(nm),
-      AHBDevice(0x04,  // vendor_id: ESA
-                0x006, // device_id: APBCtrl (p. 92 GRIP) 
-                0,     //
-                0,     // IRQ
+      AHBDevice(hindex, // AHB bus index
+		0x04,   // vendor_id: ESA
+                0x006,  // device_id: APBCtrl (p. 92 GRIP) 
+                0,      //
+                0,      // IRQ
                 BAR(AHBDevice::APBIO, hmask_, 0, 0, haddr_), // BAR 0
-                0,     // BAR 1
-                0,     // BAR 2
-                0),    // BAR 3
+                0,      // BAR 1
+                0,      // BAR 2
+                0),     // BAR 3
       ahb("ahb", amba::amba_AHB, amba::amba_LT, false),  // TODO set arbiter flags to true as soon bug in ambasockets is fixed
       apb("apb", amba::amba_APB, amba::amba_LT, false),
       mhaddr(haddr_),

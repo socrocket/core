@@ -47,6 +47,9 @@
 clock_gen::clock_gen(sc_core::sc_module_name name, sc_core::sc_time clockcycle, sc_core::sc_time reset_switch, bool reset_init) :
 
   sc_module(name),
+  rst("rst"),
+  signal_rst("signal_rst"),
+  signal_clk("signal_clk"),
   clock("clock", clockcycle, 0.5, sc_core::SC_ZERO_TIME, true),
   m_clockcycle(clockcycle),
   m_reset_switch(reset_switch),

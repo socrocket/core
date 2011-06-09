@@ -825,7 +825,7 @@ void AHBCtrl::start_of_simulation() {
 
     } else {
       
-      v::error << name() << "Slave bound to socket 'ahbout' is not a valid AHBDevice" << v::endl;
+      v::error << name() << "Slave bound to socket 'ahbOUT' is not a valid AHBDevice (no plug & play information)!" << v::endl;
       assert(0);
 
     }
@@ -847,7 +847,7 @@ void AHBCtrl::start_of_simulation() {
     // get parent object containing slave socket i
     sc_core::sc_object *obj = other_socket->get_parent();
 
-    // valid slaves implement the AHBDevice interface
+    // valid masters implement the AHBDevice interface
     AHBDevice *master = dynamic_cast<AHBDevice *> (obj);
 
     v::info << name() << "* Master name: " << obj->name() << v::endl;
@@ -894,7 +894,7 @@ void AHBCtrl::start_of_simulation() {
   }
 
   // End of decoder initialization
-  v::info << name() << "******************************************************************************* " << v::endl;
+  v::debug << name() << "******************************************************************************* " << v::endl;
 
   // Check memory map for overlaps
   if (mmcheck) {

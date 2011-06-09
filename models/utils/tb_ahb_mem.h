@@ -70,7 +70,7 @@ class Ctb_ahb_mem : public sc_module,
         /// @param addr Start address for memory initilization
         Ctb_ahb_mem(const sc_core::sc_module_name nm, const uint16_t haddr_,
                     const uint16_t hmask_ = 0, const amba::amba_layer_ids ambaLayer = amba::amba_LT,
-                    const char infile[] = NULL, uint32_t addr = 0);
+                    const char infile[] = NULL, uint32_t addr = 0, uint32_t slave_id = 0);
 
         /// Destructor
         ~Ctb_ahb_mem();

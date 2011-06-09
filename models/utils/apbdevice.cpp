@@ -48,7 +48,7 @@
 #include "apbdevice.h"
 #include "verbose.h"
 
-APBDevice::APBDevice(uint8_t vendorid, uint16_t deviceid,
+APBDevice::APBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
                      uint8_t version, uint8_t irq, APBDevice::device_type type, 
                      uint16_t mask, bool cacheable,
                      bool prefetchable, uint16_t address) {
@@ -56,6 +56,8 @@ APBDevice::APBDevice(uint8_t vendorid, uint16_t deviceid,
             | ((deviceid & 0xFFF) << 12) | (vendorid << 24);
     m_register[1] = (static_cast<uint8_t>(type) | (mask << 4) | 
                     (cacheable << 16) | (prefetchable << 17) | (address << 20));
+
+    m_busid = busid;
 }
 
 APBDevice::~APBDevice() {
@@ -119,4 +121,11 @@ sc_dt::uint64 APBDevice::get_size() {
 const uint32_t APBDevice::get_size_() const {
     uint32_t mask = get_mask();
     return (((~mask & 0xFFF) + 1) << 8);
+}
+
+// Returns the bus id of the device
+const uint32_t APBDevice::get_busid() const {
+
+  return m_busid;
+
 }
