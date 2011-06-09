@@ -838,6 +838,8 @@ void AHBCtrl::start_of_simulation() {
 
     }
 
+    v::info << name() << "******************************************************************************* " << v::endl;
+
     // Now ready for action
     AHBState = IDLE;
 
