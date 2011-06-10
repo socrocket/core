@@ -47,6 +47,7 @@
 
 #include <string>
 #include "gptimer.h"
+#include "power_monitor.h"
 
 /// @addtogroup gptimer
 /// @{
@@ -81,6 +82,7 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
             << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
             << endl;
 
+    PM::registerIP(this,"gptimer");
 
     /* create register */
     r.create_register("scaler", "Scaler Value",
@@ -150,7 +152,10 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                           32, //register width
                           0x00 // lock mask
         );
+
+
     }
+
 
 #ifdef DEBUG
     SC_THREAD(diag);

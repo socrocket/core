@@ -63,6 +63,7 @@ def build(bld):
                        'ahbdevice.cpp',
                        'apbdevice.cpp',
                        'apbtestbench.cpp',
+                       'power_monitor.cpp',
                       ],
     export_includes = '.',
     uselib          = 'SYSTEMC TLM AMBA GREENSOCS',

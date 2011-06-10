@@ -46,6 +46,24 @@
 #*********************************************************************
 top = '..'
 
+models = [
+  'gptimer', 
+  'irqmp', 
+  'mmu_cache', 
+  'mctrl', 
+  'utils',
+  'apbctrl',
+  'socwire',
+  'ahbctrl',
+  'extern',
+  ]
+
+def options(ctx): 
+  ctx.recurse(models)
+
+def configure(ctx):
+  ctx.recurse(models)
+  
 def build(bld):
   from waftools.common import get_subdirs
   import sys

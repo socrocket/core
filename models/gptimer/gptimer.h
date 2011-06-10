@@ -52,6 +52,7 @@
 
 #include "greencontrol/all.h"
 #include "signalkit.h"
+#include "power_monitor.h"
 #include "verbose.h"
 
 #include "apbdevice.h"
