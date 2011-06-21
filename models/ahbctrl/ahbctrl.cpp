@@ -718,6 +718,7 @@ void AHBCtrl::ResponseThread() {
       default:
 
 	v::error << name() << "Invalid return value from call to nb_transport_bw!" << v::endl;
+	trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
     }
 
