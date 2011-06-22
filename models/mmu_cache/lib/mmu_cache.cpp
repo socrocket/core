@@ -69,8 +69,8 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 
     sc_module(name),
     AHBDevice(id,
-	      0x04, // vendor: ESA
-	      0x00,  // device: ??
+	      0x01,  // vendor: Gaisler Research (Fake the LEON)
+	      0x003,  // 
 	      0,
 	      0,
 	      0,
@@ -1852,7 +1852,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
 
     sc_core::sc_time delay = SC_ZERO_TIME;
 
-    v::debug << name() << " AHB write to addr: " << hex << addr << v::endl;
+    v::debug << name() << "AHB write to addr: " << hex << addr << v::endl;
 
     if (m_abstractionLevel == amba::amba_LT) {
 
@@ -1879,7 +1879,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
 
     } 
 
-    v::debug << name() << " AHB transaction done (mem_write) - delay: " << delay << v::endl;
+    v::debug << name() << "AHB transaction done (mem_write) - delay: " << delay << v::endl;
 
     // increment time
     //*t += delay;
