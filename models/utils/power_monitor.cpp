@@ -1,3 +1,48 @@
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      power_monitor.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Power monitor class
+//             
+//             
+//             
+// Modified on $Date: 2011-06-10 12:14:49 +0200 (Fri, 10 Jun 2011) $
+//          at $Revision: 458 $
+//          by $Author: HWSWSIM $
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Etienne Kleine
+// Reviewed:
+//*********************************************************************
+
+
 #include "power_monitor.h"
 
 using namespace std;
@@ -20,7 +65,9 @@ vector<PowerEntry> PM::MainData;
 vector<IpPowerEntry> PM::IpData;
 vector< vector<analyzedEntry> > PM::AnalyzedData;
 
-int PM::maxLevel;
+unsigned int PM::maxLevel;
+vector<string> PM::missingIp;
+vector<string> PM::missingAction;
 //------------------------------------------------
 
 //================================================
@@ -30,11 +77,10 @@ int PM::maxLevel;
 //------------------------------------------------
 void PM::registerIP(sc_module* ip, string name){
   
-  IpPowerEntry temp;
-  string sc_name = ip->name(); 
-  // add testbench to name
+  string sc_name = ip-> name();
   sc_name = "main."+sc_name;
-  v::info << "power_monitor" << "IP " << sc_name << " registered" << endl;
+
+  IpPowerEntry temp; 
   
   temp.ip=ip;
   temp.sc_name=sc_name;
@@ -57,14 +103,23 @@ void PM::registerIP(sc_module* ip, string name){
   // add new IP to datavector
   PM::IpData.push_back(temp);
 
-} // end registerIP
+  v::info << "Power Monitor" << "IP " << temp.sc_name << " registered at level " << temp.level << endl;
+
+} // end register
 //------------------------------------------------
 
 
 // send data
 // called by IP 
 //------------------------------------------------
-void PM::send(sc_module* ip, IpPowerData data){
+void PM::send(sc_module* ip, string action, bool start, unsigned long int timestamp){
+
+  // summarize data in struct
+  IpPowerData data;
+  data.action = action;
+  data.start = start;
+  data.timestamp = timestamp;
+  data.power = 0;
 
   // search IP in IpData
   vector<IpPowerEntry>::iterator i=PM::IpData.begin();
@@ -74,7 +129,6 @@ void PM::send(sc_module* ip, IpPowerData data){
   if( i==PM::IpData.end() ){
     v::warn << "Power Monitor" << "sending IP not registered" << endl;
   }else{
-    data.power=0;
     i->entry.push_back(data);
   }
 } // send 
@@ -151,6 +205,13 @@ void PM::addpower(string &infile){
 
   v::info << "Power Monitor" << "adding power data" << endl;
 
+  // clear 'missing' vectors
+  PM::missingIp.clear();
+  PM::missingAction.clear();
+
+  // iterator
+  vector<string>::iterator missing;
+
   // for every registered IP
   for( vector<IpPowerEntry>::iterator ip=PM::IpData.begin(); ip!=PM::IpData.end(); ip++){
 
@@ -160,8 +221,18 @@ void PM::addpower(string &infile){
     while( (mainip != PM::MainData.end()) && (mainip->name != ip->name)  ){ mainip++; }
     //............................................
 
+    // print warning if Ip is missing
+    //............................................
     if( mainip==PM::MainData.end() ){
-      v::warn << "Power Monitor" << "no power data for registered IP " << ip->name << endl;
+      // print warning if needed
+      missing = PM::missingIp.begin();
+      while( ( missing != PM::missingIp.end() ) && ( (*missing) != ip->name ) ){ missing++; }
+      if ( missing == PM::missingIp.end() ){
+	PM::missingIp.push_back( ip->name );
+	v::warn << "Power Monitor" << "no power data for registered IP " << ip->name << endl;
+      }
+    //............................................
+
     }else{
 
       // assign power data to logged events
@@ -173,12 +244,24 @@ void PM::addpower(string &infile){
 	while( (mainentry != mainip->entry.end()) && (mainentry->action != ipentry->action) ){ mainentry++; }
 	//..........................................
 
+	// print warning if action is missing
+	// ........................................
 	if( mainentry == mainip->entry.end() ){
+	  // set default value
 	  ipentry->power = 0;
-	  v::warn << "no power data for IP " << ip->name << ", action : " << ipentry->action << ", setting default value 0" << endl;
+	  // print warning if needed
+	  missing = PM::missingAction.begin();
+	  while( ( missing != missingAction.end() ) && ( (*missing) != (ip->name)+(ipentry->action) ) ){ missing++; }
+	  if ( missing == PM::missingAction.end() ){
+	    PM::missingAction.push_back( (ip->name)+(ipentry->action) );
+	    v::warn << "no power data for IP " << ip->name << ", action : " << ipentry->action << ", setting default value 0" << endl;
+	  }
+	//........................................
+
 	}else{
 	  ipentry->power = mainentry->power;
 	} // end if
+
       } // end entry loop
     } // end if
   } // end ip loop
@@ -331,17 +414,41 @@ void PM::analyze(string infile, string outfile){
 
     // analyze data
     for( vector<tempActions>::iterator action = tempip.act.begin(); action != tempip.act.end(); action++ ){                    // actions
+
+      // for debugging
+      //++++++++++++++++++++++++++++++++++++++++
+      //v::warn << "Power Monitor" << "*************************" << endl;
+      //v::warn << "Power Monitor" << "IP : " << analyzedIp->sc_name << ", action : " << action->action << endl; 
+      //v::warn << "Power Monitor" << "vector length : " << action->entry.size() << endl;
+      //for( vector<tempData>::iterator actentry = action->entry.begin(); actentry != action->entry.end(); actentry++){ // entries
+      //   cout << "start : " << actentry->start << " , timestamp : " << actentry->timestamp << endl;
+      //}
+      //v::warn << "Power Monitor" << "*************************" << endl;
+      //++++++++++++++++++++++++++++++++++++++++
+
+      // check if entries are correct
+      //.........................
+      // unsigned int i = 0;
+      //if ( tempip.act.entry.size() > 0 ){
+      //for ( vector <tempData>::iterator actentry = action->entry.begin(); actentry != action->entry.end()-1; actentry++){
+      //  if ( actentry->timestamp == (actentry+1)->timestamp){
+      //    v::warn << "Power Monitor" << "2 events with same timestamp" << endl;
+      //  }
+      //}
+      //}
+      //.........................
+
       for( vector<tempData>::iterator actentry = action->entry.begin(); actentry != action->entry.end(); actentry=actentry+2){ // entries
 
 	// analyze entry
 	//........................................
 	te.action=action->action;
 	te.start=actentry->timestamp;
-
-	if( (actentry+1)->start==0 ){
+	
+	if( action->entry.size()>1 && (actentry+1)->start==0 ){
 	  te.end = (actentry+1)->timestamp;
 	}else{
-	  v::warn << "Power Monitor" << "error in analyzing entry" << endl;
+	  v::error << "Power Monitor" << "error in analyzing entry : " << analyzedIp->sc_name << " > " << action->action << endl;
 	}
 
 	te.dur = te.end - te.start;
@@ -384,7 +491,7 @@ void PM::analyze(string infile, string outfile){
 	parent = (level-1)->begin();
 	while( (parent != (level-1)->end()) && (parent->sc_name != topname) ){ parent++; }
 	if( parent == (level-1)->end() && parent->sc_name != topname ){
-	  v::warn << "Power Monitor" << "parent " << topname <<  "not found" << endl;
+	  v::warn << "Power Monitor" << "parent " << topname <<  " not found" << endl;
 	}else{
 	  parent->ptotal = parent->ptotal + ip->ptotal;
 	  sprintf(str,"%5d",ip->ptotal);
@@ -407,23 +514,98 @@ void PM::analyze(string infile, string outfile){
 // logprint
 // prints received power data to logfile
 //------------------------------------------------
-void PM::logprint(string file){
+void PM::raw_logprint(string file){
 
-  fstream os;
-  os.open( file.c_str() , ios::out|ios::app );
+  v::info << "Power Monitor" << "printing raw data to logfile" << endl;
   
-  for(vector<IpPowerEntry>::iterator ip = IpData.begin(); ip != PM::IpData.end(); ip++){
-    os << "!IP!" << endl; 
-    os << ip->name << endl;
+  system("mkdir -p logfiles");
+
+  fstream log;
+  log.open( ("logfiles/"+file).c_str() , ios::out );
+  
+  for( vector<IpPowerEntry>::iterator ip=PM::IpData.begin(); ip!=PM::IpData.end(); ip++){
+    log << "!IP!" << endl; 
+    log << ip->sc_name << endl;
+    log << ip-> name << endl;
+    log << ip->level << endl;
     for(vector<IpPowerData>::iterator ipentry = ip->entry.begin(); ipentry != ip->entry.end(); ipentry++){
-      os << ipentry->action << "\t" << ipentry->timestamp << endl;
+      log << ipentry->action << "\t" << ipentry->start << "\t" << ipentry->timestamp << endl;
     }
-    os << "!ENDIP!" << endl;
-    os << endl;
+    log << "!ENDIP!" << endl;
+    log << endl;
   }
 
-  os.close();
+  log.close();
 } // end logprint
+//------------------------------------------------
+
+
+// read raw data from file
+//------------------------------------------------
+void PM::read_raw_data(string infile){
+  
+  // declaration
+  //..............................................
+  string temp;
+  IpPowerData pd;
+  IpPowerEntry pe;
+
+  fstream is;
+  //..............................................
+
+  // clear existing IpData
+  PM::IpData.clear();
+
+  v::info << "Power Monitor" << "reading raw data from file : " << infile << ".dat" << endl;
+
+  // open input stream
+  is.open( ("logfiles/"+infile+".dat").c_str() , ios::in );
+
+  // read data from file
+  //..............................................
+  while( !is.eof() ){
+    is >> temp;
+
+    // new IP datablock
+    if( temp=="!IP!" ){
+      
+      // IP name
+      is >> temp;
+      pe.sc_name = temp;
+      is >> temp;
+      pe.name = temp;
+      is >> temp;
+      pe.level = atoi( temp.c_str() );
+      is >> temp;
+
+      // IP power data
+      while( temp!="!ENDIP!" ){
+      
+	pd.action=temp;
+	is >> temp;
+	pd.start = atoi( temp.c_str() );
+	is >> temp;
+	pd.timestamp = atoi( temp.c_str() );
+	pd.power = 0;
+
+	pe.entry.push_back(pd);
+	is >> temp;
+      }
+      
+    }
+
+    // IP finished
+    if(temp=="!ENDIP!"){
+      PM::IpData.push_back(pe);
+      pe.entry.clear();
+    }
+
+  }
+  // end read data
+  //..............................................
+
+  is.close();
+} // end read raw data
 //------------------------------------------------
 
 
@@ -511,7 +693,7 @@ void PM::analyzedlogprint(string infile, string outfile){
     plot << "set ylabel \"power \"" << endl;
     // arrows
     plot << "# linestyle and color can be changed here" << endl;
-    plot << "set style arrow 1 heads size screen 0.008,90 ls 1" << endl;
+    plot << "set style arrow 1 heads size screen 0.008,90 #ls 1" << endl; // linestyle not available on server
     plot << endl;
     plot << "# data" << endl;
     plot << endl;
@@ -634,6 +816,33 @@ void PM::analyzedlogprint(string infile, string outfile){
     //............................................
   }
   }
+
+  // create plotscript
+  //..............................................
+  plot.open( "plotfiles/plot" , ios::out );
+  
+  plot << "#!/bin/bash" << endl;
+  plot << "S=$1" << endl;
+  plot << "S1=${S%.gnu}" << endl;
+  plot << "DIR=${S1%/*}" << endl;
+  plot <<" DAT=${S1#*/}" << endl;
+  plot << "cd $DIR" << endl;
+  plot << "if [ -f $DAT.gnu ]" << endl;
+  plot << "then" << endl;
+  plot << "gnuplot ${DAT}.gnu" << endl;
+  plot << "ps2pdf ${DAT}_graph.ps" << endl; 
+  plot << "rm ${DAT}_graph.ps" << endl;
+  plot << "cd ../../" << endl;
+  plot << "mkdir -p graphs/${DIR}" << endl;
+  plot << "mv plotfiles/${DIR}/${DAT}_graph.pdf graphs/${DIR}/${DAT}.pdf" << endl;
+  plot << "else" << endl;
+  plot << "echo \"File ${DAT}.gnu does not exist!\" "<< endl;
+  plot << "fi" << endl;
+  plot << "exit 0" << endl;
+
+  plot.close();
+  system("chmod u+x plotfiles/plot");
+  //..............................................
 
 } // end analyzedlogprint
 //------------------------------------------------

@@ -1,9 +1,48 @@
-/*##############################################*/
-/*# FILE : power_monitor.h                      */
-/*#                                             */
-/*# description :                               */
-/*# header file for PowerMonitor class   */
-/*##############################################*/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      power_monitor.h
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Header file for power monitor class
+//             
+//             
+//             
+//
+// Modified on $Date: 2011-06-10 12:14:49 +0200 (Fri, 10 Jun 2011) $
+//          at $Revision: 458 $
+//          by $Author: HWSWSIM $
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Etienne Kleine
+// Reviewed:
+//*********************************************************************
+
 
 #ifndef POWER_MONITOR_H
 #define POWER_MONITOR_H
@@ -118,7 +157,9 @@ class PM {
     static vector<PowerEntry> MainData;
     static vector<IpPowerEntry> IpData;
     static vector< vector<analyzedEntry> > AnalyzedData;
-    static int maxLevel;
+    static unsigned int maxLevel;
+    static vector<string> missingIp;
+    static vector<string> missingAction;
     //--------------------------------------------
 
     // methods
@@ -147,10 +188,11 @@ class PM {
   // methods
   //----------------------------------------------
   static void registerIP(sc_module* ip, string name);
-  static void send(sc_module* ip, IpPowerData data);
+  static void send(sc_module* ip, string action, bool start, unsigned long int timestamp);
   static void analyze(string infile, string outfile);
 
-  static void logprint(string file);
+  static void raw_logprint(string file);
+  static void read_raw_data(string infile);
   //----------------------------------------------
 
 };
