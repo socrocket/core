@@ -50,12 +50,13 @@
 
 #include <vector>
 #include "math.h"
-
+#include "verbose.h"
 #include "defines.h"
 #include "cache_if.h"
 #include "mmu_cache_if.h"
 #include "tlb_adaptor.h"
 #include "mem_if.h"
+#include "power_monitor.h"
 
 // implementation of cache memory and controller
 /// @brief virtual cache model, contain common functionality of instruction and data cache
@@ -138,6 +139,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         /// @param lram                              Local RAM configured
         /// @param lramstart                         The 8 MSBs of the local ram start address (16MB segment)
         /// @param lramsize                          Size of local ram (size in kbyte = 2^lramsize)
+	/// @param pow_mon                           Enables power monitoring
         vectorcache(sc_core::sc_module_name name, mmu_cache_if * _mmu_cache,
                     mem_if * _tlb_adaptor, unsigned int mmu_en,
                     unsigned int burst_en,
@@ -145,7 +147,8 @@ class vectorcache : public sc_core::sc_module, public cache_if {
                     unsigned int setsize, unsigned int setlock,
                     unsigned int linesize, unsigned int repl,
                     unsigned int lram, unsigned int lramstart,
-                    unsigned int lramsize);
+                    unsigned int lramsize,
+		    bool pow_mon);
 
         virtual ~vectorcache();
 
@@ -232,6 +235,9 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         unsigned int m_lramstart;
         /// size of localram
         unsigned int m_lramsize;
+
+	/// enable power monitoring
+	bool m_pow_mon;
 
         // delay parameters
         // ----------------

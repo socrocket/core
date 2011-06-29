@@ -1,0 +1,28 @@
+!IP!
+mmu_cache
+idle			5
+!ENDIP!
+
+!IP!
+vectorcache
+set_read0		10
+set_read1		10
+set_read2		10
+set_read3		10
+set_write0		20
+set_write1		20
+set_write2		20
+set_write3		20
+!ENDIP!
+
+!IP!
+localram
+read			8
+write			16
+!ENDIP!
+
+!IP!
+mmu
+tlb_read		5
+tlb_write		5
+!ENDIP!

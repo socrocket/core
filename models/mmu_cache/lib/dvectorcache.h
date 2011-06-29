@@ -48,15 +48,8 @@
 
 #include "tlm.h"
 
-//#include <vector>
-//#include <iostream>
-//#include "math.h"
-
 #include "defines.h"
-//#include "mmu_cache.h"
 #include "vectorcache.h"
-//#include "mmu.h"
-//#include "mem_if.h"
 
 // implementation of cache memory and controller
 // ---------------------------------------------
@@ -90,13 +83,13 @@ class dvectorcache : public vectorcache {
                      unsigned int sets, unsigned int setsize,
                      unsigned int setlock, unsigned int linesize,
                      unsigned int repl, unsigned int lram,
-                     unsigned int lramstart, unsigned int lramsize) :
+                     unsigned int lramstart, unsigned int lramsize, bool pow_mon) :
             vectorcache(name, _mmu_cache,
                     _tlb_adaptor,
                     mmu_en,
                     0, // burst fetch forbidden
 		    sets, setsize, setlock,
-                    linesize, repl, lram, lramstart, lramsize) {
+                    linesize, repl, lram, lramstart, lramsize, pow_mon) {
         }
 
 };

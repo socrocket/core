@@ -65,6 +65,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
                      unsigned int tlb_type, unsigned int tlb_rep,
                      unsigned int mmupgsz, sc_core::sc_module_name name,
                      unsigned int id,
+		     bool pow_mon,
 		     amba::amba_layer_ids abstractionLevel) :
 
     sc_module(name),
@@ -93,6 +94,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     m_cached(cached),
     m_mmu_en(mmu_en),
     m_master_id(id), 
+    m_pow_mon(pow_mon),
     m_abstractionLevel(abstractionLevel), 
     m_txn_count(0), 
     m_data_count(0),
@@ -124,7 +126,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
             (mmu_cache_if *)this, (mmu_en)? (mem_if *)m_mmu->get_itlb_if()
                                            : (mem_if *)this, mmu_en,
             isets, isetsize, isetlock, ilinesize, irepl, ilram, ilramstart,
-            ilramsize) : (cache_if*)new nocache("no_icache",
+            ilramsize, m_pow_mon) : (cache_if*)new nocache("no_icache",
             (mmu_en)? (mem_if *)m_mmu->get_itlb_if() : (mem_if *)this);
 
     // create dcache
@@ -132,7 +134,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
             (mmu_cache_if *)this, (mmu_en)? (mem_if *)m_mmu->get_dtlb_if()
                                            : (mem_if *)this, mmu_en,
             dsets, dsetsize, dsetlock, dlinesize, drepl, dlram, dlramstart, 
-	    dlramsize) : (cache_if*)new nocache("no_dcache", 
+	    dlramsize, m_pow_mon) : (cache_if*)new nocache("no_dcache", 
 	    (mmu_en)? (mem_if *)m_mmu->get_dtlb_if() : (mem_if *)this);
 
     // create instruction scratchpad
@@ -176,6 +178,9 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
       assert(0);
 
     }
+
+    // register power monitor
+    PM::registerIP(this,"mmu_cache");
 
     // initialize cache control registers
     CACHE_CONTROL_REG = 0;

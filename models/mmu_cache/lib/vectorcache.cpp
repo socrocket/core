@@ -46,8 +46,6 @@
 //*********************************************************************
 
 #include "vectorcache.h"
-#include "verbose.h"
-#include "math.h"
 
 // constructor
 // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
@@ -57,9 +55,30 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
                          unsigned int sets, unsigned int setsize,
                          unsigned int setlock, unsigned int linesize,
                          unsigned int repl, unsigned int lram,
-                         unsigned int lramstart, unsigned int lramsize) :
-    sc_module(name), m_mmu_cache(_mmu_cache), m_tlb_adaptor(_tlb_adaptor),
-    m_burst_en(burst_en), m_pseudo_rand(0), m_sets(sets-1), m_setsize((unsigned int)log2((double)setsize)), m_setlock(setlock), m_linesize((unsigned int)log2((double)linesize)), m_wordsperline(linesize), m_bytesperline(m_wordsperline << 2), m_offset_bits(m_linesize + 2), m_number_of_vectors(setsize*256/linesize), m_idx_bits(m_setsize + 8 - m_linesize), m_tagwidth(32 - m_idx_bits - m_offset_bits), m_repl(repl+1), m_mmu_en(mmu_en), m_lram(lram), m_lramstart(lramstart), m_lramsize((unsigned int)log2((double)lramsize)), clockcycle(10, sc_core::SC_NS)
+                         unsigned int lramstart, unsigned int lramsize,
+			 bool pow_mon) :
+    sc_module(name), 
+    m_mmu_cache(_mmu_cache), 
+    m_tlb_adaptor(_tlb_adaptor),
+    m_burst_en(burst_en), 
+    m_pseudo_rand(0), 
+    m_sets(sets-1), 
+    m_setsize((unsigned int)log2((double)setsize)), 
+    m_setlock(setlock), 
+    m_linesize((unsigned int)log2((double)linesize)), 
+    m_wordsperline(linesize), 
+    m_bytesperline(m_wordsperline << 2), 
+    m_offset_bits(m_linesize + 2), 
+    m_number_of_vectors(setsize*256/linesize), 
+    m_idx_bits(m_setsize + 8 - m_linesize), 
+    m_tagwidth(32 - m_idx_bits - m_offset_bits), 
+    m_repl(repl+1), 
+    m_mmu_en(mmu_en), 
+    m_lram(lram), 
+    m_lramstart(lramstart), 
+    m_lramsize((unsigned int)log2((double)lramsize)),
+    m_pow_mon(pow_mon),
+    clockcycle(10, sc_core::SC_NS)
 
 {
 
@@ -86,7 +105,7 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     v::info << this->name() << " ******************************************************************************* " << v::endl;
     v::info << this->name() << " * Created cache memory with following parameters:                               " << v::endl;
     v::info << this->name() << " * Number of cache sets " << (m_sets + 1)            << v::endl;
-    v::info << this->name() << " * Size of each cache set " << (unsigned int)pow(2, m_setsize) << " kb" << v::endl;
+    //v::info << this->name() << " * Size of each cache set " << (unsigned int)pow(2, m_setsize) << " kb" << v::endl;
     v::info << this->name() << " * Bytes per line " << m_bytesperline << " (offset bits: " << m_offset_bits << ")" << v::endl;
     v::info << this->name() << " * Number of cache lines per set " << m_number_of_vectors << " (index bits: " << m_idx_bits << ")" << v::endl;
     v::info << this->name() << " * Width of cache tag in bits " << m_tagwidth << v::endl;
@@ -145,6 +164,9 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     assert((m_repl>=0)&&(m_repl<=3));
     // enter replacement strategy
     CACHE_CONFIG_REG |= ((m_repl & 0x3) << 28);
+
+    // register for power monitoring
+    PM::registerIP(this,"vectorcache");
 }
 
 // destructor
@@ -164,6 +186,8 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 
     unsigned int burst_len;
     unsigned int replacer_limit;
+
+    char buf[256];
 
     // todo: handle cached/uncached access
     unsigned int asi = 0;
@@ -191,8 +215,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 
             m_current_cacheline[i] = lookup(i, idx);
 
-            //v::debug << this->name() <<  "Set :" << i << " atag: " << (*m_current_cacheline[i]).tag.atag << " valid: " << (*m_current_cacheline[i]).tag.valid << " entry: " << (*m_current_cacheline[i]).entry[offset>>2].i << v::endl;
-
             // asi == 1 forces cache miss
             if (asi != 1) {
 
@@ -205,7 +227,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
                     if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset)) != 0) {
 
                         v::debug << this->name() << "Cache Hit in Set " << i << v::endl;
-
+			
                         // update debug information
                         CACHEREADHIT_SET(*debug,i);
 
@@ -240,6 +262,15 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 
             }
         }
+
+	for (int i=0;i<=m_sets;i++) {
+
+	    // Power Monitor: parallel read of all cache sets (1 cycle)
+	    sprintf(buf,"set_read%d",i);
+	    PM::send(this,buf,1,sc_time_stamp().value());
+	    PM::send(this,buf,0,sc_time_stamp().value()+clockcycle.value());
+
+	}
 
         // in case no matching tag was found or data is not valid:
         // -------------------------------------------------------
@@ -303,6 +334,12 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
                 memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2],
                         ahb_data, burst_len);
 
+		sprintf(buf,"set_write%d",set_select);
+
+		// Power Monitor: Write new data to set 'set_select'
+		PM::send(this,buf,1,sc_time_stamp().value());
+		PM::send(this,buf,0,sc_time_stamp().value()+clockcycle.value());		
+
                 // has the tag changed?
                 if ((*m_current_cacheline[set_select]).tag.atag != tag) {
 
@@ -351,6 +388,11 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
                     // fill in the new data (always the complete word)
                     memcpy(&(*m_current_cacheline[set_select]).entry[offset
                             >> 2], ahb_data, burst_len);
+
+		    // Power Monitor: Write new data to set 'set_select'
+		    sprintf(buf,"set_write%d",set_select);
+		    PM::send(this,buf,1,sc_time_stamp().value());
+		    PM::send(this,buf,0,sc_time_stamp().value()+clockcycle.value());	
 
                     // switch on the valid bits for the new entries
                     for (unsigned int i = offset; i <= replacer_limit; i += 4) {

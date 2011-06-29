@@ -83,12 +83,13 @@ class ivectorcache : public vectorcache {
                      unsigned int sets, unsigned int setsize,
                      unsigned int setlock, unsigned int linesize,
                      unsigned int repl, unsigned int lram,
-                     unsigned int lramstart, unsigned int lramsize) :
+                     unsigned int lramstart, unsigned int lramsize,
+		     bool pow_mon) :
             vectorcache(name, _mmu_cache, _tlb_adaptor,
                     mmu_en,
                     1, // burst fetch allowed
 		    sets, setsize, setlock, linesize,
-                    repl, lram, lramstart, lramsize) {
+                    repl, lram, lramstart, lramsize, pow_mon) {
         }
 
 };

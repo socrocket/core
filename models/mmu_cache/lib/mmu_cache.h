@@ -60,6 +60,7 @@
 #include "socrocket.h"
 #include "signalkit.h"
 #include "ahbdevice.h"
+#include "power_monitor.h"
 
 #include "verbose.h"
 #include "cache_if.h"
@@ -144,6 +145,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
                   unsigned int dtlb_num, unsigned int tlb_type,
                   unsigned int tlb_rep, unsigned int mmupgsz,
                   sc_core::sc_module_name name, unsigned int id,
+		  bool pow_mon,
 		  amba::amba_layer_ids abstractionLevel);
 
         // member functions
@@ -247,8 +249,13 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 	// mmu enable
         unsigned int m_mmu_en;
 
-        // amba related
+        // amba master id
         unsigned int m_master_id;
+
+	// power monitoring enabled
+	bool m_pow_mon;
+
+	// amba abstraction layer
 	amba::amba_layer_ids m_abstractionLevel;
 
         unsigned int m_txn_count;
