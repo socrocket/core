@@ -73,13 +73,13 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
   void random_write(unsigned int length);
 
   /// Generates random read operations within haddr/hmask region
-  bool random_read(unsigned int length);
+  void random_read(unsigned int length);
 
   /// Write operation / write data will be cached in local storage
   void check_write(unsigned int addr, unsigned char * data, unsigned int length);
 
   /// Read operation / results will be checked against data in local storage
-  bool check_read(unsigned int addr, unsigned char * data, unsigned int length);
+  void check_read(unsigned int addr, unsigned char * data, unsigned int length);
 
   /// Callback for snooping
   void snoopingCallBack(const t_snoop & snoop, const sc_core::sc_time & delay);
@@ -88,13 +88,13 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
   void ahbwrite(unsigned int addr, unsigned char *data, unsigned int length, unsigned int burst_size);
 
   /// Read data from ahb
-  void ahbread(unsigned int addr, unsigned char *data, unsigned int length, unsigned int burst_size);
+  void ahbread(unsigned int addr, unsigned char * data, unsigned int length, unsigned int burst_size);
 
   /// Thread for response processing
   void ResponseThread();
 
-  /// Transaction processor
-  void processTXN(tlm::tlm_generic_payload* trans);
+  /// Check transaction
+  void checkTXN(tlm::tlm_generic_payload* trans);
 
   /// TLM non-blocking transport backward
   tlm::tlm_sync_enum nb_transport_bw(tlm::tlm_generic_payload& gp, tlm::tlm_phase& phase, sc_core::sc_time& delay);
@@ -155,10 +155,10 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
   /// PEQ for response synchronization
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> mResponsePEQ;
 
-  /// Event triggered by response thread - notifies processTXN about completion of END_RESP
-  sc_event mEndResponseEvent;
-  /// Event triggered by transport_bw - notifies processTXN about completion of END_REQ
+  /// Events for phase notifications
   sc_event mEndRequestEvent;
+  sc_event mBeginResponseEvent;
+  sc_event mEndDataEvent;
 
 };  
 

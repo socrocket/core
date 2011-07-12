@@ -382,7 +382,7 @@ void AHBCtrl::ArbitrationThread() {
     // Wait for the next scheduled transaction
     wait(mArbiterPEQ.get_event());
 
-    v::debug << name() << "ArbiterThread received new transaction" << v::endl;
+    v::debug << name() << "ArbiterThread received new transaction." << v::endl;
 
     // Increment round robin pointer
     robin=(robin++)%(num_of_master_bindings-1);
