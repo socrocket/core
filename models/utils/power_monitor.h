@@ -70,7 +70,7 @@ using namespace std;
 //------------------------------------------------
 struct PowerData{
   string action;
-  int power;
+  unsigned int power;
 };
 
 struct PowerEntry{
@@ -86,14 +86,14 @@ struct IpPowerData{
   string action;
   bool start;
   unsigned long int timestamp;
-  int power;
+  unsigned int power;
 };
 
 struct IpPowerEntry{
   sc_module* ip;
   string sc_name;
   string name;
-  int level;
+  unsigned int level;
   vector<IpPowerData> entry;
 };
 //------------------------------------------------
@@ -101,48 +101,57 @@ struct IpPowerEntry{
 
 // structs for analysis
 //------------------------------------------------
+
+//
 struct tempData{
   bool start;
   unsigned long int timestamp;
 };
 
+//
+struct tempSum{
+  unsigned long int timestamp;
+  bool start;
+  unsigned long int power;
+};
+
+// 
 struct tempActions{
   string action;
-  int power;
+  unsigned int power;
   vector<tempData> entry;
 };
 
+// entry for integrated plot
 struct powerSum{
   unsigned long int timestamp;
-  unsigned int power;
-  unsigned int oldpower;
+  unsigned long int power;
 };
 
-struct tempIp{
-  unsigned int tpmax;
-  vector<tempActions> act;
-  vector<powerSum> sums;
-};
-
+// evaluated ip entry
 struct analyzedData{
-  string action;
-  unsigned long int start;
-  unsigned long int end;
-  unsigned long int dur;
-  unsigned int power;
-  unsigned long int totalpower;
+  string action;                  // name of performed action
+  unsigned long int start;        // timestamp of action start
+  unsigned long int end;          // timestamp of action end
+  unsigned long int dur;          // duration of action
+  unsigned int power;             // basic power consumption
+  unsigned long int totalpower;   // total power consumed by action
 };
 
+// evaluatd ip
 struct analyzedEntry{
-  string sc_name;
-  unsigned int pmax;
-  unsigned int subpmax;
-  unsigned int tpmax;
-  unsigned long int tsmax;
-  long int ptotal;
-  vector<analyzedData> entry;
-  vector<powerSum> psum;
-  vector<string> subpower;
+  // evaluation
+  string sc_name;                 // systemc hierarchy name
+  unsigned int level;             // level in instance tree
+  unsigned long int ptotal;       // total power consumed
+  vector<analyzedData> entry;     // evaluated data for actions
+  vector<powerSum> psum;          // integrated total power consumed
+  vector<string> subpower;        // names of subips
+  // for scaling plots
+  unsigned int pmax;              // highest ip power value
+  unsigned int subpmax;           // highest subip power value
+  unsigned int tpmax;             // highest power sum power value
+  unsigned long int tsmax;        // highest ip timestamp
 };
 //------------------------------------------------
 
@@ -164,11 +173,26 @@ class PM {
 
     // methods
     //--------------------------------------------
-    static void readdata(string &infile);
-    static void addpower(string &infile);
-    static tempIp extractIp(IpPowerEntry ip);
+    
+    // I/O
+    static void readdata(string const &path, string const &infile);
+    static void addpower(string const &path, string const &infile);
+    static void analyzedlogprint(string const &infile, string const &outfile);
+
+    // analyzing
     static bool sortIpEntry(IpPowerData d1, IpPowerData d2);
-    static void analyzedlogprint(string infile, string outfile);
+    static bool sortTempSum(tempSum s1, tempSum s2);
+    static void printActionVector ( string &ip, vector<tempActions>::iterator action);
+    static void checkActionVector ( vector<tempActions>::iterator const action);
+
+    static void mergeSums( vector<analyzedEntry>::iterator const parent, vector<analyzedEntry>::const_iterator const ip );
+    static void propagate();
+
+    static analyzedEntry analyzeIP (IpPowerEntry ip);
+
+    // for debugging, remove later
+    static void print ( vector<powerSum> &v );
+
     //--------------------------------------------
 
 
@@ -184,15 +208,20 @@ class PM {
   ~PM(void);
   //----------------------------------------------
 
+  // variables
+  //---------------------------------------------
+  static unsigned int debug;
+  //---------------------------------------------
+
 
   // methods
   //----------------------------------------------
   static void registerIP(sc_module* ip, string name);
   static void send(sc_module* ip, string action, bool start, unsigned long int timestamp);
-  static void analyze(string infile, string outfile);
+  static void analyze(string const path, string const infile, string const outfile);
 
-  static void raw_logprint(string file);
-  static void read_raw_data(string infile);
+  static void raw_logprint(string const file);
+  static void read_raw_data(string const infile);
   //----------------------------------------------
 
 };

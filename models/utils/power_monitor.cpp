@@ -65,7 +65,9 @@ vector<PowerEntry> PM::MainData;
 vector<IpPowerEntry> PM::IpData;
 vector< vector<analyzedEntry> > PM::AnalyzedData;
 
+unsigned int PM::debug = 1;
 unsigned int PM::maxLevel;
+
 vector<string> PM::missingIp;
 vector<string> PM::missingAction;
 //------------------------------------------------
@@ -77,6 +79,10 @@ vector<string> PM::missingAction;
 //------------------------------------------------
 void PM::registerIP(sc_module* ip, string name){
   
+  //if ( ip->m_pow_mon ){
+  //  v::warn << "Power Monitor" << "m_pow_mon found" << endl;
+  //}
+
   string sc_name = ip-> name();
   sc_name = "main."+sc_name;
 
@@ -86,18 +92,18 @@ void PM::registerIP(sc_module* ip, string name){
   temp.sc_name=sc_name;
   temp.name=name;
 
-  int level = 0;
+  unsigned int level = 0;
   
   // split name
   size_t pos = sc_name.find_last_of(".");
-  while( pos != -1 ){
+  while( static_cast<int>(pos) != -1 ){
     level++;
     sc_name = sc_name.substr(0,pos);
     pos = sc_name.find_last_of(".");
   }
 
 
-  temp.level = level;                     // instance level
+  temp.level = level;                                  // instance level
   if ( level > PM::maxLevel ){ PM::maxLevel = level; } // global maximum level
 
   // add new IP to datavector
@@ -137,7 +143,7 @@ void PM::send(sc_module* ip, string action, bool start, unsigned long int timest
 
 // read main data from file
 //------------------------------------------------
-void PM::readdata(string &infile){
+void PM::readdata(string const &path, string const &infile){
   
   // declaration
   //..............................................
@@ -151,10 +157,10 @@ void PM::readdata(string &infile){
   // clear existing MainData
   PM::MainData.clear();
 
-  v::info << "Power Monitor" << "reading power data from file : " << infile << ".dat" << endl;
+  v::info << "Power Monitor" << "reading power data from file : " << infile  << endl;
 
   // open input stream
-  is.open( (infile+".dat").c_str() , ios::in );
+  is.open( (path+infile).c_str() , ios::in );
 
   // read data from file
   //..............................................
@@ -198,10 +204,10 @@ void PM::readdata(string &infile){
 
 // add power information to received data
 //------------------------------------------------
-void PM::addpower(string &infile){
+void PM::addpower(string const &path, string const &infile){
 
   // read MainData
-  PM::readdata(infile);
+  PM::readdata(path, infile);
 
   v::info << "Power Monitor" << "adding power data" << endl;
 
@@ -272,216 +278,202 @@ void PM::addpower(string &infile){
 // comparing function to sort IpPowerEntries
 //------------------------------------------------
 bool PM::sortIpEntry(IpPowerData d1, IpPowerData d2){
-  return(d1.timestamp < d2.timestamp);
+  // sort by timestamp if equal 'end' is lower
+  if (d1.timestamp != d2.timestamp){
+    return(d1.timestamp < d2.timestamp);
+  }else{
+    return(!d1.start);
+  }
 }
 //------------------------------------------------
 
 
-// extract gathered IP data
+bool PM::sortTempSum(tempSum s1, tempSum s2){
+  // sort by timestamp if equal 'end' is lower
+  if (s1.timestamp != s2.timestamp){
+    return(s1.timestamp < s2.timestamp);
+  }else{
+    return(s2.start);
+  }
+}
+
+
+// print action vector
 //------------------------------------------------
-tempIp PM::extractIp(IpPowerEntry ip){
+void PM::printActionVector ( string &ip , vector<tempActions>::iterator action){
 
-  // temporary structs
-  tempIp tip;
-  tempData td;
-  powerSum temp;
+	v::warn << "Power Monitor" << "***** action vector *****" << endl;
+	v::warn << "Power Monitor" << "IP : " << ip << ", action : " << action->action << endl; 
+	v::warn << "Power Monitor" << "vector length : " << action->entry.size() << endl;
+	for( vector<tempData>::iterator actentry = action->entry.begin(); actentry != action->entry.end(); actentry++){ // entries
+	  cout << "start : " << actentry->start << " , timestamp : " << actentry->timestamp << endl;
+	}
+	v::warn << "Power Monitor" << "*************************" << endl;
+	cout << endl;
 
-  // sort entries
-  sort( ip.entry.begin(), ip.entry.end(), PM::sortIpEntry );
+}
+//------------------------------------------------
+
+
+// check if action vector entries are correct
+//------------------------------------------------
+void PM::checkActionVector (vector<tempActions>::iterator const action) {
+
+  unsigned int i = action->entry.size()-1;   // last element
   
-  tip.act.clear();
-
-  tip.tpmax=0;
-  temp.power=0;
-  temp.oldpower=0;
-
-  for(vector<IpPowerData>::const_iterator ipentry = ip.entry.begin(); ipentry != ip.entry.end(); ipentry++){
-
-    // ip power sum
-    //............................................
-    temp.timestamp = ipentry->timestamp;
-    temp.oldpower = temp.power;
-
-    if( ipentry->start == 1 ){
-      temp.power = temp.power + ipentry->power;                  // action starts -> add power
-      if( temp.power > tip.tpmax ){ tip.tpmax = temp.power; }    // log max total power
-    }else{
-      temp.power = temp.power - ipentry->power;                  // action ends -> subtract power
-    }
-    tip.sums.push_back(temp);
-    //............................................
-
-
-    // search correct position
-    //............................................
-    vector<tempActions>::iterator tipaction = tip.act.begin();
-    while( ( tipaction != tip.act.end()) && (ipentry->action != tipaction->action) ){ tipaction++; }
-    // if not yet exists create
-    if( tipaction == tip.act.end() ){
-
-      tempActions ta;
-      ta.action=ipentry->action;
-      ta.power=ipentry->power;
-
-      tip.act.push_back(ta);
-      tipaction=tip.act.end()-1;
-    }
-    //............................................
-
-    // copy data
-    //............................................
-    td.start = ipentry->start;
-    td.timestamp = ipentry->timestamp;
-
-    tipaction->entry.push_back(td);
-    //............................................
+  // remove 'start' entries at the end of vector
+  while ( (action->entry.size() > 0) && (action->entry[i].start == 1) ){
+    v::warn << "Power Monitor" << "start entry without end removed at : " << action->entry[i].timestamp << endl;
+    action->entry.erase( action->entry.begin()+i );
+    i--;
+  }
+  
+  // check rest
+  while ( (action->entry.size() > 1) && (i>0) ) {
     
+    if ( action->entry[i].start != action->entry[i-1].start) {
+      i--;
+    }else{
+      
+      // 2 end entries
+      if ( action->entry[i].start == 0 ) {
+	v::warn << "Power Monitor" << "end entry without start removed at : " << action->entry[i].timestamp << endl; 
+	action->entry.erase( action->entry.begin() + i-1 );
+	i--;
+      }
+      
+      // 2 start entries
+      if ( action->entry[i].start == 1 ){
+	v::warn << "Power Monitor" << "start entry without end removed at : " << action->entry[i].timestamp << endl;
+	action->entry.erase( action->entry.begin() + i );
+	i--;
+      }
+      
+    } // end correct check if
+  } // end while
+  
+  // remove 'end' entries at start of vector
+  if ( action->entry[0].start == 0 ){
+    v::warn << "Power Monitor" << "end entry without start removed at : " << action->entry[0].timestamp << endl;
+    action->entry.erase( action->entry.begin() );
+  }
+  
+  // check if valid entries remain
+  if ( action->entry.size() <= 1 ) {
+    action->entry.clear();
+    v::warn << "Power Monitor" << "no valid entries remain for : " << action->action << endl;
   }
 
-  // correct parallel events at same timestamp
-  // for powersum plot
-  //............................................
-  unsigned int i=0;
-  if( tip.sums.size()>0 ){
-    while( i < tip.sums.size()-1 ){
-      if( tip.sums[i].timestamp == tip.sums[i+1].timestamp ){
-	tip.sums[i].power = tip.sums[i].power + tip.sums[i+1].power;
-	if( tip.sums[i].power > tip.tpmax){ tip.tpmax = tip.sums[i].power; }
-	if( i < tip.sums.size()-2 ){ tip.sums[i+2].oldpower = tip.sums[i].power; }
-	tip.sums.erase( tip.sums.begin()+i+1 );
+}
+//------------------------------------------------
+
+
+// merge power sum vectors
+//-----------------------------------------------
+void PM::mergeSums ( vector<analyzedEntry>::iterator const parent, vector<analyzedEntry>::const_iterator const ip ){
+
+  // declaration
+  vector<powerSum> merged;
+  vector<powerSum>::const_iterator p = parent->psum.begin();
+  vector<powerSum>::const_iterator i = ip->psum.begin();
+  powerSum e;
+
+  // merge
+
+  // skip entries at the beginning of parent
+  //.........................
+  while ( (p->timestamp < i->timestamp) && ( p != parent->psum.end() ) ) {
+    e.timestamp = p->timestamp;
+    e.power = p->power;
+    merged.push_back(e);
+    p++;
+  }
+  //.........................
+  
+  // merge sums
+  //.........................
+  while ( (i != ip->psum.end()) && (p != parent->psum.end()) ) {
+
+    // insert new value
+    if ( i->timestamp != p->timestamp ) {
+      
+      e.timestamp = i->timestamp;
+      if ( p != parent->psum.begin() ) {
+	e.power = i->power + (p-1)->power;
+      }else{
+	e.power = i->power;
       }
+      if ( e.power > parent->tpmax ) { parent->tpmax = e.power; }
+      merged.push_back(e);
+      
+    // add power to current parent entry
+    }else{
+      e.timestamp = p->timestamp;
+      e.power = p->power + i->power;
+      if ( e.power > parent->tpmax ) { parent->tpmax = e.power; }
+      merged.push_back(e);
+      p++;
+    }
+
+    // internal skip
+    while ( (p->timestamp < (i+1)->timestamp) && (p != parent->psum.end() ) ) {
+      e.timestamp = p->timestamp;
+      e.power = i->power + p->power;
+      if ( e.power > parent->tpmax ) { parent->tpmax = e.power; }
+      merged.push_back(e);
+      p++;
+    }
+
+    // next ip entry
+    i++;
+   
+  } // end while
+  //.........................
+  
+  
+  // if parent ends and ip entries remain
+  //.........................
+  if ( (p == parent->psum.end()) && (i != ip->psum.end()) ){
+    while ( i != ip->psum.end() ) {
+      e.timestamp = i->timestamp;
+      e.power = i->power;
+      merged.push_back(e);
       i++;
     }
   }
-  //............................................
-
-  return(tip);
-} // extractIp
-//------------------------------------------------
-
-
-// analyze gathered data
-//------------------------------------------------
-void PM::analyze(string infile, string outfile){
-
-  // add power data from file
-  PM::addpower(infile);
-
-  // analyze registered IPs
-  //..............................................
-  tempIp tempip;
-  analyzedData te;
-  analyzedEntry ten;
-  vector<analyzedEntry> empty;
-  char str[255];
-
-  PM::AnalyzedData.resize( PM::maxLevel+1 , empty);
-  vector<analyzedEntry>::iterator analyzedIp;
-
-  // insert main
-  ten.pmax=0;
-  ten.subpmax=0;
-  ten.tpmax=0;
-  ten.tsmax=0;
-  ten.ptotal=0;
-  ten.subpower.push_back( string("own : 0") );
-  ten.sc_name="main";
-  PM::AnalyzedData[0].push_back(ten);
-  ten.subpower.clear();
+  //.........................
   
 
-  for( vector<IpPowerEntry>::iterator ip = PM::IpData.begin(); ip != PM::IpData.end(); ip++ ){  // IPs
+  // if ip ends and parent entries remain
+  //.........................
+  while ( p != parent->psum.end() ) {
+    e.timestamp = p->timestamp;
+    e.power = p->power;
+    merged.push_back(e);
+    p++;
+  }
+  //.........................
 
-    // initialize new analyzed entry
-    ten.pmax=0;
-    ten.subpmax=0;
-    ten.tpmax=0;
-    ten.tsmax=0;
-    ten.entry.clear();
-    ten.psum.clear();
+  parent->psum = merged;
 
-    // extract one IP
-    tempip=PM::extractIp(*ip);
-
-    ten.sc_name=ip->sc_name;
-    ten.psum=tempip.sums;
-    ten.tpmax=tempip.tpmax;
-    ten.ptotal=0;
-
-    // add analyzed entry
-    PM::AnalyzedData[ ip->level ].push_back(ten);
-    analyzedIp = AnalyzedData[ ip->level ].end() - 1;
-
-    // analyze data
-    for( vector<tempActions>::iterator action = tempip.act.begin(); action != tempip.act.end(); action++ ){                    // actions
-
-      // for debugging
-      //++++++++++++++++++++++++++++++++++++++++
-      //v::warn << "Power Monitor" << "*************************" << endl;
-      //v::warn << "Power Monitor" << "IP : " << analyzedIp->sc_name << ", action : " << action->action << endl; 
-      //v::warn << "Power Monitor" << "vector length : " << action->entry.size() << endl;
-      //for( vector<tempData>::iterator actentry = action->entry.begin(); actentry != action->entry.end(); actentry++){ // entries
-      //   cout << "start : " << actentry->start << " , timestamp : " << actentry->timestamp << endl;
-      //}
-      //v::warn << "Power Monitor" << "*************************" << endl;
-      //++++++++++++++++++++++++++++++++++++++++
-
-      // check if entries are correct
-      //.........................
-      // unsigned int i = 0;
-      //if ( tempip.act.entry.size() > 0 ){
-      //for ( vector <tempData>::iterator actentry = action->entry.begin(); actentry != action->entry.end()-1; actentry++){
-      //  if ( actentry->timestamp == (actentry+1)->timestamp){
-      //    v::warn << "Power Monitor" << "2 events with same timestamp" << endl;
-      //  }
-      //}
-      //}
-      //.........................
-
-      for( vector<tempData>::iterator actentry = action->entry.begin(); actentry != action->entry.end(); actentry=actentry+2){ // entries
-
-	// analyze entry
-	//........................................
-	te.action=action->action;
-	te.start=actentry->timestamp;
-	
-	if( action->entry.size()>1 && (actentry+1)->start==0 ){
-	  te.end = (actentry+1)->timestamp;
-	}else{
-	  v::error << "Power Monitor" << "error in analyzing entry : " << analyzedIp->sc_name << " > " << action->action << endl;
-	}
-
-	te.dur = te.end - te.start;
-	te.power = action->power;
-	te.totalpower = static_cast<unsigned long int>(te.power * te.dur);
-	analyzedIp->ptotal = analyzedIp->ptotal + te.totalpower;
-	//........................................
+}
+//-----------------------------------------------
 
 
-	// maxvalues for plot
-	if( te.power > analyzedIp->pmax ){ analyzedIp->pmax = te.power; }
-	if( te.end > analyzedIp->tsmax ){ analyzedIp->tsmax=te.end; }
+// propagate analyzed data in instance-tree
+//------------------------------------------------
+void PM::propagate(){
 
-	analyzedIp->entry.push_back(te);
-      }
-    }
-    analyzedIp->subpmax = analyzedIp->ptotal;
-    sprintf(str,"%5d",analyzedIp->ptotal);
-    analyzedIp->subpower.push_back( string("own : ") + str );
-  }  // end for loop IPs
-  //..............................................
-
-  // propagate values in instance-tree
-  //..............................................
   string topname;
   string ipname;
   size_t pos;
+  char str[255];
 
   vector<analyzedEntry>::iterator parent;
 
   if( PM::AnalyzedData.size() > 1 ){
     for(vector< vector<analyzedEntry> >::iterator level = PM::AnalyzedData.end()-1; level != PM::AnalyzedData.begin(); level--){
-      for(vector<analyzedEntry>::iterator ip = level->begin(); ip != level->end(); ip++){   // IPs
+      for(vector<analyzedEntry>::const_iterator ip = level->begin(); ip != level->end(); ip++){   // IPs
 
 	pos = ip->sc_name.find_last_of(".");
 	topname = ip->sc_name.substr(0,pos);
@@ -491,18 +483,251 @@ void PM::analyze(string infile, string outfile){
 	parent = (level-1)->begin();
 	while( (parent != (level-1)->end()) && (parent->sc_name != topname) ){ parent++; }
 	if( parent == (level-1)->end() && parent->sc_name != topname ){
-	  v::warn << "Power Monitor" << "parent " << topname <<  " not found" << endl;
+	  cout << "!!! parent " << topname <<  "not found !!!" << endl;
+	
+	// propagate values
 	}else{
 	  parent->ptotal = parent->ptotal + ip->ptotal;
-	  sprintf(str,"%5d",ip->ptotal);
+	  sprintf(str,"%10lu",ip->ptotal);
 	  parent->subpower.push_back( ipname + " : " + str );
 	  if( ip->ptotal > parent->subpmax ){ parent->subpmax = ip->ptotal; }
 	}
 
+	// propagate power sums
+	PM::mergeSums( parent, ip );
+	
       } // endfor IPs
     }  // endfor level
   }  // endif
-  //..............................................
+
+}
+//------------------------------------------------
+
+
+// analyze one IP
+//------------------------------------------------
+analyzedEntry PM::analyzeIP (IpPowerEntry ip) {
+
+  // declaration
+  analyzedEntry analyzedIP;
+  vector<tempActions> actions;
+  vector<tempActions>::iterator action;
+  vector<tempData>::iterator actentry;
+  tempData data;
+  powerSum sum;
+  vector<powerSum>::iterator sumit;
+  analyzedData analyzed;
+  char str[255];
+
+  tempSum ts;
+  vector<tempSum> tempSums;
+
+  // initialization
+  analyzedIP.sc_name = ip.sc_name;
+  analyzedIP.level = ip.level;
+  analyzedIP.pmax = 0;
+  analyzedIP.subpmax = 0;
+  analyzedIP.tpmax = 0;
+  analyzedIP.tsmax = 0;
+  analyzedIP.ptotal = 0;
+  analyzedIP.entry.clear();
+  analyzedIP.psum.clear();
+  analyzedIP.subpower.clear();
+
+  sum.timestamp = 0;
+  sum.power = 0;
+ 
+
+  // check if analyzing necessary
+  if ( ip.entry.size() > 0 ) {
+
+    // sort entries
+    sort( ip.entry.begin(), ip.entry.end(), PM::sortIpEntry );
+    
+    
+    // create temporary vector 'actions'
+    for(vector<IpPowerData>::const_iterator ipentry = ip.entry.begin(); ipentry != ip.entry.end(); ipentry++){
+      
+      // ip power sum
+      //............................................
+      if(PM::debug == 0){
+	sum.timestamp = ipentry->timestamp;
+	
+	if( ipentry->start == 1 ){
+	  sum.power = sum.power + ipentry->power;                                // action starts -> add power
+	  if( sum.power > analyzedIP.tpmax ){ analyzedIP.tpmax = sum.power; }    // log max total power
+	}else{
+	  sum.power = sum.power - ipentry->power;                                // action ends -> subtract power
+	}
+	
+	analyzedIP.psum.push_back(sum);
+	sumit = analyzedIP.psum.end()-1;
+	
+	// correct entries at same timestamp
+	if( (analyzedIP.psum.size() > 1 ) && (sumit->timestamp == (sumit-1)->timestamp) ){
+	  analyzedIP.psum.erase( sumit-1 );
+	}
+      }
+      //............................................
+      
+      
+      // search correct position
+      //............................................
+      action = actions.begin();
+      while( ( action != actions.end()) && (ipentry->action != action->action) ){ action++; }
+      // if not yet exists create
+      if( action == actions.end() ){
+	
+	tempActions newAction;
+	newAction.action=ipentry->action;
+	newAction.power=ipentry->power;
+	
+	actions.push_back(newAction);
+	action=actions.end()-1;
+	
+      }
+      //............................................
+
+      // copy data
+      //............................................
+      data.start = ipentry->start;
+      data.timestamp = ipentry->timestamp;
+      
+      action->entry.push_back(data);
+      //............................................
+      
+    }
+    
+    
+    // analyze data
+    //...........................................
+    for( action = actions.begin(); action != actions.end(); action++ ){
+
+      // print vector for debugging
+      if ( PM::debug >= 2){ PM::printActionVector(analyzedIP.sc_name,action); }
+      
+      // check if entries are correct
+      if ( PM::debug >= 1 ){ 
+	v::info << "Power Monitor" << "checking vector entries for " << analyzedIP.sc_name << " > " << action->action << endl;
+	PM::checkActionVector(action);
+      }
+
+      for( actentry = action->entry.begin(); actentry != action->entry.end(); actentry=actentry+2){ // entries
+	
+	// analyze entry
+	//........................................
+	analyzed.action=action->action;
+	analyzed.start=actentry->timestamp;
+	
+	if( action->entry.size()>1 && (actentry+1)->start==0 ){
+	  analyzed.end = (actentry+1)->timestamp;
+	}else{
+	  v::error << "Power Monitor" << "error in analyzing entry : " << analyzedIP.sc_name << " > " << action->action << endl;
+	}
+	
+	analyzed.dur = analyzed.end - analyzed.start;
+	analyzed.power = action->power;
+	analyzed.totalpower = static_cast<unsigned long int>(analyzed.power * analyzed.dur);
+	analyzedIP.ptotal = analyzedIP.ptotal + analyzed.totalpower;
+	//........................................
+	
+	// create temporary vector for computing power sum
+	// if correct function is enabled
+	//........................................
+	if (PM::debug >= 1){ 
+	  ts.power = analyzed.power;
+
+	  ts.timestamp = analyzed.start;
+	  ts.start = 1;
+	  tempSums.push_back(ts);
+
+	  ts.timestamp = analyzed.end;
+	  ts.start = 0;
+	  tempSums.push_back(ts);
+	}
+	//........................................
+	
+	// maxvalues for plot
+	if( analyzed.power > analyzedIP.pmax ){ analyzedIP.pmax = analyzed.power; }
+	if( analyzed.end > analyzedIP.tsmax ){ analyzedIP.tsmax=analyzed.end; }
+	
+	analyzedIP.entry.push_back(analyzed);
+      } // end entries
+
+
+    } // end actions 
+    //..............................................
+
+    
+    // compute power sum if correct function is enabled
+    //..............................................
+    sort(tempSums.begin(), tempSums.end(), PM::sortTempSum);
+
+    for(vector<tempSum>::iterator sit = tempSums.begin(); sit != tempSums.end(); sit++){
+      sum.timestamp = sit->timestamp;
+	
+	if( sit->start == 1 ){
+	  sum.power = sum.power + sit->power;                                    // action starts -> add power
+	  if( sum.power > analyzedIP.tpmax ){ analyzedIP.tpmax = sum.power; }    // log max total power
+	}else{
+	  sum.power = sum.power - sit->power;                                // action ends -> subtract power
+	}
+	
+	analyzedIP.psum.push_back(sum);
+	sumit = analyzedIP.psum.end()-1;
+	
+	// correct entries at same timestamp
+	if( (analyzedIP.psum.size() > 1 ) && (sumit->timestamp == (sumit-1)->timestamp) ){
+	  analyzedIP.psum.erase( sumit-1 );
+	}
+    }
+    //..............................................
+    
+  } // end if entry size > 0
+  
+  analyzedIP.subpmax = analyzedIP.ptotal;
+  sprintf(str,"%10lu",analyzedIP.ptotal);
+  analyzedIP.subpower.push_back( string("own : ") + str );
+
+  return(analyzedIP);
+
+}
+//------------------------------------------------
+
+
+// analyze gathered data
+//------------------------------------------------
+void PM::analyze(string const path, string const infile, string const outfile){
+
+  // add power data from file
+  PM::addpower(path , infile);
+
+  // declaration
+  analyzedEntry analyzedIP;
+  vector<analyzedEntry> empty;
+
+  // expand AnalyzedData vector by required levels
+  PM::AnalyzedData.resize( PM::maxLevel+1 , empty);
+
+  // insert main
+  analyzedIP.pmax=0;
+  analyzedIP.subpmax=0;
+  analyzedIP.tpmax=0;
+  analyzedIP.tsmax=0;
+  analyzedIP.ptotal=0;
+  analyzedIP.subpower.push_back( string("own : 0") );
+  analyzedIP.sc_name="main";
+  PM::AnalyzedData[0].push_back( analyzedIP );
+  
+  // analyze IPs
+  v::info << "Power Monitor" << "analyzing data, debuglevel is " << PM::debug << endl;
+  for( vector<IpPowerEntry>::iterator ip = PM::IpData.begin(); ip != PM::IpData.end(); ip++ ){
+    analyzedIP = PM::analyzeIP(*ip);
+    PM::AnalyzedData[ ip->level ].push_back( analyzedIP );
+  }
+
+  // propagate values in instance-tree
+  PM::propagate();
 
   // print analyzed data to file
   PM::analyzedlogprint(infile, outfile);
@@ -514,15 +739,18 @@ void PM::analyze(string infile, string outfile){
 // logprint
 // prints received power data to logfile
 //------------------------------------------------
-void PM::raw_logprint(string file){
+void PM::raw_logprint(string const file){
 
   v::info << "Power Monitor" << "printing raw data to logfile" << endl;
   
+  // create directory
   system("mkdir -p logfiles");
 
+  // outputstream
   fstream log;
   log.open( ("logfiles/"+file).c_str() , ios::out );
   
+  // print data
   for( vector<IpPowerEntry>::iterator ip=PM::IpData.begin(); ip!=PM::IpData.end(); ip++){
     log << "!IP!" << endl; 
     log << ip->sc_name << endl;
@@ -542,7 +770,7 @@ void PM::raw_logprint(string file){
 
 // read raw data from file
 //------------------------------------------------
-void PM::read_raw_data(string infile){
+void PM::read_raw_data(string const infile){
   
   // declaration
   //..............................................
@@ -556,10 +784,10 @@ void PM::read_raw_data(string infile){
   // clear existing IpData
   PM::IpData.clear();
 
-  v::info << "Power Monitor" << "reading raw data from file : " << infile << ".dat" << endl;
+  v::info << "Power Monitor" << "reading raw data from file : " << infile << endl;
 
   // open input stream
-  is.open( ("logfiles/"+infile+".dat").c_str() , ios::in );
+  is.open( ("logfiles/"+infile).c_str() , ios::in );
 
   // read data from file
   //..............................................
@@ -609,9 +837,9 @@ void PM::read_raw_data(string infile){
 //------------------------------------------------
 
 
-// print analyzed data to log
+// print analyzed data to log and plot files
 //------------------------------------------------
-void PM::analyzedlogprint(string infile, string outfile){
+void PM::analyzedlogprint(string const &infile, string const &outfile){
 
   // declaration
   //..............................................
@@ -632,6 +860,7 @@ void PM::analyzedlogprint(string infile, string outfile){
   // temporary vector
   char str1[255];
   char str2[255];
+  string ts;
   vector<string> temp;
   size_t pos;
 
@@ -679,10 +908,10 @@ void PM::analyzedlogprint(string infile, string outfile){
     plot << "# settings" << endl;
     plot << "set terminal postscript" << endl;
     plot << "set output \"" << ip->sc_name << "_graph.ps\"" << endl;
-    plot << "set pointsize 0.6" << endl;
+    plot << "set pointsize 0.3" << endl;
     // x-axis
     xmax = static_cast<unsigned long int>( ip->tsmax + 1 + 0.1*ip->tsmax );
-    tics=xmax/10;
+    tics=xmax/5;
     if( tics==0 ){ tics=1; }
     plot << "set xtics " << tics << endl;
     plot << "set xrange [0:" << xmax << "]" << endl;
@@ -701,38 +930,45 @@ void PM::analyzedlogprint(string infile, string outfile){
 
     // write data
     //............................................
+    ts = ip->entry.begin()->action;
     for(vector<analyzedData>::iterator ipentry = ip->entry.begin(); ipentry != ip->entry.end(); ipentry++ ){
       // logdata
+      if( ipentry->action != ts){
+	log << "#=================================================================" << endl;
+	// label
+	posx=(ipentry->start + ipentry->end)/2;
+	posy = ipentry->power + 0.02*ymax;
+	plot << "set label ' "<< ipentry->action <<"' at " << posx << "," << posy << " center" << endl;
+	ts = ipentry->action;
+      }
       log << ipentry->action << "\t" << ipentry->start << "\t" << ipentry->end << "\t" << ipentry->dur << "\t" << ipentry->power << "\t" << ipentry->totalpower << endl;
 
       // plotdata
       // arrow
       plot << "set arrow from "<< ipentry->start << "," << ipentry->power << " to " << ipentry->end << "," << ipentry->power << " as 1 " << endl;
-      // label
-      posx=(ipentry->start + ipentry->end)/2;
-      posy = ipentry->power + 0.02*ymax;
-      plot << "set label ' "<< ipentry->action <<"' at " << posx << "," << posy << " center" << endl;
       plot << endl;
     }
+    plot << "plot [0:" << xmax <<  "] 0 notitle" << endl;
+    plot << endl;
     //............................................
+
 
     // init for sumplot
     //............................................
-    plot << "plot [0:" << xmax <<  "] 0 notitle" << endl;
-    plot << endl;
-
     plot << "set noarrow" << endl;
     plot << "set nolabel" << endl;
 
     // x-axis
-    tics=static_cast<unsigned long int>( xmax/10 );
+    xmax = ((ip->psum.end())-1)->timestamp;
+    xmax = static_cast<unsigned long int>(xmax + 1 + 0.1*xmax); 
+    tics = static_cast<unsigned long int>( xmax/5 );
     if( tics==0 ){ tics=1; }
     plot << "set xtics " << tics << endl;
     plot << "set xrange [0:" << xmax << "]" << endl;
     plot << "set xlabel \"time \"" << endl;
  
     // y-axis
-    ymax = static_cast<unsigned long int>( ip->tpmax + 1 + 0.1*ip->pmax );
+    ymax = static_cast<unsigned long int>( ip->tpmax + 1 + 0.1*ip->tpmax );
     plot << "set yrange [0:" << ymax << "]" << endl;
     plot << "set ylabel \"total power \"" << endl;
 
@@ -744,7 +980,8 @@ void PM::analyzedlogprint(string infile, string outfile){
     plot << "set yrange [0:" << ymax << "]" << endl;
     plot << "set xlabel \"IP \"" << endl;
     plot << "set xtics(\"own\" 0";
-    int i=1;
+    
+    unsigned int i=1;
     vector<string>::iterator sub = ip->subpower.begin()+1;
       
     while( sub != ip->subpower.end() ){
@@ -780,12 +1017,21 @@ void PM::analyzedlogprint(string infile, string outfile){
     
     plot << "# timestamp \t totalpower" << endl;
 
-    for(vector<powerSum>::iterator ipsum = ip->psum.begin(); ipsum != ip->psum.end(); ipsum++){
-      sprintf(str1,"%5d",ipsum->timestamp);
-      sprintf(str2,"%5d",ipsum->oldpower);
+    if ( ip->psum.size() > 0 ){
+      sprintf(str1,"%10lu",ip->psum.begin()->timestamp);
+      temp.push_back( string(str1) + "\t 0" );
+      sprintf(str2,"%10lu",ip->psum.begin()->power);
       temp.push_back( string(str1) + "\t" + string(str2) );
-      sprintf(str2,"%5d",ipsum->power);
-      temp.push_back( string(str1) + "\t" + string(str2) );
+    }
+
+    if ( ip->psum.size() > 1 ){
+      for(vector<powerSum>::iterator ipsum = ip->psum.begin()+1; ipsum != ip->psum.end(); ipsum++){
+	sprintf(str1,"%10lu",ipsum->timestamp);
+	sprintf(str2,"%10lu",(ipsum-1)->power);
+	temp.push_back( string(str1) + "\t" + string(str2) );
+	sprintf(str2,"%10lu",ipsum->power);
+	temp.push_back( string(str1) + "\t" + string(str2) );
+      }
     }
 
     // add subip data
