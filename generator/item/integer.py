@@ -38,7 +38,7 @@ class IntegerItem(Item):
           self.layout = QtGui.QFormLayout(self.widget)
           r = str(QtCore.QVariant(range_).toString()).split('..')
           if len(r)<2:
-            r = ["%i" % -sys.maxint, "%i" % sys.maxint]
+            r = ["-2147483648","2147483647"]
           self.min = int(r[0], 0)
           self.max = int(r[1], 0)
           

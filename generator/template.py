@@ -2,6 +2,7 @@ import os
 from model import TreeModel 
 from xml.parsers.expat import ExpatError
 import shutil
+from string import Template as sTemplate
 
 class File:
     pass
@@ -10,8 +11,21 @@ class FileGen(File):
     def generate(self, model):
         pass
 
+class TemplateGen(FileGen):
+    def generate(self, model, base = "", conf = ""):
+        def gen(base, node):
+            result = {}
+            var = '.'.join((base,str(node.getVar()))).strip('.').strip()
+            result[var] = str(node.getValue().toString())
+            for i in range(node.childCount()):
+                result.update(gen(var, node.child(i)))
+            return result
+        result = {}
+        result.update(gen('', model.rootItem.child(0)))
+        return sTemplate(self.data.strip()+'\n').safe_substitute({'template':base, 'configuration':conf}.update(result))
+ 
 class SystemCGen(FileGen):
-    def generate(self, model):
+    def generate(self, model, base = "", conf = ""):
         def gen(base, node):
             var = '_'.join((base,str(node.getVar()))).strip('_').strip()
             result = "#define " + var + ' ' + str(node.getValue().toString()) + '\n'
@@ -30,6 +44,7 @@ class Template:
         self.progress = 0
         self.configuration = 'unknown'
         self._model = None
+        self.dirname = os.path.dirname(file)
         try:
             self.dom = parse(file)
         except ExpatError:
@@ -52,7 +67,28 @@ class Template:
                     if type == "systemc":
                         file = SystemCGen()
                         file.type = "systemc"
+                        if node.hasAttribute("path"):
+                            file.path = node.getAttribute("path")
+                        else:
+                            file.path = 'systemc'
                         file.name = node.getAttribute("name")
+                        self._generators.append(file)
+                    if type == "template":
+                        file = SystemCGen()
+                        file.type = "template"
+                        if node.hasAttribute("path"):
+                            file.path = node.getAttribute("path")
+                        file.name = node.getAttribute("name")
+                        if node.hasAttribute("src"):
+                            src = node.getAttribute("src")
+                            if not os.path.isabs(src):
+                                src = os.path.normpath(os.path.join(self.dirname, src))
+                            src = open(src, "r")
+                            file.data = ''.join(src.readlines())
+                        else:
+                            file.data = ""
+                            for child in node.childNodes:
+                              file.data += child.data
                         self._generators.append(file)
                 elif node.nodeName == "file":
                     file = File()
@@ -61,9 +97,16 @@ class Template:
                         file.type = node.getAttribute("type")
                     else:
                         file.type = None
-                    file.data = ""
-                    for child in node.childNodes:
-                      file.data += child.data
+                    if node.hasAttribute("src"):
+                        src = node.getAttribute("src")
+                        if not os.path.isabs(src):
+                            src = os.path.normpath(os.path.join(self.dirname, src))
+                        src = open(src, "r")
+                        file.data = ''.join(src.readlines())
+                    else:
+                        file.data = ""
+                        for child in node.childNodes:
+                            file.data += child.data
                     
                     self._files.append(file)
 
@@ -124,7 +167,6 @@ class Template:
         # writing files
         num = 2
         for f in files:
-            from string import Template
             if f.type == None:
                 fdir = path
                 ffile = os.path.join(path, f.name)
@@ -134,18 +176,23 @@ class Template:
             if not os.path.isdir(fdir):
                 os.makedirs(fdir)
             file = open(ffile, "w")
-            file.write(Template(f.data.strip()).safe_substitute({'template':self.base, 'configuration':self.configuration}))
+            file.write(sTemplate(f.data.strip()).safe_substitute({'template':self.base, 'configuration':self.configuration}))
             #file.write(f.data)
             num += 1
             progress(num * 100 / steps)
         
         # generating files
         for f in gen:
-            fpath = os.path.join(path, f.type, f.name)
-            if not os.path.isdir(os.path.join(path, f.type)):
-                os.makedirs(os.path.join(path, f.type))
-            file = open(fpath, "w")
-            file.write(f.generate(self.getModel()))
+            if f.path == None:
+                fdir = path
+                ffile = os.path.join(path, f.name)
+            else:
+                fdir = os.path.join(path, f.path)
+                ffile = os.path.join(path, f.path, f.name)
+            if not os.path.isdir(fdir):
+                os.makedirs(fdir)
+            file = open(ffile, "w")
+            file.write(f.generate(self.getModel(), self.base, self.configuration))
             num += 1
             progress(num * 100 / steps)
  

@@ -490,14 +490,50 @@ def modelsim_sccom(self, node):
         test.ut_exec = ['sh', self.link_task.outputs[0].abspath()]
     #tsk.dep_nodes += self.mdeps
 
+# Sparc C compiler
 @TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('sparc')
 def sparc(self):
-  self.env = self.bld.env_of_name('sparc')
+  self.env = self.bld.env_of_name('sparc').copy()
 
+# ASM hooks for the gcc compiler
+def s_hook(self,node):
+	return self.create_compiled_task('c',node)
+TaskGen.extension('.S')(s_hook)
+
+# Compiler distribution function
 def create_compiled_task(self, name, node):
   if 'modelsim' in self.features:
     modelsim_sccom(self, node)
   else:
     from waflib.Tools.ccroot import create_compiled_task
     create_compiled_task(self, name, node)
+
+# Extended Testing support
+def make_extest(self):
+  if getattr(self, 'link_task', None):
+    deps = []
+    par = [self.link_task.outputs[0].abspath()]
+    if getattr(self , 'ut_param', None):
+      param = getattr(self, 'ut_param', None)
+      for p in param:
+        print "Param", p, self
+        from waflib import Errors
+        try:
+          t = self.bld.get_tgen_by_name(p)
+          print dir(t.tasks), t.tasks
+          node = t.path.find_or_declare(p)
+          par.append(node.abspath())
+          deps.append(node)
+          print "Dep"
+        except Errors.WafError:
+          par.append(p)
+          print "Text"
+    print "create utest"
+    test = self.create_task('utest', self.link_task.outputs + deps)
+    print "Test Exec: ", par
+    test.ut_exec = par
+
+from waflib.TaskGen import feature,after_method
+feature('extest')(make_extest)
+after_method('apply_link')(make_extest)
