@@ -286,7 +286,7 @@ void CIrqmp::launch_irq() {
             }
             // If an interrupt is selected send it out to the CPU.
             if(high!=0) {
-                irq_req.write(1 << cpu, 0xF & high);
+                irq_req.write(1 << cpu, std::pair<uint32_t, bool>(0xF & high, true));
             }
         }
     }
@@ -304,12 +304,23 @@ void CIrqmp::launch_irq() {
 /// callback registered on interrupt clear register
 void CIrqmp::clear_write() {
     // pending reg only: forced IRs are cleared in the next function
+    bool extirq = false;
     for(int cpu = 0; cpu < ncpu; cpu++) {
         if(eirq != 0) {
             r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
             r[PROC_EXTIR_ID(cpu)] = 0;
+            extirq = true;
         }
     }
+    if(extirq) {
+        irq_req.write(~0, std::pair<uint32_t, bool>(eirq, false));
+    }
+    for(int i = 15; i > 0; --i) {
+        if((1<<i)&r[IR_CLEAR]) {
+            irq_req.write(~0, std::pair<uint32_t, bool>(i, false));
+        }
+    }
+    
     uint32_t cleared_vector = r[IR_PENDING] & ~r[IR_CLEAR];
     r[IR_PENDING] = cleared_vector;
     r[IR_CLEAR]   = 0;
@@ -320,6 +331,11 @@ void CIrqmp::clear_write() {
 void CIrqmp::force_write() {
     for(int cpu = 0; cpu < ncpu; cpu++) {
         forcereg[cpu] |= r[PROC_IR_FORCE(cpu)];
+        for(int i = 31; i > 0; --i) {
+            if((1<<i)&forcereg[cpu]) {
+                irq_req.write(~0, std::pair<uint32_t, bool>(i, false));
+            }
+        }
         //write mask clears IFC bits:
         //IF && !IFC && write_mask
         forcereg[cpu] &= (~(forcereg[cpu] >> 16) & PROC_IR_FORCE_IF);
@@ -336,8 +352,10 @@ void CIrqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc
         r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
         r[PROC_IR_FORCE(cpu)] = r[PROC_IR_FORCE(cpu)] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
         forcereg[cpu] &= ~(1 << r[PROC_EXTIR_ID(cpu)]) & 0xFFFE;
+        irq_req.write(~0, std::pair<uint32_t, bool>(eirq, false));
     } else {
         //clear interrupt from pending and force register
+        irq_req.write(~0, std::pair<uint32_t, bool>(irq, false));
         r[IR_PENDING].bit_set(irq, f);
         if(r[BROADCAST].bit_get(irq)) {
             r[PROC_IR_FORCE(cpu)].bit_set(irq, f);

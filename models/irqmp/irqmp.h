@@ -52,6 +52,7 @@
 #include "greencontrol/all.h"
 
 #include "signalkit.h"
+#include <utility>
 /// @addtogroup irqmp IRQMP
 /// @{
 
@@ -69,7 +70,7 @@ class CIrqmp : public gs::reg::gr_device,
         signal<bool>::selector cpu_rst;
 
         /// IRQ Request out signals
-        signal<uint32_t>::selector irq_req;
+        signal<std::pair<uint32_t, bool> >::selector irq_req;
 
         /// IRQ Acknowledge input signals
         signal<uint32_t>::infield irq_ack;
