@@ -278,8 +278,8 @@ void APBCtrl::start_of_simulation() {
   assert(num_of_bindings<=16);
 
   v::info << name() << "******************************************************************************* " << v::endl;
-  v::info << name() << "* DECODER INITIALIZATION " << v::endl;
-  v::info << name() << "* ---------------------- " << v::endl;
+  v::info << name() << "* APB DECODER INITIALIZATION " << v::endl;
+  v::info << name() << "* -------------------------- " << v::endl;
 
   // iterate the registered slaves
   for (uint32_t i = 0; i < num_of_bindings; i++) {
@@ -316,7 +316,7 @@ void APBCtrl::start_of_simulation() {
         uint32_t addr = slave->get_base();
         uint32_t mask = slave->get_mask();
 
-	v::info << name() << "* BAR with MSB addr: " << hex << addr << " and mask: " << mask << v::endl;
+	v::info << name() << "*  - BAR with MSB addr: " << hex << addr << " and mask: " << mask << v::endl;
 
 	// insert slave region into memory map
         setAddressMap(i, sbusid, addr, mask);

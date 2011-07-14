@@ -772,8 +772,8 @@ void AHBCtrl::start_of_simulation() {
   assert(num_of_master_bindings<=16);
 
   v::info << name() << "******************************************************************************* " << v::endl;
-  v::info << name() << "* DECODER INITIALIZATION " << v::endl;
-  v::info << name() << "* ---------------------- " << v::endl;
+  v::info << name() << "* AHB DECODER INITIALIZATION " << v::endl;
+  v::info << name() << "* -------------------------- " << v::endl;
 
   // Iterate/detect the registered slaves
   // ------------------------------------
@@ -790,7 +790,7 @@ void AHBCtrl::start_of_simulation() {
     // Valid slaves implement the AHBDevice interface
     AHBDevice *slave = dynamic_cast<AHBDevice *> (obj);
 
-    v::info << name() << "* SLAVE name: " << obj->name() << v::endl;
+    v::info << name() << "* Slave name: " << obj->name() << v::endl;
 
     // Slave is valid (implements AHBDevice)
     if(slave) {
@@ -819,14 +819,14 @@ void AHBCtrl::start_of_simulation() {
 	  uint32_t addr = slave->get_bar_base(j);
 	  uint32_t mask = slave->get_bar_mask(j);
 
-	  v::info << name() << "* BAR" << j << " with MSB addr: " << hex << addr << " and mask: " << mask <<  v::endl; 
+	  v::info << name() << "*  - BAR" << j << " with MSB addr: " << hex << addr << " and mask: " << mask <<  v::endl; 
 
 	  // Insert slave region into memory map
 	  setAddressMap(i+j, sbusid, addr, mask);
 
 	} else {
 
-	  v::info << name() << "* BAR" << j << " not used." << v::endl;
+	  v::info << name() << "*  - BAR" << j << " not used." << v::endl;
 
 	}
       
