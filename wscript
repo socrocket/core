@@ -56,6 +56,15 @@ def build(self):
     from waftools.common import get_subdirs
     self.recurse(get_subdirs())
     self.add_post_fun(waf_unit_test.summary)
+    #self.add_post_fun(lcov_summary)
+
+def coverage(self):
+    from subprocess import call, STDOUT
+    if self.env["gcov"] and self.env["gcov"] != "" and self.env["lcov"] and self.env["lcov"] != "":
+        print call([self.env['lcov'], '-b', '.', '-t', 'SoCRocket regression', '-o', 'lcov.info', '-c', '-d', 'models'], shell=False, cwd=out, stderr=STDOUT)
+        if self.env['genhtml'] and self.env['genhtml'] != "":
+            print call([self.env['genhtml'], '-s', '--demangle-cpp', '-o', 'coverage', 'lcov.info'], shell=False, cwd=out, stderr=STDOUT)
+            print "Code coverage report generated: %s/coverage/index.html" % (self.path.abspath())
 
 def generate(bld):
   from generator.wizard import main
@@ -169,6 +178,26 @@ def configure(ctx):
     #############################################################
     if ctx.options.enable_gprof and ctx.options.enable_vprof:
         ctx.fatal('Only one profiler among gprof and vprof can be enabled at the same time')
+    if ctx.options.enable_gcov:
+        ctx.find_program('gcov', var='gcov', mandatory=False, errmsg='gcov not found! Post execution preperation is disabled.')
+        ctx.find_program('lcov', var='lcov', mandatory=False, errmsg='lcov not found! Post execution summeration is disabled.')
+        ctx.find_program('genhtml', var='genhtml', mandatory=False)
+        ctx.env.append_unique('CCFLAGS', '-fprofile-arcs')
+        ctx.env.append_unique('CCFLAGS', '-ftest-coverage')
+        ctx.env.append_unique('CCFLAGS', '--coverage')
+        ctx.env.append_unique('CXXFLAGS', '-fprofile-arcs')
+        ctx.env.append_unique('CXXFLAGS', '-ftest-coverage')
+        ctx.env.append_unique('CXXFLAGS', '--coverage')
+        ctx.env.append_unique('LINKFLAGS', '-fprofile-arcs')
+        if '-O2' in ctx.env['CCFLAGS']:
+            ctx.env['CCFLAGS'].remove('-O2')
+        if '-O3' in ctx.env['CCFLAGS']:
+            ctx.env['CCFLAGS'].remove('-O3')
+        if '-O2' in ctx.env['CXXFLAGS']:
+            ctx.env['CXXFLAGS'].remove('-O2')
+        if '-O3' in ctx.env['CXXFLAGS']:
+            ctx.env['CXXFLAGS'].remove('-O3')
+        ctx.options.enable_gprof = True
     if ctx.options.enable_gprof:
         if not '-g' in ctx.env['CCFLAGS']:
             ctx.env.append_unique('CCFLAGS', '-g')
@@ -787,6 +816,7 @@ def options(ctx):
     # Specify support for the profilers: gprof, vprof
     prof.add_option('-D', '--nodebug', default=True, action='store_false', help='Disables debugging support for the targets', dest='debug')
     #prof.add_option('-D', '--debug', default=True, action='store_true', help='Enables debugging support for the targets', dest='debug')
+    prof.add_option('-G', '--gcov', default=False, action='store_true', help='Enables profiling with gcov profiler', dest='enable_gcov')
     prof.add_option('-P', '--gprof', default=False, action='store_true', help='Enables profiling with gprof profiler', dest='enable_gprof')
     prof.add_option('-V', '--vprof', default=False, action='store_true', help='Enables profiling with vprof profiler', dest='enable_vprof')
     prof.add_option('--with-vprof', type='string', help='vprof installation folder', dest='vprofdir')
@@ -794,7 +824,7 @@ def options(ctx):
     # Custom Options
     prof.add_option('--tsim-comp', default=False, action='store_true', help='Defines the TSIM_COMPATIBILITY directive', dest='define_tsim_compatibility')
 
-    ctx.add_option("--verbosity", dest="verbosity", help="Defines the verbosity for the build", default=environ.get("VERBOSITY",None))
+    ctx.add_option("--verbosity", dest="verbosity", help="Defines the verbosity for the build", default=environ.get("VERBOSITY",'3'))
 
     conf = ctx.add_option_group("'./waf generate' Options")
     conf.add_option('-t', '--template', default=None, type='string', help='Defines a template to generate a new platform', dest='template')
