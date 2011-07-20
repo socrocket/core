@@ -191,6 +191,7 @@ def build(bld):
                       '../utils/ahbdevice.cpp',
                       '../utils/tb_ahb_mem.cpp',
                       '../utils/clock_gen.cpp',
+                      './adapters/ahbpipe.cpp',
 		      './adapters/ahb_tlmmaster_rtlbus_transactor.cpp',
                       './adapters/ahb_rtlbus_tlmslave_transactor.cpp'],
     uselib         = 'AMBA GREENSOCS',
@@ -235,6 +236,7 @@ def build(bld):
                       '../utils/ahbdevice.cpp',
                       '../utils/tb_ahb_mem.cpp',
                       '../utils/clock_gen.cpp',
+                      './adapters/ahbpipe.cpp',
 		      './adapters/ahb_tlmmaster_rtlbus_transactor.cpp',
                       './adapters/ahb_rtlbus_tlmslave_transactor.cpp'],
     uselib         = 'AMBA GREENSOCS',
@@ -279,6 +281,7 @@ def build(bld):
                       '../utils/ahbdevice.cpp',
                       '../utils/tb_ahb_mem.cpp',
                       '../utils/clock_gen.cpp',
+                      './adapters/ahbpipe.cpp',
 		      './adapters/ahb_tlmmaster_rtlbus_transactor.cpp',
                       './adapters/ahb_rtlbus_tlmslave_transactor.cpp'],
     uselib         = 'AMBA GREENSOCS',
@@ -323,6 +326,7 @@ def build(bld):
                       '../utils/ahbdevice.cpp',
                       '../utils/tb_ahb_mem.cpp',
                       '../utils/clock_gen.cpp',
+                      './adapters/ahbpipe.cpp',
 		      './adapters/ahb_tlmmaster_rtlbus_transactor.cpp',
                       './adapters/ahb_rtlbus_tlmslave_transactor.cpp'],
     uselib         = 'AMBA GREENSOCS',
@@ -331,33 +335,4 @@ def build(bld):
     config         =  vsim_conf,
   )
 
-#  bld(
-#    features       = 'modelsim',
-#    target         = 'ahbctrl.1.rtl.test',
-#    name           = 'ahbctrl.1.rtl.test',
-#    source         = ['./ahbtbp.vhd',
-#                      './test1/sim_ref/ahb_m1_s1.vhd',
-#		      '../../common/verbose.cpp',
-#                      '../utils/abhdevice.cpp',
-#                      '../utils/tb_ahb_mem.cpp',
-#		      './test1/testbench.cpp',
-#                      './test1/testbench_rtl.cpp',
-#		      './test1/sim_ref/main.cpp'],
-#    uselib         = 'AMBA GREENSOCS',
-#    vcomflags      = '-93 -explicit',
-#    includes       = './ ./test1 ./test1/sim_ref ../../common ../../signalkit ../utils',
-#    config         =  vsim_conf,
-#  )
-
-#  bld(
-#    features       = 'modelsim',
-#    target         = 'ahbctrl.rtl.test',
-#    name           = 'ahbctrl.rtl.test',
-#    source         = ['./ahbtbp.vhd',
-#                      './test1/sim_ref/ahb_m1_s1.vhd',
-#                      './test1/sim_ref/tb.vhd'],
-#    uselib         = 'AMBA GREENSOCS',
-#    vcomflags      = '-93 -explicit',
-#    config         =  vsim_conf,
-#  )  
 

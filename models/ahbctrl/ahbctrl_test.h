@@ -90,11 +90,16 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
   /// Read data from ahb
   void ahbread(unsigned int addr, unsigned char * data, unsigned int length, unsigned int burst_size);
 
-  /// Thread for response processing
+  /// Thread for response processing (read)
   void ResponseThread();
+
+  /// Thread for processing write data-phase
+  void DataThread();
 
   /// Check transaction
   void checkTXN(tlm::tlm_generic_payload* trans);
+
+  void cleanUP();
 
   /// TLM non-blocking transport backward
   tlm::tlm_sync_enum nb_transport_bw(tlm::tlm_generic_payload& gp, tlm::tlm_phase& phase, sc_core::sc_time& delay);
@@ -152,8 +157,14 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
 
  private:
 
+  unsigned char tmp[1024];
+
+  unsigned int tc;
+
   /// PEQ for response synchronization
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> mResponsePEQ;
+  tlm_utils::peq_with_get<tlm::tlm_generic_payload> mDataPEQ;
+  tlm_utils::peq_with_get<tlm::tlm_generic_payload> mEndTransactionPEQ;
 
   /// Events for phase notifications
   sc_event mEndRequestEvent;

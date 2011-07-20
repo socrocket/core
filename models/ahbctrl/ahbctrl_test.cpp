@@ -70,7 +70,9 @@ ahbctrl_test::ahbctrl_test(sc_core::sc_module_name name,
   m_master_id(master_id),
   m_inter(inter),
   m_abstractionLayer(abstractionLayer),
-  mResponsePEQ("ResponsePEQ") {
+  mResponsePEQ("ResponsePEQ"), 
+  mDataPEQ("mDataPEQ"), 
+  mEndTransactionPEQ("mEndTransactionPEQ") {
 
   // Calculate address bound for random instruction generation
   // from haddr/hmask
@@ -97,14 +99,36 @@ ahbctrl_test::ahbctrl_test(sc_core::sc_module_name name,
 
     // Register thread for response synchronization
     SC_THREAD(ResponseThread);
+    SC_THREAD(DataThread);
+    SC_THREAD(cleanUP);
 
+  }
+
+  tc = 0;
+}
+
+void ahbctrl_test::cleanUP() {
+
+  tlm::tlm_generic_payload * trans;
+
+  while(1) {
+
+    wait(mEndTransactionPEQ.get_event());
+
+    while(trans = mEndTransactionPEQ.get_next_transaction()) {
+
+      v::debug << name() << "Release transaction: " << hex << trans << v::endl;
+
+      ahb.release_transaction(trans);
+
+    }
   }
 }
 
 // TLM non-blocking backward transport function
 tlm::tlm_sync_enum ahbctrl_test::nb_transport_bw(tlm::tlm_generic_payload &trans, tlm::tlm_phase &phase, sc_core::sc_time &delay) {
 
-  v::debug << name() << "nb_transport_bw received phase: " << phase << v::endl;
+  v::debug << name() << "nb_transport_bw received transaction " << hex << &trans << " with phase " << phase << v::endl;
 
   // The slave has sent END_REQ
   if (phase == tlm::END_REQ) {
@@ -112,13 +136,24 @@ tlm::tlm_sync_enum ahbctrl_test::nb_transport_bw(tlm::tlm_generic_payload &trans
     // Usually the slave would send TLM_UPDATED/END_REQ
     // on the return path. In case it does not notify
     // ahbwrite that request phase is over.
-    mEndRequestEvent.notify(delay);
+    mEndRequestEvent.notify();
+
+    // For writes there will be no BEGIN_RESP.
+    // Notify response thread to send BEGIN_DATA.
+    if (trans.get_command() == tlm::TLM_WRITE_COMMAND) {
+
+      mDataPEQ.notify(trans);
+
+    }
+
+    // reset delay
+    delay = SC_ZERO_TIME;
 
   // New response - goes into response PEQ
   } else if (phase == tlm::BEGIN_RESP) {
 
     // Notify ahbread for returning control to user
-    mEndRequestEvent.notify(delay);
+    //mEndRequestEvent.notify(delay);
 
     // Put new reponse into ResponsePEQ
     mResponsePEQ.notify(trans, delay);
@@ -126,8 +161,11 @@ tlm::tlm_sync_enum ahbctrl_test::nb_transport_bw(tlm::tlm_generic_payload &trans
   // Data phase completed
   } else if (phase == amba::END_DATA) {
 
-    // Notify ResponseThread
-    mEndDataEvent.notify(delay);
+    // release transaction
+    mEndTransactionPEQ.notify(trans, delay);
+
+    // reset delay
+    delay = SC_ZERO_TIME;
 
   } else {
 
@@ -150,7 +188,7 @@ void ahbctrl_test::ahbread(unsigned int addr, unsigned char * data, unsigned int
   // Allocate new transaction
   tlm::tlm_generic_payload *trans = ahb.get_transaction();
 
-  v::debug << name() << "AHBREAD (" << hex << addr << "): Allocate new transaction: " << trans << v::endl;
+  v::debug << name() << "Allocate new transaction: " << hex << trans << v::endl;
 
   // Initialize transaction
   trans->set_command(tlm::TLM_READ_COMMAND);
@@ -197,12 +235,10 @@ void ahbctrl_test::ahbread(unsigned int addr, unsigned char * data, unsigned int
     phase = tlm::BEGIN_REQ;
     delay = SC_ZERO_TIME;
 
-    v::debug << name() << "AHBREAD: Call to nb_transport_fw with phase " << phase << v::endl;
+    v::debug << name() << "Transaction " << hex << trans << " calls nb_transport_fw with phase " << phase << v::endl;
 
     // Non-blocking transport
     status = ahb->nb_transport_fw(*trans, phase, delay);
-
-    v::debug << name() << "AHBREAD: nb_transport_fw returned with phase " << phase << " and status " << status << v::endl;
 
     switch (status) {
 
@@ -230,11 +266,11 @@ void ahbctrl_test::ahbread(unsigned int addr, unsigned char * data, unsigned int
 	  // and then return control to the user (for putting next
 	  // transaction into pipeline).
 
-	  v::debug << name() << "Waiting for BeginResponseEvent" << v::endl;
+	  //v::debug << name() << "Waiting for BeginResponseEvent" << v::endl;
 	  
 	  wait(mEndRequestEvent);
 
-	  v::debug << name() << "Received BeginResponseEvent" << v::endl;
+	  //v::debug << name() << "Received BeginResponseEvent" << v::endl;
 
 	} else if (phase == tlm::BEGIN_RESP) {
 
@@ -256,7 +292,7 @@ void ahbctrl_test::ahbread(unsigned int addr, unsigned char * data, unsigned int
 
 	// Slave directly jumps to TLM_COMPLETED (Pseudo AT).
 	// Don't send END_RESP
-	wait(delay);
+	//wait(delay);
 
 	break;
       
@@ -280,7 +316,7 @@ void ahbctrl_test::ahbwrite(unsigned int addr, unsigned char * data, unsigned in
   // Allocate new transaction
   tlm::tlm_generic_payload *trans = ahb.get_transaction();
 
-  v::debug << name() << "AHBWRITE (" << addr << "/" << (unsigned int *)data << ": Allocate new transaction: " << trans << v::endl;
+  v::debug << name() << "Allocate new transaction " << hex << trans << v::endl;
 
   // Initialize transaction
   trans->set_command(tlm::TLM_WRITE_COMMAND);
@@ -327,12 +363,10 @@ void ahbctrl_test::ahbwrite(unsigned int addr, unsigned char * data, unsigned in
     phase = tlm::BEGIN_REQ;
     delay = SC_ZERO_TIME;
 
-    v::debug << name() << "AHBWRITE: Call to nb_transport_fw with phase " << phase << v::endl;
+    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 
     // Non-blocking transport
     status = ahb->nb_transport_fw(*trans, phase, delay);
-
-    v::debug << name() << "AHBWRITE: nb_transport_fw returned with phase " << phase << " and status " << status << v::endl;
 
     switch (status) {
 
@@ -375,7 +409,7 @@ void ahbctrl_test::ahbwrite(unsigned int addr, unsigned char * data, unsigned in
 
 	// Slave directly jumps to TLM_COMPLETED (Pseudo AT).
 	// Don't send END_RESP
-	wait(delay);
+	//wait(delay);
 
 	break;
       
@@ -398,8 +432,6 @@ void ahbctrl_test::check_read(unsigned int addr, unsigned char* data, unsigned i
 
 // Generates random read operations within haddr/hmask region
 void ahbctrl_test::random_read(unsigned int length) {
-
-  unsigned char data[4];
 
   // Random address
   unsigned int addr = (rand() % (m_addr_range_upper_bound-m_addr_range_lower_bound)) + m_addr_range_lower_bound;
@@ -427,7 +459,9 @@ void ahbctrl_test::random_read(unsigned int length) {
   }
 
   // Read from AHB
-  ahbread(addr, data, length, 4);
+  ahbread(addr, tmp + tc, length, 4);
+
+  tc = (tc + 4) % 1000;
 
 }
 
@@ -455,7 +489,6 @@ void ahbctrl_test::check_write(unsigned int addr, unsigned char * data, unsigned
 void ahbctrl_test::random_write(unsigned int length) {
 
   unsigned int i;
-  unsigned char data[4];
 
   t_entry entry;
 
@@ -491,30 +524,32 @@ void ahbctrl_test::random_write(unsigned int length) {
 
     if (i < length) {
 
-      data[i] = rand() % 256;
+      tmp[tc+i] = rand() % 256;
 
-      v::debug << "addr: " << hex << addr+i << " data: " << (unsigned int)data[i] << v::endl;
+      v::debug << name() << "addr: " << hex << addr+i << " data: " << (unsigned int)tmp[tc+i] << v::endl;
 
     } else {
 
-      data[i] = 0;
+      tmp[tc+i] = 0;
 
     }
   
   }
 
   // Write to AHB
-  ahbwrite(addr, data, length, 4);
+  ahbwrite(addr, tmp+tc, length, 4);
 
   // Keep track in local cache
   for (i=0;i<length;i++) {
 
-    entry.data = data[i];
+    entry.data = tmp[tc+i];
     entry.valid = true;
 
     localcache[addr+i] = entry;
 
   }
+
+  tc = (tc + 4) % 1000;
 
 }
 
@@ -545,6 +580,74 @@ void ahbctrl_test::snoopingCallBack(const t_snoop & snoop, const sc_core::sc_tim
   }
 }
 
+void ahbctrl_test::DataThread() {
+
+  tlm::tlm_generic_payload* trans;
+  tlm::tlm_phase phase;
+  sc_core::sc_time delay;
+  tlm::tlm_sync_enum status;
+
+  while(1) {
+
+    //v::debug << name() << "Data thread waiting for new data phase." << v::endl;
+
+    // Wait for new data phase (inserted in transport_bw)
+    wait(mDataPEQ.get_event());
+
+    //v::debug << name() << "DataPEQ Event" << v::endl;
+
+    // Get transaction from Queue
+    trans = mDataPEQ.get_next_transaction();
+
+    // Prepare BEGIN_DATA
+    phase = amba::BEGIN_DATA;
+    delay = SC_ZERO_TIME;
+
+    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+
+    // Call nb_transport_fw with BEGIN_DATA
+    status = ahb->nb_transport_fw(*trans, phase, delay);
+
+    switch (status) {
+
+      case tlm::TLM_ACCEPTED:
+      case tlm::TLM_UPDATED:
+
+	if (phase == amba::BEGIN_DATA) {
+
+	  // The slave returned TLM_ACCEPTED (default case).
+	  // Wait for END_DATA to come in on backward path.
+
+	  //v::debug << name() << "Waiting mEndDataEvent" << v::endl;
+	  //wait(mEndDataEvent);
+	  //v::debug << name() << "mEndDataEvent" << v::endl;
+
+	} else if (phase == amba::END_DATA) {
+
+	  // Slave sent TLM_UPDATED/END_DATA.
+	  // Data phase completed.
+	  //wait(delay);
+
+	} else {
+
+	  // Forbidden phase
+	  v::error << name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
+	  assert(0);
+	}
+
+	break;
+
+      case tlm::TLM_COMPLETED:
+
+	// Slave directly jumps to TLM_COMPLETED (Pseudo AT).
+	//wait(delay);
+	
+	break;
+
+    }
+  }
+}
+
 // Thread for response synchronization (sync and send END_RESP)
 void ahbctrl_test::ResponseThread() {
 
@@ -555,98 +658,29 @@ void ahbctrl_test::ResponseThread() {
 
   while(1) {
 
-    v::debug << name() << "Response thread waiting for new response." << v::endl;
-
     // Wait for response from slave (inserted in transport_bw)
     wait(mResponsePEQ.get_event());
 
     // Get transaction from Queue
     trans = mResponsePEQ.get_next_transaction();
 
-    // In case of a read transaction:
-    // - check result (read data)
-    // - send END_RESP
-    // - release transaction
-    if (trans->get_command() == tlm::TLM_READ_COMMAND) {
-
-      // Check result
-      checkTXN(trans);
+    // Check result
+    checkTXN(trans);
   
-      // Prepare END_RESP
-      phase = tlm::END_RESP;
-      delay = sc_core::SC_ZERO_TIME;
+    // Prepare END_RESP
+    phase = tlm::END_RESP;
+    delay = sc_core::SC_ZERO_TIME;
 
-      v::debug << name() << "AHBREAD: Call to nb_transport_fw with phase " << phase << v::endl;
+    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 
-      // Call nb_transport_fw with END_RESP
-      status = ahb->nb_transport_fw(*trans, phase, delay);
+    // Call nb_transport_fw with END_RESP
+    status = ahb->nb_transport_fw(*trans, phase, delay);
 
-      v::debug << name() << "AHBREAD: nb_transport_fw returned with phase: " << phase << " and status " << status << v::endl;
-
-      // Return value must be completed or accepted
-      assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
-
-    // In case of a write transaction:
-    // - send BEGIN_DATA
-    // - wait for END_DATA
-    // - release transaction
-    } else if (trans->get_command() == tlm::TLM_WRITE_COMMAND) {
-
-      // Prepare BEGIN_DATA
-      phase = amba::BEGIN_DATA;
-      delay = sc_core::SC_ZERO_TIME;
-
-      v::debug << name() << "AHBWRITE: Call to nb_transport_fw with phase " << phase << v::endl;
-
-      // Call nb_transport_fw with BEGIN_DATA
-      status = ahb->nb_transport_fw(*trans, phase, delay);
-
-      v::debug << name() << "AHBWRITE: nb_transport_fw returned with phase: " << phase << " and status " << status << v::endl;
-
-      switch (status) {
-
-        case tlm::TLM_ACCEPTED:
-        case tlm::TLM_UPDATED:
-
-	  if (phase == amba::BEGIN_DATA) {
-
-	    // The slave returned TLM_ACCEPTED (default case).
-	    // Wait for END_DATA to come in on backward path.
-	    wait(mEndDataEvent);
-
-	  } else if (phase == amba::END_DATA) {
-
-	    // Slave sent TLM_UPDATED/END_DATA.
-	    // Data phase completed.
-	    wait(delay);
-
-	  } else {
-
-	    // Forbidden phase
-	    v::error << name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
-	    assert(0);
-	  }
-
-	  break;
-
-        case tlm::TLM_COMPLETED:
-
-	  // Slave directly jumps to TLM_COMPLETED (Pseudo AT).
-	  // Don't send END_RESP
-	  wait(delay);
-
-	  break;
-
-      }
-    }
-
-    // Check response status
-    //assert(trans->get_response_status()==tlm::TLM_OK_RESPONSE);
-
-    v::debug << name() << "Release transaction: " << trans << v::endl;
+    // Return value must be completed or accepted
+    assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
 
     // Cleanup
-    ahb.release_transaction(trans);
+    mEndTransactionPEQ.notify(*trans, delay);
   }
 }
 
@@ -667,39 +701,37 @@ void ahbctrl_test::checkTXN(tlm::tlm_generic_payload * trans) {
   // Verify reads against localcache
   if (cmd == tlm::TLM_READ_COMMAND) {
 
-      // Check result
-      for (unsigned int i=0; i<length; i++) {
+    // Check result
+    for (unsigned int i=0; i<length; i++) {
 
-	// Look up local cache
-	it = localcache.find(addr+i);
+      // Look up local cache
+      it = localcache.find(addr+i);
 
-	// Assume 0, if location was never written before
-	if (it != localcache.end()) {
+      // Assume 0, if location was never written before
+      if (it != localcache.end()) {
 
-	  // We (this master) wrote to this address before.
-	  tmp = it->second;
+	// We (this master) wrote to this address before.
+	tmp = it->second;
 
-	} else {
+      } else {
 
-	  // Address was not written by this master before.
-	  tmp.data = 0;
-	  tmp.valid = false;
+	// Address was not written by this master before.
+	tmp.data = 0;
+	tmp.valid = false;
 
-	}
+      }
 
-	v::debug << name() << "ADDR: " << hex << addr+i << " DATA: " << (unsigned int)data[i] << " EXPECTED: " << tmp.data << " VALID: " << tmp.valid << v::endl;
+      v::debug << name() << "ADDR: " << hex << addr+i << " DATA: " << (unsigned int)data[i] << " EXPECTED: " << tmp.data << " VALID: " << tmp.valid << v::endl;
    
-	if (tmp.valid == true) {
+      if (tmp.valid == true) {
 
-	  //assert(data[i] == tmp.data);
+	assert(data[i] == tmp.data);
 
-	} else {
+      } else {
 
-	  v::debug << name() << "No local reference for checking or data invalidated by snooping!" << v::endl;
+	v::debug << name() << "No local reference for checking or data invalidated by snooping!" << v::endl;
 
-	}
       }
     }
-    
-
+  }
 }
