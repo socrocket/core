@@ -115,7 +115,7 @@ void ahbctrl_test::cleanUP() {
 
     wait(mEndTransactionPEQ.get_event());
 
-    while(trans = mEndTransactionPEQ.get_next_transaction()) {
+    while((trans = mEndTransactionPEQ.get_next_transaction())) {
 
       v::debug << name() << "Release transaction: " << hex << trans << v::endl;
 

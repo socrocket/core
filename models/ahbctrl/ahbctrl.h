@@ -65,7 +65,6 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
         amba::amba_master_socket<32, 0> ahbOUT;
 	/// Broadcast of master_id and write address for dcache snooping
 	signal<t_snoop>::out snoop;
-	
 
 	// Public functions
 	// ----------------
@@ -86,6 +85,17 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 
 	/// The arbiter thread
 	void ArbitrationThread();
+	
+	/// The data thread
+	void DataThread();
+
+	void EndData();
+
+	/// The request thread (for com. with nb_trans_fw of slaves)
+	void RequestThread();
+
+	/// The response thread (for com. with nb_trans_bw of masters)
+	void ResponseThread();
 
 	/// Helper functions for definition of clock cycle
 	void clk(sc_core::sc_clock &clk);
@@ -179,6 +189,8 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 	/// Iterator for slave map
 	std::map<uint32_t, slave_info_t>::iterator it;
 
+	payload_t nop_trans;
+
 	/// Keeps track on where the transactions have been coming from
 	typedef std::pair<uint32_t, uint32_t> connection_t;
 	std::map<payload_t*, connection_t> pending_map;
@@ -192,6 +204,8 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 	/// PEQs for arbitration, request notification and responses
 	tlm_utils::peq_with_get<payload_t> mArbiterPEQ;
 	tlm_utils::peq_with_get<payload_t> mRequestPEQ;
+	tlm_utils::peq_with_get<payload_t> mDataPEQ;
+	tlm_utils::peq_with_get<payload_t> mEndDataPEQ;
 	tlm_utils::peq_with_get<payload_t> mResponsePEQ;	
 
 	/// Event triggered by transport_fw to notify response thread about END_RESP
@@ -211,12 +225,6 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 
 	/// Set up slave map and collect plug & play information
         void start_of_simulation();
-
-	/// The request thread (for com. with nb_trans_fw of slaves)
-	void RequestThread();
-
-	/// The response thread (for com. with nb_trans_bw of masters)
-	void ResponseThread();
 
 	/// Helper function for creating slave map decoder entries
         void setAddressMap(const uint32_t binding, const uint32_t hindex, const uint32_t haddr, const uint32_t hmask);

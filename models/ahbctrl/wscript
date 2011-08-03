@@ -104,8 +104,10 @@ def build(bld):
   bld(
     target         = 'ahbctrl',
     features       = 'cxx cxxstlib',
-    source         = 'ahbctrl.cpp',
+    source         = ['ahbctrl.cpp',
+                      './adapters/ahbpipe.cpp'],
     export_includes = '.',
+    includes       = '. ./adapters',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'utils common'
   )
@@ -116,7 +118,7 @@ def build(bld):
     source         = ['./ahbctrl_test.cpp',
                       './test1/testbench.cpp',
                       './test1/sim_lt/main.cpp'],
-    includes       = '. ./test1 ./test1/sim_lt',
+    includes       = '. ./adapters ./test1 ./test1/sim_lt',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'common utils ahbctrl',
   )
@@ -161,7 +163,7 @@ def build(bld):
     source         = ['./ahbctrl_test.cpp',
                       './test2/testbench.cpp',
                       './test2/sim_lt/main.cpp'],
-    includes       = '. ./test2 ./test2/sim_lt',
+    includes       = '. ./adapters ./test2 ./test2/sim_lt',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'common utils ahbctrl',
   )
@@ -172,7 +174,7 @@ def build(bld):
     source         = ['./ahbctrl_test.cpp',
                       './test2/testbench.cpp',
                       './test2/sim_at/main.cpp'],
-    includes       = '. ./test2 ./test2/sim_at',
+    includes       = '. ./adapters ./test2 ./test2/sim_at',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'common utils ahbctrl',
   )
@@ -206,7 +208,7 @@ def build(bld):
     source         = ['./ahbctrl_test.cpp',
                       './test3/testbench.cpp',
                       './test3/sim_lt/main.cpp'],
-    includes       = '. ./test3 ./test3/sim_lt',
+    includes       = '. ./adapters ./test3 ./test3/sim_lt',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'common utils ahbctrl',
   )
@@ -217,7 +219,7 @@ def build(bld):
     source         = ['./ahbctrl_test.cpp',
                       './test3/testbench.cpp',
                       './test3/sim_at/main.cpp'],
-    includes       = '. ./test3 ./test3/sim_at',
+    includes       = '. ./adapters ./test3 ./test3/sim_at',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'common utils ahbctrl',
   )
@@ -251,7 +253,7 @@ def build(bld):
     source         = ['./ahbctrl_test.cpp',
                       './test4/testbench.cpp',
                       './test4/sim_lt/main.cpp'],
-    includes       = '. ./test4 ./test4/sim_lt',
+    includes       = '. ./adapters ./test4 ./test4/sim_lt',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'common utils ahbctrl',
   )
@@ -262,7 +264,7 @@ def build(bld):
     source         = ['./ahbctrl_test.cpp',
                       './test4/testbench.cpp',
                       './test4/sim_at/main.cpp'],
-    includes       = '. ./test4 ./test4/sim_at',
+    includes       = '. ./adapters ./test4 ./test4/sim_at',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'common utils ahbctrl',
   )
@@ -296,7 +298,7 @@ def build(bld):
     source         = ['./ahbctrl_test.cpp',
                       './test5/testbench.cpp',
                       './test5/sim_lt/main.cpp'],
-    includes       = '. ./test5 ./test5/sim_lt',
+    includes       = '. ./adapters ./test5 ./test5/sim_lt',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'common utils ahbctrl',
   )
@@ -307,7 +309,7 @@ def build(bld):
     source         = ['./ahbctrl_test.cpp',
                       './test5/testbench.cpp',
                       './test5/sim_at/main.cpp'],
-    includes       = '. ./test5 ./test5/sim_at',
+    includes       = '. ./adapters ./test5 ./test5/sim_at',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'common utils ahbctrl',
   )
