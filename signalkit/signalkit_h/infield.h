@@ -154,7 +154,7 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
         /// @param channel The channel to read from.
         /// @return        The value of the channel.
         TYPE read(const uint32_t &channel) const {
-            typename std::MAP<uint32_t, TYPE>::iterator item =
+            typename std::MAP<uint32_t, TYPE>::const_iterator item =
                     this->m_value.find(channel);
             if(item == this->m_value.end()) {
                //v::error << this->name() << "No value is register to channel number " 

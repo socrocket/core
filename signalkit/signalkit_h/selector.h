@@ -117,6 +117,17 @@ class signal_selector : public signal_base<TYPE, MODULE> ,
             }
         }
 
+        /// Read the value of a signal.
+        ///
+        /// @param channel The channel to be read.
+        virtual TYPE read(const uint32_t &channel) {
+            typename t_map::iterator item = outs.find(channel);
+            if(item!=outs.end()) {
+                return item->second->read();
+            }
+            return TYPE();
+        }
+
         /*
          void operator[](const unsigned int &mask, const TYPE &value) {
          this->write(mask, value)
