@@ -213,11 +213,6 @@ class CIrqmp : public gs::reg::gr_device,
         sc_time   cc;
 
     public:
-        /// power down status of CPUs (1 = power down)
-        inline uint32_t MP_STAT_STAT() const {
-            return (0x00000000 | ncpu);
-        }
-
         //---register address offset
         static const uint32_t IR_LEVEL           = 0x00;
         static const uint32_t IR_PENDING         = 0x04;
@@ -256,6 +251,8 @@ class CIrqmp : public gs::reg::gr_device,
         static const uint32_t IR_CLEAR_IC        = 0xFFFFFFFE;
 
         /// multiprocessor status register
+        /// multiprocessor status register write mask
+        static const uint32_t MP_STAT_WMASK      = 0x0000FFFF;
         /// number of CPUs in the system
         static const uint32_t MP_STAT_NCPU       = 0xF0000000;
 

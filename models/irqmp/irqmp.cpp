@@ -121,8 +121,7 @@ CIrqmp::CIrqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, 
             0x00);
     r.create_register("mpstat", "Multiprocessor Status Register", 0x10,
             gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-                    | gs::reg::FULL_WIDTH, 0x00000000, MP_STAT_NCPU
-                    | MP_STAT_EIRQ | MP_STAT_STAT(), 32, 0x00);
+                    | gs::reg::FULL_WIDTH, 0x00000000, MP_STAT_WMASK, 32, 0x00);
     r.create_register("broadcast", "Interrupt broadcast Register", 0x14,
             gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
                     | gs::reg::FULL_WIDTH, 0x00000000, BROADCAST_BM, 32,
@@ -180,10 +179,6 @@ void CIrqmp::end_of_elaboration() {
 /// Process sensitive to reset signal
 void CIrqmp::onreset(const bool &value, const sc_core::sc_time &time) {
     if(!value) {
-        //mp status register contains ncpu and eirq at bits 31..28 and 19..16 respectively
-        uint32_t stat_ncpu = ncpu << 28;
-        uint32_t stat_eirq = eirq << 16;
-
         //initialize registers with values defined above
         r[IR_LEVEL]   = static_cast<uint32_t>(LEVEL_DEFAULT);
         r[IR_PENDING] = static_cast<uint32_t>(PENDING_DEFAULT);
@@ -191,7 +186,8 @@ void CIrqmp::onreset(const bool &value, const sc_core::sc_time &time) {
             r[IR_FORCE] = static_cast<uint32_t>(FORCE_DEFAULT);
         }
         r[IR_CLEAR] = static_cast<uint32_t>(CLEAR_DEFAULT);
-        r[MP_STAT] = MP_STAT_DEFAULT | stat_ncpu | stat_eirq;
+        //mp status register contains ncpu and eirq at bits 31..28 and 19..16 respectively
+        r[MP_STAT] = MP_STAT_DEFAULT | (ncpu << 28) | (eirq << 16);
         r[BROADCAST] = static_cast<uint32_t>(BROADCAST_DEFAULT);
         for(int cpu = 0; cpu < ncpu; cpu++) {
             r[PROC_IR_MASK(cpu)]  = static_cast<uint32_t>(MASK_DEFAULT);
@@ -287,6 +283,8 @@ void CIrqmp::launch_irq() {
             // If an interrupt is selected send it out to the CPU.
             if(high!=0) {
                 irq_req.write(1 << cpu, std::pair<uint32_t, bool>(0xF & high, true));
+            } else if(irq_req.read(cpu).first!=0) {
+                irq_req.write(1 << cpu, std::pair<uint32_t, bool>(0, false));
             }
         }
     }
@@ -369,6 +367,7 @@ void CIrqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc
 /// reset cpus after write to cpu status register
 /// callback registered on mp status register
 void CIrqmp::mpstat_write() {
+    r[MP_STAT] = MP_STAT_DEFAULT | (ncpu << 28) | (eirq << 16);
     cpu_rst.write(0xFFFFFFFF, true);
 }
 
