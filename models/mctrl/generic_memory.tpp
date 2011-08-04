@@ -99,18 +99,18 @@ transport_dbg(tlm::tlm_generic_payload& gp) {
          for(unsigned int i=0; i<len; i++) {
             *(ptr+i) = readByteDBG(addr + i);
          }
-//          cout << "DEBUG" << name() << "transport_dbg read" << len << ":"
-//               << *(reinterpret_cast<uint32_t*>(ptr)) << "@"
-//               << addr << endl;
+          cout << "DEBUG" << name() << "transport_dbg read" << len << ":"
+               << *(reinterpret_cast<uint32_t*>(ptr)) << "@"
+               << addr << endl;
          return len;
          break;
       case tlm::TLM_WRITE_COMMAND:
          for(unsigned int i=0; i<len; i++) {
             writeByteDBG(addr, *(ptr+i));
          }
-//          cout << "DEBUG" << name() << "transport_dbg write" << len << ":"
-//               << *(reinterpret_cast<uint32_t*>(ptr)) << "@"
-//               << addr << endl;
+          cout << "DEBUG" << name() << "transport_dbg write" << len << ":"
+               << *(reinterpret_cast<uint32_t*>(ptr)) << "@"
+               << addr << endl;
          return len;
          break;
       default:
@@ -163,9 +163,9 @@ read_8(uint32_t address, unsigned char* data_ptr, uint8_t length) {
     //Independent from 8, 16, or 32 bit access, 4 adjacent 8 bit words
     //will be read. Address and length have to be aligned!
     if (length % 4 || address % 4) {
-        v::warn << name() << "Trying to read " << std::dec << (unsigned int) length 
-                << " bytes from address 0x" << std::hex << (unsigned int) address 
-                << " in 16 bit or 8 bit access mode. Check length and alignment." << std::endl;
+        //v::warn << name() << "Trying to read " << std::dec << (unsigned int) length 
+        //        << " bytes from address 0x" << std::hex << (unsigned int) address 
+        //        << " in 16 bit or 8 bit access mode. Check length and alignment." << std::endl;
     }
 
     //processor must take care of consistent memory allocation and length parameter in gp
@@ -181,9 +181,9 @@ read_32(uint32_t address, uint32_t* data_ptr, uint8_t length) {
 
     //processor must take care of consistent memory allocation and length parameter in gp
     if (length % 4 || address % 4) {
-        v::warn << name() << "Trying to read " << std::dec << (unsigned int) length 
-                << " bytes from address 0x" << std::hex << (unsigned int) address 
-                << " in 64 bit or 32 bit access mode. Check length and alignment." << std::endl;
+        //v::warn << name() << "Trying to read " << std::dec << (unsigned int) length 
+        //        << " bytes from address 0x" << std::hex << (unsigned int) address 
+        //        << " in 64 bit or 32 bit access mode. Check length and alignment." << std::endl;
     }
     //after warning, try and return data anyway
     for (int i = 0; i < length / 4; i++) {

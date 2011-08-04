@@ -60,7 +60,7 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                     NULL
             ),
             AHBDevice(
-		    hindex,
+                    hindex,
                     0x04, //vendor: ESA
                     0x0F, //device: MCTRL
                     0,
@@ -70,7 +70,7 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                     BAR(AHBDevice::AHBMEM, _rammask, true, true, _ramaddr),
                     0),
             APBDevice(
-		    pindex,
+                    pindex,
                     0x04, //vendor: ESA
                     0x0F, //device: MCTRL
                     0,
@@ -98,25 +98,25 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             srbanks(_srbanks), ram8(_ram8), ram16(_ram16), sepbus(_sepbus),
             sdbits(_sdbits), mobile(_mobile), sden(_sden) {
 
-  // Display APB slave information
-  v::info << this->name() << "APB slave @" << v::uint32 << apb.get_base_addr() 
-          << " size: " << v::uint32 << apb.get_size() << " byte" << v::endl;
+    // Display APB slave information 
+    v::info << this->name() << "APB slave @" << v::uint32 << apb.get_base_addr() 
+            << " size: " << v::uint32 << apb.get_size() << " byte" << v::endl;
 
-  //check consistency of address space generics
-     //rom space in MByte: 4GB - masked area (rommask)
-     //rom space in Byte: 2^(romasel + 1)
-     //same for ram and sdrasel
-    if(4096 - _rommask   != 1 << (_romasel - 19) ||
-       4096 - _rammask   != 1 << (_sdrasel - 19)) {
+    //check consistency of address space generics
+    //rom space in MByte: 4GB - masked area (rommask)
+    //rom space in Byte: 2^(romasel + 1)
+    //same for ram and sdrasel
+    if(((4096 - _rommask) != (1 << (_romasel - 19))) ||
+       ((4096 - _rammask) != (1 << (_sdrasel - 19)))) {
         v::error << this->name() << "Inconsistent address space parameters. " 
                  << "Check romasel / sdrasel vs. (rom-|ram-)(-addr|-mask)." 
                  << v::endl;
-    } else if(_romaddr < _ioaddr  && _romaddr + 4096 - _rommask > _ioaddr  ||
-              _romaddr < _ramaddr && _romaddr + 4096 - _rommask > _ramaddr ||
-              _ioaddr  < _romaddr && _ioaddr  + 4096 - _iomask  > _romaddr ||
-              _ioaddr  < _ramaddr && _ioaddr  + 4096 - _iomask  > _ramaddr ||
-              _ramaddr < _romaddr && _ramaddr + 4096 - _rammask > _romaddr ||
-              _ramaddr < _ioaddr  && _ramaddr + 4096 - _rammask > _ioaddr) {
+    } else if((_romaddr < _ioaddr)  && ((_romaddr + 4096 - _rommask) > _ioaddr)  ||
+              (_romaddr < _ramaddr) && ((_romaddr + 4096 - _rommask) > _ramaddr) ||
+              (_ioaddr  < _romaddr) && ((_ioaddr  + 4096 - _iomask)  > _romaddr) ||
+              (_ioaddr  < _ramaddr) && ((_ioaddr  + 4096 - _iomask)  > _ramaddr) ||
+              (_ramaddr < _romaddr) && ((_ramaddr + 4096 - _rammask) > _romaddr) ||
+              (_ramaddr < _ioaddr)  && ((_ramaddr + 4096 - _rammask) > _ioaddr)) {
         v::error << this->name() << "Inconsistent address space parameters. "
                  << "Check *addr and *mask for overlaps." << v::endl;
     }
@@ -247,8 +247,7 @@ void Mctrl::end_of_elaboration() {
 }
 
 //function to initialize and reset memory address space constants
-void Mctrl::reset_mctrl(const bool &value,
-                        const sc_time &time) {
+void Mctrl::reset_mctrl(const bool &value, const sc_time &time) {
 
     //low active reset
     if(!value) {
@@ -276,17 +275,19 @@ void Mctrl::reset_mctrl(const bool &value,
                     //enable mobile SDRAM
                     mcfg = static_cast<uint32_t> (r[MCFG4] | MCFG4_ME);
                     r[MCFG4].set(mcfg);
+                    break;
                     // Case 3 would be the same as 2 here, 
                     // the difference being that 3 disables std SDRAM,
                     //i.e. mobile cannot be disabled. 
                     //This will be implemented wherever someone tries to
                     //disable mobile SDRAM.
+                default:
             }
         }
 
         // --- set register values according to generics
         uint32_t set;
-        if (sden) {
+        if(sden) {
             set = r[MCFG2] | MCFG2_SDRF | MCFG2_SE;
             if (sepbus) {
                 set |= sdbits << 18;
@@ -314,7 +315,7 @@ void Mctrl::reset_mctrl(const bool &value,
 
         //SRAM bank size: lower half of RAM address space divided by #banks
         uint32_t sram_bank_size;
-        if (srbanks == 5) { //max 4 banks in lower half
+        if(srbanks == 5) { //max 4 banks in lower half
             sram_bank_size = ((0x1000 - rammask) / 8) << 20;
         } else {
             sram_bank_size = ((4096 - rammask) / (2 * srbanks)) << 20;
@@ -326,11 +327,9 @@ void Mctrl::reset_mctrl(const bool &value,
 
         //write calculated bank sizes into MCFG2
         //SRAM: "0000" --> 8KByte <-- 2^13Byte
-        uint32_t i_sr = 
-            static_cast<uint32_t> (log(sram_bank_size+1) / log(2) - 13);
+        uint32_t i_sr = static_cast<uint32_t>(log(sram_bank_size+1) / log(2) - 13);
         //SDRAM: "000" --> 4MByte <-- 2^22Bte
-        uint32_t i_sdr = 
-            static_cast<uint32_t> (log(sdram_bank_size) / log(2) - 22);
+        uint32_t i_sdr = static_cast<uint32_t>(log(sdram_bank_size) / log(2) - 22);
         set = (MCFG2_DEFAULT & ~MCFG2_RAM_BANK_SIZE & ~MCFG2_SDRAM_BANKSZ) | 
               ((i_sr << 9) & MCFG2_RAM_BANK_SIZE) | 
               ((i_sdr << 23) & MCFG2_SDRAM_BANKSZ);
@@ -352,7 +351,7 @@ void Mctrl::reset_mctrl(const bool &value,
         sdram_bank_size = 1 << (22 + ((r[MCFG2] & MCFG2_SDRAM_BANKSZ) >> 23));
 
         //address spaces in case of SRAM only configuration
-        if (!sden || !(r[MCFG2] & MCFG2_SE)) {
+        if(!sden || !(r[MCFG2] & MCFG2_SE)) {
             //potentially unused banks
             sram_bk2_s = 0;
             sram_bk2_e = 0;
@@ -374,7 +373,7 @@ void Mctrl::reset_mctrl(const bool &value,
             sdram_bk2_s = 0;
             sdram_bk2_e = 0;
 
-        } else if (!(r[MCFG2] & MCFG2_SI)) {
+        } else if(!(r[MCFG2] & MCFG2_SI)) {
         // address spaces in case of SDRAM and SRAM (lower 4 SRAM banks only) 
         // configuration
             // potentially unused banks: constants need to be defined, 
