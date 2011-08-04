@@ -77,7 +77,7 @@ class TimingMonitor {
   static t_timing_map timing_map;
 
   /// Create a new timing record and set starting time
-  static void phase_start_timing(const unsigned int id, const char * name);
+  static void phase_start_timing(const unsigned int id, const char * name = "");
   /// Enter phase finishing time
   static void phase_end_timing(const unsigned int id);
   /// Return simulation time of phase id
