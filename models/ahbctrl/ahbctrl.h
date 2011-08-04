@@ -84,7 +84,7 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
         unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);	
 
 	/// The arbiter thread
-	void ArbitrationThread();
+	void arbitrate_me();
 	
 	/// The data thread
 	void DataThread();
@@ -177,10 +177,6 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 	
 	} slave_info_t;
 
-	/// The internal state of the bus controller (concerning arbitration)
-	enum AHBStateType {INIT, IDLE, BUSY};
-	AHBStateType AHBState;
-
 	/// The round robin pointer
 	unsigned int robin;
 
@@ -189,11 +185,22 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 	/// Iterator for slave map
 	std::map<uint32_t, slave_info_t>::iterator it;
 
-	payload_t nop_trans;
+	payload_t * selected_transaction;
+
+	/// The internal state of the bus controller (concerning arbitration)
+	enum TransStateType {IDLE, PENDING, BUSY};
 
 	/// Keeps track on where the transactions have been coming from
-	typedef std::pair<uint32_t, uint32_t> connection_t;
+	typedef struct {
+
+	  unsigned int master_id;
+	  unsigned int slave_id;
+	  TransStateType state;
+
+	} connection_t;
+
 	std::map<payload_t*, connection_t> pending_map;
+	std::map<payload_t*, connection_t>::iterator pm_itr;
 
 	/// Array of slave device information (PNP)
 	const uint32_t *mSlaves[64];

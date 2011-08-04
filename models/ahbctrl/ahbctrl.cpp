@@ -76,7 +76,6 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       mfixbrst(fixbrst),
       mfpnpen(fpnpen),
       mmcheck(mcheck),
-      AHBState(INIT),
       robin(0),
       mArbiterPEQ("ArbiterPEQ"),
       mRequestPEQ("RequestPEQ"),
@@ -101,29 +100,26 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
     // Register tlm non blocking transport backward path
     ahbOUT.register_nb_transport_bw(this, &AHBCtrl::nb_transport_bw, 0);
 
-    amba::amba_trans_type * trans_typ;
-    ahbIN.get_extension<amba::amba_trans_type> (trans_typ, nop_trans);
-    trans_typ->value = amba::IDLE;
-    ahbIN.validate_extension<amba::amba_trans_type> (nop_trans);
-    
+    // Register arbiter thread
+    SC_THREAD(arbitrate_me);
+
+    // Register request thread
+    SC_THREAD(RequestThread);
+
+    // Register data thread
+    SC_THREAD(DataThread);
+
+    SC_THREAD(EndData);
+
+    // Register response thread
+    SC_THREAD(ResponseThread);
+
+    selected_transaction = NULL;
+
   }
 
   // Register debug transport
   ahbIN.register_transport_dbg(this, &AHBCtrl::transport_dbg);
-
-  // Register arbiter thread
-  SC_THREAD(ArbitrationThread);
-
-  // Register request thread
-  SC_THREAD(RequestThread);
-
-  // Register data thread
-  SC_THREAD(DataThread);
-
-  SC_THREAD(EndData);
-
-  // Register response thread
-  SC_THREAD(ResponseThread);
 
 }
 
@@ -316,8 +312,9 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
 
     // Memorize the master this was coming from
     // The slave info (second) will be filled in after decoding
-    connection.first = master_id;
-    connection.second = 0;
+    connection.master_id = master_id;
+    connection.slave_id  = 0;
+    connection.state     = PENDING;
 
     addPendingTransaction(trans, connection);
 
@@ -392,108 +389,53 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(uint32_t id, tlm::tlm_generic_payloa
 // If multiple masters request permission at the some simulation time,
 // the one with the highest priority or the one pointed by the
 // round 'robin' counter is select. All others get delayed.
-void AHBCtrl::ArbitrationThread() {
+void AHBCtrl::arbitrate_me() {
 
   connection_t connection;
-  int grand_id, master_id;
-  payload_t* trans; 
-  payload_t* selected_transaction = NULL;
-
+  int grand_id;
+  
+  wait(1,SC_PS);
 
   while(1) {
 
-    // Wait for the next scheduled transaction
-    wait(mArbiterPEQ.get_event());
+    wait(clockcycle);
 
-    v::info << name() << "Arbiter activated" << v::endl;
+    grand_id = -1;
 
     // Increment round robin pointer
     robin=(robin++)%(num_of_master_bindings-1);
 
-    // Default: bus not granted
-    grand_id = -1;
+    for(pm_itr = pending_map.begin(); pm_itr != pending_map.end(); pm_itr++) {
 
-    // There may be multiple transactions (from multiple masters)
-    // scheduled at the same time.
-    while ((trans = mArbiterPEQ.get_next_transaction())!=0) {
+      connection = pm_itr->second;
 
-      v::info << name() << "Arbiter checks transaction " << hex << trans << v::endl;
+      if (((int)connection.master_id) >= grand_id) {
 
-      // Check if the bus is still busy
-      if (AHBState==BUSY) {
+	// make sure same transaction is not arbitrated twice
+	if (connection.state == PENDING) {
 
-	v::info << name() << "Arbiter - Push back trans " << hex << trans << v::endl;
+	  selected_transaction = pm_itr->first;
+	  grand_id = connection.master_id;
 
-	// Add one cycle of delay to transaction and throw back to PEQ
-	mArbiterPEQ.notify(*trans, clockcycle);
+	  v::debug << name() << "Arbiter selects master " << grand_id << " (Trans. " << hex << selected_transaction << ")" << v::endl;
 
-      } else {
-
-	// Get master id of transaction
-	connection = pending_map[trans];
-	master_id = connection.first;
-
-	// Fixed priority arbitration
-	if (mrrobin==0) {
-
-	  // The master with the highest id has the highest priority
-	  if (master_id > grand_id) {
-
-	    v::info << name() << "Arbiter - New selected transaction: " << hex << trans << "(old was " << selected_transaction << ")" << v::endl;
-
-	    // Throw back previously selected transaction
-	    if (grand_id > -1) mArbiterPEQ.notify(*selected_transaction, clockcycle);
-
-	    // Current transaction is new selected transaction
-	    selected_transaction = trans;
-	    grand_id = master_id;
-
-	  } else {
-
-	    v::info << name() << "Arbieter - Push back trans " << hex << trans << "(" << hex << selected_transaction << " still sel trans)" << v::endl;
-
-	    // Throw back transaction (priority not high enough)
-	    mArbiterPEQ.notify(*trans, clockcycle);
-
-	  }
-  
-	// Round robin
-	} else {
-
-	  // The id matching the 'robin' pointer is granted
-	  if (master_id == (int)robin) { 
-
-	    selected_transaction = trans;
-	    grand_id = master_id;
-
-	  // All other transactions get delayed
-	  } else {
-
-	    mArbiterPEQ.notify(*trans, clockcycle-sc_time(1,SC_PS));
-
-	  }
 	}
       }
     }
 
-    // Is there a winner?
-    if (grand_id != -1) { 
+    // There is a winner
+    if (grand_id > -1) {
 
-      v::info << name() << "Master " << grand_id << " has won arbitration." << v::endl; 
+      connection = pending_map[selected_transaction];
+      connection.state = BUSY;
+      pending_map[selected_transaction] = connection;
 
-      // Block all masters
-      //AHBState = BUSY;
-
-      // Enter new transaction in pipeline
-      mRequestPEQ.notify(*selected_transaction);
-
-    } else {
-
-      v::info << name() << "Arbiter did not find arbitration" << v::endl;
+      mRequestPEQ.notify(*selected_transaction,clockcycle-sc_time(1,SC_PS));
 
     }
   }
 }
+
 
 // The RequestThread is activated by the ArbitrationThread
 // when a master has won arbitration. It takes care about
@@ -516,6 +458,9 @@ void AHBCtrl::RequestThread() {
     // Get transaction from request PEQ
     trans = mRequestPEQ.get_next_transaction();
     assert(trans != NULL);
+
+    // Read connection info
+    connection = pending_map[trans];
 
     // Extract address from payload
     unsigned int addr       = trans->get_address();
@@ -543,8 +488,7 @@ void AHBCtrl::RequestThread() {
       if (index >= 0) {
 
 	// Add slave id to connection info
-	connection = pending_map[trans];
-	connection.second = slave_id;
+	connection.slave_id = slave_id;
 	pending_map[trans] = connection;
 
 	// Send BEGIN_REQ to slave
@@ -565,7 +509,7 @@ void AHBCtrl::RequestThread() {
 
 	} else {
 
-	  wait(clockcycle + delay);
+	  wait(delay);
 
 	}
       }
@@ -574,9 +518,9 @@ void AHBCtrl::RequestThread() {
     // Send END_REQ to the master
     phase = tlm::END_REQ;
 	  
-    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
+    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << "(" << connection.master_id << ")" << v::endl;
 
-    status = ahbIN[connection.first]->nb_transport_bw(*trans, phase, delay);
+    status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
 
     assert(status == tlm::TLM_ACCEPTED);    
 
@@ -621,26 +565,24 @@ void AHBCtrl::DataThread() {
 
       v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 
-      status = ahbOUT[connection.second]->nb_transport_fw(*trans, phase, delay);
+      status = ahbOUT[connection.slave_id]->nb_transport_fw(*trans, phase, delay);
 
       assert((status == tlm::TLM_ACCEPTED)||(status == tlm::TLM_UPDATED));
 
       wait(delay);
 
+      // Broadcast master_id, write address and length for snooping
+      // ----------------------------------------------------------
+      v::debug << name() << "Broadcast snooping info!" << v::endl;
+
+      snoopy.master_id = connection.master_id;
+      snoopy.address   = addr;
+      snoopy.length    = trans->get_data_length();
+
+      // Broadcast snoop information
+      snoop.write(snoopy);
+      // ----------------------------------------------------------
     }
-
-    // Broadcast master_id, write address and length for snooping
-    // ----------------------------------------------------------
-    v::debug << name() << "Broadcast snooping info!" << v::endl;
-
-    snoopy.master_id = connection.first;
-    snoopy.address   = addr;
-    snoopy.length    = trans->get_data_length();
-
-    // Broadcast snoop information
-    snoop.write(snoopy);
-    // ----------------------------------------------------------
-
   }
 }
 
@@ -657,8 +599,10 @@ void AHBCtrl::EndData() {
     wait(mEndDataPEQ.get_event());
 
     trans = mEndDataPEQ.get_next_transaction();
-
     assert(trans!=NULL);
+
+    // read connection info
+    connection = pending_map[trans];
 
     // Send END_DATA to master
     phase = amba::END_DATA;
@@ -666,7 +610,7 @@ void AHBCtrl::EndData() {
 
     v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
 
-    status = ahbIN[connection.first]->nb_transport_bw(*trans, phase, delay);
+    status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
 
     assert((status == tlm::TLM_ACCEPTED)||(status == tlm::TLM_COMPLETED));
 
@@ -676,6 +620,7 @@ void AHBCtrl::EndData() {
     v::debug << name() << "Remove transaction from pending_map." << v::endl;
 
     pending_map.erase(trans);
+
   }
 
 }
@@ -740,7 +685,7 @@ void AHBCtrl::ResponseThread() {
     v::debug << name() << "Call to nb_transport_bw with phase " << phase << v::endl; 
 
     // Call nb_transport_bw of master
-    status = ahbIN[connection.first]->nb_transport_bw(*trans, phase, delay);
+    status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
 
     assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_UPDATED)||(status==tlm::TLM_COMPLETED));
 
@@ -758,7 +703,7 @@ void AHBCtrl::ResponseThread() {
       delay = SC_ZERO_TIME;
 
       // Call nb_transport_fw of slave
-      status = ahbOUT[connection.second]->nb_transport_fw(*trans, phase, delay);
+      status = ahbOUT[connection.slave_id]->nb_transport_fw(*trans, phase, delay);
 
       assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_COMPLETED));
 
@@ -874,9 +819,6 @@ void AHBCtrl::start_of_simulation() {
     }
 
     v::info << name() << "******************************************************************************* " << v::endl;
-
-    // Now ready for action
-    AHBState = IDLE;
 
   }
 
