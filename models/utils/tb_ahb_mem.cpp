@@ -79,7 +79,7 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
                     ambaLayer, // abstraction level
                     false // is arbiter
             ),
-            peq("peq"),
+            mTransactionPEQ("TransactionPEQ"),
             ahbBaseAddress(static_cast<uint32_t> (hmask_ & haddr_) << 20),
             ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1), hmask(
                     static_cast<uint32_t> (hmask_ << 20)), haddr(
@@ -89,7 +89,7 @@ Ctb_ahb_mem::Ctb_ahb_mem(const sc_core::sc_module_name nm, // Module name
             clockcycle(10.0, sc_core::SC_NS) {
 
     // haddr and hmask must be 12 bit
-  assert(!((mhaddr|mhmask)>>12));
+    assert(!((mhaddr|mhmask)>>12));
 
     // Display AHB slave information
     v::info << name() << "********************************************************************" << v::endl;
@@ -131,14 +131,14 @@ Ctb_ahb_mem::~Ctb_ahb_mem() {
 } 
 
 /// TLM blocking transport function
-void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
+void Ctb_ahb_mem::b_transport(tlm::tlm_generic_payload &trans,
                               sc_core::sc_time &delay) {
 
   // Is the address for me
-  if(!((mhaddr ^ (gp.get_address() >> 20)) & mhmask)) {
+  if(!((mhaddr ^ (trans.get_address() >> 20)) & mhmask)) {
 
     // warn if access exceeds slave memory region
-    if((gp.get_address() + gp.get_data_length()) >
+    if((trans.get_address() + trans.get_data_length()) >
 
       (ahbBaseAddress + ahbSize)) {
        v::warn << name() << "Transaction exceeds slave memory region" << endl;
@@ -150,14 +150,31 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
     // reset timing
     delay = sc_core::SC_ZERO_TIME;
 
-    if(!execCmd(gp, delay)) {
+    if (trans.get_command() == tlm::TLM_WRITE_COMMAND) {
 
-      gp.set_response_status(tlm::TLM_OK_RESPONSE);
+      for(uint32_t i = 0; i < trans.get_data_length(); i++) {
+	    
+	v::debug << name() << "Write with address: " << hex << trans.get_address() + i << " and data: " << hex << (unsigned int)*(trans.get_data_ptr() + i) << v::endl;
+
+	// write simulation memory
+        mem[trans.get_address() + i] = *(trans.get_data_ptr() + i);
+
+      }
+
+      trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
     } else {
 
-       v::error << name() << "Received unknown command." << endl;
-       gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+      for(uint32_t i = 0; i < trans.get_data_length(); i++) {
+       
+	v::debug << name() << "Read with address: " << hex << trans.get_address() + i << " to return: " << hex << (unsigned int)mem[trans.get_address() + i] << v::endl;
+
+	// read simulation memory
+	*(trans.get_data_ptr() + i) = mem[trans.get_address() + i];
+        
+      }
+
+      trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
     }
 
@@ -165,172 +182,111 @@ void Ctb_ahb_mem::b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
   } else {
 
     v::error << name() << "Address not within permissable slave memory space" << v::endl;
-    gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+    trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
 
   }
 }
 
-/// TLM non blocking transport function
-tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(unsigned int id, tlm::tlm_generic_payload& gp,
-                                                tlm::tlm_phase& phase, sc_core::sc_time& delay) {
+tlm::tlm_sync_enum Ctb_ahb_mem::nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay) {
 
-    // New Request
-    if(phase==tlm::BEGIN_REQ) {
-       // Check address for before doing anything else
-       if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
-           // warn if access exceeds slave memory region
-           if((gp.get_address() + gp.get_data_length()) >
-              (ahbBaseAddress + ahbSize)) {
-               v::warn << name() << "Transaction exceeds slave memory region"
-                       << endl;
-           }
+  v::debug << name() << "nb_transport_fw received transaction " << hex << &trans << " with phase: " << phase << v::endl;
 
-           // Complete transcation
-           if(delay == sc_core::SC_ZERO_TIME) {
-              if(!execCmd(gp, delay)) {
-                 gp.set_response_status(tlm::TLM_OK_RESPONSE);
-              } else {
-                 v::warn << name() << "Received unknown command." << endl;
-                 gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-              }
-              return tlm::TLM_COMPLETED;
-           // or queue until delay passed by
-           } else {
-              peq.notify(gp, delay);
-              return tlm::TLM_ACCEPTED;
-           }
-       } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
-    } else if(phase==tlm::END_RESP) {
-       // notify waiting thread
-       e_continueTXN.notify();
-       return tlm::TLM_COMPLETED;
+  // The master has sent BEGIN_REQ
+  if (phase == tlm::BEGIN_REQ) {
+
+    // Writes have to wait for BEGIN_DATA
+    if (trans.get_command() == tlm::TLM_READ_COMMAND) {
+
+      mTransactionPEQ.notify(trans,delay);
+
     }
-    
-    v::warn << name() << "Invalid phase received." << endl;
-    gp.set_response_status(tlm::TLM_GENERIC_ERROR_RESPONSE);
-    return tlm::TLM_COMPLETED;
 
+    phase = tlm::END_REQ;
+    delay = SC_ZERO_TIME;
+    return(tlm::TLM_UPDATED);
+
+  } else if (phase == amba::BEGIN_DATA) {
+
+    mTransactionPEQ.notify(trans,delay);
+
+  } else if (phase == tlm::END_RESP) {
+
+    // nothing to do
+
+  } else {
+
+    v::error << name() << "Invalid phase in call to nb_transport_fw!" << v::endl;
+    trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+
+  }
+
+  return(tlm::TLM_ACCEPTED);
 }
 
-/// Thread processing transactions when they emerge from the payload event
-/// queue
 void Ctb_ahb_mem::processTXN() {
 
-   sc_core::sc_event& e_newTXN = peq.get_event();
-   tlm::tlm_generic_payload* gp;
-   tlm::tlm_phase phase;
-   sc_core::sc_time delay;
+  tlm::tlm_phase phase;
+  sc_core::sc_time delay;
+  tlm::tlm_sync_enum status;
 
-   while(1) {
-      // wait for TXN emerge from queue
-      wait(e_newTXN);
-      gp = peq.get_next_transaction();
-      while(gp != NULL) {
-         phase = tlm::BEGIN_RESP;
-         delay = sc_core::SC_ZERO_TIME;
+  tlm::tlm_generic_payload * trans;
 
-         if(!execCmd(*gp, delay)) {
-            gp->set_response_status(tlm::TLM_OK_RESPONSE);
-         } else {
-            v::warn << name() << "Received unknown command." << endl;
-            gp->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-         }
-         if(ahb->nb_transport_bw(*gp, phase, delay) == tlm::TLM_ACCEPTED) {
-            wait(e_continueTXN);
-         }
+  while(1) {
 
-         // get next TXN
-         gp = peq.get_next_transaction();
-      }
-   }
-}
+    wait(mTransactionPEQ.get_event());
 
-/// Method executing read/write commands
-bool Ctb_ahb_mem::execCmd(tlm::tlm_generic_payload& gp, sc_core::sc_time& delay) {
+    while((trans = mTransactionPEQ.get_next_transaction())) {
 
-   // if a byte enable array is present its length must not be zero
-   unsigned char *byteEnablePtr  = gp.get_byte_enable_ptr();
-   unsigned int byteEnableLength = gp.get_byte_enable_length();
+      v::debug << name() << "Process transaction " << hex << trans << v::endl;
 
-   assert((byteEnableLength != 0) || (byteEnablePtr == NULL));
+      if (trans->get_command() == tlm::TLM_WRITE_COMMAND) {
 
-   if(gp.is_read()) {
-     
-     // Exec read command
-     if(byteEnablePtr != NULL) {
-     
-       // Use byte enable
-       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-       
-	 if(byteEnablePtr[i % byteEnableLength] == TLM_BYTE_ENABLED) {
-
-	   // read simulation memory
-	   *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
-         }
-
-	 // one cycle delay per memory access
-	 delay += clockcycle;
-       }
-
-     } else {
-     
-       // no byte enable
-       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-       
-	 v::debug << name() << "Read with address: " << hex << gp.get_address() + i << " to return: " << hex << (unsigned int)mem[gp.get_address() + i] << v::endl;
-
-	 // read simulation memory
-	 *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
-
-	 // one cycle delay per memory access
-	 delay += clockcycle;
-         
-       }
-     }
-     
-     v::debug << name() << "Read done - return" << v::endl;
-     return 0;
-
-   } else {
-
-     // Exec write command
-     if(byteEnablePtr != NULL) {
-     
-       // Use byte enable
-       for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-       
-	 if (byteEnablePtr[i % byteEnableLength] == TLM_BYTE_ENABLED) {
-
-	   // write simulation memory
-           mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
-
-	   // one cycle delay per memory access
-	   delay += clockcycle;
-
-         }
-       }
-
-     } else {
-
-        // no byte enable
-        for(uint32_t i = 0; i < gp.get_data_length(); i++) {
+        for(uint32_t i = 0; i < trans->get_data_length(); i++) {
 	    
-	  v::debug << name() << "Write with address: " << hex << gp.get_address() + i << " and data: " << hex << (unsigned int)*(gp.get_data_ptr() + i) << v::endl;
+	  v::debug << name() << "Write with address: " << hex << trans->get_address() + i << " and data: " << hex << (unsigned int)*(trans->get_data_ptr() + i) << v::endl;
 
 	  // write simulation memory
-          mem[gp.get_address() + i] = *(gp.get_data_ptr() + i);
-
-	  // one cycle delay per memory access
-	  delay += clockcycle;
+          mem[trans->get_address() + i] = *(trans->get_data_ptr() + i);
 
         }
-     }  
 
-     v::debug << name() << "Write done - return" << v::endl;
-     return 0;
+        // Send END_DATA
+        phase = amba::END_DATA;
+        delay = clockcycle * (trans->get_data_length() >> 2);
 
-   }
-   return 1;
+	v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << " (delay: " << delay << ")" << v::endl;
+
+        trans->set_response_status(tlm::TLM_OK_RESPONSE);
+
+        status = ahb->nb_transport_bw(*trans, phase, delay);
+
+	assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_COMPLETED));
+
+      } else {
+
+        for(uint32_t i = 0; i < trans->get_data_length(); i++) {
+       
+	  v::debug << name() << "Read with address: " << hex << trans->get_address() + i << " to return: " << hex << (unsigned int)mem[trans->get_address() + i] << v::endl;
+
+	  // read simulation memory
+	  *(trans->get_data_ptr() + i) = mem[trans->get_address() + i];
+        
+        }
+
+        // Send BEGIN_RESP
+        phase = tlm::BEGIN_RESP;
+        delay = clockcycle * (trans->get_data_length() >> 2);
+
+	v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << " (delay: " << delay << ")" << v::endl; 
+
+        trans->set_response_status(tlm::TLM_OK_RESPONSE);
+
+        status = ahb->nb_transport_bw(*trans, phase, delay);
+
+	assert(status==tlm::TLM_ACCEPTED);
+      }
+    }
+  }
 }
 
 /// Method to initialize memory contents from a text file
@@ -526,7 +482,7 @@ int Ctb_ahb_mem::dumpmem(const char outfile_[]) {
 } // int tb_ahb_mem::dumpmem(char outfile_[])
 
 // TLM debug interface
-unsigned int Ctb_ahb_mem::transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp) {
+unsigned int Ctb_ahb_mem::transport_dbg(tlm::tlm_generic_payload &gp) {
     // Check address befor before doing anything else
     if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
         // warn if access exceeds slave memory region

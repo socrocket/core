@@ -76,7 +76,7 @@ class Ctb_ahb_mem : public sc_module,
         ~Ctb_ahb_mem();
 
         /// AMBA slave socket
-        amba::amba_slave_socket<32, 0> ahb;
+        amba::amba_slave_socket<32> ahb;
 
         /// @brief Method to read memory contents from a text file
         /// @param infile File name of a text file to initialize the memory from
@@ -90,15 +90,15 @@ class Ctb_ahb_mem : public sc_module,
         int dumpmem(const char outfile_[]);
 
         /// TLM blocking transport function
-        void b_transport(unsigned int id, tlm::tlm_generic_payload &gp,
+        void b_transport(tlm::tlm_generic_payload &trans,
                          sc_core::sc_time &delay);
 
         /// TLM non blocking transport function
-        tlm::tlm_sync_enum nb_transport_fw(unsigned int id, tlm::tlm_generic_payload& gp,
+        tlm::tlm_sync_enum nb_transport_fw(tlm::tlm_generic_payload& trans,
                                            tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
         /// TLM debug interface
-        unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);
+        unsigned int transport_dbg(tlm::tlm_generic_payload& gp);
 
         /// @brief Delete memory content
         void clear_mem() {
@@ -137,16 +137,9 @@ class Ctb_ahb_mem : public sc_module,
         /// Thread processign transactions when they emerge from the PEQ
         void processTXN();
 
-        /// @brief Method executing read/write commands
-        /// @param gp Generic payload object to process
-        /// @return 0 When read/write executed, 1 on unknown command
-        bool execCmd(tlm::tlm_generic_payload& gp, sc_core::sc_time& delay);
-
-        sc_core::sc_event e_continueTXN;
-
         /// Payload event queue. Transactions accompanied with a non-zero
         /// delay argument are queued here in case of AT abstraction level.
-        tlm_utils::peq_with_get<tlm::tlm_generic_payload> peq;
+        tlm_utils::peq_with_get<tlm::tlm_generic_payload> mTransactionPEQ;
 
         /// AHB slave base address and size
         const uint32_t ahbBaseAddress;
