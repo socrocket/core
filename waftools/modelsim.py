@@ -431,11 +431,12 @@ def modelsim_vcom(self, node):
 def modelsim_vlog(self, node):
   """Create a vlog_task on each v file and ensure the order"""
   if 'modelsim' in self.features and Options.options.modelsim and self.env["MODELSIM"]:
+    tgt = self.path.find_or_declare(os.path.join(targetdir(self.target),node.name + ".hdo"))
     tsks = [n for n in self.tasks if n.name in ['vcom', 'vlog']]
-    tsk = self.create_task('vlog', [node])
+    tsk = self.create_task('vlog', [node], [tgt])
     tsk.env = self.env
     if tsks:
-      tsk.run_after.add(tsks[-1])
+      tsk.set_inputs(tsks[-1].outputs[0])
 
     #tsk.dep_nodes += self.mdeps
 
@@ -517,21 +518,15 @@ def make_extest(self):
     if getattr(self , 'ut_param', None):
       param = getattr(self, 'ut_param', None)
       for p in param:
-        print "Param", p, self
         from waflib import Errors
         try:
           t = self.bld.get_tgen_by_name(p)
-          print dir(t.tasks), t.tasks
           node = t.path.find_or_declare(p)
           par.append(node.abspath())
           deps.append(node)
-          print "Dep"
         except Errors.WafError:
           par.append(p)
-          print "Text"
-    print "create utest"
     test = self.create_task('utest', self.link_task.outputs + deps)
-    print "Test Exec: ", par
     test.ut_exec = par
 
 from waflib.TaskGen import feature,after_method
