@@ -183,6 +183,7 @@ int sc_main(int argc, char** argv) {
 		        //conf_mmu_cache_mask,          // The 12bit AHB area address mask
             //conf_mmu_cache_dsu,           // Enable debug support unit interface
             CACHE_MASTER_ID,                // - id of the AHB master
+            false,                          // Power Monitor
 	          amba::amba_LT                   // LT abstraction
     );
     
