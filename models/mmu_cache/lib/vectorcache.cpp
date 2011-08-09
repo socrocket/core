@@ -197,10 +197,8 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 
         // extract index and tag from address
         unsigned int tag = (address >> (m_idx_bits + m_offset_bits));
-        unsigned int idx = ((address << m_tagwidth) >> (m_tagwidth
-                + m_offset_bits));
-        unsigned int offset = ((address << (32 - m_offset_bits)) >> (32
-                - m_offset_bits));
+        unsigned int idx = ((address << m_tagwidth) >> (m_tagwidth + m_offset_bits));
+        unsigned int offset = ((address << (32 - m_offset_bits)) >> (32 - m_offset_bits));
         unsigned int byt = (address & 0x3);
 
         // space for data to refill a cache line of maximum size
@@ -263,7 +261,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
             }
         }
 
-	for (int i=0;i<=m_sets;i++) {
+	for (unsigned int i=0;i<=m_sets;i++) {
 
 	    // Power Monitor: parallel read of all cache sets (1 cycle)
 	    sprintf(buf,"set_read%d",i);
@@ -300,7 +298,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 	    // Access ahb interface or mmu - return true if data is cacheable
             if (m_tlb_adaptor->mem_read(((address >> 2) << 2), ahb_data, burst_len, t, debug)) {
 
-	      // check for unvalid data which can be replaced without harm
+	      // Check for unvalid data which can be replaced without harm
 	      for (unsigned int i = 0; i <= m_sets; i++) {
 
                 if ((((*m_current_cacheline[i]).tag.valid) & offset2valid(offset)) == 0) {
@@ -425,8 +423,8 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
         v::debug << this->name() << "BYPASS read from address: " << hex
                 << address << v::endl;
 
-        // cache is disabled
-        // forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
+        // Cache is disabled
+        // Forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
         m_mmu_cache->mem_read(address, data, len, t, debug);
 
         // update debug information

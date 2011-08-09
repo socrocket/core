@@ -71,8 +71,8 @@ ahbctrl_test::ahbctrl_test(sc_core::sc_module_name name,
   m_inter(inter),
   m_abstractionLayer(abstractionLayer),
   mResponsePEQ("ResponsePEQ"), 
-  mDataPEQ("mDataPEQ"), 
-  mEndTransactionPEQ("mEndTransactionPEQ") {
+  mDataPEQ("DataPEQ"), 
+  mEndTransactionPEQ("EndTransactionPEQ") {
 
   // Calculate address bound for random instruction generation
   // from haddr/hmask
@@ -134,8 +134,8 @@ tlm::tlm_sync_enum ahbctrl_test::nb_transport_bw(tlm::tlm_generic_payload &trans
   if (phase == tlm::END_REQ) {
 
     // Usually the slave would send TLM_UPDATED/END_REQ
-    // on the return path. In case it does not notify
-    // ahbwrite that request phase is over.
+    // on the return path. In case END_REQ comes via backward path,
+    // notify ahbwrite that request phase is over.
     mEndRequestEvent.notify();
 
     // For writes there will be no BEGIN_RESP.
@@ -153,7 +153,7 @@ tlm::tlm_sync_enum ahbctrl_test::nb_transport_bw(tlm::tlm_generic_payload &trans
   } else if (phase == tlm::BEGIN_RESP) {
 
     // Notify ahbread for returning control to user
-    //mEndRequestEvent.notify(delay);
+    //mEndRequestEvent.notify();
 
     // Put new reponse into ResponsePEQ
     mResponsePEQ.notify(trans, delay);
@@ -193,36 +193,30 @@ void ahbctrl_test::ahbread(unsigned int addr, unsigned char * data, unsigned int
   // Initialize transaction
   trans->set_command(tlm::TLM_READ_COMMAND);
   trans->set_address(addr);
+  trans->set_data_length(length);
   trans->set_data_ptr(data);
   trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
-  trans->set_data_length(length);
 
-  // Set the burst size
+  // Set burst size extension
   amba::amba_burst_size* size_ext;
   ahb.validate_extension<amba::amba_burst_size> (*trans);
   ahb.get_extension<amba::amba_burst_size> (size_ext, *trans);
-    
-  if (length < 4) {
+  size_ext->value = (length < 4) ? length : 4;  
 
-    size_ext->value = length;
-
-  } else {
-
-    size_ext->value = 4;
-
-  }
-
-  // Set id extension
+  // Set master id extension
   amba::amba_id* m_id;
+  ahb.validate_extension<amba::amba_id> (*trans);
   ahb.get_extension<amba::amba_id> (m_id, *trans);
   m_id->value = m_master_id;
-  ahb.validate_extension<amba::amba_id> (*trans);
 
   // Set transfer type extension
   amba::amba_trans_type * trans_ext;
+  ahb.validate_extension<amba::amba_trans_type> (*trans);
   ahb.get_extension<amba::amba_trans_type> (trans_ext, *trans);
   trans_ext->value = amba::NON_SEQUENTIAL;
-  ahb.validate_extension<amba::amba_trans_type> (*trans);
+
+  // Init delay
+  delay = SC_ZERO_TIME;
 
   if (m_abstractionLayer == amba::amba_LT) {
 
@@ -233,9 +227,8 @@ void ahbctrl_test::ahbread(unsigned int addr, unsigned char * data, unsigned int
 
     // Initial phase for AT
     phase = tlm::BEGIN_REQ;
-    delay = SC_ZERO_TIME;
 
-    v::debug << name() << "Transaction " << hex << trans << " calls nb_transport_fw with phase " << phase << v::endl;
+    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 
     // Non-blocking transport
     status = ahb->nb_transport_fw(*trans, phase, delay);
@@ -248,30 +241,20 @@ void ahbctrl_test::ahbread(unsigned int addr, unsigned char * data, unsigned int
 	if (phase == tlm::BEGIN_REQ) {
 
 	  // The slave returned TLM_ACCEPTED.
-	  // We wait until BEGIN_RESP before giving control
+	  // Wait until END_REQ before giving control
 	  // to the user (for sending next transaction).
-	  // The transport_bw function will handle END_REQ.
-
-	  v::debug << name() << "Waiting for EndRequestEvent" << v::endl;
 
 	  wait(mEndRequestEvent);
-
-	  v::debug << name() << "Received EndRequestEvent" << v::endl;
-
+	  
 	} else if (phase == tlm::END_REQ) {
 
-	  // In the default case the slave will return
-	  // TLM_UPDATED/END_REQ.
-	  // We wait until BEGIN_RESP comes in on the backward path
+	  // The slave returned TLM_UPDATED with END_REQ.
+	  // Wait until BEGIN_RESP comes in on the backward path
 	  // and then return control to the user (for putting next
 	  // transaction into pipeline).
 
-	  //v::debug << name() << "Waiting for BeginResponseEvent" << v::endl;
-	  
 	  wait(mEndRequestEvent);
-
-	  //v::debug << name() << "Received BeginResponseEvent" << v::endl;
-
+	  
 	} else if (phase == tlm::BEGIN_RESP) {
 
 	  // Slave directly jumped to BEGIN_RESP.
@@ -292,7 +275,7 @@ void ahbctrl_test::ahbread(unsigned int addr, unsigned char * data, unsigned int
 
 	// Slave directly jumps to TLM_COMPLETED (Pseudo AT).
 	// Don't send END_RESP
-	//wait(delay);
+	// wait(delay);
 
 	break;
       
@@ -321,36 +304,30 @@ void ahbctrl_test::ahbwrite(unsigned int addr, unsigned char * data, unsigned in
   // Initialize transaction
   trans->set_command(tlm::TLM_WRITE_COMMAND);
   trans->set_address(addr);
+  trans->set_data_length(length);
   trans->set_data_ptr(data);
   trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
-  trans->set_data_length(length);
 
-  // Set the burst size
+  // Set burst size extension
   amba::amba_burst_size* size_ext;
   ahb.validate_extension<amba::amba_burst_size> (*trans);
   ahb.get_extension<amba::amba_burst_size> (size_ext, *trans);
+  size_ext->value = (length < 4)? length : 4;
 
-  if (length < 4) {
-
-    size_ext->value = length;
-
-  } else {
-
-    size_ext->value = 4;
-
-  }
-
-  // Set id extension
+  // Set master id extension
   amba::amba_id* m_id;
+  ahb.validate_extension<amba::amba_id> (*trans);
   ahb.get_extension<amba::amba_id> (m_id, *trans);
   m_id->value = m_master_id;
-  ahb.validate_extension<amba::amba_id> (*trans);
 
   // Set transfer type extension
   amba::amba_trans_type * trans_ext;
+  ahb.validate_extension<amba::amba_trans_type> (*trans);
   ahb.get_extension<amba::amba_trans_type> (trans_ext, *trans);
   trans_ext->value = amba::NON_SEQUENTIAL;
-  ahb.validate_extension<amba::amba_trans_type> (*trans);
+
+  // Initialize delay
+  delay = SC_ZERO_TIME;
 
   if (m_abstractionLayer == amba::amba_LT) {
 
@@ -361,7 +338,6 @@ void ahbctrl_test::ahbwrite(unsigned int addr, unsigned char * data, unsigned in
 
     // Initial phase for AT
     phase = tlm::BEGIN_REQ;
-    delay = SC_ZERO_TIME;
 
     v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 
@@ -375,21 +351,14 @@ void ahbctrl_test::ahbwrite(unsigned int addr, unsigned char * data, unsigned in
 
 	if (phase == tlm::BEGIN_REQ) {
 
-	  // The slave returned TLM_ACCEPTED.
-	  // We wait until END_REQ before starting the DATA Phase.
+	  // The slave returned TLM_ACCEPTED
+	  // Wait until END_REQ comes in on backward path
+	  // before starting DATA phase.
 	  wait(mEndRequestEvent);
 
 	} else if (phase == tlm::END_REQ) {
 
-	  // In the default case the slave will return
-	  // TLM_UPDATED/END_REQ.
-	  // Initialize Data Phase and return control to user (for sending next transaction).
-
-
-	} else if (phase == tlm::BEGIN_RESP) {
-
-	  // This should never happen for a write operation.
-	  // Go straight to Data Phase.
+	  // The slave returned TLM_UPDATED with END_REQ
 
 	} else if (phase == amba::END_DATA) {
 
@@ -580,6 +549,7 @@ void ahbctrl_test::snoopingCallBack(const t_snoop & snoop, const sc_core::sc_tim
   }
 }
 
+// Thread for data phase processing in write operations (sends BEGIN_DATA)
 void ahbctrl_test::DataThread() {
 
   tlm::tlm_generic_payload* trans;
@@ -591,12 +561,12 @@ void ahbctrl_test::DataThread() {
 
     //v::debug << name() << "Data thread waiting for new data phase." << v::endl;
 
-    // Wait for new data phase (inserted in transport_bw)
+    // Wait for new data phase
     wait(mDataPEQ.get_event());
 
     //v::debug << name() << "DataPEQ Event" << v::endl;
 
-    // Get transaction from Queue
+    // Get transaction from PEQ
     trans = mDataPEQ.get_next_transaction();
 
     // Prepare BEGIN_DATA
@@ -615,24 +585,24 @@ void ahbctrl_test::DataThread() {
 
 	if (phase == amba::BEGIN_DATA) {
 
-	  // The slave returned TLM_ACCEPTED (default case).
+	  // The slave returned TLM_ACCEPTED.
 	  // Wait for END_DATA to come in on backward path.
 
-	  //v::debug << name() << "Waiting mEndDataEvent" << v::endl;
-	  //wait(mEndDataEvent);
-	  //v::debug << name() << "mEndDataEvent" << v::endl;
+	  // v::debug << name() << "Waiting mEndDataEvent" << v::endl;
+	  // wait(mEndDataEvent);
+	  // v::debug << name() << "mEndDataEvent" << v::endl;
 
 	} else if (phase == amba::END_DATA) {
 
 	  // Slave sent TLM_UPDATED/END_DATA.
 	  // Data phase completed.
-	  //wait(delay);
+	  // wait(delay);
 
 	} else {
 
 	  // Forbidden phase
 	  v::error << name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
-	  assert(0);
+
 	}
 
 	break;
@@ -658,10 +628,10 @@ void ahbctrl_test::ResponseThread() {
 
   while(1) {
 
-    // Wait for response from slave (inserted in transport_bw)
+    // Wait for response from slave
     wait(mResponsePEQ.get_event());
 
-    // Get transaction from Queue
+    // Get transaction from PEQ
     trans = mResponsePEQ.get_next_transaction();
 
     // Check result
@@ -676,7 +646,7 @@ void ahbctrl_test::ResponseThread() {
     // Call nb_transport_fw with END_RESP
     status = ahb->nb_transport_fw(*trans, phase, delay);
 
-    // Return value must be completed or accepted
+    // Return value must be TLM_COMPLETED or TLM_ACCEPTED
     assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
 
     // Cleanup

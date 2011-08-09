@@ -161,6 +161,7 @@ void Ctb_ahb_mem::b_transport(tlm::tlm_generic_payload &trans,
 
       }
 
+      delay = clockcycle * (trans.get_data_length() >> 2);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
     } else {
@@ -174,6 +175,7 @@ void Ctb_ahb_mem::b_transport(tlm::tlm_generic_payload &trans,
         
       }
 
+      delay = clockcycle * (trans.get_data_length() >> 2);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
     }

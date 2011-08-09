@@ -86,7 +86,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
         tlm_utils::simple_target_socket<mmu_cache> dcio;
 
         // amba master socket
-        amba::amba_master_socket<32> ahb_master;
+        amba::amba_master_socket<32> ahb;
 
 	// snooping port
 	signal<t_snoop>::in snoop;
@@ -122,7 +122,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
         /// @mmupgsz       MMU page size
         /// @name                               SystemC module name
         /// @id                                 ID of the AHB master
-	/// @abstractionLevel                   Select LT or AT abstraction
+	/// @abstractionLayer                   Select LT or AT abstraction
         /// @icache_hit_read_response_delay     Delay on an instruction cache hit
         /// @icache_miss_read_response_delay    Delay on an instruction cache miss
         /// @dcache_hit_read_response_delay     Delay on a data cache read hit
@@ -146,7 +146,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
                   unsigned int tlb_rep, unsigned int mmupgsz,
                   sc_core::sc_module_name name, unsigned int id,
 		  bool pow_mon,
-		  amba::amba_layer_ids abstractionLevel);
+		  amba::amba_layer_ids abstractionLayer);
 
         // member functions
         // ----------------
@@ -160,7 +160,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 	// TLM non-blocking forward transport function for dcio socket
 	tlm::tlm_sync_enum dcio_custom_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
 	
-	// TLM non-blocking backward transport function for ahb_master socket
+	// TLM non-blocking backward transport function for ahb master socket
 	tlm::tlm_sync_enum ahb_custom_nb_transport_bw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
 
 	// Instruction service thread for AT
@@ -168,6 +168,12 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 
 	// Data service thread for AT
 	void dcio_service_thread();
+
+	void ResponseThread();
+
+	void DataThread();
+
+	void cleanUP();
 
         // interface to AMBA master socket (impl. mem_if)
         virtual void mem_write(unsigned int addr, unsigned char * data,
@@ -256,7 +262,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 	bool m_pow_mon;
 
 	// amba abstraction layer
-	amba::amba_layer_ids m_abstractionLevel;
+	amba::amba_layer_ids m_abstractionLayer;
 
         unsigned int m_txn_count;
         unsigned int m_data_count;
@@ -270,6 +276,12 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 
 	// events
 	sc_event ahb_transaction_response;
+
+	sc_event  mEndRequestEvent;
+
+	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mResponsePEQ;
+	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mDataPEQ;
+	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mEndTransactionPEQ;
 
 	/// Clock cycle time
 	sc_core::sc_time clockcycle;

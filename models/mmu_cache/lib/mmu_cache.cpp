@@ -66,7 +66,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
                      unsigned int mmupgsz, sc_core::sc_module_name name,
                      unsigned int id,
 		     bool pow_mon,
-		     amba::amba_layer_ids abstractionLevel) :
+		     amba::amba_layer_ids abstractionLayer) :
 
     sc_module(name),
     AHBDevice(id,
@@ -80,7 +80,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 	      0),
     icio("icio"), 
     dcio("dcio"), 
-    ahb_master("ahb_master_socket", amba::amba_AHB, abstractionLevel, false),
+    ahb("ahb_socket", amba::amba_AHB, abstractionLayer, false),
     snoop(&mmu_cache::snoopingCallBack,"SNOOP"),
     icio_PEQ("icio_PEQ"), 
     dcio_PEQ("dcio_PEQ"),
@@ -95,15 +95,14 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     m_mmu_en(mmu_en),
     m_master_id(id), 
     m_pow_mon(pow_mon),
-    m_abstractionLevel(abstractionLevel), 
+    m_abstractionLayer(abstractionLayer), 
     m_txn_count(0), 
     m_data_count(0),
     m_bus_granted(false), 
     current_trans(NULL),
-    m_request_pending(false), 
-    m_data_pending(false), 
-    m_bus_req_pending(false), 
-    m_restart_pending_req(false),
+    mResponsePEQ("ResponsePEQ"),
+    mDataPEQ("DataPEQ"),
+    mEndTransactionPEQ("EndTransactionPEQ"),
     clockcycle(10, sc_core::SC_NS) {
 
     // parameter checks
@@ -147,20 +146,20 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     dlocalram = ((dlram == 1) && (mmu_en == 0))? new localram("dlocalram",
             dlramsize, dlramstart) : NULL;
 
-    if (abstractionLevel==amba::amba_LT) {
+    if (abstractionLayer==amba::amba_LT) {
 
       // register blocking forward transport functions for icio and dcio sockets (slave)
       icio.register_b_transport(this, &mmu_cache::icio_custom_b_transport);
       dcio.register_b_transport(this, &mmu_cache::dcio_custom_b_transport);
 
-    } else if (abstractionLevel==amba::amba_AT) {
+    } else if (abstractionLayer==amba::amba_AT) {
 
       // register non-blocking forward transport functions for icio and dcio sockets
       icio.register_nb_transport_fw(this, &mmu_cache::icio_custom_nb_transport_fw);
       dcio.register_nb_transport_fw(this, &mmu_cache::dcio_custom_nb_transport_fw);
 
-      // register non-blocking backward transport function for ahb_master socket
-      ahb_master.register_nb_transport_bw(this, &mmu_cache::ahb_custom_nb_transport_bw);
+      // register non-blocking backward transport function for ahb socket
+      ahb.register_nb_transport_bw(this, &mmu_cache::ahb_custom_nb_transport_bw);
 
       // register icio service thread (for AT)
       SC_THREAD(icio_service_thread);
@@ -171,6 +170,13 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
       SC_THREAD(dcio_service_thread);
       sensitive << dcio_PEQ.get_event();
       dont_initialize();
+
+      SC_THREAD(ResponseThread);
+
+      SC_THREAD(DataThread);
+
+      // delayed transaction release (for AT)
+      SC_THREAD(cleanUP);
 
     } else {
 
@@ -1015,12 +1021,8 @@ void mmu_cache::icio_service_thread() {
 
       v::debug << name() << " Spend component delay: " << delay << v::endl;
 
-      // burn delay
-      //wait(delay);
-    
-      // todo: fix memory has no delay yet
-      wait(20, SC_NS);
-
+      // Consume delay
+      wait(delay);
       delay = SC_ZERO_TIME;
 
       // -- Call backward path with phase BEGIN_RESP and check returned status
@@ -1056,7 +1058,6 @@ void mmu_cache::icio_service_thread() {
 
     } // while PEQ
   
-    v::debug << name() << " Wait for next event" << v::endl;
     wait();
 
   }  // while thread
@@ -1755,20 +1756,15 @@ void mmu_cache::dcio_service_thread() {
 
       v::debug << name() << " Spend component delay: " << delay << v::endl;
 
-      // burn delay
-      //wait(delay);
-
-      // todo: fix memory delay
-      wait(20,SC_NS);
-      
+      // Consume delay
+      wait(delay);
       delay = SC_ZERO_TIME;
 
       // Call backward path with phase BEGIN_RESP and check returned status
-
       tlm::tlm_phase phase = tlm::BEGIN_RESP;
       delay = sc_core::SC_ZERO_TIME;
 
-      v::debug << name() << " DCIO backward transport with tlm::BEGIN_RESP>" << v::endl;
+      v::debug << name() << "Call to (dcio) transport backward with phase " << phase << v::endl;
 
       status = dcio->nb_transport_bw(*tran, phase, delay);
 
@@ -1801,173 +1797,297 @@ void mmu_cache::dcio_service_thread() {
   } // while thread     
 }
 
-/// TLM non-blocking backward transport function for ahb_master socket
-tlm::tlm_sync_enum mmu_cache::ahb_custom_nb_transport_bw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay) {
+// Delayed release of transactions (for non-blocking pipelined transactions)
+void mmu_cache::cleanUP() {
 
-  tlm::tlm_sync_enum status = tlm::TLM_COMPLETED;
+  tlm::tlm_generic_payload * trans;
 
-  v::debug << name() << " ahb_custom_nb_transport_bw @phase: " << phase << v::endl;
+  while(1) {
 
-  switch (phase) {
+    wait(mEndTransactionPEQ.get_event());
 
-    case tlm::BEGIN_RESP:
+    while((trans = mEndTransactionPEQ.get_next_transaction())) {
 
-      status = tlm::TLM_ACCEPTED;
-      
-      // response notification
-      ahb_transaction_response.notify();
-      break;
+      v::debug << name() << "Release transaction: " << hex << trans << v::endl;
 
-    default:
+      ahb.release_transaction(trans);
 
-      v::error << name() << " TLM phase received on backward path not valid" << v::endl;
-      assert(0);
-      break;
+    }
+  }
+}
+
+// TLM non-blocking backward transport function for ahb socket
+tlm::tlm_sync_enum mmu_cache::ahb_custom_nb_transport_bw(tlm::tlm_generic_payload &trans, tlm::tlm_phase &phase, sc_core::sc_time &delay) {
+
+  v::debug << name() << "nb_transport_bw received transaction " << hex << &trans << " with phase " << phase << v::endl;
+
+  // The slave has sent END_REQ
+  if (phase == tlm::END_REQ) {
+
+    // In case END_REQ comes via backward path:
+    // Notify interface functions that request phase is over.
+    mEndRequestEvent.notify();
+
+    // Slave is ready for BEGIN_DATA (writes only)
+    if (trans.get_command() == tlm::TLM_WRITE_COMMAND) {
+
+      // Put into DataPEQ for data phase processing
+      mDataPEQ.notify(trans);
+
+    }
+
+  // New response (read operations only)
+  } else if (phase == tlm::BEGIN_RESP) {
+
+    mEndRequestEvent.notify();
+
+    // Put into ResponsePEQ for response processing
+    mResponsePEQ.notify(trans, delay);
+
+  // Data phase completed
+  } else if (phase == amba::END_DATA) {
+
+    // Release transaction
+    mEndTransactionPEQ.notify(trans, delay);
+
+  // Phase not valid
+  } else {
+
+    v::error << name() << "Invalid phase in call to nb_transport_bw!" << v::endl;
+    trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+
   }
 
-  return(status);
+  return tlm::TLM_ACCEPTED;
 
 }
 
+
 /// Function for write access to AHB master socket
 void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
-                          unsigned int len, sc_core::sc_time * t,
+                          unsigned int length, sc_core::sc_time * t,
                           unsigned int * debug) {
 
+    tlm::tlm_phase phase;
+    tlm::tlm_sync_enum status;
+    sc_core::sc_time delay;
 
-    // init transaction
-    tlm::tlm_generic_payload *gp = ahb_master.get_transaction();
-    gp->set_command(tlm::TLM_WRITE_COMMAND);
-    gp->set_address(addr);
-    gp->set_data_length(len);
-    gp->set_data_ptr(data);
-    gp->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+    // Allocate new transaction
+    tlm::tlm_generic_payload *trans = ahb.get_transaction();
 
-    // set the burst size
+    v::debug << name() << "Allocate new transaction " << hex << trans << v::endl;
+
+    // Initialize transaction
+    trans->set_command(tlm::TLM_WRITE_COMMAND);
+    trans->set_address(addr);
+    trans->set_data_length(length);
+    trans->set_data_ptr(data);
+    trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+
+    // Set burst size extension
     amba::amba_burst_size* size_ext;
-    ahb_master.validate_extension<amba::amba_burst_size> (*gp);
-    ahb_master.get_extension<amba::amba_burst_size> (size_ext, *gp);
-    size_ext->value = (len < 4)? len : 4;
+    ahb.validate_extension<amba::amba_burst_size> (*trans);
+    ahb.get_extension<amba::amba_burst_size> (size_ext, *trans);
+    size_ext->value = (length < 4)? length : 4;
 
-    // set the id of the master
+    // Set master id extension
     amba::amba_id* m_id;
-    ahb_master.get_extension<amba::amba_id> (m_id, *gp);
+    ahb.validate_extension<amba::amba_id> (*trans);
+    ahb.get_extension<amba::amba_id> (m_id, *trans);
     m_id->value = m_master_id;
-    ahb_master.validate_extension<amba::amba_id> (*gp);
+ 
+    // Set transfer type extension
+    amba::amba_trans_type * trans_ext;
+    ahb.validate_extension<amba::amba_trans_type>(*trans);
+    ahb.get_extension<amba::amba_trans_type> (trans_ext, *trans);
+    trans_ext->value = amba::NON_SEQUENTIAL;
+    
+    // Initialize delay
+    delay = SC_ZERO_TIME;
 
-    sc_core::sc_time delay = SC_ZERO_TIME;
+    if (m_abstractionLayer == amba::amba_LT) {
 
-    v::debug << name() << "AHB write to addr: " << hex << addr << v::endl;
+      // Blocking transport
+      ahb->b_transport(*trans, delay);
 
-    if (m_abstractionLevel == amba::amba_LT) {
-
-      // blocking transport
-      ahb_master->b_transport(*gp, delay);
+      // Consume delay
+      wait(delay);
+      delay = SC_ZERO_TIME;
 
     } else {
 
-      // initial phase for AT
-      tlm::tlm_phase phase = tlm::BEGIN_REQ;
+      // Initial phase for AT
+      phase = tlm::BEGIN_REQ;
 
-      // non-blocking transport
-      tlm::tlm_sync_enum status = ahb_master->nb_transport_fw(*gp,phase,delay);
-      assert(status==tlm::TLM_COMPLETED);
+      v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 
-      // wait for service thread
-      if (status==tlm::TLM_COMPLETED) {
+      // Non-blocking transport
+      status = ahb->nb_transport_fw(*trans, phase, delay);
 
-	// backward path not used for write
+      switch (status) {
 
-	//wait(ahb_transaction_response);
+        case tlm::TLM_ACCEPTED:
+        case tlm::TLM_UPDATED:
+
+	  if (phase == tlm::BEGIN_REQ) {
+
+	    // The slave returned TLM_ACCEPTED.
+	    // Wait until END_REQ comes in on backward path
+	    // before starting DATA phase.
+	    wait(mEndRequestEvent);
+
+	  } else if (phase == tlm::END_REQ) {
+
+	    // The slave returned TLM_UPDATED with END_REQ
+	    mDataPEQ.notify(*trans, delay);
+
+	  } else if (phase == amba::END_DATA) {
+
+	    // Done return control to user.
+
+	  } else {
+
+	    // Forbidden phase
+	    v::error << name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
+	    trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+
+	  }
+
+	  break;
+
+        case tlm::TLM_COMPLETED:
+
+	  // Slave directly jumps to TLM_COMPLETED (Pseudo AT).
+	  // Don't send END_RESP
+	  // wait(delay)
+	  
+	  break;
+
+        default:
+
+	  v::error << name() << "Invalid return value from call to nb_transport_fw!" << v::endl;
+	  trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
       }
-
-    } 
-
-    v::debug << name() << "AHB transaction done (mem_write) - delay: " << delay << v::endl;
-
-    // increment time
-    //*t += delay;
-
-    // temp hack: memory has no delay yet
-    *t += sc_core::sc_time(10, SC_NS);
-
-    // release transaction
-    ahb_master.release_transaction(gp);
-
+    }
+  
 }
 
 /// Function for read access to AHB master socket
 bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
-                         unsigned int len, sc_core::sc_time * t,
+                         unsigned int length, sc_core::sc_time * t,
                          unsigned int * debug) {
 
-    // tmp
+    tlm::tlm_phase phase;
+    tlm::tlm_sync_enum status;
+    sc_core::sc_time delay;
+
     bool cacheable;
 
-     // init transaction
-    tlm::tlm_generic_payload *gp = ahb_master.get_transaction();
-    gp->set_command(tlm::TLM_READ_COMMAND);
-    gp->set_address(addr);
-    gp->set_data_length(len);
-    gp->set_data_ptr(data);
-    gp->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+    // Allocate new transaction
+    tlm::tlm_generic_payload *trans = ahb.get_transaction();
 
-    // set the burst size
+    v::debug << name() << "Allocate new transaction: " << hex << trans << v::endl;
+
+    // Initialize transaction
+    trans->set_command(tlm::TLM_READ_COMMAND);
+    trans->set_address(addr);
+    trans->set_data_length(length);
+    trans->set_data_ptr(data);
+    trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+
+    // Set burst size extension
     amba::amba_burst_size* size_ext;
-    ahb_master.validate_extension<amba::amba_burst_size> (*gp);
-    ahb_master.get_extension<amba::amba_burst_size> (size_ext, *gp);
-    size_ext->value = (len < 4)? len : 4;
+    ahb.validate_extension<amba::amba_burst_size> (*trans);
+    ahb.get_extension<amba::amba_burst_size> (size_ext, *trans);
+    size_ext->value = (length < 4)? length : 4;
 
-    // set the id of the master
+    // Set master id extension
     amba::amba_id* m_id;
-    ahb_master.get_extension<amba::amba_id> (m_id, *gp);
+    ahb.validate_extension<amba::amba_id> (*trans);
+    ahb.get_extension<amba::amba_id> (m_id, *trans);
     m_id->value = m_master_id;
-    ahb_master.validate_extension<amba::amba_id> (*gp);
 
-    sc_core::sc_time delay = SC_ZERO_TIME;
+    // Set transfer type extension
+    amba::amba_trans_type * trans_ext;
+    ahb.validate_extension<amba::amba_trans_type> (*trans);
+    ahb.get_extension<amba::amba_trans_type> (trans_ext, *trans);
+    
+    // Init delay
+    delay = SC_ZERO_TIME;
 
-    v::debug << name() << " AHB read from addr: " << hex << addr << v::endl;
+    if (m_abstractionLayer == amba::amba_LT) {
 
-    if (m_abstractionLevel == amba::amba_LT) {
+      // Blocking transport
+      ahb->b_transport(*trans, delay);
 
-      // blocking transport
-      ahb_master->b_transport(*gp, delay);
+      // Consume delay
+      wait(delay);
+      delay = SC_ZERO_TIME;
 
     } else {
 
-      // initial phase for AT
-      tlm::tlm_phase phase = tlm::BEGIN_REQ;
+      // Initial phase for AT
+      phase = tlm::BEGIN_REQ;
       
-      // non-blocking transport
-      tlm::tlm_sync_enum status = ahb_master->nb_transport_fw(*gp,phase,delay);
-      assert((status==tlm::TLM_UPDATED)||(status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_COMPLETED));
+      v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 
-      // @AT level mem_read will be indirectly called from icio/dcio_service_thread
-      if (status==tlm::TLM_UPDATED) {
+      // Non-blocking transport
+      status = ahb->nb_transport_fw(*trans, phase, delay);
+
+      switch(status) {
+
+        case tlm::TLM_ACCEPTED:
+        case tlm::TLM_UPDATED:
+
+	  if (phase == tlm::BEGIN_REQ) {
+
+	    // The slave returned TLM_ACCEPTED.
+	    // Wait until BEGIN_RESP before giving control
+	    // to the user (for sending next transaction).
+	    wait(mEndRequestEvent);
+
+	  } else if (phase == tlm::END_REQ) {
+
+	    // The slave returned TLM_UPDATED with END_REQ
+
+	    wait(mEndRequestEvent);
+
+	  } else if (phase == tlm::BEGIN_RESP) {
+
+	    // Slave directly jumped to BEGIN_RESP
+	    // Notify the response thread and return control to user
+	    mResponsePEQ.notify(*trans, delay);
+
+	  } else {
+
+	    // Forbidden phase
+	    v::error << name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
+	    trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+
+	  }
+
+	  break;
+
+      case tlm::TLM_COMPLETED:
 	
-	wait(ahb_transaction_response);
-      
-      } else if (status==tlm::TLM_ACCEPTED) {
+	// Slave directly jumps to TLM_COMPLETED (Pseudo AT).
+	// Don't send END_RESP
+	// wait(delay)
 
-	// not really correct - but ok for this testbench
-	wait(ahb_transaction_response);
+	break;
 
-      } else {
+      default:
 
-	// completed - nothing to do
+	v::error << name() << "Invalid return value from call to nb_transport_fw!" << v::endl;
+	trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
       }
 
+      // Wait for result to be ready before return
+      //wait(mResponsePEQ.get_event());
+
     }
-
-    v::debug << name() << " AHB transaction done (mem_read) - delay: " << delay << v::endl;
-
-    // increment time
-    //*t += delay;
-
-    // temp hack: memory has no delay yet
-    *t += sc_core::sc_time(10, SC_NS);
 
     // Check cacheability:
     // -------------------
@@ -1981,17 +2101,119 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
     } else {
 
 	// use PNP - information is carried by protection extension
-	cacheable = (ahb_master.get_extension<amba::amba_cacheable>(*gp)) ? true : false;
+	cacheable = (ahb.get_extension<amba::amba_cacheable>(*trans)) ? true : false;
 	
     }    
-
-    // release transaction
-    ahb_master.release_transaction(gp);
-
 
     // return cacheability state
     return cacheable;
 }
+
+// Thread for data phase processing in write operations (sends BEGIN_DATA)
+void mmu_cache::DataThread() {
+
+  tlm::tlm_generic_payload* trans;
+  tlm::tlm_phase phase;
+  sc_core::sc_time delay;
+  tlm::tlm_sync_enum status;
+
+  while(1) {
+
+    // v::debug << name() << "Data thread waiting for new data phase." << v::endl;
+
+    // Wait for new data phase
+    wait(mDataPEQ.get_event());
+
+    // v::debug << name() << "DataPEQ Event" << v::endl;
+
+    // Get transaction from PEQ
+    trans = mDataPEQ.get_next_transaction();
+
+    // Prepare BEGIN_DATA
+    phase = amba::BEGIN_DATA;
+    delay = SC_ZERO_TIME;
+
+    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+
+    // Call to nb_transport_fw with BEGIN_DATA
+    status = ahb->nb_transport_fw(*trans, phase, delay);
+
+    switch(status) {
+      
+      case tlm::TLM_ACCEPTED:
+      case tlm::TLM_UPDATED:
+
+	if (phase == amba::BEGIN_DATA) {
+
+	  // The slave returned TLM_ACCEPTED.
+	  // Wait for END_DATA to come in on backward path.
+
+	  // v::debug << name() << "Waiting mEndDataEvent" << v::endl;
+	  //wait(mEndDataEvent);
+	  // v::debug << name() << "mEndDataEvent" << v::endl;
+
+        } else if (phase == amba::END_DATA) {
+
+	  // Slave returned TLM_UPDATED with END_DATA
+	  // Data phase completed.
+	  wait(delay);
+
+	} else {
+
+	  // Forbidden phase
+	  v::error << name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
+
+	}
+	
+	break;
+
+      case tlm::TLM_COMPLETED:
+
+	// Slave directly jumps to TLM_COMPLETED (Pseudo AT).
+	// wait(delay);
+
+	break;
+
+    }
+  }
+}
+
+
+// Thread for response synchronization (sync and send END_RESP)
+void mmu_cache::ResponseThread() {
+
+  tlm::tlm_generic_payload* trans;
+  tlm::tlm_phase phase;
+  sc_core::sc_time delay;
+  tlm::tlm_sync_enum status;
+
+  while(1) {
+
+    // Wait for response from slave
+    wait(mResponsePEQ.get_event());
+
+    // Get transaction from PEQ
+    trans = mResponsePEQ.get_next_transaction();
+
+    // Prepare END_RESP
+    phase = tlm::END_RESP;
+    delay = sc_core::SC_ZERO_TIME;
+
+    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+
+    // Call to nb_transport_fw
+    status = ahb->nb_transport_fw(*trans, phase, delay);
+
+    // Return value must be TLM_COMPLETED or TLM_ACCEPTED
+    assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
+
+    // Cleanup
+    mEndTransactionPEQ.notify(*trans, delay);
+
+  }
+}
+
+
 
 /// writes the cache control register and handles the commands
 void mmu_cache::write_ccr(unsigned char * data, unsigned int len,

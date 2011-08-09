@@ -188,7 +188,7 @@ int sc_main(int argc, char** argv) {
     );
     
     // Connecting AHB Master
-    mmu_cache.ahb_master(ahbctrl.ahbIN);
+    mmu_cache.ahb(ahbctrl.ahbIN);
     // Connecting Testbench
 
     // Connect cpu to mmu-cache

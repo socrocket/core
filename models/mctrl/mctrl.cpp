@@ -282,6 +282,7 @@ void Mctrl::reset_mctrl(const bool &value, const sc_time &time) {
                     //This will be implemented wherever someone tries to
                     //disable mobile SDRAM.
                 default:
+		  break;
             }
         }
 
