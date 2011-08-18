@@ -139,7 +139,7 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         CGPTimer(sc_core::sc_module_name name, unsigned int ntimers = 1,
                  int gpindex = 0, int gpaddr = 0, int gpmask = 4095, int gpirq =
                          0, int gsepirq = 0, int gsbits = 16, int gnbits = 32,
-                 int gwdog = 0, unsigned int pindex = 0);
+                 int gwdog = 0, unsigned int pindex = 0, bool powermon = false);
 
         /// Free all counter and unregister all callbacks.
         ~CGPTimer();
@@ -237,6 +237,7 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         const uint32_t sbits;
         const uint32_t nbits;
         const uint32_t wdog_length;
+        const uint32_t powermon;
       // Register Value Offsets, Masks and Bits
         /// Scaler Value Register Address
         static const uint32_t SCALER = 0x00;

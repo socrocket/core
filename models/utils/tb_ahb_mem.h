@@ -123,10 +123,10 @@ class Ctb_ahb_mem : public sc_module,
         /// @param byte Write data
         void writeByteDBG(const uint32_t addr, const uint8_t byte);
 
-	/// Helper functions for definition of clock cycle
-	void clk(sc_core::sc_clock &clk);
-	void clk(sc_core::sc_time &period);
-	void clk(double period, sc_core::sc_time_unit base);
+        /// Helper functions for definition of clock cycle
+        void clk(sc_core::sc_clock &clk);
+        void clk(sc_core::sc_time &period);
+        void clk(double period, sc_core::sc_time_unit base);
 
     private:
         /// The actual memory
@@ -148,12 +148,12 @@ class Ctb_ahb_mem : public sc_module,
         const uint32_t hmask;
         const uint32_t haddr;
 
-	/// 12 bit MSB address and mask (constructor parameters)
-	const uint32_t mhaddr;
-	const uint32_t mhmask;
+        /// 12 bit MSB address and mask (constructor parameters)
+        const uint32_t mhaddr;
+        const uint32_t mhmask;
 
-	/// Clock cycle time
-	sc_core::sc_time clockcycle;
+        /// Clock cycle time
+        sc_core::sc_time clockcycle;
 };
 
 #endif

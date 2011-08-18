@@ -56,7 +56,7 @@
 // Store configuration default value in conf_defaults.
 CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                    int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq,
-                   int gsbits, int gnbits, int gwdog, unsigned int pindex) :
+                   int gsbits, int gnbits, int gwdog, unsigned int pindex, bool gpowermon) :
     gr_device(name, gs::reg::ALIGNED_ADDRESS, 4 * (1 + ntimers), NULL),
     APBDevice(pindex, 0x1, 0x11, 0, gpirq, APBIO, gpmask, false, false, gpaddr), 
     bus("bus", r, (gpaddr & gpmask) << 8, (((~gpmask & 0xfff) + 1) << 8), ::amba::amba_APB, 
@@ -69,7 +69,8 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
     clockcycle(10.0, sc_core::SC_NS),
     sbits(gsbits),
     nbits(gnbits),
-    wdog_length(gwdog) {
+    wdog_length(gwdog),
+    powermon(gpowermon) {
 
 
     assert("gsbits has to be between 1 and 32" && gsbits > 0 && gsbits < 33);

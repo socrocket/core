@@ -344,86 +344,35 @@ int Ctb_ahb_mem::readmem(const char infile_[], uint32_t addr) {
 /// Method to convert ascii characters into their binary representation
 uint8_t Ctb_ahb_mem::char2nibble(const char *ch) const {
     switch(*ch) {
-        case '\n':
-            return 0x10;
-            break;
-        case ' ':
-            return 0x20;
-            break;
-        case '\t':
-            return 0x20;
-            break;
-        case '0':
-            return 0x00;
-            break;
-        case '1':
-            return 0x01;
-            break;
-        case '2':
-            return 0x02;
-            break;
-        case '3':
-            return 0x03;
-            break;
-        case '4':
-            return 0x04;
-            break;
-        case '5':
-            return 0x05;
-            break;
-        case '6':
-            return 0x06;
-            break;
-        case '7':
-            return 0x07;
-            break;
-        case '8':
-            return 0x08;
-            break;
-        case '9':
-            return 0x09;
-            break;
-        case 'a':
-            return 0x0a;
-            break;
-        case 'b':
-            return 0x0b;
-            break;
-        case 'c':
-            return 0x0c;
-            break;
-        case 'd':
-            return 0x0d;
-            break;
-        case 'e':
-            return 0x0e;
-            break;
-        case 'f':
-            return 0x0f;
-            break;
-        case 'A':
-            return 0x0a;
-            break;
-        case 'B':
-            return 0x0b;
-            break;
-        case 'C':
-            return 0x0c;
-            break;
-        case 'D':
-            return 0x0d;
-            break;
-        case 'E':
-            return 0x0e;
-            break;
-        case 'F':
-            return 0x0f;
-            break;
+        case '\n': return 0x10;
+        case ' ':  return 0x20;
+        case '\t': return 0x20;
+        case '0':  return 0x00;
+        case '1':  return 0x01;
+        case '2':  return 0x02;
+        case '3':  return 0x03;
+        case '4':  return 0x04;
+        case '5':  return 0x05;
+        case '6':  return 0x06;
+        case '7':  return 0x07;
+        case '8':  return 0x08;
+        case '9':  return 0x09;
+        case 'a':  return 0x0a;
+        case 'b':  return 0x0b;
+        case 'c':  return 0x0c;
+        case 'd':  return 0x0d;
+        case 'e':  return 0x0e;
+        case 'f':  return 0x0f;
+        case 'A':  return 0x0a;
+        case 'B':  return 0x0b;
+        case 'C':  return 0x0c;
+        case 'D':  return 0x0d;
+        case 'E':  return 0x0e;
+        case 'F':  return 0x0f;
         default:
             v::warn << name() << "Illegal character in memory file: \'" << *ch
                     << "\'" << endl;
             return 0x80;
-            break;
     }
 } // uint8_t Ctb_ahb_mem::char2nibble(char *ch) const
 
