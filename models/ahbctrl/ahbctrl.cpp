@@ -60,6 +60,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
 		 bool fixbrst,         // Enable support for fixed-length bursts
 		 bool fpnpen,          // Enable full decoding of PnP configuration records
 		 bool mcheck,          // Check if there are any intersections between core memory regions
+		 bool pow_mon,         // Enable power monitoring
 		 amba::amba_layer_ids ambaLayer) :
       sc_module(nm),      
       ahbIN("ahbIN", amba::amba_AHB, ambaLayer, false),
@@ -76,6 +77,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       mfixbrst(fixbrst),
       mfpnpen(fpnpen),
       mmcheck(mcheck),
+      m_pow_mon(pow_mon),
       robin(0),
       mArbiterPEQ("ArbiterPEQ"),
       mRequestPEQ("RequestPEQ"),
@@ -120,6 +122,9 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
 
   // Register debug transport
   ahbIN.register_transport_dbg(this, &AHBCtrl::transport_dbg);
+
+  // Register power monitor
+  PM::registerIP(this,"ahbctrl");
 
 }
 
@@ -278,11 +283,17 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
 
     }
 
+    // Power event start
+    PM::send(this,"ahb_trans",1,sc_time_stamp().value());
+    
     // Add delay for AHB address phase
     delay += clockcycle;
 
     // Forward request to the selected slave
     ahbOUT[index]->b_transport(trans, delay);
+
+    // Power event end
+    PM::send(this,"ahb_trans",0,sc_time_stamp().value());
 
     return;
 
@@ -305,7 +316,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
 
   connection_t connection;
 
-  v::debug << name() << "nb_transport_fw received phase: " << phase << v::endl;
+  v::debug << name() << "nb_transport_fw received transaction " << hex << &trans << " with phase " << phase << v::endl;
 
   // The master has sent BEGIN_REQ
   if (phase == tlm::BEGIN_REQ) {
@@ -403,7 +414,7 @@ void AHBCtrl::arbitrate_me() {
     grand_id = -1;
 
     // Increment round robin pointer
-    robin=(robin++)%(num_of_master_bindings-1);
+    robin=(robin++) % num_of_master_bindings;
 
     for(pm_itr = pending_map.begin(); pm_itr != pending_map.end(); pm_itr++) {
 
@@ -430,7 +441,7 @@ void AHBCtrl::arbitrate_me() {
       connection.state = BUSY;
       pending_map[selected_transaction] = connection;
 
-      mRequestPEQ.notify(*selected_transaction,clockcycle-sc_time(1,SC_PS));
+      mRequestPEQ.notify(*selected_transaction);
 
     }
   }
@@ -491,9 +502,12 @@ void AHBCtrl::RequestThread() {
 	connection.slave_id = slave_id;
 	pending_map[trans] = connection;
 
+	// Power event start
+	PM::send(this, "ahb_trans", 1, sc_time_stamp().value());
+
 	// Send BEGIN_REQ to slave
 	phase = tlm::BEGIN_REQ;
-	delay = SC_ZERO_TIME;
+	delay = sc_time(1, SC_PS);
 
 	v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 	  
@@ -509,7 +523,9 @@ void AHBCtrl::RequestThread() {
 
 	} else {
 
+	  // Consume accept delay
 	  wait(delay);
+	  delay = SC_ZERO_TIME;
 
 	}
       }
@@ -517,8 +533,9 @@ void AHBCtrl::RequestThread() {
 
     // Send END_REQ to the master
     phase = tlm::END_REQ;
+    delay = SC_ZERO_TIME;
 	  
-    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << "(" << connection.master_id << ")" << v::endl;
+    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
 
     status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
 
@@ -613,6 +630,9 @@ void AHBCtrl::EndData() {
     status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
 
     assert((status == tlm::TLM_ACCEPTED)||(status == tlm::TLM_COMPLETED));
+
+    // Power event end
+    PM::send(this,"ahb_trans", 0, sc_time_stamp().value());
 
     // Cleanup
     // -------
@@ -711,6 +731,8 @@ void AHBCtrl::ResponseThread() {
   
     }
 
+    // End power event
+    PM::send(this,"ahb_trans", 0, sc_time_stamp().value());
 
     // Cleanup
     // -------
@@ -885,7 +907,7 @@ void AHBCtrl::start_of_simulation() {
   }
 
   // End of decoder initialization
-  v::debug << name() << "******************************************************************************* " << v::endl;
+  v::info << name() << "******************************************************************************* " << v::endl;
 
   // Check memory map for overlaps
   if (mmcheck) {

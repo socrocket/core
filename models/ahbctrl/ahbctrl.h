@@ -49,6 +49,7 @@
 
 #include "amba.h"
 #include "socrocket.h"
+#include "power_monitor.h"
 
 #include "ahbdevice.h"
 #include "signalkit.h"
@@ -117,6 +118,7 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 		 bool fixbrst,         // Enable support for fixed-length bursts
 		 bool fpnpen,          // Enable full decoding of PnP configuration records.
 		 bool mcheck,          // Check if there are any intersections between core memory regions.
+		 bool pow_mon,         // Enable power monitoring
                  amba::amba_layer_ids ambaLayer);		 
 		 
 		 
@@ -165,6 +167,8 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 	bool mfpnpen;
 	// Check if there are any intersections between core memory regions
 	bool mmcheck;
+	// Enable power monitoring (Only TLM)
+	bool m_pow_mon;
 
         typedef tlm::tlm_generic_payload payload_t;
         typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;

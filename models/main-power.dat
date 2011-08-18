@@ -22,6 +22,11 @@ idle			5
 !ENDIP!
 
 !IP!
+ahbctrl
+idle			5
+ahb_trans		10
+
+!IP!
 vectorcache
 set_read0		10
 set_read1		10
