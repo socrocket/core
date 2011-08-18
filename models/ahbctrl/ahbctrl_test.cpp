@@ -97,16 +97,19 @@ ahbctrl_test::ahbctrl_test(sc_core::sc_module_name name,
     // Register non-blocking backward transport
     ahb.register_nb_transport_bw(this, &ahbctrl_test::nb_transport_bw);
 
-    // Register thread for response synchronization
+    // Register threads for response processing
     SC_THREAD(ResponseThread);
     SC_THREAD(DataThread);
     SC_THREAD(cleanUP);
 
   }
 
+  // Initialize offset to payload pointer
   tc = 0;
+
 }
 
+// Delayed release of transactions
 void ahbctrl_test::cleanUP() {
 
   tlm::tlm_generic_payload * trans;
@@ -146,7 +149,7 @@ tlm::tlm_sync_enum ahbctrl_test::nb_transport_bw(tlm::tlm_generic_payload &trans
 
     }
 
-    // reset delay
+    // Reset delay
     delay = SC_ZERO_TIME;
 
   // New response - goes into response PEQ
@@ -161,10 +164,10 @@ tlm::tlm_sync_enum ahbctrl_test::nb_transport_bw(tlm::tlm_generic_payload &trans
   // Data phase completed
   } else if (phase == amba::END_DATA) {
 
-    // release transaction
+    // Release transaction
     mEndTransactionPEQ.notify(trans, delay);
 
-    // reset delay
+    // Reset delay
     delay = SC_ZERO_TIME;
 
   } else {
@@ -273,9 +276,7 @@ void ahbctrl_test::ahbread(unsigned int addr, unsigned char * data, unsigned int
 
       case tlm::TLM_COMPLETED:
 
-	// Slave directly jumps to TLM_COMPLETED (Pseudo AT).
-	// Don't send END_RESP
-	// wait(delay);
+	// Slave directly jumps to TLM_COMPLETED
 
 	break;
       
@@ -362,7 +363,7 @@ void ahbctrl_test::ahbwrite(unsigned int addr, unsigned char * data, unsigned in
 
 	} else if (phase == amba::END_DATA) {
 
-	  // Done return control to user.
+	  // Done - return control to user.
 
 	} else {
 
@@ -695,7 +696,11 @@ void ahbctrl_test::checkTXN(tlm::tlm_generic_payload * trans) {
    
       if (tmp.valid == true) {
 
-	assert(data[i] == tmp.data);
+	if (data[i] != tmp.data) {
+	  
+	  v::error << name() << "Result of read operation not correct!!" << v::endl;
+	  assert(0);
+	}
 
       } else {
 

@@ -56,6 +56,7 @@
 #include "ahbdevice.h"
 #include "signalkit.h"
 
+/// All ahbctrl tests inherit from this class
 class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signal_module<ahbctrl_test> {
 
  public:
@@ -101,8 +102,8 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
 
   void cleanUP();
 
-  /// TLM non-blocking transport backward
-  tlm::tlm_sync_enum nb_transport_bw(tlm::tlm_generic_payload& gp, tlm::tlm_phase& phase, sc_core::sc_time& delay);
+  /// TLM non-blocking backward transport function
+  tlm::tlm_sync_enum nb_transport_bw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
   SC_HAS_PROCESS(ahbctrl_test);
 
@@ -116,14 +117,6 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
 
   // data members
   // ------------
-
-  // System time for simulation accuracy measurement
-  sc_core::sc_time phase_systime_start;
-  sc_core::sc_time phase_systime_end;
-
-  // Realtime clock for simulation performance measurement
-  clock_t phase_realtime_start;
-  clock_t phase_realtime_end;
 
   /// Typ for local cache entry
   typedef struct {
@@ -161,7 +154,7 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
 
   unsigned int tc;
 
-  /// PEQ for response synchronization
+  /// PEQs for response synchronization
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> mResponsePEQ;
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> mDataPEQ;
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> mEndTransactionPEQ;

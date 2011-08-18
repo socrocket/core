@@ -3,6 +3,9 @@
 
 #include "systemc.h"
 
+#ifndef _AHB_MST_IN_TYPE_
+#define _AHB_MST_IN_TYPE_
+
 struct ahb_mst_in_type {
     sc_lv<16> hgrant;
     sc_logic hready;
@@ -26,7 +29,12 @@ inline int operator== (const ahb_mst_in_type& left, const ahb_mst_in_type& right
     return 0;
 }
 
+#endif // _AHB_MST_IN_TYPE
+
 /************************************/
+
+#ifndef _AHB_MST_OUT_TYPE_ADAPTER_
+#define _AHB_MST_OUT_TYPE_ADAPTER_
 
 struct ahb_mst_out_type_adapter {
     sc_logic hbusreq;
@@ -53,7 +61,12 @@ inline int operator== (const ahb_mst_out_type_adapter& left, const ahb_mst_out_t
     return 0;
 }
 
+#endif // _AHB_MST_OUT_TYPE_ADAPTER_
+
 /************************************/
+
+#ifndef _AHB_SLV_IN_TYPE_
+#define _AHB_SLV_IN_TYPE_
 
 struct ahb_slv_in_type {
     sc_lv<16> hsel;
@@ -86,7 +99,12 @@ inline int operator== (const ahb_slv_in_type& left, const ahb_slv_in_type& right
     return 0;
 }
 
+#endif // _AHB_MST_OUT_TYPE_ADAPTER_
+
 /************************************/
+
+#ifndef _AHB_SLV_OUT_TYPE_ADAPTER_
+#define _AHB_SLV_OUT_TYPE_ADAPTER_
 
 struct ahb_slv_out_type_adapter {
     sc_logic hready;
@@ -108,6 +126,8 @@ inline void sc_trace(sc_trace_file *, const ahb_slv_out_type_adapter&, const std
 inline int operator== (const ahb_slv_out_type_adapter& left, const ahb_slv_out_type_adapter& right) {
     return 0;
 }
+
+#endif // _AHB_SLV_OUT_TYPE_ADAPTER_
 
 /************************************/
 
