@@ -83,7 +83,8 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
             << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
             << endl;
 
-    PM::registerIP(this,"gptimer");
+    PM::registerIP(this,"gptimer",1);
+    PM::send_idle(this,"idle",sc_time_stamp(),1);
 
     /* create register */
     r.create_register("scaler", "Scaler Value",

@@ -87,6 +87,7 @@ struct IpPowerData{
   bool start;
   unsigned long int timestamp;
   unsigned int power;
+  unsigned int id;
 };
 
 struct IpPowerEntry{
@@ -95,6 +96,7 @@ struct IpPowerEntry{
   string name;
   unsigned int level;
   vector<IpPowerData> entry;
+  vector<IpPowerData> idle;
 };
 //------------------------------------------------
 
@@ -167,6 +169,7 @@ class PM {
     static vector<IpPowerEntry> IpData;
     static vector< vector<analyzedEntry> > AnalyzedData;
     static unsigned int maxLevel;
+    static unsigned long int EndOfSimulation;
     static vector<string> missingIp;
     static vector<string> missingAction;
     //--------------------------------------------
@@ -183,8 +186,9 @@ class PM {
     static bool sortIpEntry(IpPowerData d1, IpPowerData d2);
     static bool sortTempSum(tempSum s1, tempSum s2);
     static void printActionVector ( string &ip, vector<tempActions>::iterator action);
-    static void checkActionVector ( vector<tempActions>::iterator const action);
+    static void checkActionVector ( IpPowerEntry &ip, vector<tempActions>::iterator const action);
 
+    static void merge_idle(IpPowerEntry &ip);
     static void mergeSums( vector<analyzedEntry>::iterator const parent, vector<analyzedEntry>::const_iterator const ip );
     static void propagate();
 
@@ -216,8 +220,9 @@ class PM {
 
   // methods
   //----------------------------------------------
-  static void registerIP(sc_module* ip, string name);
-  static void send(sc_module* ip, string action, bool start, unsigned long int timestamp);
+  static void registerIP(sc_module* ip, string name, bool active);
+  static void send(sc_module* ip, string action, bool start, sc_time timestamp, unsigned int id, bool active);
+  static void send_idle(sc_module* ip, string action, sc_time timestamp, bool active);
   static void analyze(string const path, string const infile, string const outfile);
 
   static void raw_logprint(string const file);

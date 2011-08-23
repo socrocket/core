@@ -66,7 +66,8 @@ vector<IpPowerEntry> PM::IpData;
 vector< vector<analyzedEntry> > PM::AnalyzedData;
 
 unsigned int PM::debug = 1;
-unsigned int PM::maxLevel;
+unsigned int PM::maxLevel = 0;
+unsigned long int PM::EndOfSimulation = 0;
 
 vector<string> PM::missingIp;
 vector<string> PM::missingAction;
@@ -77,39 +78,38 @@ vector<string> PM::missingAction;
 
 // register IP
 //------------------------------------------------
-void PM::registerIP(sc_module* ip, string name){
+void PM::registerIP(sc_module* ip, string name, bool active){
   
-  //if ( ip->m_pow_mon ){
-  //  v::warn << "Power Monitor" << "m_pow_mon found" << endl;
-  //}
-
-  string sc_name = ip-> name();
-  sc_name = "main."+sc_name;
-
-  IpPowerEntry temp; 
-  
-  temp.ip=ip;
-  temp.sc_name=sc_name;
-  temp.name=name;
-
-  unsigned int level = 0;
-  
-  // split name
-  size_t pos = sc_name.find_last_of(".");
-  while( static_cast<int>(pos) != -1 ){
-    level++;
-    sc_name = sc_name.substr(0,pos);
-    pos = sc_name.find_last_of(".");
+  if (active){
+    
+    string sc_name = ip-> name();
+    sc_name = "main."+sc_name;
+    
+    IpPowerEntry temp; 
+    
+    temp.ip=ip;
+    temp.sc_name=sc_name;
+    temp.name=name;
+    
+    unsigned int level = 0;
+    
+    // split name
+    size_t pos = sc_name.find_last_of(".");
+    while( static_cast<int>(pos) != -1 ){
+      level++;
+      sc_name = sc_name.substr(0,pos);
+      pos = sc_name.find_last_of(".");
+    }
+    
+    
+    temp.level = level;                                  // instance level
+    if ( level > PM::maxLevel ){ PM::maxLevel = level; } // global maximum level
+    
+    // add new IP to datavector
+    PM::IpData.push_back(temp);
+    
+    v::info << "Power Monitor" << "IP " << temp.sc_name << " registered at level " << temp.level << endl;
   }
-
-
-  temp.level = level;                                  // instance level
-  if ( level > PM::maxLevel ){ PM::maxLevel = level; } // global maximum level
-
-  // add new IP to datavector
-  PM::IpData.push_back(temp);
-
-  v::info << "Power Monitor" << "IP " << temp.sc_name << " registered at level " << temp.level << endl;
 
 } // end register
 //------------------------------------------------
@@ -118,26 +118,67 @@ void PM::registerIP(sc_module* ip, string name){
 // send data
 // called by IP 
 //------------------------------------------------
-void PM::send(sc_module* ip, string action, bool start, unsigned long int timestamp){
+void PM::send(sc_module* ip, string action, bool start, sc_time timestamp, unsigned int id, bool active){
 
-  // summarize data in struct
-  IpPowerData data;
-  data.action = action;
-  data.start = start;
-  data.timestamp = timestamp;
-  data.power = 0;
+  if (active){
 
-  // search IP in IpData
-  vector<IpPowerEntry>::iterator i=PM::IpData.begin();
-  while( (i !=PM::IpData.end()) && (ip!=i->ip) ){ i++; }
+    // summarize data in struct
+    IpPowerData data;
+    data.action = action;
+    data.start = start;
+    data.timestamp = timestamp.value();
+    data.power = 0;
+    data.id = id;
 
-  // check if IP registered and insert data
-  if( i==PM::IpData.end() ){
-    v::warn << "Power Monitor" << "sending IP not registered" << endl;
-  }else{
-    i->entry.push_back(data);
+    if( data.timestamp > PM::EndOfSimulation ){ PM::EndOfSimulation = data.timestamp; }
+    
+    // search IP in IpData
+    vector<IpPowerEntry>::iterator i=PM::IpData.begin();
+    while( (i != PM::IpData.end()) && (ip != i->ip) ){ i++; }
+    
+    // check if IP registered and insert data
+    if( i==PM::IpData.end() ){
+      v::warn << "Power Monitor" << "sending IP not registered" << endl;
+    }else{
+      i->entry.push_back(data);
+    }
+
   }
 } // send 
+//------------------------------------------------
+
+
+// send idle date
+// called by IP
+//------------------------------------------------
+void PM::send_idle(sc_module* ip, string action, sc_time timestamp, bool active){
+
+  if (active){
+
+    // summarize and complete data in struct
+    IpPowerData data;
+    data.action = action;
+    data.start = 1;
+    data.timestamp = timestamp.value();
+    data.power = 0;
+    data.id = 0;
+
+    if( data.timestamp > PM::EndOfSimulation ){ PM::EndOfSimulation = data.timestamp; }
+
+    // search IP in IpData
+    vector<IpPowerEntry>::iterator i=PM::IpData.begin();
+    while( (i != PM::IpData.end()) && (ip != i->ip) ){ i++; }
+
+    // check if IP registered and insert data
+    if( i==PM::IpData.end() ){
+      v::warn << "Power Monitor" << " sending IP not registered" << endl;
+    }else{
+      i->idle.push_back(data);
+    }
+
+  }
+
+} // send_idle
 //------------------------------------------------
 
 
@@ -269,6 +310,37 @@ void PM::addpower(string const &path, string const &infile){
 	} // end if
 
       } // end entry loop
+
+
+      // assign power data to idle entries
+      for( vector<IpPowerData>::iterator ipentry = ip->idle.begin() ; ipentry != ip->idle.end(); ipentry++){
+	
+	// search action in MainData
+	//..........................................
+	vector<PowerData>::iterator mainentry = mainip->entry.begin();
+	while( (mainentry != mainip->entry.end()) && (mainentry->action != ipentry->action) ){ mainentry++; }
+	//..........................................
+
+	// print warning if action is missing
+	// ........................................
+	if( mainentry == mainip->entry.end() ){
+	  // set default value
+	  ipentry->power = 0;
+	  // print warning if needed
+	  missing = PM::missingAction.begin();
+	  while( ( missing != missingAction.end() ) && ( (*missing) != (ip->name)+(ipentry->action) ) ){ missing++; }
+	  if ( missing == PM::missingAction.end() ){
+	    PM::missingAction.push_back( (ip->name)+(ipentry->action) );
+	    v::warn << "no power data for IP " << ip->name << ", action : " << ipentry->action << ", setting default value 0" << endl;
+	  }
+	//........................................
+
+	}else{
+	  ipentry->power = mainentry->power;
+	} // end if
+
+      } // end idle_entry loop
+
     } // end if
   } // end ip loop
 } // end addpower 
@@ -278,16 +350,23 @@ void PM::addpower(string const &path, string const &infile){
 // comparing function to sort IpPowerEntries
 //------------------------------------------------
 bool PM::sortIpEntry(IpPowerData d1, IpPowerData d2){
-  // sort by timestamp if equal 'end' is lower
-  if (d1.timestamp != d2.timestamp){
-    return(d1.timestamp < d2.timestamp);
+
+  if (d1.id != d2.id){
+    return(d1.id < d2.id);
   }else{
-    return(!d1.start);
+    // sort by timestamp if equal 'end' is lower
+    if (d1.timestamp != d2.timestamp){
+      return(d1.timestamp < d2.timestamp);
+    }else{
+      return(!d1.start);
+    }
   }
 }
 //------------------------------------------------
 
 
+// sort temporary sums
+//------------------------------------------------
 bool PM::sortTempSum(tempSum s1, tempSum s2){
   // sort by timestamp if equal 'end' is lower
   if (s1.timestamp != s2.timestamp){
@@ -296,6 +375,7 @@ bool PM::sortTempSum(tempSum s1, tempSum s2){
     return(s2.start);
   }
 }
+//------------------------------------------------
 
 
 // print action vector
@@ -317,13 +397,13 @@ void PM::printActionVector ( string &ip , vector<tempActions>::iterator action){
 
 // check if action vector entries are correct
 //------------------------------------------------
-void PM::checkActionVector (vector<tempActions>::iterator const action) {
+void PM::checkActionVector (IpPowerEntry &ip, vector<tempActions>::iterator const action) {
 
   unsigned int i = action->entry.size()-1;   // last element
   
   // remove 'start' entries at the end of vector
   while ( (action->entry.size() > 0) && (action->entry[i].start == 1) ){
-    v::warn << "Power Monitor" << "start entry without end removed at : " << action->entry[i].timestamp << endl;
+    v::warn << "Power Monitor" << ip.sc_name << " >> " << action->action << " : " << "start entry without end removed at : " << action->entry[i].timestamp << endl;
     action->entry.erase( action->entry.begin()+i );
     i--;
   }
@@ -337,14 +417,14 @@ void PM::checkActionVector (vector<tempActions>::iterator const action) {
       
       // 2 end entries
       if ( action->entry[i].start == 0 ) {
-	v::warn << "Power Monitor" << "end entry without start removed at : " << action->entry[i].timestamp << endl; 
+	v::warn << "Power Monitor" << ip.sc_name << " >> " << action->action << " : " << "end entry without start removed at : " << action->entry[i].timestamp << endl; 
 	action->entry.erase( action->entry.begin() + i-1 );
 	i--;
       }
       
       // 2 start entries
       if ( action->entry[i].start == 1 ){
-	v::warn << "Power Monitor" << "start entry without end removed at : " << action->entry[i].timestamp << endl;
+	v::warn << "Power Monitor" << ip.sc_name << " >> " << action->action << " : " << "start entry without end removed at : " << action->entry[i].timestamp << endl;
 	action->entry.erase( action->entry.begin() + i );
 	i--;
       }
@@ -354,14 +434,14 @@ void PM::checkActionVector (vector<tempActions>::iterator const action) {
   
   // remove 'end' entries at start of vector
   if ( action->entry[0].start == 0 ){
-    v::warn << "Power Monitor" << "end entry without start removed at : " << action->entry[0].timestamp << endl;
+    v::warn << "Power Monitor" << ip.sc_name << " >> " << action->action << " : " << "end entry without start removed at : " << action->entry[0].timestamp << endl;
     action->entry.erase( action->entry.begin() );
   }
   
   // check if valid entries remain
   if ( action->entry.size() <= 1 ) {
     action->entry.clear();
-    v::warn << "Power Monitor" << "no valid entries remain for : " << action->action << endl;
+    v::warn << "Power Monitor" << ip.sc_name << " >> " << action->action << " : " << "no valid entries remain for : " << action->action << endl;
   }
 
 }
@@ -504,6 +584,47 @@ void PM::propagate(){
 //------------------------------------------------
 
 
+// convert idle entries
+//------------------------------------------------
+void PM::merge_idle(IpPowerEntry &ip){
+
+  IpPowerData tempdata;
+  vector<IpPowerData> temp;
+
+  if( ip.idle.size() > 0){
+    
+    vector<IpPowerData>::iterator i = ip.idle.begin();
+
+    while( i != ip.idle.end()-1 ){
+      temp.push_back( *i );
+      
+      // create end entry
+      tempdata = *i;
+      tempdata.start = 0;
+      tempdata.timestamp = (i+1)->timestamp;
+      temp.push_back( tempdata );
+
+      // next entry
+      i++;
+    }
+
+    // edit last entry
+    temp.push_back( *i );
+    
+    tempdata = *i;
+    tempdata.start = 0;
+    tempdata.timestamp = PM::EndOfSimulation;
+    temp.push_back( tempdata );
+
+    // add idle entries to regular power entries
+    ip.entry.insert( ip.entry.end(), temp.begin(), temp.end() );
+
+  }
+
+}
+//------------------------------------------------
+
+
 // analyze one IP
 //------------------------------------------------
 analyzedEntry PM::analyzeIP (IpPowerEntry ip) {
@@ -536,6 +657,10 @@ analyzedEntry PM::analyzeIP (IpPowerEntry ip) {
 
   sum.timestamp = 0;
   sum.power = 0;
+
+
+  // merge idle entries into regular power entries
+  PM::merge_idle(ip);
  
 
   // check if analyzing necessary
@@ -607,10 +732,7 @@ analyzedEntry PM::analyzeIP (IpPowerEntry ip) {
       if ( PM::debug >= 2){ PM::printActionVector(analyzedIP.sc_name,action); }
       
       // check if entries are correct
-      if ( PM::debug >= 1 ){ 
-	v::info << "Power Monitor" << "checking vector entries for " << analyzedIP.sc_name << " > " << action->action << endl;
-	PM::checkActionVector(action);
-      }
+      if ( PM::debug >= 1 ){ PM::checkActionVector(ip, action); }
 
       for( actentry = action->entry.begin(); actentry != action->entry.end(); actentry=actentry+2){ // entries
 	

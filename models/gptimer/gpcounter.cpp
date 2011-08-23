@@ -57,7 +57,9 @@ CGPCounter::CGPCounter(CGPTimer &_parent, unsigned int _nr,
                        sc_core::sc_module_name name) :
     gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false) {
     SC_THREAD(ticking);
-    PM::registerIP(this, "Counter");
+
+    PM::registerIP(this, "gpcounter",1);
+    PM::send_idle(this,"idle",sc_time_stamp(),1);
 }
 
 CGPCounter::~CGPCounter() {
@@ -176,7 +178,7 @@ void CGPCounter::ticking() {
         v::debug << name() << "CGPCounter_" << nr << " is wait" << v::endl;
         wait(e_wait);
         v::debug << name() << "CGPCounter_" << nr << " is rockin'" << v::endl;
-        PM::send(this, "underflow", 1, sc_time_stamp().value());
+        PM::send(this, "underflow", 1, sc_time_stamp(),0,1);
         // Send interupt and set outputs
         if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IE]) {
             // p.r[CGPTimer::CTRL].b[CGPTimer::TIM_CTRL_SI] // seperatet interupts
@@ -198,7 +200,7 @@ void CGPCounter::ticking() {
         }
 #endif
         wait(p.clockcycle);
-        PM::send(this, "underflow", 0, sc_time_stamp().value());
+        PM::send(this, "underflow", 0, sc_time_stamp(),0,1);
         if(m_pirq&&irqnr) {
             p.irq.write(1 << irqnr, false);
         }
@@ -312,7 +314,7 @@ void CGPCounter::start() {
         lasttime = sc_core::sc_time_stamp();
         calculate();
         stopped = false;
-        PM::send(this, "active", 1, sc_time_stamp().value());
+        PM::send(this, "active", 1, sc_time_stamp(),0,1);
     }
 }
 
@@ -327,7 +329,7 @@ void CGPCounter::stop() {
         lastvalue = p.r[CGPTimer::VALUE(nr)];
         lasttime = sc_core::sc_time_stamp();
         stopped = true;
-        PM::send(this, "active", 0, sc_time_stamp().value());
+        PM::send(this, "active", 0, sc_time_stamp(),0,1);
     }
 }
 

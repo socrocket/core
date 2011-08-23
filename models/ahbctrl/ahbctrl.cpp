@@ -124,7 +124,8 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
   ahbIN.register_transport_dbg(this, &AHBCtrl::transport_dbg);
 
   // Register power monitor
-  PM::registerIP(this,"ahbctrl");
+  PM::registerIP(this,"ahbctrl",m_pow_mon);
+  PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
 
 }
 
@@ -284,7 +285,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     }
 
     // Power event start
-    PM::send(this,"ahb_trans",1,sc_time_stamp().value());
+    PM::send(this,"ahb_trans",1,sc_time_stamp(),(unsigned int)trans.get_data_ptr(),m_pow_mon);
     
     // Add delay for AHB address phase
     delay += clockcycle;
@@ -293,7 +294,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     ahbOUT[index]->b_transport(trans, delay);
 
     // Power event end
-    PM::send(this,"ahb_trans",0,sc_time_stamp().value());
+    PM::send(this,"ahb_trans",0,sc_time_stamp(),(unsigned int)trans.get_data_ptr(),m_pow_mon);
 
     return;
 
@@ -503,7 +504,7 @@ void AHBCtrl::RequestThread() {
 	pending_map[trans] = connection;
 
 	// Power event start
-	PM::send(this, "ahb_trans", 1, sc_time_stamp().value());
+	PM::send(this, "ahb_trans", 1, sc_time_stamp(),(unsigned int)trans->get_data_ptr(),m_pow_mon);
 
 	// Send BEGIN_REQ to slave
 	phase = tlm::BEGIN_REQ;
@@ -632,7 +633,7 @@ void AHBCtrl::EndData() {
     assert((status == tlm::TLM_ACCEPTED)||(status == tlm::TLM_COMPLETED));
 
     // Power event end
-    PM::send(this,"ahb_trans", 0, sc_time_stamp().value());
+    PM::send(this,"ahb_trans", 0, sc_time_stamp(),(unsigned int)trans->get_data_ptr(),m_pow_mon);
 
     // Cleanup
     // -------
@@ -732,7 +733,7 @@ void AHBCtrl::ResponseThread() {
     }
 
     // End power event
-    PM::send(this,"ahb_trans", 0, sc_time_stamp().value());
+    PM::send(this,"ahb_trans", 0, sc_time_stamp(),(unsigned int)trans->get_data_ptr(),m_pow_mon);
 
     // Cleanup
     // -------
