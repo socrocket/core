@@ -182,20 +182,27 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     addr -= 0x800;
 
     // Calculate index of the device in mSlaves pointer array (32 byte per device)
-    unsigned int device = addr >> 3;
+    // Shift first to get word addresses.
+    unsigned int device = (addr >> 2) >> 3;
     // Calculate offset within device information
-    unsigned int offset = addr & 0x7;
+    unsigned int offset = (addr >> 2) & 0x7;
 
-    return(mSlaves[device][offset]);
+    if(device>=num_of_slave_bindings) {
+        return 0;
+    }
+    return mSlaves[device][offset];
 
   } else {
 
     
     // Calculate index of the device in mMasters pointer array (32 byte per device)
-    unsigned int device = addr >> 3;
+    unsigned int device = (addr >> 2) >> 3;
     // Calculate offset within device information
-    unsigned int offset = addr & 0x7;
+    unsigned int offset = (addr >> 2) & 0x7;
 
+    if(device>=num_of_master_bindings) {
+        return 0;
+    }
     return(mMasters[device][offset]);
 
   }
@@ -233,12 +240,10 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
 
       // Get registers from config area
       for (uint32_t i = 0; i < (length >> 2); i++) {
+          data[i] = getPNPReg(addr + (i<<2));
 
-	data[i] = getPNPReg(addr);
-
-	// one cycle delay per 32bit register
-	delay += clockcycle;
-
+          // one cycle delay per 32bit register
+          delay += clockcycle;
       }
       
       // burn delay

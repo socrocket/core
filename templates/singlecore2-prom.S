@@ -147,7 +147,7 @@ _fsrxx:
 	srl %g3, 28, %g3
 	andcc %g3, 0x0f, %g3
 	bne 1f
-#     MEMCFG APB BASE
+!     MEMCFG APB BASE
 	set ((conf_apbctrl_ioaddr&conf_apbctrl_iomask)<<20)+((conf_memctrl_apb_addr&conf_memctrl_apb_mask)<<20), %g1
 	set conf_mcfg1, %g2
 	st  %g2, [%g1]
@@ -155,21 +155,22 @@ _fsrxx:
 	st  %g2, [%g1+4]
 	set conf_mcfg3, %g2
 	st  %g2, [%g1+8]
-#     IRQMP APB BASE
+!     IRQMP APB BASE
 !	set ((conf_apbctrl_ioaddr&conf_apbctrl_iomask)<<20)+((conf_irqmp_addr&conf_irqmp_mask)<<8), %g1
 !	set 0x0ffff, %g2
 !	st  %g2, [%g1+0x10]
 
-	set 0xFFFFF860, %g1
+! Check if vendor and device id is higher than 0x1009!
+	set (((conf_ahbctrl_cfgaddr&conf_ahbctrl_cfgmask)<<20)+(conf_memctrl_ahb_index<<5)), %g1
 	ld  [%g1], %g2
 	srl %g2, 12, %g2
 	set 0x01009, %g1
 	subcc %g1, %g2, %g0
 	bne 1f
 
-#     ASDCFG == MCFG1
+! if newer device ASDCFG == MCFG1 set register to
 	set ((conf_apbctrl_ioaddr&conf_apbctrl_iomask)<<20)+((conf_memctrl_apb_addr&conf_memctrl_apb_mask)<<20), %g1
-#	set ASDCFG, %g1
+!	set ASDCFG, %g1
 	set conf_sdcfg, %g2
 	st  %g2, [%g1]
 

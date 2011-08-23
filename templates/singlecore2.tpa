@@ -31,7 +31,7 @@
     </option>
     
     <option var="apbctrl" name="APB Controler">
-      <option var="index" name="Bus Index" type="int" default="0" range="0..15"/>
+      <option var="index" name="Bus Index" type="int" default="1" range="0..15"/>
       <option var="ioaddr" name="APB IO Area Address" type="int" default="0x800" range="0..0xFFF"/>
       <option var="iomask" name="APB IO Area Mask" type="int" default="0xFFF" range="0..0xFFF"/>
       <option var="cfgaddr" name="APB CFG Area Address" type="int" default="0" range="0..0xFF0"/>
@@ -46,6 +46,7 @@
     <option var="mmu_cache" name="MMU Cache">
       <option var="addr" name="AHB Base Address" type="int" default="0" range="0..4095"/>
       <option var="mask" name="AHB Base Mask" type="int" default="0" range="0..4095"/>
+      <option var="index" name="Bus Index" type="int" default="0" range="0..15"/>
       <option var="dsu" name="Enable debug support" type="bool" default="true">
         <description>Enable debug support unit interface (not implemented)"</description>
       </option>
@@ -85,6 +86,7 @@
     <option var="gptimer" name="GPTimer" type="bool" default="true">
       <option var="addr" name="APB Base Address" type="int" default="0xF0" range="0..4095"/>
       <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..4095"/>
+      <option var="index" name="Bus Index" type="int" default="2" range="0..15"/>
       <option var="pirq" name="IRQ Line" type="int" default="8" range="0..15"/>
       <option var="sepirq" name="Seperated IRQs" type="bool" default="true"/>
       <option var="ntimers" name="Number of Counters" type="int" default="7" range="1..7"/>
@@ -97,15 +99,17 @@
       <option var="ahb" name="AHB Bus Interface">
         <option var="addr" name="AHB Base Address" type="int" default="0" range="0..0xFFF"/>
         <option var="mask" name="AHB Base Mask" type="int" default="0" range="0..0xFFF"/>
+        <option var="index" name="Bus Index" type="int" default="0" range="0..15"/>
       </option>
       <option var="apb" name="APB Bus Interface">
         <option var="addr" name="APB Base Address" type="int" default="0x800" range="0..0xFFF"/>
         <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..0xFFF"/>
+        <option var="index" name="Bus Index" type="int" default="0" range="0..15"/>
       </option>
       <option var="prom" name="PROM Configuration">
         <option var="addr" name="Address Space Base" type="int" default="0x000" range="0..0xFFF"/>
         <option var="mask" name="Address Space Mask" type="int" default="0xE00" range="0..0xFFF"/>
-        <option var="asel" name="Address Space Selector" type="int" default="29" range="0..31"/>
+        <option var="asel" name="Address Space Selector" type="int" default="28" range="0..31"/>
       </option>
       <option var="io" name="IO ROM Configuration">
         <option var="addr" name="Address Space Base" type="int" default="0x200" range="0..0xFFF"/>
@@ -115,7 +119,7 @@
         <option var="addr" name="Address Space Base" type="int" default="0x400" range="0..0xFFF"/>
         <option var="mask" name="Address Space Mask" type="int" default="0xC00" range="0..0xFFF"/>
         <option var="wprot" name="RAM write protection" type="bool" default="false"/>
-        <option var="asel" name="Address Space Selector" type="int" default="28" range="0..31"/>
+        <option var="asel" name="Address Space Selector" type="int" default="29" range="0..31"/>
       </option>
       <option var="ram8" name="Enable 8bit PROM and SRAM access" type="bool" default="true"/>
       <option var="ram16" name="Enable 16bit PROM and SRAM access" type="bool" default="true"/>
@@ -129,9 +133,11 @@
       <option var="apb" name="APB Bus Interface">
         <option var="paddr" name="Base Address" type="int" default="10" range="0..4095"/>
         <option var="pmask" name="Base Mask" type="int" default="4095" range="0..4095"/>
+        <option var="index" name="Bus Index" type="int" default="3" range="0..15"/>
         <option var="pirq" name="Interupt identifier" type="int" default="10" range="0..0xFFFF"/>
       </option>
       <option var="socw" name="SoCWire Interface">
+        <option var="index" name="Bus Index" type="int" default="1" range="0..15"/>
         <option var="datawidth" name="Width of the socwire link" type="int" default="32" range="16..32"/>
         <option var="speed" name="SoCWire clock period in nano seconds" type="int" default="10" range="1..100"/>
         <option var="after64" name="6.4us timeout in ns" type="int" default="64" range="1..6400"/>
@@ -143,6 +149,7 @@
     <option var="irqmp" name="IRQ Controller">
       <option var="addr" name="APB Base Address" type="int" default="0x1F0" range="0..4095"/>
       <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..4095"/>
+      <option var="index" name="Bus Index" type="int" default="1" range="0..15"/>
       <option var="ncpu" name="Number of processor in multicore system" type="int" default="1" range="1..16"/>
       <option var="eirq" name="The cascade line of EIRs" type="int" default="4" range="0..15"/>
     </option>

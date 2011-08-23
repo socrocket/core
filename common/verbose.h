@@ -140,7 +140,11 @@ extern Number noint;
 /// Standard verbosity is 3.
 /// All messages but debug.
 #ifndef VERBOSITY
-#define VERBOSITY 3
+#  ifdef GLOBALVERBOSITY
+#    define VERBOSITY GLOBALVERBOSITY
+#  else
+#    define VERBOSITY 3
+#  endif
 #endif
 
 /// Message stream.

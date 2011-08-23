@@ -107,20 +107,44 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
     //rom space in MByte: 4GB - masked area (rommask)
     //rom space in Byte: 2^(romasel + 1)
     //same for ram and sdrasel
-    if(((4096 - _rommask) != (1 << (_romasel - 19))) ||
-       ((4096 - _rammask) != (1 << (_sdrasel - 19)))) {
+    if((4096 - _rommask) != (1 << (_romasel - 19))) {
         v::error << this->name() << "Inconsistent address space parameters. " 
-                 << "Check romasel / sdrasel vs. (rom-|ram-)(-addr|-mask)." 
-                 << v::endl;
-    } else if((_romaddr < _ioaddr)  && ((_romaddr + 4096 - _rommask) > _ioaddr)  ||
-              (_romaddr < _ramaddr) && ((_romaddr + 4096 - _rommask) > _ramaddr) ||
-              (_ioaddr  < _romaddr) && ((_ioaddr  + 4096 - _iomask)  > _romaddr) ||
-              (_ioaddr  < _ramaddr) && ((_ioaddr  + 4096 - _iomask)  > _ramaddr) ||
-              (_ramaddr < _romaddr) && ((_ramaddr + 4096 - _rammask) > _romaddr) ||
-              (_ramaddr < _ioaddr)  && ((_ramaddr + 4096 - _rammask) > _ioaddr)) {
-        v::error << this->name() << "Inconsistent address space parameters. "
-                 << "Check *addr and *mask for overlaps." << v::endl;
+                 << "Check romasel and rom-addr/-mask parameter." << v::endl;
     }
+    if((4096 - _rammask) != (1 << (_sdrasel - 19))) {
+        v::error << this->name() << "Inconsistent address space parameters. " 
+                 << "Check sdrasel vs. ram-addr/-mask parameter." << v::endl;
+    }
+    if(_romaddr < _ioaddr  && (_romaddr + 4096 - _rommask) > _ioaddr) {
+        v::error << this->name() << "Inconsistent address space parameters. "
+                 << "Check rom/io address and mask for overlaps." << v::endl;
+    }
+
+    if(_romaddr < _ramaddr && (_romaddr + 4096 - _rommask) > _ramaddr) {
+        v::error << this->name() << "Inconsistent address space parameters. "
+                 << "Check rom/ram address and mask for overlaps." << v::endl;
+    }
+    
+    if(_ioaddr  < _romaddr && (_ioaddr  + 4096 - _iomask)  > _romaddr) {
+        v::error << this->name() << "Inconsistent address space parameters. "
+                 << "Check io/rom address and mask for overlaps." << v::endl;
+    }
+    
+    if(_ioaddr  < _ramaddr && (_ioaddr  + 4096 - _iomask)  > _ramaddr) {
+        v::error << this->name() << "Inconsistent address space parameters. "
+                 << "Check io/ram address and mask for overlaps." << v::endl;
+    }
+    
+    if(_ramaddr < _romaddr && (_ramaddr + 4096 - _rammask) > _romaddr) {
+        v::error << this->name() << "Inconsistent address space parameters. "
+                 << "Check *ram/rom address and mask for overlaps." << v::endl;
+    }
+    
+    if(_ramaddr < _ioaddr  && (_ramaddr + 4096 - _rammask) > _ioaddr) {
+        v::error << this->name() << "Inconsistent address space parameters. "
+                 << "Check ram/io address and mask for overlaps." << v::endl;
+    }
+
 
     // register transport functions to sockets
     ahb.register_b_transport(this, &Mctrl::b_transport);

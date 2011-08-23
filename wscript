@@ -177,7 +177,7 @@ def configure(ctx):
         if not '-Wall' in ctx.env['CXXFLAGS']:
             ctx.env.append_unique('CXXFLAGS', '-Wall')
         if not ctx.options.verbosity:
-            ctx.env.append_unique('DEFINES', 'VERBOSITY=10')
+            ctx.env.append_unique('DEFINES', 'GLOBALVERBOSITY=3')
 
     #############################################################
     # Check support for profilers
@@ -333,7 +333,7 @@ def configure(ctx):
       ctx.env['GRLIB_TECH'] = ctx.options.grlibtech
     # Set verbosity level
     if ctx.options.verbosity:
-      ctx.env.append_unique('DEFINES', 'VERBOSITY=%s' % ctx.options.verbosity)
+      ctx.env.append_unique('DEFINES', 'GLOBALVERBOSITY=%s' % ctx.options.verbosity)
 
 
     ########################################

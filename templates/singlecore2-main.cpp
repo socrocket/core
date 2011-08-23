@@ -61,10 +61,13 @@
 #include "AHB2Socwire.h"
 
 #include <iostream>
+#include <vector>
 #include <amba.h>
 #include "verbose.h"
 
 #include "config.h"
+#include <GDBStub.hpp>
+#include "tb_ahb_mem.h"
 using namespace std;
 using namespace sc_core;
 
@@ -103,6 +106,14 @@ using namespace sc_core;
 #  define conf_mmu_cache_mmu_en_mmupgsz 0
 #endif
 
+#ifndef conf_gdbdebug
+#define conf_gdbdebug false
+#endif
+
+#ifndef conf_paramlist
+#define conf_paramlist false
+#endif
+
 #define LOCAL_CLOCK 10
 #define CACHE_MASTER_ID 0
 
@@ -135,6 +146,7 @@ int sc_main(int argc, char** argv) {
 		    conf_ahbctrl_fixbrst,               // Enable support for fixed-length bursts (disabled)
 		    conf_ahbctrl_fpnpen,                // Enable full decoding of PnP configuration records
 		    conf_ahbctrl_mcheck,                // Check if there are any intersections between core memory regions
+        false, // Powermon
 		    amba::amba_LT
     );
     // Set clock
@@ -182,8 +194,8 @@ int sc_main(int argc, char** argv) {
 		        //conf_mmu_cache_addr,          // The MSB address of the AHB area. Sets the 12 MSBs of the AHB address
 		        //conf_mmu_cache_mask,          // The 12bit AHB area address mask
             //conf_mmu_cache_dsu,           // Enable debug support unit interface
-            CACHE_MASTER_ID,                // - id of the AHB master
-            false,                          // Power Monitor
+            conf_mmu_cache_index,           // - id of the AHB master
+            false,                          // Power Monitor,
 	          amba::amba_LT                   // LT abstraction
     );
     
@@ -206,6 +218,7 @@ int sc_main(int argc, char** argv) {
 		    //conf_apbctrl_cfgaddr,             // The MSB address of the AHB area. Sets the 12 MSBs of the AHB address
 		    //conf_apbctrl_cfgmask,             // The 12bit AHB area address mask
 		    conf_apbctrl_check,                 // Check if there are any intersections between APB slave memory regions 
+        conf_apbctrl_index,
 		    amba::amba_LT
     );
     // Connecting AHB Slave
@@ -233,11 +246,13 @@ int sc_main(int argc, char** argv) {
     const int sdbits  = conf_memctrl_sdbits;
     const int mobile  = conf_memctrl_mobile;
     const int sden    = conf_memctrl_sden;
-
+    const int hindex  = conf_memctrl_ahb_index;
+    const int pindex  = conf_memctrl_apb_index;
+    
     //instantiate mctrl, generic memory, and testbench
-    Mctrl mctrl("mctrl_inst0", romasel, sdrasel, romaddr, rommask, ioaddr,
+    Mctrl mctrl("mctrl", romasel, sdrasel, romaddr, rommask, ioaddr,
             iomask, ramaddr, rammask, paddr, pmask, wprot, srbanks, ram8,
-            ram16, sepbus, sdbits, mobile, sden
+            ram16, sepbus, sdbits, mobile, sden, hindex, pindex, false
     );
 
     // CREATE MEMORIES
@@ -257,6 +272,9 @@ int sc_main(int argc, char** argv) {
     mctrl.mctrl_sdram(generic_memory_sdram.slave_socket);
     // Set clock
     mctrl.clk(LOCAL_CLOCK,SC_NS);
+    
+    //Ctb_ahb_mem ahb_mem("AHB_MEM", 0x0, 0x800);
+    //ahbctrl.ahbOUT(ahb_mem.ahb);
     // * ELF Loader ****************************
     // ELF loader from leon (Trap-Gen)
     // Loads the application into the memmory.
@@ -265,10 +283,15 @@ int sc_main(int argc, char** argv) {
     unsigned char* execData = prom_loader.getProgData();
     for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
        generic_memory_rom.writeByteDBG(prom_loader.getDataStart() + i, execData[i]);
+       //ahb_mem.writeByteDBG(prom_loader.getDataStart() + i, execData[i]);
+       //v::debug << "sc_main" << "Write to PROM: Addr: " << v::uint32 << prom_loader.getDataStart() + i << " Data: " << v::uint8 << (uint32_t)execData[i] << v::endl;
     }
-    leon3.ENTRY_POINT   = prom_loader.getProgStart();
+    //leon3.ENTRY_POINT   = prom_loader.getProgStart();
     //leon3.PROGRAM_LIMIT = prom_loader.getProgDim() + prom_loader.getDataStart();
     //leon3.PROGRAM_START = prom_loader.getDataStart();
+    leon3.ENTRY_POINT   = 0;
+    leon3.PROGRAM_LIMIT = 0;
+    leon3.PROGRAM_START = 0;
     
     ExecLoader sram_loader(sram_app); 
     execData = sram_loader.getProgData();
@@ -276,15 +299,36 @@ int sc_main(int argc, char** argv) {
        generic_memory_sram.writeByteDBG(sram_loader.getDataStart() + i, execData[i]);
     }
     //leon3.ENTRY_POINT   = sram_loader.getProgStart();
-    leon3.PROGRAM_LIMIT = sram_loader.getProgDim() + sram_loader.getDataStart();
-    leon3.PROGRAM_START = sram_loader.getDataStart();
+    //leon3.PROGRAM_LIMIT = sram_loader.getProgDim() + sram_loader.getDataStart();
+    //leon3.PROGRAM_START = sram_loader.getDataStart();
     assert((sram_loader.getProgDim() + sram_loader.getDataStart()) < 0x1fffffff);
     // ******************************************
+    
+    // * IRQMP **********************************
+    // CREATE IRQ controller
+    // =====================
+    // Needed for basic platform.
+    // Always enabled
+    CIrqmp irqmp("irqmp",
+        conf_irqmp_addr,  // paddr
+        conf_irqmp_mask,  // pmask
+        conf_irqmp_ncpu,  // ncpu
+        conf_irqmp_eirq,  // eirq
+        conf_irqmp_index
+    );
+    // Connecting APB Slave
+    apbctrl.apb(irqmp.apb_slv);
+    // Set clock
+    irqmp.clk(LOCAL_CLOCK,SC_NS);
+    connect(irqmp.irq_req, leon3.IRQ_port.irq_signal, 0);
+    connect(leon3.irqAck.initSignal, irqmp.irq_ack, 0);
+    // ******************************************
+    
     // * GPTimer ********************************
 #if gptimer != 0
     // CREATE GPTimer
     // ==============
-    CGPTimer u_gptimer("u_gptimer",
+    CGPTimer gptimer("gptimer",
         conf_gptimer_ntimers,  // ntimers
         conf_gptimer_addr,  // gpaddr
         conf_gptimer_mask,  // gpmask
@@ -292,37 +336,26 @@ int sc_main(int argc, char** argv) {
         conf_gptimer_sepirq,  // gsepirq
         conf_gptimer_sbits,  // gsbits
         conf_gptimer_nbits, // gnbits
-        conf_gptimer_wdog // wdog
+        conf_gptimer_wdog, // wdog
+        conf_gptimer_index,
+        false
     );
     // Connecting APB Slave
-    apbctrl.apb(u_gptimer.bus);
+    apbctrl.apb(gptimer.bus);
     // Connecting Interrupts
-    //u_irqmp.irq_in(u_gptimer.irq, 0);
+    for(int i=0; i < 8; i++) {
+      signalkit::connect(irqmp.irq_in, gptimer.irq, conf_gptimer_pirq + i);
+    }
     // Set clock
-    u_gptimer.clk(LOCAL_CLOCK,SC_NS);
+    gptimer.clk(LOCAL_CLOCK,SC_NS);
 #endif
     // ******************************************
-    // * IRQMP **********************************
-    // CREATE IRQ controller
-    // =====================
-    // Needed for basic platform.
-    // Always enabled
-    CIrqmp u_irqmp("u_irqmp",
-        conf_irqmp_addr,  // paddr
-        conf_irqmp_mask,  // pmask
-        conf_irqmp_ncpu,  // ncpu
-        conf_irqmp_eirq   // eirq
-    );
-    // Connecting APB Slave
-    apbctrl.apb(u_irqmp.apb_slv);
-    // Set clock
-    u_irqmp.clk(LOCAL_CLOCK,SC_NS);
-    // ******************************************
+    
     // * SoCWire ********************************
 #if socwire != 0
     // CREATE AHB2Socwire bridge
     // =========================
-    CAHB2Socwire u_ahb2socwire("u_ahb2socwire",
+    CAHB2Socwire u_ahb2socwire("ahb2socwire",
                                conf_socwire_apb_addr,  // paddr
                                conf_socwire_apb_mask,  // pmask
                                conf_socwire_apb_irq,  // pirq
@@ -355,7 +388,27 @@ int sc_main(int argc, char** argv) {
     leon3.toolManager.addTool(osEmu);
     leon3.enableHistory("cmdHistLTSys"); 
     // ******************************************
-    
+   
+    // * GDBStubs *******************************
+#if conf_gdbdebug
+    GDBStub< unsigned int > gdbStub(*(leon3.abiIf));
+    leon3.toolManager.addTool(gdbStub);
+    gdbStub.initialize(); 
+    leon3.instrMem.setDebugger(&gdbStub);
+    leon3.dataMem.setDebugger(&gdbStub);
+#endif
+    // ******************************************
+
+    // * Param Listing **************************
+#if conf_paramlist
+    v::info << "main" << "System Parameter:" << v::endl;
+    std::vector<std::string> plist = CFG->getParamList();
+    for(uint32_t i = 0; i < plist.size(); i++) {
+        v::info << "main" << plist[i] << v::endl;
+    }
+#endif
+    // ******************************************
+
     // start simulation
     sc_core::sc_start();
 
@@ -373,4 +426,3 @@ int sc_main(int argc, char** argv) {
     return 0; //tb.get_error_count();
 
 }
-
