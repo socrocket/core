@@ -186,7 +186,8 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     }
 
     // register power monitor
-    PM::registerIP(this,"mmu_cache");
+    PM::registerIP(this,"mmu_cache",m_pow_mon);
+    PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
 
     // initialize cache control registers
     CACHE_CONTROL_REG = 0;

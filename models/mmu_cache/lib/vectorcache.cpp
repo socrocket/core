@@ -166,7 +166,8 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     CACHE_CONFIG_REG |= ((m_repl & 0x3) << 28);
 
     // register for power monitoring
-    PM::registerIP(this,"vectorcache");
+    PM::registerIP(this,"vectorcache",m_pow_mon);
+    PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
 }
 
 // destructor
@@ -261,14 +262,16 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
             }
         }
 
+
 	for (unsigned int i=0;i<=m_sets;i++) {
 
 	    // Power Monitor: parallel read of all cache sets (1 cycle)
 	    sprintf(buf,"set_read%d",i);
-	    PM::send(this,buf,1,sc_time_stamp().value());
-	    PM::send(this,buf,0,sc_time_stamp().value()+clockcycle.value());
+	    PM::send(this,buf,1,sc_time_stamp(),0,m_pow_mon);
+	    PM::send(this,buf,0,sc_time_stamp()+clockcycle,0,m_pow_mon);
 
 	}
+
 
         // in case no matching tag was found or data is not valid:
         // -------------------------------------------------------
@@ -335,8 +338,8 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 		sprintf(buf,"set_write%d",set_select);
 
 		// Power Monitor: Write new data to set 'set_select'
-		PM::send(this,buf,1,sc_time_stamp().value());
-		PM::send(this,buf,0,sc_time_stamp().value()+clockcycle.value());		
+		PM::send(this,buf,1,sc_time_stamp(),0,m_pow_mon);
+		PM::send(this,buf,0,sc_time_stamp()+clockcycle,0,m_pow_mon);		
 
                 // has the tag changed?
                 if ((*m_current_cacheline[set_select]).tag.atag != tag) {
@@ -389,8 +392,8 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 
 		    // Power Monitor: Write new data to set 'set_select'
 		    sprintf(buf,"set_write%d",set_select);
-		    PM::send(this,buf,1,sc_time_stamp().value());
-		    PM::send(this,buf,0,sc_time_stamp().value()+clockcycle.value());	
+		    PM::send(this,buf,1,sc_time_stamp(),0,m_pow_mon);
+		    PM::send(this,buf,0,sc_time_stamp()+clockcycle,0,m_pow_mon);	
 
                     // switch on the valid bits for the new entries
                     for (unsigned int i = offset; i <= replacer_limit; i += 4) {
