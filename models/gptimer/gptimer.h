@@ -125,14 +125,18 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         ///
         /// @param name    The name of the instance. It's needed for debunging.
         /// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
-        /// @param pirq    Defines which APB interupt the timers will generate. Default is 0.
-        /// @param sepirq  If set to 1, each timer will drive an individual interrupt line,
+	/// @param gpindex TODO
+	/// @param gpaddr  TODO
+	/// @param gpmask  TODO
+	/// @param gpirq   Defines which APB interupt the timers will generate. Default is 0.
+	/// @param gsepirq If set to 1, each timer will drive an individual interrupt line,
         ///                starting with interrupt irq. If set to 0, all timers will drive
         ///                the same interrupt line (irq).
+	/// @param pindex  TODO
         /// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
-        /// @param nbits   Defines the number of bits in the timers. Default is 32.
-        /// @param sbits   Defines the number of bits in the scaler. Default is 16.
-        /// @param wdog    Watchdog reset value. When set to a non-zero value, the
+        /// @param gnbits  Defines the number of bits in the timers. Default is 32.
+        /// @param gsbits  Defines the number of bits in the scaler. Default is 16.
+        /// @param gwdog   Watchdog reset value. When set to a non-zero value, the
         ///                last timer will be enabled and pre-loaded with this value
         ///                at reset. When the timer value reaches 0, the WDOG output
         ///                is driven active.
@@ -163,9 +167,14 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
 
         // Signal Callbacks
         /// Signal callback executed a reset on the timer when the rst signal arrives.
-        void do_reset(const bool &value, const sc_core::sc_time &time);
+	/// 
+	/// @param value TODO
+	/// @param time TODO
 
         /// Signal callback performing the stopping and starting of all counter when dhalt arrives.
+	/// 
+        /// @param value TODO
+        /// @param time TODO
         void do_dhalt(const bool &value, const sc_core::sc_time &time);
 
       // Threads
@@ -229,7 +238,7 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         int32_t valueof(sc_core::sc_time t, int32_t offset,
                         sc_core::sc_time cycletime) const;
 
-        /// @brief
+        /// @brief TODO
         ///
         int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b,
                                  int counter, sc_core::sc_time cycletime);
@@ -249,16 +258,22 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         static const uint32_t CONF = 0x08;
 
         /// Returns Counter Value Register Address for Counter nr
+	///
+	/// @param nr TODO
         static const uint32_t VALUE(uint8_t nr) {
             return 0x10 * (nr + 1) + 0x0;
         }
 
         /// Returns Counter Reload Register Address for Counter nr
+	///
+	/// @param nr TODO
         static const uint32_t RELOAD(uint8_t nr) {
             return 0x10 * (nr + 1) + 0x4;
         }
 
-        /// Returns Counter Control Register Address for Counter nr
+        /// Returns Counte Control Register Address for Counter nr
+	///
+	/// @param nr TODO
         static const uint32_t CTRL(uint8_t nr) {
             return 0x10 * (nr + 1) + 0x8;
         }

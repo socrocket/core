@@ -1,20 +1,21 @@
+/** @mainpage qwertz
 Library content:
 ================
 
 This is the root directory of the HWSWCOSIM TLM IP library.
-It contains following files and folders:
 
-./common	Globally used convenience functions e.g. unified debug output, verbosity control
-./contrib	Contains extension to GreenSocs software, which are not yet part of 
+It contains following files and folders:
+	./common	Globally used convenience functions e.g. unified debug output, verbosity control
+	./contrib	Contains extension to GreenSocs software, which are not yet part of 
 		the officially released software (submitted patches and extensions).
-./doc		Contains the library documentation
-Doxyfile	Control file for doxygen
-./models	Contains source code and testbenches for all the models of the library.
-./leon3		A Leon3 SparcV8 processor integer unit, generated with TrapGen.
-./signalkit	The sources of a software package for modeling fast signal interconnect in TLM style.
-./tests		System-Level tests.
-waf		WAF build tool
-wscript		Global WAF control file
+	./doc		Contains the library documentation
+	Doxyfile	Control file for doxygen
+ - ./models	Contains source code and testbenches for all the models of the library.
+ - ./leon3		A Leon3 SparcV8 processor integer unit, generated with TrapGen.
+ - ./signalkit	The sources of a software package for modeling fast signal interconnect in TLM style.
+ - ./tests		System-Level tests.
+ - waf		WAF build tool
+ - wscript		Global WAF control file
 
 -------------------------------------------------------------------------
 
@@ -86,4 +87,4 @@ Building the project requires following steps:
 	A list of targets can be generated with "./waf list"
 
 3.	Execute "./waf docs" to generate the source doxygen documentation.
-
+**/

@@ -94,11 +94,13 @@ void CGPCounter::ctrl_read() {
 void CGPCounter::ctrl_write() {
     p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_DH] = (p.dhalt.read() != 0);
 
-    /* Clean irq if desired */
+    // Clean irq if desired
     bool old_pirq = m_pirq;
 
     m_pirq = p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IP];
-    /* // Unset IRQ
+
+#if 0
+    // Unset IRQ
     if (old_pirq && !m_pirq) {
         unsigned int irqnr = (p.r[CGPTimer::CONF] >> 3) & 0xF;
         if (p.r[CGPTimer::CONF].b[CGPTimer::CONF_SI]) {
@@ -106,14 +108,15 @@ void CGPCounter::ctrl_write() {
         }
         p.irq.write(p.irq.read() & ~(1 << irqnr));
     }
-    */
-    /* Prepare for chainging */
+#endif
+
+    // Prepare for chainging
     if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) {
         chain_run = false;
         stop();
     }
 
-    /* Load */
+    // Load
     if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_LD]) {
         unsigned int reload = p.r[CGPTimer::RELOAD(nr)];
         p.r[CGPTimer::VALUE(nr)].set(reload);
@@ -121,7 +124,7 @@ void CGPCounter::ctrl_write() {
         p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_LD] = false;
     }
 
-    /* Enable */
+    // Enable
     //v::debug << name() << "StartStop_" << nr << v::endl;
     if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN] && stopped) {
         v::debug << name() << "Start_" << nr << v::endl;
