@@ -48,7 +48,7 @@
 #include "memdevice.h"
 #include "verbose.h"
 
-MEMDevice::MEMDevice(MEMDevice::device_type type, uint32_t bank, uint32_t size, uint32_t bits) : m_type(type), m_bank(bank), m_size(size), m_bits(bits) {
+MEMDevice::MEMDevice(MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols) : m_type(type), m_banks(banks), m_bsize(bsize), m_bits(bits), m_cols(cols) {
 }
 
 MEMDevice::~MEMDevice() {
@@ -62,14 +62,18 @@ const MEMDevice::device_type MEMDevice::get_type() const {
     return m_type;
 }
 
-const uint32_t MEMDevice::get_bank() const {
-    return m_bank;
+const uint32_t MEMDevice::get_banks() const {
+    return m_banks;
 }
 
-const uint32_t MEMDevice::get_size() const {
-    return  m_size;
+const uint32_t MEMDevice::get_bsize() const {
+    return  m_bsize;
 }
 
 const uint32_t APBDevice::get_bits() const {
     return m_bits;
+}
+
+const uint32_t APBDevice::get_cols() const {
+    return m_cols;
 }

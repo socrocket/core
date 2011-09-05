@@ -108,7 +108,7 @@ class AHBDevice : public amba_slave_base {
 
         /// Returns the Bus specific mask of the most significant 12bit of the bar address
         /// Shifted to the lowest bits in the word.
-        virtual const uint32_t get_bar_mask(uint32_t bar) const ;
+        virtual const uint32_t get_bar_mask(uint32_t bar) const;
         
         /// Returns the Bus specific base address of the device.
         /// Returns the address of one bar in byte offset as seen from the bus.
@@ -119,8 +119,8 @@ class AHBDevice : public amba_slave_base {
         /// @param bar The selected bar
         virtual const uint32_t get_bar_size(uint32_t bar) const;
 
-	/// Returns the bus id of the module (hindex)
-	const uint32_t get_busid() const;
+        /// Returns the bus id of the module (hindex)
+        const uint32_t get_busid() const;
 
         /// Prints the device info of the device.
         virtual void print_device_info(char *name) const;
@@ -128,8 +128,8 @@ class AHBDevice : public amba_slave_base {
         /// Impementation of the device register file.
         uint32_t m_register[8];
 	
-	/// The master of slave bus id of the device
-	uint32_t m_busid;
+        /// The master of slave bus id of the device
+        uint32_t m_busid;
 };
 
 /// This function returns a grlib bank address register.
