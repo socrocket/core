@@ -64,6 +64,9 @@
 #include "ext_erase.h"
 #include "power_monitor.h"
 
+/// @addtogroup mctrl Mctrl
+/// @{
+
 class Mctrl : public gs::reg::gr_device,
               public AHBDevice,
               public APBDevice,
@@ -81,22 +84,22 @@ class Mctrl : public gs::reg::gr_device,
               uint32_t hindex = 0, uint32_t pindex = 0, bool powermon = false);
         ~Mctrl();
 
-        //APB slave socket: connects mctrl config registers to apb
+        ///APB slave socket: connects mctrl config registers to apb
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb;
 
-        //AHB slave socket: receives instructions (mem access) from CPU
+        ///AHB slave socket: receives instructions (mem access) from CPU
         ::amba::amba_slave_socket<32> ahb;
 
-        //Master sockets: Initiate communication with memory modules
+        ///Master sockets: Initiate communication with memory modules
         tlm_utils::simple_initiator_socket<Mctrl> mctrl_rom;
         tlm_utils::simple_initiator_socket<Mctrl> mctrl_io;
         tlm_utils::simple_initiator_socket<Mctrl> mctrl_sram;
         tlm_utils::simple_initiator_socket<Mctrl> mctrl_sdram;
 
-        //reset signal
+        ///reset signal
         signal<bool>::in rst;
 
-        //device identification on AHB bus
+        ///device identification on AHB bus
         inline sc_dt::uint64 get_size() {
             //get start address of memory area
             uint64_t base = std::min(romaddr, ioaddr);
@@ -125,15 +128,15 @@ class Mctrl : public gs::reg::gr_device,
             return base << 20;
         }
 
-        // proclamation of callbacks
+        /// proclamation of callbacks
         GC_HAS_CALLBACKS();
 
         // function prototypes
         void end_of_elaboration();
         void sram_calculate_bank_addresses(uint32_t sram_bank_size);
 
-        // thread process to initialize MCTRL 
-        // (set registers, define address spaces, etc.)
+        /// thread process to initialize MCTRL 
+        /// (set registers, define address spaces, etc.)
         void reset_mctrl(const bool &value, const sc_core::sc_time &time);
 
         //callbacks reacting on register access
@@ -146,22 +149,22 @@ class Mctrl : public gs::reg::gr_device,
         void sdram_change_bank_size();
         void sdram_change_refresh_cycle();
 
-        // define TLM transport functions
+        /// define TLM transport functions
         virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
-        // TLM debug interface
+        /// TLM debug interface
         uint32_t transport_dbg(tlm::tlm_generic_payload& gp);
 
-        // management of the clock cycle length, required for delay calculation
+        /// management of the clock cycle length, required for delay calculation
         sc_core::sc_time cycle_time; //variable to store the clock period
         
         // Three functions to set the clockcycle length.
         /// gets the clock period from an sc_clk instance
         void clk(sc_core::sc_clock &clk);
         
-        // gets the clock period from an sc_time variable
+        /// gets the clock period from an sc_time variable
         void clk(sc_core::sc_time &period); 
 
-        // directly gets the clock period and time unit
+        /// directly gets the clock period and time unit
         void clk(double period, sc_core::sc_time_unit base);
 
     private:
@@ -173,26 +176,26 @@ class Mctrl : public gs::reg::gr_device,
 
         // control / timing variables
         
-        // count time elapsing in callbacks (to be added in next transaction)
+        /// count time elapsing in callbacks (to be added in next transaction)
         sc_core::sc_time callback_delay;
         
-        // capture end time of last transaction to calculate sdram idle time
+        /// capture end time of last transaction to calculate sdram idle time
         sc_core::sc_time start_idle; 
         
-        // time to perform next refresh
+        /// time to perform next refresh
         sc_core::sc_time next_refresh; 
         
-        // refresh can only be started in idle state, 
+        /// refresh can only be started in idle state, 
         // so it might be necessary to stall
         sc_core::sc_time refresh_stall; 
         
-        //length of refresh cycle
+        ///length of refresh cycle
         uint8_t trfc; 
         
-        //capture current state of power mode
+        ///capture current state of power mode
         uint8_t pmode; 
 
-        //constructor parameters (modeling VHDL generics)
+        ///constructor parameters (modeling VHDL generics)
         const int romasel;
         const int sdrasel;
         const int romaddr;
@@ -213,7 +216,7 @@ class Mctrl : public gs::reg::gr_device,
         const int sden;
         const bool powermon;
     public:
-        //delay definitions (in clock cycles)
+        ///delay definitions (in clock cycles)
         static const uint32_t DECODING_DELAY = 1;
         static const uint32_t ROM_READ_DELAY(uint8_t wstates) {
            //data1, data2, lead-out
@@ -347,5 +350,6 @@ class Mctrl : public gs::reg::gr_device,
         static const uint32_t MCFG4_DEFAULT = 0x00F00000;
 };
 
-#endif // MCTRL_H
+/// @}
 
+#endif // MCTRL_H

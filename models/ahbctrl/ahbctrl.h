@@ -54,6 +54,9 @@
 #include "ahbdevice.h"
 #include "signalkit.h"
 
+/// @addtogroup ahbctrl AHBctrl
+/// @{
+
 class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCtrl> {
     public:
 
@@ -106,19 +109,19 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
         SC_HAS_PROCESS(AHBCtrl);
 
         /// Constructor
-        AHBCtrl(sc_core::sc_module_name nm, // SystemC name
-		 unsigned int ioaddr,  // The MSB address of the I/O area
-		 unsigned int iomask,  // The I/O area address mask
-		 unsigned int cfgaddr, // The MSB address of the configuration area (PNP)
-		 unsigned int cfgmask, // The address mask of the configuration area
-		 bool rrobin,          // 1 - round robin, 0 - fixed priority arbitration (only AT)
-		 bool split,           // Enable support for AHB SPLIT response (only AT)
-		 unsigned int defmast, // ID of the default master
-		 bool ioen,            // AHB I/O area enable
-		 bool fixbrst,         // Enable support for fixed-length bursts
-		 bool fpnpen,          // Enable full decoding of PnP configuration records.
-		 bool mcheck,          // Check if there are any intersections between core memory regions.
-		 bool pow_mon,         // Enable power monitoring
+        AHBCtrl(sc_core::sc_module_name nm, ///< SystemC name
+		 unsigned int ioaddr,  ///< The MSB address of the I/O area
+		 unsigned int iomask,  ///< The I/O area address mask
+		 unsigned int cfgaddr, ///< The MSB address of the configuration area (PNP)
+		 unsigned int cfgmask, ///< The address mask of the configuration area
+		 bool rrobin,          ///< 1 - round robin, 0 - fixed priority arbitration (only AT)
+		 bool split,           ///< Enable support for AHB SPLIT response (only AT)
+		 unsigned int defmast, ///< ID of the default master
+		 bool ioen,            ///< AHB I/O area enable
+		 bool fixbrst,         ///< Enable support for fixed-length bursts
+		 bool fpnpen,          ///< Enable full decoding of PnP configuration records.
+		 bool mcheck,          ///< Check if there are any intersections between core memory regions.
+		 bool pow_mon,         ///< Enable power monitoring
                  amba::amba_layer_ids ambaLayer);		 
 		 
 		 
@@ -145,29 +148,29 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 	// Data Members
 	// ------------
 
-	// The MSB address of the I/O area
+	/// The MSB address of the I/O area
 	unsigned int mioaddr;
-	// The I/O area address mask
+	/// The I/O area address mask
 	unsigned int miomask;
-	// The MSB address of the configuration area (PNP)
+	/// The MSB address of the configuration area (PNP)
 	unsigned int mcfgaddr;
-	// The address mask of the configuration area
+	/// The address mask of the configuration area
 	unsigned int mcfgmask;
-	// 1 - round robin, 0 - fixed priority arbitration (only AT)
+	/// 1 - round robin, 0 - fixed priority arbitration (only AT)
 	bool mrrobin;
-	// Enable support for AHB SPLIT response (only AT)
+	/// Enable support for AHB SPLIT response (only AT)
 	bool msplit;
-	// ID of the default master
+	/// ID of the default master
 	unsigned int mdefmast;
-	// AHB I/O area enable
+	/// AHB I/O area enable
 	bool mioen;
-	// Enable support for fixed-length bursts
+	/// Enable support for fixed-length bursts
 	bool mfixbrst;
-	// Enable support for fixed-length bursts
+	/// Enable support for fixed-length bursts
 	bool mfpnpen;
-	// Check if there are any intersections between core memory regions
+	/// Check if there are any intersections between core memory regions
 	bool mmcheck;
-	// Enable power monitoring (Only TLM)
+	/// Enable power monitoring (Only TLM)
 	bool m_pow_mon;
 
         typedef tlm::tlm_generic_payload payload_t;
@@ -227,8 +230,9 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 	/// Clock cycle time
 	sc_core::sc_time clockcycle;
 
-	// The number of slaves, masters in the system
+	/// The number of slaves in the system
 	unsigned int num_of_slave_bindings;
+	/// The number of masters in the system
 	unsigned int num_of_master_bindings;
 
 	// Private functions
@@ -253,5 +257,7 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
         void checkMemMap();
 
 };
+
+/// @}
 
 #endif // AHBCTRL_H

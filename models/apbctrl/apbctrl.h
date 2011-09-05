@@ -49,6 +49,9 @@
 #include "ahbdevice.h"
 #include "apbdevice.h"
 
+/// @addtogroup apbctrl APBctrl
+/// @{
+
 class APBCtrl : public sc_core::sc_module,
                 public AHBDevice {
 
@@ -93,11 +96,11 @@ class APBCtrl : public sc_core::sc_module,
         SC_HAS_PROCESS(APBCtrl);
 
         /// Constructor
-        APBCtrl(sc_core::sc_module_name nm,    // SystemC name
-                   uint32_t haddr_ = 0xfff,    // The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
-                   uint32_t hmask_ = 0,        // The 12bit AHB area address mask
-		   bool mcheck = 0,            // Check if there are any intersections between APB slave memory regions
-		   uint32_t hindex = 0,        // AHB bus index
+        APBCtrl(sc_core::sc_module_name nm,    ///< SystemC name
+                   uint32_t haddr_ = 0xfff,    ///< The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
+                   uint32_t hmask_ = 0,        ///< The 12bit AHB area address mask
+		   bool mcheck = 0,            ///< Check if there are any intersections between APB slave memory regions
+		   uint32_t hindex = 0,        ///< AHB bus index
 		   amba::amba_layer_ids ambaLayer = amba::amba_LT);
 
 	// Omitted parameters:
@@ -128,17 +131,17 @@ class APBCtrl : public sc_core::sc_module,
 
     private:
 
-	// The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
+	/// The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
 	unsigned int mhaddr;
-	// The 12bit AHB area address mask
+	/// The 12bit AHB area address mask
 	unsigned int mhmask;
-	// Check if there are any intersections between APB slave memory regions
+	/// Check if there are any intersections between APB slave memory regions
 	bool mmcheck;
-	// Abstraction Layer
+	/// Abstraction Layer
 	amba::amba_layer_ids mambaLayer;
 
-	// The base address of the PNP APB device records
-	// (top 4kb of the bridge address space)
+	/// The base address of the PNP APB device records
+	/// (top 4kb of the bridge address space)
 	unsigned int mpnpbase;
 
         typedef tlm::tlm_generic_payload payload_t;
@@ -168,5 +171,6 @@ class APBCtrl : public sc_core::sc_module,
 
 };
 
+/// @}
 
 #endif // APBCTRL_H

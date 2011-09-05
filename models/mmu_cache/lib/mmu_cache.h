@@ -71,6 +71,9 @@
 #include "mmu.h"
 #include "localram.h"
 
+/// @addtogroup mmu_cache MMU_Cache
+/// @{
+
 /// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
 class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevice, public signalkit::signal_module<mmu_cache> {
 
@@ -287,5 +290,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 	sc_core::sc_time clockcycle;
 
 };
+
+/// @}
 
 #endif //__MMU_CACHE_H__
