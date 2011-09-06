@@ -46,11 +46,11 @@
 #ifndef GPTIMER_H
 #define GPTIMER_H
 
-#include <boost/config.hpp>
-#include <systemc>
 #include <greenreg_ambasockets.h>
+#include <greencontrol/all.h>
+#include <systemc>
+#include <boost/config.hpp>
 
-#include "greencontrol/all.h"
 #include "signalkit.h"
 #include "power_monitor.h"
 #include "verbose.h"
@@ -125,14 +125,14 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         ///
         /// @param name    The name of the instance. It's needed for debunging.
         /// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
-	/// @param gpindex TODO
-	/// @param gpaddr  TODO
-	/// @param gpmask  TODO
-	/// @param gpirq   Defines which APB interupt the timers will generate. Default is 0.
-	/// @param gsepirq If set to 1, each timer will drive an individual interrupt line,
+        /// @param gpindex TODO
+        /// @param gpaddr  TODO
+        /// @param gpmask  TODO
+        /// @param gpirq   Defines which APB interupt the timers will generate. Default is 0.
+        /// @param gsepirq If set to 1, each timer will drive an individual interrupt line,
         ///                starting with interrupt irq. If set to 0, all timers will drive
         ///                the same interrupt line (irq).
-	/// @param pindex  TODO
+        /// @param pindex  TODO
         /// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
         /// @param gnbits  Defines the number of bits in the timers. Default is 32.
         /// @param gsbits  Defines the number of bits in the scaler. Default is 16.
@@ -167,12 +167,13 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
 
         // Signal Callbacks
         /// Signal callback executed a reset on the timer when the rst signal arrives.
-	/// 
-	/// @param value TODO
-	/// @param time TODO
+        /// 
+        /// @param value TODO
+        /// @param time TODO
+        void do_reset(const bool &value, const sc_core::sc_time &time);
 
         /// Signal callback performing the stopping and starting of all counter when dhalt arrives.
-	/// 
+        /// 
         /// @param value TODO
         /// @param time TODO
         void do_dhalt(const bool &value, const sc_core::sc_time &time);

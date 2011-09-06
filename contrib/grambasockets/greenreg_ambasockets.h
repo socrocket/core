@@ -45,8 +45,8 @@
 #ifndef GREENREG_AMBASOCKETS_H
 #define GREENREG_AMBASOCKETS_H
 
-#include "gr_ambasockets.h"
 #include "greenreg.h"
+#include "gr_ambasockets.h"
 
 namespace gs {
 namespace reg {

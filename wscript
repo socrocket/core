@@ -261,7 +261,6 @@ def configure(ctx):
     else:
         ctx.env.append_unique('DEFINES', 'BIG_ENDIAN_BO')
         ctx.msg('Checking for host endianness', 'big')
-
     ########################################
     # Check for boost libraries
     ########################################
@@ -626,12 +625,17 @@ def configure(ctx):
     ##################################################
     # Check for GreenSocs GreenSockets Header
     ##################################################
+    if ctx.options.greensocsdir:
+      gs_inc      = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.greensocsdir))))]
+    else:
+      gs_inc      = []
+
     ctx.check_cxx(
       header_name   = "greensocket/initiator/single_socket.h",
       uselib_store  = 'GREENSOCS',
       mandatory     = True,
-      includes      = [os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.greensocsdir))),
-                       ctx.env['INCLUDES_BOOST']],
+      includes      = gs_inc,
+#                       ctx.env['INCLUDES_BOOST']],
       uselib        = 'BOOST SYSTEMC TLM',
       okmsg        = "ok",
     )
@@ -639,7 +643,7 @@ def configure(ctx):
       header_name   = "greensocket/target/single_socket.h",
       uselib_store  = 'GREENSOCS',
       mandatory     = True,
-      includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.greensocsdir))),
+      includes      = gs_inc,
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
       okmsg        = "ok",
     )
@@ -651,7 +655,7 @@ def configure(ctx):
       header_name   = "greencontrol/config.h",
       uselib_store  = 'GREENSOCS',
       mandatory     = True,
-      includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.greensocsdir))),
+      includes      = gs_inc,
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
       okmsg        = "ok",
     )
@@ -659,11 +663,16 @@ def configure(ctx):
     ##################################################
     # Check for GreenSocs GreenReg Library
     ##################################################
+    if ctx.options.greensocsdir:
+      grreg_inc      = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.greensocsdir, "greenreg"))))]
+    else:
+      grreg_inc      = []
+
     ctx.check_cxx(
       lib          = 'greenreg',
       uselib_store = 'GREENSOCS',
       mandatory    = True,
-      libpath      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.greensocsdir, "greenreg")))),
+      libpath      = grreg_inc,
       okmsg        = "ok",
     ) 
 
@@ -674,22 +683,28 @@ def configure(ctx):
       header_name   = "greenreg.h",
       uselib_store  = 'GREENSOCS',
       mandatory     = True,
-      includes      = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.greensocsdir, "greenreg")))),
+      includes      = grreg_inc,
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
       okmsg        = "ok",
     )
 
     ##################################################
-    # Check for GreenSocs GreenReg Library
+    # Check for AMBAKit
     ##################################################
+    if ctx.options.ambadir:
+      amba_inc = [os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.ambadir))),
+                  os.path.join(os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.ambadir))), "dependencies", "AMBA-PV", "include")]
+    else:
+      amba_inc = []
+
     ctx.check_cxx(
       header_name   = "amba.h",
       uselib_store  = 'AMBA',
       mandatory     = True,
-      includes      = [os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.ambadir))),
-                      os.path.join(os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.ambadir))), "dependencies", "AMBA-PV", "include")],
+      includes      = amba_inc,
       uselib        = 'BOOST SYSTEMC TLM GREENSOCS',
       okmsg        = "ok",
+      errmsg        = 'AMBAKit not found please give the location with --amba=',
     )
 
     ##################################################
@@ -725,6 +740,11 @@ def configure(ctx):
     ##################################################
     # Extend GreenSocs with TLM extensionPool.h
     ##################################################
+    if ctx.options.tlmdir:
+        tlmPath = os.path.normpath(os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.tlmdir))))
+    if tlmPath.endswith('include'):
+        tlmPath = os.path.join(tlmPath, '..')
+    tlmPath = os.path.join(tlmPath, "unit_test", "tlm", "multi_sockets", "include")
     ctx.check_cxx(
       header_name   = [ "tlm.h",
                         "tlm_utils/multi_passthrough_initiator_socket.h",
@@ -735,7 +755,7 @@ def configure(ctx):
       uselib_store  = 'GREENSOCS',
       msg           = "Checking for extensionPool.h from TLM",
       mandatory     = True,
-      includes      = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.tlmdir, "unit_test", "tlm", "multi_sockets", "include"))))],
+      includes      = [tlmPath],
       uselib        = 'SYSTEMC TLM GREENSOCS',
       okmsg        = "ok",
     )
@@ -745,22 +765,22 @@ def configure(ctx):
     #sparc_env = ctx.env.copy()
     # Check if the compiler is present
     crosscc = crossxx = path = None
+    
     try:
         path = os.path.abspath(os.path.expanduser(getattr(ctx.options,'sparc_cross')))
-        crosscc = [ctx.find_program('sparc-elf-gcc', os.path.join(path, 'bin'))]
-        crossxx = [ctx.find_program('sprac-elf-g++', os.path.join(path, 'bin'))]
-        crossar = [ctx.find_program('sprac-elf-ar', os.path.join(path, 'bin'))]
+        crosscc = [ctx.find_program(ctx.options.sparc_prefix + 'gcc', os.path.join(path, 'bin'))]
+        crossxx = [ctx.find_program(ctx.options.sparc-prefix + 'g++', os.path.join(path, 'bin'))]
+        crossar = [ctx.find_program(ctx.options.sparc_prefix + 'ar', os.path.join(path, 'bin'))]
     except AttributeError:
         # If the path was not specified look in the search PATH
-        crosscc = [ctx.find_program('sparc-elf-gcc')]
-        crossxx = [ctx.find_program('sparc-elf-g++')]
-        crossar = [ctx.find_program('sparc-elf-ar')]
+        crosscc = [ctx.find_program(ctx.options.sparc_prefix + 'gcc')]
+        crossxx = [ctx.find_program(ctx.options.sparc_prefix + 'g++')]
+        crossar = [ctx.find_program(ctx.options.sparc_prefix + 'ar')]
     ctx.env['CC'] = ctx.env['LINK_CC'] = crosscc
     ctx.env['CXX'] = ctx.env['LINK_CXX'] = crossxx
     ctx.env['AR'] = crossar
-    ctx.env['']
     #ctx.set_env_name('sparc', sparc_env)
-    sparcFlags = ['-Wall', '-static', '-O3', '-specs=osemu.specs']
+    sparcFlags = ['-Wall', '-static', '-O3']
     ctx.env.append_unique('LINKFLAGS', sparcFlags);
     ctx.env.append_unique('CFLAGS', sparcFlags)
     ctx.env.append_unique('CCFLAGS', sparcFlags)
@@ -774,7 +794,7 @@ def configure(ctx):
     #    ctx.check_cxx(cxxflags=ctx.env['CXXFLAGS'], mandatory=True, msg='Checking for C++ compilation flags')
     if ctx.env['LINKFLAGS']:
         ctx.check_cc(linkflags=ctx.env['LINKFLAGS'], mandatory=True, msg='Checking for link flags')
-
+    
     
 
     ##################################################
@@ -814,6 +834,7 @@ def options(ctx):
     trap.add_option('--with-elf', type='string', help='libELF installation directory', dest='elfdir', default=environ.get("ELF"))
     trap.add_option('--static', default=False, action="store_true", help='Triggers a static build, with no dependences from any dynamic library', dest='static_build')
     trap.add_option('--sparc-cross', default=None, help='Triggers a static build, with no dependences from any dynamic library', dest='sparc_cross')
+    trap.add_option('--sparc-prefix', default='sparc-elf-', type='string', help='Defines the sparc compiler prefix', dest='sparc_prefix')
     # Specify if OS emulation support should be compiled inside processor models
     trap.add_option('-T', '--disable-tools', default=True, action="store_false", help='Disables support for support tools (debuger, os-emulator, etc.) (switch)', dest='enable_tools')
     # Specify if instruction history has to be kept

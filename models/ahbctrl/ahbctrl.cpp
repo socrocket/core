@@ -500,9 +500,9 @@ void AHBCtrl::RequestThread() {
       // Find slave by address / returns slave index or -1 for not mapped
       int slave_id = get_index(trans->get_address());
 
-      v::debug << name() << "Decoder: slave " << index << " address " << hex << addr << v::endl;
+      v::debug << name() << "Decoder: slave " << slave_id << " address " << hex << addr << v::endl;
 
-      if (index >= 0) {
+      if (slave_id >= 0) {
 
 	// Add slave id to connection info
 	connection.slave_id = slave_id;

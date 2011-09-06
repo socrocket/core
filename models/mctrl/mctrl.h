@@ -46,23 +46,25 @@
 
 #define DEBUG
 
-//#include <cmath.h>
-#include <algorithm>
-#include <iostream>
-#include <boost/config.hpp>
+#include <greenreg_ambasockets.h>
 #include <systemc.h>
+#include <boost/config.hpp>
 #include <tlm.h>
 #include "tlm_utils/simple_initiator_socket.h"
-#include <greenreg_ambasockets.h>
-#include "greencontrol/all.h"
 #include "amba.h"
-#include "generic_memory.h"
+#include <greencontrol/all.h>
+
 #include "ahbdevice.h"
 #include "apbdevice.h"
 #include "signalkit.h"
 #include "verbose.h"
+#include "generic_memory.h"
 #include "ext_erase.h"
 #include "power_monitor.h"
+
+//#include <cmath.h>
+#include <algorithm>
+#include <iostream>
 
 /// @addtogroup mctrl Mctrl
 /// @{

@@ -98,7 +98,7 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             rammask(_rammask), paddr(_paddr), pmask(_pmask), wprot(_wprot),
             srbanks(_srbanks), ram8(_ram8), ram16(_ram16), sepbus(_sepbus),
             sdbits(_sdbits), mobile(_mobile), sden(_sden), powermon(_powermon) {
-    PM::registerIP(this, "mctrl");
+    PM::registerIP(this, "mctrl", powermon);
     // Display APB slave information 
     v::info << this->name() << "APB slave @" << v::uint32 << apb.get_base_addr() 
             << " size: " << v::uint32 << apb.get_size() << " byte" << v::endl;
@@ -573,15 +573,15 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
         if(cmd == TLM_WRITE_COMMAND) {
             //PROM write access must be explicitly allowed
             if(!(r[MCFG1] & MCFG1_PWEN)) {
-                PM::send(this, "romwrite", 1, sc_time_stamp().value());
+                PM::send(this, "romwrite", 1, sc_time_stamp(), 0, powermon);
                 //issue error message / failure
                 gp.set_response_status(TLM_COMMAND_ERROR_RESPONSE);
                 //address decoding delay only
                 delay += DECODING_DELAY * cycle_time;
-                PM::send(this, "romwrite", 0, (sc_time_stamp()+delay).value());
+                PM::send(this, "romwrite", 0, (sc_time_stamp()+delay), 0, powermon);
             } else {
             //calculate delay for write command
-                PM::send(this, "romwrite", 1, sc_time_stamp().value());
+                PM::send(this, "romwrite", 1, sc_time_stamp(), 0, powermon);
                 cycles = (r[MCFG1] & MCFG1_PROM_WRITE_WS) >> 4;
                 cycles = DECODING_DELAY + ROM_WRITE_DELAY(cycles) + 
                          (data_length / gp.get_streaming_width() - 1);
@@ -589,12 +589,12 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
                 //add delay and forward transaction to memory
                 start_idle = t_trans + cycle_time * cycles;
                 delay += cycle_time * cycles;
-                PM::send(this, "romwrite", 0, (sc_time_stamp()+delay).value());
+                PM::send(this, "romwrite", 0, (sc_time_stamp()+delay), 0, powermon);
                 mctrl_rom->b_transport(gp,delay);
             }
         } else if (cmd == TLM_READ_COMMAND) {
         //calculate delay for read command
-            PM::send(this, "romread", 1, sc_time_stamp().value());
+            PM::send(this, "romread", 1, sc_time_stamp(), 0, powermon);
             cycles = (r[MCFG1] & MCFG1_PROM_READ_WS);
             cycles = DECODING_DELAY + ROM_READ_DELAY(cycles) + 
                      2 * (data_length / gp.get_streaming_width() - 1);  
@@ -602,7 +602,7 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
             //add delay and forward transaction to memory
             start_idle = t_trans + cycle_time * cycles;
             delay += cycle_time * cycles;
-            PM::send(this, "romread", 0, (sc_time_stamp()+delay).value());
+            PM::send(this, "romread", 0, (sc_time_stamp()+delay), 0, powermon);
             mctrl_rom->b_transport(gp,delay);
             //set cacheable_access extension
             ahb.validate_extension<amba::amba_cacheable> (gp);
@@ -642,13 +642,13 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
                          data_length / gp.get_streaming_width() - 1;
                 //multiple data cycles, i.e. burst access
             }
-            PM::send(this, transaction, 1, sc_time_stamp().value());
+            PM::send(this, transaction, 1, sc_time_stamp(), 0, powermon);
             //add delay and forward transaction to memory
             start_idle = t_trans + cycle_time * cycles;
             delay += cycle_time * cycles;
             gp.set_streaming_width(4);
             sc_time tmp = sc_time(delay);
-            PM::send(this, transaction, 0, (sc_time_stamp()+delay).value());
+            PM::send(this, transaction, 0, (sc_time_stamp()+delay), 0, powermon);
             mctrl_io->b_transport(gp,delay);
             if(tmp != delay && r[MCFG1] & MCFG1_IBRDY) {
                 v::error << name() << "IO devices changed delay value, "
@@ -728,11 +728,11 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
             delay += cycle_time * cycles;
         }else {
         //add delay and forward transaction to memory
-            PM::send(this, transaction, 1, sc_time_stamp().value());
+            PM::send(this, transaction, 1, sc_time_stamp(), 0, powermon);
             start_idle = t_trans + cycle_time * cycles;
             delay += cycle_time * cycles;
             sc_time tmp = sc_time(delay);
-            PM::send(this, transaction, 0, (sc_time_stamp()+delay).value());
+            PM::send(this, transaction, 0, (sc_time_stamp()+delay), 0, powermon);
             mctrl_sram->b_transport(gp,delay);
             if((tmp != delay) && (r[MCFG1] & MCFG2_RBRDY)) {
                 v::error << name() << "RAM devices changed delay value, "
@@ -847,9 +847,9 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
             }
             //capture end of transaction and forward transaction to memory
 
-            PM::send(this, transaction, 1, sc_time_stamp().value());
+            PM::send(this, transaction, 1, sc_time_stamp(), 0, powermon);
             start_idle = t_trans + delay;
-            PM::send(this, transaction, 0, (sc_time_stamp()+delay).value());
+            PM::send(this, transaction, 0, (sc_time_stamp()+delay), 0, powermon);
             mctrl_sdram->b_transport(gp,delay);
         }
     } else {

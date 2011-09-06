@@ -46,9 +46,9 @@
 #ifndef GPCOUNTER_H
 #define GPCOUNTER_H
 
-#include <boost/config.hpp>
-#include <systemc>
 #include <greenreg.h>
+#include <systemc>
+#include <boost/config.hpp>
 
 #include "greencontrol/all.h"
 #include "signalkit.h"

@@ -45,13 +45,13 @@
 #ifndef GR_AMBASOCKETS_H
 #define GR_AMBASOCKETS_H
 
-#include <systemc>
 #include "greenreg/greenreg.h"
 #include "greensocket/utils/greensocketaddress_base.h"
 #include "greenreg/greenreg_socket/transactor_if.h"
-#include "amba.h"
 #include "greenreg/framework/core/gr_common.h"
+#include "amba.h"
 
+#include <systemc>
 #include <iostream>
 
 namespace gs {

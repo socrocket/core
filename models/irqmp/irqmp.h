@@ -44,12 +44,12 @@
 #ifndef IRQMP_H
 #define IRQMP_H
 
-#include <boost/config.hpp>
-#include <systemc.h>
 #include <greenreg_ambasockets.h>
+#include <systemc.h>
+#include <boost/config.hpp>
+#include <greencontrol/all.h>
 #include "apbdevice.h"
 
-#include "greencontrol/all.h"
 
 #include "signalkit.h"
 #include <utility>
