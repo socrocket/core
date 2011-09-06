@@ -155,9 +155,9 @@
     </option>
   </option>
   <generator type="systemc" name="config.h"/>
-  <file type="systemc" name="sc_main.cpp" src="singlecore2-main.cpp" />
-  <file type="systemc" name="prom.S" src="singlecore2-prom.S" />
-  <file type="systemc" name="prom.ld" src="singlecore2-prom.ld" />
-  <file type="systemc" name="wscript" src="singlecore2-scwscript.py" />
-  <file name="wscript" src="singlecore2-wscript.py" />
+  <file type="systemc" name="sc_main.cpp" src="singlecore2/main.cpp" />
+  <file type="systemc" name="prom.S" src="singlecore2/prom.S" />
+  <file type="systemc" name="prom.ld" src="singlecore2/prom.ld" />
+  <file type="systemc" name="wscript" src="singlecore2/scwscript.py" />
+  <file name="wscript" src="singlecore2/wscript.py" />
 </template>
