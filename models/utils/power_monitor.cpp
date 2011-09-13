@@ -93,7 +93,7 @@ void PM::registerIP(sc_module* ip, string name, bool active){
     
     unsigned int level = 0;
     
-    // split name
+    // split name, determine level
     size_t pos = sc_name.find_last_of(".");
     while( static_cast<int>(pos) != -1 ){
       level++;
@@ -462,11 +462,13 @@ void PM::mergeSums ( vector<analyzedEntry>::iterator const parent, vector<analyz
 
   // skip entries at the beginning of parent
   //.........................
-  while ( (p->timestamp < i->timestamp) && ( p != parent->psum.end() ) ) {
-    e.timestamp = p->timestamp;
-    e.power = p->power;
-    merged.push_back(e);
-    p++;
+  if ( i != ip->psum.end() ){           // check if IP vector is empty
+    while ( (p != parent->psum.end()) && (p->timestamp < i->timestamp) ) {
+      e.timestamp = p->timestamp;
+      e.power = p->power;
+      merged.push_back(e);
+      p++;
+    }
   }
   //.........................
   
@@ -673,29 +675,6 @@ analyzedEntry PM::analyzeIP (IpPowerEntry ip) {
     // create temporary vector 'actions'
     for(vector<IpPowerData>::const_iterator ipentry = ip.entry.begin(); ipentry != ip.entry.end(); ipentry++){
       
-      // ip power sum
-      //............................................
-      if(PM::debug == 0){
-	sum.timestamp = ipentry->timestamp;
-	
-	if( ipentry->start == 1 ){
-	  sum.power = sum.power + ipentry->power;                                // action starts -> add power
-	  if( sum.power > analyzedIP.tpmax ){ analyzedIP.tpmax = sum.power; }    // log max total power
-	}else{
-	  sum.power = sum.power - ipentry->power;                                // action ends -> subtract power
-	}
-	
-	analyzedIP.psum.push_back(sum);
-	sumit = analyzedIP.psum.end()-1;
-	
-	// correct entries at same timestamp
-	if( (analyzedIP.psum.size() > 1 ) && (sumit->timestamp == (sumit-1)->timestamp) ){
-	  analyzedIP.psum.erase( sumit-1 );
-	}
-      }
-      //............................................
-      
-      
       // search correct position
       //............................................
       action = actions.begin();
@@ -754,19 +733,16 @@ analyzedEntry PM::analyzeIP (IpPowerEntry ip) {
 	//........................................
 	
 	// create temporary vector for computing power sum
-	// if correct function is enabled
 	//........................................
-	if (PM::debug >= 1){ 
-	  ts.power = analyzed.power;
-
-	  ts.timestamp = analyzed.start;
-	  ts.start = 1;
-	  tempSums.push_back(ts);
-
-	  ts.timestamp = analyzed.end;
-	  ts.start = 0;
-	  tempSums.push_back(ts);
-	}
+	ts.power = analyzed.power;
+	
+	ts.timestamp = analyzed.start;
+	ts.start = 1;
+	tempSums.push_back(ts);
+	
+	ts.timestamp = analyzed.end;
+	ts.start = 0;
+	tempSums.push_back(ts);
 	//........................................
 	
 	// maxvalues for plot
@@ -781,7 +757,7 @@ analyzedEntry PM::analyzeIP (IpPowerEntry ip) {
     //..............................................
 
     
-    // compute power sum if correct function is enabled
+    // compute power sum
     //..............................................
     sort(tempSums.begin(), tempSums.end(), PM::sortTempSum);
 
@@ -792,7 +768,7 @@ analyzedEntry PM::analyzeIP (IpPowerEntry ip) {
 	  sum.power = sum.power + sit->power;                                    // action starts -> add power
 	  if( sum.power > analyzedIP.tpmax ){ analyzedIP.tpmax = sum.power; }    // log max total power
 	}else{
-	  sum.power = sum.power - sit->power;                                // action ends -> subtract power
+	  sum.power = sum.power - sit->power;                                    // action ends -> subtract power
 	}
 	
 	analyzedIP.psum.push_back(sum);
@@ -956,6 +932,20 @@ void PM::read_raw_data(string const infile){
 
   is.close();
 } // end read raw data
+//------------------------------------------------
+
+
+// analyze offline using raw data
+//------------------------------------------------
+void PM::analyze_offline(string const path, string const infile, string const outfile, string const data_path, string const data){
+
+  // read raw data
+  PM::read_raw_data( string(data_path + data) );
+
+  // analyze
+  PM::analyze(path,infile,outfile);
+
+}
 //------------------------------------------------
 
 

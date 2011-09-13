@@ -181,6 +181,7 @@ class PM {
     static void readdata(string const &path, string const &infile);
     static void addpower(string const &path, string const &infile);
     static void analyzedlogprint(string const &infile, string const &outfile);
+    static void read_raw_data(string const infile);
 
     // analyzing
     static bool sortIpEntry(IpPowerData d1, IpPowerData d2);
@@ -226,7 +227,7 @@ class PM {
   static void analyze(string const path, string const infile, string const outfile);
 
   static void raw_logprint(string const file);
-  static void read_raw_data(string const infile);
+  static void analyze_offline(string const path, string const infile, string const outfile, string const data_path, string const data);
   //----------------------------------------------
 
 };
