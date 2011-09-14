@@ -1071,8 +1071,7 @@ void PM::analyzedlogprint(string const &infile, string const &outfile){
     plot << "set nolabel" << endl;
 
     // x-axis
-    xmax = ((ip->psum.end())-1)->timestamp;
-    xmax = static_cast<unsigned long int>(xmax + 1 + 0.1*xmax); 
+    xmax = static_cast<unsigned long int>( PM::EndOfSimulation + 1 + 0.1*PM::EndOfSimulation); 
     tics = static_cast<unsigned long int>( xmax/5 );
     if( tics==0 ){ tics=1; }
     plot << "set xtics " << tics << endl;
@@ -1093,14 +1092,19 @@ void PM::analyzedlogprint(string const &infile, string const &outfile){
     plot << "set xlabel \"IP \"" << endl;
     plot << "set xtics(\"own\" 0";
     
-    unsigned int i=1;
-    vector<string>::iterator sub = ip->subpower.begin()+1;
+    unsigned int i;
+    vector<string>::iterator sub;
+
+    if ( ip->subpower.size() > 1 ){
+      i = 1;
+      sub = ip->subpower.begin()+1;
       
-    while( sub != ip->subpower.end() ){
-      pos = sub->find_last_of(":");
-      plot << ", \"" << sub->substr(0,pos-1) << "\" " << i;
-      i++;
-      sub++;
+      while( sub != ip->subpower.end() ){
+	pos = sub->find_last_of(":");
+	plot << ", \"" << sub->substr(0,pos-1) << "\" " << i;
+	i++;
+	sub++;
+      }
     }
 
     plot << ")" << endl;
