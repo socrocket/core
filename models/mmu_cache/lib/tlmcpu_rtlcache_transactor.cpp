@@ -55,11 +55,22 @@ tlmcpu_rtlcache_transactor::tlmcpu_rtlcache_transactor(sc_core::sc_module_name n
 			      dco("dco"),
 			      icio("icio"),
 			      dcio("dcio"),
+			      m_DataFIFO(2),
+			      cpu_pipe("cpu_pipe"),
+			      ico_reg("ico_reg"),
+			      dco_reg("dco_reg"),
+			      execute_address("execute_address"),
+			      memory_address("memory_address"),
+			      memory_data("memory_data"),
+			      execute_valid("execute_valid"),
+			      memory_valid("memory_valid"),
+			      done_valid("done_valid"),
+			      memory_write("memory_write"),
+			      done_write("done_write"),
+			      execute_flush("execute_flush"),
+			      execute_flushl("execute_flushl"),
  			      m_abstractionLayer(abstractionLayer),
-			      m_InstrTransPEQ("InstrTransPEQ"),
-			      clockcycle(10.0, sc_core::SC_NS),
-                              m_SampleDataTransFIFO(2), 
-                              m_ResponseDataTransFIFO(2) {
+			      clockcycle(10.0, sc_core::SC_NS) {
 
   if (m_abstractionLayer == amba::amba_LT) {
 
@@ -75,28 +86,68 @@ tlmcpu_rtlcache_transactor::tlmcpu_rtlcache_transactor(sc_core::sc_module_name n
 
   }
 
+  nop_trans = new tlm::tlm_generic_payload();
+  dext      = new dcio_payload_extension();
+
+  nop_trans->set_command(tlm::TLM_READ_COMMAND);
+  nop_trans->set_address(0);
+  nop_trans->set_data_ptr(nop_data);
+  nop_trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+  nop_trans->set_data_length(4);
+
+  dext->asi    = 0xc;
+  dext->flush  = false;
+  dext->flushl = false;
+  dext->lock   = false;
+  dext->debug  = 0;
+
+  nop_trans->set_extension(dext);
+
+  // Initialize pipeline (flush out all stages)
+  cpu_pipe.enter(nop_trans, tlm::BEGIN_REQ);
+  cpu_pipe.enter(nop_trans, tlm::BEGIN_REQ);
+  cpu_pipe.enter(nop_trans, tlm::BEGIN_REQ);
+
   // Register instruction and data processor/transactor threads
-  SC_THREAD(instrRequestThread);
+  //SC_THREAD(instr_request);
 
-  SC_THREAD(instrResponseThread);
+  //SC_THREAD(instr_stage1);
 
-  SC_THREAD(dataRequestThread);
+  //SC_THREAD(instr_stage2);
 
-  SC_THREAD(dataSampleThread);
-  
-  SC_THREAD(dataResponseThread);
+  //SC_THREAD(instr_stage3);
+
+  SC_THREAD(data_request);
+
+  SC_THREAD(data_pipe);
+  sensitive << pipe_event;
 
   // Mux ici input signals
   SC_THREAD(ici_signal_mux);
-  sensitive << i_rpc << i_fpc << i_dpc << i_rbranch << i_fbranch 
-	    << i_inull << i_su << i_flush << i_flushl << i_fline << i_pnull;
+  sensitive << ico;
 
   // Mux dci input signals
   SC_THREAD(dci_signal_mux);
-  sensitive << d_asi << d_maddress << d_eaddress << d_edata << d_size << d_enaddr
-	    << d_eenaddr << d_nullify << d_lock << d_read << d_write << d_flush
-	    << d_flushl << d_dsuen << d_msu << d_esu << d_intack;
+  sensitive << execute_address << memory_address << memory_data << execute_valid << memory_valid << memory_write 
+	    << done_valid << done_write << execute_flush << execute_flushl << dco;
 
+  // Sample cache outputs
+  SC_THREAD(sample_inputs);
+  sensitive << clock.pos();
+
+}
+
+// Sample cache outputs
+void tlmcpu_rtlcache_transactor::sample_inputs() {
+
+  while(1) {
+
+    wait();
+
+    ico_reg.write(ico.read());
+    dco_reg.write(dco.read());
+
+  }
 
 }
 
@@ -104,26 +155,66 @@ tlmcpu_rtlcache_transactor::tlmcpu_rtlcache_transactor(sc_core::sc_module_name n
 void tlmcpu_rtlcache_transactor::dci_signal_mux() {
 
   dcache_in_type tmp;
+  sc_logic hold;
+  
 
   while(1) {
 
-    tmp.asi      = d_asi;
-    tmp.maddress = d_maddress;
-    tmp.eaddress = d_eaddress;
-    tmp.edata    = d_edata;
-    tmp.size     = d_size;
-    tmp.enaddr   = d_enaddr;
-    tmp.eenaddr  = d_eenaddr;
-    tmp.nullify  = d_nullify;
-    tmp.lock     = d_lock;
-    tmp.read     = d_read;
-    tmp.write    = d_write;
-    tmp.flush    = d_flush;
-    tmp.flushl   = d_flushl;
-    tmp.dsuen    = d_dsuen;
-    tmp.msu      = d_msu;
-    tmp.esu      = d_esu;
-    tmp.intack   = d_intack;
+    hold = dco.read().hold;
+
+    // Generate asi
+    tmp.asi      = 0xb;
+
+    // Generate maddress
+    if ((hold & memory_valid)==SC_LOGIC_1) {
+      
+      tmp.maddress = memory_address;
+      tmp.enaddr   = SC_LOGIC_1;
+
+    } else {
+
+      tmp.maddress = memory_data;
+      tmp.enaddr   = SC_LOGIC_0;
+
+    }
+
+    if ((hold & execute_valid)==SC_LOGIC_1) {
+
+      tmp.eaddress = execute_address;
+      tmp.eenaddr  = SC_LOGIC_1;
+      tmp.flush    = execute_flush;
+      tmp.flushl   = execute_flushl;
+
+    } else {
+
+      tmp.eenaddr  = SC_LOGIC_0;
+      tmp.flush    = SC_LOGIC_0;
+      tmp.flushl   = SC_LOGIC_0;
+
+    }
+
+    tmp.edata    = memory_data;
+    tmp.size     = 0x2;
+
+    tmp.nullify  = SC_LOGIC_0;
+    tmp.lock     = SC_LOGIC_0;
+
+    if (((memory_write | done_write) & (memory_valid | done_valid))==SC_LOGIC_1) {
+
+      tmp.read     = SC_LOGIC_0;
+      tmp.write    = SC_LOGIC_1;
+      
+    } else {
+
+      tmp.read     = SC_LOGIC_1;
+      tmp.write    = SC_LOGIC_0;
+
+    }
+
+    tmp.dsuen    = SC_LOGIC_0;
+    tmp.msu      = SC_LOGIC_0;
+    tmp.esu      = SC_LOGIC_0;
+    tmp.intack   = SC_LOGIC_0;
 
     // Write dcache input port
     dci.write(tmp);
@@ -140,17 +231,17 @@ void tlmcpu_rtlcache_transactor::ici_signal_mux() {
 
   while(1) {
 
-    tmp.rpc      = i_rpc;
-    tmp.fpc      = i_fpc;
-    tmp.dpc      = i_dpc;
-    tmp.rbranch  = i_rbranch;
-    tmp.fbranch  = i_fbranch;
-    tmp.inull    = i_inull;
-    tmp.su       = i_su;
-    tmp.flush    = i_flush;
-    tmp.flushl   = i_flushl;
-    tmp.fline    = i_fline;
-    tmp.pnull    = i_pnull;
+    tmp.rpc      = 0;
+    tmp.fpc      = 0;
+    tmp.dpc      = 0;
+    tmp.rbranch  = 0;
+    tmp.fbranch  = 0;
+    tmp.inull    = SC_LOGIC_1;
+    tmp.su       = SC_LOGIC_1;
+    tmp.flush    = false;
+    tmp.flushl   = false;
+    tmp.fline    = 0;
+    tmp.pnull    = SC_LOGIC_0;
 
     // Write icache input port
     ici.write(tmp);
@@ -164,8 +255,11 @@ void tlmcpu_rtlcache_transactor::icio_b_transport(tlm::tlm_generic_payload &tran
 
   v::debug << name() << "icio_b_transport called" << v::endl;
 
-  m_InstrTransPEQ.notify(trans, delay);
+  //m_InstrTransFIFO.write(&trans);
   delay = SC_ZERO_TIME;
+
+  // Wait for response to become ready
+  wait(m_BeginInstrResponseEvent);
 
   trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
@@ -178,7 +272,7 @@ tlm::tlm_sync_enum tlmcpu_rtlcache_transactor::icio_nb_transport_fw(tlm::tlm_gen
 
   if (phase == tlm::BEGIN_REQ) {
 
-    m_InstrTransPEQ.notify(trans, delay);
+    //m_InstrTransFIFO.write(&trans);
     delay = SC_ZERO_TIME;
 
     return(tlm::TLM_ACCEPTED);
@@ -197,10 +291,10 @@ void tlmcpu_rtlcache_transactor::dcio_b_transport(tlm::tlm_generic_payload &tran
 
   v::debug << name() << "dcio_b_transport called" << v::endl;
 
-  m_DataTransFIFO.push_front(&trans);
+  m_DataFIFO.write(&trans);
   delay = SC_ZERO_TIME;
 
-  // Wait for Response to be ready
+  // Wait for response to become ready
   wait(m_BeginDataResponseEvent);
   
   trans.set_response_status(tlm::TLM_OK_RESPONSE);
@@ -214,12 +308,12 @@ tlm::tlm_sync_enum tlmcpu_rtlcache_transactor::dcio_nb_transport_fw(tlm::tlm_gen
 
   if (phase == tlm::BEGIN_REQ) {
 
-    m_DataTransFIFO.push_front(&trans);
+    m_DataFIFO.write(&trans);
     delay = SC_ZERO_TIME;
 
     return(tlm::TLM_ACCEPTED);
 
-  } else if (phase == tlm::END_RESP) {
+  } else if (phase == amba::BEGIN_DATA) {
 
     m_EndDataResponseEvent.notify();
 
@@ -229,218 +323,43 @@ tlm::tlm_sync_enum tlmcpu_rtlcache_transactor::dcio_nb_transport_fw(tlm::tlm_gen
 
 } 
 
-// Instruction request thread
-void tlmcpu_rtlcache_transactor::instrRequestThread() {
+void tlmcpu_rtlcache_transactor::data_request() {
 
-  unsigned int address;
-
-  icio_payload_extension * iext;
-  tlm::tlm_generic_payload * trans;
-
-  while(1) {
-
-    wait(m_InstrTransPEQ.get_event());
-
-    // Get transaction from PEQ
-    trans = m_InstrTransPEQ.get_next_transaction();
-
-    v::debug << name() << "Instruction processor received new transaction " << hex << trans << " (setting up signals now!)" << v::endl;
-
-    // Extract payload
-    address = trans->get_address();
-    trans->get_extension(iext);
-
-    // Start signaling
-    i_rpc = address;
-    i_fpc = address;
-    i_dpc = address;
-    i_rbranch = SC_LOGIC_0;
-    i_fbranch = SC_LOGIC_0;
-    i_inull = SC_LOGIC_0;
-    i_su = SC_LOGIC_1;
-    i_flush = (bool)iext->flush;
-    i_fline = 0;
-    i_pnull = SC_LOGIC_0;
-
-    // Transaction ready for post processing
-    m_PostInstrTransFIFO.push_back(trans);
-
-  }
-}
-
-// Instruction response thread
-void tlmcpu_rtlcache_transactor::instrResponseThread() {
+  tlm::tlm_generic_payload *trans;
 
   while(1) {
 
     wait(clock.posedge_event());
 
-  }
+    if (dco.read().hold == SC_LOGIC_1) {
 
-}
+      if (m_DataFIFO.nb_read(trans)) {
 
-// Data request thread
-void tlmcpu_rtlcache_transactor::dataRequestThread() {
+	cpu_pipe.enter(trans, tlm::BEGIN_REQ);
 
-  unsigned int address;
-  unsigned int * data;
-  unsigned int length;
-  
-  dcio_payload_extension *dext;
-  tlm::tlm_generic_payload * trans;
-
-  while(1) {
-
-    // At this clock edge it is decided whether to
-    // process a transaction or to assign default signals to dci.
-    wait(clock.negedge_event());
-
-    // Check if there's a transaction for post processing
-    if (m_DataTransFIFO.size() != 0) {
-
-      // Read transaction from FIFO
-      trans = m_DataTransFIFO.front();
-      m_DataTransFIFO.pop_front();
-
-      v::debug << name() << "Data processor received new transaction " << hex << trans << v::endl;
-
-      // Extract payload
-      address = trans->get_address();
-      data    = (unsigned int*)trans->get_data_ptr();
-      length  = trans->get_data_length();
-      trans->get_extension(dext);
-
-      // Start read signaling
-      if (trans->get_command()==tlm::TLM_READ_COMMAND) {
-
-	v::debug << name() << "Data processor set up signals for read operation " << hex << trans << v::endl;
-
-	d_asi = dext->asi;
-	d_maddress = address;
-	d_eaddress = address;
-	d_edata = 0;
-
-	// Transform byte length to transport size
-	switch (length) {
-	    
-          case 1: d_size = 0; // byte
-	          break;
-	  case 2: d_size = 1; // half
-	          break;
-	  case 4: d_size = 2; // word
-	          break;
-	  case 8: d_size = 3; // dword
-	          break;
-	 default: d_size = 2;
-	          v::warn << name() << "Invalid access size " << length << v::endl;
-	}
-
-	d_enaddr = SC_LOGIC_1;
-	d_eenaddr = SC_LOGIC_1;
-	d_nullify = SC_LOGIC_0;
-	d_lock = (bool)dext->lock;
-	d_read = SC_LOGIC_1;
-	d_write = SC_LOGIC_0;
-	d_flush = (bool)dext->flush;
-	d_flushl = (bool)dext->flushl;
-	d_dsuen = SC_LOGIC_0;
-	d_msu = SC_LOGIC_0;
-	d_esu = SC_LOGIC_0;
-	d_intack = SC_LOGIC_0;
-
-	// Start write signalling
       } else {
 
-	v::debug << name() << "Data processor set up signals for write operation " << hex << trans << v::endl;
-
-	d_asi = dext->asi;
-	d_maddress = address;
-	d_eaddress = address;
-	d_edata = *data;
-
-	// Transform byte length to transport size
-	switch (length) {
-	    
-          case 1: d_size = 0; // byte
-                  break;
-          case 2: d_size = 1; // half
-                  break;
-          case 4: d_size = 2; // word
-                  break;
-          case 8: d_size = 3; // dword
-                  break;
-         default: d_size = 2;
-                  v::warn << name() << "Invalid access size " << length << v::endl;
-        }
-
-        d_enaddr = SC_LOGIC_1;
-        d_eenaddr = SC_LOGIC_1;
-        d_nullify = SC_LOGIC_0;
-        d_lock = (bool)dext->lock;
-        d_read = SC_LOGIC_0;
-        d_write = SC_LOGIC_1;
-        d_flush = (bool)dext->flush;
-        d_flushl = (bool)dext->flushl;
-        d_dsuen = SC_LOGIC_0;
-        d_msu = SC_LOGIC_0;
-        d_esu = SC_LOGIC_0;
-        d_intack = SC_LOGIC_0;
+	cpu_pipe.enter(nop_trans, tlm::BEGIN_REQ);
 
       }
 
-      // Send to dataSampleThread
-      m_SampleDataTransFIFO.write(trans);
-
-    } else {
-
-      d_asi = 0xb;
-      d_maddress = 0;
-      d_eaddress = 0;
-      d_edata = 0;
-      d_size = 2;
-      d_enaddr = SC_LOGIC_0;
-      d_eenaddr = SC_LOGIC_0;
-      d_nullify = SC_LOGIC_0;
-      d_lock = 0;
-      d_read = SC_LOGIC_1;
-      d_write = SC_LOGIC_0;
-      d_flush = 0;
-      d_flushl = 0;
-      d_dsuen = SC_LOGIC_0;
-      d_msu = SC_LOGIC_0;
-      d_esu = SC_LOGIC_0;
-      d_intack = SC_LOGIC_0;
-
+      // Shift the pipeline
+      pipe_event.notify();
     }
   }
 }
 
-void tlmcpu_rtlcache_transactor::dataSampleThread() {
+void tlmcpu_rtlcache_transactor::data_pipe() {
 
-  tlm::tlm_generic_payload * trans;
+  std::pair<tlm::tlm_generic_payload *, tlm::tlm_phase> *trans_addr_state;
+  std::pair<tlm::tlm_generic_payload *, tlm::tlm_phase> *trans_data_state;
+  std::pair<tlm::tlm_generic_payload *, tlm::tlm_phase> *trans_done_state;
 
-  while(1) {
+  tlm::tlm_generic_payload * trans_addr;
+  tlm::tlm_generic_payload * trans_data;
+  tlm::tlm_generic_payload * trans_done;
 
-    // At this clock edge the cache assigns the ahb signals
-    wait(clock.posedge_event());
-
-    // Check if there's a transaction in the fifo
-    if (m_SampleDataTransFIFO.nb_read(trans) != 0) {
-
-      v::debug << name() << "DataSampleThread received transaction " << hex << trans << v::endl;
-
-      // Send to dataResponseThread
-      m_ResponseDataTransFIFO.write(trans);
-
-    }
-  }
-}
-
-// Data response thread
-void tlmcpu_rtlcache_transactor::dataResponseThread() {
-
-  tlm::tlm_generic_payload * trans;
-  unsigned int * data;
+  dcio_payload_extension *dext;
 
   tlm::tlm_phase phase;
   tlm::tlm_sync_enum status;
@@ -448,89 +367,105 @@ void tlmcpu_rtlcache_transactor::dataResponseThread() {
 
   while(1) {
 
-    // Data is sampled at this clock edge.
-    // (Assumed data is ready)
-    wait(clock.posedge_event());
+    wait();
 
-    v::debug << name() << "Data post-processor clock" << v::endl;
+    // Read pipeline state
+    trans_addr_state = cpu_pipe.gettrans(ADDR);
+    trans_data_state = cpu_pipe.gettrans(DATA);
+    trans_done_state = cpu_pipe.gettrans(DONE);
 
-    // Check if there's a transaction for post processing
-    if (m_ResponseDataTransFIFO.nb_read(trans)) {
+    // Make sure transactions are valid (real transaction or nop_trans)
+    assert((trans_addr_state != NULL)&&(trans_data_state != NULL)&&(trans_done_state != NULL));
 
-      v::debug << name() << "Data post-processor received new transaction " << hex << trans << v::endl;
+    // Extract payload from state
+    trans_addr = trans_addr_state->first;
+    trans_data = trans_data_state->first;
+    trans_done = trans_done_state->first;
 
-      // Ready - continue
-      if (dco.read().hold == SC_LOGIC_1) {
+    // ADDRESS Phase of pipeline (CPU - EXECUTE)
+    // =========================================
 
-        if (m_abstractionLayer == amba::amba_LT) {
+    if (trans_addr != nop_trans) {
 
-	  v::debug << name() << "LT - Begin Response Event" << v::endl;
+      execute_valid.write(true);
 
-	  m_BeginDataResponseEvent.notify();
+    } else {
 
-	} else {
+      execute_valid.write(false);
 
-	  // Send BEGIN_RESP to master
-	  phase = tlm::BEGIN_RESP;
-	  delay = SC_ZERO_TIME;
+    }
 
-	  v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
+    execute_address.write(trans_addr->get_address());
 
-	  status = dcio->nb_transport_bw(*trans, phase, delay);
+    trans_addr->get_extension(dext);
+    execute_flush.write((bool)(dext->flush));
+    execute_flushl.write((bool)(dext->flushl));
 
-	  switch(status) {
+    // DATA Phase of pipeline (CPU - MEMORY)
+    // =====================================
 
-	  case tlm::TLM_ACCEPTED:
-	  case tlm::TLM_UPDATED:
+    if (trans_data != nop_trans) {
 
-	    if (phase == tlm::BEGIN_RESP) {
+      memory_valid.write(true);
 
-	      wait(m_EndDataResponseEvent);
+    } else {
 
-	    } else {
+      memory_valid.write(false);
 
-	      wait(delay);
-	    
-	    }
-	    
-	    break;
+    }
 
-	  case tlm::TLM_COMPLETED:
+    memory_address.write(trans_data->get_address());
+    memory_data.write(*(unsigned int *)trans_data->get_data_ptr());
+    
+    if (trans_data->get_command() == tlm::TLM_WRITE_COMMAND) {
 
-	    wait(delay);
+      memory_write.write(SC_LOGIC_1);
 
-	  }
-	}
+    } else {
 
-      } else {
-	
-	if (trans->get_command()==tlm::TLM_READ_COMMAND) {
+      memory_write.write(SC_LOGIC_0);
 
-	  if ((dco.read().hold | dco.read().mds) == SC_LOGIC_0) {
+    }
 
-	    // Obtain payload data pointer
-	    data = (unsigned int *)trans->get_data_ptr();
+    if ((trans_data != nop_trans) && (trans_data_state->second == tlm::BEGIN_REQ)) {
 
-	    // Sample data (to do: Alignment!!)
-	    *data = dco.read().data[dco.read().set.to_uint()].to_uint();
+      // Send END_DATA
+      phase = amba::END_DATA;
+      delay = SC_ZERO_TIME;
 
-	    v::debug << name() << "Data post processor sample data" << hex << *data << v::endl;
+      trans_data->set_response_status(tlm::TLM_OK_RESPONSE);
 
-	  }
+      v::debug << name() << "Transaction " << hex << trans_data << " call to nb_transport_bw with phase " << phase << v::endl;
 
-	  v::debug << name() << "ResponseDataTransFIFO push_back: " << hex << trans << v::endl;
+      status = dcio->nb_transport_bw(*trans_data, phase, delay);
 
-	  // Put transaction back into fifo
-	  m_ResponseDataTransFIFO.write(trans);
+      assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_COMPLETED));
 
-	  v::debug << name() << "After push_back!" << v::endl;
+      trans_data_state->second == amba::END_DATA;
 
-	} else {
+    }
 
-	  //v::debug << name() << "write" << v::endl;
+    // DONE Phase of pipeline (CPU stall)
+    // ==================================
 
-	}
-      } 
+    if ((trans_done != nop_trans)&&(dco.read().hold == SC_LOGIC_1)) {
+
+      done_valid.write(true);
+
+    } else {
+
+      done_valid.write(false);
+
+    }
+
+    if (trans_done->get_command() == tlm::TLM_WRITE_COMMAND) {
+
+      done_write.write(true);
+
+    } else {
+
+      done_write.write(false);
+
     }
   }
 }
@@ -538,34 +473,14 @@ void tlmcpu_rtlcache_transactor::dataResponseThread() {
 void tlmcpu_rtlcache_transactor::start_of_simulation() {
 
   // Initialize signals
-  i_rpc = 0;
-  i_fpc = 0;
-  i_dpc = 0;
-  i_rbranch = SC_LOGIC_0;
-  i_fbranch = SC_LOGIC_0;
-  i_inull = SC_LOGIC_1;
-  i_su = SC_LOGIC_1;
-  i_flush = 0;
-  i_fline = 0;
-  i_pnull = SC_LOGIC_0;
-
-  d_asi = 0xb;
-  d_maddress = 0;
-  d_eaddress = 0;
-  d_edata = 0;
-  d_size = 2;
-  d_enaddr = SC_LOGIC_0;
-  d_eenaddr = SC_LOGIC_0;
-  d_nullify = SC_LOGIC_0;
-  d_lock = 0;
-  d_read = SC_LOGIC_1;
-  d_write = SC_LOGIC_0;
-  d_flush = 0;
-  d_flushl = 0;
-  d_dsuen = SC_LOGIC_0;
-  d_msu = SC_LOGIC_0;
-  d_esu = SC_LOGIC_0;
-  d_intack = SC_LOGIC_0;
+  execute_address = 0;
+  memory_address  = 0;
+  memory_data     = 0;
+  execute_valid   = false;
+  memory_valid    = false;
+  memory_write    = SC_LOGIC_0;
+  execute_flushl  = false;
+  execute_flush   = false;
 
 }
 

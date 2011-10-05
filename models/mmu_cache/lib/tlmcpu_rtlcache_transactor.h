@@ -1,4 +1,3 @@
-
 #ifndef __TLMCPU_RTLCACHE_TRANSACTOR_H__
 #define __TLMCPU_RTLCACHE_TRANSACTOR_H__
 
@@ -8,6 +7,7 @@
 #include "verbose.h"
 #include "amba.h"
 #include "mmu_cache_wrapper.h"
+#include "ahbpipe.h"
 
 #include "../lib/icio_payload_extension.h"
 #include "../lib/dcio_payload_extension.h"
@@ -51,17 +51,21 @@ class tlmcpu_rtlcache_transactor : public sc_module {
   tlm::tlm_sync_enum dcio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
 
   // Threads for processing icio transactions
-  void instrRequestThread();
-  void instrResponseThread();
+  //void instr_request();
+  //void instr_stage1();
+  //void instr_stage2();
+  //void instr_stage3();
 
   // Threads for processing dcio transactions
-  void dataRequestThread();
-  void dataSampleThread();
-  void dataResponseThread();
+  void data_request();
+  void data_pipe();
 
   // Mux dci and ici input signals
   void dci_signal_mux();
   void ici_signal_mux();
+
+  // Sample cache inputs
+  void sample_inputs();
 
   // Helper functions for definition of clock cycle
   void clk(sc_core::sc_clock &clk);
@@ -77,58 +81,55 @@ class tlmcpu_rtlcache_transactor : public sc_module {
 
  private:
 
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_InstrTransPEQ;
-  std::deque<tlm::tlm_generic_payload *> m_DataTransFIFO;
+  //tlm_utils::peq_with_get<tlm::tlm_generic_payload *> m_InstrPEQ;
+  //sc_fifo<tlm::tlm_generic_payload *> m_Instr_Stage1_FIFO;
+  //sc_fifo<tlm::tlm_generic_payload *> m_Instr_Stage2_FIFO;
 
-  sc_fifo<tlm::tlm_generic_payload *> m_SampleDataTransFIFO;
-  sc_fifo<tlm::tlm_generic_payload *> m_ResponseDataTransFIFO;
-
-  //std::deque<tlm::tlm_generic_payload *> m_SampleDataTransFIFO;
-  std::deque<tlm::tlm_generic_payload *> m_PostInstrTransFIFO;
-  //std::deque<tlm::tlm_generic_payload *> m_ResponseDataTransFIFO;
+  sc_fifo<tlm::tlm_generic_payload *> m_DataFIFO;
 
   sc_event m_BeginDataResponseEvent;
   sc_event m_BeginInstrResponseEvent;
   sc_event m_EndInstrResponseEvent;
   sc_event m_EndDataResponseEvent;
+  sc_event dhold_posedge_event;
+  sc_event ihold_posedge_event;
 
+  // For modeling nops
+  unsigned char nop_data[4];
+  tlm::tlm_generic_payload * nop_trans;
+  dcio_payload_extension * dext;
+
+  // Transaction pipeline
+  ahbpipe cpu_pipe;
+  // Event for triggering transaction pipeline
+  sc_event pipe_event;
+  
+  // Register for sampling icache output
+  sc_signal<icache_out_type> ico_reg;
+  // Register for sampling dcache output
+  sc_signal<dcache_out_type> dco_reg;
+
+  // Signals for controlling icache inputs
+
+  // Signals for controlling dcache inputs
+  sc_signal<sc_lv<32> >  execute_address;
+  sc_signal<sc_lv<32> >  memory_address;
+  sc_signal<sc_lv<32> >  memory_data;
+  sc_signal<bool>        execute_valid;
+  sc_signal<bool>        memory_valid;
+  sc_signal<bool>        done_valid;
+  sc_signal<sc_logic>    memory_write;
+  sc_signal<bool>        done_write;
+  sc_signal<bool>        execute_flushl;
+  sc_signal<bool>        execute_flush;
+
+  // TLM Abstraction Layer
   amba::amba_layer_ids m_abstractionLayer;
-
-  // Signals for ici port connections
-  sc_signal<sc_lv<32> >  i_rpc;
-  sc_signal<sc_lv<32> >  i_fpc;
-  sc_signal<sc_lv<32> >  i_dpc;
-  sc_signal<sc_logic>    i_rbranch;
-  sc_signal<sc_logic>    i_fbranch;
-  sc_signal<sc_logic>    i_inull;
-  sc_signal<sc_logic>    i_su;
-  sc_signal<bool>        i_flush;
-  sc_signal<sc_logic>    i_flushl;
-  sc_signal<sc_lv<29> >  i_fline;
-  sc_signal<sc_logic>    i_pnull; 
-
-  // Signals for dci port connections
-  sc_signal<sc_lv<8> >   d_asi;
-  sc_signal<sc_lv<32> >  d_maddress;
-  sc_signal<sc_lv<32> >  d_eaddress;
-  sc_signal<sc_lv<32> >  d_edata;
-  sc_signal<sc_lv<2> >   d_size;
-  sc_signal<sc_logic>    d_enaddr;
-  sc_signal<sc_logic>    d_eenaddr;
-  sc_signal<sc_logic>    d_nullify;
-  sc_signal<bool>        d_lock;
-  sc_signal<sc_logic>    d_read;
-  sc_signal<sc_logic>    d_write;
-  sc_signal<bool>        d_flush;
-  sc_signal<bool>        d_flushl;
-  sc_signal<sc_logic>    d_dsuen;
-  sc_signal<sc_logic>    d_msu;
-  sc_signal<sc_logic>    d_esu;
-  sc_signal<sc_logic>    d_intack;
 
   // Clock cycle time
   sc_core::sc_time clockcycle;
-  
+
+
 };  
 
 #endif // _TLMCPU_RTLCACHE_ADAPTER_H__

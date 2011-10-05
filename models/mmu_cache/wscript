@@ -140,7 +140,8 @@ def build(bld):
   bld(
     target         = 'mmu_cache',
     features       = 'cxx cxxstlib',
-    source         = [ 'lib/icio_payload_extension.cpp', 
+    source         = [ 'lib/mmu_cache_test.cpp',
+                       'lib/icio_payload_extension.cpp', 
                        'lib/dcio_payload_extension.cpp',
 		       'lib/localram.cpp',
 		       'lib/nocache.cpp',
@@ -161,7 +162,7 @@ def build(bld):
                     'test1/sim_lt/main.cpp'],
     includes     = '. ./lib ./test1',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
+    use          = 'mmu_cache ahbctrl common utils',
   )
 
   bld(
@@ -171,29 +172,35 @@ def build(bld):
                     'test1/sim_at/main.cpp'],
     includes     = '. ./lib ./test1',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
+    use          = 'mmu_cache ahbctrl common utils',
   )  
 
-  """
   bld(
-    features     = 'modelsim test',
+    features     = 'modelsim',
     target       = 'mmu_cache.1.rtl.test',
     name         = 'mmu_cache.1.rtl.test',
-    source       = ['test1/sim_rtl/typ_adapters.vhd',
+    source       = ['./lib/typ_adapters.vhd',
                     'test1/sim_rtl/mmu_cache_wrapper.vhd',
                     '../../common/verbose.cpp',
+                    '../../common/timingmonitor.cpp',
+                    '../utils/power_monitor.cpp',
                     '../utils/ahbdevice.cpp',
                     '../utils/apbdevice.cpp',
+                    '../utils/tb_ahb_mem.cpp',
+                    '../utils/clock_gen.cpp',
                     './lib/icio_payload_extension.cpp',
                     './lib/dcio_payload_extension.cpp',
-                    '../utils/cpu_lt_rtl_adapter.cpp',
+                    './lib/tlmcpu_rtlcache_transactor.cpp',
+                    './lib/mmu_cache_test.cpp',
+                    '../ahbctrl/adapters/ahbpipe.cpp',
+                    '../ahbctrl/adapters/ahb_rtlmaster_tlmbus_transactor.cpp',
+                    '../ahbctrl/ahbctrl.cpp',
                     'test1/testbench.cpp',
                     'test1/sim_rtl/main.cpp'],
-    uselib       = 'AMBA GREENSOCS AMBAMEM',
-    includes     = './ ./test1 ./test1/sim_rtl ./lib ../utils ../../signalkit ../../common',
+    uselib       = 'AMBA GREENSOCS',
+    includes     = './ ./test1 ./test1/sim_rtl ./lib ../utils ../../signalkit ../../common ../ahbctrl/ ../ahbctrl/adapters',
     config       =  vsim_conf,
   )
-  """
 
   bld(
     target       = 'mmu_cache.2.lt.test',
@@ -202,7 +209,7 @@ def build(bld):
                     'test2/sim_lt/main.cpp'],
     includes     = '. ./lib ./test2',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
+    use          = 'mmu_cache ahbctrl common utils',
   )
 
   bld(
@@ -212,29 +219,33 @@ def build(bld):
                     'test2/sim_at/main.cpp'],
     includes     = '. ./lib ./test2',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
+    use          = 'mmu_cache ahbctrl common utils',
   )
 
-  """
   bld(
-    features     = 'modelsim test',
+    features     = 'modelsim',
     target       = 'mmu_cache.2.rtl.test',
     name         = 'mmu_cache.2.rtl.test',
-    source       = ['test2/sim_rtl/typ_adapters.vhd',
+    source       = ['./lib/typ_adapters.vhd',
                     'test2/sim_rtl/mmu_cache_wrapper.vhd',
                     '../../common/verbose.cpp',
+                    '../../common/timingmonitor.cpp',
                     '../utils/ahbdevice.cpp',
                     '../utils/apbdevice.cpp',
+                    '../utils/tb_ahb_mem.cpp',
+                    '../utils/clock_gen.cpp',
                     './lib/icio_payload_extension.cpp',
                     './lib/dcio_payload_extension.cpp',
                     '../utils/cpu_lt_rtl_adapter.cpp',
+                    '../ahbctrl/adapters/ahbpipe.cpp',
+                    '../ahbctrl/adapters/ahb_rtlmaster_tlmbus_transactor.cpp',
+                    '../ahbctrl/ahbctrl.cpp',
                     'test2/testbench.cpp',
                     'test2/sim_rtl/main.cpp'],
-    uselib       = 'AMBA GREENSOCS AMBAMEM',
-    includes     = './ ./test2 ./test2/sim_rtl ./lib ../utils ../../signalkit ../../common',
+    uselib       = 'AMBA GREENSOCS',
+    includes     = './ ./test2 ./test2/sim_rtl ./lib ../utils ../../signalkit ../../common ../ahbctrl/ ../ahbctrl/adapters',
     config       =  vsim_conf,
   )
-  """
 
   bld(
     target       = 'mmu_cache.3.lt.test',
@@ -243,7 +254,7 @@ def build(bld):
                     'test3/sim_lt/main.cpp'],
     includes     = '. ./lib ./test3',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
+    use          = 'mmu_cache ahbctrl common utils',
   )
 
   bld(
@@ -253,7 +264,7 @@ def build(bld):
                     'test3/sim_at/main.cpp'],
     includes     = '. ./lib ./test3',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
+    use          = 'mmu_cache ahbctrl common utils',
   )
 
   bld(
@@ -263,7 +274,7 @@ def build(bld):
                     'test4/sim_lt/main.cpp'],
     includes     = '. ./lib ./test4',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
+    use          = 'mmu_cache ahbctrl common utils',
   )
    
   bld(
@@ -273,7 +284,7 @@ def build(bld):
                     'test4/sim_at/main.cpp'],
     includes     = '. ./lib ./test4',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
+    use          = 'mmu_cache ahbctrl common utils',
   )
 
   bld(
@@ -283,7 +294,7 @@ def build(bld):
                     'test5/sim_lt/main.cpp'],
     includes     = '. ./lib ./test5',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
+    use          = 'mmu_cache ahbctrl common utils',
   )
 
   bld(
@@ -293,7 +304,7 @@ def build(bld):
                     'test5/sim_at/main.cpp'],
     includes     = '. ./lib ./test5',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
+    use          = 'mmu_cache ahbctrl common utils',
   )
 
  
@@ -304,7 +315,7 @@ def build(bld):
                     'test6/sim_lt/main.cpp'],
     includes     = '. ./lib ./test6',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
+    use          = 'mmu_cache ahbctrl common utils',
   )
 
   bld(
@@ -314,9 +325,10 @@ def build(bld):
                     'test6/sim_at/main.cpp'],
     includes     = '. ./lib ./test6',
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mmu_cache common utils',
+    use          = 'mmu_cache ahbctrl common utils',
   )
 
+  """
   bld(
     target       = 'mmu_cache.at.tlm.test',
     features     = 'cxx cprogram test',
@@ -326,5 +338,5 @@ def build(bld):
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache common utils',
   )
-
+  """
 
