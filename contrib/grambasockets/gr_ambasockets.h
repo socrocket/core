@@ -50,6 +50,7 @@
 #include "greenreg/greenreg_socket/transactor_if.h"
 #include "greenreg/framework/core/gr_common.h"
 #include "amba.h"
+#include "vendian.h"
 
 #include <systemc>
 #include <iostream>
@@ -160,6 +161,7 @@ class amba_slave : public generic_slave_base,
             if (gp.is_write()) {
                 //for (unsigned int i=0; i<gp.get_data_length(); i+=4) {  // Works only in nonburst mode max 4byte atime
                 length = gp.get_data_length();
+
                 switch (length) {
                     case 1:
                         mask = 0x1;
@@ -174,8 +176,10 @@ class amba_slave : public generic_slave_base,
                         mask = 0xF;
                         break;
                 }
-
                 memcpy(&data, &(gp.get_data_ptr()[0]), length);
+                #ifdef LITTLE_ENDIAN_BO
+                swap_Endianess(data);
+                #endif
 
                 //  std::cout<<"    "<<address<<": "<<std::hex<<"0x"<<((gp.get_data_ptr()[address]<16)?"0":"")<<((unsigned short)gp.get_data_ptr()[address])<<std::endl;
                 m_registers->bus_write(data, address, mask, &trans,
@@ -203,6 +207,9 @@ class amba_slave : public generic_slave_base,
                 //    std::cout<<"    "<<address<<": "<<std::hex<<"0x"<<((gp.get_data_ptr()[address]<16)?"0":"")<<((unsigned short)gp.get_data_ptr()[address])<<std::endl;
                 m_registers->bus_read(m_bus_read_data, address, mask, &trans,
                         m_delay_enabled);
+                #ifdef LITTLE_ENDIAN_BO
+                swap_Endianess(m_bus_read_data);
+                #endif
                 gs::MData mdata(gs::GSDataType::dtype(
                         (unsigned char *)&m_bus_read_data,
                         trans->getMBurstLength()));

@@ -55,6 +55,7 @@
 #include <algorithm>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <stdint.h>
 
 #include<string>
 #include<vector>
@@ -85,7 +86,7 @@ struct PowerEntry{
 struct IpPowerData{
   string action;
   bool start;
-  unsigned long int timestamp;
+  uint64_t timestamp;
   unsigned int power;
   unsigned int id;
 };
@@ -107,14 +108,15 @@ struct IpPowerEntry{
 //
 struct tempData{
   bool start;
-  unsigned long int timestamp;
+  uint64_t timestamp;
+  unsigned int id;
 };
 
 //
 struct tempSum{
-  unsigned long int timestamp;
+  uint64_t timestamp;
   bool start;
-  unsigned long int power;
+  uint64_t power;
 };
 
 // 
@@ -126,18 +128,18 @@ struct tempActions{
 
 // entry for integrated plot
 struct powerSum{
-  unsigned long int timestamp;
-  unsigned long int power;
+  uint64_t timestamp;
+  uint64_t power;
 };
 
 // evaluated ip entry
 struct analyzedData{
   string action;                  // name of performed action
-  unsigned long int start;        // timestamp of action start
-  unsigned long int end;          // timestamp of action end
-  unsigned long int dur;          // duration of action
+  uint64_t start;        // timestamp of action start
+  uint64_t end;          // timestamp of action end
+  uint64_t dur;          // duration of action
   unsigned int power;             // basic power consumption
-  unsigned long int totalpower;   // total power consumed by action
+  uint64_t totalpower;   // total power consumed by action
 };
 
 // evaluatd ip
@@ -145,7 +147,7 @@ struct analyzedEntry{
   // evaluation
   string sc_name;                 // systemc hierarchy name
   unsigned int level;             // level in instance tree
-  unsigned long int ptotal;       // total power consumed
+  uint64_t ptotal;       // total power consumed
   vector<analyzedData> entry;     // evaluated data for actions
   vector<powerSum> psum;          // integrated total power consumed
   vector<string> subpower;        // names of subips
@@ -153,7 +155,7 @@ struct analyzedEntry{
   unsigned int pmax;              // highest ip power value
   unsigned int subpmax;           // highest subip power value
   unsigned int tpmax;             // highest power sum power value
-  unsigned long int tsmax;        // highest ip timestamp
+  uint64_t tsmax;        // highest ip timestamp
 };
 //------------------------------------------------
 
@@ -169,9 +171,12 @@ class PM {
     static vector<IpPowerEntry> IpData;
     static vector< vector<analyzedEntry> > AnalyzedData;
     static unsigned int maxLevel;
-    static unsigned long int EndOfSimulation;
+    static uint64_t EndOfSimulation;
     static vector<string> missingIp;
     static vector<string> missingAction;
+    static bool LimitedRegion;
+    static uint64_t start_log;
+    static uint64_t end_log;
     //--------------------------------------------
 
     // methods
@@ -228,6 +233,8 @@ class PM {
 
   static void raw_logprint(string const file);
   static void analyze_offline(string const path, string const infile, string const outfile, string const data_path, string const data);
+  
+  static void limit_region(sc_time start, sc_time end);
   //----------------------------------------------
 
 };

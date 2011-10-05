@@ -46,6 +46,7 @@
 
 #include "ahbctrl.h"
 #include "verbose.h"
+#include "vendian.h"
 
 // Constructor of class AHBCtrl
 AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
@@ -190,7 +191,11 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     if(device>=num_of_slave_bindings) {
         return 0;
     }
-    return mSlaves[device][offset];
+    uint32_t result =  mSlaves[device][offset];
+    #ifdef LITTLE_ENDIAN_BO
+    swap_Endianess(result);
+    #endif
+    return result;
 
   } else {
 
@@ -203,7 +208,11 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     if(device>=num_of_master_bindings) {
         return 0;
     }
-    return(mMasters[device][offset]);
+    uint32_t result = mMasters[device][offset];
+    #ifdef LITTLE_ENDIAN_BO
+    swap_Endianess(result);
+    #endif
+    return result;
 
   }
 
@@ -291,10 +300,10 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
 
     // Power event start
     PM::send(this,"ahb_trans",1,sc_time_stamp(),(unsigned int)trans.get_data_ptr(),m_pow_mon);
-    
+
     // Add delay for AHB address phase
     delay += clockcycle;
-
+    
     // Forward request to the selected slave
     ahbOUT[index]->b_transport(trans, delay);
 
@@ -509,7 +518,7 @@ void AHBCtrl::RequestThread() {
 	pending_map[trans] = connection;
 
 	// Power event start
-	PM::send(this, "ahb_trans", 1, sc_time_stamp(),(unsigned int)trans->get_data_ptr(),m_pow_mon);
+	//PM::send(this, "ahb_trans", 1, sc_time_stamp(),(unsigned int)trans->get_data_ptr(),m_pow_mon);
 
 	// Send BEGIN_REQ to slave
 	phase = tlm::BEGIN_REQ;
@@ -638,7 +647,7 @@ void AHBCtrl::EndData() {
     assert((status == tlm::TLM_ACCEPTED)||(status == tlm::TLM_COMPLETED));
 
     // Power event end
-    PM::send(this,"ahb_trans", 0, sc_time_stamp(),(unsigned int)trans->get_data_ptr(),m_pow_mon);
+    //PM::send(this,"ahb_trans", 0, sc_time_stamp()+sc_time(1, SC_PS),(unsigned int)trans->get_data_ptr(),m_pow_mon);
 
     // Cleanup
     // -------
@@ -738,7 +747,7 @@ void AHBCtrl::ResponseThread() {
     }
 
     // End power event
-    PM::send(this,"ahb_trans", 0, sc_time_stamp(),(unsigned int)trans->get_data_ptr(),m_pow_mon);
+    //PM::send(this,"ahb_trans", 0, sc_time_stamp(),(unsigned int)trans->get_data_ptr(),m_pow_mon);
 
     // Cleanup
     // -------

@@ -62,8 +62,12 @@
 
 #include <iostream>
 #include <vector>
+#include <sys/time.h>
+#include <time.h>
 #include <amba.h>
+#include <cstring>
 #include "verbose.h"
+#include "power_monitor.h"
 
 #include "config.h"
 #include <GDBStub.hpp>
@@ -106,10 +110,6 @@ using namespace sc_core;
 #  define conf_mmu_cache_mmu_en_mmupgsz 0
 #endif
 
-#ifndef conf_gdbdebug
-#define conf_gdbdebug false
-#endif
-
 #ifndef conf_paramlist
 #define conf_paramlist false
 #endif
@@ -119,12 +119,13 @@ using namespace sc_core;
 
 int sc_main(int argc, char** argv) {
 
+    clock_t cstart, cend;
     char *sram_app, *prom_app;
-    if(argc == 3) {
+    if(argc >= 3) {
        prom_app = argv[1];
        sram_app = argv[2];
     } else {
-       v::error << "Please use: '" << argv[0] << " [prom.elf] [sram.elf]" << "' to define an application." << endl;
+       v::error << "Please use: '" << argv[0] << " [prom.elf] [sram.elf] [gdb]" << "' to define an application." << endl;
        return -1;
     }
 
@@ -146,7 +147,7 @@ int sc_main(int argc, char** argv) {
 		    conf_ahbctrl_fixbrst,               // Enable support for fixed-length bursts (disabled)
 		    conf_ahbctrl_fpnpen,                // Enable full decoding of PnP configuration records
 		    conf_ahbctrl_mcheck,                // Check if there are any intersections between core memory regions
-        false, // Powermon
+        true, // Powermon
 		    amba::amba_LT
     );
     // Set clock
@@ -195,7 +196,7 @@ int sc_main(int argc, char** argv) {
 		        //conf_mmu_cache_mask,          // The 12bit AHB area address mask
             //conf_mmu_cache_dsu,           // Enable debug support unit interface
             conf_mmu_cache_index,           // - id of the AHB master
-            false,                          // Power Monitor,
+            false,                           // Power Monitor,
 	          amba::amba_LT                   // LT abstraction
     );
     
@@ -279,29 +280,30 @@ int sc_main(int argc, char** argv) {
     // ELF loader from leon (Trap-Gen)
     // Loads the application into the memmory.
     // Initialize memory
-    ExecLoader prom_loader(prom_app); 
-    unsigned char* execData = prom_loader.getProgData();
-    for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
-       generic_memory_rom.writeByteDBG(prom_loader.getDataStart() + i, execData[i]);
-       //ahb_mem.writeByteDBG(prom_loader.getDataStart() + i, execData[i]);
-       //v::debug << "sc_main" << "Write to PROM: Addr: " << v::uint32 << prom_loader.getDataStart() + i << " Data: " << v::uint8 << (uint32_t)execData[i] << v::endl;
-    }
-    //leon3.ENTRY_POINT   = prom_loader.getProgStart();
-    //leon3.PROGRAM_LIMIT = prom_loader.getProgDim() + prom_loader.getDataStart();
-    //leon3.PROGRAM_START = prom_loader.getDataStart();
-    leon3.ENTRY_POINT   = 0;
-    leon3.PROGRAM_LIMIT = 0;
-    leon3.PROGRAM_START = 0;
-    
+    uint8_t *execData;
     ExecLoader sram_loader(sram_app); 
     execData = sram_loader.getProgData();
     for(unsigned int i = 0; i < sram_loader.getProgDim(); i++) {
        generic_memory_sram.writeByteDBG(sram_loader.getDataStart() + i, execData[i]);
     }
     //leon3.ENTRY_POINT   = sram_loader.getProgStart();
-    //leon3.PROGRAM_LIMIT = sram_loader.getProgDim() + sram_loader.getDataStart();
-    //leon3.PROGRAM_START = sram_loader.getDataStart();
-    assert((sram_loader.getProgDim() + sram_loader.getDataStart()) < 0x1fffffff);
+    leon3.PROGRAM_LIMIT = sram_loader.getProgDim() + sram_loader.getDataStart();
+    leon3.PROGRAM_START = sram_loader.getDataStart();
+    ExecLoader prom_loader(prom_app); 
+    execData = prom_loader.getProgData();
+    for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
+       generic_memory_rom.writeByteDBG(prom_loader.getDataStart() + i, execData[i]);
+       //ahb_mem.writeByteDBG(prom_loader.getDataStart() + i, execData[i]);
+       //v::debug << "sc_main" << "Write to PROM: Addr: " << v::uint32 << prom_loader.getDataStart() + i << " Data: " << v::uint8 << (uint32_t)execData[i] << v::endl;
+    }
+    leon3.ENTRY_POINT   = prom_loader.getProgStart();
+    //leon3.PROGRAM_LIMIT = prom_loader.getProgDim() + prom_loader.getDataStart();
+    //leon3.PROGRAM_START = prom_loader.getDataStart();
+    //leon3.ENTRY_POINT   = 0;
+    //leon3.PROGRAM_LIMIT = 0;
+    //leon3.PROGRAM_START = 0;
+    
+    //assert((sram_loader.getProgDim() + sram_loader.getDataStart()) < 0x1fffffff);
     // ******************************************
     
     // * IRQMP **********************************
@@ -390,13 +392,13 @@ int sc_main(int argc, char** argv) {
     // ******************************************
    
     // * GDBStubs *******************************
-#if conf_gdbdebug
-    GDBStub< unsigned int > gdbStub(*(leon3.abiIf));
-    leon3.toolManager.addTool(gdbStub);
-    gdbStub.initialize(); 
-    leon3.instrMem.setDebugger(&gdbStub);
-    leon3.dataMem.setDebugger(&gdbStub);
-#endif
+    if((argc>3) && (std::strcmp(argv[3],"gdb")==0)) {
+        GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3.abiIf));
+        leon3.toolManager.addTool(*gdbStub);
+        gdbStub->initialize(); 
+        leon3.instrMem.setDebugger(gdbStub);
+        leon3.dataMem.setDebugger(gdbStub);
+    }
     // ******************************************
 
     // * Param Listing **************************
@@ -410,19 +412,15 @@ int sc_main(int argc, char** argv) {
     // ******************************************
 
     // start simulation
+    cstart = clock();
     sc_core::sc_start();
+    cend = clock();
+    // call power analyzer
+    PM::analyze("./models/","main-power.dat","singlecore2.eslday1.stats");
 
-
-    //cout << "************* Test case summary **************" << endl;
-    //cout << " Error count: " << dec << tb.get_error_count() << endl;
-    //cout << " Pass  count: " << dec << tb.get_pass_count() << endl;
-    //if(!tb.get_error_count()) {
-    //   cout << " Test case passed :)" << endl;
-    //} else {
-    //   cout << " Test case failed :(" << endl;
-    //}
-    //cout << "**********************************************" << endl;
-
-    return 0; //tb.get_error_count();
+    v::info << "Summary" << "Start: " << dec << cstart << v::endl;
+    v::info << "Summary" << "End:   " << dec << cend << v::endl;
+    v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "us" << v::endl;
+    return 0;
 
 }

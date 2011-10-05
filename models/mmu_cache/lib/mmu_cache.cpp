@@ -48,6 +48,7 @@
 //*********************************************************************
 
 #include "mmu_cache.h"
+#include "vendian.h"
 
 //SC_HAS_PROCESS(mmu_cache<>);
 /// Constructor
@@ -2224,6 +2225,9 @@ void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
     unsigned int dummy;
 
     memcpy(&tmp, data, len);
+    #ifdef LITTLE_ENDIAN_BO
+    swap_Endianess(tmp);
+    #endif
 
     // [DS] data cache snoop enable (todo)
     if (tmp & (1 << 23)) {

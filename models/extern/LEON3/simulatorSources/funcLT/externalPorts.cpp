@@ -72,7 +72,8 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword( const unsigned int & add
 
     }
     else{
-        sc_time delay = this->quantKeeper.get_local_time();
+        //sc_time delay = this->quantKeeper.get_local_time();
+        sc_time delay = SC_ZERO_TIME;
         tlm::tlm_generic_payload trans;
 
 	// Create & init data payload extension
@@ -105,11 +106,13 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword( const unsigned int & add
             this->dmi_data.init();
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
+
+	wait(delay);
         //Now lets keep track of time
-        this->quantKeeper.set(delay);
-        if(this->quantKeeper.need_sync()){
-            this->quantKeeper.sync();
-        }
+        //this->quantKeeper.set(delay);
+        //if(this->quantKeeper.need_sync()){
+        //    this->quantKeeper.sync();
+        //}
     }
     #ifdef LITTLE_ENDIAN_BO
     unsigned int datum1 = (unsigned int)(datum);
@@ -143,7 +146,8 @@ unsigned short int leon3_funclt_trap::TLMMemory::read_half( const unsigned int &
 
     }
     else{
-        sc_time delay = this->quantKeeper.get_local_time();
+      //sc_time delay = this->quantKeeper.get_local_time();
+        sc_time delay = SC_ZERO_TIME;
         tlm::tlm_generic_payload trans;
 
 	// Create & init data payload extension
@@ -177,11 +181,13 @@ unsigned short int leon3_funclt_trap::TLMMemory::read_half( const unsigned int &
             this->dmi_data.init();
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
+
+	wait(delay);
         //Now lets keep track of time
-        this->quantKeeper.set(delay);
-        if(this->quantKeeper.need_sync()){
-            this->quantKeeper.sync();
-        }
+        //this->quantKeeper.set(delay);
+        //if(this->quantKeeper.need_sync()){
+        //    this->quantKeeper.sync();
+        //}
     }
     //Now the code for endianess conversion: the processor is always modeled
     //with the host endianess; in case they are different, the endianess
@@ -214,7 +220,8 @@ unsigned char leon3_funclt_trap::TLMMemory::read_byte( const unsigned int & addr
 
     }
     else{
-        sc_time delay = this->quantKeeper.get_local_time();
+      //sc_time delay = this->quantKeeper.get_local_time();
+        sc_time delay = SC_ZERO_TIME;
         tlm::tlm_generic_payload trans;
 
 	// Create & init data payload extension
@@ -248,11 +255,13 @@ unsigned char leon3_funclt_trap::TLMMemory::read_byte( const unsigned int & addr
             this->dmi_data.init();
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
+
+	wait(delay);
         //Now lets keep track of time
-        this->quantKeeper.set(delay);
-        if(this->quantKeeper.need_sync()){
-            this->quantKeeper.sync();
-        }
+        //this->quantKeeper.set(delay);
+        //if(this->quantKeeper.need_sync()){
+        //    this->quantKeeper.sync();
+        //}
     }
 
     return datum;
@@ -288,7 +297,8 @@ void leon3_funclt_trap::TLMMemory::write_dword( const unsigned int & address,
         }
     }
     else{
-        sc_time delay = this->quantKeeper.get_local_time();
+      //sc_time delay = this->quantKeeper.get_local_time();
+        sc_time delay = SC_ZERO_TIME;
         tlm::tlm_generic_payload trans;
 
 	// Create & init data payload extension
@@ -322,11 +332,13 @@ void leon3_funclt_trap::TLMMemory::write_dword( const unsigned int & address,
             this->dmi_data.init();
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
+
+	wait(delay);
         //Now lets keep track of time
-        this->quantKeeper.set(delay);
-        if(this->quantKeeper.need_sync()){
-            this->quantKeeper.sync();
-        }
+        //this->quantKeeper.set(delay);
+        //if(this->quantKeeper.need_sync()){
+        //    this->quantKeeper.sync();
+        //}
     }
 }
 
@@ -362,7 +374,8 @@ void leon3_funclt_trap::TLMMemory::write_half( const unsigned int & address,
         }
     }
     else{
-        sc_time delay = this->quantKeeper.get_local_time();
+        //sc_time delay = this->quantKeeper.get_local_time();
+        sc_time delay = SC_ZERO_TIME;
         tlm::tlm_generic_payload trans;
 		
 	// Create & init data payload extension
@@ -396,11 +409,13 @@ void leon3_funclt_trap::TLMMemory::write_half( const unsigned int & address,
             this->dmi_data.init();
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
+
+	wait(delay);
         //Now lets keep track of time
-        this->quantKeeper.set(delay);
-        if(this->quantKeeper.need_sync()){
-            this->quantKeeper.sync();
-        }
+        //this->quantKeeper.set(delay);
+        //if(this->quantKeeper.need_sync()){
+        //    this->quantKeeper.sync();
+        //}
     }
 }
 
@@ -430,7 +445,8 @@ void leon3_funclt_trap::TLMMemory::write_byte( const unsigned int & address,
         }
     }
     else{
-        sc_time delay = this->quantKeeper.get_local_time();
+        //sc_time delay = this->quantKeeper.get_local_time();
+        sc_time delay = SC_ZERO_TIME;
         tlm::tlm_generic_payload trans;
 
 	// Create & init data payload extension
@@ -464,11 +480,14 @@ void leon3_funclt_trap::TLMMemory::write_byte( const unsigned int & address,
             this->dmi_data.init();
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
+
+	wait(delay);
+
         //Now lets keep track of time
-        this->quantKeeper.set(delay);
-        if(this->quantKeeper.need_sync()){
-            this->quantKeeper.sync();
-        }
+        //this->quantKeeper.set(delay);
+        //if(this->quantKeeper.need_sync()){
+        //    this->quantKeeper.sync();
+        //}
     }
 }
 

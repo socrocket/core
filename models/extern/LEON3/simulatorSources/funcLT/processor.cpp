@@ -217,10 +217,10 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
             }
             #endif
         }
-        this->quantKeeper.inc((numCycles + 1)*this->latency);
-        if(this->quantKeeper.need_sync()){
-            this->quantKeeper.sync();
-        }
+        //this->quantKeeper.inc((numCycles + 1)*this->latency);
+        //if(this->quantKeeper.need_sync()){
+        //    this->quantKeeper.sync();
+        //}
         this->instrExecuting = false;
         this->instrEndEvent.notify();
         this->numInstructions++;

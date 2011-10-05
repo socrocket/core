@@ -706,7 +706,7 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
             transaction = "sramread";
             cycles = (r[MCFG2] & MCFG2_RAM_READ_WS);
             cycles = DECODING_DELAY + SRAM_READ_DELAY(cycles) + 
-                     2 * (data_length / gp.get_streaming_width() - 1);  
+                     2 * (data_length / gp.get_streaming_width() - 1) + 3;  
             //multiple data1 / data2 cycles, i.e. burst access
             
             //set cacheable_access extension (only required for read commands)
@@ -716,7 +716,7 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
             transaction = "sramwrite";
             cycles = (r[MCFG2] & MCFG2_RAM_WRITE_WS) >> 2;
             cycles = DECODING_DELAY + SRAM_WRITE_DELAY(cycles) + 
-                     data_length / gp.get_streaming_width() - 1;
+                     data_length / gp.get_streaming_width() - 1 + 6;
             //multiple data cycles, i.e. burst access
         }
         //check for write protection

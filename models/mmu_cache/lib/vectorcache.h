@@ -111,6 +111,8 @@ class vectorcache : public sc_core::sc_module, public cache_if {
 	/// Transforms a cache-line offset into a valid mask
 	inline unsigned int offset2valid(unsigned int offset);
 
+	void end_of_simulation();
+
     protected:
 
         // internal behavioral functions
@@ -235,6 +237,13 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         unsigned int m_lramstart;
         /// size of localram
         unsigned int m_lramsize;
+
+	// statistics
+	uint64_t rhits;
+	uint64_t rmisses;
+	uint64_t whits;
+	uint64_t wmisses;
+	uint64_t bypassops;
 
 	/// enable power monitoring
 	bool m_pow_mon;

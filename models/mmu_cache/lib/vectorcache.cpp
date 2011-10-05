@@ -165,6 +165,13 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     // enter replacement strategy
     CACHE_CONFIG_REG |= ((m_repl & 0x3) << 28);
 
+    // Reset statistics
+    rhits = 0;
+    rmisses = 0;
+    whits = 0;
+    wmisses = 0;
+    bypassops = 0;
+
     // register for power monitoring
     PM::registerIP(this,"vectorcache",m_pow_mon);
     PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
@@ -243,11 +250,15 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 
                         // valid data in set i
                         cache_hit = i;
+			
+			// increment hit counter
+			rhits++;
 
                         break;
                     } else {
 
                         v::debug << this->name() << "Tag Hit but data not valid in set " << i  << v::endl;
+
                     }
 
                 } else {
@@ -278,6 +289,9 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
         // read miss - On a data cache read miss to a cachable location 4 bytes of data
         // are loaded into the cache from main memory.
         if (cache_hit == -1) {
+
+	    // Increment miss counter 
+	    rmisses++;
 
             // increment time
             *t += clockcycle;
@@ -426,6 +440,9 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
         v::debug << this->name() << "BYPASS read from address: " << hex
                 << address << v::endl;
 
+	// Increment bypass counter
+	bypassops++;
+
         // Cache is disabled
         // Forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
         m_mmu_cache->mem_read(address, data, len, t, debug);
@@ -500,6 +517,9 @@ void vectorcache::mem_write(unsigned int address, unsigned char * data,
                         (*m_current_cacheline[i]).entry[offset >> 2].c[byt + j] = *(data + j);
                     }
 
+		    // Increment hit counter
+		    whits++;
+
                     // valid is already set
 
                     // increment time
@@ -520,9 +540,13 @@ void vectorcache::mem_write(unsigned int address, unsigned char * data,
         }
 
         // update debug information
-        if (!is_hit)
-            CACHEWRITEMISS_SET(*debug);
+        if (!is_hit) {
 
+            CACHEWRITEMISS_SET(*debug);
+	    wmisses++;
+
+	}
+	    
         // write data to main memory
         // todo: - implement byte access
         //       - implement write buffer
@@ -538,6 +562,9 @@ void vectorcache::mem_write(unsigned int address, unsigned char * data,
 
         v::debug << this->name() << "BYPASS write to address: " << hex
                 << address << v::endl;
+
+	// increment bypass counter
+	bypassops++;
 
         // cache is disabled
         // forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
@@ -969,6 +996,19 @@ inline unsigned int vectorcache::offset2valid(unsigned int offset) {
   }
 }
 
+void vectorcache::end_of_simulation() {
+
+  v::info << name() << " ******************************************** " << v::endl;
+  v::info << name() << " * Cacheing statistic:                        " << v::endl;
+  v::info << name() << " * -------------------" << v::endl;
+  v::info << name() << " * Read hits:    " << rhits << v::endl;
+  v::info << name() << " * Read misses:  " << rmisses << v::endl; 
+  v::info << name() << " * Write hits:   " << whits << v::endl;
+  v::info << name() << " * Write misses: " << wmisses << v::endl;
+  v::info << name() << " * Bypass ops:   " << bypassops << v::endl;
+  v::info << name() << " ******************************************** " << v::endl;
+
+}
 
 // Helper for setting clock cycle latency using sc_clock argument
 void vectorcache::clk(sc_core::sc_clock &clk) {
