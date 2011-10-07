@@ -10,8 +10,8 @@ mmu_cache_test::mmu_cache_test(sc_core::sc_module_name name,
   m_DataResponsePEQ("DataResponsePEQ"),
   m_DataPEQ("DataPEQ"),
   m_EndTransactionPEQ("EndTransactionPEQ"),
+  m_CheckPEQ("CheckPEQ"),
   m_abstractionLayer(abstractionLayer) {
-
   // For AT abstraction layer
   if (m_abstractionLayer == amba::amba_AT) {
 
@@ -24,9 +24,180 @@ mmu_cache_test::mmu_cache_test(sc_core::sc_module_name name,
     SC_THREAD(DataResponseThread);
     SC_THREAD(DataThread);
     SC_THREAD(cleanUP);
+    SC_THREAD(check_delayed);
 
   }
-   
+
+  // Reset test counter and error counter
+  tc = 0;
+  ec = 0;
+
+}
+
+unsigned char * mmu_cache_test::get_datap() {
+
+  return(data+tc);
+
+}
+
+unsigned char * mmu_cache_test::get_datap_word(unsigned int value) {
+
+  memset(data+tc,0,4);
+  
+  // Assume LE host simulating BE master
+  data[tc+3] = value & 0xff;
+  data[tc+2] = (value >> 8) & 0xff;
+  data[tc+1] = (value >> 16) & 0xff;
+  data[tc+0] = (value >> 24) & 0xff;
+
+  return(data+tc);
+
+}
+
+unsigned char * mmu_cache_test::get_datap_short(unsigned int value) {
+
+  memset(data+tc,0,2);
+
+  // Assume LE host simulating BE master
+  data[tc+1] = value & 0xff;
+  data[tc+0] = (value >> 8) & 0xff;
+
+  return(data+tc);
+
+}
+
+unsigned char * mmu_cache_test::get_datap_byte(unsigned int value) {
+ 
+  memset(data+tc,0,1);
+
+  data[tc] = value;
+
+  return(data+tc);
+
+}
+
+unsigned char * mmu_cache_test::get_refp() {
+
+  return(ref+tc);
+
+}
+
+unsigned char * mmu_cache_test::get_refp_word(unsigned int value) {
+
+  memset(ref+tc,0,4);
+  
+  // Assume LE host simulating BE master
+  ref[tc+3]   = value & 0xff;
+  ref[tc+2] = (value >> 8) & 0xff;
+  ref[tc+1] = (value >> 16) & 0xff;
+  ref[tc+0] = (value >> 24) & 0xff;
+
+  return(ref+tc);
+
+}
+
+unsigned char * mmu_cache_test::get_refp_short(unsigned int value) {
+
+  memset(ref+tc,0,4);
+
+  // Assume LE host simulating BE master
+  ref[tc+1] = value & 0xff;
+  ref[tc+0] = (value >> 8) & 0xff;
+
+  return(ref+tc);
+
+}
+
+unsigned char * mmu_cache_test::get_refp_byte(unsigned int value) {
+
+  memset(data+tc,0,1);
+
+  ref[tc] = value;
+
+  return(ref+tc);
+
+}
+
+unsigned int * mmu_cache_test::get_debugp() {
+
+  memset(debug+(tc>>2),0,4);
+  return(debug+(tc>>2));
+}
+
+void mmu_cache_test::inc_tptr() {
+
+  tc = (tc + 4) % 1024;
+  
+}
+
+
+// Function for result checking / to be called from testbench
+void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsigned int len) {
+
+  checkpair_type* checkpair;
+  unsigned int i,j;
+
+  if (m_abstractionLayer == amba::amba_LT) {
+
+    // For blocking communication - check immediately
+    for (i=0; i<len; i++) {
+
+      if (result[i] != refer[i]) {
+
+	v::error << name() << "Testbench Error (Expected/Received): " << v::endl;
+	
+	for (j=0; j<len; j++) {
+
+	  v::error << name() << hex << (unsigned int)refer[j] << "/" << (unsigned int)result[j] << v::endl;
+	  ec++;
+
+	}
+
+      }
+    }
+
+  } else {
+
+    checkpair = new checkpair_type;
+
+    // For non-blocking communication - use PEQ and check later
+    checkpair->result     = result;
+    checkpair->refer      = refer;
+    checkpair->len        = len;
+    checkpair->check_time = sc_time_stamp();
+
+    m_CheckPEQ.notify(*checkpair, sc_time(100, SC_NS));
+
+  }
+} 
+
+// Thread for delayed result checking (AT pipeline)
+void mmu_cache_test::check_delayed() {
+
+  unsigned int i, j;
+  checkpair_type* checkpair;
+
+  while(1) {
+
+    wait(m_CheckPEQ.get_event());
+
+    checkpair = m_CheckPEQ.get_next_transaction();
+
+    for (i=0; i<checkpair->len; i++) {
+
+      if (checkpair->result[i] != checkpair->refer[i]) {
+
+	v::error << name() << "Testbench Error (Expected/Received): " << v::endl;
+	
+	for (j=0; j<checkpair->len; j++) {
+
+	  v::error << name() << checkpair->refer[j] << "/" << checkpair->result[j] << v::endl;
+	  ec++;
+
+	}
+      }
+    }
+  }
 }
 
 // Delayed release of transactions

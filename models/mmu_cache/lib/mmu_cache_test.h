@@ -33,11 +33,31 @@ class mmu_cache_test : public sc_module {
 
   // Instruction read
   void iread(unsigned int addr, unsigned char * data, unsigned int flush, unsigned int flushl, unsigned int fline, unsigned int *debug);
+
   // Data read
   void dread(unsigned int addr, unsigned char * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int *debug);
+
   // Data write
   void dwrite(unsigned int addr, unsigned char * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int *debug);
  
+  /// Function for result checking
+  void check(unsigned char * result, unsigned char * refer, unsigned int lenght);
+
+  /// Thread for delayed result checking (AT pipeline)
+  void check_delayed();
+
+  /// Helper functions for maintaining data, reference and debug pointers
+  unsigned char * get_datap();
+  unsigned char * get_datap_word(unsigned int value);
+  unsigned char * get_datap_short(unsigned int value);
+  unsigned char * get_datap_byte(unsigned int value);
+  unsigned char * get_refp();
+  unsigned char * get_refp_word(unsigned int value);
+  unsigned char * get_refp_short(unsigned int value);
+  unsigned char * get_refp_byte(unsigned int value);
+
+  unsigned int  * get_debugp();
+  void inc_tptr();
 
   // Delayed release of transactions
   void cleanUP();
@@ -54,10 +74,9 @@ class mmu_cache_test : public sc_module {
   /// Constructor
   mmu_cache_test(sc_core::sc_module_name name, amba::amba_layer_ids abstractionLayer);
 
+  
   // Data members
   // ------------
-
- private:
 
   /// PEQs for response synchronization
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_InstrResponsePEQ;
@@ -70,6 +89,24 @@ class mmu_cache_test : public sc_module {
   sc_event m_EndDataRequestEvent;
   sc_event m_BeginResponseEvent;
   sc_event m_EndDataEvent;
+
+  /// For result checking
+  typedef struct {
+    unsigned char * result;
+    unsigned char * refer;
+    unsigned int len;
+    sc_time check_time;
+  } checkpair_type;
+
+  tlm_utils::peq_with_get<checkpair_type> m_CheckPEQ;
+
+  // Space for keeping track of results, references and debug info
+  unsigned char data[1024];
+  unsigned char ref[1024];
+  unsigned int debug[256];
+
+  unsigned int tc;
+  unsigned int ec;
 
  protected:
 
