@@ -347,7 +347,8 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 
                 // fill in the new data (always the complete word)
                 memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2],
-                        ahb_data, burst_len);
+		       ahb_data, burst_len);
+
 
 		sprintf(buf,"set_write%d",set_select);
 
@@ -661,8 +662,14 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
     tmp |= (*m_current_cacheline[set]).tag.valid;
 
     v::debug << this->name() << "Diagnostic tag read set: " << hex << set
-            << " idx: " << hex << idx << " - tag: " << hex << tmp
-            << v::endl;
+	     << " idx: " << hex << idx << " - tag: " << hex << v::setw(8) << tmp
+             << v::endl;
+
+    #ifdef LITTLE_ENDIAN_BO
+
+    swap_Endianess(tmp);
+
+    #endif
 
     // handover bitmask pointer (the tag)
     *data = tmp;
@@ -683,32 +690,38 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
 void vectorcache::write_cache_tag(unsigned int address, unsigned int * data,
                                   sc_core::sc_time *t) {
 
-    unsigned int set = (address >> (m_idx_bits + 5));
-    unsigned int idx = ((address << (32 - (m_idx_bits + 5))) >> (32
-            - m_idx_bits));
+  #ifdef LITTLE_ENDIAN_BO
 
-    // find the required cache line
-    m_current_cacheline[set] = lookup(set, idx);
+  swap_Endianess(*data);
 
-    // update the tag with write data
-    // (! The atag field is expected to start at bit 10. Not MSB aligned as in tag layout.)
-    (*m_current_cacheline[set]).tag.atag = *data >> 10;
-    (*m_current_cacheline[set]).tag.lrr = ((*data & 0x100) >> 9);
-    // lock bit can only be set, if line locking is enabled
-    // locking only works in multi-set configurations. the last set may never be locked.
-    (*m_current_cacheline[set]).tag.lock
-            = ((m_setlock) && (set != m_sets))? ((*data & 0x080) >> 8) : 0;
-    (*m_current_cacheline[set]).tag.valid = (*data & 0xff);
+  #endif
 
-    v::debug << this->name() << "Diagnostic tag write set: " << hex << set
-            << " idx: " << hex << idx << " atag: " << hex
-            << (*m_current_cacheline[set]).tag.atag << " lrr: " << hex
-            << (*m_current_cacheline[set]).tag.lrr << " lock: " << hex
-            << (*m_current_cacheline[set]).tag.lock << " valid: " << hex
-            << (*m_current_cacheline[set]).tag.valid << v::endl;
+  unsigned int set = (address >> (m_idx_bits + 5));
+  unsigned int idx = ((address << (32 - (m_idx_bits + 5))) >> (32
+          - m_idx_bits));
 
-    // increment time
-    *t += clockcycle;
+  // find the required cache line
+  m_current_cacheline[set] = lookup(set, idx);
+
+  // update the tag with write data
+  // (! The atag field is expected to start at bit 10. Not MSB aligned as in tag layout.)
+  (*m_current_cacheline[set]).tag.atag = *data >> 10;
+  (*m_current_cacheline[set]).tag.lrr = ((*data & 0x100) >> 9);
+  // lock bit can only be set, if line locking is enabled
+  // locking only works in multi-set configurations. the last set may never be locked.
+  (*m_current_cacheline[set]).tag.lock
+          = ((m_setlock) && (set != m_sets))? ((*data & 0x080) >> 8) : 0;
+  (*m_current_cacheline[set]).tag.valid = (*data & 0xff);
+
+  v::debug << this->name() << "Diagnostic tag write set: " << hex << set
+           << " idx: " << hex << idx << " atag: " << hex
+           << (*m_current_cacheline[set]).tag.atag << " lrr: " << hex
+           << (*m_current_cacheline[set]).tag.lrr << " lock: " << hex
+           << (*m_current_cacheline[set]).tag.lock << " valid: " << hex
+           << (*m_current_cacheline[set]).tag.valid << v::endl;
+
+  // increment time
+  *t += clockcycle;
 
 }
 
@@ -720,22 +733,22 @@ void vectorcache::write_cache_tag(unsigned int address, unsigned int * data,
 void vectorcache::read_cache_entry(unsigned int address, unsigned int * data,
                                    sc_core::sc_time *t) {
 
-    unsigned int set = (address >> (m_idx_bits + 5));
-    unsigned int idx = ((address << (32 - (m_idx_bits + 5))) >> (32
-            - m_idx_bits));
-    unsigned int sb = (address & 0x1f) >> 2;
+  unsigned int set = (address >> (m_idx_bits + 5));
+  unsigned int idx = ((address << (32 - (m_idx_bits + 5))) >> (32
+          - m_idx_bits));
+  unsigned int sb = (address & 0x1f) >> 2;
 
-    // find the required cache line
-    m_current_cacheline[set] = lookup(set, idx);
+  // find the required cache line
+  m_current_cacheline[set] = lookup(set, idx);
 
-    *data = (*m_current_cacheline[set]).entry[sb].i;
+  *data = (*m_current_cacheline[set]).entry[sb].i;
 
-    v::debug << this->name() << "Diagnostic data read set: " << hex << set
-            << " idx: " << hex << idx << " sub-block: " << sb
-            << " - data: " << hex << *data << v::endl;
+  v::debug << this->name() << "Diagnostic data read set: " << hex << set
+           << " idx: " << hex << idx << " sub-block: " << sb
+           << " - data: " << hex << *data << v::endl;
 
-    // increment time
-    *t += clockcycle;
+  // increment time
+  *t += clockcycle;
 
 }
 
@@ -769,9 +782,17 @@ void vectorcache::write_cache_entry(unsigned int address, unsigned int * data,
 // read cache configuration register
 unsigned int vectorcache::read_config_reg(sc_core::sc_time *t) {
 
-    *t += clockcycle;
+  unsigned int tmp = CACHE_CONFIG_REG;
 
-    return (CACHE_CONFIG_REG);
+  *t += clockcycle;
+
+  #ifdef LITTLE_ENDIAN_BO
+
+  swap_Endianess(tmp);
+
+  #endif
+    
+  return (tmp);
 
 }
 
@@ -956,26 +977,41 @@ void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time&
 // displays cache lines at stdout for debug
 void vectorcache::dbg_out(unsigned int line) {
 
-    t_cache_line dbg_cacheline;
+  #ifdef LITTLE_ENDIAN_BO
 
-    for (unsigned int i = 0; i <= m_sets; i++) {
+  swap_Endianess(line);
 
-        // read the cacheline from set
-        dbg_cacheline = (*cache_mem[i])[line];
+  #endif
 
-        // display the tag
-        v::debug << this->name() << "SET: " << i << " ATAG: 0x" << hex
-                << dbg_cacheline.tag.atag << " VALID: 0x" << hex
-                << dbg_cacheline.tag.valid << v::endl;
+  t_cache_line dbg_cacheline;
 
-        // display all entries
-        for (unsigned int j = 0; j < m_wordsperline; j++) {
+  for (unsigned int i = 0; i <= m_sets; i++) {
 
-            v::debug << this->name() << "Entry: " << j << " - " << hex
-                    << dbg_cacheline.entry[j].i << v::endl;
+    // read the cacheline from set
+    dbg_cacheline = (*cache_mem[i])[line];
 
-        }
+    // display the tag
+    v::debug << this->name() << "SET: " << i << " ATAG: 0x" << hex
+             << dbg_cacheline.tag.atag << " VALID: 0x" << hex
+             << dbg_cacheline.tag.valid << v::endl;
+
+    std::cout << "Byte:       0 1 2 3" << v::endl;
+    std::cout << "-------------------" << v::endl;
+
+    // display all entries
+    for (unsigned int j = 0; j < m_wordsperline; j++) {
+
+      std::cout << "Entry: " << j << " - ";
+
+      for (unsigned int k = 0; k < 4; k++) {
+
+	std::cout << hex << std::setw(2) << (unsigned int)dbg_cacheline.entry[j].c[k];
+
+      }
+
+      std::cout << " " << std::endl;
     }
+  }
 }
 
 // Transforms a cache-line offset into a valid mask

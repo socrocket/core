@@ -57,6 +57,7 @@
 #include "tlb_adaptor.h"
 #include "mem_if.h"
 #include "power_monitor.h"
+#include "vendian.h"
 
 // implementation of cache memory and controller
 /// @brief virtual cache model, contain common functionality of instruction and data cache

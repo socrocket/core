@@ -39,7 +39,10 @@ class mmu_cache_test : public sc_module {
 
   // Data write
   void dwrite(unsigned int addr, unsigned char * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int *debug);
- 
+
+  // Displays and returns number of errors during test
+  unsigned int error_stat();
+
   /// Function for result checking
   void check(unsigned char * result, unsigned char * refer, unsigned int lenght);
 

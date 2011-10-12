@@ -61,6 +61,10 @@ void ivectorcache::mem_write(unsigned int address, unsigned char * data,
 // implement ccr check
 unsigned int ivectorcache::check_mode() {
 
-    return (m_mmu_cache->read_ccr() & 0x3);
+  unsigned int tmp = m_mmu_cache->read_ccr();
+
+  swap_Endianess(tmp);
+
+  return (tmp & 0x3);
 
 }

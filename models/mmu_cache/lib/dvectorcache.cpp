@@ -50,7 +50,17 @@
 // implement ccr check
 unsigned int dvectorcache::check_mode() {
 
-    return (m_mmu_cache->read_ccr() & 0x3);
+  unsigned int tmp;
+
+  tmp = m_mmu_cache->read_ccr();
+
+  #ifdef LITTLE_ENDIAN_BO
+  
+  swap_Endianess(tmp);
+
+  #endif
+
+  return (tmp & 0x3);
 
 }
 

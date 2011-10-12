@@ -216,6 +216,8 @@ void mmu_cache::icio_custom_b_transport(tlm::tlm_generic_payload& tran,
         if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
             ilocalram->read((unsigned int)addr, ptr, 4, &delay, debug);
+	    delay += clockcycle;
+
 
             // instruction cache access
         } else {
@@ -319,7 +321,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
             } else if (addr == 0xfe) {
 
                 // icache debug output (arg: line)
-                icache->dbg_out(*ptr);
+                icache->dbg_out(*(unsigned int*)ptr);
 		// Setting response status
 		tran.set_response_status(tlm::TLM_OK_RESPONSE);
 		return;
@@ -328,7 +330,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
             } else if (addr == 0xff) {
 
                 // dcache debug output (arg: line)
-                dcache->dbg_out(*ptr);
+                dcache->dbg_out(*(unsigned int*)ptr);
 		// Setting response status
 		tran.set_response_status(tlm::TLM_OK_RESPONSE);
 		return;
@@ -846,6 +848,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
             } else if (m_dlram && (((addr >> 24) & 0xff) == m_dlramstart)) {
 
                 dlocalram->read((unsigned int)addr, ptr, len, &delay, debug);
+		delay+=clockcycle;
 		// set TLM response
 		tran.set_response_status(tlm::TLM_OK_RESPONSE);
 		return;
@@ -854,6 +857,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
             } else {
 
                 dcache->mem_read((unsigned int)addr, ptr, len, &delay, debug);
+
 		// set TLM response
 		tran.set_response_status(tlm::TLM_OK_RESPONSE);
 		return;
@@ -873,6 +877,7 @@ void mmu_cache::dcio_custom_b_transport(tlm::tlm_generic_payload& tran,
             } else if (m_dlram && (((addr >> 24) & 0xff) == m_dlramstart)) {
 
                 dlocalram->write((unsigned int)addr, ptr, len, &delay, debug);
+		delay += clockcycle;
 		// set TLM response
 		tran.set_response_status(tlm::TLM_OK_RESPONSE);
 		return;
@@ -1692,6 +1697,7 @@ void mmu_cache::dcio_service_thread() {
             if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
                 ilocalram->read((unsigned int)addr, ptr, len, &delay, debug);
+		delay += clockcycle;
 		// set TLM response
 		(*tran).set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -1699,6 +1705,7 @@ void mmu_cache::dcio_service_thread() {
             } else if (m_dlram && (((addr >> 24) & 0xff) == m_dlramstart)) {
 
                 dlocalram->read((unsigned int)addr, ptr, len, &delay, debug);
+		delay += clockcycle;
 		// set TLM response
 		(*tran).set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -1716,6 +1723,7 @@ void mmu_cache::dcio_service_thread() {
             if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
                 ilocalram->write((unsigned int)addr, ptr, len, &delay, debug);
+		delay+=clockcycle;
 		// set TLM response
 		(*tran).set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -1723,6 +1731,7 @@ void mmu_cache::dcio_service_thread() {
             } else if (m_dlram && (((addr >> 24) & 0xff) == m_dlramstart)) {
 
                 dlocalram->write((unsigned int)addr, ptr, len, &delay, debug);
+		delay+=clockcycle;
 		// set TLM response
 		(*tran).set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -2221,13 +2230,16 @@ void mmu_cache::ResponseThread() {
 void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
                           sc_core::sc_time * delay) {
 
-    unsigned int tmp = 0;
+    unsigned int tmp1 = *(unsigned int *)data;
+    unsigned int tmp;
+
     unsigned int dummy;
 
-    memcpy(&tmp, data, len);
     #ifdef LITTLE_ENDIAN_BO
-    swap_Endianess(tmp);
+    swap_Endianess(tmp1);
     #endif
+
+    memcpy(&tmp, &tmp1, len);
 
     // [DS] data cache snoop enable (todo)
     if (tmp & (1 << 23)) {
@@ -2260,12 +2272,22 @@ void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
 
     // read only masking: 1111 1111 1001 1111 0011 1111 1111 1111
     CACHE_CONTROL_REG = (tmp & 0xff9f3fff);
+
+    v::debug << name() << "CACHE_CONTROL_REG: " << hex << v::setw(8) << CACHE_CONTROL_REG << v::endl;
 }
 
 // read the cache control register
 unsigned int mmu_cache::read_ccr() {
 
-    return (CACHE_CONTROL_REG);
+  unsigned int tmp = CACHE_CONTROL_REG;
+
+  #ifdef LITTLE_ENDIAN_BO
+
+  swap_Endianess(tmp);
+
+  #endif
+
+  return (tmp);
 }
 
 // Snooping function

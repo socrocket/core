@@ -59,7 +59,7 @@ unsigned char * mmu_cache_test::get_datap_short(unsigned int value) {
   memset(data+tc,0,2);
 
   // Assume LE host simulating BE master
-  data[tc+1] = value & 0xff;
+  data[tc+1] = value & 0xff; 
   data[tc+0] = (value >> 8) & 0xff;
 
   return(data+tc);
@@ -110,7 +110,7 @@ unsigned char * mmu_cache_test::get_refp_short(unsigned int value) {
 
 unsigned char * mmu_cache_test::get_refp_byte(unsigned int value) {
 
-  memset(data+tc,0,1);
+  memset(ref+tc,0,1);
 
   ref[tc] = value;
 
@@ -130,12 +130,20 @@ void mmu_cache_test::inc_tptr() {
   
 }
 
+unsigned int mmu_cache_test::error_stat() {
+
+  v::info << name() << "Total number of errors during test: " << ec << v::endl;
+
+  return(ec);
+
+}
 
 // Function for result checking / to be called from testbench
 void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsigned int len) {
 
   checkpair_type* checkpair;
-  unsigned int i,j;
+  unsigned int i;
+  bool is_error = false;
 
   if (m_abstractionLayer == amba::amba_LT) {
 
@@ -144,14 +152,19 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
       if (result[i] != refer[i]) {
 
-	v::error << name() << "Testbench Error (Expected/Received): " << v::endl;
-	
-	for (j=0; j<len; j++) {
+	is_error = true;
+	ec++;
 
-	  v::error << name() << hex << (unsigned int)refer[j] << "/" << (unsigned int)result[j] << v::endl;
-	  ec++;
+      }
+    }
 
-	}
+    if (is_error) {
+
+      v::error << name() << "Testbench Error (Expected/Received): " << v::endl;
+
+      for (i=0; i<len; i++) {
+
+	v::error << name() << hex << (unsigned int)refer[i] << "/" << (unsigned int)result[i] << v::endl;
 
       }
     }
@@ -169,7 +182,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
     m_CheckPEQ.notify(*checkpair, sc_time(100, SC_NS));
 
   }
-} 
+}
 
 // Thread for delayed result checking (AT pipeline)
 void mmu_cache_test::check_delayed() {
