@@ -15,14 +15,15 @@ class TemplateGen(FileGen):
     def generate(self, model, base = "", conf = ""):
         def gen(base, node):
             result = {}
-            var = '.'.join((base,str(node.getVar()))).strip('.').strip()
+            var = '_'.join((base,str(node.getVar()))).strip('_').strip()
             result[var] = str(node.getValue().toString())
             for i in range(node.childCount()):
                 result.update(gen(var, node.child(i)))
             return result
         result = {}
         result.update(gen('', model.rootItem.child(0)))
-        return sTemplate(self.data.strip()+'\n').safe_substitute({'template':base, 'configuration':conf}.update(result))
+        result.update({'template':base, 'configuration':conf})
+        return sTemplate(self.data.strip()+'\n').safe_substitute(result)
  
 class SystemCGen(FileGen):
     def generate(self, model, base = "", conf = ""):
@@ -74,7 +75,7 @@ class Template:
                         file.name = node.getAttribute("name")
                         self._generators.append(file)
                     if type == "template":
-                        file = SystemCGen()
+                        file = TemplateGen()
                         file.type = "template"
                         if node.hasAttribute("path"):
                             file.path = node.getAttribute("path")
