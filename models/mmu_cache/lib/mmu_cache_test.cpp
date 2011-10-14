@@ -120,14 +120,29 @@ unsigned char * mmu_cache_test::get_refp_byte(unsigned int value) {
 
 unsigned int * mmu_cache_test::get_debugp() {
 
+  return(debug+(tc>>2));
+
+}
+
+unsigned int * mmu_cache_test::get_debugp_clean() {
+
   memset(debug+(tc>>2),0,4);
   return(debug+(tc>>2));
 }
 
+// Increment test counter (tc)
+// tc is offset for data, ref and debug arrays
 void mmu_cache_test::inc_tptr() {
 
   tc = (tc + 4) % 1024;
   
+}
+
+// Increment error counter 
+void mmu_cache_test::inc_ec() {
+
+  ec++;
+
 }
 
 unsigned int mmu_cache_test::error_stat() {
@@ -138,14 +153,26 @@ unsigned int mmu_cache_test::error_stat() {
 
 }
 
-// Function for result checking / to be called from testbench
+// Result checking without debug pointer
 void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsigned int len) {
+
+  unsigned int dummy = 0;
+
+  check(result, refer, len, &dummy, NOCHECK);
+
+}
+
+// Function for result checking / Prototype with debug checking
+void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsigned int len, unsigned int * debug, check_t check) {
 
   checkpair_type* checkpair;
   unsigned int i;
   bool is_error = false;
 
   if (m_abstractionLayer == amba::amba_LT) {
+
+    // 1. Check Data
+    // =============
 
     // For blocking communication - check immediately
     for (i=0; i<len; i++) {
@@ -169,6 +196,127 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
       }
     }
 
+    // 2. Check Debug Info
+    // ===================
+
+    switch (check) {
+
+      case FROZENMISS:
+
+	if (!FROZENMISS_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no FROZEN MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+        }
+
+	break;
+
+      case NOTFROZENMISS:
+
+	if (FROZENMISS_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - FROZEN MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+	}
+
+	break;
+
+      case CACHEBYPASS:
+
+	if (!CACHEBYPASS_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no CACHE BYPASS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+        }
+
+	break;
+
+      case SCRATCHPAD:
+
+        if (!SCRATCHPAD_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no SCRATCHPAD ACCESS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+        }
+
+	break;     
+
+      case CACHEREADHIT: 
+
+	if (!CACHEREADHIT_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no READ HIT!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+	}
+
+	break;
+
+      case CACHEREADMISS: 
+
+	if (!CACHEREADMISS_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no READ MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+	}
+	  
+	break;
+
+      case CACHEWRITEHIT: 
+
+	if (!CACHEWRITEHIT_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no WRITE HIT!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+	}
+
+	break;
+
+      case CACHEWRITEMISS: 
+
+	if (!CACHEWRITEMISS_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no WRITE MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+	}
+	
+	break;
+
+      case TLBHIT:
+
+	if (!TLBHIT_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no TLB HIT!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+	}
+	
+	break;
+
+      case TLBMISS:
+
+	if (!TLBMISS_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no TLB MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+	}
+	
+	break;
+	
+
+      default:
+	break;
+
+    }
+
   } else {
 
     checkpair = new checkpair_type;
@@ -178,6 +326,8 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
     checkpair->refer      = refer;
     checkpair->len        = len;
     checkpair->check_time = sc_time_stamp();
+    checkpair->debug      = debug;
+    checkpair->check      = check;
 
     m_CheckPEQ.notify(*checkpair, sc_time(100, SC_NS));
 
@@ -196,6 +346,9 @@ void mmu_cache_test::check_delayed() {
 
     checkpair = m_CheckPEQ.get_next_transaction();
 
+    // 1. Check Data
+    // =============
+
     for (i=0; i<checkpair->len; i++) {
 
       if (checkpair->result[i] != checkpair->refer[i]) {
@@ -210,6 +363,127 @@ void mmu_cache_test::check_delayed() {
 	}
       }
     }
+
+    // 2. Check Debug Info
+    // ===================
+    
+    switch (checkpair->check) {
+
+      case FROZENMISS:
+
+	if (!FROZENMISS_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no FROZEN MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+        }
+
+	break;
+
+      case NOTFROZENMISS:
+
+	if (FROZENMISS_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - FROZEN MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+	}
+
+	break;
+
+      case CACHEBYPASS:
+
+	if (!CACHEBYPASS_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no CACHE BYPASS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+        }
+
+	break;
+
+      case SCRATCHPAD:
+
+        if (!SCRATCHPAD_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no SCRATCHPAD ACCESS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+        }
+
+	break;     
+
+      case CACHEREADHIT: 
+
+	if (!CACHEREADHIT_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no READ HIT!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+	}
+
+	break;
+
+      case CACHEREADMISS: 
+
+	if (!CACHEREADMISS_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no READ MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+	}
+	  
+	break;
+
+      case CACHEWRITEHIT: 
+
+	if (!CACHEWRITEHIT_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no WRITE HIT!!" << v::endl;
+	  ec++;
+
+	}
+
+	break;
+
+      case CACHEWRITEMISS: 
+
+	if (!CACHEWRITEMISS_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no WRITE MISS!!" << v::endl;
+	  ec++;
+
+	}
+	
+	break;
+
+      case TLBHIT:
+
+	if (!TLBHIT_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no TLB HIT!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+	}
+	
+	break;
+
+      case TLBMISS:
+
+	if (!TLBMISS_CHECK(*debug)) {
+
+	  v::error << name() << "Unexpected type of access - no TLB MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
+
+	}
+	
+	break;
+
+      default:
+
+	break;
+
+    }    
   }
 }
 

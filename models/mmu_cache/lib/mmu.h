@@ -55,6 +55,7 @@
 #include "tlb_adaptor.h"
 #include "mmu_cache_if.h"
 
+#include "vendian.h"
 #include "defines.h"
 
 // implementation of a memory management unit
@@ -101,9 +102,13 @@ class mmu : public sc_core::sc_module, public mmu_if {
         void diag_read_dctlb(unsigned int addr, unsigned int * data);
         void diag_write_dctlb(unsigned int addr, unsigned int * data);
 
-        // return pointer to tlb interface objects
+        /// Return pointer to tlb instruction interface
         tlb_adaptor * get_itlb_if();
+	/// Return pointer to tlb data interface
         tlb_adaptor * get_dtlb_if();
+
+	/// Displays execution statistics at the end of the simulation
+	void end_of_simulation();
 
 	/// Helper functions for definition of clock cycle
 	void clk(sc_core::sc_clock &clk);
@@ -268,6 +273,13 @@ class mmu : public sc_core::sc_module, public mmu_if {
         unsigned int m_idx3;
         /// total width of vtag
         unsigned int m_vtag_width;
+
+	// Execution statistics
+	// --------------------
+	/// Number of TLB hits
+	uint64_t thits;
+	/// Number of TLB misses
+	uint64_t tmisses;
 
 	/// Clock cycle time
 	sc_core::sc_time clockcycle;

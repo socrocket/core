@@ -239,11 +239,17 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         /// size of localram
         unsigned int m_lramsize;
 
-	// statistics
+	// Statistics
+	// ----------
+	/// Counter for read hits
 	uint64_t rhits;
+	/// Counter for read misses
 	uint64_t rmisses;
+	/// Counter for write hits
 	uint64_t whits;
+	/// Counter for write misses
 	uint64_t wmisses;
+	/// Counter for bypass operations
 	uint64_t bypassops;
 
 	/// enable power monitoring

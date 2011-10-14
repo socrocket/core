@@ -161,6 +161,10 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
             assert(false);
     }
 
+    // Init execeution statistics
+    thits = 0;
+    tmisses = 0;
+
     v::info << this->name() << " ******************************************************************************* " << v::endl;
     v::info << this->name() << " * Created mmu with following parameters: " << v::endl;
     v::info << this->name() << " * number of instruction tlbs: " << m_itlbnum << v::endl;
@@ -206,25 +210,26 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
             << " pdciter->second: " << std::hex << (pdciter->second).pte
             << v::endl;
 
-    // tlb hit
+    // TLB hit
     if (pdciter != tlb->end()) {
 
         v::info << this->name() << "Virtual Address Tag hit on address: "
                 << std::hex << addr << v::endl;
 
-        // read the PDC entry
+        // Read the PDC entry
         tmp = pdciter->second;
 
-        // check the context tag
+        // Check the context tag
         if (tmp.context == MMU_CONTEXT_REG) {
 
             v::info << this->name() << "CONTEXT hit" << v::endl;
 
-            // build physical address from PTE and offset, and return
+            // Build physical address from PTE and offset, and return
             paddr = (((tmp.pte >> 8) << (32 - m_vtag_width)) | offset);
 
-            // update debug information
+            // Update debug information
             TLBHIT_SET(*debug);
+	    thits++;
 
             return (paddr);
 
@@ -232,8 +237,9 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
             v::info << this->name() << "CONTEXT miss" << v::endl;
 
-            // update debug information
+            // Update debug information
             TLBMISS_SET(*debug);
+	    tmisses++;
             context_miss = true;
 
         }
@@ -241,12 +247,13 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
         v::info << this->name() << "Virtual Address Tag miss" << v::endl;
 
-        // update debug information
+        // Update debug information
         TLBMISS_SET(*debug);
+	tmisses++;
 
     }
 
-    // COMPONSITON OF A PAGE TABLE DESCRIPTOR (PTD)
+    // COMPOSITION OF A PAGE TABLE DESCRIPTOR (PTD)
     // [31-2] PTP - Page Table Pointer. Physical address of the base of a next-level
     // page table. The PTP appears on bits 35 (32) through 6 of the physical address bus
     // during miss processing. The page table pointed to by a PTP must be aligned on a
@@ -280,6 +287,10 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     // 1. load from 1st-level page table
     m_mmu_cache->mem_read(MMU_CONTEXT_TABLE_POINTER_REG + idx1,
             (unsigned char *)&data, 4, t, debug);
+
+    #ifdef LITTLE_ENDIAN_BO
+    swap_Endianess(data);
+    #endif
 
     v::info << this->name() << "Back from read addr: " << std::hex
             << (MMU_CONTEXT_TABLE_POINTER_REG + idx1) << " data: " << std::hex
@@ -316,6 +327,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
                 << std::hex << addr << " Physical Addr: " << std::hex << paddr
                 << v::endl;
         return (paddr);
+
     } else if ((data & 0x3) == 0x1) {
 
         v::info << this->name() << "1st-Level Page Table returned PTD: "
@@ -333,6 +345,10 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     // 2. load from 2nd-level page table
     m_mmu_cache->mem_read((((data) >> 2) << 2) + idx2, (unsigned char *)&data,
             4, t, debug);
+
+    #ifdef LITTLE_ENDIAN_BO
+    swap_Endianess(data);
+    #endif
 
     // page table entry (PTE) or page table descriptor (PTD) (to level 3)
     if ((data & 0x3) == 0x2) {
@@ -363,6 +379,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
                 << std::hex << addr << " Physical Addr: " << std::hex << paddr
                 << v::endl;
         return (paddr);
+
     } else if ((data & 0x3) == 0x1) {
 
         v::info << this->name() << "2-Level Page Table returned PTD: "
@@ -380,6 +397,10 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     // 3. load from 3rd-level page table
     m_mmu_cache->mem_read((((data) >> 2) << 2) + idx3, (unsigned char *)&data,
             4, t, debug);
+
+    #ifdef LITTLE_ENDIAN_BO
+    swap_Endianess(data);
+    #endif
 
     // 3rd-level page table must contain PTE (PTD not allowed)
     if ((data & 0x3) == 0x2) {
@@ -423,58 +444,112 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 /// Read MMU Control Register
 unsigned int mmu::read_mcr() {
 
-    return (MMU_CONTROL_REG);
+  unsigned int tmp = MMU_CONTROL_REG;
+
+  #ifdef LITTLE_ENDIAN_BO
+  swap_Endianess(tmp);
+  #endif
+
+  return (tmp);
 
 }
 
 /// Write MMU Control Register
 void mmu::write_mcr(unsigned int * data) {
 
-    // only TD [15], NF [1] and E [0] are writable
-    MMU_CONTROL_REG = (*data & 0x00008003);
+  unsigned int tmp = *data;
+
+  #ifdef LITTLE_ENDIAN_BO
+  swap_Endianess(tmp);
+  #endif
+
+  // Only TD [15], NF [1] and E [0] are writable
+  MMU_CONTROL_REG = (tmp & 0x00008003);
+
+  v::debug << name() << "Write to MMU_CONTROL_REG: " << hex << v::setw(8) << MMU_CONTROL_REG << v::endl;
 
 }
 
 /// Read MMU Context Table Pointer Register
 unsigned int mmu::read_mctpr() {
 
-    return (MMU_CONTEXT_TABLE_POINTER_REG);
+  unsigned int tmp = MMU_CONTEXT_TABLE_POINTER_REG;
+
+  #ifdef LITTLE_ENDIAN_BO
+  swap_Endianess(tmp);
+  #endif  
+
+  return (tmp);
 
 }
 
 /// Write MMU Context Table Pointer Register
 void mmu::write_mctpr(unsigned int * data) {
 
-    // [1-0] reserved, must read as zero
-    MMU_CONTEXT_TABLE_POINTER_REG = (*data & 0xfffffffc);
+  unsigned int tmp = *data;
+
+  #ifdef LITTLE_ENDIAN_BO
+  swap_Endianess(tmp);
+  #endif
+
+  // [1-0] reserved, must read as zero
+  MMU_CONTEXT_TABLE_POINTER_REG = (tmp & 0xfffffffc);
+
+  v::debug << name() << "Write to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << MMU_CONTEXT_TABLE_POINTER_REG << v::endl;
 
 }
 
 /// Read MMU Context Register
 unsigned int mmu::read_mctxr() {
 
-    return (MMU_CONTEXT_REG);
+  unsigned int tmp = MMU_CONTEXT_REG;
+
+  #ifdef LITTLE_ENDIAN_BO
+  swap_Endianess(tmp);
+  #endif
+
+  return (tmp);
 
 }
 
 /// Write MMU Context Register
 void mmu::write_mctxr(unsigned int * data) {
 
-    MMU_CONTEXT_REG = *data;
+  unsigned int tmp = *data;
+
+  #ifdef LITTLE_ENDIAN_BO
+  swap_Endianess(tmp);
+  #endif
+
+  MMU_CONTEXT_REG = tmp;
+
+  v::debug << name() << "Write to MMU_CONTEXT_REG: " << hex << v::setw(8) << MMU_CONTEXT_REG << v::endl;
 
 }
 
 /// Read MMU Fault Status Register
 unsigned int mmu::read_mfsr() {
 
-    return (MMU_FAULT_STATUS_REG);
+  unsigned int tmp = MMU_FAULT_STATUS_REG;
+
+  #ifdef LITTLE_ENDIAN_BO
+  swap_Endianess(tmp);
+  #endif
+  
+  return (tmp);
 
 }
 
 /// Read MMU Fault Address Register
 unsigned int mmu::read_mfar() {
 
-    return (MMU_FAULT_ADDRESS_REG);
+  unsigned int tmp = MMU_FAULT_ADDRESS_REG;
+
+  #ifdef LITTLE_ENDIAN_BO
+  swap_Endianess(tmp);
+  #endif
+
+  return (tmp);
 
 }
 
@@ -502,25 +577,34 @@ unsigned int mmu::read_mfar() {
 /// Diagnostic read of instruction PDC (ASI 0x5)
 void mmu::diag_read_itlb(unsigned int addr, unsigned int * data) {
 
-    t_VAT vpn = (addr >> (32 - m_vtag_width));
+  unsigned int tmp;
 
-    // diagnostic ITLB lookup (without bus access)
-    if ((addr & 0x3) == 0x3) {
+  t_VAT vpn = (addr >> (32 - m_vtag_width));
 
-        pdciter = itlb->find(vpn);
+  // diagnostic ITLB lookup (without bus access)
+  if ((addr & 0x3) == 0x3) {
 
-        // found something ?
-        if (pdciter != itlb->end()) {
+    pdciter = itlb->find(vpn);
 
-            // hit
-            *data = ((pdciter->second).pte);
+    // found something ?
+    if (pdciter != itlb->end()) {
 
-        } else {
+      // hit
+      tmp = ((pdciter->second).pte);
 
-            // miss
-            *data = 0;
-        }
+    } else {
+
+      // miss
+      tmp = 0;
+
     }
+  }
+
+  #ifdef LITTLE_ENDIAN_BO
+  swap_Endianess(tmp);
+  #endif
+
+  *data = tmp;
 }
 
 /// Diagnostic write of instruction PDC (ASI 0x5)
@@ -530,25 +614,46 @@ void mmu::diag_write_itlb(unsigned int addr, unsigned int * data) {
 /// Diagnostic read of data or shared instruction and data PDC (ASI 0x6)
 void mmu::diag_read_dctlb(unsigned int addr, unsigned int * data) {
 
-    t_VAT vpn = (addr >> (32 - m_vtag_width));
+  unsigned int tmp;
 
-    // diagnostic ITLB lookup (without bus access)
-    if ((addr & 0x3) == 0x3) {
+  t_VAT vpn = (addr >> (32 - m_vtag_width));
 
-        pdciter = dtlb->find(vpn);
+  // diagnostic ITLB lookup (without bus access)
+  if ((addr & 0x3) == 0x3) {
 
-        // found something ?
-        if (pdciter != dtlb->end()) {
+    pdciter = dtlb->find(vpn);
 
-            // hit
-            *data = ((pdciter->second).pte);
+    // found something ?
+    if (pdciter != dtlb->end()) {
 
-        } else {
+      // hit
+      tmp = ((pdciter->second).pte);
 
-            // miss
-            *data = 0;
-        }
+    } else {
+
+      // miss
+      tmp = 0;
+
     }
+  }
+
+  #ifdef LITTLE_ENDIAN_BO
+  swap_Endianess(tmp);
+  #endif
+
+  *data = tmp;
+}
+
+// Print execution statistic at end of simulation
+void mmu::end_of_simulation() {
+
+  v::info << name() << " ******************************************** " << v::endl;
+  v::info << name() << " * MMU statistic:                             " << v::endl;
+  v::info << name() << " * -------------------" << v::endl;
+  v::info << name() << " * TLB hits:    " << thits << v::endl;
+  v::info << name() << " * TLB misses:  " << tmisses << v::endl; 
+  v::info << name() << " ******************************************** " << v::endl;
+
 }
 
 /// Diagnostic write of data or shared instruction and data PDC (ASI 0x6)

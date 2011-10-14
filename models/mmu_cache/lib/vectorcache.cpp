@@ -200,7 +200,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
     // todo: handle cached/uncached access
     unsigned int asi = 0;
 
-    // is the cache enabled (0b11) or frozen (0b01)
+    // Is the cache enabled (0b11) or frozen (0b01) ?
     if (check_mode() & 0x1) {
 
         // extract index and tag from address
@@ -398,29 +398,35 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
                 // The new data will only be filled in as long there is unvalid data in one of the sets (set_select != -1)
                 // && the new data does not change the atag, because this would invalidate all the other entries
                 // in the line (tag.atag == tag).
-                if ((set_select != -1)
-                        && ((*m_current_cacheline[set_select]).tag.atag == tag)) {
 
-                    // fill in the new data (always the complete word)
-                    memcpy(&(*m_current_cacheline[set_select]).entry[offset
+		//v::debug << name() << "Cache is frozen" << v::endl;
+
+                if ((set_select != -1) && ((*m_current_cacheline[set_select]).tag.atag == tag)) {
+
+		  //v::debug << name() << "Found set for replacing: " << set_select << v::endl;
+
+                  // fill in the new data (always the complete word)
+                  memcpy(&(*m_current_cacheline[set_select]).entry[offset
                             >> 2], ahb_data, burst_len);
 
-		    // Power Monitor: Write new data to set 'set_select'
-		    sprintf(buf,"set_write%d",set_select);
-		    PM::send(this,buf,1,sc_time_stamp(),0,m_pow_mon);
-		    PM::send(this,buf,0,sc_time_stamp()+clockcycle,0,m_pow_mon);	
+		  // Power Monitor: Write new data to set 'set_select'
+		  sprintf(buf,"set_write%d",set_select);
+		  PM::send(this,buf,1,sc_time_stamp(),0,m_pow_mon);
+		  PM::send(this,buf,0,sc_time_stamp()+clockcycle,0,m_pow_mon);	
 
-                    // switch on the valid bits for the new entries
-                    for (unsigned int i = offset; i <= replacer_limit; i += 4) {
+                  // switch on the valid bits for the new entries
+                  for (unsigned int i = offset; i <= replacer_limit; i += 4) {
 
-                        ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(offset));
+                    ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(offset));
 
-                    }
+                  }
 
                 } else {
+		  
+		  //v::debug << name() << "All sets occupied - frozen miss" << v::endl;
 
-                    // update debug information
-                    FROZENMISS_SET(*debug);
+		  // update debug information
+                  FROZENMISS_SET(*debug);
 
                 }
 
@@ -666,9 +672,7 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
              << v::endl;
 
     #ifdef LITTLE_ENDIAN_BO
-
     swap_Endianess(tmp);
-
     #endif
 
     // handover bitmask pointer (the tag)
@@ -1032,6 +1036,7 @@ inline unsigned int vectorcache::offset2valid(unsigned int offset) {
   }
 }
 
+// Print execution statistic at end of simulation
 void vectorcache::end_of_simulation() {
 
   v::info << name() << " ******************************************** " << v::endl;

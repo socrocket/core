@@ -149,4 +149,6 @@ typedef tlm::tlm_generic_payload *gp_ptr;
 #define TLBHIT_CHECK(debug) ((debug & (1 << 21)) == 0)
 #define TLBMISS_CHECK(debug) ((debug & (1 << 21)) != 0)
 
+enum check_t { NOCHECK, FROZENMISS, NOTFROZENMISS, CACHEBYPASS, SCRATCHPAD, CACHEREADHIT, CACHEREADMISS, CACHEWRITEHIT, CACHEWRITEMISS, TLBHIT, TLBMISS};
+
 #endif // __DEFINES_H__

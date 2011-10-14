@@ -45,6 +45,7 @@ class mmu_cache_test : public sc_module {
 
   /// Function for result checking
   void check(unsigned char * result, unsigned char * refer, unsigned int lenght);
+  void check(unsigned char * result, unsigned char * refer, unsigned int length, unsigned int * debug, check_t check);
 
   /// Thread for delayed result checking (AT pipeline)
   void check_delayed();
@@ -60,7 +61,9 @@ class mmu_cache_test : public sc_module {
   unsigned char * get_refp_byte(unsigned int value);
 
   unsigned int  * get_debugp();
+  unsigned int  * get_debugp_clean();
   void inc_tptr();
+  void inc_ec();
 
   // Delayed release of transactions
   void cleanUP();
@@ -99,6 +102,8 @@ class mmu_cache_test : public sc_module {
     unsigned char * refer;
     unsigned int len;
     sc_time check_time;
+    unsigned int * debug;
+    check_t check;
   } checkpair_type;
 
   tlm_utils::peq_with_get<checkpair_type> m_CheckPEQ;

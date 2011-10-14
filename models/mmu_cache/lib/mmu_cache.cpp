@@ -2282,9 +2282,7 @@ unsigned int mmu_cache::read_ccr() {
   unsigned int tmp = CACHE_CONTROL_REG;
 
   #ifdef LITTLE_ENDIAN_BO
-
   swap_Endianess(tmp);
-
   #endif
 
   return (tmp);

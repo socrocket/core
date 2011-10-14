@@ -64,19 +64,15 @@ localram::localram(sc_core::sc_module_name name, unsigned int lrsize,
     // create the actual ram
     scratchpad = new t_cache_data[m_lrsize>>2];
 
-    v::info << this->name()
-            << " ******************************************************************************* "
-            << v::endl;
-    v::info << this->name()
-            << " * Created local ram with following parameters:                                  "
-            << v::endl;
-    v::info << this->name() << " * start address " << std::hex << m_lrstart
-            << v::endl;
-    v::info << this->name() << " * size in bytes " << std::hex << m_lrsize
-            << v::endl;
-    v::info << this->name()
-            << " ******************************************************************************* "
-            << v::endl;
+    v::info << this->name() << " ******************************************************************************* " << v::endl;
+    v::info << this->name() << " * Created local ram with following parameters:                                  " << v::endl;
+    v::info << this->name() << " * start address " << std::hex << m_lrstart << v::endl;
+    v::info << this->name() << " * size in bytes " << std::hex << m_lrsize  << v::endl;
+    v::info << this->name() << " ******************************************************************************* "  << v::endl;
+
+    // Init executions statistics
+    sreads = 0;
+    swrites = 0;
 
 }
 
@@ -102,8 +98,10 @@ void localram::read(unsigned int addr, unsigned char *data, unsigned int len,
         *(data + i) = scratchpad[(addr - m_lrstart) >> 2].c[byt + i];
     }
 
-    v::debug << this->name() << "Read from address: " << std::hex << addr
-            << v::endl;
+    v::debug << this->name() << "Read from address: " << std::hex << addr << v::endl;
+
+    // Increment read counter (statistics)
+    sreads++;
 
     // update debug information
     SCRATCHPAD_SET(*debug);
@@ -124,10 +122,24 @@ void localram::write(unsigned int addr, unsigned char *data, unsigned int len,
         scratchpad[(addr - m_lrstart) >> 2].c[byt + i] = *(data + i);
     }
 
-    v::debug << this->name() << "Write to address: " << std::hex << addr
-            << v::endl;
+    v::debug << this->name() << "Write to address: " << std::hex << addr << v::endl;
+
+    // Increment write counter (statistics)
+    swrites++;
 
     // update debug information
     SCRATCHPAD_SET(*debug);
+
+}
+
+// Print execution statistic at end of simulation
+void localram::end_of_simulation() {
+
+  v::info << name() << " ******************************************** " << v::endl;
+  v::info << name() << " * Scratchpad statisitics: " << v::endl;
+  v::info << name() << " * -----------------------" << v::endl;
+  v::info << name() << " * Read accesses:  " << sreads  << v::endl;
+  v::info << name() << " * Write accesses: " << swrites << v::endl;
+  v::info << name() << " ******************************************** " << v::endl;
 
 }

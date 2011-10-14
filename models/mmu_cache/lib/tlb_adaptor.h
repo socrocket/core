@@ -50,7 +50,7 @@
 #include "mmu_if.h"
 #include "mem_if.h"
 #include "verbose.h"
-
+#include "vendian.h"
 #include "defines.h"
 
 class tlb_adaptor : public sc_core::sc_module, public mem_if {
@@ -81,9 +81,14 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
                               unsigned int * debug) {
 
             unsigned int paddr;
+	    unsigned int mmu_ctrl = m_mmu->read_mcr();
+
+	    #ifdef LITTLE_ENDIAN_BO
+	    swap_Endianess(mmu_ctrl);
+	    #endif
 
             // mmu enabled
-            if (m_mmu->read_mcr() & 0x1) {
+            if (mmu_ctrl & 0x1) {
 
 	      v::info << name() << "MMU enabled - lookup TLB" << v::endl;
                 paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug);
@@ -110,9 +115,15 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
                                unsigned int * debug) {
 
             unsigned int paddr;
+	    unsigned int mmu_ctrl = m_mmu->read_mcr();
+
+	    #ifdef LITTLE_ENDIAN_BO
+	    swap_Endianess(mmu_ctrl);
+	    #endif
+
 
             // mmu enabled
-            if (m_mmu->read_mcr() & 0x1) {
+            if (mmu_ctrl & 0x1) {
 
 	      v::info << name() << "MMU enabled - lookup TLB" << v::endl;
                 paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug);

@@ -73,6 +73,9 @@ class localram : public sc_core::sc_module {
         void write(unsigned int address, unsigned char *data, unsigned int len,
                    sc_core::sc_time *t, unsigned int *debug);
 
+	/// hook up for showing statistics
+	void end_of_simulation();
+
         // constructor
         /// @brief Constructor of scratchpad RAM implementation (localram)
         /// @param name    SystemC module name
@@ -91,13 +94,20 @@ class localram : public sc_core::sc_module {
         // -------
         t_cache_data m_default_entry;
 
-        // local ram parameters
+        // Local ram parameters
         // --------------------
-        /// size of the local ram in words
+        /// Size of the local ram in words
         unsigned int m_lrsize;
-        /// start address of the local ram
+        /// Start address of the local ram
         unsigned int m_lrstart;
 
+	// For execution statistic
+	// -----------------------
+	/// Number of read accesses
+	uint64_t sreads;
+
+	/// Number of write accesses
+	uint64_t swrites;
 };
 
 #endif // __LOCALRAM_H__
