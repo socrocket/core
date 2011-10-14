@@ -55,11 +55,11 @@ def build(bld):
       
     bld(
         target       = '$template.$configuration.platform',
-        features     = 'cxx cprogram extest',
+        features     = 'cxx cprogram',
         source       = [ 'sc_main.cpp' ],
         includes     = '.',
         use          = use,
-        ut_param     = ['$template.$configuration.prom', 'irqmp.sparc'],
+        #ut_param     = ['$template.$configuration.prom', 'irqmp.sparc'],
     )
     ldscript = bld.path.find_resource('prom.ld')
     bld(
