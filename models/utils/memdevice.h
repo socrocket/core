@@ -62,6 +62,7 @@ class MEMDevice {
             SRAM  = 2,
             SDRAM = 3
         };
+        typedef device_type type;
 
         /// All device informations are needed while constructing a device.
         /// The register content is formed here.

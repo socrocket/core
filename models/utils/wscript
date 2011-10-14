@@ -62,6 +62,7 @@ def build(bld):
                        'clock_gen.cpp',
                        'ahbdevice.cpp',
                        'apbdevice.cpp',
+                       'memdevice.cpp',
                        'apbtestbench.cpp',
                        'power_monitor.cpp',
                       ],

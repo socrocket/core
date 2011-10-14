@@ -70,10 +70,10 @@ const uint32_t MEMDevice::get_bsize() const {
     return  m_bsize;
 }
 
-const uint32_t APBDevice::get_bits() const {
+const uint32_t MEMDevice::get_bits() const {
     return m_bits;
 }
 
-const uint32_t APBDevice::get_cols() const {
+const uint32_t MEMDevice::get_cols() const {
     return m_cols;
 }
