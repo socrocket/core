@@ -129,6 +129,14 @@ int sc_main(int argc, char** argv) {
        return -1;
     }
 
+    // Decide weather LT or AT
+    amba::amba_layer_ids ambaLayer;
+    if(conf_lt_at) {
+        ambaLayer = amba::amba_LT;
+    } else {
+        ambaLayer = amba::amba_AT;
+    }
+    
     // *** CREATE MODULES
 
     // CREATE AHBCTRL unit
@@ -148,7 +156,7 @@ int sc_main(int argc, char** argv) {
 		    conf_ahbctrl_fpnpen,                // Enable full decoding of PnP configuration records
 		    conf_ahbctrl_mcheck,                // Check if there are any intersections between core memory regions
         true, // Powermon
-		    amba::amba_LT
+		    ambaLayer
     );
     // Set clock
     ahbctrl.clk(LOCAL_CLOCK,SC_NS);
@@ -157,8 +165,11 @@ int sc_main(int argc, char** argv) {
     // ===================================================
     // Always enabled.
     // Needed for basic platform.
+#if conf_lt_at
     leon3_funclt_trap::Processor_leon3_funclt leon3("leon3", sc_core::sc_time(1, SC_US));
-
+#else
+    leon3_funcat_trap::Processor_leon3_funcat leon3("leon3", sc_core::sc_time(1, SC_US));
+#endif
 
     // CREATE MMU_CACHE
     // ================
@@ -197,7 +208,7 @@ int sc_main(int argc, char** argv) {
             //conf_mmu_cache_dsu,           // Enable debug support unit interface
             conf_mmu_cache_index,           // - id of the AHB master
             false,                           // Power Monitor,
-	          amba::amba_LT                   // LT abstraction
+	          ambaLayer                   // LT abstraction
     );
     
     // Connecting AHB Master
@@ -220,7 +231,7 @@ int sc_main(int argc, char** argv) {
 		    //conf_apbctrl_cfgmask,             // The 12bit AHB area address mask
 		    conf_apbctrl_check,                 // Check if there are any intersections between APB slave memory regions 
         conf_apbctrl_index,
-		    amba::amba_LT
+		    ambaLayer
     );
     // Connecting AHB Slave
     ahbctrl.ahbOUT(apbctrl.ahb);

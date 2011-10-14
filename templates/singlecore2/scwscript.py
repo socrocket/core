@@ -46,13 +46,20 @@
 top = '..'
 
 def build(bld):
+    ambaLayer = '${conf_lt_at}'
+    use       = 'ahbctrl irqmp gptimer apbctrl socwire mmu_cache mctrl utils signalkit common TRAP BOOST ELF SYSTEMC AMBA TLM GREENSOCS',
+    if ambaLayer == 'true':
+        use  += 'leon3.functlt'
+    else:
+        use  += 'leon3.functat'
+      
     bld(
         target       = '$template.$configuration.platform',
         features     = 'cxx cprogram extest',
         source       = [ 'sc_main.cpp' ],
         includes     = '.',
+        use          = use,
         ut_param     = ['$template.$configuration.prom', 'irqmp.sparc'],
-        use          = 'ahbctrl leon3.functlt irqmp gptimer apbctrl socwire mmu_cache mctrl utils signalkit common TRAP BOOST ELF SYSTEMC AMBA TLM GREENSOCS',
     )
     ldscript = bld.path.find_resource('prom.ld')
     bld(
