@@ -508,7 +508,7 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
 
     //gp parameters required for delay calculation
     tlm_command cmd = gp.get_command();
-    uint8_t data_length = gp.get_data_length();
+    uint32_t data_length = gp.get_data_length();
 
     //get burst_size extension for later checks of consistency of burst_size, 
     //streaming_width, and data length 
@@ -574,6 +574,7 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
             //PROM write access must be explicitly allowed
             if(!(r[MCFG1] & MCFG1_PWEN)) {
                 PM::send(this, "romwrite", 1, sc_time_stamp(), 0, powermon);
+                v::debug << name() << "Write ROM " << v::uint32 << addr << v::endl;
                 //issue error message / failure
                 gp.set_response_status(TLM_COMMAND_ERROR_RESPONSE);
                 //address decoding delay only
@@ -582,6 +583,7 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
             } else {
             //calculate delay for write command
                 PM::send(this, "romwrite", 1, sc_time_stamp(), 0, powermon);
+                v::debug << name() << "Write ROM " << v::uint32 << addr << v::endl;
                 cycles = (r[MCFG1] & MCFG1_PROM_WRITE_WS) >> 4;
                 cycles = DECODING_DELAY + ROM_WRITE_DELAY(cycles) + 
                          (data_length / gp.get_streaming_width() - 1);
@@ -595,6 +597,7 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
         } else if (cmd == TLM_READ_COMMAND) {
         //calculate delay for read command
             PM::send(this, "romread", 1, sc_time_stamp(), 0, powermon);
+            v::debug << name() << "Read ROM " << v::uint32 << addr << v::endl;
             cycles = (r[MCFG1] & MCFG1_PROM_READ_WS);
             cycles = DECODING_DELAY + ROM_READ_DELAY(cycles) + 
                      2 * (data_length / gp.get_streaming_width() - 1);  
@@ -632,11 +635,13 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
             //calculate delay for read command
             if(cmd == TLM_READ_COMMAND) {
                 transaction = "ioread";
+                v::debug << name() << "Read IO " << v::uint32 << addr << v::endl;
                 cycles = DECODING_DELAY + IO_READ_DELAY(cycles) + 
                          2 * (data_length / gp.get_streaming_width() - 1);
                 //multiple data cycles, i.e. burst access
             } else if (cmd == TLM_WRITE_COMMAND) {
                 transaction = "iowrite";
+                v::debug << name() << "Write IO " << v::uint32 << addr << v::endl;
             //calculate delay for write command
                 cycles = DECODING_DELAY + IO_WRITE_DELAY(cycles) + 
                          data_length / gp.get_streaming_width() - 1;
@@ -674,26 +679,26 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
             gp.set_streaming_width(4);
             //data length must match streaming width unless 
             //read-modify-write is enabled
-            if((data_length % 4) && !(r[MCFG2] & MCFG2_RMW)) {
-                v::error << name() << "Attempted disallowed sub-word access "
-                         << "to SRAM. Data length is " << data_length 
-                         << ". RMW is disabled." << v::endl;
-                gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
-                //FIXME: add delay?
-                return;
-            }
+            //if((data_length % 4) && !(r[MCFG2] & MCFG2_RMW)) {
+            //    v::error << name() << "Attempted disallowed sub-word access "
+            //             << "to SRAM. Data length is " << data_length 
+            //             << ". RMW is disabled."  << v::uint32 << (uint32_t)r[MCFG2]<< v::endl;
+            //    gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
+            //    //FIXME: add delay?
+            //    return;
+            //}
         } else if((r[MCFG2] & MCFG2_RAM_WIDTH) && ram16) {
             gp.set_streaming_width(2);
             //data length must match streaming width unless 
             //read-modify-write is enabled
-            if (data_length % 2 && !(r[MCFG2] & MCFG2_RMW) ) {
-                v::error << name() << "Attempted disallowed byte access "
-                         << "to SRAM. Data length is " << data_length
-                         << ". RMW is disabled." << v::endl;
-                gp.set_response_status(TLM_BYTE_ENABLE_ERROR_RESPONSE);
-                //FIXME: add delay?
-                return;
-            }
+            //if((data_length % 2) && !(r[MCFG2] & MCFG2_RMW) ) {
+            //    v::error << name() << "Attempted disallowed byte access "
+            //             << "to SRAM. Data length is " << data_length
+            //             << ". RMW is disabled." << v::endl;
+            //    gp.set_response_status(TLM_BYTE_ENABLE_ERROR_RESPONSE);
+            //    //FIXME: add delay?
+            //    return;
+            //}
         } else if (ram8) {
             gp.set_streaming_width(1);
         } else {
@@ -702,8 +707,9 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
                      << "This error should not occur." << std::endl;
         }
         //calculate delay for read command
-        if (cmd == TLM_READ_COMMAND) {
+        if(cmd == TLM_READ_COMMAND) {
             transaction = "sramread";
+            v::debug << name() << "Read SRAM " << v::uint32 << addr << v::endl;
             cycles = (r[MCFG2] & MCFG2_RAM_READ_WS);
             cycles = DECODING_DELAY + SRAM_READ_DELAY(cycles) + 
                      2 * (data_length / gp.get_streaming_width() - 1) + 3;  
@@ -714,6 +720,7 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
         }else if(cmd == TLM_WRITE_COMMAND) {
         //calculate delay for write command
             transaction = "sramwrite";
+            v::debug << name() << "Write SRAM " << v::uint32 << addr << v::endl;
             cycles = (r[MCFG2] & MCFG2_RAM_WRITE_WS) >> 2;
             cycles = DECODING_DELAY + SRAM_WRITE_DELAY(cycles) + 
                      data_length / gp.get_streaming_width() - 1 + 6;
@@ -721,7 +728,7 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
         }
         //check for write protection
         if(cmd == TLM_WRITE_COMMAND && wprot) {
-            transaction = "sramwrite";
+            v::debug << name() << "wprot" << v::endl;
             gp.set_response_status(TLM_COMMAND_ERROR_RESPONSE);
             cycles = DECODING_DELAY;
             start_idle = t_trans + cycle_time * cycles;
@@ -734,6 +741,7 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
             sc_time tmp = sc_time(delay);
             PM::send(this, transaction, 0, (sc_time_stamp()+delay), 0, powermon);
             mctrl_sram->b_transport(gp,delay);
+            v::debug << name() << "Data at addr " << v::uint32 << addr << " to slave: " << v::uint32 << (uint32_t)*gp.get_data_ptr() << v::endl;
             if((tmp != delay) && (r[MCFG1] & MCFG2_RBRDY)) {
                 v::error << name() << "RAM devices changed delay value, "
                          << "but RBRDY = 0. The change is undone by Mctrl, "
@@ -786,6 +794,7 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
             //calculate delay for read command
             if(cmd == TLM_READ_COMMAND) {
                 transaction = "sdramread";
+                v::info << name() << "Read SDRAM" << v::uint32 << addr << v::endl;
                 cycles += (data_length / gp.get_streaming_width() - 1); 
                 //multiple data cycles, i.e. burst access
 
@@ -814,6 +823,7 @@ void Mctrl::b_transport(tlm_generic_payload& gp, sc_time& delay) {
             //every write transaction needs the entire write access time 
             //(burst of writes)
                 transaction = "sdramwrite";
+                v::debug << name() << "Write SDRAM" << v::uint32 << addr << v::endl;
                 cycles *= data_length / gp.get_streaming_width();
             }
             //if in power down mode, each access will take +1 clock cycle

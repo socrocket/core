@@ -58,16 +58,16 @@ class BooleanItem(Item):
 
     def save(self):
         if len(self.childItems)>0:
-            if self.value.toInt() != 0:
+            if self.value.toBool():
                 return dict([[str(n.name), n.save()] for n in self.childItems])
             else:
-                return dict()
+                return False
         else:
             return self.value.toBool()
 
     def load(self, data):
         ownData = data.get(str(self.name), None)
-        if ownData:
+        if ownData != None:
             if isinstance(ownData, bool):
                 self.setData(QtCore.QVariant(ownData))
             elif len(ownData) > 0:

@@ -19,6 +19,13 @@ class Null(NullItem):
             child.load(data)
 
 class IntegerItem(Item):
+    #def str2int(self, s):
+    #    #s = str(s)
+    #    if s.startswith("0x"):
+    #      return int(s[2:], 16)
+    #    else:
+    #      return int(s)
+    #
     def __init__(self, model, name = None, var = None, value = None, type = None, range_ = None, default = None, description = None, parent=None, data=None):
         super(IntegerItem, self).__init__(model, name, var, value, type, range_, default, description, parent, data)
         self.numbers = []
@@ -123,11 +130,11 @@ class IntegerItem(Item):
         if len(self.childItems)>0:
             return [self.numbers[n].save() for n in range(self.value.toInt()[0])]
         else:
-            return self.value.toInt()[0]
+            return int(str(self.value.toString()), 0)
 
     def load(self, data):
         ownData = data.get(str(self.name), None)
-        if ownData:
+        if ownData!=None:
             if isinstance(ownData, int):
                 self.setData(QtCore.QVariant(ownData))
             elif len(ownData)>0:

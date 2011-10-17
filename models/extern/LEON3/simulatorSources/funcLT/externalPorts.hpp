@@ -222,8 +222,9 @@ namespace leon3_funclt_trap{
             //Now the code for endianess conversion: the processor is always modeled
             //with the host endianess; in case they are different, the endianess
             //is turned
-            #ifdef LITTLE_ENDIAN_BO
             this->swapEndianess(datum);
+            #ifdef __LITTLE_ENDIAN_BO
+            //this->swapEndianess(datum);
             #endif
             v::debug << name() << "Read word:0x" << hex << v::setw(8) << v::setfill('0')
                      << datum << ", from:0x" << hex << v::setw(8) << v::setfill('0')

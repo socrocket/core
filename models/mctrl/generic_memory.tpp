@@ -37,7 +37,7 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
   //check erase extension first
   typename ext_erase::ext_erase* e;
   gp.get_extension(e);
-  if ( e ) {
+  if(e) {
     uint32_t data = *reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
     erase_memory( gp.get_address(), data, gp.get_streaming_width() );
     gp.set_response_status(tlm::TLM_OK_RESPONSE);
@@ -46,18 +46,20 @@ b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
   else {
     //check TLM COMMAND field
     tlm::tlm_command cmd = gp.get_command();
-    if (cmd == tlm::TLM_READ_COMMAND) {
+    if(cmd == tlm::TLM_READ_COMMAND) {
       //map of uint32_t type --> 32 bit read function, no matter what type of memory
-      if (sizeof( memory[gp.get_address()] ) == 4) {
+      if(sizeof( memory[gp.get_address()] ) == 4) {
         uint8_t length = gp.get_data_length();
         uint32_t* data_ptr32 = reinterpret_cast<uint32_t *>( gp.get_data_ptr() );
         read_32( gp.get_address(), data_ptr32, length );
+        v::debug << name() << "Data at addr " << v::uint32 << gp.get_address() << " to slave: " << v::uint32 << *((uint32_t *)data_ptr32) << v::endl;
       }
       //map of uint8_t type --> 8 bit read function, no matter what type of memory
-      else if (sizeof( memory[gp.get_address()] ) == 1) {
+      else if(sizeof(memory[gp.get_address()] ) == 1) {
         uint8_t length = gp.get_data_length();
         unsigned char* data_ptr32 = reinterpret_cast<unsigned char *>( gp.get_data_ptr() );
         read_8( gp.get_address(), data_ptr32, length );
+        v::debug << name() << "Data at addr " << v::uint32 << gp.get_address() << " to slave: " << v::uint32 << *((uint32_t *)data_ptr32) << v::endl;
       }
 
       //update response status

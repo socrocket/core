@@ -118,7 +118,8 @@ void leon3_funclt_trap::Instruction::RaiseException( unsigned int pcounter, unsi
         if(exceptionId < IRQ_LEV_15){
             // I print a core dump and then I signal an error: an exception happened while
             // exceptions were disabled in the processor core
-            THROW_EXCEPTION("Exception " << exceptionId << " happened while the PSR[ET] = 0; \
+            THROW_EXCEPTION("@"<<sc_core::sc_time_stamp()<<" /"<<(unsigned)sc_core::sc_delta_count()
+                            << " Exception " << exceptionId << " happened while the PSR[ET] = 0; \
                 PC = " << std::hex << std::showbase << PC << std::endl << "Instruction " << getMnemonic());
         }
     }
@@ -1211,7 +1212,7 @@ unsigned int leon3_funclt_trap::LDSBA_reg::behavior(){
     }
     else{
         #endif
-        readValue = SignExtend(dataMem.read_byte(address,8,0,0), 8);
+        readValue = SignExtend(dataMem.read_byte(address,this->asi,0,0), 8);
         #ifdef ACC_MODEL
     }
     #endif
@@ -1368,7 +1369,7 @@ unsigned int leon3_funclt_trap::STA_reg::behavior(){
     #endif
 
     if(supervisor || !notAligned){
-        dataMem.write_word(address, toWrite,8,0,0);
+        dataMem.write_word(address, toWrite,this->asi,0,0);
     }
     else{
         flush();
@@ -1516,7 +1517,7 @@ unsigned int leon3_funclt_trap::LDSHA_reg::behavior(){
     }
     else{
         #endif
-        readValue = SignExtend(dataMem.read_half(address,8,0,0), 16);
+        readValue = SignExtend(dataMem.read_half(address,this->asi,0,0), 16);
         #ifdef ACC_MODEL
     }
     #endif
@@ -1602,7 +1603,7 @@ unsigned int leon3_funclt_trap::STBA_reg::behavior(){
     #endif
 
     if(supervisor){
-        dataMem.write_byte(address, toWrite,8,0,0);
+        dataMem.write_byte(address, toWrite,this->asi,0,0);
     }
     else{
         flush();
@@ -1913,8 +1914,8 @@ unsigned int leon3_funclt_trap::SWAPA_reg::behavior(){
         flush();
     }
     else{
-        readValue = dataMem.read_word(address, 8, 0, 1);
-        dataMem.write_word(address, toWrite,8,0,0);
+        readValue = dataMem.read_word(address, this->asi, 0, 1);
+        dataMem.write_word(address, toWrite,this->asi,0,0);
     }
     stall(2);
 
@@ -4289,7 +4290,7 @@ unsigned int leon3_funclt_trap::LDUHA_reg::behavior(){
     }
     else{
         #endif
-        readValue = dataMem.read_half(address,8,0,0);
+        readValue = dataMem.read_half(address,this->asi,0,0);
         #ifdef ACC_MODEL
     }
     #endif
@@ -7128,8 +7129,8 @@ unsigned int leon3_funclt_trap::LDSTUBA_reg::behavior(){
     #endif
 
     if(supervisor){
-        readValue = dataMem.read_byte(address,8,0,0);
-        dataMem.write_byte(address, 0xff,8,0,0);
+        readValue = dataMem.read_byte(address,this->asi,0,0);
+        dataMem.write_byte(address, 0xff,this->asi,0,0);
     }
     else{
         flush();
@@ -8613,7 +8614,7 @@ unsigned int leon3_funclt_trap::STDA_reg::behavior(){
     #endif
 
     if(supervisor || !notAligned){
-        dataMem.write_dword(address, toWrite,8,0,0);
+        dataMem.write_dword(address, toWrite,this->asi,0,0);
     }
     else{
         flush();
@@ -9027,7 +9028,7 @@ unsigned int leon3_funclt_trap::LDUBA_reg::behavior(){
     }
     else{
         #endif
-        readValue = dataMem.read_byte(address,8,0,0);
+        readValue = dataMem.read_byte(address,this->asi,0,0);
         #ifdef ACC_MODEL
     }
     #endif
@@ -9451,7 +9452,7 @@ unsigned int leon3_funclt_trap::LDA_reg::behavior(){
     }
     else{
         #endif
-        readValue = dataMem.read_word(address, 8, 0, 0);
+        readValue = dataMem.read_word(address, this->asi, 0, 0);
         #ifdef ACC_MODEL
     }
     #endif
@@ -9537,7 +9538,7 @@ unsigned int leon3_funclt_trap::STHA_reg::behavior(){
     #endif
 
     if(supervisor || !notAligned){
-        dataMem.write_half(address, toWrite,8,0,0);
+        dataMem.write_half(address, toWrite,this->asi,0,0);
     }
     else{
         flush();
@@ -9631,7 +9632,7 @@ unsigned int leon3_funclt_trap::LDDA_reg::behavior(){
     }
     else{
         #endif
-        readValue = dataMem.read_dword(address,8,0,0);
+        readValue = dataMem.read_dword(address,this->asi,0,0);
         #ifdef ACC_MODEL
     }
     #endif

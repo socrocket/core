@@ -125,8 +125,8 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
   ahbIN.register_transport_dbg(this, &AHBCtrl::transport_dbg);
 
   // Register power monitor
-  PM::registerIP(this,"ahbctrl",m_pow_mon);
-  PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
+  PM::registerIP(this, "ahbctrl", m_pow_mon);
+  PM::send_idle(this, "idle", sc_time_stamp(), m_pow_mon);
 
 }
 
@@ -245,7 +245,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
       unsigned int *data  = (unsigned int *)trans.get_data_ptr();
 
       // No subword access supported here!
-      assert(length%4==0);
+      //assert(length%4==0);
 
       // Get registers from config area
       for (uint32_t i = 0; i < (length >> 2); i++) {
@@ -280,9 +280,9 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     other_socket = ahbOUT.get_other_side(index, a);
     sc_core::sc_object *obj = other_socket->get_parent();
 
-    v::debug << name() << "AHB Request for address: " << hex << v::setfill('0')
-             << v::setw(8) << trans.get_address() << ", from master: "
-             << mstobj->name() << ", forwarded to slave: " << obj->name() << endl;
+    v::debug  << name() << "AHB Request for address: " << hex << v::setfill('0')
+              << v::setw(8) << trans.get_address() << ", from master: "
+              << mstobj->name() << ", forwarded to slave: " << obj->name() << endl;
 
     // -------------------
 
@@ -308,7 +308,13 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     ahbOUT[index]->b_transport(trans, delay);
 
     // Power event end
-    PM::send(this,"ahb_trans",0,sc_time_stamp(),(unsigned int)trans.get_data_ptr(),m_pow_mon);
+    PM::send(this,"ahb_trans",0,sc_time_stamp()+delay,(unsigned int)trans.get_data_ptr(),m_pow_mon);
+
+    // !!!! TMP FOR BUGFIXING
+    unsigned char * test_data;
+    test_data = trans.get_data_ptr();
+
+    v::debug << name() << "Data after call to slave: " << v::uint32 << *((uint32_t *)test_data) << v::endl;
 
     return;
 

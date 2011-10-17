@@ -139,8 +139,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         for cnode in node.childNodes:
           if cnode.nodeName == "option":
             citem = readItem(cnode, item)
-          #elif cnode.nodeName == "description":
-          #  item.description += cnode.nodeName.toxml()[14:-15]
+          elif cnode.nodeName == "description":
+            item.description += cnode.toxml()[14:-15]
         parent.appendChild(item)
         if self.widget:
           self.stack.addWidget(item.widget)
