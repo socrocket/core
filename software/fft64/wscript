@@ -49,8 +49,8 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'fft64.sparc',
-     cxxflags     = '-static -g -O1 -lm -specs=osemu.specs',
-     linkflags    = '-static -g -O1 -lm -specs=osemu.specs',
+     cxxflags     = '-static -g -O1 -lm',
+     linkflags    = '-static -g -O1 -lm',
      source       = ['radix4_nofile.c'],
   )
 

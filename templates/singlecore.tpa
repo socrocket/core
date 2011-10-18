@@ -1,4 +1,4 @@
-<template name="Test Platform" hint="Testconfiguration 1">
+<template name="Single-Core Platform">
   <description>
     A simple Platform consisting of one LEON3 processor with MMUCACHE IP connected to AHB and APB Busses with IRQ and Memory controler. 
     Optional GPTimer, SoCWire IPs can be enabled. All IPs can be fully configured.
