@@ -15,14 +15,15 @@ class TemplateGen(FileGen):
     def generate(self, model, base = "", conf = ""):
         def gen(base, node):
             result = {}
-            var = '.'.join((base,str(node.getVar()))).strip('.').strip()
+            var = '_'.join((base,str(node.getVar()))).strip('_').strip()
             result[var] = str(node.getValue().toString())
             for i in range(node.childCount()):
                 result.update(gen(var, node.child(i)))
             return result
         result = {}
         result.update(gen('', model.rootItem.child(0)))
-        return sTemplate(self.data.strip()+'\n').safe_substitute({'template':base, 'configuration':conf}.update(result))
+        result.update({'template':base, 'configuration':conf})
+        return sTemplate(self.data.strip()+'\n').safe_substitute(result)
  
 class SystemCGen(FileGen):
     def generate(self, model, base = "", conf = ""):
@@ -74,7 +75,7 @@ class Template:
                         file.name = node.getAttribute("name")
                         self._generators.append(file)
                     if type == "template":
-                        file = SystemCGen()
+                        file = TemplateGen()
                         file.type = "template"
                         if node.hasAttribute("path"):
                             file.path = node.getAttribute("path")
@@ -128,7 +129,7 @@ class Template:
       
     def listConfigurations(self):
         result = []
-        for file in os.listdir('configurations'):
+        for file in os.listdir('templates'):
             lst = file.split('.')
             if len(lst) == 3:
                 tmpl, name, ext = file.split('.')
@@ -138,13 +139,13 @@ class Template:
    
     def loadConfiguration(self, name):
         self.configuration = name
-        file = os.path.join("configurations", '.'.join((str(self.base), str(self.configuration))))+".cfg"
+        file = os.path.join("templates", '.'.join((str(self.base), str(self.configuration))))+".cfg"
         if self._model != None:
             self._model.loadFromJsonFile(file)
 
     def storeConfiguration(self, name):
         self.configuration = name
-        file = os.path.join("configurations", '.'.join((str(self.base), str(self.configuration))))+".cfg"
+        file = os.path.join("templates", '.'.join((str(self.base), str(self.configuration))))+".cfg"
         if self._model != None:
             self._model.saveToJsonFile(file)
         

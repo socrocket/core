@@ -1,7 +1,17 @@
 <template name="Test Platform" hint="Testconfiguration 1">
   <description>
-    This is a simple system.
-    It is build from the simple System in the Library.
+    A simple Platform consisting of one LEON3 processor with MMUCACHE IP connected to AHB and APB Busses with IRQ and Memory controler. 
+    Optional GPTimer, SoCWire IPs can be enabled. All IPs can be fully configured.
+    <br/>
+    <h2>Features:</h2>
+    <ul>
+      <li>Direct elf file loading</li>
+      <li>GDB Stubs build in</li>
+      <li>Event Monitor</li>
+      <li>Timing Report</li>
+      <li>Cache Report</li>
+      <li>RAM Application Initial PROM is included</li>
+    </ul>
   </description>
   <option name="Basic Configuration" var="conf">
     <option var="lt_at" name="LT or AT simulation" type="bool" default="true" hint="If this switch is set to true the simulation models will be instantiated in LT. Otherwise in AT."/>
@@ -15,7 +25,7 @@
           Sets the arbiter work in rount robin mode. Alternativly fixed priority arbitration is applied.
         </description> 
       </option>
-      <option var="defmast" name="Default AHB Master" type="int" default="false" range="0..16"/>
+      <option var="defmast" name="Default AHB Master" type="int" default="0" range="0..16"/>
       <option var="ioen" name="AHB IO area enable" type="bool" default="true" hint="Set to false to disable the IO area."/>
       <option var="fixbrst" name="Enable support for fixed burst length." type="bool" default="false"/>
       <option var="split" name="Enable support for split transactions in AT models" type="bool" default="false"/>

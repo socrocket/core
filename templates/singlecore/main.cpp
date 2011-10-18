@@ -431,7 +431,7 @@ int sc_main(int argc, char** argv) {
 
     v::info << "Summary" << "Start: " << dec << cstart << v::endl;
     v::info << "Summary" << "End:   " << dec << cend << v::endl;
-    v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "us" << v::endl;
+    v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
     return 0;
 
 }
