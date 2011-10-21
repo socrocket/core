@@ -319,6 +319,9 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
   } else {
 
+    sc_core::sc_time delay;
+    delay = sc_time(100, SC_NS);
+
     checkpair = new checkpair_type;
 
     // For non-blocking communication - use PEQ and check later
@@ -329,7 +332,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
     checkpair->debug      = debug;
     checkpair->check      = check;
 
-    m_CheckPEQ.notify(*checkpair, sc_time(100, SC_NS));
+    m_CheckPEQ.notify(*checkpair, delay);
 
   }
 }
@@ -361,7 +364,7 @@ void mmu_cache_test::check_delayed() {
 	  ec++;
 
 	}
-      }
+      } 
     }
 
     // 2. Check Debug Info
@@ -564,6 +567,8 @@ tlm::tlm_sync_enum mmu_cache_test::dcio_nb_transport_bw(tlm::tlm_generic_payload
 
   // New response
   } else if (phase == tlm::BEGIN_RESP) {
+
+    v::debug << name() << "TBM RECEIVED DATA: " << hex << *(unsigned int*)trans.get_data_ptr() << v::endl;
 
     // Put new response into DataResponsePEQ
     m_DataResponsePEQ.notify(trans, delay);

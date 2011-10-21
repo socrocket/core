@@ -51,21 +51,16 @@ class tlmcpu_rtlcache_transactor : public sc_module {
   tlm::tlm_sync_enum dcio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
 
   // Threads for processing icio transactions
-  //void instr_request();
-  //void instr_stage1();
-  //void instr_stage2();
-  //void instr_stage3();
+  void i_request();
+  void i_pipe();
 
   // Threads for processing dcio transactions
-  void data_request();
-  void data_pipe();
+  void d_request();
+  void d_pipe();
 
   // Mux dci and ici input signals
   void dci_signal_mux();
   void ici_signal_mux();
-
-  // Sample cache inputs
-  void sample_inputs();
 
   // Helper functions for definition of clock cycle
   void clk(sc_core::sc_clock &clk);
@@ -81,47 +76,67 @@ class tlmcpu_rtlcache_transactor : public sc_module {
 
  private:
 
-  //tlm_utils::peq_with_get<tlm::tlm_generic_payload *> m_InstrPEQ;
-  //sc_fifo<tlm::tlm_generic_payload *> m_Instr_Stage1_FIFO;
-  //sc_fifo<tlm::tlm_generic_payload *> m_Instr_Stage2_FIFO;
-
+  sc_fifo<tlm::tlm_generic_payload *> m_InstrFIFO;
   sc_fifo<tlm::tlm_generic_payload *> m_DataFIFO;
 
   sc_event m_BeginDataResponseEvent;
   sc_event m_BeginInstrResponseEvent;
   sc_event m_EndInstrResponseEvent;
   sc_event m_EndDataResponseEvent;
-  sc_event dhold_posedge_event;
-  sc_event ihold_posedge_event;
 
   // For modeling nops
   unsigned char nop_data[4];
   tlm::tlm_generic_payload * nop_trans;
   dcio_payload_extension * dext;
 
-  // Transaction pipeline
-  ahbpipe cpu_pipe;
-  // Event for triggering transaction pipeline
-  sc_event pipe_event;
+  /// Transaction pipeline for instruction access
+  ahbpipe instr_pipe;
+
+  /// Transaction pipeline for data access
+  ahbpipe data_pipe;
+
+  /// Event for triggering instr_pipe from instr_request()
+  sc_event ipipe_event;
   
-  // Register for sampling icache output
-  sc_signal<icache_out_type> ico_reg;
-  // Register for sampling dcache output
-  sc_signal<dcache_out_type> dco_reg;
+  /// Event for triggering data_pipe from data_request()
+  sc_event dpipe_event;
 
-  // Signals for controlling icache inputs
+  // Signals for controlling icache I/Os
+  sc_signal<sc_lv<32> >  i_execute_address;
+  sc_signal<bool>        i_execute_valid;
 
-  // Signals for controlling dcache inputs
-  sc_signal<sc_lv<32> >  execute_address;
-  sc_signal<sc_lv<32> >  memory_address;
-  sc_signal<sc_lv<32> >  memory_data;
-  sc_signal<bool>        execute_valid;
-  sc_signal<bool>        memory_valid;
-  sc_signal<bool>        done_valid;
-  sc_signal<sc_logic>    memory_write;
-  sc_signal<bool>        done_write;
-  sc_signal<bool>        execute_flushl;
-  sc_signal<bool>        execute_flush;
+  sc_signal<sc_lv<32> >  i_memory_address;
+  sc_signal<bool>        i_memory_valid;
+  
+  sc_signal<sc_lv<32> >  i_done_address;
+  sc_signal<bool>        i_done_valid;
+  
+  // Signals for controlling dcache I/Os
+  sc_signal<sc_lv<32> >  d_execute_address;
+  sc_signal<sc_lv<32> >  d_execute_data;
+  sc_signal<bool>        d_execute_valid;
+  sc_signal<bool>        d_execute_flushl;
+  sc_signal<bool>        d_execute_flush;
+  sc_signal<sc_lv<8> >   d_execute_asi;
+
+  sc_signal<sc_lv<32> >  d_memory_address;
+  sc_signal<sc_lv<32> >  d_memory_data;
+  sc_signal<bool>        d_memory_valid;
+  sc_signal<bool>        d_memory_write;
+  sc_signal<bool>        d_memory_flushl;
+  sc_signal<bool>        d_memory_flush;
+  sc_signal<sc_lv<8> >   d_memory_asi;  
+
+  sc_signal<sc_lv<32> >  d_done_address;
+  sc_signal<sc_lv<32> >  d_done_data;
+  sc_signal<bool>        d_done_valid;
+  sc_signal<bool>        d_done_write;
+
+  unsigned int           rdata_reg;
+  unsigned int           instr_reg;
+
+  sc_signal<sc_logic>    dhold;
+  sc_signal<sc_logic>    ihold;
 
   // TLM Abstraction Layer
   amba::amba_layer_ids m_abstractionLayer;
