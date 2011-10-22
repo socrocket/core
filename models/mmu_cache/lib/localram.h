@@ -46,6 +46,8 @@
 #ifndef __LOCALRAM_H__
 #define __LOCALRAM_H__
 
+#include <tlm.h>
+#include "mem_if.h"
 #include "defines.h"
 
 // Local scratchpad ram can optionally be attached to both instruction and data cache controllers.
@@ -60,20 +62,20 @@
 // ! Address decoding and checking is done in class mmu_cache !
 
 /// @brief Local Scratchpad RAM
-class localram : public sc_core::sc_module {
+class localram : public sc_core::sc_module, public mem_if {
 
     public:
 
-        // external interface functions:
+        // External interface functions:
         // -----------------------------
-        /// read from scratchpad
-        void read(unsigned int address, unsigned char *data, unsigned int len,
-                  sc_core::sc_time *t, unsigned int *debug);
-        /// write to scratchpad
-        void write(unsigned int address, unsigned char *data, unsigned int len,
-                   sc_core::sc_time *t, unsigned int *debug);
+        /// Read from scratchpad
+        virtual bool mem_read(unsigned int address, unsigned char *data, unsigned int len,
+			      sc_core::sc_time *t, unsigned int *debug, bool is_dbg);
+        /// Write to scratchpad
+        virtual void mem_write(unsigned int address, unsigned char *data, unsigned int len,
+			       sc_core::sc_time *t, unsigned int *debug, bool is_dbg);
 
-	/// hook up for showing statistics
+	/// Hook up for showing statistics
 	void end_of_simulation();
 
         // constructor
@@ -81,8 +83,7 @@ class localram : public sc_core::sc_module {
         /// @param name    SystemC module name
         /// @param lrsize  Local ram size. Size in kbyte = 2^lrsize (like top-level template)
         /// @param lrstart Local ram start address. The 8 most significant bits of the address.
-        localram(sc_core::sc_module_name name, unsigned int lrsize,
-                 unsigned int lrstart);
+        localram(sc_core::sc_module_name name, unsigned int lrsize, unsigned int lrstart);
 
         /// destructor
         ~localram();

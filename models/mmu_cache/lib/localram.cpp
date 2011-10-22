@@ -85,50 +85,60 @@ localram::~localram() {
 }
 
 /// read from scratchpad
-void localram::read(unsigned int addr, unsigned char *data, unsigned int len,
-                    sc_core::sc_time *t, unsigned int *debug) {
+bool localram::mem_read(unsigned int addr, unsigned char *data, unsigned int len,
+			sc_core::sc_time *t, unsigned int *debug, bool is_dbg) {
 
-    assert(addr - m_lrstart < m_lrsize);
+  if((addr - m_lrstart) < m_lrsize) {
 
-    // byte offset
-    unsigned int byt = addr & 0x3;
+    v::error << name() << "Read with address " << hex << addr << " out of range!!" << v::endl;
 
-    // memcpy ??
-    for (unsigned int i = 0; i < len; i++) {
-        *(data + i) = scratchpad[(addr - m_lrstart) >> 2].c[byt + i];
-    }
+  }
 
-    v::debug << this->name() << "Read from address: " << std::hex << addr << v::endl;
+  // byte offset
+  unsigned int byt = addr & 0x3;
 
-    // Increment read counter (statistics)
-    sreads++;
+  // memcpy ??
+  for (unsigned int i = 0; i < len; i++) {
+    *(data + i) = scratchpad[(addr - m_lrstart) >> 2].c[byt + i];
+  }
 
-    // update debug information
-    SCRATCHPAD_SET(*debug);
+  v::debug << this->name() << "Read from address: " << std::hex << addr << v::endl;
+
+  // Increment read counter (statistics)
+  sreads++;
+
+  // update debug information
+  SCRATCHPAD_SET(*debug);
+
+  return true;
 
 }
 
 // write to scratchpad
-void localram::write(unsigned int addr, unsigned char *data, unsigned int len,
-                     sc_core::sc_time *t, unsigned int *debug) {
+void localram::mem_write(unsigned int addr, unsigned char *data, unsigned int len,
+			 sc_core::sc_time *t, unsigned int *debug, bool is_dbg) {
 
-    assert(addr - m_lrstart < m_lrsize);
+  if((addr - m_lrstart) < m_lrsize) {
 
-    // byte offset
-    unsigned int byt = addr & 0x3;
+    v::error << name() << "Write with address " << hex << addr << " out of range!!" << v::endl;
 
-    // memcpy ??
-    for (unsigned int i = 0; i < len; i++) {
-        scratchpad[(addr - m_lrstart) >> 2].c[byt + i] = *(data + i);
-    }
+  }
 
-    v::debug << this->name() << "Write to address: " << std::hex << addr << v::endl;
+  // byte offset
+  unsigned int byt = addr & 0x3;
 
-    // Increment write counter (statistics)
-    swrites++;
+  // memcpy ??
+  for (unsigned int i = 0; i < len; i++) {
+    scratchpad[(addr - m_lrstart) >> 2].c[byt + i] = *(data + i);
+  }
 
-    // update debug information
-    SCRATCHPAD_SET(*debug);
+  v::debug << this->name() << "Write to address: " << std::hex << addr << v::endl;
+
+  // Increment write counter (statistics)
+  swrites++;
+
+  // update debug information
+  SCRATCHPAD_SET(*debug);
 
 }
 

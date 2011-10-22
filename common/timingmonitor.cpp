@@ -72,7 +72,11 @@ void TimingMonitor::phase_end_timing(const unsigned int id) {
   it = timing_map.find(id);
 
   // Forbidden to set end timing before creating phase (calling phase_start_timing)
-  assert(it != timing_map.end());
+  if (it == timing_map.end()) {
+
+    v::error << "TimingMonitor" << "No such phase: " << id << v::endl;
+
+  }
 
   tmp=it->second;
 
@@ -91,7 +95,13 @@ sc_core::sc_time TimingMonitor::phase_systime(const unsigned int id) {
   it = timing_map.find(id);
 
   // Phase/key must exist in timing_map
-  assert(it != timing_map.end());
+  if (it == timing_map.end()) {
+
+    v::error << "TimingMonitor" << "No such phase: " << id << v::endl; 
+
+    return(sc_core::sc_time(0,SC_NS));
+
+  }
 
   return((it->second).st_end - (it->second).st_start);
 }
@@ -108,7 +118,13 @@ double TimingMonitor::phase_realtime(const unsigned int id) {
   it = timing_map.find(id);
 
   // Phase/key must exist in timing_map
-  assert(it != timing_map.end());
+  if (it == timing_map.end()) {
+
+    v::error << "TimingMonitor" << "No such phase: " << id << v::endl;
+
+    return(0);
+
+  } 
 
   start_clock = (it->second).rt_start;
   end_clock   = (it->second).rt_end;
@@ -126,7 +142,13 @@ const char * TimingMonitor::phase_get_name(const unsigned int id) {
   it = timing_map.find(id);
 
   // Phase/key must exist in timing_map
-  assert(it != timing_map.end());
+  if (it == timing_map.end()) {
+
+    v::error << "TimingMonitor" << "No such phase: " << id << v::endl;
+
+    return("Unknown Phase");
+
+  }
 
   return((it->second).name);
 

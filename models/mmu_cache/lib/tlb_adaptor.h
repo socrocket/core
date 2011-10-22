@@ -78,7 +78,7 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
         /// implementation of mem_read function from mem_if.h
         virtual bool mem_read(unsigned int addr, unsigned char * data,
                               unsigned int len, sc_core::sc_time * t,
-                              unsigned int * debug) {
+                              unsigned int * debug, bool is_dbg) {
 
             unsigned int paddr;
 	    unsigned int mmu_ctrl = m_mmu->read_mcr();
@@ -87,23 +87,23 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
 	    swap_Endianess(mmu_ctrl);
 	    #endif
 
-            // mmu enabled
+            // mmu enabled≈
             if (mmu_ctrl & 0x1) {
 
 	      v::info << name() << "MMU enabled - lookup TLB" << v::endl;
-                paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug);
+              paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug, is_dbg);
 
             }
             // mmu in bypass mode
             else {
 
 	      v::info << name() << "MMU disabled - physical addressing" << v::endl;
-                paddr = addr;
+              paddr = addr;
 
             }
 
             // forward request to amba interface - return cacheability
-            return (m_mmu_cache->mem_read(paddr, data, len, t, debug));
+            return (m_mmu_cache->mem_read(paddr, data, len, t, debug, is_dbg));
 
 	    
 
@@ -112,7 +112,7 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
         /// implementation of mem_write function from mem_if.h
         virtual void mem_write(unsigned int addr, unsigned char * data,
                                unsigned int len, sc_core::sc_time * t,
-                               unsigned int * debug) {
+                               unsigned int * debug, bool is_dbg) {
 
             unsigned int paddr;
 	    unsigned int mmu_ctrl = m_mmu->read_mcr();
@@ -126,19 +126,19 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
             if (mmu_ctrl & 0x1) {
 
 	      v::info << name() << "MMU enabled - lookup TLB" << v::endl;
-                paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug);
+              paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug, is_dbg);
 
             }
             // mmu in bypass mode
             else {
 
 	      v::info << name() << "MMU disabled - physical addressing" << v::endl;
-                paddr = addr;
+              paddr = addr;
 
             }
  
             // forward request to mmu amba interface
-            m_mmu_cache->mem_write(paddr, data, len, t, debug);
+            m_mmu_cache->mem_write(paddr, data, len, t, debug, is_dbg);
 
         }
 

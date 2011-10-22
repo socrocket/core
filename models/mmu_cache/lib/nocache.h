@@ -45,7 +45,7 @@
 #ifndef __NOCACHE_H_
 #define __NOCACHE_H_
 
-#include "tlm.h"
+#include <tlm.h>
 #include "signalkit.h"
 
 #include "verbose.h"
@@ -61,13 +61,13 @@ class nocache : public sc_core::sc_module, public cache_if {
         /// read from cache
         virtual bool mem_read(unsigned int address, unsigned char * data,
                               unsigned int len, sc_core::sc_time * t,
-                              unsigned int * debug);
+                              unsigned int * debug, bool is_dbg);
         /// write through cache
         virtual void mem_write(unsigned int address, unsigned char * data,
                                unsigned int len, sc_core::sc_time * t,
-                               unsigned int * debug);
+                               unsigned int * debug, bool is_dbg);
         /// flush cache
-        virtual void flush(sc_core::sc_time * t, unsigned int * debug);
+        virtual void flush(sc_core::sc_time * t, unsigned int * debug, bool is_dbg);
 
         /// read data cache tags (ASI 0xe)
         virtual void read_cache_tag(unsigned int address, unsigned int * data, sc_core::sc_time *t);

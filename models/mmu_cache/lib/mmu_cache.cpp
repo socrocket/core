@@ -202,20 +202,8 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 
 }
 
-unsigned int mmu_cache::exec_instr_dbg(tlm::tlm_generic_payload& trans) {
-
-  return 0;
-
-}
-
-unsigned int mmu_cache::exec_data_dbg(tlm::tlm_generic_payload& trans) {
-
-  return 0;
-
-}
-
 // Instruction interface to functional part of the model
-void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
+void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay, bool is_dbg) {
 
   // Vars for payload decoding
   tlm::tlm_command cmd = trans.get_command();
@@ -233,12 +221,12 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
     // Instruction scratchpad enabled && address points into selecte 16MB region
     if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-      ilocalram->read((unsigned int)addr, ptr, 4, &delay, debug);
+      ilocalram->mem_read((unsigned int)addr, ptr, 4, &delay, debug, is_dbg);
 
     // Instruction cache access
     } else {
 
-      icache->mem_read((unsigned int)addr, ptr, 4, &delay, debug);
+      icache->mem_read((unsigned int)addr, ptr, 4, &delay, debug, is_dbg);
     
     }
 
@@ -255,7 +243,7 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
 }
 
 // Data interface to functional part of the model
-void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
+void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay, bool is_dbg) {
 
   // Vars for payload decoding
   tlm::tlm_command cmd = trans.get_command();
@@ -316,7 +304,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       if (addr == 0) {
 
         // Cache Control Register
-	write_ccr(ptr, len, &delay);
+	write_ccr(ptr, len, &delay, is_dbg);
 	// Setting response status
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -581,7 +569,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
       v::debug << name() << "ASI flush instruction cache" << v::endl;
 
-      icache->flush(&delay, debug);
+      icache->flush(&delay, debug, is_dbg);
       // Set TLM response
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -601,7 +589,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
        v::debug << name() << "ASI flush data cache" << v::endl;
 
-       dcache->flush(&delay, debug);
+       dcache->flush(&delay, debug, is_dbg);
        // Set TLM response
        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -745,21 +733,21 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       // Instruction scratchpad enabled && address points into selected 16 MB region
       if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-	ilocalram->read((unsigned int)addr, ptr, len, &delay, debug);
+	ilocalram->mem_read((unsigned int)addr, ptr, len, &delay, debug, is_dbg);
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // Data scratchpad enabled && address points into selected 16MB region
       } else if (m_dlram && (((addr >> 24) & 0xff) == m_dlramstart)) {
 
-	dlocalram->read((unsigned int)addr, ptr, len, &delay, debug);
+	dlocalram->mem_read((unsigned int)addr, ptr, len, &delay, debug, is_dbg);
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // Cache access || bypass || direct mmu
       } else {
 
-        dcache->mem_read((unsigned int)addr, ptr, len, &delay, debug);
+        dcache->mem_read((unsigned int)addr, ptr, len, &delay, debug, is_dbg);
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -771,21 +759,21 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       // Instruction scratchpad enabled && address points into selected 16 MB region
       if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-	ilocalram->write((unsigned int)addr, ptr, len, &delay, debug);
+	ilocalram->mem_write((unsigned int)addr, ptr, len, &delay, debug, is_dbg);
 	// set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // Data scratchpad enabled && address points into selected 16MB region
       } else if (m_dlram && (((addr >> 24) & 0xff) == m_dlramstart)) {
 
-        dlocalram->write((unsigned int)addr, ptr, len, &delay, debug);
+        dlocalram->mem_write((unsigned int)addr, ptr, len, &delay, debug, is_dbg);
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // Cache access (write through) || bypass || direct mmu
       } else {
 
-        dcache->mem_write((unsigned int)addr, ptr, len, &delay, debug);
+        dcache->mem_write((unsigned int)addr, ptr, len, &delay, debug, is_dbg);
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -812,7 +800,9 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 void mmu_cache::icio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
   // Call the functional part of the model
-  exec_instr(trans, delay);
+  // ---------------------------
+  exec_instr(trans, delay, false);
+  // ---------------------------
 
   // Consume component delay
   wait(delay);
@@ -826,7 +816,9 @@ void mmu_cache::icio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_ti
 void mmu_cache::dcio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
   // Call the functional part of the model
-  exec_data(trans, delay);
+  // -----------------------
+  exec_data(trans, delay, false);
+  // -----------------------
 
   // Consume component delay
   wait(delay);
@@ -890,7 +882,9 @@ void mmu_cache::icio_service_thread() {
       delay = SC_ZERO_TIME;
 
       // Call the functional part of the model
-      exec_instr(*trans, delay);
+      // -------------------------------------
+      exec_instr(*trans, delay, false);
+      // -------------------------------------
 
       v::debug << name() << "Consume component delay: " << delay << v::endl;
 
@@ -986,7 +980,9 @@ void mmu_cache::dcio_service_thread() {
       delay = SC_ZERO_TIME;
 
       // Call the functional part of the model
-      exec_data(*trans, delay);
+      // -------------------------------------
+      exec_data(*trans, delay, false);
+      // -------------------------------------
 
       v::debug << name() << "Consume component delay: " << delay << v::endl;
 
@@ -1030,24 +1026,28 @@ void mmu_cache::dcio_service_thread() {
 // Instruction debug transport
 unsigned int mmu_cache::icio_transport_dbg(tlm::tlm_generic_payload &trans) {
 
-  unsigned int number_of_bytes;
+  sc_core::sc_time zero_delay = SC_ZERO_TIME;
 
-  // Call the functional part of the model
-  number_of_bytes = exec_instr_dbg(trans);
+  // Call the functional part of the model (in debug mode)
+  // ----------------------------------
+  exec_instr(trans, zero_delay, true);
+  // -----------------------------------
 
-  return number_of_bytes;
+  return trans.get_data_length();
 
 }
 
 // Data debug transport
 unsigned int mmu_cache::dcio_transport_dbg(tlm::tlm_generic_payload &trans) {
 
-  unsigned int number_of_bytes;
-  
-  // Call the functional part of the model
-  number_of_bytes = exec_data_dbg(trans);
+  sc_core::sc_time zero_delay = SC_ZERO_TIME;
 
-  return number_of_bytes;
+  // Call the functional part of the model (in debug mode)
+  // ---------------------------------
+  exec_data(trans, zero_delay, true);
+  // ---------------------------------
+
+  return trans.get_data_length();
 
 } 
 
@@ -1120,7 +1120,7 @@ tlm::tlm_sync_enum mmu_cache::ahb_nb_transport_bw(tlm::tlm_generic_payload &tran
 /// Function for write access to AHB master socket
 void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
                           unsigned int length, sc_core::sc_time * t,
-                          unsigned int * debug) {
+                          unsigned int * debug, bool is_dbg) {
 
     tlm::tlm_phase phase;
     tlm::tlm_sync_enum status;
@@ -1230,7 +1230,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
 /// Function for read access to AHB master socket
 bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
                          unsigned int length, sc_core::sc_time * t,
-                         unsigned int * debug) {
+                         unsigned int * debug, bool is_dbg) {
 
     tlm::tlm_phase phase;
     tlm::tlm_sync_enum status;
@@ -1270,76 +1270,86 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
     // Init delay
     delay = SC_ZERO_TIME;
 
-    if (m_abstractionLayer == amba::amba_LT) {
+    // Timed transport
+    if (!is_dbg) {
 
-      // Blocking transport
-      ahb->b_transport(*trans, delay);
+      if (m_abstractionLayer == amba::amba_LT) {
 
-      // Consume delay
-      wait(delay);
-      delay = SC_ZERO_TIME;
+	// Blocking transport
+	ahb->b_transport(*trans, delay);
 
-    } else {
+	// Consume delay
+	wait(delay);
+	delay = SC_ZERO_TIME;
 
-      // Initial phase for AT
-      phase = tlm::BEGIN_REQ;
+      } else {
+
+	// Initial phase for AT
+	phase = tlm::BEGIN_REQ;
       
-      v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+	v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 
-      // Non-blocking transport
-      status = ahb->nb_transport_fw(*trans, phase, delay);
+	// Non-blocking transport
+	status = ahb->nb_transport_fw(*trans, phase, delay);
 
-      switch(status) {
+	switch(status) {
 
-        case tlm::TLM_ACCEPTED:
-        case tlm::TLM_UPDATED:
+          case tlm::TLM_ACCEPTED:
+          case tlm::TLM_UPDATED:
 
-	  if (phase == tlm::BEGIN_REQ) {
+	    if (phase == tlm::BEGIN_REQ) {
 
-	    // The slave returned TLM_ACCEPTED.
-	    // Wait until BEGIN_RESP before giving control
-	    // to the user (for sending next transaction).
-	    wait(mEndRequestEvent);
+	      // The slave returned TLM_ACCEPTED.
+	      // Wait until BEGIN_RESP before giving control
+	      // to the user (for sending next transaction).
+	      wait(mEndRequestEvent);
 
-	  } else if (phase == tlm::END_REQ) {
+	    } else if (phase == tlm::END_REQ) {
 
-	    // The slave returned TLM_UPDATED with END_REQ
+	      // The slave returned TLM_UPDATED with END_REQ
 
-	    wait(mEndRequestEvent);
+	      wait(mEndRequestEvent);
 
-	  } else if (phase == tlm::BEGIN_RESP) {
+	    } else if (phase == tlm::BEGIN_RESP) {
 
-	    // Slave directly jumped to BEGIN_RESP
-	    // Notify the response thread and return control to user
-	    mResponsePEQ.notify(*trans, delay);
+	      // Slave directly jumped to BEGIN_RESP
+	      // Notify the response thread and return control to user
+	      mResponsePEQ.notify(*trans, delay);
 
-	  } else {
+	    } else {
 
-	    // Forbidden phase
-	    v::error << name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
+	      // Forbidden phase
+	      v::error << name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
+	      trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+
+	    }
+
+	    break;
+
+	  case tlm::TLM_COMPLETED:
+	
+	    // Slave directly jumps to TLM_COMPLETED (Pseudo AT).
+	    // Don't send END_RESP
+	    // wait(delay)
+
+	    break;
+
+          default:
+
+	    v::error << name() << "Invalid return value from call to nb_transport_fw!" << v::endl;
 	    trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
-	  }
+	}
 
-	  break;
-
-      case tlm::TLM_COMPLETED:
-	
-	// Slave directly jumps to TLM_COMPLETED (Pseudo AT).
-	// Don't send END_RESP
-	// wait(delay)
-
-	break;
-
-      default:
-
-	v::error << name() << "Invalid return value from call to nb_transport_fw!" << v::endl;
-	trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+	// Wait for result to be ready before return
+	//wait(mResponsePEQ.get_event());
 
       }
 
-      // Wait for result to be ready before return
-      //wait(mResponsePEQ.get_event());
+    } else {
+
+      // Debug transport
+      ahb->transport_dbg(*trans);
 
     }
 
@@ -1471,7 +1481,7 @@ void mmu_cache::ResponseThread() {
 
 /// writes the cache control register and handles the commands
 void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
-                          sc_core::sc_time * delay) {
+                          sc_core::sc_time * delay, bool is_dbg) {
 
     unsigned int tmp1 = *(unsigned int *)data;
     unsigned int tmp;
@@ -1489,11 +1499,11 @@ void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
     }
     // [FD] dcache flush (do not set; always reads as zero)
     if (tmp & (1 << 22)) {
-        dcache->flush(delay, &dummy);
+        dcache->flush(delay, &dummy, is_dbg);
     }
     // [FI] icache flush (do not set; always reads as zero)
     if (tmp & (1 << 21)) {
-        icache->flush(delay, &dummy);
+        icache->flush(delay, &dummy, is_dbg);
     }
     // [IB] instruction burst fetch (todo)
     if (tmp & (1 << 16)) {

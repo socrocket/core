@@ -154,27 +154,22 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
         // Member functions
         // ----------------
 	/// Instruction interface to functional part of the model
-	void exec_instr(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay);
+	void exec_instr(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay, bool is_dbg);
 	/// Data interface to functional part of the model
-	void exec_data(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay);
-
-	/// Debug instruction interface to functional part of the model
-	unsigned int exec_instr_dbg(tlm::tlm_generic_payload & trans);
-	/// Debug data interface to functional part of the model
-	unsigned int exec_data_dbg(tlm::tlm_generic_payload & trans);
+	void exec_data(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay, bool is_dbg);
 
         /// TLM blocking forward transport function for icio socket
-        void icio_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay_time);
+        void icio_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay);
         /// TLM blocking forward transport function for dcio socket
-        void dcio_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay_time);
+        void dcio_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay);
 
 	/// TLM non-blocking forward transport function for icio socket
-	tlm::tlm_sync_enum icio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
+	tlm::tlm_sync_enum icio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
 	/// TLM non-blocking forward transport function for dcio socket
-	tlm::tlm_sync_enum dcio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
+	tlm::tlm_sync_enum dcio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
 	
 	/// TLM non-blocking backward transport function for ahb master socket
-	tlm::tlm_sync_enum ahb_nb_transport_bw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
+	tlm::tlm_sync_enum ahb_nb_transport_bw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
 
 	/// TLM instruction debug transport
 	unsigned int icio_transport_dbg(tlm::tlm_generic_payload &trans);
@@ -194,19 +189,20 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 
 	void cleanUP();
 
-        // interface to AMBA master socket (impl. mem_if)
+        // Interface to AMBA master socket (impl. mem_if)
         virtual void mem_write(unsigned int addr, unsigned char * data,
                                unsigned int length, sc_core::sc_time * t,
-                               unsigned int * debug);
+                               unsigned int * debug, bool is_dbg);
         virtual bool mem_read(unsigned int addr, unsigned char * data,
                               unsigned int length, sc_core::sc_time * t,
-                              unsigned int * debug);
+                              unsigned int * debug, bool is_dbg);
 
-        // read/write cache control register
-        void write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time *delay);
+        /// Writes the cache control register
+        void write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time *delay, bool is_dbg);
+	/// Read the cache control register
         virtual unsigned int read_ccr();
 
-	// Snooping function (For calling dcache->snoop_invalidate)
+	/// Snooping function (For calling dcache->snoop_invalidate)
 	void snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& delay);
 
 	/// Helper functions for definition of clock cycle

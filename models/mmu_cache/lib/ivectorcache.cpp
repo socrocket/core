@@ -48,17 +48,17 @@
 #include "ivectorcache.h"
 #include "verbose.h"
 
-// overwrite write function
+// Overwrite write function
 void ivectorcache::mem_write(unsigned int address, unsigned char * data,
                              unsigned int len, sc_core::sc_time * t,
-                             unsigned int * debug) {
+                             unsigned int * debug, bool is_dbg) {
 
     v::info << this->name() << "Forbidden to write icache!" << v::endl;
     assert(false);
 
 }
 
-// implement ccr check
+// Implement ccr check
 unsigned int ivectorcache::check_mode() {
 
   unsigned int tmp = m_mmu_cache->read_ccr();

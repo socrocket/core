@@ -52,19 +52,18 @@ class mmu_cache_if : public mem_if {
 
     public:
 
-        // read cache control register
+        // Reads the cache control register
         virtual unsigned int read_ccr() {
             return (0);
-        }
-        ;
+        };
+
+	// Writes the cache control register
         virtual void write_ccr(unsigned char *data, unsigned int len,
-                               sc_core::sc_time *delay) {
-        }
-        ;
+                               sc_core::sc_time *delay, bool is_dbg) {
+        };
 
         virtual ~mmu_cache_if() {
-        }
-        ;
+        };
 };
 
 #endif // __MMU_CACHE_IF_H__

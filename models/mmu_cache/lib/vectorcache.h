@@ -65,43 +65,43 @@ class vectorcache : public sc_core::sc_module, public cache_if {
 
     public:
 
-        // external interface functions
+        // External interface functions
         // -----------------------------------------------------------
-        /// read from cache
+        /// Read from cache
         virtual bool mem_read(unsigned int address, unsigned char * data,
                               unsigned int len, sc_core::sc_time * t,
-                              unsigned int * debug);
-        /// write through cache
+                              unsigned int * debug, bool is_dbg);
+        /// Write through cache
         virtual void mem_write(unsigned int address, unsigned char * data,
                                unsigned int len, sc_core::sc_time * t,
-                               unsigned int * debug);
-        /// flush cache
-        virtual void flush(sc_core::sc_time * t, unsigned int * debug);
-        /// read data cache tags (ASI 0xe)
+                               unsigned int * debug, bool is_dbg);
+        /// Flush cache
+        virtual void flush(sc_core::sc_time * t, unsigned int * debug, bool is_dbg);
+        /// Read data cache tags (ASI 0xe)
         virtual void read_cache_tag(unsigned int address, unsigned int * data,
                                     sc_core::sc_time *t);
-        /// write data cache tags (ASI 0xe)
+        /// Write data cache tags (ASI 0xe)
         virtual void write_cache_tag(unsigned int address, unsigned int * data,
                                      sc_core::sc_time *t);
-        /// read data cache entries/data (ASI 0xf)
+        /// Read data cache entries/data (ASI 0xf)
         virtual void read_cache_entry(unsigned int address,
                                       unsigned int * data, sc_core::sc_time *t);
-        /// write data cache entries/data (ASI 0xf)
+        /// Write data cache entries/data (ASI 0xf)
         virtual void
                 write_cache_entry(unsigned int address, unsigned int * data,
                                   sc_core::sc_time *t);
-        /// read cache configuration register (ASI 0x2)
+        /// Read cache configuration register (ASI 0x2)
         virtual unsigned int read_config_reg(sc_core::sc_time *t);
 
-	/// returns the mode bits of the cache
+	/// Returns the mode bits of the cache
         virtual unsigned int check_mode()=0;
 
-	/// snooping function (invalidates cache line(s))
+	/// Snooping function (invalidates cache line(s))
 	virtual void snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time& delay);
 
-        // debug and helper functions
+        // Debug and helper functions
         // --------------------------
-        /// display of cache lines for debug
+        /// Display of cache lines for debug
         virtual void dbg_out(unsigned int line);
 
 	/// Helper functions for definition of clock cycle

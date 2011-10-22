@@ -55,32 +55,32 @@ nocache::nocache(sc_core::sc_module_name name, mem_if * _mem_adapter) :
 /// memory interface write function: forwards calls to mmu or bus interface
 void nocache::mem_write(unsigned int addr, unsigned char *data,
                         unsigned int length, sc_core::sc_time *t,
-                        unsigned int * debug) {
+                        unsigned int * debug, bool is_dbg) {
 
-    m_mem_adapter->mem_write(addr, data, length, t, debug);
+    m_mem_adapter->mem_write(addr, data, length, t, debug, is_dbg);
 
 }
 
 /// memory interface read functions: forwards calls to mmu or bus interface
 bool nocache::mem_read(unsigned int addr, unsigned char * data,
                        unsigned int length, sc_core::sc_time *t,
-                       unsigned int * debug) {
+                       unsigned int * debug, bool is_dbg) {
 
-    return(m_mem_adapter->mem_read(addr, data, length, t, debug));
+    return(m_mem_adapter->mem_read(addr, data, length, t, debug, is_dbg));
     
 }
 
 /// forbidden access to flush
-void nocache::flush(sc_core::sc_time *t, unsigned int *debug) {
+void nocache::flush(sc_core::sc_time *t, unsigned int *debug, bool is_dbg) {
 
-    v::warn << this->name() << "Can not flush non-existing cache!" << v::endl;
+    v::warn << name() << "Can not flush non-existing cache!" << v::endl;
 }
 
 /// forbidden read of cache tags
 void nocache::read_cache_tag(unsigned int address, unsigned int * data,
                              sc_core::sc_time *t) {
 
-    v::warn << this->name() << "Can not read tags of non-existing cache!"
+    v::warn << name() << "Can not read tags of non-existing cache!"
             << v::endl;
 }
 
@@ -88,7 +88,7 @@ void nocache::read_cache_tag(unsigned int address, unsigned int * data,
 void nocache::write_cache_tag(unsigned int address, unsigned int *data,
                               sc_core::sc_time *t) {
 
-    v::warn << this->name() << "Can not write tags of non-existing cache!"
+    v::warn << name() << "Can not write tags of non-existing cache!"
             << v::endl;
 }
 
@@ -96,7 +96,7 @@ void nocache::write_cache_tag(unsigned int address, unsigned int *data,
 void nocache::read_cache_entry(unsigned int address, unsigned int *data,
                                sc_core::sc_time *t) {
 
-    v::warn << this->name() << "Can not read entries of non-existing cache!"
+    v::warn << name() << "Can not read entries of non-existing cache!"
             << v::endl;
 }
 
@@ -104,13 +104,13 @@ void nocache::read_cache_entry(unsigned int address, unsigned int *data,
 void nocache::write_cache_entry(unsigned int address, unsigned int *data,
                                 sc_core::sc_time *t) {
 
-    v::warn << this->name() << "Can not write entries of non-existing cache!"
+    v::warn << name() << "Can not write entries of non-existing cache!"
             << v::endl;
 }
 
 unsigned int nocache::read_config_reg(sc_core::sc_time *t) {
 
-    v::warn << this->name()
+    v::warn << name()
             << "Can not read config register of non-existing cache!" << v::endl;
     return 0;
 }
@@ -118,7 +118,7 @@ unsigned int nocache::read_config_reg(sc_core::sc_time *t) {
 /// forbidden check of cache mode
 unsigned int nocache::check_mode() {
 
-    v::warn << this->name() << "Can not check mode of non-existing cache!"
+    v::warn << name() << "Can not check mode of non-existing cache!"
             << v::endl;
     return 0;
 }
@@ -126,7 +126,7 @@ unsigned int nocache::check_mode() {
 /// forbidden debug output
 void nocache::dbg_out(unsigned int line) {
 
-    v::warn << this->name()
+    v::warn << name()
             << "Can not trigger debug output of non-exisiting cache!"
             << v::endl;
 
@@ -135,7 +135,7 @@ void nocache::dbg_out(unsigned int line) {
 // dummy snooping function
 void nocache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time& delay) {
 
-  v::warn << this->name() << "Can not snoop non-existing cache!" << v::endl;
+  v::warn << name() << "Can not snoop non-existing cache!" << v::endl;
 
 }
 

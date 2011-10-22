@@ -179,7 +179,7 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
 unsigned int mmu::tlb_lookup(unsigned int addr,
                              std::map<t_VAT, t_PTE_context> * tlb,
                              unsigned int tlb_size, sc_core::sc_time * t,
-                             unsigned int * debug) {
+                             unsigned int * debug, bool is_dbg) {
 
     // According to the SparcV8 Manual: Pages of the Reference MMU are always aligned on 4K-byte boundaries; hence, the lower-order
     // 12 bits of a physical address are always the same as the low-order 12 bits of
@@ -286,7 +286,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     // 1. load from 1st-level page table
     m_mmu_cache->mem_read(MMU_CONTEXT_TABLE_POINTER_REG + idx1,
-            (unsigned char *)&data, 4, t, debug);
+            (unsigned char *)&data, 4, t, debug, is_dbg);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);
@@ -344,7 +344,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     // 2. load from 2nd-level page table
     m_mmu_cache->mem_read((((data) >> 2) << 2) + idx2, (unsigned char *)&data,
-            4, t, debug);
+            4, t, debug, is_dbg);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);
@@ -396,7 +396,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     // 3. load from 3rd-level page table
     m_mmu_cache->mem_read((((data) >> 2) << 2) + idx3, (unsigned char *)&data,
-            4, t, debug);
+            4, t, debug, is_dbg);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);

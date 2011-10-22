@@ -61,7 +61,7 @@ class ivectorcache : public vectorcache {
         // overwrite write function
         void mem_write(unsigned int address, unsigned char * data,
                        unsigned int len, sc_core::sc_time * t,
-                       unsigned int * debug);
+                       unsigned int * debug, bool is_dbg);
         // implement ccr check
         unsigned int check_mode();
 

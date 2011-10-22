@@ -52,7 +52,7 @@ class cache_if : public mem_if {
     public:
 
         /// flush cache
-        virtual void flush(sc_core::sc_time * t, unsigned int * debug) = 0;
+        virtual void flush(sc_core::sc_time * t, unsigned int * debug, bool is_dbg) = 0;
         /// read data cache tags (ASI 0xe)
         virtual void read_cache_tag(unsigned int address, unsigned int * data,
                                     sc_core::sc_time *t) = 0;
