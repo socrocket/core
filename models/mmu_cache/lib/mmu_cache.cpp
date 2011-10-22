@@ -1159,72 +1159,81 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
     // Initialize delay
     delay = SC_ZERO_TIME;
 
-    if (m_abstractionLayer == amba::amba_LT) {
+    // Timed transport
+    if (!is_dbg) {
 
-      // Blocking transport
-      ahb->b_transport(*trans, delay);
+      if (m_abstractionLayer == amba::amba_LT) {
 
-      // Consume delay
-      wait(delay);
-      delay = SC_ZERO_TIME;
+        // Blocking transport
+        ahb->b_transport(*trans, delay);
+
+        // Consume delay
+        wait(delay);
+        delay = SC_ZERO_TIME;
+
+      } else {
+
+        // Initial phase for AT
+        phase = tlm::BEGIN_REQ;
+
+        v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+
+        // Non-blocking transport
+        status = ahb->nb_transport_fw(*trans, phase, delay);
+
+        switch (status) {
+
+          case tlm::TLM_ACCEPTED:
+          case tlm::TLM_UPDATED:
+
+	    if (phase == tlm::BEGIN_REQ) {
+
+	      // The slave returned TLM_ACCEPTED.
+	      // Wait until END_REQ comes in on backward path
+	      // before starting DATA phase.
+	      wait(mEndRequestEvent);
+
+	    } else if (phase == tlm::END_REQ) {
+
+	      // The slave returned TLM_UPDATED with END_REQ
+	      mDataPEQ.notify(*trans, delay);
+
+	    } else if (phase == amba::END_DATA) {
+
+	      // Done return control to user.
+
+	    } else {
+
+	      // Forbidden phase
+	      v::error << name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
+	      trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+
+	    }
+
+	    break;
+
+            case tlm::TLM_COMPLETED:
+
+	      // Slave directly jumps to TLM_COMPLETED (Pseudo AT).
+	      // Don't send END_RESP
+	      // wait(delay)
+	  
+	      break;
+
+            default:
+
+	      v::error << name() << "Invalid return value from call to nb_transport_fw!" << v::endl;
+	      trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+
+	}
+      }
 
     } else {
 
-      // Initial phase for AT
-      phase = tlm::BEGIN_REQ;
+      // Debug transport
+      ahb->transport_dbg(*trans);
 
-      v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
-
-      // Non-blocking transport
-      status = ahb->nb_transport_fw(*trans, phase, delay);
-
-      switch (status) {
-
-        case tlm::TLM_ACCEPTED:
-        case tlm::TLM_UPDATED:
-
-	  if (phase == tlm::BEGIN_REQ) {
-
-	    // The slave returned TLM_ACCEPTED.
-	    // Wait until END_REQ comes in on backward path
-	    // before starting DATA phase.
-	    wait(mEndRequestEvent);
-
-	  } else if (phase == tlm::END_REQ) {
-
-	    // The slave returned TLM_UPDATED with END_REQ
-	    mDataPEQ.notify(*trans, delay);
-
-	  } else if (phase == amba::END_DATA) {
-
-	    // Done return control to user.
-
-	  } else {
-
-	    // Forbidden phase
-	    v::error << name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
-	    trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-
-	  }
-
-	  break;
-
-        case tlm::TLM_COMPLETED:
-
-	  // Slave directly jumps to TLM_COMPLETED (Pseudo AT).
-	  // Don't send END_RESP
-	  // wait(delay)
-	  
-	  break;
-
-        default:
-
-	  v::error << name() << "Invalid return value from call to nb_transport_fw!" << v::endl;
-	  trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-
-      }
     }
-  
 }
 
 /// Function for read access to AHB master socket
