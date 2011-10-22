@@ -151,25 +151,41 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 		  bool pow_mon,
 		  amba::amba_layer_ids abstractionLayer);
 
-        // member functions
+        // Member functions
         // ----------------
-        // TLM blocking forward transport function for icio socket
-        void icio_custom_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay_time);
-        // TLM blocking forward transport function for dcio socket
-        void dcio_custom_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay_time);
+	/// Instruction interface to functional part of the model
+	void exec_instr(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay);
+	/// Data interface to functional part of the model
+	void exec_data(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay);
 
-	// TLM non-blocking forward transport function for icio socket
-	tlm::tlm_sync_enum icio_custom_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
-	// TLM non-blocking forward transport function for dcio socket
-	tlm::tlm_sync_enum dcio_custom_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
+	/// Debug instruction interface to functional part of the model
+	unsigned int exec_instr_dbg(tlm::tlm_generic_payload & trans);
+	/// Debug data interface to functional part of the model
+	unsigned int exec_data_dbg(tlm::tlm_generic_payload & trans);
+
+        /// TLM blocking forward transport function for icio socket
+        void icio_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay_time);
+        /// TLM blocking forward transport function for dcio socket
+        void dcio_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay_time);
+
+	/// TLM non-blocking forward transport function for icio socket
+	tlm::tlm_sync_enum icio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
+	/// TLM non-blocking forward transport function for dcio socket
+	tlm::tlm_sync_enum dcio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
 	
-	// TLM non-blocking backward transport function for ahb master socket
-	tlm::tlm_sync_enum ahb_custom_nb_transport_bw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
+	/// TLM non-blocking backward transport function for ahb master socket
+	tlm::tlm_sync_enum ahb_nb_transport_bw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay_time);
 
-	// Instruction service thread for AT
+	/// TLM instruction debug transport
+	unsigned int icio_transport_dbg(tlm::tlm_generic_payload &trans);
+
+	/// TLM data debug transport
+	unsigned int dcio_transport_dbg(tlm::tlm_generic_payload &trans);
+
+	/// Instruction service thread for AT
 	void icio_service_thread();
 
-	// Data service thread for AT
+	/// Data service thread for AT
 	void dcio_service_thread();
 
 	void ResponseThread();

@@ -374,7 +374,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
 
   } else {
 
-    v::error << name() << "Invalid phase in call to nb_transport_fw!" << v::endl;
+    v::error << name() << "Illegal phase in call to nb_transport_fw!" << v::endl;
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
   }
