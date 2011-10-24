@@ -1,3 +1,5 @@
+#ifndef TESTMOD_H
+#define TESTMOD_H
 
 #define START_TEST   0
 #define STOP_TEST    1
@@ -41,3 +43,4 @@ extern void (*mpfunc[16])(int index);
 
 #endif
 
+#endif

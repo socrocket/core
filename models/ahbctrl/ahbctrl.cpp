@@ -91,6 +91,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
 
     // Register tlm blocking transport function
     ahbIN.register_b_transport(this, &AHBCtrl::b_transport);
+    ahbIN.register_transport_dbg(this, &AHBCtrl::transport_dbg);
 
   }
 
@@ -981,8 +982,6 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
     sc_core::sc_object *mstobj = other_socket->get_parent();
     // --------------------
 
-    // Extract data pointer from payload
-    unsigned int *data  = (unsigned int *)trans.get_data_ptr();
     // Extract address from payload
     unsigned int addr   = trans.get_address();
     // Extract length from payload
@@ -991,28 +990,27 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
     // Is this an access to configuration area
     if (mfpnpen && ((((addr >> 20) ^ mcfgaddr) & mcfgmask)==0)) {
 
-      // Configuration area is read only
-      if (trans.get_command() == tlm::TLM_READ_COMMAND) {
+        // Configuration area is read only
+        if (trans.get_command() == tlm::TLM_READ_COMMAND) {
 
-	// No subword access supported here!
-	assert(length%4==0);
+            // Extract data pointer from payload
+            unsigned int *data  = (unsigned int *)trans.get_data_ptr();
+            
+            // No subword access supported here!
+            //assert(length%4==0);
 
-	// Get registers from config area
-	for (uint32_t i = 0 ; i < (length >> 2); i++) {
-
-	  data[i] = getPNPReg(addr);
-
-        }
+            // Get registers from config area
+            for(uint32_t i = 0 ; i < (length >> 2); i++) {
+                data[i] = getPNPReg(addr + (i<<2));
+            }
 	
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
-	return length;
-
-      } else {
-
-	v::error << name() << " Forbidden write to AHBCTRL configuration area (PNP)!" << v::endl;
-	trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-	return 0;
-      }
+            trans.set_response_status(tlm::TLM_OK_RESPONSE);
+            return length;
+        } else {
+            v::error << name() << " Forbidden write to AHBCTRL configuration area (PNP)!" << v::endl;
+            trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+            return 0;
+        }
     }    
 
     // Find slave by address / returns slave index or -1 for not mapped

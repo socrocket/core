@@ -1,3 +1,6 @@
+#ifndef GRCOMMON_H
+#define GRCOMMON_H
+
 /* Vendor codes */
 #define VENDOR_GAISLER   0x01
 #define VENDOR_PENDER    0x02
@@ -115,3 +118,4 @@
 #define GLEICHMANN_GEOLCD01 0x002
 #define GLEICHMANN_DAC 0x003
 
+#endif

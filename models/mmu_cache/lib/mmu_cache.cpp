@@ -255,8 +255,17 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
   dcio_payload_extension * dext;
   trans.get_extension(dext);
 
-  unsigned int asi     = dext->asi;
-  unsigned int * debug = dext->debug;
+  unsigned int asi;
+  unsigned int *debug;
+  if(dext!=NULL) {
+      asi   = dext->asi;
+      debug = dext->debug;
+  } else {
+      // No dext extension
+      // assuming normal access
+      asi   = 0x8;
+      debug = NULL;
+  }
 
   // Access to system registers
   if (asi == 2) {

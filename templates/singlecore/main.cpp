@@ -131,7 +131,7 @@ int sc_main(int argc, char** argv) {
 
     // Decide weather LT or AT
     amba::amba_layer_ids ambaLayer;
-    if(conf_lt_at) {
+    if(conf_sys_lt_at) {
         ambaLayer = amba::amba_LT;
     } else {
         ambaLayer = amba::amba_AT;
@@ -165,7 +165,7 @@ int sc_main(int argc, char** argv) {
     // ===================================================
     // Always enabled.
     // Needed for basic platform.
-#if conf_lt_at
+#if conf_sys_lt_at
     leon3_funclt_trap::Processor_leon3_funclt leon3("leon3", sc_core::sc_time(1, SC_US));
 #else
     leon3_funcat_trap::Processor_leon3_funcat leon3("leon3", sc_core::sc_time(1, SC_US));
@@ -427,11 +427,15 @@ int sc_main(int argc, char** argv) {
     sc_core::sc_start();
     cend = clock();
     // call power analyzer
-    PM::analyze("./models/","main-power.dat","singlecore2.eslday1.stats");
+    if(conf_sys_power) {
+        PM::analyze("./models/","main-power.dat","singlecore2.eslday1.stats");
+    }
 
-    v::info << "Summary" << "Start: " << dec << cstart << v::endl;
-    v::info << "Summary" << "End:   " << dec << cend << v::endl;
-    v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
+    if(conf_sys_timing) {
+        v::info << "Summary" << "Start: " << dec << cstart << v::endl;
+        v::info << "Summary" << "End:   " << dec << cend << v::endl;
+        v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
+    }
     return 0;
 
 }

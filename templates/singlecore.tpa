@@ -14,7 +14,12 @@
     </ul>
   </description>
   <option name="Basic Configuration" var="conf">
-    <option var="lt_at" name="LT or AT simulation" type="bool" default="true" hint="If this switch is set to true the simulation models will be instantiated in LT. Otherwise in AT."/>
+    <option name="System Options" var="sys">
+      <option var="lt_at" name="LT or AT simulation" type="bool" default="true" hint="If this switch is set to true the simulation models will be instantiated in LT. Otherwise in AT."/>
+      <option var="gdb" name="Enable GDB support" type="bool" default="true" hint="If this switch is set to true the simulation models will include GDB support. Just add ' gdb' to the end of the comandline to wait for GDB connection."/>
+      <option var="timing" name="Enable Timing Report" type="bool" default="true" hint="If this switch is set to true the simulation models will print a timing report at the end of simulation."/>
+      <option var="power" name="Enable Global Power Report" type="bool" default="true" hint="If this switch is set to true the simulation models will iagregate power data for all components. This is very slow and eats up a lot of RAM and HDD space. (Not recomended)"/>
+    </option>
     <option var="ahbctrl" name="AHB Controler">
       <option var="ioaddr" name="AHB IO Area Address" type="int" default="0xFFF" range="0..0xFFF"/>
       <option var="iomask" name="AHB IO Area Mask" type="int" default="0xFFF" range="0..0xFFF"/>

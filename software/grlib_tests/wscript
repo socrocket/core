@@ -48,11 +48,28 @@ top = '../..'
 def build(bld):
   bld(
      features     = 'c cprogram sparc',
+     target       = 'hello.sparc',
+     source       = ['hello.c'],
+  )
+  
+  bld(
+     features     = 'c cprogram sparc',
      target       = 'irqmp.sparc',
      source       = ['top_irqmp_test.c',
                      'ramfill.c', 
                      'standalone.c', 
                      'irqmp.c', 
                      'cacheasm.S', 
+                     'cache.c'],
+  )
+  
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'ramtest.sparc',
+     source       = ['top_ram_test.c',
+                     'ramfill.c', 
+                     'standalone.c', 
+                     'ramtest.c',
+                     'cacheasm.S',
                      'cache.c'],
   )

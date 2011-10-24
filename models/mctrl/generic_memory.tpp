@@ -101,18 +101,18 @@ transport_dbg(tlm::tlm_generic_payload& gp) {
          for(unsigned int i=0; i<len; i++) {
             *(ptr+i) = readByteDBG(addr + i);
          }
-          cout << "DEBUG" << name() << "transport_dbg read" << len << ":"
-               << *(reinterpret_cast<uint32_t*>(ptr)) << "@"
-               << addr << endl;
+         v::debug << name() << "transport_dbg read " << len 
+                  << "bytes of address " << v::uint32 << addr << " with content "
+                  << *(reinterpret_cast<uint32_t*>(ptr)) << v::endl;
          return len;
          break;
       case tlm::TLM_WRITE_COMMAND:
          for(unsigned int i=0; i<len; i++) {
             writeByteDBG(addr, *(ptr+i));
          }
-          cout << "DEBUG" << name() << "transport_dbg write" << len << ":"
-               << *(reinterpret_cast<uint32_t*>(ptr)) << "@"
-               << addr << endl;
+         v::debug << name() << "transport_dbg write" << len 
+                  << "bytes of address " << v::uint32 << addr << " with content "
+                  << *(reinterpret_cast<uint32_t*>(ptr)) << v::endl;
          return len;
          break;
       default:

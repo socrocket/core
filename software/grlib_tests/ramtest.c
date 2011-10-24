@@ -8,8 +8,7 @@ extern wsysreg(int *addr, int data);
 extern cache_disable();
 extern cache_enable();
 
-cramtest()
-{
+cramtest() {
 	volatile double mrl[8*1024 + 8];
 	int i; 
 	int ilinesz, dlinesz, dbytes, ibytes, itmask, dtmask, isets, dsets; 
@@ -32,7 +31,6 @@ cramtest()
 	dtmask = (dlinesz - 1) | (0x80000000 - dbytes);
 
 	do cachectrl = rsysreg(0); while(cachectrl & (CCTRL_IFP | CCTRL_DFP));
-
 
 	/* dcache data ram */
 

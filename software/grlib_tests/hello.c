@@ -1,5 +1,9 @@
+#include "stdlib.h"
+#include "stdio.h"
 
-main()
-{
-	printf("Hello World\n");
+int main() {
+	  printf("Hello World\n");
+    fflush(stdout);
+    return 0;
 }
+

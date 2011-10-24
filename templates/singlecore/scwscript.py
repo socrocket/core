@@ -46,7 +46,7 @@
 top = '..'
 
 def build(bld):
-    ambaLayer = '${conf_lt_at}'
+    ambaLayer = '${conf_sys_lt_at}'
     use       = 'ahbctrl irqmp gptimer apbctrl socwire mmu_cache mctrl utils signalkit common TRAP BOOST ELF SYSTEMC AMBA TLM GREENSOCS '
     if ambaLayer == 'true':
         use  += 'leon3.functlt'

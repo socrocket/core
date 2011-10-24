@@ -1064,9 +1064,9 @@ void PM::analyzedlogprint(string const &infile, string const &outfile){
 
   // create directories
   //............................................
-  system( ("mkdir -p logfiles/"+outfile).c_str() );
-  system( ("mkdir -p plotfiles/"+outfile).c_str() );
-  system( ("mkdir -p graphs/"+outfile).c_str() );
+  system( ("mkdir -p build/logfiles/"+outfile).c_str() );
+  system( ("mkdir -p build/plotfiles/"+outfile).c_str() );
+  system( ("mkdir -p build/graphs/"+outfile).c_str() );
   //............................................
 
   for(vector< vector<analyzedEntry> >::iterator level = PM::AnalyzedData.begin(); level != PM::AnalyzedData.end(); level++){
@@ -1074,8 +1074,8 @@ void PM::analyzedlogprint(string const &infile, string const &outfile){
 
     // open streams
     //............................................
-    log.open( ("logfiles/"+outfile+"/"+ip->sc_name+".dat").c_str() , ios::out );
-    plot.open( ("plotfiles/"+outfile+"/"+ip->sc_name+".gnu").c_str() , ios::out );
+    log.open( ("build/logfiles/"+outfile+"/"+ip->sc_name+".dat").c_str() , ios::out );
+    plot.open( ("build/plotfiles/"+outfile+"/"+ip->sc_name+".gnu").c_str() , ios::out );
     //............................................
 
     // init
@@ -1213,7 +1213,7 @@ void PM::analyzedlogprint(string const &infile, string const &outfile){
 
     // write sum data
     //............................................
-    plot.open( ("plotfiles/"+outfile+"/"+ip->sc_name+".dat").c_str() , ios::out );
+    plot.open( ("build/plotfiles/"+outfile+"/"+ip->sc_name+".dat").c_str() , ios::out );
     
     plot << "# timestamp \t totalpower" << endl;
 
@@ -1265,7 +1265,7 @@ void PM::analyzedlogprint(string const &infile, string const &outfile){
 
   // create plotscript
   //..............................................
-  plot.open( "plotfiles/plot" , ios::out );
+  plot.open( "build/plotfiles/plot" , ios::out );
   
   plot << "#!/bin/bash" << endl;
   plot << "S=$1" << endl;
@@ -1287,7 +1287,7 @@ void PM::analyzedlogprint(string const &infile, string const &outfile){
   plot << "exit 0" << endl;
 
   plot.close();
-  system("chmod u+x plotfiles/plot");
+  system("chmod u+x build/plotfiles/plot");
   //..............................................
 
 } // end analyzedlogprint

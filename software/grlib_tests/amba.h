@@ -1,3 +1,5 @@
+#ifndef AMBA_H
+#define AMBA_H
 
 #define NAHBSLV 16
 #define NAHPSLV 16
@@ -7,20 +9,21 @@
 #define PPAHBMASK  0xFFF00000
 
 struct ahbpp_type {
-   unsigned int cfg[4];
-   unsigned int mem[4];
+    unsigned int cfg[4];
+    unsigned int mem[4];
 };
 
 struct apbpp_type {
-   unsigned int cfg;
-   unsigned int mem;
+    unsigned int cfg;
+    unsigned int mem;
 };
 
 struct ambadev {
-   unsigned int id;
-   unsigned int irq;
-   unsigned int ppstart;
-   unsigned int start[4];
-   unsigned int end[4];
+    unsigned int id;
+    unsigned int irq;
+    unsigned int ppstart;
+    unsigned int start[4];
+    unsigned int end[4];
 };
-   
+
+#endif
