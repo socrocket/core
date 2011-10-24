@@ -493,6 +493,7 @@ void leon3_funclt_trap::TLMMemory::write_byte( const unsigned int & address,
 
 sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword_dbg( const unsigned int & \
     address ) throw(){
+
     tlm::tlm_generic_payload trans;
     trans.set_address(address);
     trans.set_read();
@@ -500,6 +501,19 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword_dbg( const unsigned int &
     trans.set_streaming_width(8);
     sc_dt::uint64 datum = 0;
     trans.set_data_ptr(reinterpret_cast<unsigned char *>(&datum));
+    
+    // Create & init data payload extension
+    dcio_payload_extension* dcioExt = new dcio_payload_extension();
+    dcioExt->asi   = 8;
+    dcioExt->flush = 0;
+    dcioExt->lock  = 0;
+
+    unsigned int* debug = new unsigned int;
+    dcioExt->debug = debug;
+
+    // Hook extension onto payload
+    trans.set_extension(dcioExt);
+
     this->initSocket->transport_dbg(trans);
     #ifdef LITTLE_ENDIAN_BO
     unsigned int datum1 = (unsigned int)(datum);
@@ -520,6 +534,19 @@ unsigned int leon3_funclt_trap::TLMMemory::read_word_dbg( const unsigned int & a
     trans.set_streaming_width(4);
     unsigned int datum = 0;
     trans.set_data_ptr(reinterpret_cast<unsigned char *>(&datum));
+
+    // Create & init data payload extension
+    dcio_payload_extension* dcioExt = new dcio_payload_extension();
+    dcioExt->asi   = 8;
+    dcioExt->flush = 0;
+    dcioExt->lock  = 0;
+
+    unsigned int* debug = new unsigned int;
+    dcioExt->debug = debug;
+
+    // Hook extension onto payload
+    trans.set_extension(dcioExt);
+
     this->initSocket->transport_dbg(trans);
     //Now the code for endianess conversion: the processor is always modeled
     //with the host endianess; in case they are different, the endianess
@@ -539,6 +566,19 @@ unsigned short int leon3_funclt_trap::TLMMemory::read_half_dbg( const unsigned i
     trans.set_streaming_width(2);
     unsigned short int datum = 0;
     trans.set_data_ptr(reinterpret_cast<unsigned char *>(&datum));
+
+    // Create & init data payload extension
+    dcio_payload_extension* dcioExt = new dcio_payload_extension();
+    dcioExt->asi   = 8;
+    dcioExt->flush = 0;
+    dcioExt->lock  = 0;
+
+    unsigned int* debug = new unsigned int;
+    dcioExt->debug = debug;
+
+    // Hook extension onto payload
+    trans.set_extension(dcioExt);
+
     this->initSocket->transport_dbg(trans);
     //Now the code for endianess conversion: the processor is always modeled
     //with the host endianess; in case they are different, the endianess
@@ -558,6 +598,19 @@ unsigned char leon3_funclt_trap::TLMMemory::read_byte_dbg( const unsigned int & 
     trans.set_streaming_width(1);
     unsigned char datum = 0;
     trans.set_data_ptr(reinterpret_cast<unsigned char *>(&datum));
+
+    // Create & init data payload extension
+    dcio_payload_extension* dcioExt = new dcio_payload_extension();
+    dcioExt->asi   = 8;
+    dcioExt->flush = 0;
+    dcioExt->lock  = 0;
+
+    unsigned int* debug = new unsigned int;
+    dcioExt->debug = debug;
+
+    // Hook extension onto payload
+    trans.set_extension(dcioExt);
+
     this->initSocket->transport_dbg(trans);
     return datum;
 }
@@ -577,6 +630,19 @@ void leon3_funclt_trap::TLMMemory::write_dword_dbg( const unsigned int & address
     trans.set_data_length(8);
     trans.set_streaming_width(8);
     trans.set_data_ptr((unsigned char *)&datum);
+
+    // Create & init data payload extension
+    dcio_payload_extension* dcioExt = new dcio_payload_extension();
+    dcioExt->asi   = 8;
+    dcioExt->flush = 0;
+    dcioExt->lock  = 0;
+
+    unsigned int* debug = new unsigned int;
+    dcioExt->debug = debug;
+
+    // Hook extension onto payload
+    trans.set_extension(dcioExt);
+
     this->initSocket->transport_dbg(trans);
 }
 
@@ -594,6 +660,19 @@ void leon3_funclt_trap::TLMMemory::write_word_dbg( const unsigned int & address,
     trans.set_data_length(4);
     trans.set_streaming_width(4);
     trans.set_data_ptr((unsigned char *)&datum);
+
+    // Create & init data payload extension
+    dcio_payload_extension* dcioExt = new dcio_payload_extension();
+    dcioExt->asi   = 8;
+    dcioExt->flush = 0;
+    dcioExt->lock  = 0;
+
+    unsigned int* debug = new unsigned int;
+    dcioExt->debug = debug;
+
+    // Hook extension onto payload
+    trans.set_extension(dcioExt);
+
     this->initSocket->transport_dbg(trans);
 }
 
@@ -614,6 +693,19 @@ void leon3_funclt_trap::TLMMemory::write_half_dbg( const unsigned int & address,
     trans.set_data_length(2);
     trans.set_streaming_width(2);
     trans.set_data_ptr((unsigned char *)&datum);
+
+    // Create & init data payload extension
+    dcio_payload_extension* dcioExt = new dcio_payload_extension();
+    dcioExt->asi   = 8;
+    dcioExt->flush = 0;
+    dcioExt->lock  = 0;
+
+    unsigned int* debug = new unsigned int;
+    dcioExt->debug = debug;
+
+    // Hook extension onto payload
+    trans.set_extension(dcioExt);
+
     this->initSocket->transport_dbg(trans);
 }
 
@@ -628,6 +720,19 @@ void leon3_funclt_trap::TLMMemory::write_byte_dbg( const unsigned int & address,
     trans.set_data_length(1);
     trans.set_streaming_width(1);
     trans.set_data_ptr((unsigned char *)&datum);
+
+    // Create & init data payload extension
+    dcio_payload_extension* dcioExt = new dcio_payload_extension();
+    dcioExt->asi   = 8;
+    dcioExt->flush = 0;
+    dcioExt->lock  = 0;
+
+    unsigned int* debug = new unsigned int;
+    dcioExt->debug = debug;
+
+    // Hook extension onto payload
+    trans.set_extension(dcioExt);
+
     this->initSocket->transport_dbg(trans);
 }
 
