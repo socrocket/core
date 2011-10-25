@@ -19,16 +19,17 @@ struct gptimer {
 #define IRQPEND 0x10
 #define CHAIN_TEST 8
 
-static volatile gpirq = 0;
+static volatile int gpirq = 0;
 
-static gptimer_irqhandler(int irq) {
+static void gptimer_irqhandler(int irq) {
     gpirq += 1;
 }
 
-gptimer_test(int addr, int irq) {
+void gptimer_test(int addr, int irq) {
     struct gptimer *lr = (struct gptimer *) addr;
-    extern volatile int irqtbl[];
-    int i, j, pil, ntimers;
+    //extern volatile int irqtbl[];
+    //int pil;
+    int i, j, ntimers;
 
     report_device(0x01011000);
     ntimers = lr->configreg & 0x7;
@@ -85,7 +86,7 @@ gptimer_test(int addr, int irq) {
     }
 	
     if(irqmp_base) {
-        catch_interrupt(gptimer_irqhandler, irq);
+        catch_interrupt((int)gptimer_irqhandler, irq);
         init_irqmp(irqmp_base);
         irqmp_base->irqmask = 1 << irq;  /* unmask interrupt */
         lr->timer[0].reload = 15;

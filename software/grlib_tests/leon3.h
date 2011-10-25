@@ -1,3 +1,5 @@
+#ifndef LEON3_H
+#define LEON3_H
 /* ASI codes */
 
 #define ASI_PCI 	0x4
@@ -37,3 +39,4 @@
 #define DTAG_VALID_MASK ((1 << DLINESZ) -1)
 #define DTAG_MAX_ADDRESS ((1 << DTAG_BITS) -1) << (DLINEBITS + 2)
 
+#endif

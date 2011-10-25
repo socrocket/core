@@ -1,8 +1,8 @@
-
+#ifndef LEON2_H
+#define LEON2_H
 /* control structure */
 
 #ifndef __ASSEMBLER__
-
 struct l2regs {
 	volatile unsigned int memcfg1;		/* 0x00 */
 	volatile unsigned int memcfg2;
@@ -60,8 +60,6 @@ struct l2regs {
 	volatile unsigned int wprot2a;
 	volatile unsigned int wprot2e;
 };
-
-
 #endif
 
 /* control registers */
@@ -144,4 +142,4 @@ struct l2regs {
 #define DDE_BIT		6
 //#define CE_CLEAR	0x3fc0;
 
-
+#endif

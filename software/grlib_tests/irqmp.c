@@ -1,22 +1,23 @@
 #include "testmod.h"
 #include "irqmp.h"
+#include "cache.h"
 
 struct irqmp *irqmp_base;
 static volatile int irqtbl[18];
 
-irqhandler(int irq) {
+void irqhandler_f(int irq) {
     irqtbl[irqtbl[0]] = irq + 0x10;
     irqtbl[0]++;
 }
 
-init_irqmp(struct irqmp *lr) {
+void init_irqmp(struct irqmp *lr) {
     lr->irqlevel = 0;   /* clear level reg */
     lr->irqmask = 0x0;  /* mask all interrupts */
     lr->irqclear = -1;  /* clear all pending interrupts */
     irqtbl[0] = 1;      /* init irqtable */
 }
 	
-irqtest(int addr) {
+int irqtest(int addr) {
     int i, a, psr;
     volatile int marr[4];
     volatile int larr[4];
@@ -27,7 +28,7 @@ irqtest(int addr) {
     init_irqmp(lr);
 
     for(i=1; i<16; i++) {
-        catch_interrupt(irqhandler, i);
+        catch_interrupt(irqhandler_f, i);
     }
 
     /* test that interrupts are properly prioritised */

@@ -1,14 +1,10 @@
 
 #include "testmod.h"
+#include "cache.h"
 #define CCTRL_IFP (1<<15)
 #define CCTRL_DFP (1<<14)
 
-extern rsysreg(int addr);
-extern wsysreg(int *addr, int data);
-extern cache_disable();
-extern cache_enable();
-
-cramtest() {
+int cramtest() {
 	volatile double mrl[8*1024 + 8];
 	int i; 
 	int ilinesz, dlinesz, dbytes, ibytes, itmask, dtmask, isets, dsets; 

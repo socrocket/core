@@ -35,9 +35,9 @@
 
 #ifndef __ASSEMBLER__
 
-extern report_device();
-extern report_subtest();
-extern fail();
+extern void report_device(int);
+extern void report_subtest(int);
+extern void fail(int);
 extern int irqmp_addr;
 extern void (*mpfunc[16])(int index);
 

@@ -54,6 +54,28 @@ def build(bld):
   
   bld(
      features     = 'c cprogram sparc',
+     target       = 'cache.sparc',
+     source       = ['top_cache_test.c',
+                     'ramfill.c', 
+                     'standalone.c', 
+                     'cacheasm.S', 
+                     'cache.c'],
+  )
+  
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'gptimer.sparc',
+     source       = ['top_gptimer_test.c',
+                     'ramfill.c', 
+                     'standalone.c', 
+                     'irqmp.c',
+                     'gptimer.c',
+                     'cacheasm.S', 
+                     'cache.c'],
+  )
+  
+  bld(
+     features     = 'c cprogram sparc',
      target       = 'irqmp.sparc',
      source       = ['top_irqmp_test.c',
                      'ramfill.c', 
@@ -65,11 +87,34 @@ def build(bld):
   
   bld(
      features     = 'c cprogram sparc',
-     target       = 'ramtest.sparc',
+     target       = 'ram.sparc',
      source       = ['top_ram_test.c',
                      'ramfill.c', 
                      'standalone.c', 
                      'ramtest.c',
+                     'cacheasm.S',
+                     'cache.c'],
+  )
+  
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'reg.sparc',
+     source       = ['top_reg_test.c',
+                     'ramfill.c', 
+                     'standalone.c', 
+                     'regtest.S',
+                     'cacheasm.S',
+                     'cache.c'],
+  )
+  
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'mmu.sparc',
+     source       = ['top_mmu_test.c',
+                     'ramfill.c', 
+                     'standalone.c', 
+                     'mmu.c',
+                     'mmu_asm.S',
                      'cacheasm.S',
                      'cache.c'],
   )

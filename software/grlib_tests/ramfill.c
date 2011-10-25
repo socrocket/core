@@ -1,5 +1,4 @@
-extern rsysreg(int addr);
-extern wsysreg(int *addr, int data);
+#include "cache.h"
 
 void cache_disable(void) {
   asm(" sta %g0, [%g0] 2 ");
@@ -12,7 +11,7 @@ void cache_enable(void) {
 void ramfill(void) {
     int dbytes, ibytes, isets, dsets; 
     int icconf, dcconf;
-    int cachectrl; 
+    //int cachectrl; 
 
     icconf = rsysreg(8);
     dcconf = rsysreg(12);

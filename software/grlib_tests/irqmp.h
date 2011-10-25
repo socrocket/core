@@ -1,6 +1,8 @@
 #ifndef IRQMP_H
 #define IRQMP_H
 
+#include <asm-leon/irq.h>
+
 extern struct irqmp *irqmp_base;
 
 struct irqmp {
@@ -12,5 +14,8 @@ struct irqmp {
     volatile unsigned int dummy[11];  /* 0x14 - 0x3C */
     volatile unsigned int irqmask;    /* 0x40 */
 };
+
+void init_irqmp(struct irqmp * lr);
+int irqtest(int addr);
 
 #endif
