@@ -207,13 +207,14 @@ class amba_slave : public generic_slave_base,
                 //    std::cout<<"    "<<address<<": "<<std::hex<<"0x"<<((gp.get_data_ptr()[address]<16)?"0":"")<<((unsigned short)gp.get_data_ptr()[address])<<std::endl;
                 m_registers->bus_read(m_bus_read_data, address, mask, &trans,
                         m_delay_enabled);
-                #ifdef LITTLE_ENDIAN_BO
-                swap_Endianess(m_bus_read_data);
-                #endif
                 gs::MData mdata(gs::GSDataType::dtype(
                         (unsigned char *)&m_bus_read_data,
                         trans->getMBurstLength()));
                 trans->setSData(mdata);
+                #ifdef LITTLE_ENDIAN_BO
+                swap_Endianess(m_bus_read_data);
+                #endif
+                memcpy(&(gp.get_data_ptr()[0]), &m_bus_read_data, 4);
                 //}
             }
             gp.set_response_status(tlm::TLM_OK_RESPONSE);
