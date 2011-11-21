@@ -1,0 +1,58 @@
+/**
+@addtogroup models Models
+*/
+
+/**
+@addtogroup mctrl MCtrl
+@ingroup models
+@{  
+*/
+
+/** 
+@page overview Overview
+The TLM implementation of the MCTRL unit reproduces the functionality of the Gaisler GRLIB MCTRL VHDL implementation described in RD04. The timing is approximated at two different levels of abstraction (LT and AT). The MCTRL is a slave on the AHB bus and on the APB bus. It controls a memory subsystem comprising up to two memory busses and up to four different types of memory: PROM, memory mapped I/O, SRAM, and SDRAM. The MCTRL TLM model provides one exclusive TLM master socket for each of the mentioned types of devices. Addressing is done using three distinct address spaces (ROM, I/O, and RAM). Read and write transactions from the AHB slave interface are forwarded to the appropriate memory master socket. Incoming APB transactions are directed towards the register control interface.
+The register control interface consists of four configuration registers (Table 4). All of them are 32 bits wide.
+*/
+/**
+@page addressspace Address Space
+The address space is divided in the three partitions: PROM, I/O, and RAM. The division of the address space is static and cannot be modified after initialization of the MCTRL unit. In the VHDL implementation, the different parts of the address space are calculated from generics, which are implemented as constructor parameters in the TLM module.
+The PROM address space is derived from the parameters romaddr and rommask, which define the start address and the size of the PROM address space. The romaddr is written to the 12 bit-wide ADDR field of the GRLIB PnP BAR0 register of the MCTRL. The rommask is written to the 12 bit-wide MASK field of the GRLIB PnP BAR0 register. The bit mask represents the 12 most significant bits of the memory address. As the address space is byte-addressable and the address width is 32 bit, the 12 MSBs can mask the address space with a resolution of 2(32-12) bytes, i.e. 1 MByte. 
+The size of the PROM address space is: 
+(212 – rommask) MByte
+The address space is divided into two PROM banks of equal size.
+The local I/O address space is calculated in the same way as the PROM address space. All calculations are based on the ioaddr and iomask parameters. The only difference to PROM is that a subdivision into memory banks is not supported for local I/O.
+The RAM address space is derived from the ramaddr and rammask parameters. Again calculations are very similar to PROM and IO. Although, the partitioning of the resulting address space depends on the settings in the MCFG2 register. The register provides the fields SDRAM enable and SRAM disable indicating the presence of SRAM, SDRAM, or SRAM & SDRAM. If the SDRAM enable bit is low,  SRAM disable has no effect.
+For details and information on the organization of the RAM address space, regarding the number of banks, bank locations, bank sizes, and – in case of SDRAM – number of row and column address bits, see the GRIP user manual (RD04). Examples for possible partitionings of the RAM address space (default size of 1 GByte) are given in Figure 4.
+
+@section Dependencies
+
+@section HowToUse
+
+@section Folder Structure
+This directory contains a transaction level model of the Gaisler GRLIB MCTRL memory controller and a generic memory model that implements all types of memory supported by MCTRL. It also contains test systems. The following files and directories are present:
+
+mctrl.h
+class header of the MCTRL model
+
+mctrl.cpp
+implements the MCTRL model
+
+generic_memory.h
+defines the memory model as a template class
+
+generic_memory.tpp
+implements the memory model
+
+ext_erase.h
+defines an extension to the TLM generic payload, which causes deletion of a distinct portion of memory defined in the gp
+
+wscript
+defines targets to the build system
+
+test/
+directory containing the test systems and a readme file like this one
+
+*/
+/**
+@}
+*/
