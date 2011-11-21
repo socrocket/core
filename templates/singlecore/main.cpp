@@ -51,7 +51,7 @@
 #include <execLoader.hpp>
 #include <osEmulator.hpp>
 #include "mmu_cache.h"
-#include "generic_memory.h"
+#include "genericmemory.h"
 #include "apbctrl.h"
 #include "mctrl.h"
 #include "defines.h"
@@ -240,70 +240,99 @@ int sc_main(int argc, char** argv) {
 
     // CREATE MEMORY CONTROLLER
     // ========================
-    const int romasel = conf_memctrl_prom_asel;
-    const int sdrasel = conf_memctrl_ram_asel;
-    const int romaddr = conf_memctrl_prom_addr;
-    const int rommask = conf_memctrl_prom_mask;
-    const int ioaddr  = conf_memctrl_io_addr;
-    const int iomask  = conf_memctrl_io_mask;
-    const int ramaddr = conf_memctrl_ram_addr;
-    const int rammask = conf_memctrl_ram_mask;
-    const int paddr   = conf_memctrl_apb_addr;
-    const int pmask   = conf_memctrl_apb_mask;
-    const int wprot   = conf_memctrl_ram_wprot;
-    const int srbanks = 4;
-    const int ram8    = conf_memctrl_ram8;
-    const int ram16   = conf_memctrl_ram16;
-    const int sepbus  = conf_memctrl_sepbus;
-    const int sdbits  = conf_memctrl_sdbits;
-    const int mobile  = conf_memctrl_mobile;
-    const int sden    = conf_memctrl_sden;
-    const int hindex  = conf_memctrl_ahb_index;
-    const int pindex  = conf_memctrl_apb_index;
-    
-    //instantiate mctrl, generic memory, and testbench
-    Mctrl mctrl("mctrl", romasel, sdrasel, romaddr, rommask, ioaddr,
-            iomask, ramaddr, rammask, paddr, pmask, wprot, srbanks, ram8,
-            ram16, sepbus, sdbits, mobile, sden, hindex, pindex, false
+    Mctrl mctrl(
+        "mctrl", 
+        conf_memctrl_prom_asel, 
+        conf_memctrl_ram_asel, 
+        conf_memctrl_prom_addr, 
+        conf_memctrl_prom_mask, 
+        conf_memctrl_io_addr,
+        conf_memctrl_io_mask, 
+        conf_memctrl_ram_addr, 
+        conf_memctrl_ram_mask, 
+        conf_memctrl_apb_addr, 
+        conf_memctrl_apb_mask, 
+        conf_memctrl_ram_wprot, 
+        4, //conf_memctrl_srbanks, // <-- needs to be option
+        conf_memctrl_ram8,
+        conf_memctrl_ram16, 
+        conf_memctrl_sepbus, 
+        conf_memctrl_sdbits, 
+        conf_memctrl_mobile, 
+        conf_memctrl_sden, 
+        conf_memctrl_ahb_index, 
+        conf_memctrl_apb_index, 
+        false // <-- powermon
     );
-
-    // CREATE MEMORIES
-    // ===============
-    Generic_memory<uint8_t>  generic_memory_rom("generic_memory_rom");
-    Generic_memory<uint32_t> generic_memory_io("generic_memory_io");
-    Generic_memory<uint8_t>  generic_memory_sram("generic_memory_sram");
-    Generic_memory<uint32_t> generic_memory_sdram("generic_memory_sdram");
+    
     // Connecting AHB Slave
     ahbctrl.ahbOUT(mctrl.ahb);
     // Connecting APB Slave
     apbctrl.apb(mctrl.apb);
-    // connect memories to memory controller
-    mctrl.mctrl_rom(generic_memory_rom.slave_socket);
-    mctrl.mctrl_io(generic_memory_io.slave_socket);
-    mctrl.mctrl_sram(generic_memory_sram.slave_socket);
-    mctrl.mctrl_sdram(generic_memory_sdram.slave_socket);
     // Set clock
     mctrl.clk(LOCAL_CLOCK,SC_NS);
+
+    // CREATE MEMORIES
+    // ===============                                                  
+    GenericMemory rom(
+        "rom", 
+        MEMDevice::ROM, 
+        conf_memctrl_prom_banks, 
+        conf_memctrl_prom_bsize * 1024 * 1024, 
+        conf_memctrl_prom_width, 
+        0
+    );
+    GenericMemory io(
+        "io", 
+        MEMDevice::IO, 
+        conf_memctrl_prom_banks, 
+        conf_memctrl_prom_bsize * 1024 * 1024, 
+        conf_memctrl_prom_width, 
+        0
+    );
+    GenericMemory sram(
+        "sram", 
+        MEMDevice::SRAM, 
+        conf_memctrl_ram_s_banks, 
+        conf_memctrl_ram_s_bsize * 1024 * 1024, 
+        conf_memctrl_ram_s_width, 
+        0
+    );
+    GenericMemory sdram(
+        "sdram", 
+        MEMDevice::SDRAM, 
+        conf_memctrl_ram_sd_banks, 
+        conf_memctrl_ram_sd_bsize * 1024 * 1024, 
+        conf_memctrl_ram_sd_width, 
+        conf_memctrl_ram_sd_cols
+    );
+    
+    // connect memories to memory controller
+    mctrl.mem(rom.bus);
+    mctrl.mem(io.bus);
+    mctrl.mem(sram.bus);
+    mctrl.mem(sdram.bus);
     
     //Ctb_ahb_mem ahb_mem("AHB_MEM", 0x0, 0x800);
     //ahbctrl.ahbOUT(ahb_mem.ahb);
+    
     // * ELF Loader ****************************
     // ELF loader from leon (Trap-Gen)
     // Loads the application into the memmory.
     // Initialize memory
     uint8_t *execData;
-    ExecLoader sram_loader(sram_app); 
-    execData = sram_loader.getProgData();
-    for(unsigned int i = 0; i < sram_loader.getProgDim(); i++) {
-       generic_memory_sram.writeByteDBG(sram_loader.getDataStart() + i, execData[i]);
+    ExecLoader sdram_loader(sram_app); 
+    execData = sdram_loader.getProgData();
+    for(unsigned int i = 0; i < sdram_loader.getProgDim(); i++) {
+       sdram.write(sdram_loader.getDataStart() + i - ((conf_memctrl_ram_addr&conf_memctrl_ram_mask)<<20), execData[i]);
     }
-    //leon3.ENTRY_POINT   = sram_loader.getProgStart();
-    leon3.PROGRAM_LIMIT = sram_loader.getProgDim() + sram_loader.getDataStart();
-    leon3.PROGRAM_START = sram_loader.getDataStart();
+    //leon3.ENTRY_POINT   = sdram_loader.getProgStart();
+    leon3.PROGRAM_LIMIT = sdram_loader.getProgDim() + sdram_loader.getDataStart();
+    leon3.PROGRAM_START = sdram_loader.getDataStart();
     ExecLoader prom_loader(prom_app); 
     execData = prom_loader.getProgData();
     for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
-       generic_memory_rom.writeByteDBG(prom_loader.getDataStart() + i, execData[i]);
+       rom.write(prom_loader.getDataStart() + i - ((conf_memctrl_prom_addr&conf_memctrl_prom_mask)<<20), execData[i]);
        //ahb_mem.writeByteDBG(prom_loader.getDataStart() + i, execData[i]);
        //v::debug << "sc_main" << "Write to PROM: Addr: " << v::uint32 << prom_loader.getDataStart() + i << " Data: " << v::uint8 << (uint32_t)execData[i] << v::endl;
     }
