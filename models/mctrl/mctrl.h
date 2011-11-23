@@ -77,7 +77,9 @@ class Mctrl : public gs::reg::gr_device,
               int _wprot = 0, int _srbanks = 4, 
               int _ram8 = 0, int _ram16 = 0, int _sepbus = 0, 
               int _sdbits = 32, int _mobile = 0, int _sden = 0, 
-	      unsigned int hindex = 0, unsigned int pindex = 0, bool powermon = false);
+	      unsigned int hindex = 0, unsigned int pindex = 0, 
+	      bool powermon = false,
+	      amba::amba_layer_ids abstractionLayer = amba::amba_LT);
         ~Mctrl();
 
         //APB slave socket: connects mctrl config registers to apb
@@ -140,6 +142,9 @@ class Mctrl : public gs::reg::gr_device,
         };
         MEMPort c_rom, c_io, c_sram, c_sdram, c_null;
         Mctrl::MEMPort get_port(uint32_t address);
+
+	// TLM abstraction layer
+	amba::amba_layer_ids m_abstractionLayer;
 
         // control / timing variables
         

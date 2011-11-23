@@ -56,7 +56,8 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
              int _romaddr, int _rommask, int _ioaddr, int _iomask,
              int _ramaddr, int _rammask, int _paddr, int _pmask, int _wprot,
              int _srbanks, int _ram8, int _ram16, int _sepbus, int _sdbits,
-             int _mobile, int _sden, unsigned int hindex, unsigned int pindex, bool powermon) :
+             int _mobile, int _sden, unsigned int hindex, unsigned int pindex, 
+	     bool powermon, amba::amba_layer_ids abstractionLayer) :
             gr_device(name, gs::reg::ALIGNED_ADDRESS, 16, NULL),
             AHBDevice( hindex,
                     0x04, // ven: ESA
@@ -83,7 +84,8 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                     false //socket is not used for arbitration
             ), 
             mem("mem", gs::socket::GS_TXN_ONLY),
-            rst(&Mctrl::reset_mctrl, "RESET"), g_romasel(_romasel),
+            rst(&Mctrl::reset_mctrl, "RESET"),
+	    m_abstractionLayer(abstractionLayer), g_romasel(_romasel),
             g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask), 
             g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr), 
             g_rammask(_rammask), g_paddr(_paddr), g_pmask(_pmask), g_wprot(_wprot),
