@@ -70,6 +70,7 @@ tlmcpu_rtlcache_transactor::tlmcpu_rtlcache_transactor(sc_core::sc_module_name n
 			      d_execute_flush("d_execute_flush"),
 			      d_execute_flushl("d_execute_flushl"),
 			      d_execute_asi("d_execute_asi"),
+			      d_execute_write("d_execute_write"),
 			      d_memory_address("d_memory_address"),
 			      d_memory_data("d_memory_data"),
 			      d_memory_valid("d_memory_valid"),
@@ -137,7 +138,7 @@ tlmcpu_rtlcache_transactor::tlmcpu_rtlcache_transactor(sc_core::sc_module_name n
 
   // Mux dci input signals
   SC_THREAD(dci_signal_mux);
-  sensitive << d_execute_address << d_execute_data << d_execute_valid << d_execute_flushl << d_execute_flush << d_execute_asi
+  sensitive << d_execute_address << d_execute_data << d_execute_write << d_execute_valid << d_execute_flushl << d_execute_flush << d_execute_asi
 	    << d_memory_address << d_memory_data << d_memory_valid << d_memory_write << d_memory_flush << d_memory_flushl << d_memory_asi
             << d_done_address << d_done_data << d_done_valid << d_done_write << dco;
 
@@ -182,7 +183,7 @@ void tlmcpu_rtlcache_transactor::ici_signal_mux() {
     }
 
     // Generate inull
-    if ((i_execute_valid | i_memory_valid | i_done_valid) == false) {
+    if (i_execute_valid == false) {
 
       tmp.inull = SC_LOGIC_1;
 
@@ -224,11 +225,19 @@ void tlmcpu_rtlcache_transactor::dci_signal_mux() {
 
       // If the pipeline is not stalled and the transaction
       // in the execute stage is valid (no nop):
-      // 1. Set a new eaddress
-      tmp.eaddress = d_execute_address;
-      // 2. Set execute address enable
-      tmp.eenaddr  = SC_LOGIC_1;
-      // 3. Set extensions
+
+      if (d_execute_write == SC_LOGIC_1) {
+	
+	tmp.eenaddr  = SC_LOGIC_1;
+	tmp.eaddress = d_execute_address;
+
+      } else {
+
+	tmp.eaddress = d_memory_address;
+
+      }
+      
+      // Set extensions
       tmp.flush    = d_execute_flush;
       tmp.flushl   = d_execute_flushl;
       tmp.asi      = d_execute_asi;
@@ -237,6 +246,7 @@ void tlmcpu_rtlcache_transactor::dci_signal_mux() {
 
     } else {
 
+      tmp.eaddress = d_memory_address;
       tmp.eenaddr  = SC_LOGIC_0;
       tmp.flush    = SC_LOGIC_0;
       tmp.flushl   = SC_LOGIC_0;
@@ -273,11 +283,12 @@ void tlmcpu_rtlcache_transactor::dci_signal_mux() {
 
       }	
 
-    } else if ((dco.read().hold==SC_LOGIC_0)&&(d_memory_write==SC_LOGIC_1)) {
+    } else if ((dco.read().hold==SC_LOGIC_0)&&(d_done_write==SC_LOGIC_1)) {
 
       // In case the write buffer is full, the hold signal
       // will go down. In that case the write data must be
       // written to the maddress output.
+
       tmp.maddress = d_done_data;
       tmp.enaddr   = SC_LOGIC_0;
 
@@ -289,7 +300,8 @@ void tlmcpu_rtlcache_transactor::dci_signal_mux() {
     }
 
     // Generate read/write selector
-    if ((d_memory_write | d_done_write) == SC_LOGIC_1) {
+    //if ((d_memory_write | d_done_write) == SC_LOGIC_1) {
+    if (d_memory_write == SC_LOGIC_1) {
 
       tmp.read     = SC_LOGIC_0;
       tmp.write    = SC_LOGIC_1;
@@ -404,7 +416,7 @@ void tlmcpu_rtlcache_transactor::i_request() {
 
     // Unless there is a stall (hold != 1),
     // fill a new transaction or a nop into the pipeline
-    if (ico.read().hold == SC_LOGIC_1) {
+    if ((ico.read().hold == SC_LOGIC_1)&&(dco.read().hold == SC_LOGIC_1)) {
 
       if (m_InstrFIFO.nb_read(trans)) {
 
@@ -445,7 +457,7 @@ void tlmcpu_rtlcache_transactor::d_request() {
     // Unless there is a stall (hold != 1),
     // fill a new transaction or a nop into
     // the pipeline
-    if (dhold == SC_LOGIC_1) {
+    if ((dco.read().hold == SC_LOGIC_1)&&(ico.read().hold == SC_LOGIC_1)) {
 
       if (m_DataFIFO.nb_read(trans)) {
 
@@ -507,10 +519,10 @@ void tlmcpu_rtlcache_transactor::i_pipe() {
     trans_done = trans_done_state->first;
     trans_unst = trans_unst_state->first;
 
-    v::debug << name() << "IPIPE ADDR: " << hex << trans_addr << " CMD: " << trans_addr->get_command() << v::endl;
-    v::debug << name() << "IPIPE DATA: " << hex << trans_data << " CMD: " << trans_data->get_command() << v::endl;
-    v::debug << name() << "IPIPE DONE: " << hex << trans_done << " CMD: " << trans_done->get_command() << v::endl;
-    v::debug << name() << "IPIPE UNST: " << hex << trans_unst << " CMD: " << trans_unst->get_command() << v::endl;
+    //v::debug << name() << "IPIPE ADDR: " << hex << trans_addr << " CMD: " << trans_addr->get_command() << v::endl;
+    //v::debug << name() << "IPIPE DATA: " << hex << trans_data << " CMD: " << trans_data->get_command() << v::endl;
+    //v::debug << name() << "IPIPE DONE: " << hex << trans_done << " CMD: " << trans_done->get_command() << v::endl;
+    //v::debug << name() << "IPIPE UNST: " << hex << trans_unst << " CMD: " << trans_unst->get_command() << v::endl;
 
     // ADDRESS Phase of pipeline (CPU - EXECUTE)
     // =========================================
@@ -538,6 +550,16 @@ void tlmcpu_rtlcache_transactor::i_pipe() {
 	trans_addr_state->second = tlm::END_REQ;
 
       }
+
+      if (trans_addr->get_command() == tlm::TLM_WRITE_COMMAND) {
+
+	d_execute_write = true;
+
+      } else {
+
+	d_execute_write = false;
+
+      } 
 
     } else {
 
@@ -594,6 +616,11 @@ void tlmcpu_rtlcache_transactor::i_pipe() {
 	trans_done_state->second = tlm::BEGIN_RESP;
 
       }
+
+    } else {
+
+      i_done_valid.write(false);
+
     }
   }      
 }
@@ -635,10 +662,10 @@ void tlmcpu_rtlcache_transactor::d_pipe() {
     trans_done = trans_done_state->first;
     trans_unst = trans_unst_state->first;
 
-    v::debug << name() << "DPIPE ADDR: " << hex << trans_addr << " CMD: " << trans_addr->get_command() << v::endl;
-    v::debug << name() << "DPIPE DATA: " << hex << trans_data << " CMD: " << trans_data->get_command() << v::endl;
-    v::debug << name() << "DPIPE DONE: " << hex << trans_done << " CMD: " << trans_done->get_command() << v::endl;
-    v::debug << name() << "DPIPE UNST: " << hex << trans_unst << " CMD: " << trans_unst->get_command() << v::endl;
+    //v::debug << name() << "DPIPE ADDR: " << hex << trans_addr << " CMD: " << trans_addr->get_command() << v::endl;
+    //v::debug << name() << "DPIPE DATA: " << hex << trans_data << " CMD: " << trans_data->get_command() << v::endl;
+    //v::debug << name() << "DPIPE DONE: " << hex << trans_done << " CMD: " << trans_done->get_command() << v::endl;
+    //v::debug << name() << "DPIPE UNST: " << hex << trans_unst << " CMD: " << trans_unst->get_command() << v::endl;
 
     // ADDRESS Phase of pipeline (CPU - EXECUTE)
     // =========================================
@@ -687,6 +714,7 @@ void tlmcpu_rtlcache_transactor::d_pipe() {
 	trans_addr->get_extension(dext);
 	d_execute_flush.write((bool)(dext->flush));
 	d_execute_flushl.write((bool)(dext->flushl));
+	d_execute_asi.write(dext->asi);
 
       }
       

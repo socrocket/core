@@ -68,6 +68,9 @@ class Mctrl : public gs::reg::gr_device,
               public APBDevice,
               public signalkit::signal_module<Mctrl> {
     public:
+
+        SC_HAS_PROCESS(Mctrl);
+
         //constructor / destructor
         Mctrl(sc_module_name name, int _romasel = 28, int _sdrasel = 29,
               int _romaddr = 0x0, int _rommask = 0xE00, 
@@ -111,10 +114,22 @@ class Mctrl : public gs::reg::gr_device,
         void mcfg1_write();
         void mcfg2_write();
 
-        // define TLM transport functions
+        // TLM blocking transport functions
         virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
         // TLM debug interface
         uint32_t transport_dbg(tlm::tlm_generic_payload& gp);
+
+	// TLM non-blocking transport function
+	tlm::tlm_sync_enum nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay);
+
+	// Encapsulation function for functional part of the model
+	void exec_func(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay);
+
+	// Accept new transaction (busy or not)
+	void acceptTXN();
+
+	// Thread for interfacing functional part of the model in AT mode
+	void processTXN();
 
         // management of the clock cycle length, required for delay calculation
         sc_core::sc_time cycle_time; //variable to store the clock period
@@ -146,6 +161,13 @@ class Mctrl : public gs::reg::gr_device,
 	// TLM abstraction layer
 	amba::amba_layer_ids m_abstractionLayer;
 
+	// Ready to accept new transaction (send END_REQ)
+	sc_event unlock_event;
+
+	// Event queue for AT mode
+	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mAcceptPEQ;
+	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mTransactionPEQ;
+
         // control / timing variables
         
         // count time elapsing in callbacks (to be added in next transaction)
@@ -159,7 +181,10 @@ class Mctrl : public gs::reg::gr_device,
         
         // refresh can only be started in idle state, 
         // so it might be necessary to stall
-        sc_core::sc_time refresh_stall; 
+        sc_core::sc_time refresh_stall;
+
+	// false - ready to accept new transaction
+	bool busy;
         
         //length of refresh cycle
         uint8_t m_trfc; 

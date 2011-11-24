@@ -106,7 +106,7 @@ def build(bld):
   bld(
     target          = 'mctrl',
     features        = 'cxx cxxstlib',
-    source          = 'mctrl.cpp genericmemory.cpp mctrl_test.cpp', 
+    source          = 'mctrl.cpp genericmemory.cpp ./tests/mctrl_test.cpp', 
     export_includes = '.',
     uselib          = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use             = 'utils signalkit common'
@@ -116,8 +116,8 @@ def build(bld):
     features     = 'cxx cprogram test',
     target       = 'mctrl.1.lt.test',
     source       = ['tests/test1/testbench.cpp',
-                    'tests/test1/sim_lt/top_tlm.cpp'],
-    includes     = '. tests tests/test1 tests/test1/sim_lt',
+                    'tests/test1/top_lt.cpp'],
+    includes     = '. tests tests/test1',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )
@@ -126,8 +126,8 @@ def build(bld):
     features     = 'cxx cprogram test',
     target       = 'mctrl.1.at.test',
     source       = ['tests/test1/testbench.cpp',
-                    'tests/test1/sim_at/top_tlm.cpp'],
-    includes     = '. tests tests/test1 tests/test1/sim_at',
+                    'tests/test1/top_at.cpp'],
+    includes     = '. tests tests/test1',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )

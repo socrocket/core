@@ -155,10 +155,7 @@ tlm::tlm_sync_enum ahbctrl_test::nb_transport_bw(tlm::tlm_generic_payload &trans
   // New response - goes into response PEQ
   } else if (phase == tlm::BEGIN_RESP) {
 
-    // Notify ahbread for returning control to user
-    //mEndRequestEvent.notify();
-
-    // Put new reponse into ResponsePEQ
+    // Put new response into ResponsePEQ
     mResponsePEQ.notify(trans, delay);
 
   // Data phase completed

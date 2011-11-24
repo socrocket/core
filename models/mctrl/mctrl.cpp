@@ -80,13 +80,13 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                     false //socket is not used for arbitration
             ),
             ahb("ahb", ::amba::amba_AHB, //bus type
-                    ::amba::amba_LT, //abstraction level
+                    abstractionLayer, //abstraction level
                     false //socket is not used for arbitration
             ), 
             mem("mem", gs::socket::GS_TXN_ONLY),
             rst(&Mctrl::reset_mctrl, "RESET"),
-	    m_abstractionLayer(abstractionLayer), g_romasel(_romasel),
-            g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask), 
+	    m_abstractionLayer(abstractionLayer), mAcceptPEQ("mAcceptPEQ"), mTransactionPEQ("TransactionPEQ"),
+	    busy(false), g_romasel(_romasel), g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask), 
             g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr), 
             g_rammask(_rammask), g_paddr(_paddr), g_pmask(_pmask), g_wprot(_wprot),
             g_srbanks(_srbanks), g_ram8(_ram8), g_ram16(_ram16), g_sepbus(_sepbus),
@@ -138,13 +138,23 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                  << "Check ram/io address and mask for overlaps." << v::endl;
     }
 
-    // register transport functions to sockets
+    // Register transport functions to sockets
     ahb.register_b_transport(this, &Mctrl::b_transport);
     ahb.register_transport_dbg(this, &Mctrl::transport_dbg);
 
-    // nb_transport to be added
+    // Register non-blocking transport for AT
+    if (m_abstractionLayer == amba::amba_AT) {
 
-    // create register | name + description
+      ahb.register_nb_transport_fw(this, &Mctrl::nb_transport_fw);
+      
+      // Thread for interfacing functional part of the model
+      // in AT mode.
+      SC_THREAD(acceptTXN);
+      SC_THREAD(processTXN);
+
+    }
+
+    // Create register | name + description
     r.create_register( "MCFG1", "Memory Configuration Register 1", 0x00, // offset
                        gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // configuration
                        gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
@@ -361,11 +371,170 @@ void Mctrl::reset_mctrl(const bool &value, const sc_time &time) {
     }
 }
 
-// blocking transport function
+// TLM non-blocking forward transport function
+tlm::tlm_sync_enum Mctrl::nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay) {
+
+  v::debug << name() << "nb_transport_fw received transaction " << hex << &trans << " with phase: " << phase << v::endl;
+
+  // The master has sent BEGIN_REQ
+  if (phase == tlm::BEGIN_REQ) {
+
+    mAcceptPEQ.notify(trans, delay);
+    delay = SC_ZERO_TIME;
+
+  } else if (phase == amba::BEGIN_DATA) {
+
+    mTransactionPEQ.notify(trans, delay);
+    delay = SC_ZERO_TIME;
+
+  } else if (phase == tlm::END_RESP) {
+
+    // nothing to do
+
+  } else {
+
+    v::error << name() << "Invalid phase in call to nb_transport_fw!" << v::endl;
+    trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+
+  }
+
+  return(tlm::TLM_ACCEPTED);
+
+}
+
+void Mctrl::acceptTXN() {
+
+  tlm::tlm_phase phase;
+  sc_core::sc_time delay;
+  tlm::tlm_sync_enum status;
+
+  tlm::tlm_generic_payload * trans;
+
+  while(1) {
+
+    wait(mAcceptPEQ.get_event());
+
+    while((trans = mAcceptPEQ.get_next_transaction())) {
+
+      // Read transaction will be processed directly.
+      // For write we wait for BEGIN_DATA (see nb_transport_fw)
+      if (trans->get_command() == TLM_READ_COMMAND) {
+
+	mTransactionPEQ.notify(*trans);
+
+      }
+
+      // Check if new transaction can be accepted
+      if (busy == true) {
+
+	wait(unlock_event);
+
+      }
+
+      // Send END_REQ
+      phase = tlm::END_REQ;
+      delay = SC_ZERO_TIME;
+
+      v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
+
+      // Call to backward transport
+      status = ahb->nb_transport_bw(*trans, phase, delay);
+
+      assert(status==tlm::TLM_ACCEPTED);
+      
+    }
+  }
+}
+
+// Process for interfacing the functional part of the model in AT mode
+void Mctrl::processTXN() {
+
+  tlm::tlm_phase phase;
+  sc_core::sc_time delay;
+  tlm::tlm_sync_enum status;
+
+  tlm::tlm_generic_payload *trans;
+
+  while(1) {
+
+    wait(mTransactionPEQ.get_event());
+
+    while((trans = mTransactionPEQ.get_next_transaction())) {
+
+      v::debug << name() << "Process transaction " << hex << trans << v::endl;
+
+      // Reset delay
+      delay = SC_ZERO_TIME;
+
+      // Call the functional part of the model
+      // -------------------------------------
+      exec_func(*trans, delay);
+
+      // Device busy (can not accept new transaction anymore)
+      busy = true;
+
+      // Consume component delay
+      wait(delay);
+
+      // Device idle
+      busy = false;
+
+      // Ready to accept new transaction
+      unlock_event.notify();
+
+      // For write commands send END_DATA.
+      // Transaction has been delayed until begin of Data Phase (see transport_fw)
+      if (trans->get_command() == tlm::TLM_WRITE_COMMAND) {
+
+	phase = amba::END_DATA;
+	
+	v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << " (delay: " << delay << ")" << v::endl;
+
+	// Call backward transport
+	status = ahb->nb_transport_bw(*trans, phase, delay);
+
+	assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_COMPLETED));
+
+      // Read command - send BEGIN_RESP
+      } else {
+
+	phase = tlm::BEGIN_RESP;
+
+	v::debug << name() << " Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << " (delay: " << delay << ")" << v::endl;
+	
+	// Call backward transport
+	status = ahb->nb_transport_bw(*trans, phase, delay);
+
+	assert(status==tlm::TLM_ACCEPTED);
+
+      }
+    }
+  }
+}
+       
+
+// TLM blocking transport function
 // TODO Cleaning that mess up a little more!!
 // Subfunctions for Timing seperated from Functionality
 // Register validation and read, write should be seperated in variables
-void Mctrl::b_transport(tlm_generic_payload &gp, sc_time &delay) {
+void Mctrl::b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
+
+  // Call the functional part of the model
+  // -------------------------------------
+  exec_func(trans, delay);
+
+  // Consume component delay
+  wait(delay);
+
+  // Reset delay
+  delay = SC_ZERO_TIME;
+
+}
+
+
+// Interface to functional part of the model
+void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
+
     //access to ROM adress space
     uint32_t word_delay = 0;
     uint32_t trans_delay = 0;
@@ -376,6 +545,7 @@ void Mctrl::b_transport(tlm_generic_payload &gp, sc_time &delay) {
     unsigned char *data = gp.get_data_ptr();
     bool rmw = (r[MCFG2].get() >> 6) & 1;
     MEMPort  port   = get_port(addr);
+
     v::debug << name() << "Try to access memory at " << v::uint32 << addr << " of length " << length << "." << v::endl;
     if(port.id!=100) {
         tlm_generic_payload memgp;

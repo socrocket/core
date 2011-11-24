@@ -1,3 +1,48 @@
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", ther is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      mmu_cache_test.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Implementation of top-level class for all mmu_cache tests.
+//             All tests of this module inherit from this class.
+//
+// Method:
+//
+// Modified on $Date$
+//          at $Revision$
+//          by $Author$
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
+
 #include "mmu_cache_test.h"
 
 // Constructor
@@ -356,11 +401,11 @@ void mmu_cache_test::check_delayed() {
 
       if (checkpair->result[i] != checkpair->refer[i]) {
 
-	v::error << name() << "Testbench Error (Expected/Received): " << v::endl;
+	v::error << name() << "Testbench Error (Expected/Received) from check @ " << checkpair->check_time << v::endl;
 	
 	for (j=0; j<checkpair->len; j++) {
 
-	  v::error << name() << checkpair->refer[j] << "/" << checkpair->result[j] << v::endl;
+	  v::error << name() << hex << (unsigned int)checkpair->refer[j] << "/" << hex << (unsigned int)checkpair->result[j] << v::endl;
 	  ec++;
 
 	}

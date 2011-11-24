@@ -118,6 +118,7 @@ class tlmcpu_rtlcache_transactor : public sc_module {
   sc_signal<bool>        d_execute_flushl;
   sc_signal<bool>        d_execute_flush;
   sc_signal<sc_lv<8> >   d_execute_asi;
+  sc_signal<bool>        d_execute_write;
 
   sc_signal<sc_lv<32> >  d_memory_address;
   sc_signal<sc_lv<32> >  d_memory_data;
