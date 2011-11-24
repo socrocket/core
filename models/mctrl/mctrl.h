@@ -63,15 +63,46 @@
 #include "verbose.h"
 #include "ext_erase.h"
 
+/// @addtogroup mctrl MCtrl
+/// @{
+
+/// @brief This class is an TLM 2.0 Model of the Aeroflex Gaisler GRLIB mctrl.
+/// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 66.
 class Mctrl : public gs::reg::gr_device,
               public AHBDevice,
               public APBDevice,
               public signalkit::signal_module<Mctrl> {
     public:
-
         SC_HAS_PROCESS(Mctrl);
-
-        //constructor / destructor
+        
+        /// Creates a new Instance of an MCtrl.
+        ///
+        /// @param name The name of the instance. Needed for SystemC.
+        /// @param _romasel
+        /// @param _sdrasel
+        /// @param _romaddr
+        /// @param _rommask
+        /// @param _ioaddr
+        /// @param _iomask
+        /// @param _ramaddr
+        /// @param _rammask
+        /// @param _paddr
+        /// @param _pmask
+        /// @param _wprot
+        /// @param _srbanks
+        /// @param _ram8
+        /// @param _ram16
+        /// @param _sepbus
+        /// @param _sdbits
+        /// @param _mobile
+        /// @param _sden
+        /// @param _hindex
+        /// @param _pindex
+        /// @param _powermon
+        /// @param _abstractionLayer
+        ///
+        /// All constructor parameter are directly related to an VHDL Generic in the original Model. 
+        /// Therefore read the GRLIB IP Core User's Manual Section 66.15 for more information.
         Mctrl(sc_module_name name, int _romasel = 28, int _sdrasel = 29,
               int _romaddr = 0x0, int _rommask = 0xE00, 
               int _ioaddr = 0x200, int _iomask = 0xE00, 
@@ -83,69 +114,118 @@ class Mctrl : public gs::reg::gr_device,
 	      unsigned int hindex = 0, unsigned int pindex = 0, 
 	      bool powermon = false,
 	      amba::amba_layer_ids abstractionLayer = amba::amba_LT);
+
+        /// Default destructor
         ~Mctrl();
 
-        //APB slave socket: connects mctrl config registers to apb
+        /// APB Slave Socket
+        ///
+        /// Connects mctrl config registers to APB
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb;
 
-        //AHB slave socket: receives instructions (mem access) from CPU
+        /// AHB Slave Socket
+        ///
+        /// Receives instructions (mem access) from CPU
         ::amba::amba_slave_socket<32> ahb;
 
-        //Master sockets: Initiate communication with memory modules
+        /// Memory Master Socket
+        ///
+        /// Initiate communication with memory modules.
         gs::socket::initiator_multi_socket<32> mem;
 
-        //reset signal
+        /// Reset Signal
         signal<bool>::in rst;
 
-        // proclamation of callbacks
+      // SystemC Declerations
+        /// proclamation of callbacks
         GC_HAS_CALLBACKS();
 
-        // function prototypes
+        /// Execute the callback registering when systemc reaches the end of elaboration.
         void end_of_elaboration();
+
+        /// Gathers information about the connected memory types when SystemC reaches the start of simulation.
         void start_of_simulation();
 
-        // thread process to initialize MCTRL 
-        // (set registers, define address spaces, etc.)
-        void reset_mctrl(const bool &value, const sc_core::sc_time &time);
+      // Signal Callbacks
+        /// Reset Handler
+        ///
+        /// Executed on rst state change.
+        /// Performs a full reset of the Model.
+        /// So it will set all registers to defaults, etc.
+        ///
+        /// @param value The new Value of the Signal.
+        /// @param delay A possible delay. Which means the reset might be performed in the future (Not used for resets!).
+        void reset_mctrl(const bool &value, const sc_core::sc_time &delay);
 
-        //callbacks reacting on register access
+      // Register Callbacks
+        /// Performing an SDRAM Command
+        ///
+        /// This function is executed by the SDRAM Command Field in the MCFG2 Register.
+        /// It will perform the coresponding state change to the SDRAM Controler and RAM.
+        /// For more information read the corresponding Secton from the GRLIB IP Core User's Manual: Section 66.9.
         void launch_sdram_command();
+
+        /// Performing an Power-Mode change
+        ///
+        /// This function is executed by the pmode Field in the MCFG4 Register.
+        /// It will perform the coresponding state change to the Memory Controler and RAM.
+        /// For more information read the corresponding Secton from the GRLIB IP Core User's Manual: Section 66.9.
         void switch_power_mode();
         void mcfg1_write();
         void mcfg2_write();
 
-        // TLM blocking transport functions
+        /// TLM blocking transport function
         virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
-        // TLM debug interface
+        
+        /// TLM debug transport function
         uint32_t transport_dbg(tlm::tlm_generic_payload& gp);
 
-	// TLM non-blocking transport function
-	tlm::tlm_sync_enum nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay);
+        /// TLM non-blocking transport function
+        tlm::tlm_sync_enum nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
-	// Encapsulation function for functional part of the model
-	void exec_func(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay);
+        /// Encapsulation function for functional part of the model
+        void exec_func(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay);
 
-	// Accept new transaction (busy or not)
-	void acceptTXN();
+        /// Accept new transaction (busy or not)
+        void acceptTXN();
 
-	// Thread for interfacing functional part of the model in AT mode
-	void processTXN();
+        /// Thread for interfacing functional part of the model in AT mode
+        void processTXN();
 
-        // management of the clock cycle length, required for delay calculation
+        /// management of the clock cycle length, required for delay calculation
         sc_core::sc_time cycle_time; //variable to store the clock period
-        
-        // Three functions to set the clockcycle length.
-        /// gets the clock period from an sc_clk instance
-        void clk(sc_core::sc_clock &clk);
-        
-        // gets the clock period from an sc_time variable
-        void clk(sc_core::sc_time &period); 
 
-        // directly gets the clock period and time unit
+      // Functions
+        /// Set the clockcycle length.
+        ///
+        ///  With this function you can set the clockcycle length of the gptimer instance.
+        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
+        ///
+        /// @param clk An sc_clk instance. The function will extract the clockcycle length from the instance.
+        void clk(sc_core::sc_clock &clk);
+
+        /// Set the clockcycle length.
+        ///
+        ///  With this function you can set the clockcycle length of the gptimer instance.
+        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
+        ///
+        /// @param period An sc_time variable which holds the clockcycle length.
+        void clk(sc_core::sc_time &period);
+
+        /// Set the clockcycle length.
+        ///
+        ///  With this function you can set the clockcycle length of the gptimer instance.
+        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
+        ///
+        /// @param period A double wich holds the clockcycle length in a unit stored in base.
+        /// @param base   The unit of the clockcycle length stored in period.
         void clk(double period, sc_core::sc_time_unit base);
 
     private:
-        // keeps the connection numbers for the different blocks.
+        /// Indexer for Memmory models on the mem Socket.
+        ///
+        /// This class is used to store informations to the connected memmory devices on the bus localy.
+        /// See start_of_simulation Function and get_port for usage information.
         class MEMPort {
             public:
                 MEMPort(uint32_t id, MEMDevice *dev);
@@ -155,44 +235,35 @@ class Mctrl : public gs::reg::gr_device,
                 uint32_t   addr;
                 uint32_t   length;
         };
+
+        /// Instanciations for each memory device, plus one for no matching memory found.
         MEMPort c_rom, c_io, c_sram, c_sdram, c_null;
+
+        /// Return the Indexer for a memory at a specific address.
         Mctrl::MEMPort get_port(uint32_t address);
 
-	// TLM abstraction layer
-	amba::amba_layer_ids m_abstractionLayer;
+        // TLM abstraction layer
+        amba::amba_layer_ids m_abstractionLayer;
 
-	// Ready to accept new transaction (send END_REQ)
-	sc_event unlock_event;
+        /// Ready to accept new transaction (send END_REQ)
+        sc_event unlock_event;
 
-	// Event queue for AT mode
-	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mAcceptPEQ;
-	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mTransactionPEQ;
+        /// Event queue for AT mode
+        tlm_utils::peq_with_get<tlm::tlm_generic_payload> mAcceptPEQ;
+        tlm_utils::peq_with_get<tlm::tlm_generic_payload> mTransactionPEQ;
 
-        // control / timing variables
+        /// control / timing variables
         
-        // count time elapsing in callbacks (to be added in next transaction)
+        /// count time elapsing in callbacks (to be added in next transaction)
         sc_core::sc_time callback_delay;
         
-        // capture end time of last transaction to calculate sdram idle time
-        sc_core::sc_time start_idle; 
+	      /// false - ready to accept new transaction
+	      bool busy;
         
-        // time to perform next refresh
-        sc_core::sc_time next_refresh; 
-        
-        // refresh can only be started in idle state, 
-        // so it might be necessary to stall
-        sc_core::sc_time refresh_stall;
-
-	// false - ready to accept new transaction
-	bool busy;
-        
-        //length of refresh cycle
-        uint8_t m_trfc; 
-        
-        //capture current state of power mode
+        /// capture current state of power mode
         uint8_t m_pmode; 
 
-        //constructor parameters (modeling VHDL generics)
+      // Constructor Parameters (modeling VHDL generics)
         const int g_romasel;
         const int g_sdrasel;
         const int g_romaddr;
@@ -221,7 +292,7 @@ class Mctrl : public gs::reg::gr_device,
         static const uint32_t MCFG4                       = 0x0C;
 
         //memory configuration register 1
-        static const uint32_t MCFG1_WRITE_MASK            = 0x1FE808FF;
+        static const uint32_t MCFG1_WRITE_MASK            = 0x1FE80BFF;
         static const uint32_t MCFG1_IOBUSW                = 0x18000000;
         static const uint32_t MCFG1_IBRDY                 = 0x04000000;
         static const uint32_t MCFG1_BEXCN                 = 0x02000000;
@@ -320,5 +391,6 @@ class Mctrl : public gs::reg::gr_device,
         static const uint32_t MCFG4_DEFAULT               = 0x00F00000;
 };
 
+/// @}
 #endif // MCTRL_H
 

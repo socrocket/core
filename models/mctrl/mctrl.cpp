@@ -310,10 +310,6 @@ void Mctrl::reset_mctrl(const bool &value, const sc_time &time) {
         r[MCFG3] = 0x00000000;
         r[MCFG4] = 0x00F00000 | ((1 && g_mobile) << 31);
         
-        //set refresh cycle and schedule first refresh
-        m_trfc = 3 + (r[MCFG2] & MCFG2_SDRAM_TRFC) >> 27;
-        next_refresh = cycle_time * (r[MCFG3] >> 11);
-
         //set default values of mobile SDRAM
         if(g_sden) {
             uint32_t mcfg;
