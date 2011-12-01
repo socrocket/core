@@ -60,6 +60,7 @@
 #include "ahbdevice.h"
 #include "apbdevice.h"
 #include "memdevice.h"
+#include "vendian.h"
 #include "verbose.h"
 #include "ext_erase.h"
 
@@ -73,8 +74,9 @@ class Mctrl : public gs::reg::gr_device,
               public APBDevice,
               public signalkit::signal_module<Mctrl> {
     public:
+
         SC_HAS_PROCESS(Mctrl);
-        
+
         /// Creates a new Instance of an MCtrl.
         ///
         /// @param name The name of the instance. Needed for SystemC.
@@ -102,7 +104,7 @@ class Mctrl : public gs::reg::gr_device,
         /// @param _abstractionLayer
         ///
         /// All constructor parameter are directly related to an VHDL Generic in the original Model. 
-        /// Therefore read the GRLIB IP Core User's Manual Section 66.15 for more information.
+        /// Therefore read the GRLIB IP Core User's Manual Section 66.15 for more information.  
         Mctrl(sc_module_name name, int _romasel = 28, int _sdrasel = 29,
               int _romaddr = 0x0, int _rommask = 0xE00, 
               int _ioaddr = 0x200, int _iomask = 0xE00, 
@@ -136,8 +138,8 @@ class Mctrl : public gs::reg::gr_device,
         /// Reset Signal
         signal<bool>::in rst;
 
-      // SystemC Declerations
-        /// proclamation of callbacks
+        // SystemC Declarations
+        /// proclamation of callbacks   
         GC_HAS_CALLBACKS();
 
         /// Execute the callback registering when systemc reaches the end of elaboration.
@@ -146,7 +148,7 @@ class Mctrl : public gs::reg::gr_device,
         /// Gathers information about the connected memory types when SystemC reaches the start of simulation.
         void start_of_simulation();
 
-      // Signal Callbacks
+        // Signal Callbacks
         /// Reset Handler
         ///
         /// Executed on rst state change.
@@ -155,9 +157,9 @@ class Mctrl : public gs::reg::gr_device,
         ///
         /// @param value The new Value of the Signal.
         /// @param delay A possible delay. Which means the reset might be performed in the future (Not used for resets!).
-        void reset_mctrl(const bool &value, const sc_core::sc_time &delay);
+        void reset_mctrl(const bool &value, const sc_core::sc_time &time);
 
-      // Register Callbacks
+	// Register Callbacks
         /// Performing an SDRAM Command
         ///
         /// This function is executed by the SDRAM Command Field in the MCFG2 Register.
@@ -174,28 +176,28 @@ class Mctrl : public gs::reg::gr_device,
         void mcfg1_write();
         void mcfg2_write();
 
-        /// TLM blocking transport function
+        /// TLM blocking transport functions
         virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
-        
+
         /// TLM debug transport function
         uint32_t transport_dbg(tlm::tlm_generic_payload& gp);
 
-        /// TLM non-blocking transport function
-        tlm::tlm_sync_enum nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay);
+	/// TLM non-blocking transport function
+	tlm::tlm_sync_enum nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
-        /// Encapsulation function for functional part of the model
-        void exec_func(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay);
+	/// Encapsulation function for functional part of the model
+	void exec_func(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay);
 
-        /// Accept new transaction (busy or not)
-        void acceptTXN();
+	/// Accept new transaction (busy or not)
+	void acceptTXN();
 
-        /// Thread for interfacing functional part of the model in AT mode
-        void processTXN();
+	/// Thread for interfacing functional part of the model in AT mode
+	void processTXN();
 
-        /// management of the clock cycle length, required for delay calculation
+        /// Management of the clock cycle length, required for delay calculation
         sc_core::sc_time cycle_time; //variable to store the clock period
-
-      // Functions
+        
+        // Functions
         /// Set the clockcycle length.
         ///
         ///  With this function you can set the clockcycle length of the gptimer instance.
@@ -203,14 +205,14 @@ class Mctrl : public gs::reg::gr_device,
         ///
         /// @param clk An sc_clk instance. The function will extract the clockcycle length from the instance.
         void clk(sc_core::sc_clock &clk);
-
+        
         /// Set the clockcycle length.
         ///
         ///  With this function you can set the clockcycle length of the gptimer instance.
         ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
         ///
         /// @param period An sc_time variable which holds the clockcycle length.
-        void clk(sc_core::sc_time &period);
+        void clk(sc_core::sc_time &period); 
 
         /// Set the clockcycle length.
         ///
@@ -222,6 +224,7 @@ class Mctrl : public gs::reg::gr_device,
         void clk(double period, sc_core::sc_time_unit base);
 
     private:
+
         /// Indexer for Memmory models on the mem Socket.
         ///
         /// This class is used to store informations to the connected memmory devices on the bus localy.
@@ -243,27 +246,40 @@ class Mctrl : public gs::reg::gr_device,
         Mctrl::MEMPort get_port(uint32_t address);
 
         // TLM abstraction layer
-        amba::amba_layer_ids m_abstractionLayer;
+	amba::amba_layer_ids m_abstractionLayer;
 
         /// Ready to accept new transaction (send END_REQ)
-        sc_event unlock_event;
+	sc_event unlock_event;
 
-        /// Event queue for AT mode
-        tlm_utils::peq_with_get<tlm::tlm_generic_payload> mAcceptPEQ;
-        tlm_utils::peq_with_get<tlm::tlm_generic_payload> mTransactionPEQ;
+	/// Event queues for AT mode
+	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mAcceptPEQ;
+	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mTransactionPEQ;
 
-        /// control / timing variables
+        // Control / timing variables
         
-        /// count time elapsing in callbacks (to be added in next transaction)
+        /// Count time elapsing in callbacks (to be added in next transaction)
         sc_core::sc_time callback_delay;
         
-	      /// false - ready to accept new transaction
-	      bool busy;
+        /// Capture end time of last transaction to calculate sdram idle time
+        sc_core::sc_time start_idle; 
         
-        /// capture current state of power mode
+        /// Time to perform next refresh
+        sc_core::sc_time next_refresh; 
+        
+        // Refresh can only be started in idle state, 
+        // so it might be necessary to stall
+        sc_core::sc_time refresh_stall;
+
+	/// False - ready to accept new transaction
+	bool busy;
+        
+        /// Length of refresh cycle
+        uint8_t m_trfc; 
+        
+        /// Capture current state of power mode
         uint8_t m_pmode; 
 
-      // Constructor Parameters (modeling VHDL generics)
+        // Constructor parameters (modeling VHDL generics)
         const int g_romasel;
         const int g_sdrasel;
         const int g_romaddr;
@@ -282,17 +298,19 @@ class Mctrl : public gs::reg::gr_device,
         const int g_sdbits;
         const int g_mobile;
         const int g_sden;
-    public:
-        //---constant bit masks for APB register access
 
-        //register address offset
+    public:
+
+        //--- Constant bit masks for APB register access
+
+        // Register address offset
         static const uint32_t MCFG1                       = 0x00;
         static const uint32_t MCFG2                       = 0x04;
         static const uint32_t MCFG3                       = 0x08;
         static const uint32_t MCFG4                       = 0x0C;
 
-        //memory configuration register 1
-        static const uint32_t MCFG1_WRITE_MASK            = 0x1FE80BFF;
+        // Memory configuration register 1
+        static const uint32_t MCFG1_WRITE_MASK            = 0x1FE808FF;
         static const uint32_t MCFG1_IOBUSW                = 0x18000000;
         static const uint32_t MCFG1_IBRDY                 = 0x04000000;
         static const uint32_t MCFG1_BEXCN                 = 0x02000000;
@@ -304,7 +322,7 @@ class Mctrl : public gs::reg::gr_device,
         static const uint32_t MCFG1_PROM_WRITE_WS         = 0x000000F0;
         static const uint32_t MCFG1_PROM_READ_WS          = 0x0000000F;
 
-        //memory configuration register 2
+        // Memory configuration register 2
         static const uint32_t MCFG2_WRITE_MASK            = 0xFFD07EFF;
         static const uint32_t MCFG2_SDRF                  = 0x80000000;
         static const uint32_t MCFG2_TRP                   = 0x40000000;
@@ -324,11 +342,11 @@ class Mctrl : public gs::reg::gr_device,
         static const uint32_t MCFG2_RAM_WRITE_WS          = 0x0000000C;
         static const uint32_t MCFG2_RAM_READ_WS           = 0x00000003;
 
-        //memory configuration register 3
+        // Memory configuration register 3
         static const uint32_t MCFG3_WRITE_MASK            = 0x07FFF000;
         static const uint32_t MCFG3_SDRAM_RLD_VAL         = 0x07FFF000;
 
-        //memory configuration register 4
+        // Memory configuration register 4
         static const uint32_t MCFG4_WRITE_MASK            = 0xE0F7007F;
         static const uint32_t MCFG4_ME                    = 0x80000000;
         static const uint32_t MCFG4_CE                    = 0x40000000;
@@ -339,9 +357,9 @@ class Mctrl : public gs::reg::gr_device,
         static const uint32_t MCFG4_TCSR                  = 0x00000018;
         static const uint32_t MCFG4_PASR                  = 0x00000007;
 
-        //---register default values
+        //--- Register default values
 
-        //memory configuration register 1
+        // Memory configuration register 1
         static const uint32_t MCFG1_IOBUSW_DEFAULT        = 0x00000000;
         static const uint32_t MCFG1_IBRDY_DEFAULT         = 0x00000000;
         static const uint32_t MCFG1_BEXCN_DEFAULT         = 0x00000000;
@@ -354,7 +372,7 @@ class Mctrl : public gs::reg::gr_device,
         //                                                +
         static const uint32_t MCFG1_DEFAULT               = 0x000000FF;
 
-        //memory configuration register 2
+        // Memory configuration register 2
         static const uint32_t MCFG2_SDRF_DEFAULT          = 0x80000000;
         static const uint32_t MCFG2_TRP_DEFAULT           = 0x40000000;
         static const uint32_t MCFG2_SDRAM_TRFC_DEFAULT    = 0x38000000;
@@ -375,10 +393,10 @@ class Mctrl : public gs::reg::gr_device,
         //                                                +
         static const uint32_t MCFG2_DEFAULT               = 0xFF601C3F;
 
-        //memory configuration register 3
+        // Memory configuration register 3
         static const uint32_t MCFG3_DEFAULT               = 0x07FFF000;
 
-        //memory configuration register 4
+        // Memory configuration register 4
         static const uint32_t MCFG4_ME_DEFAULT            = 0x00000000;
         static const uint32_t MCFG4_CE_DEFAULT            = 0x00000000;
         static const uint32_t MCFG4_EM_DEFAULT            = 0x00000000;
@@ -391,6 +409,5 @@ class Mctrl : public gs::reg::gr_device,
         static const uint32_t MCFG4_DEFAULT               = 0x00F00000;
 };
 
-/// @}
 #endif // MCTRL_H
 

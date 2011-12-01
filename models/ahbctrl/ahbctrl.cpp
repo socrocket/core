@@ -535,7 +535,7 @@ void AHBCtrl::RequestThread() {
 	  
 	status = ahbOUT[slave_id]->nb_transport_fw(*trans, phase, delay);
 
-	assert((status==tlm::TLM_UPDATED)||(status=tlm::TLM_ACCEPTED));
+	assert((status==tlm::TLM_UPDATED)||(status==tlm::TLM_ACCEPTED));
 
 	// In case the slave did not return END_REQ,
 	// wait for it to come in on the backward path.

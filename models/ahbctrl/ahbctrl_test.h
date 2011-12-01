@@ -51,6 +51,7 @@
 #include <ctime>
 #include "amba.h"
 #include "socrocket.h"
+#include "vendian.h"
 
 #include "verbose.h"
 #include "ahbdevice.h"
@@ -85,11 +86,23 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
   /// Callback for snooping
   void snoopingCallBack(const t_snoop & snoop, const sc_core::sc_time & delay);
 
+  /// For mctrl tests - if testbench is connected through bus model
+  bool writeCheck(const uint32_t start, uint32_t end, uint32_t width, const uint32_t length, bool fail);
+
+  /// For tests of mctrl - if testbench is connected through bus model
+  bool readCheck(const uint32_t start, uint32_t end, uint32_t width, const uint32_t length, bool fail);
+
   /// Write data to ahb
   void ahbwrite(unsigned int addr, unsigned char *data, unsigned int length, unsigned int burst_size);
 
   /// Read data from ahb
   void ahbread(unsigned int addr, unsigned char * data, unsigned int length, unsigned int burst_size);
+
+  // Debug read data from ahb socket
+  void ahbread_dbg(uint32_t addr, uint8_t *data, uint32_t length);
+
+  // Debug write data over ahb socket
+  void ahbwrite_dbg(uint32_t addr, uint8_t *data, uint32_t length);
 
   /// Thread for response processing (read)
   void ResponseThread();
@@ -101,6 +114,15 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
   void checkTXN(tlm::tlm_generic_payload* trans);
 
   void cleanUP();
+
+  /// Helper functions for maintaining data, reference and debug pointers
+  unsigned char * get_datap();
+  unsigned char * get_datap_word(unsigned int value);
+  unsigned char * get_datap_short(unsigned int value);
+  unsigned char * get_datap_byte(unsigned int value);
+
+  void inc_tptr();
+  void inc_tptr(unsigned int value);
 
   /// TLM non-blocking backward transport function
   tlm::tlm_sync_enum nb_transport_bw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay);
@@ -148,11 +170,11 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
   /// AMBA abstraction layer (LT/AT)
   amba::amba_layer_ids m_abstractionLayer;
 
- private:
-
+  // space for keeping track of results, references and debug info
   unsigned char tmp[1024];
-
   unsigned int tc;
+
+ private:
 
   /// PEQs for response synchronization
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> mResponsePEQ;

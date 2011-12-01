@@ -162,3 +162,24 @@ def build(bld):
     use          = 'mctrl utils signalkit common'
   )
 
+  bld(
+    features     = 'cxx cprogram test',
+    target       = 'mctrl.5.lt.test',
+    source       = ['tests/test5/testbench.cpp',
+                    'tests/test5/top_lt.cpp'],
+    includes     = '. tests tests/test5',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mctrl gptimer ahbctrl apbctrl utils signalkit common'
+  )
+
+  bld(
+    features     = 'cxx cprogram test',
+    target       = 'mctrl.5.at.test',
+    source       = ['tests/test5/testbench.cpp',
+                    'tests/test5/top_at.cpp'],
+    includes     = '. tests tests/test5',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mctrl gptimer ahbctrl apbctrl utils signalkit common'
+  )
+
+  

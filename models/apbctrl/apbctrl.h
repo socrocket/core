@@ -62,15 +62,20 @@ class APBCtrl : public sc_core::sc_module,
 	/// APB master multi-socket
         amba::amba_master_socket<32, 0> apb;
 
+	// Encapsulation function for functional part of the model (decoder)
+	void exec_decoder(tlm::tlm_generic_payload &ahb_gp, sc_core::sc_time &delay, bool debug);
+
+	/// Thread for modeling the AHB pipeline delay + busy or not
+	void acceptTXN();
+
+	// Thread for interfacing with the functional part of the model in AT mode
+	void processTXN();
+
 	/// TLM blocking transport function
-        void ahb_custom_b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);	
+        void ahb_b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);	
 
 	/// TLM non-blocking transport forward (for AHB slave sock)
-	tlm::tlm_sync_enum ahb_custom_nb_transport_fw(tlm::tlm_generic_payload& gp,
-					   tlm::tlm_phase& phase, sc_core::sc_time& delay);
-
-	/// TLM non-blocking transport backward (for APB master multi-sock)
-	tlm::tlm_sync_enum apb_custom_nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& gp,
+	tlm::tlm_sync_enum ahb_nb_transport_fw(tlm::tlm_generic_payload& gp,
 					   tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
 	/// TLM debug interface
@@ -137,8 +142,19 @@ class APBCtrl : public sc_core::sc_module,
 	unsigned int mhmask;
 	/// Check if there are any intersections between APB slave memory regions
 	bool mmcheck;
+
+	// Event queue for AT mode
+	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mAcceptPEQ;
+	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mTransactionPEQ;	
+
 	/// Abstraction Layer
 	amba::amba_layer_ids mambaLayer;
+
+	// Ready to accept new transaction (send END_REQ)
+	sc_event unlock_event;
+
+	// false - ready to accept new transaction
+	bool busy;
 
 	/// The base address of the PNP APB device records
 	/// (top 4kb of the bridge address space)

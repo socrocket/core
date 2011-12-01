@@ -96,6 +96,8 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
     v::info << this->name() << "APB slave @" << v::uint32 << apb.get_base_addr() 
             << " size: " << v::uint32 << apb.get_size() << " byte" << v::endl;
 
+    v::info << this->name() << "(" << hex << _paddr << ":" << hex << _pmask << ")" << hex << ::APBDevice::get_device_info()[1] << v::endl;
+
     //check consistency of address space generics
     //rom space in MByte: 4GB - masked area (rommask)
     //rom space in Byte: 2^(romasel + 1)
@@ -147,9 +149,11 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
 
       ahb.register_nb_transport_fw(this, &Mctrl::nb_transport_fw);
       
+      // Thread for modeling AHB pipeline delay
+      SC_THREAD(acceptTXN);
+
       // Thread for interfacing functional part of the model
       // in AT mode.
-      SC_THREAD(acceptTXN);
       SC_THREAD(processTXN);
 
     }
@@ -398,6 +402,7 @@ tlm::tlm_sync_enum Mctrl::nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::
 
 }
 
+// Thread for modeling the AHB pipeline delay
 void Mctrl::acceptTXN() {
 
   tlm::tlm_phase phase;
@@ -496,7 +501,7 @@ void Mctrl::processTXN() {
 
 	phase = tlm::BEGIN_RESP;
 
-	v::debug << name() << " Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << " (delay: " << delay << ")" << v::endl;
+	v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << " (delay: " << delay << ")" << v::endl;
 	
 	// Call backward transport
 	status = ahb->nb_transport_bw(*trans, phase, delay);
@@ -526,7 +531,6 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay
   delay = SC_ZERO_TIME;
 
 }
-
 
 // Interface to functional part of the model
 void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
