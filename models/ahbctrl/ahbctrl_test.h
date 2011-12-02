@@ -87,7 +87,7 @@ class ahbctrl_test : public sc_module, public AHBDevice, public signalkit::signa
   void snoopingCallBack(const t_snoop & snoop, const sc_core::sc_time & delay);
 
   /// For mctrl tests - if testbench is connected through bus model
-  bool writeCheck(const uint32_t start, uint32_t end, uint32_t width, const uint32_t length, bool fail);
+  bool writeCheck(uint32_t start, uint32_t end, uint32_t width, uint32_t length, bool fail);
 
   /// For tests of mctrl - if testbench is connected through bus model
   bool readCheck(const uint32_t start, uint32_t end, uint32_t width, const uint32_t length, bool fail);

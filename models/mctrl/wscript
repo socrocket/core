@@ -182,4 +182,28 @@ def build(bld):
     use          = 'mctrl gptimer ahbctrl apbctrl utils signalkit common'
   )
 
+  bld(
+    features     = 'modelsim',
+    target       = 'mctrl.5.rtl.test',
+    name         = 'mctrl.5.rtl.test',
+    source       = ['./tests/test5/config.vhd',
+                    './tests/typ_adapters.vhd',
+                    './tests/test5/mctrl_wrapper.vhd',
+                    '../../common/verbose.cpp',
+                    '../../common/timingmonitor.cpp',
+                    '../utils/power_monitor.cpp',
+                    '../utils/ahbdevice.cpp',
+                    '../utils/apbdevice.cpp',
+                    '../ahbctrl/adapters/ahbpipe.cpp',
+                    '../ahbctrl/adapters/ahb_tlmbus_rtlslave_transactor.cpp',
+                    '../ahbctrl/adapters/apb_tlmbus_rtlslave_transactor.cpp',
+                    '../ahbctrl/ahbctrl_test.cpp',
+                    '../ahbctrl/ahbctrl.cpp',
+                    '../apbctrl/apbctrl.cpp',
+                    './tests/test5/testbench.cpp',
+                    './tests/test5/top_rtl.cpp'],
+    uselib        = 'AMBA GREENSOCS',
+    includes      = './ ./tests ./tests/test5 ./test1/sim_rtl ./lib ../utils ../../signalkit ../../common ../ahbctrl ../apbctrl ../ahbctrl/adapters',
+    config        = vsim_conf,
+  )
   

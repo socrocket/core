@@ -606,7 +606,7 @@ void ahbctrl_test::snoopingCallBack(const t_snoop & snoop, const sc_core::sc_tim
 
 // For mctrl tests - if testbench is connected through bus model
 // start: start addr bytes, end: end addr bytes, length in bytes
-bool ahbctrl_test::writeCheck(const uint32_t start, uint32_t end, uint32_t width, const uint32_t length, bool fail) {
+bool ahbctrl_test::writeCheck(uint32_t start, uint32_t end, uint32_t width, uint32_t length, bool fail) {
 
     // Array with number of entries equal to transfer size in bytes 
     uint8_t data[end-start];
