@@ -370,6 +370,8 @@ void APBCtrl::processTXN() {
       // -----------------------------------------------
       exec_decoder(*trans, delay, false);
 
+      v::info << name() << "Return from exec_decoder with delay" << delay << v::endl;
+
       // Consume APB + Component delay
       wait(delay);
 
