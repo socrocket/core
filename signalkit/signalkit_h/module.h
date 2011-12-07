@@ -59,7 +59,7 @@ namespace signalkit {
 /// Derive from this class to use the signalkit.
 template<class MODULE>
 class signal_module {
-    public:
+    protected:
         /// Defines all signal types without the need to tell each of it the type of the base class
         template<class TYPE>
         struct signal {
@@ -79,6 +79,19 @@ class signal_module {
                 typedef signal_infield<TYPE, MODULE> infield;
         };
 };
+
+#define SK_HAS_SIGNALS(name) \
+        template<class TYPE> \
+        struct signal { \
+                typedef signalkit::signal_in<TYPE, name> in; \
+                typedef signalkit::signal_out<TYPE, name> out; \
+                typedef signalkit::signal_inout<TYPE, name> inout; \
+                typedef signalkit::signal_selector<TYPE, name> selector; \
+                typedef signalkit::signal_infield<TYPE, name> infield; \
+        };
+
+#define SIGNALMODULE(name) \
+  SK_HAS_SIGNALS(name)
 
 /// @}
 
