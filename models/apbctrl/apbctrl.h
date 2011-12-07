@@ -48,13 +48,12 @@
 
 #include "ahbdevice.h"
 #include "apbdevice.h"
+#include "clkdevice.h"
 
 /// @addtogroup apbctrl APBctrl
 /// @{
 
-class APBCtrl : public sc_core::sc_module,
-                public AHBDevice {
-
+class APBCtrl : public sc_core::sc_module, public AHBDevice, public CLKDevice {
     public:
 
         /// AHB slave socket
@@ -90,14 +89,12 @@ class APBCtrl : public sc_core::sc_module,
 	/// Returns a PNP register from the APB configuration area (upper 4kb of address space)
 	unsigned int getPNPReg(const uint32_t address);
 
+  /// Reset Callback
+  void dorst();
+  
 	/// Check memory map for overlaps 
         void checkMemMap();
 
-	/// Helper functions for definition of clock cycle
-	void clk(sc_core::sc_clock &clk);
-	void clk(sc_core::sc_time &period);
-	void clk(double period, sc_core::sc_time_unit base);
-	
         SC_HAS_PROCESS(APBCtrl);
 
         /// Constructor
@@ -181,9 +178,6 @@ class APBCtrl : public sc_core::sc_module,
 
 	/// Set up slave map and collect plug & play information
         void start_of_simulation();
-
-	/// Clock cycle time
-	sc_core::sc_time clockcycle;
 
 };
 
