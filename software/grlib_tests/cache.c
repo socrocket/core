@@ -1,6 +1,8 @@
 #include "testmod.h"
 #include "leon3.h"
 #include "cache.h"
+#include "stdio.h"
+#include "stdlib.h"
 
 #define CCTRL_IFP (1<<15)
 #define CCTRL_DFP (1<<14)
@@ -17,7 +19,9 @@ int dsetbits, isetbits;
 int DSETS, DTAGLOW, DTAGAMSK, ITAGAMSK, ITAGLOW;
 
 void flush(void) {
-    asm(" flush");
+    asm(
+        "flush"
+    );
 }
 
 int getitag(int addr, int set) {
@@ -29,11 +33,11 @@ int getitag(int addr, int set) {
 
 
 void setitag(int addr, int set, int data) {
-    asmsetitag((int *) ((addr & IDIAGMSK) + (set<<isetbits)), data);
+    asmsetitag(((addr & IDIAGMSK) + (set<<isetbits)), data);
 }
 
 void setidata(int addr, int set, int data) {
-    asmsetidata((int *) ((addr & IDIAGMSK) + (set<<isetbits)), data);
+    asmsetidata(((addr & IDIAGMSK) + (set<<isetbits)), data);
 }
 
 
@@ -45,28 +49,55 @@ int getidata(int addr, int set) {
 }
 
 
-int asmgetitag(int addr) { 
-    asm(" lda [%o0] 0xc, %o0 ");
+int asmgetitag(int addr) {
+    int result;
+    asm(
+        "lda [%[addr]] 0xc, %[result]"
+        : [result] "=r" (result)
+        : [addr] "r" (addr)
+    );
+    return result;
 }
 
-void asmsetitag(int *addr, int data) {
-    asm(" sta %o1, [%o0] 0xc ");
+void asmsetitag(int addr, int data) {
+    asm(
+        "sta %[data], [%[addr]] 0xc"
+        :: [addr] "r" (addr), [data] "r" (data)
+    );
 }
 
 int asmgetidata(int addr) {
-    asm(" lda [%o0] 0xd, %o0 ");
+    int result;
+    asm(
+        "lda [%[addr]] 0xd, %[result]"
+        : [result] "=r" (result)
+        : [addr] "r" (addr)
+    );
+    return result;
 }
 
-void asmsetidata(int *addr, int data) {
-    asm(" sta %o1, [%o0] 0xd ");
+void asmsetidata(int addr, int data) {
+    asm(
+        "sta %[data], [%[addr]] 0xd"
+        :: [addr] "r" (addr), [data] "r" (data)
+    );
 }
 
-void wsysreg(int *addr, int data) {
-    asm(" sta %o1, [%o0] 0x2 ");
+void wsysreg(int addr, int data) {
+    asm(
+        "sta %[data], [%[addr]] 0x2"
+        :: [addr] "r" (addr), [data] "r" (data)
+    );
 }
 
 int rsysreg(int addr) {
-    asm(" lda [%o0] 0x2, %o0 ");
+    int result;
+    asm(
+        "lda [%[addr]] 0x2, %[result]"
+        : [result] "=r" (result)
+        : [addr] "r" (addr)
+    );
+    return result;
 }
 
 
@@ -75,7 +106,7 @@ void setdtag(int addr, int set, int data) {
 }
 
 void setddata(int addr, int set, int data) {
-    asmsetddata((int *)((addr & DDIAGMSK) + (set<<dsetbits)), data);
+    asmsetddata(((addr & DDIAGMSK) + (set<<dsetbits)), data);
 }
 
 int chkdtag(int addr) {
@@ -106,7 +137,7 @@ int getdtag(int addr, int set) {
 int getddata(int addr, int set) {
     int ddata;
 
-    ddata = asmgetddata((int *)((addr & DDIAGMSK) + (set<<dsetbits))); 
+    ddata = asmgetddata(((addr & DDIAGMSK) + (set<<dsetbits))); 
     return ddata;
 }
 
@@ -119,56 +150,80 @@ void dma(int addr, int len,  int write) {
     dm[1] = (write <<13) + 0x1000 + len;
 }
 
-int asmgetdtag(int addr){
-    asm(" lda [%o0] 0xe, %o0 ");
+int asmgetdtag(int addr) {
+    int result;
+    asm(
+        "lda [%[addr]] 0xe, %[result]"
+        : [result] "=r" (result)
+        : [addr] "r" (addr)
+    );
+    return result;
 }
 
 void asmsetdtag(int addr, int data) {
-    asm(" sta %o1, [%o0] 0xe ");
+    asm(
+        "sta %[data], [%[addr]] 0xe"
+        :: [addr] "r" (addr), [data] "r" (data)
+    );
 }
 
-int asmgetddata(int *addr) { 
-    asm(" lda [%o0] 0xf, %o0 ");
+int asmgetddata(int addr) { 
+    int result;
+    asm(
+        "lda [%[addr]] 0xf, %[result]"
+        : [result] "=r" (result)
+        : [addr] "r" (addr)
+    );
+    return result;
 }
 
-void asmsetddata(int *addr, int data) {
-    asm(" sta %o1, [%o0] 0xf ");
+void asmsetddata(int addr, int data) {
+    asm(
+        "sta %[data], [%[addr]] 0xf"
+        :: [addr] "r" (addr), [data] "r" (data)
+    );
 }
 
-void setudata(int *addr,int data) {
-    asm(" sta %o1, [%o0] 0x0 ");
+void setudata(int addr,int data) {
+    asm(
+        "sta %[data], [%[addr]] 0x0"
+        :: [addr] "r" (addr), [data] "r" (data)
+    );
 }
 
 int getudata(int addr) {
-    asm(" lda [%o0] 0x0, %o0 ");
+    int result;
+    asm(
+        "lda [%[addr]] 0x0, %[result]"
+        : [result] "=r" (result)
+        : [addr] "r" (addr)
+    );
+    return result;
 }
 
-int xgetpsr(void) { 
-    asm(" mov %psr, %o0 ");
+int xgetpsr(void) {
+    int result;
+    asm(
+        "mov %%psr, %[result]"
+        : [result] "=r" (result)
+    );
+    return result;
 }
 
 void setpsr(int psr) {
-    asm(" mov %o0, %psr; nop; nop; nop ");
+    asm(
+        "mov %[psr], %%psr; nop; nop; nop"
+        :: [psr] "r" (psr)
+    );
 }
 
-void flushi(int *addr,int data) {
-    asm(" sta %g0, [%g0] 0x5 ");
+void flushi(int addr, int data) {
+    asm(
+        "sta %[data], [%[addr]] 0x5"
+        :: [addr] "r" (addr), [data] "r" (data)
+    );
 }
 
-void flushd(int *addr,int data) {
-    asm(" sta %g0, [%g0] 0x6 ");
-}
-
-asm(
-"    .text           \n"
-"    .align 4        \n"
-"getdw:              \n"
-"    retl            \n"
-"    ldd [%o0], %o0  \n"
-);
-
-#define ITAGMASK ((1<<ILINESZ)-1)
-#define DTAGMASK (~((1<<DLINESZ)-1))
 #define DIAGADDRMASK ((1<<DTAGLOW)-1)
 
 static int maintest(void);
@@ -181,16 +236,22 @@ int cachetest(void) {
     return tmp;
 }
 
-long long int getdw();
+long long int getdw(void *addr) {
+    long long int *address = (long long int *)addr;
+    return *address;
+}
 
 static int maintest() {
-    volatile double mrl[8192 + 8]; /* enough for 64 K caches */
-    volatile int mrx[16];
-    volatile double *ll = (double *) mrx;
-    volatile int *mr = (int *) mrl;
-    volatile unsigned char *mrc = (unsigned char *) mrl;
-    volatile unsigned short *mrh = (unsigned  short *) mrl;
+    volatile char data1[(8192 + 8) * sizeof(double)];
+    volatile double *mrl = (double *)data1; /* enough for 64 K caches */
+    volatile char data2[16 * sizeof(int)];
+    volatile int *mrx = (int *)data2;
+    volatile double *ll = (double *)data2;
+    volatile int *mr = (int *) data1;
+    volatile unsigned char *mrc = (unsigned char *) data1;
+    volatile unsigned short *mrh = (unsigned  short *) data1;
     volatile long long int dw;
+    
     //int vbits, vpos, addrmsk;
     int i, j, tmp, cachectrl; 
     int ITAGS, DTAGS;
@@ -532,6 +593,20 @@ static int maintest() {
         cachectrl = rsysreg(0);
     } while(cachectrl & (CCTRL_IFP));
 	
+    if(chkitags(ITAG_MAX_ADDRESS,(1<<(ILINEBITS + 2)),0,0) & ((1<<ILINESZ)-1)) {
+       fail(51);
+    }
+
+    lr->cachectrl |= 0x03; 
+    flushd();
+    while(lr->cachectrl & CCTRL_DFP) {}
+    
+    if(chkdtags(DTAG_MAX_ADDRESS,(1<<(DLINEBITS + 2)),0,0) & ((1<<DLINESZ)-1)) {
+       fail(52);
+    }
+#endif
+	
+#if 0
     if(chkitags(ITAG_MAX_ADDRESS,(1<<(ILINEBITS + 2)),0,0) & ((1<<ILINESZ)-1)) {
        fail(51);
     }

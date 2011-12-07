@@ -55,6 +55,8 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'cache.sparc',
+     cxxflags     = '-static -g -O1 -lm',
+     linkflags    = '-static -g -O1 -lm',
      source       = ['top_cache_test.c',
                      'ramfill.c', 
                      'standalone.c', 
