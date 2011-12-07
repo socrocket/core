@@ -70,7 +70,9 @@
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 37
 class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
     public:
-        SIGNALMODULE(GPTimer);
+        SC_HAS_PROCESS(GPTimer);
+        SK_HAS_SIGNALS(GPTimer);
+        GC_HAS_CALLBACKS();
         /// APB Slave socket for all bus communication
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;
 
@@ -105,8 +107,6 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
         // TODO Replace by Array instanciated at construction time.
         std::vector<GPCounter *> counter;
 
-        GC_HAS_CALLBACKS();
-        SC_HAS_PROCESS(GPTimer);
 
         /// Creates an instance of an GPTimer.
         ///
