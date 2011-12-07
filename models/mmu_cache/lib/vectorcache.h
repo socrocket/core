@@ -105,9 +105,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         virtual void dbg_out(unsigned int line);
 
 	/// Helper functions for definition of clock cycle
-	void clk(sc_core::sc_clock &clk);
-	void clk(sc_core::sc_time &period);
-	void clk(double period, sc_core::sc_time_unit base);
+	void clkcng(sc_core::sc_time &clk);
 
 	/// Transforms a cache-line offset into a valid mask
 	inline unsigned int offset2valid(unsigned int offset);

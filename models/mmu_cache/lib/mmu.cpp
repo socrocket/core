@@ -675,22 +675,6 @@ tlb_adaptor * mmu::get_dtlb_if() {
 }
 
 // Helper for setting clock cycle latency using sc_clock argument
-void mmu::clk(sc_core::sc_clock &clk) {
-
-  clockcycle = clk.period();
-
-}
-
-// Helper for setting clock cycle latency using sc_time argument
-void mmu::clk(sc_core::sc_time &period) {
-
-  clockcycle = period;
-
-}
-
-// Helper for setting clock cycle latency using a value-time_unit pair
-void mmu::clk(double period, sc_core::sc_time_unit base) {
-
-  clockcycle = sc_core::sc_time(period, base);
-
+void mmu::clkcng(sc_core::sc_time &clk) {
+  clockcycle = clk;
 }

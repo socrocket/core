@@ -90,9 +90,7 @@ class nocache : public sc_core::sc_module, public cache_if {
 	virtual void snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time& delay);
 
 	/// Helper functions for definition of clock cycle
-	void clk(sc_core::sc_clock &clk);
-	void clk(sc_core::sc_time &period);
-	void clk(double period, sc_core::sc_time_unit base);
+	void clkcng(sc_core::sc_time &clk);
 
         // debug and helper functions
         // --------------------------

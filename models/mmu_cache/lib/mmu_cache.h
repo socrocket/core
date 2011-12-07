@@ -60,6 +60,7 @@
 #include "socrocket.h"
 #include "signalkit.h"
 #include "ahbdevice.h"
+#include "clkdevice.h"
 #include "power_monitor.h"
 
 #include "verbose.h"
@@ -75,10 +76,11 @@
 /// @{
 
 /// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
-class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevice, public signalkit::signal_module<mmu_cache> {
+class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevice, public CLKDevice {
 
     public:
-
+	SC_HAS_PROCESS(mmu_cache);
+  SK_HAS_SIGNALS(mmu_cache);
         // TLM sockets
         // -----------
 
@@ -94,7 +96,6 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 	// snooping port
 	signal<t_snoop>::in snoop;
 
-	SC_HAS_PROCESS(mmu_cache);
 
         /// @brief Constructor of the top-level class of the memory sub-system (caches and mmu).
         /// @icen          instruction cache enable
@@ -205,10 +206,11 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 	/// Snooping function (For calling dcache->snoop_invalidate)
 	void snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& delay);
 
-	/// Helper functions for definition of clock cycle
-	void clk(sc_core::sc_clock &clk);
-	void clk(sc_core::sc_time &period);
-	void clk(double period, sc_core::sc_time_unit base);
+  /// Reset function
+  void dorst();
+
+  /// Deal with clock changes
+  void clkcng();
 
         // data members
         // ------------
@@ -297,10 +299,6 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mResponsePEQ;
 	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mDataPEQ;
 	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mEndTransactionPEQ;
-
-	/// Clock cycle time
-	sc_core::sc_time clockcycle;
-
 };
 
 /// @}

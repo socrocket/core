@@ -77,9 +77,7 @@ class cache_if : public mem_if {
 	virtual void snoop_invalidate(const t_snoop &snoop, const sc_core::sc_time& delay) = 0;
 
 	// Helper functions for definition of clock cycle
-	virtual void clk(sc_core::sc_clock &clk) = 0;
-	virtual void clk(sc_core::sc_time &period) = 0;
-	virtual void clk(double period, sc_core::sc_time_unit base) = 0;
+	virtual void clkcng(sc_core::sc_time &clk) = 0;
 
         // debug and helper functions
         // --------------------------

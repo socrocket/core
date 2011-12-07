@@ -103,8 +103,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     current_trans(NULL),
     mResponsePEQ("ResponsePEQ"),
     mDataPEQ("DataPEQ"),
-    mEndTransactionPEQ("EndTransactionPEQ"),
-    clockcycle(10, sc_core::SC_NS) {
+    mEndTransactionPEQ("EndTransactionPEQ") {
 
     // parameter checks
     // ----------------
@@ -199,7 +198,10 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 
     // Initialize cache control registers
     CACHE_CONTROL_REG = 0;
+}
 
+void mmu_cache::dorst() {
+  // Reset functionality executed on 0 to 1 edge
 }
 
 // Instruction interface to functional part of the model
@@ -299,7 +301,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
       } else {
 
-        v::error << name() << "Address not valid for read with ASI 0x2" << v::endl;
+        v::error << name() << "Address (" << v::uint32 << addr << ")  not valid for read with ASI 0x2" << v::endl;
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
       }
@@ -1577,89 +1579,20 @@ void mmu_cache::snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& d
   }
 }
 
-// Helper for setting clock cycle latency using sc_clock argument
-void mmu_cache::clk(sc_core::sc_clock &clk) {
-
-  // Set local clock
-  clockcycle = clk.period();
-
-  // Set icache clock
-  if (m_icen) { 
-    
-    icache->clk(clk);
-
-  }
-
-  // Set dcache clock
-  if (m_dcen) {
-
-    dcache->clk(clk);
-
-  }
-
-  // Set mmu clock
-  if (m_mmu_en) {
-
-    m_mmu->clk(clk);
-
-  }
-
-}
-
-// Helper for setting clock cycle latency using sc_time argument
-void mmu_cache::clk(sc_core::sc_time &period) {
-
-  // Set local clock
-  clockcycle = period;
-
-  // Set icache clock
-  if (m_icen) { 
-    
-    icache->clk(period);
-
-  }
-
-  // Set dcache clock
-  if (m_dcen) {
-
-    dcache->clk(period);
-
-  }
-
-  // Set mmu clock
-  if (m_mmu_en) {
-
-    m_mmu->clk(period);
-
-  }
-
-}
-
 // Helper for setting clock cycle latency using a value-time_unit pair
-void mmu_cache::clk(double period, sc_core::sc_time_unit base) {
+void mmu_cache::clkcng() {
+    // Set icache clock
+    if(m_icen) { 
+        icache->clkcng(clock_cycle);
+    }
 
-  // Set local clock
-  clockcycle = sc_core::sc_time(period, base);
+    // Set dcache clock
+    if(m_dcen) {
+        dcache->clkcng(clock_cycle);
+    }
 
-  // Set icache clock
-  if (m_icen) { 
-    
-    icache->clk(period, base);
-
-  }
-
-  // Set dcache clock
-  if (m_dcen) {
-
-    dcache->clk(period, base);
-
-  }
-
-  // Set mmu clock
-  if (m_mmu_en) {
-
-    m_mmu->clk(period, base);
-
-  }
-
+    // Set mmu clock
+    if(m_mmu_en) {
+      m_mmu->clkcng(clock_cycle);
+    }
 }

@@ -1050,22 +1050,6 @@ void vectorcache::end_of_simulation() {
 }
 
 // Helper for setting clock cycle latency using sc_clock argument
-void vectorcache::clk(sc_core::sc_clock &clk) {
-
-  clockcycle = clk.period();
-
-}
-
-// Helper for setting clock cycle latency using sc_time argument
-void vectorcache::clk(sc_core::sc_time &period) {
-
-  clockcycle = period;
-
-}
-
-// Helper for setting clock cycle latency using a value-time_unit pair
-void vectorcache::clk(double period, sc_core::sc_time_unit base) {
-
-  clockcycle = sc_core::sc_time(period, base);
-
+void vectorcache::clkcng(sc_core::sc_time &clk) {
+  clockcycle = clk;
 }

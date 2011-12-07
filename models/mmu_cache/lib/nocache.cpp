@@ -140,22 +140,6 @@ void nocache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time& del
 }
 
 // Helper for setting clock cycle latency using sc_clock argument
-void nocache::clk(sc_core::sc_clock &clk) {
-
+void nocache::clkcng(sc_core::sc_time &clk) {
   // nothing to do
-
-}
-
-// Helper for setting clock cycle latency using sc_time argument
-void nocache::clk(sc_core::sc_time &period) {
-
-  // nothing to do
-
-}
-
-// Helper for setting clock cycle latency using a value-time_unit pair
-void nocache::clk(double period, sc_core::sc_time_unit base) {
-
-  // nothing to do
-
 }
