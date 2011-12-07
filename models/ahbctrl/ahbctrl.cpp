@@ -84,8 +84,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       mRequestPEQ("RequestPEQ"),
       mDataPEQ("DataPEQ"),
       mEndDataPEQ("EndDataPEQ"),
-      mResponsePEQ("ResponsePEQ"),
-      clockcycle(10.0, sc_core::SC_NS) {
+      mResponsePEQ("ResponsePEQ") {
 
   if(ambaLayer==amba::amba_LT) {
 
@@ -129,6 +128,9 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
   PM::registerIP(this, "ahbctrl", m_pow_mon);
   PM::send_idle(this, "idle", sc_time_stamp(), m_pow_mon);
 
+}
+
+void AHBCtrl::dorst() {
 }
 
 // Destructor
@@ -253,7 +255,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
           data[i] = getPNPReg(addr + (i<<2));
 
           // one cycle delay per 32bit register
-          delay += clockcycle;
+          delay += clock_cycle;
       }
       
       // burn delay
@@ -303,7 +305,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     PM::send(this,"ahb_trans",1,sc_time_stamp(),(unsigned int)trans.get_data_ptr(),m_pow_mon);
 
     // Add delay for AHB address phase
-    delay += clockcycle;
+    delay += clock_cycle;
     
     // Forward request to the selected slave
     ahbOUT[index]->b_transport(trans, delay);
@@ -431,7 +433,7 @@ void AHBCtrl::arbitrate_me() {
 
   while(1) {
 
-    wait(clockcycle);
+    wait(clock_cycle);
 
     grand_id = -1;
 
@@ -506,7 +508,7 @@ void AHBCtrl::RequestThread() {
       v::debug << name() << "Access to configuration area" << v::endl;
 
       // Notify response thread
-      mResponsePEQ.notify(*trans, clockcycle);
+      mResponsePEQ.notify(*trans, clock_cycle);
 
     // Access to slave domain
     // Do address decoding and send BEGIN_REQ
@@ -709,7 +711,7 @@ void AHBCtrl::ResponseThread() {
 	data[i] = getPNPReg(addr);
 
 	// One cycle delay per 32bit register
-	delay += clockcycle;
+	delay += clock_cycle;
 
       }
 
@@ -1041,25 +1043,4 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
        trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
        return 0;
     }
-}
-
-// Helper for setting clock cycle latency using sc_clock argument
-void AHBCtrl::clk(sc_core::sc_clock &clk) {
-
-  clockcycle = clk.period();
-
-}
-
-// Helper for setting clock cycle latency using sc_time argument
-void AHBCtrl::clk(sc_core::sc_time &period) {
-
-  clockcycle = period;
-
-}
-
-// Helper for setting clock cycle latency using a value-time_unit pair
-void AHBCtrl::clk(double period, sc_core::sc_time_unit base) {
-
-  clockcycle = sc_core::sc_time(period, base);
-
 }

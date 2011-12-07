@@ -52,13 +52,16 @@
 #include "power_monitor.h"
 
 #include "ahbdevice.h"
+#include "clkdevice.h"
 #include "signalkit.h"
 
 /// @addtogroup ahbctrl AHBctrl
 /// @{
 
-class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCtrl> {
+class AHBCtrl : public sc_core::sc_module, public CLKDevice {
     public:
+        SC_HAS_PROCESS(AHBCtrl);
+        SK_HAS_SIGNALS(AHBCtrl);
 
         // AMBA sockets
         // ------------------
@@ -101,13 +104,6 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 	/// The response thread (for com. with nb_trans_bw of masters)
 	void ResponseThread();
 
-	/// Helper functions for definition of clock cycle
-	void clk(sc_core::sc_clock &clk);
-	void clk(sc_core::sc_time &period);
-	void clk(double period, sc_core::sc_time_unit base);
-
-        SC_HAS_PROCESS(AHBCtrl);
-
         /// Constructor
         AHBCtrl(sc_core::sc_module_name nm, ///< SystemC name
 		 unsigned int ioaddr,  ///< The MSB address of the I/O area
@@ -124,7 +120,8 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 		 bool pow_mon,         ///< Enable power monitoring
                  amba::amba_layer_ids ambaLayer);		 
 		 
-		 
+     /// Reset Callback
+		 void dorst(); 
 	// Omitted parameters:
 	// -------------------
 	// nahbm  - Number of AHB masters
@@ -226,9 +223,6 @@ class AHBCtrl : public sc_core::sc_module, public signalkit::signal_module<AHBCt
 	sc_event mEndResponseEvent;
 	/// Event triggered by transport_bw to notify request thread about END_REQ
 	sc_event mEndRequestEvent;
-
-	/// Clock cycle time
-	sc_core::sc_time clockcycle;
 
 	/// The number of slaves in the system
 	unsigned int num_of_slave_bindings;
