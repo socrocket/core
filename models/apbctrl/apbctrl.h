@@ -89,8 +89,8 @@ class APBCtrl : public sc_core::sc_module, public AHBDevice, public CLKDevice {
 	/// Returns a PNP register from the APB configuration area (upper 4kb of address space)
 	unsigned int getPNPReg(const uint32_t address);
 
-  /// Reset Callback
-  void dorst();
+	/// Reset Callback
+	void dorst();
   
 	/// Check memory map for overlaps 
         void checkMemMap();

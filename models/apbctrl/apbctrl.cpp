@@ -106,7 +106,8 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
     }
 }
 
-APBCtrl::dorst() {
+// Do reset
+void APBCtrl::dorst() {
 
 }
 
