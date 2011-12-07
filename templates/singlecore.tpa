@@ -118,7 +118,7 @@
         <option var="index" name="Bus Index" type="int" default="0" range="0..15"/>
       </option>
       <option var="apb" name="APB Bus Interface">
-        <option var="addr" name="APB Base Address" type="int" default="0x800" range="0..0xFFF"/>
+        <option var="addr" name="APB Base Address" type="int" default="0" range="0..0xFFF"/>
         <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..0xFFF"/>
         <option var="index" name="Bus Index" type="int" default="0" range="0..15"/>
       </option>

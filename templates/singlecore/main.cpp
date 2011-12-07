@@ -159,7 +159,7 @@ int sc_main(int argc, char** argv) {
 		    ambaLayer
     );
     // Set clock
-    ahbctrl.clk(LOCAL_CLOCK,SC_NS);
+    ahbctrl.set_clk(LOCAL_CLOCK,SC_NS);
     
     // CREATE LEON3 Processor
     // ===================================================
@@ -220,7 +220,7 @@ int sc_main(int argc, char** argv) {
     leon3.dataMem.initSocket(mmu_cache.dcio);
    
     // Set clock
-    mmu_cache.clk(LOCAL_CLOCK,SC_NS);
+    mmu_cache.set_clk(LOCAL_CLOCK,SC_NS);
     
     // CREATE AHB APB BRIDGE
     // =====================
@@ -236,7 +236,7 @@ int sc_main(int argc, char** argv) {
     // Connecting AHB Slave
     ahbctrl.ahbOUT(apbctrl.ahb);
     // Set clock
-    apbctrl.clk(LOCAL_CLOCK,SC_NS);
+    apbctrl.set_clk(LOCAL_CLOCK,SC_NS);
 
     // CREATE MEMORY CONTROLLER
     // ========================
@@ -270,7 +270,7 @@ int sc_main(int argc, char** argv) {
     // Connecting APB Slave
     apbctrl.apb(mctrl.apb);
     // Set clock
-    mctrl.clk(LOCAL_CLOCK,SC_NS);
+    mctrl.set_clk(LOCAL_CLOCK,SC_NS);
 
     // CREATE MEMORIES
     // ===============                                                  
@@ -361,7 +361,7 @@ int sc_main(int argc, char** argv) {
     // Connecting APB Slave
     apbctrl.apb(irqmp.apb_slv);
     // Set clock
-    irqmp.clk(LOCAL_CLOCK,SC_NS);
+    irqmp.set_clk(LOCAL_CLOCK,SC_NS);
     connect(irqmp.irq_req, leon3.IRQ_port.irq_signal, 0);
     connect(leon3.irqAck.initSignal, irqmp.irq_ack, 0);
     // ******************************************
@@ -389,7 +389,7 @@ int sc_main(int argc, char** argv) {
       signalkit::connect(irqmp.irq_in, gptimer.irq, conf_gptimer_pirq + i);
     }
     // Set clock
-    gptimer.clk(LOCAL_CLOCK,SC_NS);
+    gptimer.set_clk(LOCAL_CLOCK,SC_NS);
 #endif
     // ******************************************
     
