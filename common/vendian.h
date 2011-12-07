@@ -1,23 +1,42 @@
 #ifndef VENDIAN_H
 #define VENDIAN_H
 
-inline void swap_Endianess( unsigned int &datum ) {
-    unsigned char helperByte = 0;
-    for(unsigned int i = 0; i < sizeof(unsigned int)/2; i++){
-        helperByte = ((unsigned char *)&datum)[i];
-        ((unsigned char *)&datum)[i] = ((unsigned char *)&datum)[sizeof(unsigned int) -1 -i];
-        ((unsigned char *)&datum)[sizeof(unsigned int) -1 -i] = helperByte;
+#include <stdint.h>
+
+inline void swap_Endianess(uint64_t &datum) {
+    #ifdef LITTLE_ENDIAN_BO
+    uint8_t helperByte = 0;
+    for(uint32_t i = 0; i < sizeof(uint64_t)/2; i++){
+        helperByte = ((uint8_t *)&datum)[i];
+        ((uint8_t *)&datum)[i] = ((uint8_t *)&datum)[sizeof(uint64_t) -1 -i];
+        ((uint8_t *)&datum)[sizeof(uint64_t) -1 -i] = helperByte;
     }
+    #endif
 }
 
-inline void swap_Endianess( unsigned short int &datum ) {
-    unsigned char helperByte = 0;
-    for(unsigned int i = 0; i < sizeof(unsigned short int)/2; i++){
-        helperByte = ((unsigned char *)&datum)[i];
-        ((unsigned char *)&datum)[i] = ((unsigned char *)&datum)[sizeof(unsigned short int) \
-            -1 -i];
-        ((unsigned char *)&datum)[sizeof(unsigned short int) -1 -i] = helperByte;
+inline void swap_Endianess(uint32_t &datum) {
+    #ifdef LITTLE_ENDIAN_BO
+    uint8_t helperByte = 0;
+    for(uint32_t i = 0; i < sizeof(uint32_t)/2; i++){
+        helperByte = ((uint8_t *)&datum)[i];
+        ((uint8_t *)&datum)[i] = ((uint8_t *)&datum)[sizeof(uint32_t) -1 -i];
+        ((uint8_t *)&datum)[sizeof(uint32_t) -1 -i] = helperByte;
     }
+    #endif
 }
+
+inline void swap_Endianess(uint16_t &datum) {
+    #ifdef LITTLE_ENDIAN_BO
+    uint8_t helperByte = 0;
+    for(uint32_t i = 0; i < sizeof(uint16_t)/2; i++){
+        helperByte = ((uint8_t *)&datum)[i];
+        ((uint8_t *)&datum)[i] = ((uint8_t *)&datum)[sizeof(uint16_t) \
+            -1 -i];
+        ((uint8_t *)&datum)[sizeof(uint16_t) -1 -i] = helperByte;
+    }
+    #endif
+}
+
+inline void swap_Endianess(uint8_t &datum) {}
 
 #endif
