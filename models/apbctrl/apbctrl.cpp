@@ -72,8 +72,7 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
       mAcceptPEQ("AcceptPEQ"),
       mTransactionPEQ("TransactionPEQ"),
       mambaLayer(ambaLayer),
-      busy(false),
-      clockcycle(10.0, sc_core::SC_NS) {
+      busy(false) {
 
     // Assert generics are withing allowed ranges
     assert(haddr_ <= 0xfff);
@@ -105,6 +104,10 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
       assert(0);
 
     }
+}
+
+APBCtrl::dorst() {
+
 }
 
 // Destructor
@@ -190,7 +193,7 @@ void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bo
 	  data[i] = getPNPReg(addr);
 
 	  // one cycle delay per 32bit register
-	  delay += clockcycle;
+	  delay += clock_cycle;
 
 	}
 
@@ -239,7 +242,7 @@ void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bo
       apb[index]->b_transport(*apb_gp, delay);
 
       // Add delay for APB setup cycle
-      delay += clockcycle;
+      delay += clock_cycle;
 
     } else {
 
@@ -535,25 +538,3 @@ void APBCtrl::checkMemMap() {
 
    */
 }
-
-/// Helper for setting clock cycle latency using sc_clock argument
-void APBCtrl::clk(sc_core::sc_clock &clk) {
-
-  clockcycle = clk.period();
-
-}
-
-/// Helper for setting clock cycle latency using sc_time argument
-void APBCtrl::clk(sc_core::sc_time &period) {
-
-  clockcycle = period;
-
-}
-
-/// Helper for setting clock cycle latency using a value-time_unit pair
-void APBCtrl::clk(double period, sc_core::sc_time_unit base) {
-
-  clockcycle = sc_core::sc_time(period, base);
-
-}
-
