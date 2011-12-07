@@ -49,22 +49,21 @@
 #include <boost/config.hpp>
 #include <greencontrol/all.h>
 #include "apbdevice.h"
-
+#include "clkdevice.h"
 
 #include "signalkit.h"
 #include <utility>
 /// @addtogroup irqmp IRQMP
 /// @{
 
-class CIrqmp : public gs::reg::gr_device, 
-               public signalkit::signal_module<CIrqmp>,
-               public APBDevice {
+class Irqmp : public gs::reg::gr_device, 
+               public APBDevice,
+               public CLKDevice {
     public:
+        SIGNALMODULE(Irqmp);
+
         /// Slave socket responsible for all bus communication
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb_slv;
-
-        /// Reset input signal
-        signal<bool>::in rst;
 
         /// CPU reset out signals
         signal<bool>::selector cpu_rst;
@@ -79,9 +78,9 @@ class CIrqmp : public gs::reg::gr_device,
         signal<bool>::infield irq_in;
 
         /// Internal signal to decouple inputs and outputs. Furthermore it addes the needed delays
-        sc_event signal;
+        sc_event e_signal;
 
-        SC_HAS_PROCESS(CIrqmp);
+        SC_HAS_PROCESS(Irqmp);
         GC_HAS_CALLBACKS();
 
         /// Constructor
@@ -93,12 +92,12 @@ class CIrqmp : public gs::reg::gr_device,
         /// @param _pmask Upper 12bit of the APB mask.
         /// @param _ncpu  Number of CPU which receive interupts.
         /// @param _eirq  Interrupt channel which hides all the extended interrupt channels.
-        CIrqmp(sc_module_name name, int _paddr = 0, int _pmask = 0xFFF, int _ncpu = 2, int _eirq = 1, unsigned int pindex = 0); 
+        Irqmp(sc_module_name name, int _paddr = 0, int _pmask = 0xFFF, int _ncpu = 2, int _eirq = 1, unsigned int pindex = 0); 
 
         /// Default destructor
         ///
         ///  Frees all dynamic object members.
-        ~CIrqmp();
+        ~Irqmp();
 
        // function prototypes
        
@@ -145,7 +144,7 @@ class CIrqmp : public gs::reg::gr_device,
         /// @param value Value of the reset signal the reset is active as long the signal is false.
         ///              Therefore the reset is done on the transition from false to true.
         /// @param time  Delay to the current simulation time. Is not used in this callback.
-        void onreset(const bool &value, const sc_time &time);
+        void dorst();
 
         /// Incomming interrupts
         ///
@@ -159,7 +158,6 @@ class CIrqmp : public gs::reg::gr_device,
         /// @param time  Delay to the simulation time. Not used in this signal.
         void incomming_irq(const bool &value, const uint32_t &irq, const sc_time &time);
 
-
         /// Acknowledged Irq Callback
         ///
         ///  This Callback is called if the direct acknowledge way is used.
@@ -169,31 +167,6 @@ class CIrqmp : public gs::reg::gr_device,
         /// @param cpu  The CPU which acknowleged the Interrupt
         /// @param time Delay to the simulation time. Not used with this signal.
         void acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_time &time);
-
-        /// Set the clockcycle length.
-        ///
-        ///  With this function you can set the clockcycle length of the gptimer instance.
-        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
-        ///
-        /// @param clk An sc_clk instance. The function will extract the clockcycle length from the instance.
-        void clk(sc_core::sc_clock &clk);
-
-        /// Set the clockcycle length.
-        ///
-        ///  With this function you can set the clockcycle length of the gptimer instance.
-        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
-        ///
-        /// @param period An sc_time variable which holds the clockcycle length.
-        void clk(sc_core::sc_time &period);
-
-        /// Set the clockcycle length.
-        ///
-        ///  With this function you can set the clockcycle length of the gptimer instance.
-        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
-        ///
-        /// @param period A double wich holds the clockcycle length in a unit stored in base.
-        /// @param base   The unit of the clockcycle length stored in period.
-        void clk(double period, sc_core::sc_time_unit base);
 
     private:
         /// Number of CPUs in the System
@@ -207,10 +180,6 @@ class CIrqmp : public gs::reg::gr_device,
         /// Status of the force registers
         /// To determ the change in the status force fields.
         uint32_t *forcereg;
-
-        /// Clock cycle length.
-        /// To define all wait periodes.
-        sc_time   cc;
 
     public:
         //---register address offset
