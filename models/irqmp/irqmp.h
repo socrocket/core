@@ -60,7 +60,9 @@ class Irqmp : public gs::reg::gr_device,
                public APBDevice,
                public CLKDevice {
     public:
-        SIGNALMODULE(Irqmp);
+        SC_HAS_PROCESS(Irqmp);
+        SK_HAS_SIGNALS(Irqmp);
+        GC_HAS_CALLBACKS();
 
         /// Slave socket responsible for all bus communication
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb_slv;
@@ -79,9 +81,6 @@ class Irqmp : public gs::reg::gr_device,
 
         /// Internal signal to decouple inputs and outputs. Furthermore it addes the needed delays
         sc_event e_signal;
-
-        SC_HAS_PROCESS(Irqmp);
-        GC_HAS_CALLBACKS();
 
         /// Constructor
         /// 
