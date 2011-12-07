@@ -397,7 +397,8 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(uint32_t id, tlm::tlm_generic_payloa
 
     // Let the request thread know that END_REQ 
     // came in on return path.
-    mEndRequestEvent.notify(delay);
+    //mEndRequestEvent.notify(delay);
+    mEndRequestEvent.notify();
 
   // New response - goes into response PEQ
   } else if (phase == tlm::BEGIN_RESP) {

@@ -192,6 +192,7 @@ def build(bld):
                     '../../common/verbose.cpp',
                     '../../common/timingmonitor.cpp',
                     '../utils/power_monitor.cpp',
+                    '../utils/clkdevice.cpp',
                     '../utils/ahbdevice.cpp',
                     '../utils/apbdevice.cpp',
                     '../ahbctrl/adapters/ahbpipe.cpp',
