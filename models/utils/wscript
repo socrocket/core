@@ -63,6 +63,7 @@ def build(bld):
                        'ahbdevice.cpp',
                        'apbdevice.cpp',
                        'memdevice.cpp',
+                       'clkdevice.cpp',
                        'apbtestbench.cpp',
                        'power_monitor.cpp',
                       ],
