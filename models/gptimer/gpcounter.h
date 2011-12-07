@@ -59,14 +59,14 @@
 
 /// @addtogroup gptimer GPTimer
 /// @{
-class CGPTimer;
+class GPTimer;
 
 /// @brief This class implements an internal counter of a gptimer.
-class CGPCounter : public gs::reg::gr_subdevice {
+class GPCounter : public gs::reg::gr_subdevice {
     public:
 
         /// A pointer to the parent GPTimer. This is needed to acces common functions and register.
-        CGPTimer &p;
+        GPTimer &p;
 
         /// The interrupt state of the counter. Might be get deprecated
         bool m_pirq;
@@ -98,14 +98,14 @@ class CGPCounter : public gs::reg::gr_subdevice {
         bool chain_run;
 
         GC_HAS_CALLBACKS();
-        SC_HAS_PROCESS( CGPCounter);
+        SC_HAS_PROCESS( GPCounter);
 
         /// Creates a new Counter instance. Only usfull if its called from inside of a GPTimer instance.
-        CGPCounter(CGPTimer &_parent, unsigned int nr,
+        GPCounter(GPTimer &_parent, unsigned int nr,
                    sc_core::sc_module_name name);
 
         /// Destroies a Counter instance
-        ~CGPCounter();
+        ~GPCounter();
 
         /// Execute the callback registering when systemc reaches the end of elaboration.
         void end_of_elaboration();

@@ -22,7 +22,7 @@
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
 //*********************************************************************
-// Title:      gpCGPCounter.cpp
+// Title:      gpcounter.cpp
 //
 // ScssId:
 //
@@ -53,8 +53,7 @@
 /// @addtogroup gptimer
 /// @{
 
-CGPCounter::CGPCounter(CGPTimer &_parent, unsigned int _nr,
-                       sc_core::sc_module_name name) :
+GPCounter::GPCounter(GPTimer &_parent, unsigned int _nr, sc_core::sc_module_name name) :
     gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false) {
     SC_THREAD(ticking);
 
@@ -62,48 +61,48 @@ CGPCounter::CGPCounter(CGPTimer &_parent, unsigned int _nr,
     PM::send_idle(this,"idle",sc_time_stamp(),1);
 }
 
-CGPCounter::~CGPCounter() {
+GPCounter::~GPCounter() {
     GC_UNREGISTER_CALLBACKS();
 }
 
-void CGPCounter::end_of_elaboration() {
-    GR_FUNCTION(CGPCounter, ctrl_read);
-    GR_SENSITIVE(p.r[CGPTimer::CTRL(nr)].add_rule(gs::reg::PRE_READ,
+void GPCounter::end_of_elaboration() {
+    GR_FUNCTION(GPCounter, ctrl_read);
+    GR_SENSITIVE(p.r[GPTimer::CTRL(nr)].add_rule(gs::reg::PRE_READ,
             gen_unique_name("ctrl_read", false), gs::reg::NOTIFY));
 
-    GR_FUNCTION(CGPCounter, ctrl_write);
-    GR_SENSITIVE(p.r[CGPTimer::CTRL(nr)].add_rule(gs::reg::POST_WRITE,
+    GR_FUNCTION(GPCounter, ctrl_write);
+    GR_SENSITIVE(p.r[GPTimer::CTRL(nr)].add_rule(gs::reg::POST_WRITE,
             gen_unique_name("ctrl_write", false), gs::reg::NOTIFY));
 
-    GR_FUNCTION(CGPCounter, value_read);
-    GR_SENSITIVE(p.r[CGPTimer::VALUE(nr)].add_rule(gs::reg::PRE_READ,
+    GR_FUNCTION(GPCounter, value_read);
+    GR_SENSITIVE(p.r[GPTimer::VALUE(nr)].add_rule(gs::reg::PRE_READ,
             gen_unique_name("value_read", false), gs::reg::NOTIFY));
 
-    GR_FUNCTION(CGPCounter, value_write);
-    GR_SENSITIVE(p.r[CGPTimer::VALUE(nr)].add_rule(gs::reg::POST_WRITE,
+    GR_FUNCTION(GPCounter, value_write);
+    GR_SENSITIVE(p.r[GPTimer::VALUE(nr)].add_rule(gs::reg::POST_WRITE,
             gen_unique_name("value_write", false), gs::reg::NOTIFY));
 
-    p.r[CGPTimer::VALUE(nr)].enable_events();
+    p.r[GPTimer::VALUE(nr)].enable_events();
 }
 
-void CGPCounter::ctrl_read() {
-    p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_DH] = (p.dhalt.read() != 0);
-    p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IP] = m_pirq;
+void GPCounter::ctrl_read() {
+    p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_DH] = 0;
+    p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_IP] = m_pirq;
 }
 
-void CGPCounter::ctrl_write() {
-    p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_DH] = (p.dhalt.read() != 0);
+void GPCounter::ctrl_write() {
+    p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_DH] = 0;
 
     // Clean irq if desired
-    bool old_pirq = m_pirq;
+    //bool old_pirq = m_pirq;
 
-    m_pirq = p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IP];
+    m_pirq = p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_IP];
 
 #if 0
     // Unset IRQ
     if (old_pirq && !m_pirq) {
-        unsigned int irqnr = (p.r[CGPTimer::CONF] >> 3) & 0xF;
-        if (p.r[CGPTimer::CONF].b[CGPTimer::CONF_SI]) {
+        unsigned int irqnr = (p.r[GPTimer::CONF] >> 3) & 0xF;
+        if (p.r[GPTimer::CONF].b[GPTimer::CONF_SI]) {
             irqnr += nr;
         }
         p.irq.write(p.irq.read() & ~(1 << irqnr));
@@ -111,84 +110,84 @@ void CGPCounter::ctrl_write() {
 #endif
 
     // Prepare for chainging
-    if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) {
+    if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]) {
         chain_run = false;
         stop();
     }
 
     // Load
-    if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_LD]) {
-        unsigned int reload = p.r[CGPTimer::RELOAD(nr)];
-        p.r[CGPTimer::VALUE(nr)].set(reload);
+    if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_LD]) {
+        unsigned int reload = p.r[GPTimer::RELOAD(nr)];
+        p.r[GPTimer::VALUE(nr)].set(reload);
         value_write();
-        p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_LD] = false;
+        p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_LD] = false;
     }
 
     // Enable
     //v::debug << name() << "StartStop_" << nr << v::endl;
-    if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN] && stopped) {
+    if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN] && stopped) {
         v::debug << name() << "Start_" << nr << v::endl;
         start();
-    } else if ((!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN]) && !stopped) {
+    } else if ((!p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN]) && !stopped) {
         v::debug << name() << "Stop_" << nr << v::endl;
         stop();
     }
 }
 
-void CGPCounter::value_read() {
+void GPCounter::value_read() {
     if (!stopped) {
         sc_core::sc_time now = sc_core::sc_time_stamp();
-        int reload = p.r[CGPTimer::RELOAD(nr)] + 1;
+        int reload = p.r[GPTimer::RELOAD(nr)] + 1;
         int dticks;
-        if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) {
+        if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]) {
             dticks = p.numberofticksbetween(lasttime, now, 0,
                     p.counter[nr - 1]->cycletime());
         } else {
             dticks
                     = p.numberofticksbetween(lasttime, now, nr + 2,
-                            p.clockcycle);
+                            p.clock_cycle);
         }
         int value = ((int)lastvalue - dticks) % reload;
 
         if (value < 0) {
-            p.r[CGPTimer::VALUE(nr)] = reload + value;
+            p.r[GPTimer::VALUE(nr)] = reload + value;
         } else {
-            p.r[CGPTimer::VALUE(nr)] = value;
+            p.r[GPTimer::VALUE(nr)] = value;
         }
     }
 }
 
-void CGPCounter::value_write() {
-    lastvalue = p.r[CGPTimer::VALUE(nr)];
+void GPCounter::value_write() {
+    lastvalue = p.r[GPTimer::VALUE(nr)];
     lasttime = sc_core::sc_time_stamp();
     if (!stopped) {
         calculate();
     }
 }
 
-void CGPCounter::chaining() {
+void GPCounter::chaining() {
     chain_run = true;
     //v::debug << name() << "Chaining_" << nr << v::endl;
     start();
 }
 
-void CGPCounter::ticking() {
+void GPCounter::ticking() {
     unsigned int irqnr = 0;
     while (1) {
-        // calculate sleep time, CGPCounter timeout
+        // calculate sleep time, GPCounter timeout
         calculate();
 
-        v::debug << name() << "CGPCounter_" << nr << " is wait" << v::endl;
+        v::debug << name() << "GPCounter_" << nr << " is wait" << v::endl;
         wait(e_wait);
-        v::debug << name() << "CGPCounter_" << nr << " is rockin'" << v::endl;
+        v::debug << name() << "GPCounter_" << nr << " is rockin'" << v::endl;
         PM::send(this, "underflow", 1, sc_time_stamp(),0,1);
         // Send interupt and set outputs
-        if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_IE]) {
-            // p.r[CGPTimer::CTRL].b[CGPTimer::TIM_CTRL_SI] // seperatet interupts
+        if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_IE]) {
+            // p.r[GPTimer::CTRL].b[GPTimer::TIM_CTRL_SI] // seperatet interupts
             // APBIRQ addresse beachten -.-
-            irqnr = (p.r[CGPTimer::CONF] >> 3) & 0xF;
-            v::debug << name() << "IRQ: " << irqnr << " CONF "<< hex << (uint32_t)p.r[CGPTimer::CONF] << v::endl;
-            if (p.r[CGPTimer::CONF].b[CGPTimer::CONF_SI]) {
+            irqnr = (p.r[GPTimer::CONF] >> 3) & 0xF;
+            v::debug << name() << "IRQ: " << irqnr << " CONF "<< hex << (uint32_t)p.r[GPTimer::CONF] << v::endl;
+            if (p.r[GPTimer::CONF].b[GPTimer::CONF_SI]) {
                 irqnr += nr;
             }
             p.irq.write((1 << irqnr), true);
@@ -197,12 +196,8 @@ void CGPCounter::ticking() {
         if(p.counter.size()-1==nr && p.wdog_length!=0) {
            p.wdog.write(true);
         }
-#ifdef DEBUGOUT
-        if(p.rst) {
-            p.tick.write(p.tick.read() | (1<<(nr + 1)));
-        }
-#endif
-        wait(p.clockcycle);
+        
+        wait(p.clock_cycle);
         PM::send(this, "underflow", 0, sc_time_stamp(),0,1);
         if(m_pirq&&irqnr) {
             p.irq.write(1 << irqnr, false);
@@ -210,71 +205,66 @@ void CGPCounter::ticking() {
         if(p.counter.size()-1==nr && p.wdog_length!=0) {
            p.wdog.write(false);
         }
-#ifdef DEBUGOUT
-        if(p.rst) {
-            p.tick.write(p.tick.read() & ~(1<<(nr + 1)));
-        }
-#endif
 
         unsigned int nrn = (nr + 1 < p.counter.size())? nr + 1 : 0;
-        if (p.r[CGPTimer::CTRL(nrn)].b[CGPTimer::CTRL_CH]) {
+        if (p.r[GPTimer::CTRL(nrn)].b[GPTimer::CTRL_CH]) {
             p.counter[(nrn) % p.counter.size()]->chaining();
         }
 
         // Enable value becomes restart value
-        p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN].set(
-                p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_RS].get());
+        p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN].set(
+                p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_RS].get());
     }
 }
 
-void CGPCounter::do_reset() {
+void GPCounter::do_reset() {
     lastvalue = 0;
     lasttime = sc_core::sc_time_stamp();
-    p.r[CGPTimer::VALUE(nr)] = 0;
-    p.r[CGPTimer::RELOAD(nr)] = 0;
-    p.r[CGPTimer::CTRL(nr)] = 0;
+    p.r[GPTimer::VALUE(nr)] = 0;
+    p.r[GPTimer::RELOAD(nr)] = 0;
+    p.r[GPTimer::CTRL(nr)] = 0;
     stopped = true;
     chain_run = false;
 }
 
 // Gets the time to the end of the next zero hit.
-sc_core::sc_time CGPCounter::nextzero() {
-    sc_core::sc_time t; // cycle time of foundation (other CGPCounter or the cloccycle)
+sc_core::sc_time GPCounter::nextzero() {
+    sc_core::sc_time t; // cycle time of foundation (other GPCounter or the cloccycle)
     int x; // Per cycle
-    if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) { // We depend on the cycle time of the last CGPCounter.
+    if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]) { // We depend on the cycle time of the last GPCounter.
         if (nr) {
             //p.counter[nr-1]->value_read();
             //t = p.counter[nr-1]->cycletime();
-            x = p.r[CGPTimer::VALUE(nr - 1)];
+            x = p.r[GPTimer::VALUE(nr - 1)];
         } else {
             p.counter[p.counter.size() - 1]->value_read();
             t = p.counter[p.counter.size() - 1]->cycletime();
-            x = p.r[CGPTimer::VALUE(p.counter.size() - 1)];
+            x = p.r[GPTimer::VALUE(p.counter.size() - 1)];
         }
     } else { // We only depend on the prescaler
         p.scaler_read();
-        t = p.clockcycle;
-        x = p.r[CGPTimer::SCALER];
+        t = p.clock_cycle;
+        x = p.r[GPTimer::SCALER];
     }
     return t * (x + 2);
 }
 
 
-// Gets the Cycletime of the CCGPCounter.
-sc_core::sc_time CGPCounter::cycletime() {
-    sc_core::sc_time t; // cycle time of foundation (other CGPCounter or the cloccycle)
+// Gets the Cycletime of the CGPCounter.
+sc_core::sc_time GPCounter::cycletime() {
+    sc_core::sc_time t; // cycle time of foundation (other GPCounter or the cloccycle)
     int m; // Per cycle
-    if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]) { // We depend on the cycle time of the last CGPCounter.
+    if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]) { // We depend on the cycle time of the last GPCounter.
         if (nr) {
             t = p.counter[nr - 1]->cycletime();
-            m = p.r[CGPTimer::RELOAD(nr - 1)];
+            m = p.r[GPTimer::RELOAD(nr - 1)];
         } else {
             t = p.counter[p.counter.size()]->cycletime();
-            m = p.r[CGPTimer::RELOAD(p.counter.size())];
+            m = p.r[GPTimer::RELOAD(p.counter.size())];
         }
     } else { // We only depend on the prescaler
-        t = p.clockcycle;
-        m = p.r[CGPTimer::SCRELOAD];
+        t = p.clock_cycle;
+        m = p.r[GPTimer::SCRELOAD];
         //m = 1;
     }
     return t * (m + 1);
@@ -282,18 +272,18 @@ sc_core::sc_time CGPCounter::cycletime() {
 }
 
 // Recalculate sleeptime and send notification
-void CGPCounter::calculate() {
+void GPCounter::calculate() {
     e_wait.cancel();
     value_read();
-    int value = p.r[CGPTimer::VALUE(nr)];
+    int value = p.r[GPTimer::VALUE(nr)];
     sc_core::sc_time time;
     // Calculate with currentime, and lastvalue updates
-    if (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN]) {
+    if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN]) {
         sc_core::sc_time zero = this->nextzero();
         sc_core::sc_time cycle = this->cycletime();
         v::debug << name() << " calc_" << nr << " Zero: " << zero << " Cycle: " << cycle << " Value: " << value << v::endl;
         time = zero;
-        time += (cycle * value) + (nr + 1) * p.clockcycle;
+        time += (cycle * value) + (nr + 1) * p.clock_cycle;
         v::debug << name() << " calc_" << nr << ": " << time << v::endl;
         e_wait.notify(time);
     }
@@ -301,16 +291,16 @@ void CGPCounter::calculate() {
 
 // Start counting imideately.
 // For example for enable, !dhalt, e_chain
-void CGPCounter::start() {
+void GPCounter::start() {
     v::debug << name() << "start_" << nr << " stopped: " << stopped << "-"
-            << (bool)(p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN]) << "-"
-            << (p.dhalt.read() != 0) << "-"
-            << (!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]
-                    || (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]
+            << (bool)(p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN]) << "-"
+            << "-"
+            << (!p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]
+                    || (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]
                             && chain_run)) << v::endl;
-    if (stopped && p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_EN]
-            /*&& (p.dhalt.read()!=0)*/&& (!p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]
-                    || (p.r[CGPTimer::CTRL(nr)].b[CGPTimer::CTRL_CH]
+    if (stopped && p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN]
+            /*&& (p.dhalt.read()!=0)*/&& (!p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]
+                    || (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]
                             && chain_run))) {
         v::debug << name() << "startnow_" << nr << v::endl;
 
@@ -324,12 +314,12 @@ void CGPCounter::start() {
 // Stoping counting imideately.
 // For example for disableing, dhalt, e_chain
 //
-void CGPCounter::stop() {
+void GPCounter::stop() {
     if (!stopped) {
         //v::debug << name() << "stop_" << nr << v::endl;
         e_wait.cancel();
         value_read();
-        lastvalue = p.r[CGPTimer::VALUE(nr)];
+        lastvalue = p.r[GPTimer::VALUE(nr)];
         lasttime = sc_core::sc_time_stamp();
         stopped = true;
         PM::send(this, "active", 0, sc_time_stamp(),0,1);

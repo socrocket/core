@@ -54,24 +54,19 @@
 
 // Constructor: create all members, registers and Counter objects.
 // Store configuration default value in conf_defaults.
-CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
+GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                    int gpindex, int gpaddr, int gpmask, int gpirq, int gsepirq,
                    int gsbits, int gnbits, int gwdog, unsigned int pindex, bool gpowermon) :
     gr_device(name, gs::reg::ALIGNED_ADDRESS, 4 * (1 + ntimers), NULL),
     APBDevice(pindex, 0x1, 0x11, 0, gpirq, APBIO, gpmask, false, false, gpaddr), 
-    bus("bus", r, (gpaddr & gpmask) << 8, (((~gpmask & 0xfff) + 1) << 8), ::amba::amba_APB, 
-            ::amba::amba_LT, false), 
-    rst(&CGPTimer::do_reset, "RESET"), 
-    dhalt(&CGPTimer::do_dhalt, "DHALT"), 
-    tick("TICK"), irq("IRQ"), wdog("WDOG"), 
+    bus("bus", r, (gpaddr & gpmask) << 8, (((~gpmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false), 
+    irq("IRQ"), wdog("WDOG"), 
     conf_defaults((gsepirq << 8) | ((gpirq & 0xF) << 3) | (ntimers & 0x7)), 
     lasttime(0, sc_core::SC_NS), lastvalue(0), 
-    clockcycle(10.0, sc_core::SC_NS),
     sbits(gsbits),
     nbits(gnbits),
     wdog_length(gwdog),
     powermon(gpowermon) {
-
 
     assert("gsbits has to be between 1 and 32" && gsbits > 0 && gsbits < 33);
     assert("gnbits has to be between 1 and 32" && gnbits > 0 && gnbits < 33);
@@ -120,10 +115,10 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
     );
 
     for (unsigned int i = 0; i < ntimers; ++i) {
-        CGPCounter *c = new CGPCounter(*this, i, gen_unique_name("CGPCounter",
+        GPCounter *c = new GPCounter(*this, i, gen_unique_name("GPCounter",
                 true));
         counter.push_back(c);
-        r.create_register(gen_unique_name("value", false), "CGPCounter Value Register",
+        r.create_register(gen_unique_name("value", false), "GPCounter Value Register",
                           VALUE(i), // offset
                           gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
                           gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
@@ -154,24 +149,17 @@ CGPTimer::CGPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                           32, //register width
                           0x00 // lock mask
         );
-
-
     }
-
 
 #ifdef DEBUG
     SC_THREAD(diag);
-#endif
-
-#ifdef DEBUGOUT
-    SC_THREAD(ticking);
 #endif
 }
 
 // Destructor: Unregister Register Callbacks.
 // Destroy all Counter objects.
-CGPTimer::~CGPTimer() {
-    for (std::vector<CGPCounter *>::iterator iter = counter.begin(); iter
+GPTimer::~GPTimer() {
+    for (std::vector<GPCounter *>::iterator iter = counter.begin(); iter
             != counter.end(); iter++) {
         delete *iter;
     }
@@ -179,85 +167,25 @@ CGPTimer::~CGPTimer() {
 }
 
 // Set all register callbacks
-void CGPTimer::end_of_elaboration() {
-    GR_FUNCTION(CGPTimer, scaler_read);
-    GR_SENSITIVE(r[SCALER].add_rule(gs::reg::PRE_READ, "scaler_read",
-            gs::reg::NOTIFY));
+void GPTimer::end_of_elaboration() {
+    GR_FUNCTION(GPTimer, scaler_read);
+    GR_SENSITIVE(r[SCALER].add_rule(gs::reg::PRE_READ, "scaler_read", gs::reg::NOTIFY));
 
-    GR_FUNCTION(CGPTimer, scaler_write);
-    GR_SENSITIVE(r[SCALER].add_rule(gs::reg::POST_WRITE, "scaler_write",
-            gs::reg::NOTIFY));
-    GR_FUNCTION(CGPTimer, screload_write);
-    GR_SENSITIVE(r[SCRELOAD].add_rule(gs::reg::POST_WRITE,
-            "scaler_reload_write", gs::reg::NOTIFY));
+    GR_FUNCTION(GPTimer, scaler_write);
+    GR_SENSITIVE(r[SCALER].add_rule(gs::reg::POST_WRITE, "scaler_write", gs::reg::NOTIFY));
+    
+    GR_FUNCTION(GPTimer, screload_write);
+    GR_SENSITIVE(r[SCRELOAD].add_rule(gs::reg::POST_WRITE, "scaler_reload_write", gs::reg::NOTIFY));
 
-    GR_FUNCTION(CGPTimer, conf_read);
-    GR_SENSITIVE(r[CONF].add_rule(gs::reg::PRE_READ, "conf_read",
-            gs::reg::NOTIFY));
-
-}
-
-#ifdef DEBUGOUT
-// Calculate tick output for the prescaler tick TICK(0)
-void CGPTimer::tick_calc() {
-    e_tick.cancel();
-    scaler_read();
-    int scaler = r[SCALER] + 1;
-    int reload = r[SCRELOAD] + 1;
-    //sc_core::sc_time now = sc_core::sc_time_stamp();
-    //int scaler = valueof(now) - reload;
-    if(reload) {
-        scaler = (scaler) % reload;
-    }
-    //v::debug << name() << "Scaler: " << scaler << v::endl;
-    //v::debug << name() << "Reload: " << reload << v::endl;
-    //if(((unsigned )scaler != 0xFFFFFFFF) || (scaler == 0 && reload == 0)) {
-    //  e_tick.notify(clockcycle * (((scaler)? scaler: (reload - 1)) - 1));
-    //}
-    //if(reload != 0) {
-    e_tick.notify(clockcycle * (scaler));
-    //}
-}
-
-// Wait for prescaler tick output ans set TICK(0)
-void CGPTimer::ticking() {
-    while(1) {
-        tick_calc();
-        wait(e_tick);
-        if(rst.read() == 1) {
-            tick.write(tick.read() | 1);
-        }
-        wait(clockcycle);
-        if(rst.read() == 1) {
-            tick.write(tick.read() & ~1);
-        }
-    }
-}
-#endif
-
-// Disable or enable CGPCounter when DHALT arrives
-// The value will be directly fetched in conf_read to show the right value in the conf registers.
-void CGPTimer::do_dhalt(const bool &value, const sc_core::sc_time &time) {
-    if (r[CONF].b[CONF_DF]) {
-        if (value) {
-            for (std::vector<CGPCounter *>::iterator iter = counter.begin(); iter
-                    != counter.end(); iter++) {
-                (*iter)->stop();
-            }
-        } else {
-            for (std::vector<CGPCounter *>::iterator iter = counter.begin(); iter
-                    != counter.end(); iter++) {
-                (*iter)->start();
-            }
-        }
-    }
+    GR_FUNCTION(GPTimer, conf_read);
+    GR_SENSITIVE(r[CONF].add_rule(gs::reg::PRE_READ, "conf_read", gs::reg::NOTIFY));
 }
 
 // Calback for scaler register. Updates register value before reads.
-void CGPTimer::scaler_read() {
+void GPTimer::scaler_read() {
     sc_core::sc_time now = sc_core::sc_time_stamp();
     int reload = r[SCRELOAD] + 1;
-    int value = valueof(now, 0, clockcycle) - (reload);
+    int value = valueof(now, 0, clock_cycle) - (reload);
     //  v::debug << name() << " pure: " << std::dec << valueof(now) << "->" << value << v::endl;
 
     //  if(value<0) {
@@ -278,7 +206,7 @@ void CGPTimer::scaler_read() {
 }
 
 // Callback for scaler relaod register. Updates Prescaler Ticks and all Counters on write.
-void CGPTimer::screload_write() {
+void GPTimer::screload_write() {
     uint32_t reload = r[SCRELOAD];
     r[SCALER] = reload;
     //  v::debug << name() << "!Reload: " << reload << v::endl;
@@ -286,98 +214,78 @@ void CGPTimer::screload_write() {
 }
 
 // Callback for scaler value register. Updates Prescaler Ticks and all Counters on write.
-void CGPTimer::scaler_write() {
+void GPTimer::scaler_write() {
     lasttime = sc_core::sc_time_stamp();
     lastvalue = r[SCALER];
     v::debug << name() << "Scaler: " << lastvalue << v::endl;
-    for(std::vector<CGPCounter *>::iterator iter = counter.begin(); iter != counter.end(); iter++) {
+    for(std::vector<GPCounter *>::iterator iter = counter.begin(); iter != counter.end(); iter++) {
         (*iter)->calculate(); // Recalculate
     }
-#ifdef DEBUGOUT
-    tick_calc();
-#endif
 }
 
 // Callback for configuration register. Updates the content before reads.
-void CGPTimer::conf_read() {
+void GPTimer::conf_read() {
     r[CONF] = (r[CONF] & 0x0000200) | (conf_defaults & 0x000000FF);
 }
 
 // Calback for the rst signal. Resets the module on true.
-void CGPTimer::do_reset(const bool &value, const sc_core::sc_time &time) {
-    if (!value) {
-        r[SCALER] = static_cast<unsigned int> ((1ULL << sbits) - 1);
-        r[SCRELOAD] = static_cast<unsigned int> ((1ULL << sbits) - 1);
-        r[CONF] = conf_defaults;
-        lastvalue = 0;
-        tick = 0;
-        wdog = 0;
-        // TODO Reset Irqs: irq = 0;
-        lasttime = sc_core::sc_time_stamp();
-        scaler_write();
-        scaler_read();
+void GPTimer::dorst() {
+    r[SCALER] = static_cast<unsigned int> ((1ULL << sbits) - 1);
+    r[SCRELOAD] = static_cast<unsigned int> ((1ULL << sbits) - 1);
+    r[CONF] = conf_defaults;
+    lastvalue = 0;
+    wdog = 0;
 
-        for (std::vector<CGPCounter *>::iterator iter = counter.begin(); iter
-                != counter.end(); iter++) {
-            (*iter)->do_reset();
-        }
-        if(wdog_length) {
-            size_t count = counter.size() -1;
-            r[CGPTimer::RELOAD(count)] = wdog_length;
-            r[CGPTimer::CTRL(count)] = 0xD; // Enabled, Load, Irq
-            counter.back()->ctrl_write();
-        }
+    // TODO Reset Irqs: irq = 0;
+    lasttime = sc_core::sc_time_stamp();
+    scaler_write();
+    scaler_read();
+
+    for (std::vector<GPCounter *>::iterator iter = counter.begin(); iter
+            != counter.end(); iter++) {
+        (*iter)->do_reset();
+    }
+    if(wdog_length) {
+        size_t count = counter.size() -1;
+        r[GPTimer::RELOAD(count)] = wdog_length;
+        r[GPTimer::CTRL(count)] = 0xD; // Enabled, Load, Irq
+        counter.back()->ctrl_write();
     }
 }
 
 // Prescaler value relative to the current value.
-int CGPTimer::valueof(sc_core::sc_time t, int offset,
+int GPTimer::valueof(sc_core::sc_time t, int offset,
                       sc_core::sc_time cycletime) const {
     return (int)(lastvalue - ((t - lasttime - (1 + offset) * cycletime)
             / cycletime) + 1);
 }
 
 // Number of zero crosses between two prescaler values.
-int CGPTimer::numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b,
-                                   int CGPCounter, sc_core::sc_time cycletime) {
+int GPTimer::numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b,
+                                   int GPCounter, sc_core::sc_time cycletime) {
     int reload = r[SCRELOAD] + 1;
     int val_a = valueof(a, 0, cycletime);
-    int val_b = valueof(b, CGPCounter, cycletime);
+    int val_b = valueof(b, GPCounter, cycletime);
     int num_a = val_a / reload + (val_a > 0 && val_b < 0);
     int num_b = val_b / reload;
     return std::abs(num_a - num_b);
 }
 
-// Extract basic cycle rate from a sc_clock
-void CGPTimer::clk(sc_core::sc_clock &clk) {
-    clockcycle = clk.period();
-}
-
-// Extract basic cycle rate from a clock period
-void CGPTimer::clk(sc_core::sc_time &period) {
-    clockcycle = period;
-}
-
-// Extract basic cycle rate from a clock period in double
-void CGPTimer::clk(double period, sc_core::sc_time_unit base) {
-    clockcycle = sc_core::sc_time(period, base);
-}
-
 #ifdef DEBUG
-#define SHOWCGPCounter(n) \
-    CGPCounter[n]->value_read(); \
-    v::debug << name() << " CGPTimer"#n << ":{ v:" << r[TIM_VALUE(n)] << ", r:" << r[TIM_RELOAD(n)] << "}";
+#define SHOWGPCounter(n) \
+    GPCounter[n]->value_read(); \
+    v::debug << name() << " GPTimer"#n << ":{ v:" << r[TIM_VALUE(n)] << ", r:" << r[TIM_RELOAD(n)] << "}";
 
 // Diagnostic thread.
-void CGPTimer::diag() {
+void GPTimer::diag() {
     while(1) {
         std::printf("\n@%-7s /%-4d: ", sc_core::sc_time_stamp().to_string().c_str(), (unsigned)sc_core::sc_delta_count());
         scaler_read();
         std::cout << "Scaler:{ v:" << r[SCALER] << ", r:" << r[SCRELOAD] << "}";
-        SHOWCGPCounter(0);
-        SHOWCGPCounter(1);
-        SHOWCGPCounter(2);
-        wait(clockcycle);
+        SHOWGPCounter(0);
+        SHOWGPCounter(1);
+        SHOWGPCounter(2);
+        wait(clock_cycle);
     }
 }
 #endif

@@ -55,8 +55,9 @@
 #include "power_monitor.h"
 #include "verbose.h"
 
-#include "apbdevice.h"
 #include "gpcounter.h"
+#include "apbdevice.h"
+#include "clkdevice.h"
 
 #include <string>
 #include <ostream>
@@ -65,16 +66,15 @@
 /// @addtogroup gptimer GPTimer
 /// @{
 
-/// @brief This class is a tlm model of the gaisler aeroflex grlib gptimer.
-///
-class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPTimer>, public APBDevice {
+/// @brief This class is a TLM 2.0 Model of the Aeroflex Gaisler GRLIB GPTimer.
+/// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 37
+class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
     public:
+        SIGNALMODULE(GPTimer);
         /// APB Slave socket for all bus communication
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;
 
         signal<bool>::in rst;
-        signal<bool>::in dhalt;
-        signal<uint8_t>::out tick;
         signal<bool>::selector irq;
         signal<bool>::out wdog;
 
@@ -93,19 +93,6 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         /// implemented in valueof.
         unsigned int lastvalue;
 
-        /// The current state of the tick signal.
-        ///
-        /// The tick signal is a sum of multible bits. Each is set by a differen Counter or by the prescaler.
-        /// Therefore the accumulated state gets stored in this attribute to modify only one bit at a time when a counter changes the signal.
-        ///
-        unsigned int ticks;
-
-        /// The clock cycle length
-        ///
-        /// To calculate the right delays and waiting times we need to store the length of one clock cycle.
-        ///
-        sc_core::sc_time clockcycle;
-
         /// The tick event.
         ///
         /// This event gets set to calculate and produce the tick value for the prescaler underflow.
@@ -116,15 +103,15 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
 
         /// A vector of Counter classes, each representate an internal counter.
         // TODO Replace by Array instanciated at construction time.
-        std::vector<CGPCounter *> counter;
+        std::vector<GPCounter *> counter;
 
         GC_HAS_CALLBACKS();
-        SC_HAS_PROCESS( CGPTimer);
+        SC_HAS_PROCESS(GPTimer);
 
         /// Creates an instance of an GPTimer.
         ///
         /// @param name    The name of the instance. It's needed for debunging.
-        /// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
+        /// @param ncounters Defines the number of counters in the unit. Default is 1. Max is 7.
         /// @param gpindex TODO
         /// @param gpaddr  TODO
         /// @param gpmask  TODO
@@ -132,7 +119,7 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         /// @param gsepirq If set to 1, each timer will drive an individual interrupt line,
         ///                starting with interrupt irq. If set to 0, all timers will drive
         ///                the same interrupt line (irq).
-        /// @param pindex  TODO
+        /// @param pindex  APB Bus Index. Defines the slave index at the APB Bus.
         /// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
         /// @param gnbits  Defines the number of bits in the timers. Default is 32.
         /// @param gsbits  Defines the number of bits in the scaler. Default is 16.
@@ -140,13 +127,13 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         ///                last timer will be enabled and pre-loaded with this value
         ///                at reset. When the timer value reaches 0, the WDOG output
         ///                is driven active.
-        CGPTimer(sc_core::sc_module_name name, unsigned int ntimers = 1,
+        GPTimer(sc_core::sc_module_name name, unsigned int ncounters = 1,
                  int gpindex = 0, int gpaddr = 0, int gpmask = 4095, int gpirq =
                          0, int gsepirq = 0, int gsbits = 16, int gnbits = 32,
                  int gwdog = 0, unsigned int pindex = 0, bool powermon = false);
 
         /// Free all counter and unregister all callbacks.
-        ~CGPTimer();
+        ~GPTimer();
 
         /// Execute the callback registering when systemc reaches the end of elaboration.
         void end_of_elaboration();
@@ -165,23 +152,14 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         /// Register callback executed before the prescaler config register gets read, to calculate the current value.
         void conf_read();
 
-        // Signal Callbacks
+      // Signal Callbacks
         /// Signal callback executed a reset on the timer when the rst signal arrives.
         /// 
-        /// @param value TODO
-        /// @param time TODO
-        void do_reset(const bool &value, const sc_core::sc_time &time);
-
-        /// Signal callback performing the stopping and starting of all counter when dhalt arrives.
-        /// 
-        /// @param value TODO
-        /// @param time TODO
-        void do_dhalt(const bool &value, const sc_core::sc_time &time);
+        /// @param value The new Value of the Signal.
+        /// @param time A possible delay. Which means the reset might be performed in the future (Not used for resets!).
+        void dorst();
 
       // Threads
-        /// Thread which creates the prescaler tick when the prescaler underflow happens.
-        void ticking();
-
         /// Diagnostic Thread
         ///
         ///  diag is a diagnostic SC_THREAD it gets triggert once in a clockcycle. But this module does not receive
@@ -191,34 +169,6 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         void diag();
 
       // Functions
-        /// Set the clockcycle length.
-        ///
-        ///  With this function you can set the clockcycle length of the gptimer instance.
-        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
-        ///
-        /// @param clk An sc_clk instance. The function will extract the clockcycle length from the instance.
-        void clk(sc_core::sc_clock &clk);
-
-        /// Set the clockcycle length.
-        ///
-        ///  With this function you can set the clockcycle length of the gptimer instance.
-        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
-        ///
-        /// @param period An sc_time variable which holds the clockcycle length.
-        void clk(sc_core::sc_time &period);
-
-        /// Set the clockcycle length.
-        ///
-        ///  With this function you can set the clockcycle length of the gptimer instance.
-        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
-        ///
-        /// @param period A double wich holds the clockcycle length in a unit stored in base.
-        /// @param base   The unit of the clockcycle length stored in period.
-        void clk(double period, sc_core::sc_time_unit base);
-
-        /// Function calculate the time of the next prescaler underflow to create the debunging output for the presacler ticks.
-        void tick_calc();
-
         /// The time to value function of the prescaler or the counters.
         ///
         ///  This is the fundamental function which defines the connection between a given time and the value.
@@ -236,13 +186,11 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         /// @see lasttime
         /// @see numberofticksbetween()
         ///
-        int32_t valueof(sc_core::sc_time t, int32_t offset,
-                        sc_core::sc_time cycletime) const;
+        int32_t valueof(sc_core::sc_time t, int32_t offset, sc_core::sc_time cycletime) const;
 
         /// @brief TODO
         ///
-        int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b,
-                                 int counter, sc_core::sc_time cycletime);
+        int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime);
        
         const uint32_t sbits;
         const uint32_t nbits;
@@ -259,22 +207,22 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         static const uint32_t CONF = 0x08;
 
         /// Returns Counter Value Register Address for Counter nr
-	///
-	/// @param nr TODO
+        ///
+        /// @param nr Counter Number
         static const uint32_t VALUE(uint8_t nr) {
             return 0x10 * (nr + 1) + 0x0;
         }
 
         /// Returns Counter Reload Register Address for Counter nr
-	///
-	/// @param nr TODO
+        ///
+        /// @param nr Counter Number
         static const uint32_t RELOAD(uint8_t nr) {
             return 0x10 * (nr + 1) + 0x4;
         }
 
         /// Returns Counte Control Register Address for Counter nr
-	///
-	/// @param nr TODO
+        ///
+        /// @param nr Counter Number
         static const uint32_t CTRL(uint8_t nr) {
             return 0x10 * (nr + 1) + 0x8;
         }
@@ -318,6 +266,7 @@ class CGPTimer : public gs::reg::gr_device, public signalkit::signal_module<CGPT
         /// Position of the Enable Bit in the Counter Control Registers
         static const uint32_t CTRL_EN = 0;
 
+        friend class GPCounter;
 };
 
 /// @}
