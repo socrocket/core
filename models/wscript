@@ -58,12 +58,6 @@ models = [
   'extern',
   ]
 
-def options(ctx): 
-  ctx.recurse(models)
-
-def configure(ctx):
-  ctx.recurse(models)
-  
 def build(bld):
   from waftools.common import get_subdirs
   import sys

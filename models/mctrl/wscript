@@ -95,12 +95,6 @@ libsm = $MODEL_TECH/libsm.sl
 libhm = $MODEL_TECH/libhm.sl
 """
 
-def options(ctx): 
-  pass
-
-def configure(ctx):
-  ctx.env["VCOMFLAGS"] += ["-87", "-explicit"]
-
 def build(bld):
   import os.path
   bld(

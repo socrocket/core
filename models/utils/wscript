@@ -44,13 +44,7 @@
 # Maintainer: Rolf Meyer
 # Reviewed:
 #*********************************************************************
-top = '..'
-
-def options(ctx): 
-  pass
-
-def configure(ctx):
-  pass
+top = '../..'
 
 def build(bld):
   bld(

@@ -45,16 +45,6 @@
 #*********************************************************************
 top = '..'
 
-def options(ctx):
-  from os import environ
-  ctx.add_option("--verbosity", dest="verbosity", help="Defines the verbosity for the build", default=environ.get("VERBOSITY",""))
-
-def configure(ctx):
-  from waflib.Options import options
-  import os.path
-  if options.verbosity and options.verbosity != "":
-    ctx.env["CXXFLAGS"] += ['-DVERBOSITY=%s' % (options.verbosity)]
-
 def build(bld):
   bld(
     target          = 'common',

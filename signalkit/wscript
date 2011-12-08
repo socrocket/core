@@ -45,12 +45,6 @@
 #*********************************************************************
 top = '..'
 
-def options(ctx):
-  pass 
-
-def configure(ctx):
-  pass
-  
 def build(bld):
   bld(
     name            = 'signalkit',

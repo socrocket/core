@@ -43,7 +43,7 @@
 # Maintainer: Rolf Meyer
 # Reviewed:
 #*********************************************************************
-top = '..'
+top = '../..'
 vsim_conf = """
 [Library]
 modelsim = $GRLIB_TECH
@@ -93,12 +93,6 @@ UnbufferedOutput = 0
 libsm = $MODEL_TECH/libsm.sl
 libhm = $MODEL_TECH/libhm.sl
 """
-
-def options(ctx):
-  pass
-
-def configure(ctx):
-  pass
 
 def build(bld):
   bld(

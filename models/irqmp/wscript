@@ -96,12 +96,6 @@ libsm = $MODEL_TECH/libsm.sl
 libhm = $MODEL_TECH/libhm.sl
 """
 
-def options(ctx): 
-  pass
-
-def configure(ctx):
-  pass
-
 def build(bld):
   bld(
     target          = 'irqmp',
