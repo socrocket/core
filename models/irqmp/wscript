@@ -114,17 +114,8 @@ def build(bld):
 
   bld(
     features     = 'cxx cprogram test',
-    source       = 'tests/test1/top_tlm.cpp tests/test1/testbench.cpp',
-    target       = 'irqmp.1.tlm.test',
-    includes     = '.',
-    uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'irqmp utils signalkit common'
-  )
-  
-  bld(
-    features     = 'cxx cprogram test',
-    source       = 'tests/test1/top_ctb.cpp tests/test1/testbench.cpp',
-    target       = 'irqmp.1.ctb.test',
+    source       = 'tests/test1/top_lt.cpp tests/test1/testbench.cpp',
+    target       = 'irqmp.1.lt.test',
     includes     = '.',
     uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     use          = 'irqmp utils signalkit common'
@@ -147,17 +138,8 @@ def build(bld):
 
   bld(
     features     = 'cxx cprogram test',
-    source       = 'tests/test2/top_tlm.cpp tests/test2/testbench.cpp',
-    target       = 'irqmp.2.tlm.test',
-    includes     = '.',
-    uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'irqmp utils signalkit common'
-  )
-  
-  bld(
-    features     = 'cxx cprogram test',
-    source       = 'tests/test2/top_ctb.cpp tests/test2/testbench.cpp',
-    target       = 'irqmp.2.ctb.test',
+    source       = 'tests/test2/top_lt.cpp tests/test2/testbench.cpp',
+    target       = 'irqmp.2.lt.test',
     includes     = '.',
     uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     use          = 'irqmp utils signalkit common'
@@ -179,22 +161,13 @@ def build(bld):
   
   bld(
     features     = 'cxx cprogram test',
-    source       = 'tests/test3/top_tlm.cpp tests/test3/testbench.cpp',
-    target       = 'irqmp.3.tlm.test',
+    source       = 'tests/test3/top_lt.cpp tests/test3/testbench.cpp',
+    target       = 'irqmp.3.lt.test',
     includes     = '.',
     uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     use          = 'irqmp utils signalkit common'
   )
   
-  bld(
-    features     = 'cxx cprogram test',
-    source       = 'tests/test3/top_ctb.cpp tests/test3/testbench.cpp',
-    target       = 'irqmp.3.ctb.test',
-    includes     = '.',
-    uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'irqmp utils signalkit common'
-  )
-   
   bld(
     features     = 'modelsim test',
     target       = 'irqmp.3.rtl.test',
