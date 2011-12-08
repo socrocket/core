@@ -120,7 +120,7 @@ def build(bld):
                       'tests/test1/top_lt.cpp'],
     includes       = '. adapters tests tests/test1',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl',
+    use            = 'common utils ahbctrl ahbmem',
   )
  
   bld(
@@ -131,7 +131,7 @@ def build(bld):
                       'tests/test1/top_at.cpp'],
     includes       = '. tests tests/test1',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl',
+    use            = 'common utils ahbctrl ahbmem',
   )
 
   bld(
@@ -146,14 +146,14 @@ def build(bld):
                       '../../common/verbose.cpp',
                       '../../common/timingmonitor.cpp',
                       '../utils/ahbdevice.cpp',
-                      '../utils/tb_ahb_mem.cpp',
+                      '../ahbmem/ahbmem.cpp',
                       '../utils/clock_gen.cpp',
                       'adapters/ahbpipe.cpp',
                       'adapters/ahb_tlmmaster_rtlbus_transactor.cpp',
                       'adapters/ahb_rtlbus_tlmslave_transactor.cpp'],
     uselib         = 'AMBA GREENSOCS',
     vcomflags      = '-93 -explicit',
-    includes       = '. tests tests/test1 adapters ../../common ../../signalkit ../utils',
+    includes       = '. tests tests/test1 adapters ../../common ../../signalkit ../utils ../ahbmem',
     config         =  vsim_conf,
   )
   
@@ -165,7 +165,7 @@ def build(bld):
                       'tests/test2/top_lt.cpp'],
     includes       = '. adapters tests tests/test2',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl',
+    use            = 'common utils ahbctrl ahbmem',
   )
  
   bld(
@@ -176,7 +176,7 @@ def build(bld):
                       'tests/test2/top_at.cpp'],
     includes       = '. adapters tests tests/test2',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl',
+    use            = 'common utils ahbctrl ahbmem',
   )
 
   bld(
@@ -191,14 +191,14 @@ def build(bld):
                       '../../common/verbose.cpp',
                       '../../common/timingmonitor.cpp',
                       '../utils/ahbdevice.cpp',
-                      '../utils/tb_ahb_mem.cpp',
+                      '../ahbmem/ahbmem.cpp',
                       '../utils/clock_gen.cpp',
                       'adapters/ahbpipe.cpp',
                       'adapters/ahb_tlmmaster_rtlbus_transactor.cpp',
                       'adapters/ahb_rtlbus_tlmslave_transactor.cpp'],
     uselib         = 'AMBA GREENSOCS',
     vcomflags      = '-93 -explicit',
-    includes       = '. tests tests/test2 adapters ../../common ../../signalkit ../utils',
+    includes       = '. tests tests/test2 adapters ../../common ../../signalkit ../utils ../ahbmem',
     config         =  vsim_conf,
   )
 
@@ -210,7 +210,7 @@ def build(bld):
                       'tests/test3/top_lt.cpp'],
     includes       = '. adapters tests tests/test3',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl',
+    use            = 'common utils ahbctrl ahbmem',
   )
  
   bld(
@@ -221,7 +221,7 @@ def build(bld):
                       'tests/test3/top_at.cpp'],
     includes       = '. adapters tests tests/test3',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl',
+    use            = 'common utils ahbctrl ahbmem',
   )
 
   bld(
@@ -236,14 +236,14 @@ def build(bld):
                       '../../common/verbose.cpp',
                       '../../common/timingmonitor.cpp',
                       '../utils/ahbdevice.cpp',
-                      '../utils/tb_ahb_mem.cpp',
+                      '../ahbmem/ahbmem.cpp',
                       '../utils/clock_gen.cpp',
                       'adapters/ahbpipe.cpp',
                       'adapters/ahb_tlmmaster_rtlbus_transactor.cpp',
                       'adapters/ahb_rtlbus_tlmslave_transactor.cpp'],
     uselib         = 'AMBA GREENSOCS',
     vcomflags      = '-93 -explicit',
-    includes       = '. tests tests/test3 adapters ../../common ../../signalkit ../utils',
+    includes       = '. tests tests/test3 adapters ../../common ../../signalkit ../utils ../ahbmem',
     config         =  vsim_conf,
   )
 
@@ -255,7 +255,7 @@ def build(bld):
                       'tests/test4/top_lt.cpp'],
     includes       = '. adapters tests tests/test4',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl',
+    use            = 'common utils ahbctrl ahbmem',
   )
  
   bld(
@@ -266,7 +266,7 @@ def build(bld):
                       'tests/test4/top_at.cpp'],
     includes       = '. adapters tests tests/test4',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl',
+    use            = 'common utils ahbctrl ahbmem',
   )
 
   bld(
@@ -281,14 +281,14 @@ def build(bld):
                       '../../common/verbose.cpp',
                       '../../common/timingmonitor.cpp',
                       '../utils/ahbdevice.cpp',
-                      '../utils/tb_ahb_mem.cpp',
+                      '../ahbmem/ahbmem.cpp',
                       '../utils/clock_gen.cpp',
                       'adapters/ahbpipe.cpp',
                       'adapters/ahb_tlmmaster_rtlbus_transactor.cpp',
                       'adapters/ahb_rtlbus_tlmslave_transactor.cpp'],
     uselib         = 'AMBA GREENSOCS',
     vcomflags      = '-93 -explicit',
-    includes       = '. tests tests/test4 adapters ../../common ../../signalkit ../utils',
+    includes       = '. tests tests/test4 adapters ../../common ../../signalkit ../utils ../ahbmem',
     config         =  vsim_conf,
   )
 
@@ -300,7 +300,7 @@ def build(bld):
                       'tests/test5/top_lt.cpp'],
     includes       = '. adapters tests tests/test5',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl',
+    use            = 'common utils ahbctrl ahbmem',
   )
  
   bld(
@@ -311,7 +311,7 @@ def build(bld):
                       'tests/test5/top_at.cpp'],
     includes       = '. adapters tests tests/test5',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl',
+    use            = 'common utils ahbctrl ahbmem',
   )
 
   bld(
@@ -326,14 +326,14 @@ def build(bld):
                       '../../common/verbose.cpp',
                       '../../common/timingmonitor.cpp',
                       '../utils/ahbdevice.cpp',
-                      '../utils/tb_ahb_mem.cpp',
+                      '../ahbmem/ahbmem.cpp',
                       '../utils/clock_gen.cpp',
                       'adapters/ahbpipe.cpp',
                       'adapters/ahb_tlmmaster_rtlbus_transactor.cpp',
                       'adapters/ahb_rtlbus_tlmslave_transactor.cpp'],
     uselib         = 'AMBA GREENSOCS',
     vcomflags      = '-93 -explicit',
-    includes       = '. tests tests/test5 adapters ../../common ../../signalkit ../utils',
+    includes       = '. tests tests/test5 adapters ../../common ../../signalkit ../utils ../ahbmem',
     config         =  vsim_conf,
   )
 
