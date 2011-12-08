@@ -182,7 +182,11 @@ def build(bld):
     use          = 'mctrl gptimer ahbctrl apbctrl utils signalkit common'
   )
 
-  bld(
+  #prom5  = bld(rule='cp ${SRC} ${TGT}', source='./tests/test5/prom.srec', target='prom.srec')
+  #sram5  = bld(rule='cp ${SRC} ${TGT}', source='./tests/test5/sram.srec', target='sram.srec')
+  #sdram5 = bld(rule='cp ${SRC} ${TGT}', source='./tests/test5/sdram.srec', target='sdram.srec')
+
+  test5 = bld(
     features     = 'modelsim',
     target       = 'mctrl.5.rtl.test',
     name         = 'mctrl.5.rtl.test',
@@ -207,4 +211,8 @@ def build(bld):
     includes      = './ ./tests ./tests/test5 ./test1/sim_rtl ./lib ../utils ../../signalkit ../../common ../ahbctrl ../ahbctrl/tests ../apbctrl ../ahbctrl/adapters',
     config        = vsim_conf,
   )
+
   
+  #bld.add_manual_dependency(bld.path.find_node('mctrl.5.rtl.test'),bld.path.find_node('prom.srec'))
+  #bld.add_manual_dependency(bld.path.find_node('mctrl.5.rtl.test'),bld.path.find_node('sram.srec'))
+  #bld.add_manual_dependency(bld.path.find_node('mctrl.5.rtl.test'),bld.path.find_node('sdram.srec'))
