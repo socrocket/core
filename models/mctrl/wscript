@@ -117,7 +117,7 @@ def build(bld):
     target       = 'mctrl.1.lt.test',
     source       = ['tests/test1/testbench.cpp',
                     'tests/test1/top_lt.cpp'],
-    includes     = '. tests tests/test1',
+    includes     = '. tests tests/test1 ../ahbctrl/tests',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )
@@ -127,7 +127,7 @@ def build(bld):
     target       = 'mctrl.1.at.test',
     source       = ['tests/test1/testbench.cpp',
                     'tests/test1/top_at.cpp'],
-    includes     = '. tests tests/test1',
+    includes     = '. tests tests/test1 ../ahbctrl/tests',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )
@@ -137,7 +137,7 @@ def build(bld):
     target       = 'mctrl.2.tlm.test',
     source       = ['tests/test2/testbench.cpp',
                     'tests/test2/top_tlm.cpp'],
-    includes     = '. tests tests/test2',
+    includes     = '. tests tests/test2 ../ahbctrl/tests',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )
@@ -147,7 +147,7 @@ def build(bld):
     target       = 'mctrl.3.tlm.test',
     source       = ['tests/test3/testbench.cpp',
                     'tests/test3/top_tlm.cpp'],
-    includes     = '. tests tests/test3',
+    includes     = '. tests tests/test3 ../ahbctrl/tests',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )
@@ -157,7 +157,7 @@ def build(bld):
     target       = 'mctrl.4.tlm.test',
     source       = ['tests/test4/testbench.cpp',
                     'tests/test4/top_tlm.cpp'],
-    includes     = '. tests tests/test4',
+    includes     = '. tests tests/test4 ../ahbctrl/tests',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )
@@ -166,8 +166,9 @@ def build(bld):
     features     = 'cxx cprogram test',
     target       = 'mctrl.5.lt.test',
     source       = ['tests/test5/testbench.cpp',
-                    'tests/test5/top_lt.cpp'],
-    includes     = '. tests tests/test5',
+                    'tests/test5/top_lt.cpp',
+                    '../ahbctrl/tests/ahbctrl_test.cpp'],
+    includes     = '. tests tests/test5 ../ahbctrl/tests',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl gptimer ahbctrl apbctrl utils signalkit common'
   )
@@ -176,8 +177,9 @@ def build(bld):
     features     = 'cxx cprogram test',
     target       = 'mctrl.5.at.test',
     source       = ['tests/test5/testbench.cpp',
-                    'tests/test5/top_at.cpp'],
-    includes     = '. tests tests/test5',
+                    'tests/test5/top_at.cpp',
+                    '../ahbctrl/tests/ahbctrl_test.cpp'],
+    includes     = '. tests tests/test5 ../ahbctrl/tests',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl gptimer ahbctrl apbctrl utils signalkit common'
   )
