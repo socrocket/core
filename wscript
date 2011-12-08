@@ -795,14 +795,6 @@ def configure(ctx):
     if ctx.env['LINKFLAGS']:
         ctx.check_cc(linkflags=ctx.env['LINKFLAGS'], mandatory=True, msg='Checking for link flags')
     
-    
-
-    ##################################################
-    # Collect checks from other libraries
-    ##################################################
-    #from waftools.common import get_subdirs
-    #ctx.recurse(get_subdirs(top))
-
 def options(ctx): 
     from os import environ
     configuration_options = ctx.get_option_group("--download")
