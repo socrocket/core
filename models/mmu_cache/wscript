@@ -152,13 +152,13 @@ def build(bld):
                     'lib/dcio_payload_extension.cpp',
                     'lib/tlmcpu_rtlcache_transactor.cpp',
                     'lib/mmu_cache_test.cpp',
-                    '../ahbctrl/adapters/ahbpipe.cpp',
-                    '../ahbctrl/adapters/ahb_rtlmaster_tlmbus_transactor.cpp',
+                    '../../adapters/ahbpipe.cpp',
+                    '../../adapters/ahb_rtlmaster_tlmbus_transactor.cpp',
                     '../ahbctrl/ahbctrl.cpp',
                     'test1/testbench.cpp',
                     'test1/sim_rtl/main.cpp'],
     uselib       = 'AMBA GREENSOCS',
-    includes     = '. test1 test1/sim_rtl lib ../utils ../../signalkit ../../common ../ahbctrl/ ../ahbctrl/adapters ../ahbmem',
+    includes     = '. test1 test1/sim_rtl lib ../utils ../../signalkit ../../common ../ahbctrl/ ../../adapters ../ahbmem',
     config       =  vsim_conf,
   )
 
@@ -181,7 +181,7 @@ def build(bld):
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache ahbctrl ahbmem common utils',
   )
-
+  """
   bld(
     features     = 'modelsim',
     target       = 'mmu_cache.2.rtl.test',
@@ -198,16 +198,16 @@ def build(bld):
                     'lib/dcio_payload_extension.cpp',
                     'lib/tlmcpu_rtlcache_transactor.cpp',
                     'lib/mmu_cache_test.cpp',
-                    '../ahbctrl/adapters/ahbpipe.cpp',
-                    '../ahbctrl/adapters/ahb_rtlmaster_tlmbus_transactor.cpp',
+                    '../../adapters/ahbpipe.cpp',
+                    '../../adapters/ahb_rtlmaster_tlmbus_transactor.cpp',
                     '../ahbctrl/ahbctrl.cpp',
                     'test2/testbench.cpp',
                     'test2/sim_rtl/main.cpp'],
     uselib       = 'AMBA GREENSOCS',
-    includes     = '. test2 test2/sim_rtl lib ../utils ../../signalkit ../../common ../ahbctrl/ ../ahbctrl/adapters ../ahbmem',
+    includes     = '. test2 test2/sim_rtl lib ../utils ../../signalkit ../../common ../ahbctrl/ ../../adapters ../ahbmem',
     config       =  vsim_conf,
   )
-
+  """
   bld(
     target       = 'mmu_cache.3.lt.test',
     features     = 'cxx cprogram test',

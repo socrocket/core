@@ -2,6 +2,7 @@
 #define _SCGENMOD_mmu_cache_wrapper_
 
 #include "systemc.h"
+#include "ahb_adapter_types.h"
 
 struct cctrltype {
     sc_logic burst;
@@ -159,68 +160,6 @@ inline int operator== (const dcache_out_type& left, const dcache_out_type& right
     return 0;
 }
 
-
-/************************************/
-
-#ifndef _AHB_MST_IN_TYPE_
-#define _AHB_MST_IN_TYPE_
-
-struct ahb_mst_in_type {
-    sc_lv<16> hgrant;
-    sc_logic hready;
-    sc_lv<2> hresp;
-    sc_lv<32> hrdata;
-    sc_logic hcache;
-    sc_lv<32> hirq;
-    sc_logic testen;
-    sc_logic testrst;
-    sc_logic scanen;
-    sc_logic testoen;
-};
-
-inline ostream& operator<<(ostream& os, const ahb_mst_in_type& a) {
-    return os;
-}
-
-inline void sc_trace(sc_trace_file *, const ahb_mst_in_type&, const std::string &) {}
-
-inline int operator== (const ahb_mst_in_type& left, const ahb_mst_in_type& right) {
-    return 0;
-}
-
-#endif
-
-/************************************/
-
-#ifndef _AHB_MST_OUT_TYPE_ADAPTER_
-#define _AHB_MST_OUT_TYPE_ADAPTER_
-
-struct ahb_mst_out_type_adapter {
-    sc_logic hbusreq;
-    sc_logic hlock;
-    sc_lv<2> htrans;
-    sc_lv<32> haddr;
-    sc_logic hwrite;
-    sc_lv<3> hsize;
-    sc_lv<3> hburst;
-    sc_lv<4> hprot;
-    sc_lv<32> hwdata;
-    sc_lv<32> hirq;
-    sc_lv<32> hconfig[8];
-    int hindex;
-};
-
-inline ostream& operator<<(ostream& os, const ahb_mst_out_type_adapter& a) {
-    return os;
-}
-
-inline void sc_trace(sc_trace_file *, const ahb_mst_out_type_adapter&, const std::string &) {}
-
-inline int operator== (const ahb_mst_out_type_adapter& left, const ahb_mst_out_type_adapter& right) {
-    return 0;
-}
-
-#endif
 
 /************************************/
 
