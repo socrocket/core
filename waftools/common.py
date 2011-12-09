@@ -88,7 +88,7 @@ def target_docs(bld):
 
 ## Nice to have to set svn props:
 ## It's maybe wothy to make a target out of it
-def setprops(bld):
+def setprops():
   """set svn properties for all files (searches for Author$)"""
   import subprocess
   # grep --exclude=**.svn** -rn '\$Date\$' tlmsignals models | cut -f1 -d: | xargs -I {} svn propset svn:keywords "Date Revision" {}
@@ -97,9 +97,6 @@ def setprops(bld):
   xargs = subprocess.Popen(["xargs", "-I", "{}", "svn", "propset", "svn:keywords", "Author Date Revision", "{}"], stdin=cut.stdout, stdout=subprocess.PIPE)
   print xargs.communicate()[0]        
 
-#Context.g_module.__dict__['list'] = target_list
-Context.g_module.__dict__['docs'] = target_docs
-Context.g_module.__dict__['setprops'] = setprops
 if Context.g_module.__dict__.has_key('install'):
   del Context.g_module.__dict__['install']
 if Context.g_module.__dict__.has_key('uninstall'):

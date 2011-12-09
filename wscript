@@ -58,6 +58,10 @@ def build(self):
     self.add_post_fun(waf_unit_test.summary)
     #self.add_post_fun(lcov_summary)
 
+def setprops(self):
+    from waftools.common import setprops
+    setprops();
+
 def coverage(self):
     from subprocess import call, STDOUT
     if self.env["gcov"] and self.env["gcov"] != "" and self.env["lcov"] and self.env["lcov"] != "":
