@@ -128,9 +128,19 @@ def build(bld):
 
   bld(
     features     = 'cxx cprogram test',
-    target       = 'mctrl.2.tlm.test',
+    target       = 'mctrl.2.lt.test',
     source       = ['tests/test2/testbench.cpp',
-                    'tests/test2/top_tlm.cpp'],
+                    'tests/test2/top_lt.cpp'],
+    includes     = '. tests tests/test2 ../ahbctrl/tests',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mctrl utils signalkit common'
+  )
+  
+  bld(
+    features     = 'cxx cprogram test',
+    target       = 'mctrl.2.at.test',
+    source       = ['tests/test2/testbench.cpp',
+                    'tests/test2/top_at.cpp'],
     includes     = '. tests tests/test2 ../ahbctrl/tests',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'

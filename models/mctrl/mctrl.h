@@ -59,6 +59,7 @@
 #include "genericmemory.h"
 #include "ahbdevice.h"
 #include "apbdevice.h"
+#include "clkdevice.h"
 #include "memdevice.h"
 #include "vendian.h"
 #include "verbose.h"
@@ -72,11 +73,11 @@
 class Mctrl : public gs::reg::gr_device,
               public AHBDevice,
               public APBDevice,
-              public signalkit::signal_module<Mctrl> {
+              public CLKDevice {
     public:
-
         SC_HAS_PROCESS(Mctrl);
-
+        SK_HAS_SIGNALS(Mctrl);
+        
         /// Creates a new Instance of an MCtrl.
         ///
         /// @param name The name of the instance. Needed for SystemC.
@@ -135,9 +136,6 @@ class Mctrl : public gs::reg::gr_device,
         /// Initiate communication with memory modules.
         gs::socket::initiator_multi_socket<32> mem;
 
-        /// Reset Signal
-        signal<bool>::in rst;
-
         // SystemC Declarations
         /// proclamation of callbacks   
         GC_HAS_CALLBACKS();
@@ -157,7 +155,7 @@ class Mctrl : public gs::reg::gr_device,
         ///
         /// @param value The new Value of the Signal.
         /// @param delay A possible delay. Which means the reset might be performed in the future (Not used for resets!).
-        void reset_mctrl(const bool &value, const sc_core::sc_time &time);
+        void dorst();
 
 	// Register Callbacks
         /// Performing an SDRAM Command
@@ -193,35 +191,6 @@ class Mctrl : public gs::reg::gr_device,
 
 	/// Thread for interfacing functional part of the model in AT mode
 	void processTXN();
-
-        /// Management of the clock cycle length, required for delay calculation
-        sc_core::sc_time cycle_time; //variable to store the clock period
-        
-        // Functions
-        /// Set the clockcycle length.
-        ///
-        ///  With this function you can set the clockcycle length of the gptimer instance.
-        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
-        ///
-        /// @param clk An sc_clk instance. The function will extract the clockcycle length from the instance.
-        void clk(sc_core::sc_clock &clk);
-        
-        /// Set the clockcycle length.
-        ///
-        ///  With this function you can set the clockcycle length of the gptimer instance.
-        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
-        ///
-        /// @param period An sc_time variable which holds the clockcycle length.
-        void clk(sc_core::sc_time &period); 
-
-        /// Set the clockcycle length.
-        ///
-        ///  With this function you can set the clockcycle length of the gptimer instance.
-        ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
-        ///
-        /// @param period A double wich holds the clockcycle length in a unit stored in base.
-        /// @param base   The unit of the clockcycle length stored in period.
-        void clk(double period, sc_core::sc_time_unit base);
 
     private:
 

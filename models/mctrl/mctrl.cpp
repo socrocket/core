@@ -84,7 +84,6 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                     false //socket is not used for arbitration
             ), 
             mem("mem", gs::socket::GS_TXN_ONLY),
-            rst(&Mctrl::reset_mctrl, "RESET"),
 	    m_abstractionLayer(abstractionLayer), mAcceptPEQ("mAcceptPEQ"), mTransactionPEQ("TransactionPEQ"),
 	    busy(false), g_romasel(_romasel), g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask), 
             g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr), 
@@ -233,7 +232,7 @@ void Mctrl::end_of_elaboration() {
     }
 
     //initialize mctrl according to generics
-    reset_mctrl(false, SC_ZERO_TIME);
+    dorst();
 }
 
 void Mctrl::start_of_simulation() {
@@ -303,71 +302,68 @@ Mctrl::MEMPort::MEMPort(uint32_t _id, MEMDevice *_dev) : id(_id), dev(_dev), add
 Mctrl::MEMPort::MEMPort() : id(100), dev(NULL), addr(0), length(0) {}
 
 //function to initialize and reset memory address space constants
-void Mctrl::reset_mctrl(const bool &value, const sc_time &time) {
-    //low active reset
-    if(!value) {
-        //reset callback delay
-        callback_delay = SC_ZERO_TIME;
+void Mctrl::dorst() {
+    //reset callback delay
+    callback_delay = SC_ZERO_TIME;
 
-        r[MCFG1] = 0x000000FF;
-        r[MCFG2] = 0x1F100000;
-        r[MCFG3] = 0x00000000;
-        r[MCFG4] = 0x00F00000 | ((1 && g_mobile) << 31);
-        
-        //set default values of mobile SDRAM
-        if(g_sden) {
-            uint32_t mcfg;
-            switch(g_mobile) {
-                //case 0 is default value (set by initialization)
-                case 1:
-                    //enable mobile SDRAM support
-                    mcfg = static_cast<uint32_t> (r[MCFG2] | MCFG2_MS);
-                    r[MCFG2].set(mcfg);
-                    break;
-                case 2:
-                    //enable mobile SDRAM support
-                    mcfg = static_cast<uint32_t> (r[MCFG2] | MCFG2_MS);
-                    r[MCFG2].set(mcfg);
-                    //enable mobile SDRAM
-                    mcfg = static_cast<uint32_t> (r[MCFG4] | MCFG4_ME);
-                    r[MCFG4].set(mcfg);
-                    break;
-                    // Case 3 would be the same as 2 here, 
-                    // the difference being that 3 disables std SDRAM,
-                    //i.e. mobile cannot be disabled. 
-                    //This will be implemented wherever someone tries to
-                    //disable mobile SDRAM.
-                default:;
-            }
+    r[MCFG1] = 0x000000FF;
+    r[MCFG2] = 0x1F100000;
+    r[MCFG3] = 0x00000000;
+    r[MCFG4] = 0x00F00000 | ((1 && g_mobile) << 31);
+    
+    //set default values of mobile SDRAM
+    if(g_sden) {
+        uint32_t mcfg;
+        switch(g_mobile) {
+            //case 0 is default value (set by initialization)
+            case 1:
+                //enable mobile SDRAM support
+                mcfg = static_cast<uint32_t> (r[MCFG2] | MCFG2_MS);
+                r[MCFG2].set(mcfg);
+                break;
+            case 2:
+                //enable mobile SDRAM support
+                mcfg = static_cast<uint32_t> (r[MCFG2] | MCFG2_MS);
+                r[MCFG2].set(mcfg);
+                //enable mobile SDRAM
+                mcfg = static_cast<uint32_t> (r[MCFG4] | MCFG4_ME);
+                r[MCFG4].set(mcfg);
+                break;
+                // Case 3 would be the same as 2 here, 
+                // the difference being that 3 disables std SDRAM,
+                //i.e. mobile cannot be disabled. 
+                //This will be implemented wherever someone tries to
+                //disable mobile SDRAM.
+            default:;
         }
+    }
 
-        // --- set register values according to generics
-        uint32_t set;
-        if(g_sden) {
-            set = r[MCFG2] | MCFG2_SDRF | MCFG2_SE;
-            if (g_sepbus) {
-                set |= g_sdbits << 18;
-                r[MCFG2] = set;
-            }
+    // --- set register values according to generics
+    uint32_t set;
+    if(g_sden) {
+        set = r[MCFG2] | MCFG2_SDRF | MCFG2_SE;
+        if (g_sepbus) {
+            set |= g_sdbits << 18;
+            r[MCFG2] = set;
         }
-        if(c_rom.id != 100 && c_rom.dev != NULL) {
-            set = (c_rom.dev->get_bits() >> 3) & 3;
-            r[MCFG1] = r[MCFG1] | (set << 8);
-        }
-        if(c_io.id != 100 && c_io.dev != NULL) {
-            set = (c_io.dev->get_bits() >> 3) & 3;
-            r[MCFG1] = r[MCFG1] | (set << 27);
-        }
-        if(c_sram.id != 100 && c_sram.dev != NULL) {
-            r[MCFG2] = (r[MCFG2].get() & ~0x00001EC0) | 
-                       (((int)(log2(c_sram.dev->get_bsize())-13) & 0xF) << 9) | 
-                       (((int)(log2(c_sram.dev->get_bits())-3) & 0x3) << 4);
-        }
-        if(c_sdram.id != 100 && c_sram.dev != NULL) {
-            r[MCFG2] = (r[MCFG2].get() & ~0x003E0000) | 
-                       (((int)(log2(c_sdram.dev->get_bsize())-22) & 0x7) << 23) | 
-                       (((int)(log2(c_sdram.dev->get_cols())-8) & 0x3) << 21);
-           }
+    }
+    if(c_rom.id != 100 && c_rom.dev != NULL) {
+        set = (c_rom.dev->get_bits() >> 3) & 3;
+        r[MCFG1] = r[MCFG1] | (set << 8);
+    }
+    if(c_io.id != 100 && c_io.dev != NULL) {
+        set = (c_io.dev->get_bits() >> 3) & 3;
+        r[MCFG1] = r[MCFG1] | (set << 27);
+    }
+    if(c_sram.id != 100 && c_sram.dev != NULL) {
+        r[MCFG2] = (r[MCFG2].get() & ~0x00001EC0) | 
+                   (((int)(log2(c_sram.dev->get_bsize())-13) & 0xF) << 9) | 
+                   (((int)(log2(c_sram.dev->get_bits())-3) & 0x3) << 4);
+    }
+    if(c_sdram.id != 100 && c_sram.dev != NULL) {
+        r[MCFG2] = (r[MCFG2].get() & ~0x003E0000) | 
+                   (((int)(log2(c_sdram.dev->get_bsize())-22) & 0x7) << 23) | 
+                   (((int)(log2(c_sdram.dev->get_cols())-8) & 0x3) << 21);
     }
 }
 
@@ -728,7 +724,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
             memgp.set_data_ptr(gp.get_data_ptr());
             mem[port.id]->b_transport(memgp, delay);
             gp.set_response_status(memgp.get_response_status());
-            delay += (trans_delay + (length/mem_width) * word_delay) * cycle_time;
+            delay += (trans_delay + (length/mem_width) * word_delay) * clock_cycle;
             if(data!=gp.get_data_ptr()) {
               delete data;
             }
@@ -804,12 +800,12 @@ void Mctrl::launch_sdram_command() {
         // --> The previous transaction will always have finished 
         // before the Sim Kernel takes note of this callback.
         case 2:
-            callback_delay += cycle_time *(3 + MCFG2_SDRAM_TRFC_DEFAULT >> 30);
+            callback_delay += clock_cycle *(3 + MCFG2_SDRAM_TRFC_DEFAULT >> 30);
             break;
         // Precharge: Terminate current burst transaction 
         // (no effect in LT) --> wait for tRP
         case 1:
-            callback_delay += cycle_time * (2 + MCFG2_TRP_DEFAULT >> 29);
+            callback_delay += clock_cycle * (2 + MCFG2_TRP_DEFAULT >> 29);
             break;
         default:
             break;
@@ -987,19 +983,4 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
         }
     }
     return c_null;
-}
-
-// Extract basic cycle rate from a sc_clock
-void Mctrl::clk(sc_clock &clk) {
-    cycle_time = clk.period();
-}
-
-// Extract basic cycle rate from a clock period
-void Mctrl::clk(sc_time &period) {
-    cycle_time = period;
-}
-
-// Extract basic cycle rate from a clock period in double
-void Mctrl::clk(double period, sc_time_unit base) {
-    cycle_time = sc_time(period, base);
 }
