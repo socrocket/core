@@ -30,8 +30,7 @@
 #
 # Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 #
-# Purpose:    this file contains the build system for the memory
-#             controler tlm model and all its testbenches
+# Purpose:    Build script for memory controller and tests
 #
 # Method:     $ ./waf configure; ./waf # to build it on top level
 #
@@ -135,7 +134,7 @@ def build(bld):
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )
-  
+
   bld(
     features     = 'cxx cprogram test',
     target       = 'mctrl.2.at.test',
@@ -145,12 +144,22 @@ def build(bld):
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
   )
-  
+
   bld(
     features     = 'cxx cprogram test',
-    target       = 'mctrl.3.tlm.test',
+    target       = 'mctrl.3.lt.test',
     source       = ['tests/test3/testbench.cpp',
-                    'tests/test3/top_tlm.cpp'],
+                    'tests/test3/top_lt.cpp'],
+    includes     = '. tests tests/test3 ../ahbctrl/tests',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mctrl utils signalkit common'
+  )
+
+  bld(
+    features     = 'cxx cprogram test',
+    target       = 'mctrl.3.at.test',
+    source       = ['tests/test3/testbench.cpp',
+                    'tests/test3/top_at.cpp'],
     includes     = '. tests tests/test3 ../ahbctrl/tests',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
@@ -158,9 +167,19 @@ def build(bld):
   
   bld(
     features     = 'cxx cprogram test',
-    target       = 'mctrl.4.tlm.test',
+    target       = 'mctrl.4.lt.test',
     source       = ['tests/test4/testbench.cpp',
-                    'tests/test4/top_tlm.cpp'],
+                    'tests/test4/top_lt.cpp'],
+    includes     = '. tests tests/test4 ../ahbctrl/tests',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mctrl utils signalkit common'
+  )
+
+  bld(
+    features     = 'cxx cprogram test',
+    target       = 'mctrl.4.at.test',
+    source       = ['tests/test4/testbench.cpp',
+                    'tests/test4/top_at.cpp'],
     includes     = '. tests tests/test4 ../ahbctrl/tests',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl utils signalkit common'
@@ -170,9 +189,8 @@ def build(bld):
     features     = 'cxx cprogram test',
     target       = 'mctrl.5.lt.test',
     source       = ['tests/test5/testbench.cpp',
-                    'tests/test5/top_lt.cpp',
-                    '../ahbctrl/tests/ahbctrl_test.cpp'],
-    includes     = '. tests tests/test5 ../ahbctrl/tests',
+                    'tests/test5/top_lt.cpp'],
+    includes     = '. tests tests/test5',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl gptimer ahbctrl apbctrl utils signalkit common'
   )
@@ -181,9 +199,8 @@ def build(bld):
     features     = 'cxx cprogram test',
     target       = 'mctrl.5.at.test',
     source       = ['tests/test5/testbench.cpp',
-                    'tests/test5/top_at.cpp',
-                    '../ahbctrl/tests/ahbctrl_test.cpp'],
-    includes     = '. tests tests/test5 ../ahbctrl/tests',
+                    'tests/test5/top_at.cpp'],
+    includes     = '. tests tests/test5',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mctrl gptimer ahbctrl apbctrl utils signalkit common'
   )
@@ -196,25 +213,25 @@ def build(bld):
     features     = 'modelsim',
     target       = 'mctrl.5.rtl.test',
     name         = 'mctrl.5.rtl.test',
-    source       = ['tests/test5/config.vhd',
-                    'tests/typ_adapters.vhd',
-                    'tests/test5/mctrl_wrapper.vhd',
+    source       = ['./tests/test5/config.vhd',
+                    './tests/typ_adapters.vhd',
+                    './tests/test5/mctrl_wrapper.vhd',
                     '../../common/verbose.cpp',
                     '../../common/timingmonitor.cpp',
                     '../utils/power_monitor.cpp',
                     '../utils/clkdevice.cpp',
                     '../utils/ahbdevice.cpp',
                     '../utils/apbdevice.cpp',
-                    '../../adapters/ahbpipe.cpp',
-                    '../../adapters/ahb_tlmbus_rtlslave_transactor.cpp',
-                    '../../adapters/apb_tlmbus_rtlslave_transactor.cpp',
+                    '../ahbctrl/adapters/ahbpipe.cpp',
+                    '../ahbctrl/adapters/ahb_tlmbus_rtlslave_transactor.cpp',
+                    '../ahbctrl/adapters/apb_tlmbus_rtlslave_transactor.cpp',
                     '../ahbctrl/tests/ahbctrl_test.cpp',
                     '../ahbctrl/ahbctrl.cpp',
                     '../apbctrl/apbctrl.cpp',
                     './tests/test5/testbench.cpp',
                     './tests/test5/top_rtl.cpp'],
     uselib        = 'AMBA GREENSOCS',
-    includes      = './ ./tests ./tests/test5 ./test1/sim_rtl ./lib ../utils ../../signalkit ../../common ../ahbctrl ../ahbctrl/tests ../apbctrl ../../adapters',
+    includes      = './ ./tests ./tests/test5 ./test1/sim_rtl ./lib ../utils ../../signalkit ../../common ../ahbctrl ../ahbctrl/tests ../apbctrl ../ahbctrl/adapters',
     config        = vsim_conf,
   )
 
