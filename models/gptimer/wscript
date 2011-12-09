@@ -118,13 +118,14 @@ def build(bld):
   bld(
     target       = 'gptimer.1.rtl.test',
     features     = 'modelsim test',
-    generate     = 'gptimer_wrapper:tests/test1/gptimer_wrapper.h',
     source       = ['tests/gptimer_wrapper.vhd',
                     'tests/test1/testbench.cpp',
                     'tests/test1/top_rtl.cpp',
-                    '../../common/verbose.cpp'],
+                    '../../common/verbose.cpp',
+                    '../../adapters/apb_tlmbus_rtlslave_transactor.cpp',
+                    '../../adapters/ahbpipe.cpp'],
     uselib       = 'AMBA GREENSOCS',
-    includes     = '. ./tests ./tests/test1 ../utils ../../signalkit ../../common',
+    includes     = '. ./tests ./tests/test1 ../utils ../../signalkit ../../common ../../adapters',
     config       =  vsim_conf,
   )
 
@@ -141,13 +142,14 @@ def build(bld):
   bld(
     target       = 'gptimer.2.rtl.test',
     features     = 'modelsim test',
-    generate     = 'gptimer_wrapper:tests/test2/gptimer_wrapper.h',
     source       = ['tests/gptimer_wrapper.vhd',
                     'tests/test2/testbench.cpp',
                     'tests/test2/top_rtl.cpp',
-                    '../../common/verbose.cpp'],
+                    '../../common/verbose.cpp',
+                    '../../adapters/apb_tlmbus_rtlslave_transactor.cpp',
+                    '../../adapters/ahbpipe.cpp'],
     uselib       = 'AMBA GREENSOCS',
-    includes     = '. ./tests ./tests/test2 ../utils ../../signalkit ../../common',
+    includes     = '. ./tests ./tests/test2 ../utils ../../signalkit ../../common ../../adapters',
     config       =  vsim_conf,
   )
   
@@ -164,13 +166,14 @@ def build(bld):
   bld(
     target       = 'gptimer.3.rtl.test',
     features     = 'modelsim test',
-    generate     = 'gptimer_wrapper:tests/test3/gptimer_wrapper.h',
     source       = ['tests/gptimer_wrapper.vhd',
                     'tests/test3/testbench.cpp',
                     'tests/test3/top_rtl.cpp',
-                    '../../common/verbose.cpp'],
+                    '../../common/verbose.cpp',
+                    '../../adapters/apb_tlmbus_rtlslave_transactor.cpp',
+                    '../../adapters/ahbpipe.cpp'],
     uselib       = 'AMBA GREENSOCS',
-    includes     = '. ./tests ./tests/test3 ../utils ../../signalkit ../../common',
+    includes     = '. ./tests ./tests/test3 ../utils ../../signalkit ../../common ../../adapters',
     config       =  vsim_conf,
   )
 

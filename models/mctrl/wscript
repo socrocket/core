@@ -192,7 +192,7 @@ def build(bld):
                     'tests/test5/top_lt.cpp'],
     includes     = '. tests tests/test5',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mctrl gptimer ahbctrl apbctrl utils signalkit common'
+    use          = 'mctrl gptimer ahbctrl ahbctrl_test apbctrl utils signalkit common'
   )
 
   bld(
@@ -202,7 +202,7 @@ def build(bld):
                     'tests/test5/top_at.cpp'],
     includes     = '. tests tests/test5',
     uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'mctrl gptimer ahbctrl apbctrl utils signalkit common'
+    use          = 'mctrl gptimer ahbctrl ahbctrl_test apbctrl utils signalkit common'
   )
 
   #prom5  = bld(rule='cp ${SRC} ${TGT}', source='./tests/test5/prom.srec', target='prom.srec')
@@ -222,16 +222,16 @@ def build(bld):
                     '../utils/clkdevice.cpp',
                     '../utils/ahbdevice.cpp',
                     '../utils/apbdevice.cpp',
-                    '../ahbctrl/adapters/ahbpipe.cpp',
-                    '../ahbctrl/adapters/ahb_tlmbus_rtlslave_transactor.cpp',
-                    '../ahbctrl/adapters/apb_tlmbus_rtlslave_transactor.cpp',
+                    '../../adapters/ahbpipe.cpp',
+                    '../../adapters/ahb_tlmbus_rtlslave_transactor.cpp',
+                    '../../adapters/apb_tlmbus_rtlslave_transactor.cpp',
                     '../ahbctrl/tests/ahbctrl_test.cpp',
                     '../ahbctrl/ahbctrl.cpp',
                     '../apbctrl/apbctrl.cpp',
                     './tests/test5/testbench.cpp',
                     './tests/test5/top_rtl.cpp'],
     uselib        = 'AMBA GREENSOCS',
-    includes      = './ ./tests ./tests/test5 ./test1/sim_rtl ./lib ../utils ../../signalkit ../../common ../ahbctrl ../ahbctrl/tests ../apbctrl ../ahbctrl/adapters',
+    includes      = '. tests tests/test5 lib ../utils ../../signalkit ../../common ../ahbctrl ../ahbctrl/tests ../apbctrl ../../adapters',
     config        = vsim_conf,
   )
 

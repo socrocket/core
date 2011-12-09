@@ -100,7 +100,17 @@ def build(bld):
     features       = 'cxx cxxstlib',
     source         = ['ahbctrl.cpp'],
     export_includes = '.',
-    includes       = '. adapters',
+    includes       = '.',
+    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
+    use            = 'utils common'
+  )
+
+  bld(
+    target         = 'ahbctrl_test',
+    features       = 'cxx cxxstlib',
+    source         = ['tests/ahbctrl_test.cpp'],
+    export_includes = 'tests',
+    includes       = 'tests',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
     use            = 'utils common'
   )
@@ -108,23 +118,21 @@ def build(bld):
   bld(
     target         = 'ahbctrl.1.lt.test',
     features       = 'cxx cprogram test',
-    source         = ['tests/ahbctrl_test.cpp',
-                      'tests/test1/testbench.cpp',
+    source         = ['tests/test1/testbench.cpp',
                       'tests/test1/top_lt.cpp'],
     includes       = '. adapters tests tests/test1',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl ahbmem',
+    use            = 'common utils ahbctrl ahbctrl_tests ahbmem',
   )
  
   bld(
     target         = 'ahbctrl.1.at.test',
     features       = 'cxx cprogram test',
-    source         = ['tests/ahbctrl_test.cpp',
-                      'tests/test1/testbench.cpp',
+    source         = ['tests/test1/testbench.cpp',
                       'tests/test1/top_at.cpp'],
     includes       = '. tests tests/test1',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl ahbmem',
+    use            = 'common utils ahbctrl ahbctrl_test ahbmem',
   )
 
   bld(
