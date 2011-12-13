@@ -731,15 +731,8 @@ def configure(ctx):
     ##################################################
     # Check for AMBAKit extended GreenSocs from contrib
     ##################################################
-    ctx.check_cxx(
-      header_name   = "greenreg_ambasockets.h",
-      uselib_store  = 'GREENSOCS',
-      mandatory     = True,
-      includes      = [os.path.join(ctx.path.abspath(),'contrib', 'grambasockets'), os.path.join(ctx.path.abspath(), 'contrib', 'transactors'), os.path.join(ctx.path.abspath(), 'common')],
-      uselib        = 'GREENSOCS BOOST SYSTEMC TLM AMBA',
-      okmsg         = "ok",
-      msg           = "Check compatibility of AMBAKit and GreenReg"
-    )
+    if not os.path.isdir("adapters"):
+      ctx.env["MODELSIM"] = False
     
     ##################################################
     # Extend GreenSocs with TLM extensionPool.h
