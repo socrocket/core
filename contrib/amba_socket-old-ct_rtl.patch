@@ -1,0 +1,80 @@
+diff -Nur amba_socket-src/adapters/AMBA_CT_LT_Adapter.h amba_socket-mod/adapters/AMBA_CT_LT_Adapter.h
+--- amba_socket-src/adapters/AMBA_CT_LT_Adapter.h	2010-02-19 13:37:33.000000000 +0100
++++ amba_socket-mod/adapters/AMBA_CT_LT_Adapter.h	2010-09-14 15:35:35.981565980 +0200
+@@ -61,6 +61,7 @@
+ template <unsigned int BUSWIDTH>
+ class AMBA_CT_LT_Adapter
+   : public sc_core::sc_module
++  , public amba_slave_base
+ {
+ public:
+   amba::amba_slave_socket<BUSWIDTH>  slave_sock;
+@@ -70,6 +71,10 @@
+   SC_HAS_PROCESS(AMBA_CT_LT_Adapter);
+   AMBA_CT_LT_Adapter(sc_core::sc_module_name, amba_bus_type bus_type, bool CT_is_arbiter=false);
+ 
++  // AMBA_ Slave Base -- Rolf Meyer
++  sc_dt::uint64 get_base_addr();
++  sc_dt::uint64 get_size();
++
+ protected:
+   struct ahb_txn_info{
+     ahb_txn_info(): num_beats(0), can_delay(false){}
+@@ -125,18 +130,18 @@
+   switch (bus_type){
+     case amba_APB: {
+       SC_THREAD(APB_conv_thread);
+-      slave_sock. register_nb_transport_fw(this, &AMBA_CT_LT_Adapter::nb_trans_fw_APB);
++      slave_sock.register_nb_transport_fw(this, &AMBA_CT_LT_Adapter::nb_trans_fw_APB);
+     }
+     break;
+     case amba_AHB: {
+-      slave_sock. register_nb_transport_fw(this, &AMBA_CT_LT_Adapter::nb_trans_fw_AHB);
++      slave_sock.register_nb_transport_fw(this, &AMBA_CT_LT_Adapter::nb_trans_fw_AHB);
+       slave_sock.activate_synchronization_protection();
+       SC_THREAD(AHB_conv_thread);
+     }
+     break;
+     case amba_AXI: {
+       SC_THREAD(AXI_conv_thread);
+-      slave_sock. register_nb_transport_fw(this, &AMBA_CT_LT_Adapter::nb_trans_fw_AXI);
++      slave_sock.register_nb_transport_fw(this, &AMBA_CT_LT_Adapter::nb_trans_fw_AXI);
+     }
+     break;
+   }
+@@ -589,6 +595,35 @@
+   }
+ }
+ 
++// AMBA Slave Base -- Rolf Meyer
++template <unsigned int BUSWIDTH>
++sc_dt::uint64 AMBA_CT_LT_Adapter<BUSWIDTH>::get_base_addr() {
++  unsigned int a = 0;
++  //unsigned int num_of_bindings= master_sock.size();
++  //if(num_of_bindings)
++    gs::socket::bindability_base<tlm::tlm_base_protocol_types> * other_socket = master_sock.get_other_side(0, a);
++    sc_core::sc_object* obj=other_socket->get_parent();
++    amba_slave_base * slave= dynamic_cast<amba_slave_base *> (obj); //by MK. //(apb_slave<BUSWIDTH>*) obj;
++  //}
++  if(slave) {
++    return slave->get_base_addr();
++  } else {
++    return 0;
++  }
++}
++
++template <unsigned int BUSWIDTH>
++sc_dt::uint64 AMBA_CT_LT_Adapter<BUSWIDTH>::get_size() {
++  unsigned int a = 0;
++  gs::socket::bindability_base<tlm::tlm_base_protocol_types> * other_socket = master_sock.get_other_side(0, a);
++  sc_core::sc_object* obj=other_socket->get_parent();
++  amba_slave_base * slave= dynamic_cast<amba_slave_base *> (obj); //by MK. //(apb_slave<BUSWIDTH>*) obj;
++  if(slave) {
++    return slave->get_size();
++  } else {
++    return 0;
++  }
++}
+ 
+ }
+ 
