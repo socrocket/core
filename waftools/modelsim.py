@@ -451,15 +451,16 @@ fi
 
 params=""
 if [ "${1}" != "--gui" ]; then
-  params=-c ${params}
-  if [ "${2}" = "--wave" ]; then
-    params=${params} --do 'add wave -r sim:/sc_main/*'
-  fi
+  params="-c ${params}"
 else
   shift
+  if [ "${1}" = "--wave" ]; then
+    params="${params} -do 'add wave -r sim:/sc_main/*'"
+    shift
+  fi
 fi
 
-params=${params} $@
+params="${params} $@"
 
 ${VSIM} -modelsimini %(ini)s ${params} %(entry)s -do 'run -all;exit' | tee ${0}.log
 test "$(tail -n 1 ${0}.log)" = "# Result: 0"
