@@ -122,7 +122,7 @@ def build(bld):
                       'tests/test1/top_lt.cpp'],
     includes       = '. adapters tests tests/test1',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl ahbctrl_tests ahbmem',
+    use            = 'common utils ahbctrl ahbctrl_test ahbmem',
   )
  
   bld(
@@ -161,23 +161,21 @@ def build(bld):
   bld(
     target         = 'ahbctrl.2.lt.test',
     features       = 'cxx cprogram test',
-    source         = ['tests/ahbctrl_test.cpp',
-                      'tests/test2/testbench.cpp',
+    source         = ['tests/test2/testbench.cpp',
                       'tests/test2/top_lt.cpp'],
     includes       = '. adapters tests tests/test2',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl ahbmem',
+    use            = 'common utils ahbctrl ahbctrl_test ahbmem',
   )
  
   bld(
     target         = 'ahbctrl.2.at.test',
     features       = 'cxx cprogram test',
-    source         = ['tests/ahbctrl_test.cpp',
-                      'tests/test2/testbench.cpp',
+    source         = ['tests/test2/testbench.cpp',
                       'tests/test2/top_at.cpp'],
     includes       = '. adapters tests tests/test2',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl ahbmem',
+    use            = 'common utils ahbctrl ahbctrl_test ahbmem',
   )
 
   bld(
@@ -206,23 +204,21 @@ def build(bld):
   bld(
     target         = 'ahbctrl.3.lt.test',
     features       = 'cxx cprogram test',
-    source         = ['tests/ahbctrl_test.cpp',
-                      'tests/test3/testbench.cpp',
+    source         = ['tests/test3/testbench.cpp',
                       'tests/test3/top_lt.cpp'],
     includes       = '. adapters tests tests/test3',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl ahbmem',
+    use            = 'common utils ahbctrl ahbctrl_test ahbmem',
   )
  
   bld(
     target         = 'ahbctrl.3.at.test',
     features       = 'cxx cprogram test',
-    source         = ['tests/ahbctrl_test.cpp',
-                      'tests/test3/testbench.cpp',
+    source         = ['tests/test3/testbench.cpp',
                       'tests/test3/top_at.cpp'],
     includes       = '. adapters tests tests/test3',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl ahbmem',
+    use            = 'common utils ahbctrl ahbctrl_test ahbmem',
   )
 
   bld(
@@ -251,23 +247,21 @@ def build(bld):
   bld(
     target         = 'ahbctrl.4.lt.test',
     features       = 'cxx cprogram test',
-    source         = ['tests/ahbctrl_test.cpp',
-                      'tests/test4/testbench.cpp',
+    source         = ['tests/test4/testbench.cpp',
                       'tests/test4/top_lt.cpp'],
     includes       = '. adapters tests tests/test4',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl ahbmem',
+    use            = 'common utils ahbctrl ahbctrl_test ahbmem',
   )
  
   bld(
     target         = 'ahbctrl.4.at.test',
     features       = 'cxx cprogram test',
-    source         = ['tests/ahbctrl_test.cpp',
-                      'tests/test4/testbench.cpp',
+    source         = ['tests/test4/testbench.cpp',
                       'tests/test4/top_at.cpp'],
     includes       = '. adapters tests tests/test4',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl ahbmem',
+    use            = 'common utils ahbctrl ahbctrl_test ahbmem',
   )
 
   bld(
@@ -296,23 +290,21 @@ def build(bld):
   bld(
     target         = 'ahbctrl.5.lt.test',
     features       = 'cxx cprogram test',
-    source         = ['tests/ahbctrl_test.cpp',
-                      'tests/test5/testbench.cpp',
+    source         = ['tests/test5/testbench.cpp',
                       'tests/test5/top_lt.cpp'],
     includes       = '. adapters tests tests/test5',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl ahbmem',
+    use            = 'common utils ahbctrl ahbctrl_test ahbmem',
   )
  
   bld(
     target         = 'ahbctrl.5.at.test',
     features       = 'cxx cprogram test',
-    source         = ['tests/ahbctrl_test.cpp',
-                      'tests/test5/testbench.cpp',
+    source         = ['tests/test5/testbench.cpp',
                       'tests/test5/top_at.cpp'],
     includes       = '. adapters tests tests/test5',
     uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils ahbctrl ahbmem',
+    use            = 'common utils ahbctrl ahbctrl_test ahbmem',
   )
 
   bld(
