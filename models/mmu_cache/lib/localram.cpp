@@ -76,7 +76,7 @@ localram::localram(sc_core::sc_module_name name, unsigned int lrsize,
 
 }
 
-/// destructor
+// destructor
 localram::~localram() {
 
     // free the memory
@@ -84,11 +84,11 @@ localram::~localram() {
 
 }
 
-/// read from scratchpad
+// read from scratchpad
 bool localram::mem_read(unsigned int addr, unsigned char *data, unsigned int len,
-			sc_core::sc_time *t, unsigned int *debug, bool is_dbg) {
+			sc_core::sc_time *delay, unsigned int *debug, bool is_dbg) {
 
-  if((addr - m_lrstart) < m_lrsize) {
+  if(!((addr - m_lrstart) < m_lrsize)) {
 
     v::error << name() << "Read with address " << hex << addr << " out of range!!" << v::endl;
 
@@ -107,8 +107,10 @@ bool localram::mem_read(unsigned int addr, unsigned char *data, unsigned int len
   // Increment read counter (statistics)
   sreads++;
 
-  // update debug information
+  // Update debug information
   SCRATCHPAD_SET(*debug);
+
+  *delay = clockcycle;
 
   return true;
 
@@ -116,9 +118,9 @@ bool localram::mem_read(unsigned int addr, unsigned char *data, unsigned int len
 
 // write to scratchpad
 void localram::mem_write(unsigned int addr, unsigned char *data, unsigned int len,
-			 sc_core::sc_time *t, unsigned int *debug, bool is_dbg) {
+			 sc_core::sc_time *delay, unsigned int *debug, bool is_dbg) {
 
-  if((addr - m_lrstart) < m_lrsize) {
+  if(!((addr - m_lrstart) < m_lrsize)) {
 
     v::error << name() << "Write with address " << hex << addr << " out of range!!" << v::endl;
 
@@ -139,6 +141,8 @@ void localram::mem_write(unsigned int addr, unsigned char *data, unsigned int le
 
   // update debug information
   SCRATCHPAD_SET(*debug);
+  
+  *delay = clockcycle;
 
 }
 
@@ -152,4 +156,9 @@ void localram::end_of_simulation() {
   v::info << name() << " * Write accesses: " << swrites << v::endl;
   v::info << name() << " ******************************************** " << v::endl;
 
+}
+
+// Helper for setting clock cycle latency using sc_clock argument
+void localram::clkcng(sc_core::sc_time &clk) {
+  clockcycle = clk;
 }

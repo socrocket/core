@@ -49,6 +49,7 @@
 #include <tlm.h>
 #include "amba.h"
 #include "socrocket.h"
+#include "clkdevice.h"
 
 #if defined(MTI_SYSTEMC) || defined(NO_INCLUDE_PATHS)
 #include "simple_initiator_socket.h"
@@ -62,7 +63,7 @@
 #include "dcio_payload_extension.h"
 
 // All mmu_cache tests inherit from this class
-class mmu_cache_test : public sc_module {
+class mmu_cache_test : public sc_module, public CLKDevice{
 
  public:
   
@@ -76,6 +77,9 @@ class mmu_cache_test : public sc_module {
   tlm::tlm_sync_enum icio_nb_transport_bw(tlm::tlm_generic_payload &trans, tlm::tlm_phase &phase, sc_core::sc_time &delay);
   tlm::tlm_sync_enum dcio_nb_transport_bw(tlm::tlm_generic_payload &trans, tlm::tlm_phase &phase, sc_core::sc_time &delay);
 
+  /// Reset callback (from CLKDevice)
+  void dorst();
+
   // Instruction read
   void iread(unsigned int addr, unsigned char * data, unsigned int flush, unsigned int flushl, unsigned int fline, unsigned int *debug);
 
@@ -88,9 +92,10 @@ class mmu_cache_test : public sc_module {
   // Displays and returns number of errors during test
   unsigned int error_stat();
 
-  /// Function for result checking
-  void check(unsigned char * result, unsigned char * refer, unsigned int lenght);
-  void check(unsigned char * result, unsigned char * refer, unsigned int length, unsigned int * debug, check_t check);
+  /// Functions for result checking
+  void check(unsigned char * result, unsigned char * refer, unsigned int length);
+  void check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int length);
+  void check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int length, unsigned int * debug, check_t check);
 
   /// Thread for delayed result checking (AT pipeline)
   void check_delayed();
@@ -119,9 +124,6 @@ class mmu_cache_test : public sc_module {
   /// Thread for data response processing
   void DataResponseThread();
 
-  /// Thread for processing write data-phase
-  void DataThread();
-
   /// Constructor
   mmu_cache_test(sc_core::sc_module_name name, amba::amba_layer_ids abstractionLayer);
 
@@ -132,7 +134,6 @@ class mmu_cache_test : public sc_module {
   /// PEQs for response synchronization
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_InstrResponsePEQ;
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_DataResponsePEQ;
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_DataPEQ;
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_EndTransactionPEQ;
 
   /// Events for phase notifications
@@ -143,6 +144,7 @@ class mmu_cache_test : public sc_module {
 
   /// For result checking
   typedef struct {
+    unsigned int id;
     unsigned char * result;
     unsigned char * refer;
     unsigned int len;

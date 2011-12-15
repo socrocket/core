@@ -53,7 +53,6 @@ mmu_cache_test::mmu_cache_test(sc_core::sc_module_name name,
   dcio("dcio"),
   m_InstrResponsePEQ("InstrResponsePEQ"),
   m_DataResponsePEQ("DataResponsePEQ"),
-  m_DataPEQ("DataPEQ"),
   m_EndTransactionPEQ("EndTransactionPEQ"),
   m_CheckPEQ("CheckPEQ"),
   m_abstractionLayer(abstractionLayer) {
@@ -67,7 +66,6 @@ mmu_cache_test::mmu_cache_test(sc_core::sc_module_name name,
     // Register threads for response processing
     SC_THREAD(InstrResponseThread);
     SC_THREAD(DataResponseThread);
-    SC_THREAD(DataThread);
     SC_THREAD(cleanUP);
     SC_THREAD(check_delayed);
 
@@ -76,6 +74,11 @@ mmu_cache_test::mmu_cache_test(sc_core::sc_module_name name,
   // Reset test counter and error counter
   tc = 0;
   ec = 0;
+
+}
+
+// Virtual function from CLKDevice
+void mmu_cache_test::dorst() {
 
 }
 
@@ -198,17 +201,26 @@ unsigned int mmu_cache_test::error_stat() {
 
 }
 
-// Result checking without debug pointer
+// Result checking without id and debug pointer
 void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsigned int len) {
 
   unsigned int dummy = 0;
 
-  check(result, refer, len, &dummy, NOCHECK);
+  check(0xffffffff, result, refer, len, &dummy, NOCHECK);
+
+}
+
+// Result checking without debug pointer
+void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int len) {
+
+  unsigned int dummy = 0;
+
+  check(id, result, refer, len, &dummy, NOCHECK);
 
 }
 
 // Function for result checking / Prototype with debug checking
-void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsigned int len, unsigned int * debug, check_t check) {
+void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int len, unsigned int * debug, check_t check) {
 
   checkpair_type* checkpair;
   unsigned int i;
@@ -232,7 +244,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
     if (is_error) {
 
-      v::error << name() << "Testbench Error (Expected/Received): " << v::endl;
+      v::error << name() << "CHECK ID " << id << " Testbench Error (Expected/Received): " << v::endl;
 
       for (i=0; i<len; i++) {
 
@@ -250,7 +262,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
 	if (!FROZENMISS_CHECK(*debug)) {
 
-	  v::error << name() << "Unexpected type of access - no FROZEN MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no FROZEN MISS!! (debug = " << hex << *debug << ")" << v::endl;
 	  ec++;
 
         }
@@ -261,7 +273,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
 	if (FROZENMISS_CHECK(*debug)) {
 
-	  v::error << name() << "Unexpected type of access - FROZEN MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - FROZEN MISS!! (debug = " << hex << *debug << ")" << v::endl;
 	  ec++;
 
 	}
@@ -272,7 +284,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
 	if (!CACHEBYPASS_CHECK(*debug)) {
 
-	  v::error << name() << "Unexpected type of access - no CACHE BYPASS!! (debug = " << hex << *debug << ")" << v::endl;
+	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no CACHE BYPASS!! (debug = " << hex << *debug << ")" << v::endl;
 	  ec++;
 
         }
@@ -283,7 +295,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
         if (!SCRATCHPAD_CHECK(*debug)) {
 
-	  v::error << name() << "Unexpected type of access - no SCRATCHPAD ACCESS!! (debug = " << hex << *debug << ")" << v::endl;
+	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no SCRATCHPAD ACCESS!! (debug = " << hex << *debug << ")" << v::endl;
 	  ec++;
 
         }
@@ -294,7 +306,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
 	if (!CACHEREADHIT_CHECK(*debug)) {
 
-	  v::error << name() << "Unexpected type of access - no READ HIT!! (debug = " << hex << *debug << ")" << v::endl;
+	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no READ HIT!! (debug = " << hex << *debug << ")" << v::endl;
 	  ec++;
 
 	}
@@ -305,7 +317,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
 	if (!CACHEREADMISS_CHECK(*debug)) {
 
-	  v::error << name() << "Unexpected type of access - no READ MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no READ MISS!! (debug = " << hex << *debug << ")" << v::endl;
 	  ec++;
 
 	}
@@ -316,7 +328,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
 	if (!CACHEWRITEHIT_CHECK(*debug)) {
 
-	  v::error << name() << "Unexpected type of access - no WRITE HIT!! (debug = " << hex << *debug << ")" << v::endl;
+	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no WRITE HIT!! (debug = " << hex << *debug << ")" << v::endl;
 	  ec++;
 
 	}
@@ -327,7 +339,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
 	if (!CACHEWRITEMISS_CHECK(*debug)) {
 
-	  v::error << name() << "Unexpected type of access - no WRITE MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no WRITE MISS!! (debug = " << hex << *debug << ")" << v::endl;
 	  ec++;
 
 	}
@@ -338,7 +350,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
 	if (!TLBHIT_CHECK(*debug)) {
 
-	  v::error << name() << "Unexpected type of access - no TLB HIT!! (debug = " << hex << *debug << ")" << v::endl;
+	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no TLB HIT!! (debug = " << hex << *debug << ")" << v::endl;
 	  ec++;
 
 	}
@@ -349,7 +361,7 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 
 	if (!TLBMISS_CHECK(*debug)) {
 
-	  v::error << name() << "Unexpected type of access - no TLB MISS!! (debug = " << hex << *debug << ")" << v::endl;
+	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no TLB MISS!! (debug = " << hex << *debug << ")" << v::endl;
 	  ec++;
 
 	}
@@ -365,11 +377,12 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
   } else {
 
     sc_core::sc_time delay;
-    delay = sc_time(100, SC_NS);
+    delay = 10*clock_cycle;
 
     checkpair = new checkpair_type;
 
     // For non-blocking communication - use PEQ and check later
+    checkpair->id         = id;
     checkpair->result     = result;
     checkpair->refer      = refer;
     checkpair->len        = len;
@@ -386,152 +399,209 @@ void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsign
 void mmu_cache_test::check_delayed() {
 
   unsigned int i, j;
+  unsigned int debug;
+  bool is_error = false;
+
   checkpair_type* checkpair;
 
   while(1) {
 
     wait(m_CheckPEQ.get_event());
 
-    checkpair = m_CheckPEQ.get_next_transaction();
+    while((checkpair = m_CheckPEQ.get_next_transaction())) {
 
-    // 1. Check Data
-    // =============
+      debug = *checkpair->debug;
+      
+      // 1. Check Data
+      // =============
 
-    for (i=0; i<checkpair->len; i++) {
+      for (i=0; i<checkpair->len; i++) {
 
-      if (checkpair->result[i] != checkpair->refer[i]) {
+	if (checkpair->result[i] != checkpair->refer[i]) {
 
-	v::error << name() << "Testbench Error (Expected/Received) from check @ " << checkpair->check_time << v::endl;
-	
+	  is_error = true;
+	  ec++;
+
+	}
+      }
+
+      if (is_error) {
+
+	v::error << name() << "CHECK ID " << checkpair->id << " Testbench Error (Expected/Received) from check @ " << checkpair->check_time << v::endl;
+
 	for (j=0; j<checkpair->len; j++) {
 
 	  v::error << name() << hex << (unsigned int)checkpair->refer[j] << "/" << hex << (unsigned int)checkpair->result[j] << v::endl;
-	  ec++;
 
 	}
-      } 
-    }
 
-    // 2. Check Debug Info
-    // ===================
+      } else {
+	
+	v::debug << name() << "CHECK ID " << checkpair->id << " DATA CORRECT" << v::endl;
+
+      }
+
+      // 2. Check Debug Info
+      // ===================
     
-    switch (checkpair->check) {
+      switch (checkpair->check) {
 
-      case FROZENMISS:
+        case FROZENMISS:
 
-	if (!FROZENMISS_CHECK(*debug)) {
+	  if (!FROZENMISS_CHECK(debug)) {
 
-	  v::error << name() << "Unexpected type of access - no FROZEN MISS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no FROZEN MISS!! (debug = " << hex << debug << ")" << v::endl;
+	    ec++;
 
-        }
+	  } else {
 
-	break;
+	    v::debug << name() << "CHECK ID " << checkpair->id << " CORRECT ACCESS TYPE" << v::endl;
 
-      case NOTFROZENMISS:
+	  }
 
-	if (FROZENMISS_CHECK(*debug)) {
+	  break;
 
-	  v::error << name() << "Unexpected type of access - FROZEN MISS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+        case NOTFROZENMISS:
 
-	}
+	  if (FROZENMISS_CHECK(debug)) {
 
-	break;
+	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - FROZEN MISS!! (debug = " << hex << debug << ")" << v::endl;
+	    ec++;
 
-      case CACHEBYPASS:
+	  } else {
 
-	if (!CACHEBYPASS_CHECK(*debug)) {
+	    v::debug << name() << "CHECK ID " << checkpair->id << " CORRECT ACCESS TYPE" << v::endl;
 
-	  v::error << name() << "Unexpected type of access - no CACHE BYPASS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  }
 
-        }
+	  break;
 
-	break;
+        case CACHEBYPASS:
 
-      case SCRATCHPAD:
+	  if (!CACHEBYPASS_CHECK(debug)) {
 
-        if (!SCRATCHPAD_CHECK(*debug)) {
+	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no CACHE BYPASS!! (debug = " << hex << debug << ")" << v::endl;
+	    ec++;
 
-	  v::error << name() << "Unexpected type of access - no SCRATCHPAD ACCESS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  } else {
 
-        }
+	    v::debug << name() << "CHECK ID " << checkpair->id << " CORRECT ACCESS TYPE" << v::endl;
 
-	break;     
+	  }
 
-      case CACHEREADHIT: 
+	  break;
 
-	if (!CACHEREADHIT_CHECK(*debug)) {
+        case SCRATCHPAD:
 
-	  v::error << name() << "Unexpected type of access - no READ HIT!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  if (!SCRATCHPAD_CHECK(debug)) {
 
-	}
+	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no SCRATCHPAD ACCESS!! (debug = " << hex << debug << ")" << v::endl;
+	    ec++;
 
-	break;
+	  } else {
 
-      case CACHEREADMISS: 
+	    v::debug << name() << "CHECK ID " << checkpair->id << " CORRECT ACCESS TYPE" << v::endl;
 
-	if (!CACHEREADMISS_CHECK(*debug)) {
+	  }
 
-	  v::error << name() << "Unexpected type of access - no READ MISS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  break;     
 
-	}
+        case CACHEREADHIT: 
+
+	  if (!CACHEREADHIT_CHECK(debug)) {
+
+	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no READ HIT!! (debug = " << hex << debug << ")" << v::endl;
+	    ec++;
+
+	  } else {
+
+	    v::debug << name() << "CHECK ID " << checkpair->id << " CORRECT ACCESS TYPE" << v::endl;
+
+	  }
+
+	  break;
+
+        case CACHEREADMISS: 
+
+	  if (!CACHEREADMISS_CHECK(debug)) {
+
+	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no READ MISS!! (debug = " << hex << debug << ")" << v::endl;
+	    ec++;
+
+	  } else {
+
+	    v::debug << name() << "CHECK ID " << checkpair->id << " CORRECT ACCESS TYPE" << v::endl;
+
+	  }
 	  
-	break;
+	  break;
 
-      case CACHEWRITEHIT: 
+        case CACHEWRITEHIT: 
 
-	if (!CACHEWRITEHIT_CHECK(*debug)) {
+	  if (!CACHEWRITEHIT_CHECK(debug)) {
 
-	  v::error << name() << "Unexpected type of access - no WRITE HIT!!" << v::endl;
-	  ec++;
+	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no WRITE HIT!! (debug = " << hex << debug << ")" << v::endl;
+	    ec++;
 
-	}
+	  } else {
 
-	break;
+	    v::debug << name() << "CHECK ID " << checkpair->id << " CORRECT ACCESS TYPE" << v::endl;
 
-      case CACHEWRITEMISS: 
+	  }
 
-	if (!CACHEWRITEMISS_CHECK(*debug)) {
+	  break;
 
-	  v::error << name() << "Unexpected type of access - no WRITE MISS!!" << v::endl;
-	  ec++;
+        case CACHEWRITEMISS: 
 
-	}
+	  if (!CACHEWRITEMISS_CHECK(debug)) {
+
+	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no WRITE MISS!! (debug = " << hex << debug << ")" << v::endl;
+	    ec++;
+
+	  } else {
+
+	    v::debug << name() << "CHECK ID " << checkpair->id << " CORRECT ACCESS TYPE" << v::endl;
+
+	  }
 	
-	break;
+	  break;
 
-      case TLBHIT:
+        case TLBHIT:
 
-	if (!TLBHIT_CHECK(*debug)) {
+	  if (!TLBHIT_CHECK(debug)) {
+ 
+	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no TLB HIT!! (debug = " << hex << debug << ")" << v::endl;
+	    ec++;
 
-	  v::error << name() << "Unexpected type of access - no TLB HIT!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  } else {
 
-	}
+	    v::debug << name() << "CHECK ID " << checkpair->id << " CORRECT ACCESS TYPE" << v::endl;
+
+	  }
 	
-	break;
+	  break;
 
-      case TLBMISS:
+        case TLBMISS:
 
-	if (!TLBMISS_CHECK(*debug)) {
+	  if (!TLBMISS_CHECK(debug)) {
 
-	  v::error << name() << "Unexpected type of access - no TLB MISS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	    v::error << name() << "CHECK ID" << checkpair->id << " Unexpected type of access - no TLB MISS!! (debug = " << hex << debug << ")" << v::endl;
+	    ec++;
 
-	}
+	  } else {
+
+	    v::debug << name() << "CHECK ID " << checkpair->id << " CORRECT ACCESS TYPE" << v::endl;
+
+	  }
 	
-	break;
+	  break;
 
-      default:
+        default:
+	  
+	  break;
 
-	break;
-
-    }    
+      }
+    }
   }
 }
 
@@ -548,7 +618,7 @@ void mmu_cache_test::cleanUP() {
 
       v::debug << name() << "Release transaction: " << hex << trans << v::endl;
 
-      // remove transaction
+      // Remove transaction
       delete(trans);
 
     }
@@ -572,8 +642,11 @@ tlm::tlm_sync_enum mmu_cache_test::icio_nb_transport_bw(tlm::tlm_generic_payload
   // New response
   } else if (phase == tlm::BEGIN_RESP) {
 
+    v::debug << name() << "TBM RECEIVED DATA: " << hex << *(unsigned int*)trans.get_data_ptr() << v::endl;
+
     // Put new response into InstrResponsePEQ
     m_InstrResponsePEQ.notify(trans, delay);
+    m_EndInstrRequestEvent.notify();
 
     // Reset delay
     delay = SC_ZERO_TIME;
@@ -599,33 +672,15 @@ tlm::tlm_sync_enum mmu_cache_test::dcio_nb_transport_bw(tlm::tlm_generic_payload
     // Inform request thread about END_REQ
     m_EndDataRequestEvent.notify();
 
-    // For writes there will be no BEGIN_RESP.
-    // Notify response thread to send BEGIN_DATA.
-    if (trans.get_command() == tlm::TLM_WRITE_COMMAND) {
-
-      m_DataPEQ.notify(trans);
-
-    }
-
     // Reset delay
     delay = SC_ZERO_TIME;
 
   // New response
   } else if (phase == tlm::BEGIN_RESP) {
 
-    v::debug << name() << "TBM RECEIVED DATA: " << hex << *(unsigned int*)trans.get_data_ptr() << v::endl;
-
     // Put new response into DataResponsePEQ
     m_DataResponsePEQ.notify(trans, delay);
-
-  // Data phase completed
-  } else if (phase == amba::END_DATA) {
-
-    // Release transaction
-    m_EndTransactionPEQ.notify(trans, delay);
-
-    // Reset delay
-    delay = SC_ZERO_TIME;
+    m_EndDataRequestEvent.notify();
 
   } else {
 
@@ -857,6 +912,8 @@ void mmu_cache_test::dwrite(unsigned int addr, unsigned char * data, unsigned in
   tlm::tlm_generic_payload *trans = new tlm::tlm_generic_payload();
   dcio_payload_extension *dext = new dcio_payload_extension();
 
+  v::debug << name() << "Allocate new transaction (dwrite): " << hex << trans << v::endl;
+
   // Clear debug field
   *debug = 0;
 
@@ -910,6 +967,7 @@ void mmu_cache_test::dwrite(unsigned int addr, unsigned char * data, unsigned in
         } else if (phase == tlm::END_REQ) {
 
 	  // The slave returned TLM_UPDATED with END_REQ
+	  wait(m_EndDataRequestEvent);
 	
 	} else if (phase == amba::END_DATA) {
 
@@ -968,6 +1026,9 @@ void mmu_cache_test::InstrResponseThread() {
     // Return value must be TLM_COMPLETED or TLM_ACCEPTED
     assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
 
+    // Add some delay before removing transaction
+    delay = sc_core::sc_time(1000, SC_NS);
+
     // Cleanup
     m_EndTransactionPEQ.notify(*trans, delay);
   }
@@ -989,6 +1050,11 @@ void mmu_cache_test::DataResponseThread() {
     // Get transaction from PEQ
     trans = m_DataResponsePEQ.get_next_transaction();
 
+    if (trans->get_command() == tlm::TLM_READ_COMMAND) {
+
+      v::debug << name() << "TBM received rdata: " << hex << *(unsigned int*)trans->get_data_ptr() << v::endl;
+    }
+
     // Prepare END_RESP
     phase = tlm::END_RESP;
     delay = SC_ZERO_TIME;
@@ -1001,45 +1067,12 @@ void mmu_cache_test::DataResponseThread() {
     // Return value must be TLM_COMPLETED or TLM_ACCEPTED
     assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
 
+    // Add some delay before removing transaction
+    delay = sc_core::sc_time(1000, SC_NS);
+
     // Cleanup
     m_EndTransactionPEQ.notify(*trans, delay);
 
   }  
 }
 
-// Thread for data phase processing in write operations (sends BEGIN_DATA)
-void mmu_cache_test::DataThread() {
-
-  tlm::tlm_generic_payload* trans;
-  tlm::tlm_phase phase;
-  sc_core::sc_time delay;
-  tlm::tlm_sync_enum status;
-
-  while(1) {
-
-    wait(m_DataPEQ.get_event());
-
-    // Get transaction from PEQ
-    trans = m_DataPEQ.get_next_transaction();
-
-    // Prepare BEGIN_DATA
-    phase = amba::BEGIN_DATA;
-    delay = SC_ZERO_TIME;
-
-    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw (dcio) with phase " << phase << v::endl;
-
-    // Call nb_transport_fw with BEGIN_DATA
-    status = dcio->nb_transport_fw(*trans, phase, delay);
-
-    // Return value must be TLM_COMPLETED or TLM_ACCEPTED
-    assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
-
-    if (status == tlm::TLM_COMPLETED) {
-
-      // Cleanup
-      m_EndTransactionPEQ.notify(*trans, delay);
-
-    }
-
-  }
-}

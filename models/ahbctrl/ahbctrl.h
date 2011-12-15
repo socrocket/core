@@ -120,8 +120,8 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 		 bool pow_mon,         ///< Enable power monitoring
                  amba::amba_layer_ids ambaLayer);		 
 		 
-     /// Reset Callback
-		 void dorst(); 
+	/// Reset Callback
+	void dorst(); 
 	// Omitted parameters:
 	// -------------------
 	// nahbm  - Number of AHB masters

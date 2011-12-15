@@ -259,6 +259,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
   unsigned int asi;
   unsigned int *debug;
+
   if(dext!=NULL) {
       asi   = dext->asi;
       debug = dext->debug;
@@ -352,6 +353,9 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
   
     }
 
+    // Reading and writing system registers has delay of one clock cycle
+    delay = clock_cycle;
+
   // Diagnostic access to instruction PDC
   } else if (asi == 0x5) {
 
@@ -402,6 +406,9 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
     }
+
+    // Reading and writing the instruction PDS has a delay of one clock cycle
+    delay = clock_cycle;
 
   // Diagnostic access to data PDC or shared instruction and data PDC
   } else if (asi == 0x6) {
@@ -1104,7 +1111,7 @@ tlm::tlm_sync_enum mmu_cache::ahb_nb_transport_bw(tlm::tlm_generic_payload &tran
   // New response (read operations only)
   } else if (phase == tlm::BEGIN_RESP) {
 
-    mEndRequestEvent.notify();
+    mBeginResponseEvent.notify();
 
     // Put into ResponsePEQ for response processing
     mResponsePEQ.notify(trans, delay);
@@ -1112,7 +1119,8 @@ tlm::tlm_sync_enum mmu_cache::ahb_nb_transport_bw(tlm::tlm_generic_payload &tran
   // Data phase completed
   } else if (phase == amba::END_DATA) {
 
-    // Release transaction
+    // Add some delay and remove transaction
+    delay = 100*clock_cycle;
     mEndTransactionPEQ.notify(trans, delay);
 
   // Phase not valid
@@ -1126,7 +1134,6 @@ tlm::tlm_sync_enum mmu_cache::ahb_nb_transport_bw(tlm::tlm_generic_payload &tran
   return tlm::TLM_ACCEPTED;
 
 }
-
 
 /// Function for write access to AHB master socket
 void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
@@ -1178,9 +1185,15 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
         // Blocking transport
         ahb->b_transport(*trans, delay);
 
+	v::debug << name() << "Release transaction: " << hex << trans << v::endl;
+
+	// Release transaction
+	ahb.release_transaction(trans);
+
         // Consume delay
         wait(delay);
         delay = SC_ZERO_TIME;
+
 
       } else {
 
@@ -1244,6 +1257,11 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
       // Debug transport
       ahb->transport_dbg(*trans);
 
+      v::debug << name() << "Release transaction: " << hex << trans << v::endl;
+
+      // Release transaction
+      ahb.release_transaction(trans);
+
     }
 }
 
@@ -1298,6 +1316,11 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
 	// Blocking transport
 	ahb->b_transport(*trans, delay);
 
+	v::debug << name() << "Release transaction: " << hex << trans << v::endl;
+
+	// Release transaction
+	ahb.release_transaction(trans);
+
 	// Consume delay
 	wait(delay);
 	delay = SC_ZERO_TIME;
@@ -1323,12 +1346,12 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
 	      // Wait until BEGIN_RESP before giving control
 	      // to the user (for sending next transaction).
 	      wait(mEndRequestEvent);
+	      wait(mBeginResponseEvent);
 
 	    } else if (phase == tlm::END_REQ) {
 
 	      // The slave returned TLM_UPDATED with END_REQ
-
-	      wait(mEndRequestEvent);
+	      wait(mBeginResponseEvent);
 
 	    } else if (phase == tlm::BEGIN_RESP) {
 
@@ -1370,6 +1393,11 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
 
       // Debug transport
       ahb->transport_dbg(*trans);
+
+      v::debug << name() << "Release transaction: " << hex << trans << v::endl;
+
+      // Release transaction
+      ahb.release_transaction(trans);
 
     }
 
@@ -1442,6 +1470,10 @@ void mmu_cache::DataThread() {
 	  // Data phase completed.
 	  wait(delay);
 
+	  // Add some delay and return transaction
+	  delay = 100*clock_cycle;
+	  mEndTransactionPEQ.notify(*trans, delay);
+
 	} else {
 
 	  // Forbidden phase
@@ -1491,7 +1523,8 @@ void mmu_cache::ResponseThread() {
     // Return value must be TLM_COMPLETED or TLM_ACCEPTED
     assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
 
-    // Cleanup
+    // Add some delay and remove transaction
+    delay = 100*clock_cycle;
     mEndTransactionPEQ.notify(*trans, delay);
 
   }
@@ -1581,6 +1614,7 @@ void mmu_cache::snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& d
 
 // Helper for setting clock cycle latency using a value-time_unit pair
 void mmu_cache::clkcng() {
+
     // Set icache clock
     if(m_icen) { 
         icache->clkcng(clock_cycle);
@@ -1594,5 +1628,15 @@ void mmu_cache::clkcng() {
     // Set mmu clock
     if(m_mmu_en) {
       m_mmu->clkcng(clock_cycle);
+    }
+
+    // Set dlocalram clock
+    if(m_dlram) {
+      dlocalram->clkcng(clock_cycle);
+    }
+
+    // Set ilocalram clcok
+    if(m_ilram) {
+      ilocalram->clkcng(clock_cycle);
     }
 }

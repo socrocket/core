@@ -62,7 +62,7 @@ class CLKDevice {
        // Signal Callbacks 
         /// Reset Callback
         ///
-        ///  This function is called when the reset signal is triggert.
+        ///  This function is called when the reset signal is triggerd.
         ///  The reset whill reset all registers and bring the IRQ controler in a valid state.
         ///
         /// @param value Value of the reset signal the reset is active as long the signal is false.
@@ -72,7 +72,7 @@ class CLKDevice {
 
         /// Clock Callback
         ///
-        ///  This function is called when ever the clock is chaning.
+        ///  This function is called when ever the clock is changing.
         ///  An internal variable called clock_cycle will be set to the exact value..
         ///
         /// @param value Value of the clock.

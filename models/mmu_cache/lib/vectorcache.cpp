@@ -550,6 +550,7 @@ void vectorcache::mem_write(unsigned int address, unsigned char * data,
         if (!is_hit) {
 
             CACHEWRITEMISS_SET(*debug);
+	    v::debug << name() << "ACCESS IS WRITEMISS " << hex << *debug << v::endl;
 	    wmisses++;
 
 	}

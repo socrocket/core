@@ -295,6 +295,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 	sc_event ahb_transaction_response;
 
 	sc_event  mEndRequestEvent;
+	sc_event  mBeginResponseEvent;
 
 	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mResponsePEQ;
 	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mDataPEQ;

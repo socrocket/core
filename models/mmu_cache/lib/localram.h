@@ -75,6 +75,9 @@ class localram : public sc_core::sc_module, public mem_if {
         virtual void mem_write(unsigned int address, unsigned char *data, unsigned int len,
 			       sc_core::sc_time *t, unsigned int *debug, bool is_dbg);
 
+	/// Helper functions for definition of clock cycle
+	void clkcng(sc_core::sc_time &clk);
+
 	/// Hook up for showing statistics
 	void end_of_simulation();
 
@@ -109,6 +112,9 @@ class localram : public sc_core::sc_module, public mem_if {
 
 	/// Number of write accesses
 	uint64_t swrites;
+
+	/// Clock cycle time
+	sc_core::sc_time clockcycle;
 };
 
 #endif // __LOCALRAM_H__
