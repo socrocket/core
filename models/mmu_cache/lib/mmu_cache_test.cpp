@@ -193,6 +193,7 @@ void mmu_cache_test::inc_ec() {
 
 }
 
+// Returns and displays error count
 unsigned int mmu_cache_test::error_stat() {
 
   v::info << name() << "Total number of errors during test: " << ec << v::endl;

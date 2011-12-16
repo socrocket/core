@@ -407,7 +407,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
     }
 
-    // Reading and writing the instruction PDS has a delay of one clock cycle
+    // Reading and writing the instruction PDC has a delay of one clock cycle
     delay = clock_cycle;
 
   // Diagnostic access to data PDC or shared instruction and data PDC
@@ -461,6 +461,9 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
     }
+
+    // Reading and writing the data PDC has a delay of one clock cycle
+    delay = clock_cycle;
   
   // Access instruction cache tags
   } else if (asi == 0xc) {
@@ -490,7 +493,10 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
     }
-  
+
+    // Reading and writing the instruction cache tags has a delay of one clock cycle
+    delay = clock_cycle;
+
   // Access instruction cache entries
   } else if (asi == 0xd) {
 
@@ -521,6 +527,9 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
     }
 
+    // Reading and writing the instruction cache entries has a delay of one clock cycle
+    delay = clock_cycle;
+
   // Access data cache tags
   } else if (asi == 0xe) {
 
@@ -549,6 +558,9 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
     }
+
+    // Reading and writing the data cache tags has a delay of one clock cycle
+    delay = clock_cycle;
     
   // Access data cache entries
   } else if (asi == 0xf) {
@@ -578,6 +590,9 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
     }
+
+    // Reading and writing the data cache entries has a delay of one clock cycle
+    delay = clock_cycle;
 
   // Flush instruction cache
   } else if (asi == 0x10) {
@@ -741,6 +756,9 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
        trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
 
     }
+
+    // Reading and writing MMU internal registers has a delay of one clock cycle
+    delay = clock_cycle;
 
   // Ordinary access
   } else if ((asi == 0x8) || (asi == 0x9) || (asi == 0xa) || (asi == 0xb)) {
