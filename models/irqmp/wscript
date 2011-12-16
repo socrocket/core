@@ -128,7 +128,6 @@ def build(bld):
                     '../../common/verbose.cpp',
                     '../../common/timingmonitor.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
-    defines      = 'TESTLENGTH=1',
     includes     = '. tests tests/test1 ../utils ../../signalkit ../../common ../../adapters',
     config       =  vsim_conf,
   )  
@@ -152,9 +151,9 @@ def build(bld):
                     '../utils/apbdevice.cpp',
                     '../../adapters/ahbpipe.cpp',
                     '../../adapters/apb_tlmbus_rtlslave_transactor.cpp',
-                    '../../common/verbose.cpp'],
+                    '../../common/verbose.cpp',
+                    '../../common/timingmonitor.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
-    defines      = 'TESTLENGTH=1',
     includes     = '. tests tests/test2 ../utils ../../signalkit ../../common ../../adapters',
     config       =  vsim_conf,
   )  
@@ -178,10 +177,36 @@ def build(bld):
                     '../utils/apbdevice.cpp',
                     '../../adapters/ahbpipe.cpp',
                     '../../adapters/apb_tlmbus_rtlslave_transactor.cpp',
-                    '../../common/verbose.cpp'],
+                    '../../common/verbose.cpp',
+                    '../../common/timingmonitor.cpp'],
     uselib       = 'AMBA GREENSOCS AMBAMEM',
-    defines      = 'TESTLENGTH=1',
     includes     = '. tests tests/test3 ../utils ../../signalkit ../../common ../../adapters',
+    config       =  vsim_conf,
+  )  
+  
+  bld(
+    features     = 'cxx cprogram test',
+    source       = 'tests/test4/top_lt.cpp tests/test4/testbench.cpp',
+    target       = 'irqmp.4.lt.test',
+    includes     = '.',
+    uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'irqmp utils signalkit common'
+  )
+  
+  bld(
+    features     = 'modelsim test',
+    target       = 'irqmp.4.rtl.test',
+    source       = ['tests/irqmp_wrapper.vhd',
+                    'tests/test4/testbench.cpp',
+                    'tests/test4/top_rtl.cpp',
+                    '../utils/clkdevice.cpp',
+                    '../utils/apbdevice.cpp',
+                    '../../adapters/ahbpipe.cpp',
+                    '../../adapters/apb_tlmbus_rtlslave_transactor.cpp',
+                    '../../common/verbose.cpp',
+                    '../../common/timingmonitor.cpp'],
+    uselib       = 'AMBA GREENSOCS AMBAMEM',
+    includes     = '. tests tests/test4 ../utils ../../signalkit ../../common ../../adapters',
     config       =  vsim_conf,
   )  
 

@@ -242,7 +242,7 @@ void Irqmp::launch_irq() {
     bool eirq_en;
     while(1) {
         wait(e_signal);
-        for(int cpu = 0; cpu < ncpu; cpu++) {
+        for(int cpu = ncpu-1; cpu > -1; cpu--) {
             // Pending register for this CPU line.
             pending = r[IR_PENDING] & r[PROC_IR_MASK(cpu)];
 
@@ -258,6 +258,7 @@ void Irqmp::launch_irq() {
             }
             // Recalculate relevant interrupts
             all = pending | (eirq_en << eirq) | (r[PROC_IR_FORCE(cpu)] & IR_FORCE_IF);
+            v::debug << name() << "For CPU " << cpu << " pending: " << v::uint32 << hex << pending << ", all " << v::uint32 << hex << all << v::endl;
             
             // Find the highes not extended interrupt on level 1 
             masked = (all & r[IR_LEVEL]) & IR_PENDING_IP;
@@ -279,7 +280,12 @@ void Irqmp::launch_irq() {
             }
             // If an interrupt is selected send it out to the CPU.
             if(high!=0) {
-                irq_req.write(1 << cpu, std::pair<uint32_t, bool>(0xF & high, true));
+                v::debug << name() << "For CPU " << cpu << " send IRQ: " << high << v::endl;
+                std::pair<uint32_t, bool> value(0xF & high, true);
+                if(value != irq_req.read(cpu)) {
+                    v::debug << name() << "For CPU " << cpu << " really sent send IRQ: " << high << v::endl;
+                    irq_req.write(1 << cpu, value);
+                }
             } else if(irq_req.read(cpu).first!=0) {
                 irq_req.write(1 << cpu, std::pair<uint32_t, bool>(0, false));
             }
@@ -301,9 +307,14 @@ void Irqmp::clear_write() {
     // pending reg only: forced IRs are cleared in the next function
     bool extirq = false;
     for(int cpu = 0; cpu < ncpu; cpu++) {
-        if(eirq != 0) {
+        if(eirq != 0 && r[PROC_EXTIR_ID(cpu)]!=0) {
             r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
             r[PROC_EXTIR_ID(cpu)] = 0;
+            extirq = true;
+        }
+    }
+    for(int i = 31; i > 15; --i) {
+        if((1<<i)&r[IR_CLEAR]) {
             extirq = true;
         }
     }
@@ -325,16 +336,22 @@ void Irqmp::clear_write() {
 /// callback registered on interrupt force registers
 void Irqmp::force_write() {
     for(int cpu = 0; cpu < ncpu; cpu++) {
-        forcereg[cpu] |= r[PROC_IR_FORCE(cpu)];
-        for(int i = 31; i > 0; --i) {
-            if((1<<i)&forcereg[cpu]) {
+        uint32_t reg = r[PROC_IR_FORCE(cpu)];
+        for(int i = 15; i > 0; --i) {
+            if((1<<i)&(reg>>16)) {
                 irq_req.write(~0, std::pair<uint32_t, bool>(i, false));
             }
         }
+        forcereg[cpu] |= reg;
+        
         //write mask clears IFC bits:
         //IF && !IFC && write_mask
         forcereg[cpu] &= (~(forcereg[cpu] >> 16) & PROC_IR_FORCE_IF);
+        
         r[PROC_IR_FORCE(cpu)] = forcereg[cpu];
+        if(eirq != 0 && r[PROC_EXTIR_ID(cpu)]!=0) {
+            r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
+        }
     }
     e_signal.notify(2 * clock_cycle);
 }
@@ -342,21 +359,18 @@ void Irqmp::force_write() {
 /// process sensitive to ack_irq
 void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_core::sc_time &time) {
     bool f = false;
-    //extended IR handling: Identify highest pending EIR
-    if(eirq != 0 && irq == (uint32_t)eirq && !(eirq&r[BROADCAST])) {
+    if(eirq != 0 && r[PROC_EXTIR_ID(cpu)]!=0) {
         r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
-        r[PROC_IR_FORCE(cpu)] = r[PROC_IR_FORCE(cpu)] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
-        forcereg[cpu] &= ~(1 << r[PROC_EXTIR_ID(cpu)]) & 0xFFFE;
-        irq_req.write(~0, std::pair<uint32_t, bool>(eirq, false));
-    } else {
-        //clear interrupt from pending and force register
-        irq_req.write(~0, std::pair<uint32_t, bool>(irq, false));
-        r[IR_PENDING].bit_set(irq, f);
-        if(r[BROADCAST].bit_get(irq)) {
+    }
+    
+    //clear interrupt from pending and force register
+    if(r[BROADCAST].bit_get(irq)) {
             r[PROC_IR_FORCE(cpu)].bit_set(irq, f);
             forcereg[cpu] &= ~(1 << irq) & 0xFFFE;
-        }
     }
+    
+    irq_req.write(~0, std::pair<uint32_t, bool>(irq, false));
+    r[IR_PENDING].bit_set(irq, f);
     r[PROC_EXTIR_ID(cpu)] = 0;
     e_signal.notify(2 * clock_cycle);
 }
@@ -369,7 +383,7 @@ void Irqmp::mpstat_write() {
 }
 
 void Irqmp::pending_write() {
-    e_signal.notify(2 * clock_cycle);
+    e_signal.notify(1 * clock_cycle);
 }
 
 /// @}
