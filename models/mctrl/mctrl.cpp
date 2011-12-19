@@ -541,7 +541,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
     bool rmw = (r[MCFG2].get() >> 6) & 1;
     MEMPort  port   = get_port(addr);
 
-    v::debug << name() << "Try to access memory at " << v::uint32 << addr << " of length " << length << "." << v::endl;
+    v::debug << name() << "Try to access memory at " << v::uint32 << addr << " of length " << length << "." << " pmode: " << (uint32_t)m_pmode << v::endl;
 
     if(port.id!=100) {
         tlm_generic_payload memgp;
@@ -660,6 +660,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                     // Trcd + (words/col_width)*Tcas for read
                     // Trcd + (words/col_width)*Twr for write
                     // And it is by default read modify write, due to the fact that we have to load a column.
+                    rmw = true;
                     if(gp.is_write()) {
                         trans_delay = (r[MCFG2].bit_get(26)?3:2);
                         word_delay = ((r[MCFG2].bit_get(26)?3:2));
@@ -674,20 +675,19 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                         case 5: { // Deep power down! No transaction possible:
                             v::error << name() << "The Controler is in deep Power-Down Mode. No transactions possible." <<v::endl;
                             gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
+                            return;
                         }
                     } 
                     break;
             }
             
-            // If length is biger than a mem word try to round up on mem words
-            if(length>mem_width&&(length & (mem_width-1))) {
-                length = (length & ~(mem_width-1)) + mem_width;
-            }
             v::debug << name() << "Length: " << std::dec << length << ", mem_width: " << std::dec << mem_width << ", width: " << width << v::endl;
             v::debug << name() << "RMW Enabled: " << rmw << v::endl;
             if(gp.is_write()) {
                 // RMW in case of subword access
                 if(rmw&&length<mem_width) {
+                    length = (length & ~(mem_width-1)) + mem_width;
+                    v::debug << name() << "RMW Fetch: " << v::uint32 << (uint32_t)(port.addr&~(mem_width-1)) << ", length: " << std::dec << length << ", pos: " << v::uint32 << (uint32_t)(port.addr&(mem_width-1)) << v::endl;
                     // RMW enabled!
                     data = new unsigned char[length];
                     memgp.set_command(TLM_READ_COMMAND);
@@ -699,8 +699,8 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                     mem[port.id]->b_transport(memgp, delay);
                     memcpy(&data[port.addr&(mem_width-1)], gp.get_data_ptr(), gp.get_data_length());
                     port.addr = port.addr&~(mem_width-1);
-                // Error in case of subword access
                 } else if(length<mem_width) {
+                    // Error in case of subword access
                     v::error << name() << "Invalid memory access: Transaction width is not compatible with memory width (Transaction-Width: "
                              << width << ", Memory-Width: " << mem_width << ", Data-Length: " << length << ". Please change width or enable Read-Modify-Write Transactions." 
                              <<v::endl;
@@ -708,7 +708,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                     return;
                 }
             } else if(gp.is_read()) {
-                if(!rmw&&length<mem_width) {
+                if((!rmw)&&length<mem_width) {
                     v::error << name() << "Invalid memory access: Transaction width is not compatible with memory width (Transaction-Width: "
                              << width << ", Memory-Width: " << mem_width << ", Data-Length: " << length << "." << v::endl;
                     gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
@@ -718,10 +718,10 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
             
             memgp.set_command(gp.get_command());
             memgp.set_address(port.addr);
-            memgp.set_data_length(gp.get_data_length());
+            memgp.set_data_length(length);
             memgp.set_streaming_width(mem_width);
-            memgp.set_byte_enable_ptr(data);
-            memgp.set_data_ptr(gp.get_data_ptr());
+            memgp.set_byte_enable_ptr(gp.get_byte_enable_ptr());
+            memgp.set_data_ptr(data);
             mem[port.id]->b_transport(memgp, delay);
             gp.set_response_status(memgp.get_response_status());
             delay += (trans_delay + (length/mem_width) * word_delay) * clock_cycle;
@@ -830,15 +830,18 @@ void Mctrl::switch_power_mode() {
     gp.set_data_ptr((unsigned char*)&data);
     gp.set_extension(erase);
 
-    switch((r[MCFG4] > 16) & 0x7) {
+    v::debug << name() << "set pmode: " << (uint32_t)((r[MCFG4] >> 16) & 0x7) << v::endl;
+    switch((r[MCFG4] >> 16) & 0x7) {
         default:
         // None
         case 0: {
             m_pmode = 0;
+            v::debug << name() << "Power Mode: None" << v::endl;
         }   break;
         
-        // Dont do enything in PowerDown mode!
+        // Dont do anything in PowerDown mode!
         case 1: { 
+            v::debug << name() << "Power Mode: Power Down" << v::endl;
             m_pmode = 1;
         }   break;
         
@@ -847,6 +850,7 @@ void Mctrl::switch_power_mode() {
             uint8_t pasr = r[MCFG4] & MCFG4_PASR;
             if(pasr) {
                 // Delete
+                v::debug << name() << "Power Mode: Partial-Self Refresh" << v::endl;
                 uint32_t start = 0;
                 uint32_t dbanks = c_sdram.dev->get_banks();
                 uint32_t dbsize = c_sdram.dev->get_bsize();
@@ -860,10 +864,13 @@ void Mctrl::switch_power_mode() {
                 gp.set_address(start);
                 data = dsize;
                 mem[c_sdram.id]->b_transport(gp,delay);
+            } else {
+                v::debug << name() << "Power Mode: Self Refresh" << v::endl;
             }
         }   break;
         //deep power down: erase entire SDRAM
         case 5: {
+            v::debug << name() << "Power Mode: Deep-Power Down" << v::endl;
             m_pmode = 5;
             uint32_t dbanks = c_sdram.dev->get_banks();
             uint32_t dbsize = c_sdram.dev->get_bsize();
