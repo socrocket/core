@@ -167,7 +167,7 @@ class mmu_cache_wrapper : public sc_foreign_module
 {
 public:
     sc_in<sc_logic> rst;
-    sc_in<sc_logic> clk;
+    sc_in<bool> clk;
     sc_in<icache_in_type> ici;
     sc_out<icache_out_type> ico;
     sc_in<dcache_in_type> dci;
@@ -175,8 +175,8 @@ public:
     sc_in<ahb_mst_in_type> ahbi;
     sc_out<ahb_mst_out_type_adapter> ahbo;
     sc_in<sc_logic> fpuholdn;
-    sc_in<sc_logic> hclk;
-    sc_in<sc_logic> sclk;
+    sc_in<bool> hclk;
+    sc_in<bool> sclk;
     sc_in<sc_logic> hclken;
 
 

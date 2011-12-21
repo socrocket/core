@@ -43,12 +43,14 @@
 // Reviewed:
 //*********************************************************************
 
-#ifndef __MMU_CACHE_TEST_H__
-#define __MMU_CACHE_TEST_H__
+#ifndef MMU_CACHE_TEST_H
+#define MMU_CACHE_TEST_H
 
 #include <tlm.h>
 #include "amba.h"
 #include "socrocket.h"
+#include "vendian.h"
+#include "signalkit.h"
 #include "clkdevice.h"
 
 #if defined(MTI_SYSTEMC) || defined(NO_INCLUDE_PATHS)
@@ -66,10 +68,15 @@
 class mmu_cache_test : public sc_module, public CLKDevice{
 
  public:
-  
+
+  SK_HAS_SIGNALS(mmu_cache_test);
+
   /// TLM2.0 initiator sockets for instruction and data
   tlm_utils::simple_initiator_socket<mmu_cache_test> icio;
   tlm_utils::simple_initiator_socket<mmu_cache_test> dcio;  
+
+  // Reset output
+  signal<bool>::out rst;
 
   SC_HAS_PROCESS(mmu_cache_test);
   

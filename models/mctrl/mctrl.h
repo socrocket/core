@@ -80,7 +80,7 @@ class Mctrl : public gs::reg::gr_device,
         
         /// Creates a new Instance of an MCtrl.
         ///
-        /// @param name The name of the instance. Needed for SystemC.
+        /// @param name The SystemC name of the component to be created.
         /// @param _romasel
         /// @param _sdrasel
         /// @param _romaddr
