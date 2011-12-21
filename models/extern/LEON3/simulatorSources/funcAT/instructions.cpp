@@ -286,7 +286,7 @@ void leon3_funcat_trap::Instruction::RaiseException( unsigned int pcounter, unsi
         }
         if(exceptionId > TRAP_INSTRUCTION && exceptionId < IMPL_DEP_EXC){
             // finally I acknowledge the interrupt on the external pin port
-            irqAck.send_pin_req(IMPL_DEP_EXC - exceptionId, 0);
+            irqAck.send_pin_req(IMPL_DEP_EXC - exceptionId);
         }
         flush();
         annull();
@@ -711,7 +711,7 @@ unsigned int leon3_funcat_trap::LDSB_imm::behavior(){
 
     address = rs1 + SignExtend(simm13, 13);
 
-    readValue = SignExtend(dataMem.read_byte(address), 8);
+    readValue = SignExtend(dataMem.read_byte(address, 8, 0, 0), 8);
 
     rd = readValue;
     return this->totalInstrCycles;
@@ -1211,7 +1211,7 @@ unsigned int leon3_funcat_trap::LDSBA_reg::behavior(){
     }
     else{
         #endif
-        readValue = SignExtend(dataMem.read_byte(address), 8);
+        readValue = SignExtend(dataMem.read_byte(address,this->asi, 0, 0), 8);
         #ifdef ACC_MODEL
     }
     #endif
@@ -1292,7 +1292,7 @@ unsigned int leon3_funcat_trap::LDUH_imm::behavior(){
     }
     #endif
 
-    readValue = dataMem.read_half(address);
+    readValue = dataMem.read_half(address, 8, 0, 0);
 
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
@@ -1368,7 +1368,7 @@ unsigned int leon3_funcat_trap::STA_reg::behavior(){
     #endif
 
     if(supervisor || !notAligned){
-        dataMem.write_word(address, toWrite);
+        dataMem.write_word(address, toWrite, this->asi, 0, 0);
     }
     else{
         flush();
@@ -1516,7 +1516,7 @@ unsigned int leon3_funcat_trap::LDSHA_reg::behavior(){
     }
     else{
         #endif
-        readValue = SignExtend(dataMem.read_half(address), 16);
+        readValue = SignExtend(dataMem.read_half(address, this->asi, 0, 0), 16);
         #ifdef ACC_MODEL
     }
     #endif
@@ -1602,7 +1602,7 @@ unsigned int leon3_funcat_trap::STBA_reg::behavior(){
     #endif
 
     if(supervisor){
-        dataMem.write_byte(address, toWrite);
+        dataMem.write_byte(address, toWrite, this->asi, 0, 0);
     }
     else{
         flush();
@@ -1684,7 +1684,7 @@ unsigned int leon3_funcat_trap::ST_imm::behavior(){
     #endif
 
     if(!notAligned){
-        dataMem.write_word(address, toWrite);
+        dataMem.write_word(address, toWrite, 8, 0, 0);
     }
     else{
         flush();
@@ -1913,8 +1913,8 @@ unsigned int leon3_funcat_trap::SWAPA_reg::behavior(){
         flush();
     }
     else{
-        readValue = dataMem.read_word(address);
-        dataMem.write_word(address, toWrite);
+        readValue = dataMem.read_word(address, this->asi, 0, 1);
+        dataMem.write_word(address, toWrite, this->asi, 0, 0);
     }
     stall(2);
 
@@ -2049,7 +2049,7 @@ unsigned int leon3_funcat_trap::STB_imm::behavior(){
     address = rs1 + SignExtend(simm13, 13);
     toWrite = (unsigned char)(rd & 0x000000FF);
 
-    dataMem.write_byte(address, toWrite);
+    dataMem.write_byte(address, toWrite, 8, 0, 0);
     stall(1);
     return this->totalInstrCycles;
 }
@@ -2182,7 +2182,7 @@ unsigned int leon3_funcat_trap::STH_reg::behavior(){
     #endif
 
     if(!notAligned){
-        dataMem.write_half(address, toWrite);
+        dataMem.write_half(address, toWrite, 8, 0, 0);
     }
     else{
         flush();
@@ -2424,8 +2424,8 @@ unsigned int leon3_funcat_trap::LDSTUB_reg::behavior(){
 
     address = rs1 + rs2;
 
-    readValue = dataMem.read_byte(address);
-    dataMem.write_byte(address, 0xff);
+    readValue = dataMem.read_byte(address, 8, 0, 0);
+    dataMem.write_byte(address, 0xff, 8, 0, 0);
     stall(2);
 
     rd = readValue;
@@ -2675,7 +2675,7 @@ unsigned int leon3_funcat_trap::LD_reg::behavior(){
     }
     #endif
 
-    readValue = dataMem.read_word(address);
+    readValue = dataMem.read_word(address, 8, 0, 0);
 
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
@@ -2752,7 +2752,7 @@ unsigned int leon3_funcat_trap::ST_reg::behavior(){
     #endif
 
     if(!notAligned){
-        dataMem.write_word(address, toWrite);
+        dataMem.write_word(address, toWrite, 8, 0, 0);
     }
     else{
         flush();
@@ -2898,7 +2898,7 @@ unsigned int leon3_funcat_trap::LDD_reg::behavior(){
     #endif
 
     if(!notAligned){
-        readValue = dataMem.read_dword(address);
+        readValue = dataMem.read_dword(address, 8, 0, 0);
         stall(1);
     }
     #ifdef ACC_MODEL
@@ -3049,7 +3049,7 @@ unsigned int leon3_funcat_trap::LDUH_reg::behavior(){
     }
     #endif
 
-    readValue = dataMem.read_half(address);
+    readValue = dataMem.read_half(address, 8, 0, 0);
 
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
@@ -3419,7 +3419,7 @@ unsigned int leon3_funcat_trap::STD_imm::behavior(){
     #endif
 
     if(!notAligned){
-        dataMem.write_dword(address, toWrite);
+        dataMem.write_dword(address, toWrite, 8, 0, 0);
     }
     else{
         flush();
@@ -3627,8 +3627,8 @@ unsigned int leon3_funcat_trap::SWAP_imm::behavior(){
         flush();
     }
     else{
-        readValue = dataMem.read_word(address);
-        dataMem.write_word(address, toWrite);
+        readValue = dataMem.read_word(address, 8, 0, 1);
+        dataMem.write_word(address, toWrite, 8, 0, 0);
     }
     stall(2);
 
@@ -3985,7 +3985,7 @@ unsigned int leon3_funcat_trap::STH_imm::behavior(){
     #endif
 
     if(!notAligned){
-        dataMem.write_half(address, toWrite);
+        dataMem.write_half(address, toWrite, 8, 0, 0);
     }
     else{
         flush();
@@ -4136,7 +4136,7 @@ unsigned int leon3_funcat_trap::LDD_imm::behavior(){
     #endif
 
     if(!notAligned){
-        readValue = dataMem.read_dword(address);
+        readValue = dataMem.read_dword(address, 8, 0, 0);
         stall(1);
     }
     #ifdef ACC_MODEL
@@ -4289,7 +4289,7 @@ unsigned int leon3_funcat_trap::LDUHA_reg::behavior(){
     }
     else{
         #endif
-        readValue = dataMem.read_half(address);
+        readValue = dataMem.read_half(address, this->asi, 0, 0);
         #ifdef ACC_MODEL
     }
     #endif
@@ -5269,7 +5269,7 @@ unsigned int leon3_funcat_trap::LDUB_reg::behavior(){
 
     address = rs1 + rs2;
 
-    readValue = dataMem.read_byte(address);
+    readValue = dataMem.read_byte(address, 8, 0, 0);
 
     rd = readValue;
     return this->totalInstrCycles;
@@ -5492,7 +5492,7 @@ unsigned int leon3_funcat_trap::STB_reg::behavior(){
     address = rs1 + rs2;
     toWrite = (unsigned char)(rd & 0x000000FF);
 
-    dataMem.write_byte(address, toWrite);
+    dataMem.write_byte(address, toWrite, 8, 0, 0);
     stall(1);
     return this->totalInstrCycles;
 }
@@ -5846,8 +5846,8 @@ unsigned int leon3_funcat_trap::LDSTUB_imm::behavior(){
 
     address = rs1 + SignExtend(simm13, 13);
 
-    readValue = dataMem.read_byte(address);
-    dataMem.write_byte(address, 0xff);
+    readValue = dataMem.read_byte(address, 8, 0, 0);
+    dataMem.write_byte(address, 0xff, 8, 0, 0);
     stall(2);
 
     rd = readValue;
@@ -5967,7 +5967,7 @@ unsigned int leon3_funcat_trap::LDSB_reg::behavior(){
 
     address = rs1 + rs2;
 
-    readValue = SignExtend(dataMem.read_byte(address), 8);
+    readValue = SignExtend(dataMem.read_byte(address, 8, 0, 0), 8);
 
     rd = readValue;
     return this->totalInstrCycles;
@@ -6280,7 +6280,7 @@ unsigned int leon3_funcat_trap::LDSH_reg::behavior(){
     #endif
 
     if(!notAligned){
-        readValue = SignExtend(dataMem.read_half(address), 16);
+        readValue = SignExtend(dataMem.read_half(address, 8, 0, 0), 16);
     }
     #ifdef ACC_MODEL
     else{
@@ -6511,7 +6511,7 @@ unsigned int leon3_funcat_trap::STD_reg::behavior(){
     #endif
 
     if(!notAligned){
-        dataMem.write_dword(address, toWrite);
+        dataMem.write_dword(address, toWrite, 8, 0, 0);
     }
     else{
         flush();
@@ -6996,7 +6996,7 @@ unsigned int leon3_funcat_trap::LDSH_imm::behavior(){
     #endif
 
     if(!notAligned){
-        readValue = SignExtend(dataMem.read_half(address), 16);
+        readValue = SignExtend(dataMem.read_half(address, 8, 0, 0), 16);
     }
     #ifdef ACC_MODEL
     else{
@@ -7128,8 +7128,8 @@ unsigned int leon3_funcat_trap::LDSTUBA_reg::behavior(){
     #endif
 
     if(supervisor){
-        readValue = dataMem.read_byte(address);
-        dataMem.write_byte(address, 0xff);
+        readValue = dataMem.read_byte(address, this->asi, 0, 0);
+        dataMem.write_byte(address, 0xff, this->asi, 0, 0);
     }
     else{
         flush();
@@ -8466,8 +8466,8 @@ unsigned int leon3_funcat_trap::SWAP_reg::behavior(){
         flush();
     }
     else{
-        readValue = dataMem.read_word(address);
-        dataMem.write_word(address, toWrite);
+        readValue = dataMem.read_word(address, 8, 0, 1);
+        dataMem.write_word(address, toWrite, 8, 0, 0);
     }
     stall(2);
 
@@ -8613,7 +8613,7 @@ unsigned int leon3_funcat_trap::STDA_reg::behavior(){
     #endif
 
     if(supervisor || !notAligned){
-        dataMem.write_dword(address, toWrite);
+        dataMem.write_dword(address, toWrite, this->asi, 0, 0);
     }
     else{
         flush();
@@ -9027,7 +9027,7 @@ unsigned int leon3_funcat_trap::LDUBA_reg::behavior(){
     }
     else{
         #endif
-        readValue = dataMem.read_byte(address);
+        readValue = dataMem.read_byte(address, this->asi, 0, 0);
         #ifdef ACC_MODEL
     }
     #endif
@@ -9451,7 +9451,7 @@ unsigned int leon3_funcat_trap::LDA_reg::behavior(){
     }
     else{
         #endif
-        readValue = dataMem.read_word(address);
+        readValue = dataMem.read_word(address, this->asi, 0, 0);
         #ifdef ACC_MODEL
     }
     #endif
@@ -9537,7 +9537,7 @@ unsigned int leon3_funcat_trap::STHA_reg::behavior(){
     #endif
 
     if(supervisor || !notAligned){
-        dataMem.write_half(address, toWrite);
+        dataMem.write_half(address, toWrite, this->asi, 0, 0);
     }
     else{
         flush();
@@ -9631,7 +9631,7 @@ unsigned int leon3_funcat_trap::LDDA_reg::behavior(){
     }
     else{
         #endif
-        readValue = dataMem.read_dword(address);
+        readValue = dataMem.read_dword(address, this->asi, 0, 0);
         #ifdef ACC_MODEL
     }
     #endif
@@ -9880,7 +9880,7 @@ unsigned int leon3_funcat_trap::LD_imm::behavior(){
     }
     #endif
 
-    readValue = dataMem.read_word(address);
+    readValue = dataMem.read_word(address, 8, 0, 0);
 
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
@@ -10095,7 +10095,7 @@ unsigned int leon3_funcat_trap::LDUB_imm::behavior(){
 
     address = rs1 + SignExtend(simm13, 13);
 
-    readValue = dataMem.read_byte(address);
+    readValue = dataMem.read_byte(address, 8, 0, 0);
 
     rd = readValue;
     return this->totalInstrCycles;

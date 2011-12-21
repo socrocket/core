@@ -39,21 +39,21 @@
 #define EXTERNALPINS_HPP
 
 #include <trap_utils.hpp>
-#include <tlm.h>
-#include <tlm_utils/multi_passthrough_initiator_socket.h>
 #include <systemc.h>
+
+#include "signalkit.h"
 
 #define FUNC_MODEL
 #define AT_IF
 namespace leon3_funcat_trap{
 
-    class PinTLM_out_32 : public sc_module{
+    class PinTLM_out_32 : public signalkit::signal_module<PinTLM_out_32>, public sc_module{
 
         public:
         PinTLM_out_32( sc_module_name portName );
-        void send_pin_req( const unsigned int & address, unsigned int datum ) throw();
-        tlm_utils::multi_passthrough_initiator_socket< PinTLM_out_32, 32, tlm::tlm_base_protocol_types, \
-            1, sc_core::SC_ZERO_OR_MORE_BOUND > initSocket;
+        void send_pin_req( const unsigned int & value ) throw();
+
+        signal< unsigned int >::out initSignal;
     };
 
 };

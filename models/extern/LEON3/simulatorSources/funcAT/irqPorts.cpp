@@ -35,56 +35,29 @@
 \***************************************************************************/
 
 
-
-#include <irqPorts.hpp>
 #include <tlm.h>
+#include <irqPorts.hpp>
 #include <trap_utils.hpp>
-#include <tlm_utils/multi_passthrough_target_socket.h>
-#include <systemc.h>
+
+#include "signalkit.h"
+
 
 using namespace leon3_funcat_trap;
-void leon3_funcat_trap::IntrTLMPort_32::b_transport( int tag, tlm::tlm_generic_payload \
-    & trans, sc_time & delay ){
-    unsigned char* ptr = trans.get_data_ptr();
-    sc_dt::uint64 adr = trans.get_address();
-    if(*ptr == 0){
+
+void leon3_funcat_trap::IntrTLMPort_32::callbackMethod( const std::pair<unsigned int, bool>& value, const sc_time & delay ){
+    if(!value.second){
         //Lower the interrupt
         this->irqSignal = -1;
     }
     else{
         //Raise the interrupt
-        this->irqSignal = adr;
+        this->irqSignal = value.first;
     }
-    trans.set_response_status(tlm::TLM_OK_RESPONSE);
 }
 
-unsigned int leon3_funcat_trap::IntrTLMPort_32::transport_dbg( int tag, tlm::tlm_generic_payload \
-    & trans ){
-    unsigned char* ptr = trans.get_data_ptr();
-    sc_dt::uint64 adr = trans.get_address();
-    if(*ptr == 0){
-        //Lower the interrupt
-        this->irqSignal = -1;
-    }
-    else{
-        //Raise the interrupt
-        this->irqSignal = adr;
-    }
-    trans.set_response_status(tlm::TLM_OK_RESPONSE);
-    return trans.get_data_length();
-}
-
-tlm::tlm_sync_enum leon3_funcat_trap::IntrTLMPort_32::nb_transport_fw( int tag, tlm::tlm_generic_payload \
-    & trans, tlm::tlm_phase & phase, sc_time & delay ){
-    THROW_EXCEPTION("Method not yet implemented");
-}
 
 leon3_funcat_trap::IntrTLMPort_32::IntrTLMPort_32( sc_module_name portName, unsigned \
-    int & irqSignal ) : sc_module(portName), irqSignal(irqSignal), socket(portName){
-    this->socket.register_b_transport(this, &IntrTLMPort_32::b_transport);
-    this->socket.register_transport_dbg(this, &IntrTLMPort_32::transport_dbg);
-    this->socket.register_nb_transport_fw(this, &IntrTLMPort_32::nb_transport_fw);
+    int & irqSignal ) : sc_module(portName), irqSignal(irqSignal),
+    irq_signal(&IntrTLMPort_32::callbackMethod, portName) {
     end_module();
 }
-
-

@@ -51,7 +51,7 @@ void leon3_funclt_trap::TLMMemory::setDebugger( MemoryToolsIf< unsigned int > * 
     this->debugger = debugger;
 }
 
-// read dword
+// Read dword
 sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword( const unsigned int & address, \
 							const unsigned int asi, \
 							const unsigned int flush,  \
@@ -267,9 +267,9 @@ unsigned char leon3_funclt_trap::TLMMemory::read_byte( const unsigned int & addr
     return datum;
 }
 
-// write dword
+// Write dword
 void leon3_funclt_trap::TLMMemory::write_dword( const unsigned int & address, 
-						sc_dt::uint64 datum, \
+						sc_dt::uint64 datum,
 						const unsigned int asi,
 						const unsigned int flush,
 						const unsigned int lock) throw(){

@@ -61,5 +61,3 @@ leon3_funclt_trap::IntrTLMPort_32::IntrTLMPort_32( sc_module_name portName, unsi
     irq_signal(&IntrTLMPort_32::callbackMethod, portName){
     end_module();
 }
-
-

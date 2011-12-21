@@ -38,13 +38,10 @@
 
 #include <externalPins.hpp>
 #include <trap_utils.hpp>
-#include <systemc.h>
-
-#include "signalkit.h"
 
 using namespace leon3_funclt_trap;
 
-void leon3_funclt_trap::PinTLM_out_32::send_pin_req( const unsigned int & value ) throw(){
+void leon3_funclt_trap::PinTLM_out_32::send_pin_req( const unsigned int & value ) throw() {
 
   initSignal = value;
 
@@ -54,5 +51,3 @@ leon3_funclt_trap::PinTLM_out_32::PinTLM_out_32( sc_module_name portName ) : sc_
     initSignal(sc_gen_unique_name(portName)){
     end_module();
 }
-
-

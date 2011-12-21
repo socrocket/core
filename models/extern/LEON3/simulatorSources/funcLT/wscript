@@ -3,7 +3,6 @@
 TOP = '../../../../..'
 import os
 
-
 def build(bld):
     sources = """
         instructions.cpp
@@ -25,7 +24,7 @@ def build(bld):
 
     bld.objects(source = sources, target = target, uselib = uselib, use = use + ' ' + objects, includes = includes)
     bld(
-        target          = 'leon3.functlt',
+        target          = 'leon3.funclt',
         features        = 'cxx cxxstlib',
         source          = ['instructions.cpp',
                            'registers.cpp',

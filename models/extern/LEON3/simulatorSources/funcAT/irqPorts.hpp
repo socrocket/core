@@ -43,25 +43,24 @@
 #include <tlm_utils/multi_passthrough_target_socket.h>
 #include <systemc.h>
 
+#include "signalkit.h"
+
 #define FUNC_MODEL
 #define AT_IF
 namespace leon3_funcat_trap{
 
-    class IntrTLMPort_32 : public sc_module{
+    class IntrTLMPort_32 : public signalkit::signal_module<IntrTLMPort_32>, public sc_module{
 
         public:
         IntrTLMPort_32( sc_module_name portName, unsigned int & irqSignal );
-        void b_transport( int tag, tlm::tlm_generic_payload & trans, sc_time & delay );
-        unsigned int transport_dbg( int tag, tlm::tlm_generic_payload & trans );
-        tlm::tlm_sync_enum nb_transport_fw( int tag, tlm::tlm_generic_payload & trans, tlm::tlm_phase \
-            & phase, sc_time & delay );
-        tlm_utils::multi_passthrough_target_socket< IntrTLMPort_32, 32, tlm::tlm_base_protocol_types, \
-            1, sc_core::SC_ZERO_OR_MORE_BOUND > socket;
+
+        void callbackMethod( const std::pair<unsigned int, bool>& value, const sc_time &delay );
+
         unsigned int & irqSignal;
+
+        signal< std::pair<unsigned int, bool> >::in irq_signal;
     };
 
 };
-
-
 
 #endif

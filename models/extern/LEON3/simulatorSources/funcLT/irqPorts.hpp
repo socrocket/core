@@ -62,6 +62,4 @@ namespace leon3_funclt_trap{
 
 };
 
-
-
 #endif

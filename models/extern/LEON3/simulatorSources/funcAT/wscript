@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-1 -*-
-
+TOP = '../../../../..'
 import os
-
 
 def build(bld):
     sources = """
@@ -18,11 +17,30 @@ def build(bld):
         externalPins.cpp
     """
     uselib = 'BOOST BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM TRAP'
+    use = 'mmu_cache utils signalkit common'
     objects = ''
     includes = '.'
     target = 'LEON3_funcAT_objs'
 
-    bld.objects(source = sources, target = target, use = uselib + ' ' + objects, includes = includes)
+    bld.objects(source = sources, target = target, uselib = uselib, use = use + ' ' + objects, includes = includes)
+    bld(
+        target          = 'leon3.funcat',
+        features        = 'cxx cxxstlib',
+        source          = ['instructions.cpp',
+                           'registers.cpp',
+                           'alias.cpp',
+                           'processor.cpp',
+                           'interface.cpp',
+                           'decoder.cpp',
+                           'memory.cpp',
+                           'externalPorts.cpp',
+                           'irqPorts.cpp',
+                           'externalPins.cpp'],
+        export_includes = '.',
+        includes        = '.',
+        uselib          = uselib,
+        use             = use,
+    )
     sources = 'main.cpp'
     includes = '.'
     uselib = 'TRAP ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'

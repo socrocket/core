@@ -45,42 +45,42 @@ using namespace leon3_funcat_trap;
 using namespace trap;
 sc_dt::uint64 leon3_funcat_trap::MemoryInterface::read_dword_dbg( const unsigned \
     int & address ){
-    return this->read_dword(address);
+    return this->read_dword(address, 8, 0, 0);
 }
 
 unsigned int leon3_funcat_trap::MemoryInterface::read_word_dbg( const unsigned int \
     & address ){
-    return this->read_word(address);
+    return this->read_word(address, 8, 0, 0);
 }
 
 unsigned short int leon3_funcat_trap::MemoryInterface::read_half_dbg( const unsigned \
     int & address ){
-    return this->read_half(address);
+    return this->read_half(address, 8, 0 ,0);
 }
 
 unsigned char leon3_funcat_trap::MemoryInterface::read_byte_dbg( const unsigned int \
     & address ){
-    return this->read_byte(address);
+    return this->read_byte(address, 8, 0, 0);
 }
 
 void leon3_funcat_trap::MemoryInterface::write_dword_dbg( const unsigned int & address, \
     sc_dt::uint64 datum ){
-    this->write_dword(address, datum);
+    this->write_dword(address, datum, 8, 0, 0);
 }
 
 void leon3_funcat_trap::MemoryInterface::write_word_dbg( const unsigned int & address, \
     unsigned int datum ){
-    this->write_word(address, datum);
+    this->write_word(address, datum, 8, 0, 0);
 }
 
 void leon3_funcat_trap::MemoryInterface::write_half_dbg( const unsigned int & address, \
     unsigned short int datum ){
-    this->write_half(address, datum);
+    this->write_half(address, datum, 8, 0, 0);
 }
 
 void leon3_funcat_trap::MemoryInterface::write_byte_dbg( const unsigned int & address, \
     unsigned char datum ){
-    this->write_byte(address, datum);
+    this->write_byte(address, datum, 8, 0, 0);
 }
 
 leon3_funcat_trap::MemoryInterface::~MemoryInterface(){
@@ -91,8 +91,10 @@ void leon3_funcat_trap::LocalMemory::setDebugger( MemoryToolsIf< unsigned int > 
     this->debugger = debugger;
 }
 
-sc_dt::uint64 leon3_funcat_trap::LocalMemory::read_dword( const unsigned int & address \
-    ) throw(){
+sc_dt::uint64 leon3_funcat_trap::LocalMemory::read_dword( const unsigned int & address,
+							  const unsigned int asi,
+							  const unsigned int flush,
+							  const unsigned int lock ) throw() {
     if(address >= this->size){
         THROW_ERROR("Address " << std::hex << std::showbase << address << " out of memory");
     }
@@ -109,8 +111,10 @@ sc_dt::uint64 leon3_funcat_trap::LocalMemory::read_dword( const unsigned int & a
     return datum;
 }
 
-unsigned short int leon3_funcat_trap::LocalMemory::read_half( const unsigned int \
-    & address ) throw(){
+unsigned short int leon3_funcat_trap::LocalMemory::read_half( const unsigned int & address,
+                                                              const unsigned int asi,
+                                                              const unsigned int flush,
+							      const unsigned int lock) throw() {
     if(address >= this->size){
         THROW_ERROR("Address " << std::hex << std::showbase << address << " out of memory");
     }
@@ -126,8 +130,10 @@ unsigned short int leon3_funcat_trap::LocalMemory::read_half( const unsigned int
     return datum;
 }
 
-unsigned char leon3_funcat_trap::LocalMemory::read_byte( const unsigned int & address \
-    ) throw(){
+unsigned char leon3_funcat_trap::LocalMemory::read_byte( const unsigned int & address,
+                                                         const unsigned int asi,
+                                                         const unsigned int flush,
+							 const unsigned int lock ) throw(){
     if(address >= this->size){
         THROW_ERROR("Address " << std::hex << std::showbase << address << " out of memory");
     }
@@ -137,8 +143,7 @@ unsigned char leon3_funcat_trap::LocalMemory::read_byte( const unsigned int & ad
     return datum;
 }
 
-sc_dt::uint64 leon3_funcat_trap::LocalMemory::read_dword_dbg( const unsigned int \
-    & address ) throw(){
+sc_dt::uint64 leon3_funcat_trap::LocalMemory::read_dword_dbg( const unsigned int & address ) throw() {
     if(address >= this->size){
         THROW_ERROR("Address " << std::hex << std::showbase << address << " out of memory");
     }
@@ -155,8 +160,7 @@ sc_dt::uint64 leon3_funcat_trap::LocalMemory::read_dword_dbg( const unsigned int
     return datum;
 }
 
-unsigned int leon3_funcat_trap::LocalMemory::read_word_dbg( const unsigned int & \
-    address ) throw(){
+unsigned int leon3_funcat_trap::LocalMemory::read_word_dbg( const unsigned int & address ) throw() {
     if(address >= this->size){
         THROW_ERROR("Address " << std::hex << std::showbase << address << " out of memory");
     }
@@ -172,8 +176,7 @@ unsigned int leon3_funcat_trap::LocalMemory::read_word_dbg( const unsigned int &
     return datum;
 }
 
-unsigned short int leon3_funcat_trap::LocalMemory::read_half_dbg( const unsigned \
-    int & address ) throw(){
+unsigned short int leon3_funcat_trap::LocalMemory::read_half_dbg( const unsigned int & address ) throw() {
     if(address >= this->size){
         THROW_ERROR("Address " << std::hex << std::showbase << address << " out of memory");
     }
@@ -189,8 +192,7 @@ unsigned short int leon3_funcat_trap::LocalMemory::read_half_dbg( const unsigned
     return datum;
 }
 
-unsigned char leon3_funcat_trap::LocalMemory::read_byte_dbg( const unsigned int & \
-    address ) throw(){
+unsigned char leon3_funcat_trap::LocalMemory::read_byte_dbg( const unsigned int & address ) throw() {
     if(address >= this->size){
         THROW_ERROR("Address " << std::hex << std::showbase << address << " out of memory");
     }
@@ -200,8 +202,11 @@ unsigned char leon3_funcat_trap::LocalMemory::read_byte_dbg( const unsigned int 
     return datum;
 }
 
-void leon3_funcat_trap::LocalMemory::write_dword( const unsigned int & address, sc_dt::uint64 \
-    datum ) throw(){
+void leon3_funcat_trap::LocalMemory::write_dword( const unsigned int & address,
+	                                          sc_dt::uint64 datum,
+	                                          const unsigned int asi,
+	                                          const unsigned int flush,
+	                                          const unsigned int lock ) throw(){
     if(address >= this->size){
         THROW_ERROR("Address " << std::hex << std::showbase << address << " out of memory");
     }
@@ -220,8 +225,11 @@ void leon3_funcat_trap::LocalMemory::write_dword( const unsigned int & address, 
     *(sc_dt::uint64 *)(this->memory + (unsigned long)address) = datum;
 }
 
-void leon3_funcat_trap::LocalMemory::write_half( const unsigned int & address, unsigned \
-    short int datum ) throw(){
+void leon3_funcat_trap::LocalMemory::write_half( const unsigned int & address, 
+                                                 unsigned short int datum,
+	                                         const unsigned int asi,
+	                                         const unsigned int flush,
+	                                         const unsigned int lock ) throw(){
     #ifdef LITTLE_ENDIAN_BO
     #else
     #endif
@@ -242,8 +250,11 @@ void leon3_funcat_trap::LocalMemory::write_half( const unsigned int & address, u
     *(unsigned short int *)(this->memory + (unsigned long)address) = datum;
 }
 
-void leon3_funcat_trap::LocalMemory::write_byte( const unsigned int & address, unsigned \
-    char datum ) throw(){
+void leon3_funcat_trap::LocalMemory::write_byte( const unsigned int & address, 
+	                                         unsigned char datum,
+	                                         const unsigned int asi,
+	                                         const unsigned int flush,
+	                                         const unsigned int lock ) throw(){
     #ifdef LITTLE_ENDIAN_BO
     #else
     #endif
@@ -258,8 +269,9 @@ void leon3_funcat_trap::LocalMemory::write_byte( const unsigned int & address, u
     *(unsigned char *)(this->memory + (unsigned long)address) = datum;
 }
 
-void leon3_funcat_trap::LocalMemory::write_dword_dbg( const unsigned int & address, \
-    sc_dt::uint64 datum ) throw(){
+void leon3_funcat_trap::LocalMemory::write_dword_dbg( const unsigned int & address,
+                                                      sc_dt::uint64 datum ) throw(){
+
     if(address >= this->size){
         THROW_ERROR("Address " << std::hex << std::showbase << address << " out of memory");
     }
@@ -278,8 +290,8 @@ void leon3_funcat_trap::LocalMemory::write_dword_dbg( const unsigned int & addre
     *(sc_dt::uint64 *)(this->memory + (unsigned long)address) = datum;
 }
 
-void leon3_funcat_trap::LocalMemory::write_word_dbg( const unsigned int & address, \
-    unsigned int datum ) throw(){
+void leon3_funcat_trap::LocalMemory::write_word_dbg( const unsigned int & address,
+                                                     unsigned int datum ) throw(){
     if(address >= this->size){
         THROW_ERROR("Address " << std::hex << std::showbase << address << " out of memory");
     }
@@ -297,8 +309,8 @@ void leon3_funcat_trap::LocalMemory::write_word_dbg( const unsigned int & addres
     *(unsigned int *)(this->memory + (unsigned long)address) = datum;
 }
 
-void leon3_funcat_trap::LocalMemory::write_half_dbg( const unsigned int & address, \
-    unsigned short int datum ) throw(){
+void leon3_funcat_trap::LocalMemory::write_half_dbg( const unsigned int & address,
+                                                     unsigned short int datum ) throw(){
     #ifdef LITTLE_ENDIAN_BO
     #else
     #endif
@@ -319,8 +331,8 @@ void leon3_funcat_trap::LocalMemory::write_half_dbg( const unsigned int & addres
     *(unsigned short int *)(this->memory + (unsigned long)address) = datum;
 }
 
-void leon3_funcat_trap::LocalMemory::write_byte_dbg( const unsigned int & address, \
-    unsigned char datum ) throw(){
+void leon3_funcat_trap::LocalMemory::write_byte_dbg( const unsigned int & address,
+                                                     unsigned char datum ) throw(){
     #ifdef LITTLE_ENDIAN_BO
     #else
     #endif

@@ -64,18 +64,19 @@ namespace leon3_funclt_trap{
         TLMMemory( sc_module_name portName, tlm_utils::tlm_quantumkeeper & quantKeeper );
         void setDebugger( MemoryToolsIf< unsigned int > * debugger );
 
-        // read dword
+        // Read dword
         sc_dt::uint64 read_dword( const unsigned int & address,
 				  const unsigned int asi,
 				  const unsigned int flush,
 				  const unsigned int lock) throw();
 
 
-        // read data word 
+        // Read data word 
         inline unsigned int read_word( const unsigned int & address,
 				       const unsigned int asi,
 				       const unsigned int flush,
 				       const unsigned int lock) throw(){
+
             unsigned int datum = 0;
             if (this->dmi_ptr_valid){
                 v::debug << name() << "DMI Access" << endl;
@@ -147,19 +148,19 @@ namespace leon3_funclt_trap{
             return datum;
         }
 
-        // read half word
+        // Read half-word
         unsigned short int read_half( const unsigned int & address,
 				      const unsigned int asi,
 				      const unsigned int flush,
 				      const unsigned int lock) throw();
 
-        // read byte
+        // Read byte
         unsigned char read_byte( const unsigned int & address,
 				 const unsigned int asi,
 				 const unsigned int flush,
 				 const unsigned int lock) throw();
 
-        // read instruction
+        // Read instruction
         inline unsigned int read_instr( const unsigned int & address,
 				        const unsigned int flush) throw() {
 
@@ -233,14 +234,14 @@ namespace leon3_funclt_trap{
             return datum;
         }
 
-        // write dword
+        // Write dword
         void write_dword( const unsigned int & address, 
 			  sc_dt::uint64 datum,
 			  const unsigned int asi,
 			  const unsigned int flush,
 			  const unsigned int lock) throw();
 
-        // write data word
+        // Write data word
         inline void write_word( const unsigned int & address, 
 				unsigned int datum,
 				const unsigned int asi,
@@ -316,20 +317,20 @@ namespace leon3_funclt_trap{
             }
         }
 
-        // write half word
+        // Write half-word
         void write_half( const unsigned int & address, 
 			 unsigned short int datum,
 			 unsigned int asi,
 			 unsigned int flush,
 			 unsigned int lock) throw();
-        // write byte
+        // Write byte
         void write_byte( const unsigned int & address, 
 			 unsigned char datum,
 			 unsigned int asi,
 			 unsigned int flush,
 			 unsigned int lock) throw();
 
-        // debug read/write prototypes 
+        // Debug read/write prototypes 
         sc_dt::uint64 read_dword_dbg( const unsigned int & address ) throw();
         unsigned int read_word_dbg( const unsigned int & address ) throw();
         unsigned short int read_half_dbg( const unsigned int & address ) throw();
