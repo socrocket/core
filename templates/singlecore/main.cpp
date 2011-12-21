@@ -351,7 +351,7 @@ int sc_main(int argc, char** argv) {
     // =====================
     // Needed for basic platform.
     // Always enabled
-    CIrqmp irqmp("irqmp",
+    Irqmp irqmp("irqmp",
         conf_irqmp_addr,  // paddr
         conf_irqmp_mask,  // pmask
         conf_irqmp_ncpu,  // ncpu

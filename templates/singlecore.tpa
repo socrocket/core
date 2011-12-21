@@ -20,7 +20,7 @@
       <option var="timing" name="Enable Timing Report" type="bool" default="true" hint="If this switch is set to true the simulation models will print a timing report at the end of simulation."/>
       <option var="power" name="Enable Global Power Report" type="bool" default="true" hint="If this switch is set to true the simulation models will iagregate power data for all components. This is very slow and eats up a lot of RAM and HDD space. (Not recomended)"/>
     </option>
-    <option var="ahbctrl" name="AHB Controler">
+    <option var="ahbctrl" name="AHB Controller">
       <option var="ioaddr" name="AHB IO Area Address" type="int" default="0xFFF" range="0..0xFFF"/>
       <option var="iomask" name="AHB IO Area Mask" type="int" default="0xFFF" range="0..0xFFF"/>
       <option var="cfgaddr" name="AHB CFG Area Address" type="int" default="0xFF0" range="0..0xFF0"/>
@@ -46,7 +46,7 @@
       </option>
     </option>
     
-    <option var="apbctrl" name="APB Controler">
+    <option var="apbctrl" name="APB Controller">
       <option var="index" name="Bus Index" type="int" default="1" range="0..15"/>
       <option var="ioaddr" name="APB IO Area Address" type="int" default="0x800" range="0..0xFFF"/>
       <option var="iomask" name="APB IO Area Mask" type="int" default="0xFFF" range="0..0xFFF"/>
@@ -111,7 +111,7 @@
       <option var="wdog" name="Watchdog" type="int" default="0" range="0..0xFFFFFFF"/>
     </option>
     
-    <option var="memctrl" name="Memory Controler">
+    <option var="memctrl" name="Memory Controller">
       <option var="ahb" name="AHB Bus Interface">
         <option var="addr" name="AHB Base Address" type="int" default="0" range="0..0xFFF"/>
         <option var="mask" name="AHB Base Mask" type="int" default="0" range="0..0xFFF"/>
