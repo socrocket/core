@@ -218,7 +218,7 @@ def build(bld):
                     './tests/test5/mctrl_wrapper.vhd',
                     '../../common/verbose.cpp',
                     '../../common/timingmonitor.cpp',
-                    '../utils/power_monitor.cpp',
+                    '../../common/power_monitor.cpp',
                     '../utils/clkdevice.cpp',
                     '../utils/ahbdevice.cpp',
                     '../utils/apbdevice.cpp',
@@ -264,7 +264,7 @@ def build(bld):
                     './tests/test6/mctrl_wrapper.vhd',
                     '../../common/verbose.cpp',
                     '../../common/timingmonitor.cpp',
-                    '../utils/power_monitor.cpp',
+                    '../../common/power_monitor.cpp',
                     '../utils/clkdevice.cpp',
                     '../utils/ahbdevice.cpp',
                     '../utils/apbdevice.cpp',
@@ -284,3 +284,15 @@ def build(bld):
   #bld.add_manual_dependency(bld.path.find_node('mctrl.5.rtl.test'),bld.path.find_node('prom.srec'))
   #bld.add_manual_dependency(bld.path.find_node('mctrl.5.rtl.test'),bld.path.find_node('sram.srec'))
   #bld.add_manual_dependency(bld.path.find_node('mctrl.5.rtl.test'),bld.path.find_node('sdram.srec'))
+  
+  bld(
+    features     = 'cxx cprogram test',
+    target       = 'mctrl.10.lt.test',
+    source       = ['tests/test10/testbench.cpp',
+                    'tests/test10/top_lt.cpp'],
+    includes     = '. tests tests/test10 ../ahbctrl/tests',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mctrl utils signalkit common'
+  )
+
+
