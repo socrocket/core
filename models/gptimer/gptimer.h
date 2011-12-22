@@ -157,7 +157,7 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
         /// 
         /// @param value The new Value of the Signal.
         /// @param time A possible delay. Which means the reset might be performed in the future (Not used for resets!).
-        void dorst();
+        virtual void dorst();
 
       // Threads
         /// Diagnostic Thread

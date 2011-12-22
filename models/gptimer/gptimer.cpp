@@ -230,6 +230,7 @@ void GPTimer::conf_read() {
 
 // Calback for the rst signal. Resets the module on true.
 void GPTimer::dorst() {
+    v::debug << name() << "Reseting" << v::endl;
     r[SCALER] = static_cast<unsigned int> ((1ULL << sbits) - 1);
     r[SCRELOAD] = static_cast<unsigned int> ((1ULL << sbits) - 1);
     r[CONF] = conf_defaults;
