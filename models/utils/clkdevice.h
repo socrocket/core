@@ -105,14 +105,10 @@ class CLKDevice {
         /// @param base   The unit of the clockcycle length stored in period.
         void set_clk(double period, sc_core::sc_time_unit base);
 
-
+        virtual void dorst();
+        virtual void clkcng() {};
   protected:
     sc_time clock_cycle;
-
-    /// Do reset
-    virtual void dorst() = 0;
-    /// Clock change
-    virtual void clkcng() {};
 };
 
 #endif // CLKDEVICE_H
