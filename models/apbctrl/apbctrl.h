@@ -121,16 +121,6 @@ class APBCtrl : public sc_core::sc_module, public AHBDevice, public CLKDevice {
         /// Desctructor
         ~APBCtrl();
 
-	/// Method returning AHB base address of the bridge
-        inline sc_dt::uint64 get_base_addr() {
-           return (mhaddr & mhmask) << 20;
-        }
-
-	/// Returns the size of the memory space mapped to the bridge
-        inline sc_dt::uint64 get_size() {
-           return (~(mhmask << 20)) + 1;
-        }
-
     private:
 
 	/// The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
