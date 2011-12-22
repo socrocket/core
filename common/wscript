@@ -50,6 +50,7 @@ def build(bld):
     target          = 'common',
     features        = 'cxx cxxstlib',
     source          = ['verbose.cpp',
+                       'power_monitor.cpp',
                        'timingmonitor.cpp'],
     export_includes = '.',
     uselib          = 'SYSTEMC TLM'
