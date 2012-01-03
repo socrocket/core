@@ -550,6 +550,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
         if(port.addr+length<=port.length) {
             //get burst_size extension for later checks of consistency of burst_size, 
             //streaming_width, and data length 
+#if 0
             amba::amba_burst_size *amba_burst_size;
             if(!(ahb.get_extension<amba::amba_burst_size>(amba_burst_size, gp))) {
                 amba_burst_size->value = 0;
@@ -581,6 +582,9 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                 }
                 width = amba_burst_size->value;
             }
+#endif
+            // The AHBCtrl will allways have a burst size of 4
+            width = 4;
             v::debug << name() << "MCFG1: " << v::uint32 << r[MCFG1].get() << ", MCFG2: " << v::uint32 << r[MCFG2].get() << v::endl;
             // Get defined mem bit width from registers.
             switch(port.dev->get_type()) {
@@ -612,15 +616,24 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                             gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
                             return;
                         }
-                        trans_delay = 2;
-                        word_delay = 1 + ((r[MCFG1].get()>>4) & 0xF);
+                        trans_delay = 0;
+                        word_delay = 2 + ((r[MCFG1].get()>>4) & 0xF);
                         if(rmw) {
                             trans_delay += 1;
                             word_delay += 1 + ((r[MCFG1].get()>>0) & 0xF);
                         }
                     } else {
-                        trans_delay = 1;
-                        word_delay = 1 + ((r[MCFG1].get()>>0) & 0xF);
+                        trans_delay = 0;
+                        word_delay = (2 + ((r[MCFG1].get()>>0) & 0xF));
+                        
+                        // The RTL Model reads every mem_word as an 32bit word from the memory.
+                        // So we need to ensure the same behaviour here we multiply the read times to fit 32bit each.
+                        // GRIP 59.5
+                        switch(mem_width) {
+                            case 2: word_delay *= 2; break; // 16bit access RTL does 2
+                            case 1: word_delay *= 4; break; // 8bit access RTL does 4
+                            default: break;
+                        }
                     }
                     break;
                 case MEMDevice::IO:
@@ -725,6 +738,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
             mem[port.id]->b_transport(memgp, delay);
             gp.set_response_status(memgp.get_response_status());
             delay += (trans_delay + (length/mem_width) * word_delay) * clock_cycle;
+            v::error << name() << "trans_delay: " << trans_delay << ", word_delay: " << word_delay << ", clock: " << clock_cycle << ", wordcount: " << (length/mem_width) << ", delay: " << delay << v::endl;
             if(data!=gp.get_data_ptr()) {
               delete data;
             }

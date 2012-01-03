@@ -329,17 +329,17 @@ class Mctrl : public gs::reg::gr_device,
         //--- Register default values
 
         // Memory configuration register 1
-        static const uint32_t MCFG1_IOBUSW_DEFAULT        = 0x00000000;
+        static const uint32_t MCFG1_IOBUSW_DEFAULT        = 0x18000000;
         static const uint32_t MCFG1_IBRDY_DEFAULT         = 0x00000000;
         static const uint32_t MCFG1_BEXCN_DEFAULT         = 0x00000000;
         static const uint32_t MCFG1_IO_WAITSTATES_DEFAULT = 0x00000000;
         static const uint32_t MCFG1_IOEN_DEFAULT          = 0x00000000;
         static const uint32_t MCFG1_PWEN_DEFAULT          = 0x00000000;
-        static const uint32_t MCFG1_PROM_WIDTH_DEFAULT    = 0x00000000;
+        static const uint32_t MCFG1_PROM_WIDTH_DEFAULT    = 0x00000300;
         static const uint32_t MCFG1_PROM_WRITE_WS_DEFAULT = 0x000000F0;
         static const uint32_t MCFG1_PROM_READ_WS_DEFAULT  = 0x0000000F;
         //                                                +
-        static const uint32_t MCFG1_DEFAULT               = 0x000000FF;
+        static const uint32_t MCFG1_DEFAULT               = 0x180003FF;
 
         // Memory configuration register 2
         static const uint32_t MCFG2_SDRF_DEFAULT          = 0x80000000;
