@@ -1,0 +1,15 @@
+The Configuration Wizard / System Generator
+-------------------------------------------
+
+This directory contains all the files forming the SoCRocket Configuration Wizard. 
+The tool uses templates and configurations to generate platform instances.
+
+Start from project root (trunk):
+
+./waf generate     				- Starts the tool in GUI mode
+
+./waf generate -t TEMPLATE -l CONFIGURATION     - Generate platform in terminal mode
+
+Example templates and configurations can be found in the ../templates folder.
+The platform source will be written to ../platforms.
+
