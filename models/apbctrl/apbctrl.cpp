@@ -52,6 +52,7 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
                  uint32_t hmask_,            // The 12bit AHB area address mask
 		 bool mcheck,                // Check if there are any intersections between APB slave memory regions
 		 uint32_t hindex,            // AHB bus index
+		 bool pow_mon,               // Enable power monitoring
 		 amba::amba_layer_ids ambaLayer) :
 
       sc_module(nm),
@@ -69,6 +70,7 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
       mhaddr(haddr_),
       mhmask(hmask_),
       mmcheck(mcheck),
+      m_pow_mon(pow_mon),
       mAcceptPEQ("AcceptPEQ"),
       mTransactionPEQ("TransactionPEQ"),
       mambaLayer(ambaLayer),
@@ -104,6 +106,10 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
       assert(0);
 
     }
+
+    // Register power monitor
+    PM::registerIP(this, "apbctrl", m_pow_mon);
+    PM::send_idle(this, "idle", sc_time_stamp(), m_pow_mon);
 }
 
 // Do reset
@@ -239,11 +245,17 @@ void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bo
 
     if (!debug) {
 
+      // Power event start
+      PM::send(this,"apb_trans", 1, sc_time_stamp(), (unsigned int)apb_gp->get_data_ptr(), m_pow_mon);
+
       // Forward request to the selected slave
       apb[index]->b_transport(*apb_gp, delay);
 
       // Add delay for APB setup cycle
       delay += clock_cycle;
+
+      // Power event end
+      PM::send(this,"apb_trans", 0, sc_time_stamp()+delay, (unsigned int)apb_gp->get_data_ptr(), m_pow_mon);
 
     } else {
 

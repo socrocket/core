@@ -49,6 +49,7 @@
 #include "ahbdevice.h"
 #include "apbdevice.h"
 #include "clkdevice.h"
+#include "power_monitor.h"
 
 /// @addtogroup apbctrl APBctrl
 /// @{
@@ -103,6 +104,7 @@ class APBCtrl : public sc_core::sc_module, public AHBDevice, public CLKDevice {
                    uint32_t hmask_ = 0,        ///< The 12bit AHB area address mask
 		   bool mcheck = 0,            ///< Check if there are any intersections between APB slave memory regions
 		   uint32_t hindex = 0,        ///< AHB bus index
+		   bool pow_mon = 0,           ///< Enables power monitoring
 		   amba::amba_layer_ids ambaLayer = amba::amba_LT);
 
 	// Omitted parameters:
@@ -129,6 +131,8 @@ class APBCtrl : public sc_core::sc_module, public AHBDevice, public CLKDevice {
 	unsigned int mhmask;
 	/// Check if there are any intersections between APB slave memory regions
 	bool mmcheck;
+	/// Enable power monitoring (Only TLM)
+	bool m_pow_mon;
 
 	// Event queue for AT mode
 	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mAcceptPEQ;
