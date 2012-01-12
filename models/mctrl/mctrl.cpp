@@ -44,6 +44,7 @@
 //*********************************************************************
 
 #include "mctrl.h"
+#include "power_monitor.h"
 #include <tlm.h>
 #include <algorithm>
 
@@ -96,6 +97,9 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             << " size: " << v::uint32 << apb.get_size() << " byte" << v::endl;
 
     v::info << this->name() << "(" << hex << _paddr << ":" << hex << _pmask << ")" << hex << ::APBDevice::get_device_info()[1] << v::endl;
+    
+    PM::registerIP(this, "mctrl", powermon);
+    PM::send_idle(this, "idle", sc_time_stamp(), true);
 
     //check consistency of address space generics
     //rom space in MByte: 4GB - masked area (rommask)
@@ -540,6 +544,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
     unsigned char *data = gp.get_data_ptr();
     bool rmw = (r[MCFG2].get() >> 6) & 1;
     MEMPort  port   = get_port(addr);
+    sc_time mem_delay;
 
     v::debug << name() << "Try to access memory at " << v::uint32 << addr << " of length " << length << "." << " pmode: " << (uint32_t)m_pmode << v::endl;
 
@@ -610,6 +615,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
             // Calculate delay: The static delay for the hole transaction and the per word delay:
             switch(port.dev->get_type()) {
                 case MEMDevice::ROM:
+                    rmw = false;
                     if(gp.is_write()) {
                         if(!r[MCFG1].bit_get(11)) {
                             v::error << name() << "Invalid memory access: Writing to PROM is disabled." << v::endl;
@@ -617,54 +623,55 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                             return;
                         }
                         trans_delay = 0;
-                        word_delay = 2 + ((r[MCFG1].get()>>4) & 0xF);
-                        if(rmw) {
-                            trans_delay += 1;
-                            word_delay += 1 + ((r[MCFG1].get()>>0) & 0xF);
-                        }
+                        word_delay = 1 + ((r[MCFG1].get()>>4) & 0xF);
                     } else {
-                        trans_delay = 0;
-                        word_delay = (2 + ((r[MCFG1].get()>>0) & 0xF));
+                        trans_delay = 2;
+                        word_delay = (1 + ((r[MCFG1].get()>>0) & 0xF));
                         
                         // The RTL Model reads every mem_word as an 32bit word from the memory.
                         // So we need to ensure the same behaviour here we multiply the read times to fit 32bit each.
                         // GRIP 59.5
+                        uint32_t tmp = length;
+                        // Multiply with the number of memory accesses per length and mem_width.
                         switch(mem_width) {
-                            case 2: word_delay *= 2; break; // 16bit access RTL does 2
-                            case 1: word_delay *= 4; break; // 8bit access RTL does 4
-                            default: break;
+                            case 1:  switch(tmp) {
+                                         case 1: tmp = 4; break;
+                                         case 2: tmp = 2; break;
+                                         default: tmp = 1; break;
+                                     } break;
+                            case 2: switch(tmp) {
+                                        case 1:
+                                        case 2: tmp = 1; break;
+                                        default: tmp = 2; break;
+                                    } break;
+                            default: tmp =1; break;
                         }
+                        word_delay *= tmp;
                     }
                     break;
                 case MEMDevice::IO:
                     if(!r[MCFG1].bit_get(19)) {
-                        v::error << name() << "Invalid memory access: Writing to IO is disabled." << v::endl;
+                        v::error << name() << "Invalid memory access: Access to IO is disabled." << v::endl;
                         gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
                         return;
                     }
                     if(gp.is_write()) {
-                        trans_delay = 0;
-                        word_delay = 3 + ((r[MCFG1].get()>>20) & 0xF);
-                        if(rmw) {
-                            trans_delay += 0;
-                            word_delay += 4 + ((r[MCFG1].get()>>20) & 0xF);
-                        }
+                        word_delay = ( 3 + ((r[MCFG1].get()>>20) & 0xF));
                     } else {
-                        trans_delay = 0;
-                        word_delay = 4 + ((r[MCFG1].get()>>20) & 0xF);
+                        word_delay = ( 4 + ((r[MCFG1].get()>>20) & 0xF));
                     }
                     break;
                 case MEMDevice::SRAM:
                     if(gp.is_write()) {
                         trans_delay = 0;
-                        word_delay = 2 + ((r[MCFG2].get()>>2) & 0x3);
+                        word_delay = 0 + ((r[MCFG2].get()>>2) & 0x3);
                         if(rmw) {
-                            trans_delay += 1;
-                            word_delay += 2 + ((r[MCFG2].get()>>0) & 0x3);
+                            trans_delay += 0;
+                            word_delay += 0 + ((r[MCFG2].get()>>0) & 0x3);
                         }
                     } else {
-                        trans_delay = 1;
-                        word_delay = 2 + ((r[MCFG2].get()>>0) & 0x3);
+                        trans_delay = 0;
+                        word_delay = 0 + ((r[MCFG2].get()>>0) & 0x3);
                     }
                     break;
                 case MEMDevice::SDRAM:
@@ -676,10 +683,13 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                     rmw = true;
                     if(gp.is_write()) {
                         trans_delay = (r[MCFG2].bit_get(26)?3:2);
-                        word_delay = ((r[MCFG2].bit_get(26)?3:2));
+                        word_delay = 0;//((r[MCFG2].bit_get(26)?3:2));
                     } else {
-                        trans_delay = (r[MCFG2].bit_get(26)?3:2);
-                        //word_delay = ((r[MCFG2].get()>>0) & 0xF);
+                        // RCD DELAY
+                        trans_delay = 0 + (r[MCFG2].bit_get(26)?3:2);
+                        // CAS DELAY
+                        word_delay = 3 + (r[MCFG2].bit_get(26)?3:2);
+                        //word_delay = 0; //((r[MCFG2].get()>>0) & 0xF);
                     }
                     switch(m_pmode) {
                         default: break;
@@ -709,7 +719,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                     memgp.set_streaming_width(mem_width);
                     memgp.set_byte_enable_ptr(gp.get_byte_enable_ptr());
                     memgp.set_data_ptr(data);
-                    mem[port.id]->b_transport(memgp, delay);
+                    mem[port.id]->b_transport(memgp, mem_delay);
                     memcpy(&data[port.addr&(mem_width-1)], gp.get_data_ptr(), gp.get_data_length());
                     port.addr = port.addr&~(mem_width-1);
                 } else if(length<mem_width) {
@@ -735,9 +745,18 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
             memgp.set_streaming_width(mem_width);
             memgp.set_byte_enable_ptr(gp.get_byte_enable_ptr());
             memgp.set_data_ptr(data);
-            mem[port.id]->b_transport(memgp, delay);
+            mem[port.id]->b_transport(memgp, mem_delay);
             gp.set_response_status(memgp.get_response_status());
-            delay += (trans_delay + (length/mem_width) * word_delay) * clock_cycle;
+
+            // Bus Ready used? 
+            // If IO Bus Ready take the delay from the memmory.
+              // Or if the RAM Bus Ready is set.
+            if((port.dev->get_type() == MEMDevice::IO && (r[MCFG1].get() & MCFG1_IBRDY)) ||
+               (port.dev->get_type() == MEMDevice::SRAM && r[MCFG2].get() & MCFG2_RBRDY)) {
+                delay = mem_delay;
+            } else {
+                delay = (trans_delay + (length/mem_width) * word_delay) * clock_cycle;
+            }
             v::error << name() << "trans_delay: " << trans_delay << ", word_delay: " << word_delay << ", clock: " << clock_cycle << ", wordcount: " << (length/mem_width) << ", delay: " << delay << v::endl;
             if(data!=gp.get_data_ptr()) {
               delete data;

@@ -13,19 +13,37 @@
 /***********************************************************************/
 
 #include "genericmemory.h"
+#include "power_monitor.h"
 #include <tlm.h>
 
 using namespace sc_core;
 using namespace tlm;
 using namespace std;
 
-GenericMemory::GenericMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols) : MEMDevice(type, banks, bsize, bits, cols), bus("bus") {
+GenericMemory::GenericMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) : MEMDevice(type, banks, bsize, bits, cols), bus("bus"), g_powmon(powmon) {
     // register transport functions to sockets
     gs::socket::config<tlm::tlm_base_protocol_types> bus_cfg;
     bus_cfg.use_mandatory_phase(BEGIN_REQ);
     bus_cfg.use_mandatory_phase(END_REQ);
     //mem_cfg.treat_unknown_as_ignorable();
     bus.set_config(bus_cfg);
+
+    char *type_name;
+    switch(type) {
+      case MEMDevice::IO:
+          type_name = "io";
+          break;
+      case MEMDevice::SRAM:
+          type_name = "sram";
+          break;
+      case MEMDevice::SDRAM:
+          type_name = "sdram";
+          break;
+      default:
+        type_name = "rom";
+    }
+    PM::registerIP(this, type_name, powmon);
+    PM::send_idle(this, "idle", sc_time_stamp(), true);
     
     bus.register_b_transport(this, &GenericMemory::b_transport);
     bus.register_transport_dbg(this, &GenericMemory::transport_dbg);
@@ -46,7 +64,6 @@ void GenericMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
         gp.set_response_status(tlm::TLM_OK_RESPONSE);
         
         // calculating delay
-        delay += calc_delay(false, end - start, false, true);
         v::debug << name() << "Erase memory from " << v::uint32 << start << " to " << v::uint32 << end << "." << v::endl;
     } else {
         // Read or write transaction
@@ -61,7 +78,6 @@ void GenericMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
             v::debug << name() << "Read memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
             gp.set_response_status(tlm::TLM_OK_RESPONSE);
             // calculating delay
-            delay += calc_delay(false, len, false);
         } else if(cmd == tlm::TLM_WRITE_COMMAND) {
             for(uint32_t i = 0; i < len; i++) {
                 write(addr + i, ptr[i]);
@@ -69,7 +85,6 @@ void GenericMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
             v::debug << name() << "Write memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
             gp.set_response_status(tlm::TLM_OK_RESPONSE);
             // calculating delay
-            delay += calc_delay(true, len, false);
         } else {
             v::warn << name() << "Memory received TLM_IGNORE command" << v::endl;
         }
@@ -137,31 +152,3 @@ void GenericMemory::erase(uint32_t start, uint32_t end) {
     memory.erase(start_iter, end_iter);
 }
 
-sc_core::sc_time GenericMemory::calc_delay(bool write, uint32_t size, bool at, bool erase) const {
-    uint32_t delay = 0;
-    switch(get_type()) {
-      case ROM:
-        if(write) {
-          delay = 3;
-        } else {
-          delay = 3;
-        } break;
-      case IO:
-        if(write) {
-          delay = 3;
-        } else {
-          delay = 4;
-        } break;
-      case SRAM:
-        if(write) {
-          delay = 3;
-        } else {
-          delay = 3;
-        } break;
-      case SDRAM:
-        if(write) {
-        } else {
-        } break;
-    }
-    return sc_time(delay * 10, sc_core::SC_NS);
-}

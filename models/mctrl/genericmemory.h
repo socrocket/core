@@ -44,14 +44,13 @@
 #ifndef GENERIC_MEMORY_H
 #define GENERIC_MEMORY_H
 
+#include "verbose.h"
+#include "memdevice.h"
+#include "ext_erase.h"
 #include <map>
 #include <systemc.h>
 #include <tlm.h>
 #include <greensocket/target/single_socket.h>
-#include <assert.h>
-#include "verbose.h"
-#include "memdevice.h"
-#include "ext_erase.h"
 
 /// @brief This class models a generic memory. Depending on the configuration
 /// it can be used as ROM, IO, SRAM or SDRAM, in conjunction with the SoCRocket MCTRL.
@@ -76,8 +75,8 @@ class GenericMemory : public MEMDevice,
 		      uint32_t banks, 
 		      uint32_t bsize, 
 		      uint32_t bits, 
-		      uint32_t cols
-		      bool pow_mon);
+		      uint32_t cols,
+		      bool pow_mon = false);
 
 	/// Destructor
         ~GenericMemory();
@@ -101,7 +100,7 @@ class GenericMemory : public MEMDevice,
         void erase(uint32_t start, uint32_t end);
 
 	/// Power monitoring
-	bool g_pow_mon;
+	bool g_powmon;
 };
 
 #endif
