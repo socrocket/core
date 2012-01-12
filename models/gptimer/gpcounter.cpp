@@ -57,8 +57,8 @@ GPCounter::GPCounter(GPTimer &_parent, unsigned int _nr, sc_core::sc_module_name
     gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false) {
     SC_THREAD(ticking);
 
-    PM::registerIP(this, "gpcounter",1);
-    PM::send_idle(this,"idle",sc_time_stamp(),1);
+    PM::registerIP(this, "gpcounter", p.powermon);
+    PM::send_idle(this, "idle", sc_time_stamp(), true);
 }
 
 GPCounter::~GPCounter() {
@@ -193,7 +193,7 @@ void GPCounter::ticking() {
             p.irq.write((1 << irqnr), true);
             m_pirq = true;
         }
-        if(p.counter.size()-1==nr && p.wdog_length!=0) {
+        if(p.counter.size()-1==nr && p.g_wdog_length!=0) {
            p.wdog.write(true);
         }
         
@@ -202,7 +202,7 @@ void GPCounter::ticking() {
         if(m_pirq&&irqnr) {
             p.irq.write(1 << irqnr, false);
         }
-        if(p.counter.size()-1==nr && p.wdog_length!=0) {
+        if(p.counter.size()-1==nr && p.g_wdog_length!=0) {
            p.wdog.write(false);
         }
 
