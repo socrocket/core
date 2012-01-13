@@ -691,16 +691,18 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                         word_delay = 3 + (r[MCFG2].bit_get(26)?3:2);
                         //word_delay = 0; //((r[MCFG2].get()>>0) & 0xF);
                     }
-                    switch(m_pmode) {
-                        default: break;
-                        case 1: trans_delay += 30; break; // Power-Down Mode Delay TODO: Needs to be adjusted
-                        case 2: trans_delay += 1; break;  // Auto-Self Refresh
-                        case 5: { // Deep power down! No transaction possible:
-                            v::error << name() << "The Controler is in deep Power-Down Mode. No transactions possible." <<v::endl;
-                            gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
-                            return;
-                        }
-                    } 
+                    if(g_mobile) {
+                      switch(m_pmode) {
+                          default: break;
+                          case 1: trans_delay += 1; break; // Power-Down Mode Delay TODO: Needs to be adjusted
+                          case 2: trans_delay += 1; break;  // Auto-Self Refresh
+                          case 5: { // Deep power down! No transaction possible:
+                              v::error << name() << "The Controler is in deep Power-Down Mode. No transactions possible." <<v::endl;
+                              gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
+                              return;
+                          }
+                      } 
+                    }
                     break;
             }
             
