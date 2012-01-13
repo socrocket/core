@@ -121,6 +121,7 @@ int sc_main(int argc, char** argv) {
 
     clock_t cstart, cend;
     char *sram_app, *prom_app;
+    v::logApplication(argv[0]);
     if(argc >= 3) {
        prom_app = argv[1];
        sram_app = argv[2];
