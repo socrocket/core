@@ -68,6 +68,14 @@ AHBDevice::AHBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
 AHBDevice::~AHBDevice() {
 }
 
+const uint16_t AHBDevice::get_device_id() const {
+  return (m_register[0] >> 12) & 0xFFF; 
+}
+
+const uint8_t AHBDevice::get_vendor_id() const {
+  return (m_register[0] >> 24) & 0xFF; 
+}
+
 // Output APB slave information
 void AHBDevice::print_device_info(char *name) const {
 

@@ -63,6 +63,14 @@ APBDevice::APBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
 APBDevice::~APBDevice() {
 }
 
+const uint16_t APBDevice::get_device_id() const {
+    return (m_register[0] >> 12) & 0xFFF; 
+}
+
+const uint8_t APBDevice::get_vendor_id() const {
+    return (m_register[0] >> 24) & 0xFF; 
+}
+
 void APBDevice::print_device_info(char *name) const {
     // Display APB slave information
     v::info << name << "APB slave @" << v::uint32 << get_base_addr_()

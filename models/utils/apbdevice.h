@@ -77,6 +77,12 @@ class APBDevice : public amba_slave_base {
         /// Empty destructor
         virtual ~APBDevice();
 
+        /// Returns the device id.
+        virtual const uint16_t get_device_id() const;
+
+        /// Returns the vendor id.
+        virtual const uint8_t get_vendor_id() const;
+  
         /// Returns the device register file.
         /// A set of 8 registers as specified by the grlib manual.
         /// See section: 14.2.2 (Page 79)
