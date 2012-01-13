@@ -108,6 +108,15 @@ void logFile(char *name) {
     }
 }
 
+void logApplication(char *name) {
+  // Create a logfile next to the binary
+  char logfile[strlen(name)+8];
+  logfile[0] = 0;
+  strcat(logfile, name);
+  strcat(logfile, ".log");
+  v::logFile(logfile);
+}
+
 logstream<0> error(&logbuf);
 logstream<1> warn(&logbuf);
 logstream<2> info(&logbuf);

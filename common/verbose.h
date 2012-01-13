@@ -48,6 +48,8 @@
 #include <iostream>
 #include <streambuf>
 #include <iomanip>
+#include <cstdio>
+#include <cstring>
 
 /// @addtogroup utils
 /// @{
@@ -225,7 +227,19 @@ extern logstream<1> warn;
 extern logstream<2> info;
 extern logstream<3> debug;
 
-void logFile(char *);
+/// This function can be used if you wish to log all verbose output in a file.
+/// The logfile gets filled with data in parallel to the screen output.
+/// If you want to end the logging to a file simply call the function with NULL as parameter.
+///
+/// @param filename The file name of the logfile.
+void logFile(char *filename);
+
+/// This function is intended to create a logfile next to the executable simply callit like:
+/// > v::logApplication(argv[0])
+/// If argv[0] is "./build/test1/mytest" the logfile will be "./build/test1/mytest.log"
+///
+/// @param name Application name
+void logApplication(char *name);
 
 } // namespace
 

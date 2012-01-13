@@ -65,8 +65,8 @@ vector<PowerEntry> PM::MainData;
 vector<IpPowerEntry> PM::IpData;
 vector< vector<analyzedEntry> > PM::AnalyzedData;
 
-unsigned int PM::debug = 1;
-unsigned int PM::maxLevel = 0;
+uint32_t PM::debug = 1;
+uint32_t PM::maxLevel = 0;
 uint64_t PM::EndOfSimulation = 0;
 
 bool PM::LimitedRegion = 0;

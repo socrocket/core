@@ -47,21 +47,21 @@
 #ifndef POWER_MONITOR_H
 #define POWER_MONITOR_H
 
-#include <iostream>
+#include<iostream>
 #include<fstream>
 #include<stdio.h>
 
-#include <stdlib.h>
-#include <algorithm>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <stdint.h>
+#include<stdlib.h>
+#include<algorithm>
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<stdint.h>
 
 #include<string>
 #include<vector>
 
 #include<systemc>
-#include "verbose.h"
+#include"verbose.h"
 
 using namespace std;
 
@@ -162,9 +162,7 @@ struct analyzedEntry{
 //================================================
 
 class PM {
-
-
- private :
+  private :
     // data
     //--------------------------------------------
     static vector<PowerEntry> MainData;
@@ -204,38 +202,36 @@ class PM {
     static void print ( vector<powerSum> &v );
 
     //--------------------------------------------
-
-
- public :
+  public :
   
-  // constructors + destructors
-  //----------------------------------------------
+    // constructors + destructors
+    //----------------------------------------------
   
-  // standard-constructor
-  PM(void);
+    // standard-constructor
+    PM(void);
 
-  // destructor
-  ~PM(void);
-  //----------------------------------------------
+    // destructor
+    ~PM(void);
+    //----------------------------------------------
 
-  // variables
-  //---------------------------------------------
-  static unsigned int debug;
-  //---------------------------------------------
+    // variables
+    //---------------------------------------------
+    static unsigned int debug;
+    //---------------------------------------------
 
 
-  // methods
-  //----------------------------------------------
-  static void registerIP(sc_module* ip, string name, bool active);
-  static void send(sc_module* ip, string action, bool start, sc_time timestamp, unsigned int id, bool active);
-  static void send_idle(sc_module* ip, string action, sc_time timestamp, bool active);
-  static void analyze(string const path, string const infile, string const outfile);
+    // methods
+    //----------------------------------------------
+    static void registerIP(sc_module* ip, string name, bool active);
+    static void send(sc_module* ip, string action, bool start, sc_time timestamp, unsigned int id, bool active);
+    static void send_idle(sc_module* ip, string action, sc_time timestamp, bool active);
+    static void analyze(string const path, string const infile, string const outfile);
 
-  static void raw_logprint(string const file);
-  static void analyze_offline(string const path, string const infile, string const outfile, string const data_path, string const data);
-  
-  static void limit_region(sc_time start, sc_time end);
-  //----------------------------------------------
+    static void raw_logprint(string const file);
+    static void analyze_offline(string const path, string const infile, string const outfile, string const data_path, string const data);
+    
+    static void limit_region(sc_time start, sc_time end);
+    //----------------------------------------------
 
 };
 
