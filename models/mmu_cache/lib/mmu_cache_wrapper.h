@@ -166,7 +166,7 @@ inline int operator== (const dcache_out_type& left, const dcache_out_type& right
 class mmu_cache_wrapper : public sc_foreign_module
 {
 public:
-    sc_in<sc_logic> rst;
+    sc_in<bool> rst;
     sc_in<bool> clk;
     sc_in<icache_in_type> ici;
     sc_out<icache_out_type> ico;

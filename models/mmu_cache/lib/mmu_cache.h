@@ -149,8 +149,8 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
                   unsigned int dtlb_num, unsigned int tlb_type,
                   unsigned int tlb_rep, unsigned int mmupgsz,
                   sc_core::sc_module_name name, unsigned int id,
-		  bool pow_mon,
-		  amba::amba_layer_ids abstractionLayer);
+		  bool powmon,
+		  amba::amba_layer_ids ambaLayer);
 
         // Member functions
         // ----------------
