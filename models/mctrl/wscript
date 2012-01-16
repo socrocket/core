@@ -279,6 +279,16 @@ def build(bld):
   
   bld(
     features     = 'cxx cprogram test',
+    target       = 'mctrl.7.lt.test',
+    source       = ['tests/test7/testbench.cpp',
+                    'tests/test7/top_lt.cpp'],
+    includes     = '. tests tests/test7',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mctrl gptimer ahbctrl ahbctrl_test apbctrl utils signalkit common',
+  )
+
+  bld(
+    features     = 'cxx cprogram test',
     target       = 'mctrl.7.at.test',
     source       = ['tests/test7/testbench.cpp',
                     'tests/test7/top_at.cpp'],
@@ -310,6 +320,52 @@ def build(bld):
                     './tests/test7/top_rtl.cpp'],
     uselib        = 'AMBA GREENSOCS',
     includes      = '. tests tests/test7 lib ../utils ../../signalkit ../../common ../ahbctrl ../ahbctrl/tests ../apbctrl ../../adapters',
+    config        = vsim_conf,
+  )
+  
+  bld(
+    features     = 'cxx cprogram test',
+    target       = 'mctrl.8.lt.test',
+    source       = ['tests/test8/testbench.cpp',
+                    'tests/test8/top_lt.cpp'],
+    includes     = '. tests tests/test8',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mctrl gptimer ahbctrl ahbctrl_test apbctrl utils signalkit common',
+  )
+
+  bld(
+    features     = 'cxx cprogram test',
+    target       = 'mctrl.8.at.test',
+    source       = ['tests/test8/testbench.cpp',
+                    'tests/test8/top_at.cpp'],
+    includes     = '. tests tests/test8',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mctrl gptimer ahbctrl ahbctrl_test apbctrl utils signalkit common',
+  )
+
+  bld(
+    features     = 'modelsim test',
+    target       = 'mctrl.8.rtl.test',
+    name         = 'mctrl.8.rtl.test',
+    source       = ['./tests/test8/config.vhd',
+                    './tests/typ_adapters.vhd',
+                    './tests/test8/mctrl_wrapper.vhd',
+                    '../../common/verbose.cpp',
+                    '../../common/timingmonitor.cpp',
+                    '../../common/power_monitor.cpp',
+                    '../utils/clkdevice.cpp',
+                    '../utils/ahbdevice.cpp',
+                    '../utils/apbdevice.cpp',
+                    '../../adapters/ahbpipe.cpp',
+                    '../../adapters/ahb_tlmbus_rtlslave_transactor.cpp',
+                    '../../adapters/apb_tlmbus_rtlslave_transactor.cpp',
+                    '../ahbctrl/tests/ahbctrl_test.cpp',
+                    '../ahbctrl/ahbctrl.cpp',
+                    '../apbctrl/apbctrl.cpp',
+                    './tests/test8/testbench.cpp',
+                    './tests/test8/top_rtl.cpp'],
+    uselib        = 'AMBA GREENSOCS',
+    includes      = '. tests tests/test8 lib ../utils ../../signalkit ../../common ../ahbctrl ../ahbctrl/tests ../apbctrl ../../adapters',
     config        = vsim_conf,
   )
   

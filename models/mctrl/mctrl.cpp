@@ -58,7 +58,7 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
              int _ramaddr, int _rammask, int _paddr, int _pmask, int _wprot,
              int _srbanks, int _ram8, int _ram16, int _sepbus, int _sdbits,
              int _mobile, int _sden, unsigned int hindex, unsigned int pindex, 
-	     bool powermon, amba::amba_layer_ids abstractionLayer) :
+	     bool powermon, amba::amba_layer_ids ambaLayer) :
             gr_device(name, gs::reg::ALIGNED_ADDRESS, 16, NULL),
             AHBDevice( hindex,
                     0x04, // ven: ESA
@@ -81,11 +81,11 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                     false //socket is not used for arbitration
             ),
             ahb("ahb", ::amba::amba_AHB, //bus type
-                    abstractionLayer, //abstraction level
+                    ambaLayer, //abstraction level
                     false //socket is not used for arbitration
             ), 
             mem("mem", gs::socket::GS_TXN_ONLY),
-	    m_abstractionLayer(abstractionLayer), mAcceptPEQ("mAcceptPEQ"), mTransactionPEQ("TransactionPEQ"),
+	    mAcceptPEQ("mAcceptPEQ"), mTransactionPEQ("TransactionPEQ"),
 	    busy(false), g_romasel(_romasel), g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask), 
             g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr), 
             g_rammask(_rammask), g_paddr(_paddr), g_pmask(_pmask), g_wprot(_wprot),
@@ -148,7 +148,7 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
     ahb.register_transport_dbg(this, &Mctrl::transport_dbg);
 
     // Register non-blocking transport for AT
-    if (m_abstractionLayer == amba::amba_AT) {
+    if(ambaLayer == amba::amba_AT) {
 
       ahb.register_nb_transport_fw(this, &Mctrl::nb_transport_fw);
       
@@ -553,42 +553,10 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
         memgp.set_command(gp.get_command());
         memgp.set_address(port.addr);
         if(port.addr+length<=port.length) {
-            //get burst_size extension for later checks of consistency of burst_size, 
-            //streaming_width, and data length 
-#if 0
-            amba::amba_burst_size *amba_burst_size;
-            if(!(ahb.get_extension<amba::amba_burst_size>(amba_burst_size, gp))) {
-                amba_burst_size->value = 0;
-            }
-            // If present, the burst size extension of the gp is now stored 
-            // in amba_burst_size.
-            // Else, the burst size is set to zero, always indicating that 
-            // the extension is not present.
-
-            if(amba_burst_size->value) {
-                //data length must be multiple of burst size
-                if(length % amba_burst_size->value) {
-                    v::error << name() << "Data length (" << length 
-                             << ") does not match burst_size (" 
-                             << amba_burst_size->value << ")." << v::endl;
-                    gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
-                    return;
-                }
-                //burst size must be 1, 2, or 4
-                if(amba_burst_size->value > 4 || amba_burst_size->value == 3) {
-                    v::error << name() << "invalid value to amba_burst_size extension: "
-                             << amba_burst_size->value << v::endl;
-                             gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
-                             return;
-                }
-                //subword burst access does not make sense in hardware but in LT-TLM for speed, so drop a warning
-                if(amba_burst_size->value < 4 && amba_burst_size->value < length) {
-                    v::warn << name() << "Subword burst access detected, not allowed in hardware. Check RTL!" << v::endl;
-                }
-                width = amba_burst_size->value;
-            }
-#endif
             // The AHBCtrl will allways have a burst size of 4
+            // No need for checking burst size extension.
+            // If you want use the component in another system with the need to check
+            // Check for the code in an older revision around r560
             width = 4;
             v::debug << name() << "MCFG1: " << v::uint32 << r[MCFG1].get() << ", MCFG2: " << v::uint32 << r[MCFG2].get() << v::endl;
             // Get defined mem bit width from registers.
@@ -695,7 +663,9 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                       switch(m_pmode) {
                           default: break;
                           case 1: trans_delay += 1; break; // Power-Down Mode Delay TODO: Needs to be adjusted
-                          case 2: trans_delay += 1; break;  // Auto-Self Refresh
+                          case 2: trans_delay += 1; 
+                              v::warn << name() << "The Controler is in Auto Self-Refresh Mode. Transaction might not be wanted!" <<v::endl;
+                              break;  // Auto-Self Refresh
                           case 5: { // Deep power down! No transaction possible:
                               v::error << name() << "The Controler is in deep Power-Down Mode. No transactions possible." <<v::endl;
                               gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
@@ -732,13 +702,6 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                     gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
                     return;
                 }
-            } else if(gp.is_read()) {
-                if((!rmw)&&length<mem_width) {
-                    v::error << name() << "Invalid memory access: Transaction width is not compatible with memory width (Transaction-Width: "
-                             << width << ", Memory-Width: " << mem_width << ", Data-Length: " << length << "." << v::endl;
-                    gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
-                    return;
-                }
             }
             
             memgp.set_command(gp.get_command());
@@ -759,7 +722,6 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
             } else {
                 delay = (trans_delay + (length/mem_width) * word_delay) * clock_cycle;
             }
-            v::error << name() << "trans_delay: " << trans_delay << ", word_delay: " << word_delay << ", clock: " << clock_cycle << ", wordcount: " << (length/mem_width) << ", delay: " << delay << v::endl;
             if(data!=gp.get_data_ptr()) {
               delete data;
             }
@@ -771,7 +733,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
     //no memory device at given address
         v::error << name() << "Invalid memory access: No device at address "
                  << v::uint32 << addr << "." << v::endl;
-        gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
+        gp.set_response_status(TLM_ADDRESS_ERROR_RESPONSE);
         return;
     }
     
@@ -804,7 +766,7 @@ uint32_t Mctrl::transport_dbg(tlm_generic_payload& gp) {
     //no memory device at given address
         v::error << name() << "Invalid memory access: No device at address"
                  << v::uint32 << addr << "." << v::endl;
-        gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
+        gp.set_response_status(TLM_ADDRESS_ERROR_RESPONSE);
         return 0;
     }
 }
@@ -872,12 +834,14 @@ void Mctrl::switch_power_mode() {
         case 0: {
             m_pmode = 0;
             v::debug << name() << "Power Mode: None" << v::endl;
+            PM::send_idle(this, "idle", sc_time_stamp(), true);
         }   break;
         
         // Dont do anything in PowerDown mode!
         case 1: { 
             v::debug << name() << "Power Mode: Power Down" << v::endl;
             m_pmode = 1;
+            PM::send_idle(this, "idle_powerdown", sc_time_stamp(), true);
         }   break;
         
         //partial array self refresh: partially erase SDRAM
@@ -891,21 +855,35 @@ void Mctrl::switch_power_mode() {
                 uint32_t dbsize = c_sdram.dev->get_bsize();
                 uint32_t dsize  = dbanks * dbsize;
                 switch(pasr) {
-                    case 1: start = dsize / 2; break;
-                    case 2: start = dsize / 4; break;
-                    case 5: start = dsize / 8; break;
-                    case 6: start = dsize / 16; break;
+                    case 1:
+                        start = dsize / 2;
+                        PM::send_idle(this, "idle_partpowerdown2", sc_time_stamp(), true);
+                        break;
+                    case 2:
+                        start = dsize / 4;
+                        PM::send_idle(this, "idle_partpowerdown4", sc_time_stamp(), true);
+                        break;
+                    case 5:
+                        start = dsize / 8;
+                        PM::send_idle(this, "idle_partpowerdown8", sc_time_stamp(), true);
+                        break;
+                    case 6:
+                        start = dsize / 16;
+                        PM::send_idle(this, "idle_partpowerdown16", sc_time_stamp(), true);
+                        break;
                 }
                 gp.set_address(start);
                 data = dsize;
                 mem[c_sdram.id]->b_transport(gp,delay);
             } else {
                 v::debug << name() << "Power Mode: Self Refresh" << v::endl;
+                PM::send_idle(this, "idle_selfrefresh", sc_time_stamp(), true);
             }
         }   break;
         //deep power down: erase entire SDRAM
         case 5: {
             v::debug << name() << "Power Mode: Deep-Power Down" << v::endl;
+            PM::send_idle(this, "idle_deeppowerdown", sc_time_stamp(), true);
             m_pmode = 5;
             uint32_t dbanks = c_sdram.dev->get_banks();
             uint32_t dbsize = c_sdram.dev->get_bsize();
@@ -952,13 +930,15 @@ void Mctrl::mcfg2_write() {
 
 Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
     MEMPort result;
-    if((get_bar_addr(0) <= addr) && (addr < get_bar_addr(0) + get_bar_size(0))) {
+    // MEMPort::id of 100 means it is not in use
+    // Memorytype not connected
+    if(c_rom.id!=100 && (get_bar_addr(0) <= addr) && (addr < get_bar_addr(0) + get_bar_size(0))) {
         // ROM Bar Area
         result = c_rom;
         result.addr = addr - get_bar_addr(0);
         result.length = get_bar_size(0);
         return result;
-    } else if((get_bar_addr(1) <= addr) && (addr < get_bar_addr(1) + get_bar_size(1))) {
+    } else if(c_io.id!=100 && (get_bar_addr(1) <= addr) && (addr < get_bar_addr(1) + get_bar_size(1))) {
         // IO Bar Area
         result = c_io;
         result.addr = addr - get_bar_addr(1);
@@ -968,7 +948,7 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
         // RAM Bar Area
         if(r[MCFG2] & MCFG2_SE) {
             // SDRAM Enabled
-            if(r[MCFG2] & MCFG2_SI) {
+            if(c_sdram.id != 100 && (r[MCFG2] & MCFG2_SI)) {
                 // And SRAM Disabled
                 uint32_t banks = c_sdram.dev->get_banks();
                 uint32_t bsize = c_sdram.dev->get_bsize();
@@ -981,7 +961,7 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
                 } else {
                     return c_null;
                 }
-            } else {
+            } else if(c_sram.id != 100 && c_sdram.id != 100) {
                 // And SRAM Enabled
                 uint32_t sbanks = min(c_sram.dev->get_banks(), 4u);
                 uint32_t sbsize = c_sram.dev->get_bsize();
@@ -994,7 +974,7 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
                     result.addr = addr - get_bar_addr(2);
                     result.length = ssize;
                     return result;
-                } else if(addr < get_bar_addr(2) + ssize + dsize) {
+                } else if(c_sdram.id != 100 && (addr < get_bar_addr(2) + ssize + dsize)) {
                     result = c_sdram;
                     result.addr = addr - get_bar_addr(2) - ssize;
                     result.length = dsize;
@@ -1002,8 +982,10 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
                 } else {
                     return c_null;
                 }
+            } else {
+              return c_null;
             }
-        } else {
+        } else if(c_sram.id != 100) {
             // SDRAM Disabled, just SRAM
             uint32_t banks = c_sram.dev->get_banks();
             uint32_t bsize = c_sram.dev->get_bsize();
@@ -1022,6 +1004,8 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
             } else {
                 return c_null;
             }
+        } else {
+            return c_null;
         }
     }
     return c_null;

@@ -115,8 +115,8 @@ class Mctrl : public gs::reg::gr_device,
               int _ram8 = 0, int _ram16 = 0, int _sepbus = 0, 
               int _sdbits = 32, int _mobile = 0, int _sden = 0, 
 	      unsigned int hindex = 0, unsigned int pindex = 0, 
-	      bool powermon = false,
-	      amba::amba_layer_ids abstractionLayer = amba::amba_LT);
+	      bool powmon = false,
+	      amba::amba_layer_ids ambaLayer = amba::amba_LT);
 
         /// Default destructor
         ~Mctrl();
@@ -213,9 +213,6 @@ class Mctrl : public gs::reg::gr_device,
 
         /// Return the Indexer for a memory at a specific address.
         Mctrl::MEMPort get_port(uint32_t address);
-
-        // TLM abstraction layer
-	amba::amba_layer_ids m_abstractionLayer;
 
         /// Ready to accept new transaction (send END_REQ)
 	sc_event unlock_event;
