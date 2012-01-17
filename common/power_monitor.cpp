@@ -232,43 +232,51 @@ void PM::readdata(string const &path, string const &infile){
 
   // open input stream
   is.open( (path+infile).c_str() , ios::in );
-
-  // read data from file
-  //..............................................
-  while( !is.eof() ){
-    is >> temp;
-
-    // new IP datablock
-    if( temp=="!IP!" ){
-      
-      // IP name
-      is >> temp;
-      pe.name=temp;
-      is >> temp;
-
-      // IP power data
-      while( temp!="!ENDIP!" ){
-      
-	pd.action=temp;
-	is >> temp;
-	pd.power=atoi( temp.c_str() );
-	pe.entry.push_back(pd);
-	is >> temp;
-      }
-      
-    }
-
-    // IP finished
-    if(temp=="!ENDIP!"){
-      PM::MainData.push_back(pe);
-      pe.entry.clear();
-    }
-
+  if(!is.is_open()) {
+      v::warn << "Power Monitor" << "File Not Found : " << infile << v::endl;
+      v::warn << "Power Monitor" << "Try to read from env. variable POWERMONITORDAT" << v::endl;
+      char *file = std::getenv("POWERMONITORDAT");
+      is.open(file, ios::in);
   }
-  // end read main data
-  //..............................................
+  if(is.is_open()) {
 
-  is.close();
+    // read data from file
+    //..............................................
+    while( !is.eof() ){
+      is >> temp;
+
+      // new IP datablock
+      if( temp=="!IP!" ){
+        
+        // IP name
+        is >> temp;
+        pe.name=temp;
+        is >> temp;
+
+        // IP power data
+        while( temp!="!ENDIP!" ){
+        
+    pd.action=temp;
+    is >> temp;
+    pd.power=atoi( temp.c_str() );
+    pe.entry.push_back(pd);
+    is >> temp;
+        }
+        
+      }
+
+      // IP finished
+      if(temp=="!ENDIP!"){
+        PM::MainData.push_back(pe);
+        pe.entry.clear();
+      }
+
+    }
+    // end read main data
+    //..............................................
+
+    is.close();
+  }
 } // end readdata
 //------------------------------------------------
 

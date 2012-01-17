@@ -52,6 +52,11 @@ out = 'build'
 import os, sys
 
 def build(self):
+    from waftools.logger import Logger
+    logger = Logger("%s/build.log" % out)
+    sys.stdout = logger
+    sys.stderr = logger
+    
     from waflib.Tools import waf_unit_test  
     from waftools.common import get_subdirs
     self.recurse(get_subdirs())
