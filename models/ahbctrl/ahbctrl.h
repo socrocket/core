@@ -173,13 +173,11 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
         typedef tlm::tlm_generic_payload payload_t;
         typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;
 
-	typedef struct {
-
+	struct slave_info_t {
 	  uint32_t hindex;
 	  uint32_t haddr;
 	  uint32_t hmask;
-	
-	} slave_info_t;
+	};
 
 	/// The round robin pointer
 	unsigned int robin;
@@ -188,6 +186,7 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
         std::map<uint32_t, slave_info_t> slave_map;
 	/// Iterator for slave map
 	std::map<uint32_t, slave_info_t>::iterator it;
+	typedef std::map<uint32_t, slave_info_t>::iterator slave_iter;
 
 	payload_t * selected_transaction;
 

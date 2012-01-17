@@ -179,6 +179,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 
   // Calculate address offset in configuration area (slave info starts from 0x800)
   unsigned int addr   = address - ((mcfgaddr & mcfgmask) << 20);
+  v::debug << name() << "Accessing PNP area at " << addr << v::endl;
 
   // Slave area
   if (addr >= 0x800) {
@@ -936,44 +937,53 @@ void AHBCtrl::start_of_simulation() {
 
   // Check memory map for overlaps
   if (mmcheck) {
-
-    //checkMemMap();
-
+    checkMemMap();
   }
 }
 
+struct ahb_check_slave_type {
+    uint32_t start;
+    uint32_t end;
+    uint32_t index;
+};
 // Check the memory map for overlaps
 void AHBCtrl::checkMemMap() {
-   std::map<uint32_t, slave_info_t>::iterator it;
-   std::map<uint32_t, slave_info_t>::iterator it2;
+   std::map<uint32_t, ahb_check_slave_type> slaves;
+   typedef std::map<uint32_t, ahb_check_slave_type>::iterator iter_t;
+   struct ahb_check_slave_type last;
+   last.start = 0;
+   last.end = 0;
+   last.index = ~0;
 
-   /*
-   for(it=slave_map.begin(), it2=slave_map.begin(); it!=slave_map.end(); it++, it2++) {
-      for(it2++; it2!=slave_map.end(); it2++) {
-         if(((it2->second.first >= it->second.first) &&
-            (it2->second.first < it->second.second)) ||
-            (((it2->second.second - 1) >= it->second.first) &&
-             ((it2->second.second - 1)< it->second.second))) {
-            // Memory regions overlap output warning
-             uint32_t a = 0;
-             socket_t *other_socket = ahbOUT.get_other_side(it->first, a);
-             sc_core::sc_object *obj = other_socket->get_parent();
-
-             other_socket = ahbOUT.get_other_side(it2->first, a);
-             sc_core::sc_object *obj2 = other_socket->get_parent();
-
-             v::error << name() << "Overlap in AHB memory mapping." << endl;
-             v::debug << name() << obj->name() << "@0x" << hex << v::setw(8)
-                      << v::setfill('0') << it->second.first << ":0x" << hex
-                      << v::setw(8) << v::setfill('0') << (it->second.second - 1) << endl;
-             v::debug << name() << obj2->name() << "@0x" << hex << v::setw(8)
-                      << v::setfill('0') << it2->second.first << ":0x" << hex
-                      << v::setw(8) << v::setfill('0') << (it2->second.second - 1)
-                      << endl;
-         }
-      }
+   for(slave_iter iter = slave_map.begin(); iter!=slave_map.end(); iter++) {
+       uint32_t start_addr = (iter->second.haddr & iter->second.hmask) << 20;
+       uint32_t size = (((~iter->second.hmask) & 0xFFF) + 1) << 20;
+       struct ahb_check_slave_type obj;
+       obj.start = start_addr;
+       obj.end = start_addr + size -1;
+       obj.index = iter->first >> 2;
+       slaves.insert(make_pair(start_addr, obj));
    }
-   */
+   for(iter_t iter=slaves.begin(); iter != slaves.end(); iter++) {
+      // First Slave need it in last to start 
+      if(last.index!=~0u) {
+          // All other elements
+          // See if the last element is begining and end befor the current
+          if(last.start>=iter->second.start || last.end >= iter->second.start) {
+              uint32_t a = 0;
+              socket_t *other_socket = ahbOUT.get_other_side(last.index, a);
+              sc_core::sc_object *obj = other_socket->get_parent();
+
+              other_socket = ahbOUT.get_other_side(iter->second.index, a);
+              sc_core::sc_object *obj2 = other_socket->get_parent();
+
+              v::error << name() << "Overlap in AHB memory mapping." << v::endl;
+              v::error << name() << obj->name() << ": " << v::uint32 << last.start << " - " << v::uint32 << last.end << endl;
+              v::error << name() << obj2->name() << ": " << v::uint32 << iter->second.start << " - " << v::uint32 << iter->second.end << endl;
+          }
+      }
+      last = iter->second;
+  }
 }
 
 // TLM debug interface
