@@ -71,7 +71,7 @@
 
 #include "config.h"
 #include <GDBStub.hpp>
-#include "tb_ahb_mem.h"
+#include "ahbmem.h"
 using namespace std;
 using namespace sc_core;
 
@@ -314,7 +314,7 @@ int sc_main(int argc, char** argv) {
     mctrl.mem(sram.bus);
     mctrl.mem(sdram.bus);
     
-    //Ctb_ahb_mem ahb_mem("AHB_MEM", 0x0, 0x800);
+    //AHBMemem ahb_mem("AHBMEM", 0x0, 0x800);
     //ahbctrl.ahbOUT(ahb_mem.ahb);
     
     // * ELF Loader ****************************
@@ -347,6 +347,16 @@ int sc_main(int argc, char** argv) {
     //assert((sram_loader.getProgDim() + sram_loader.getDataStart()) < 0x1fffffff);
     // ******************************************
     
+#if conf_ahbmem != 0
+    AHBMem ahbmem("ahbmem",
+        conf_ahbmem_addr,
+        conf_ahbmem_mask,
+        ambaLayer,
+        conf_ahbmem_index
+    );
+    ahbctrl.ahbOUT(ahbmem.ahb);
+#endif
+    
     // * IRQMP **********************************
     // CREATE IRQ controller
     // =====================
@@ -368,20 +378,20 @@ int sc_main(int argc, char** argv) {
     // ******************************************
     
     // * GPTimer ********************************
-#if gptimer != 0
+#if conf_gptimer != 0
     // CREATE GPTimer
     // ==============
-    CGPTimer gptimer("gptimer",
-        conf_gptimer_ntimers,  // ntimers
-        conf_gptimer_addr,  // gpaddr
-        conf_gptimer_mask,  // gpmask
-        conf_gptimer_pirq,  // gpirq
-        conf_gptimer_sepirq,  // gsepirq
-        conf_gptimer_sbits,  // gsbits
-        conf_gptimer_nbits, // gnbits
-        conf_gptimer_wdog, // wdog
-        conf_gptimer_index,
-        false
+    GPTimer gptimer("gptimer",
+        conf_gptimer_ntimers,// ntimers
+        conf_gptimer_index,  // index
+        conf_gptimer_addr,   // paddr
+        conf_gptimer_mask,   // pmask
+        conf_gptimer_pirq,   // pirq
+        conf_gptimer_sepirq, // sepirq
+        conf_gptimer_sbits,  // sbits
+        conf_gptimer_nbits,  // nbits
+        conf_gptimer_wdog,   // wdog
+        false                // powmon
     );
     // Connecting APB Slave
     apbctrl.apb(gptimer.bus);
@@ -395,10 +405,10 @@ int sc_main(int argc, char** argv) {
     // ******************************************
     
     // * SoCWire ********************************
-#if socwire != 0
+#if disconf_socwire != 0
     // CREATE AHB2Socwire bridge
     // =========================
-    CAHB2Socwire u_ahb2socwire("ahb2socwire",
+    AHB2Socwire u_ahb2socwire("ahb2socwire",
                                conf_socwire_apb_addr,  // paddr
                                conf_socwire_apb_mask,  // pmask
                                conf_socwire_apb_irq,  // pirq

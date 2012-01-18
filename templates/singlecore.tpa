@@ -47,7 +47,7 @@
     </option>
     
     <option var="apbctrl" name="APB Controller">
-      <option var="index" name="Bus Index" type="int" default="1" range="0..15"/>
+      <option var="index" name="Bus Index" type="int" default="2" range="0..15"/>
       <option var="ioaddr" name="APB IO Area Address" type="int" default="0x800" range="0..0xFFF"/>
       <option var="iomask" name="APB IO Area Mask" type="int" default="0xFFF" range="0..0xFFF"/>
       <option var="cfgaddr" name="APB CFG Area Address" type="int" default="0" range="0..0xFF0"/>
@@ -97,6 +97,12 @@
         <option var="tlb_rep" name="TLB replacement policy" type="int" default="1" range="0..1" hint="0 = LRU, 1 = random"/>
         <option var="mmupgsz" name="MMU page size" type="int" default="0" range="0..5" hint="0, 2 = 4kbytes, 3 = 8kbytes, 4 = 16kbytes, 5 = 32kbytes"/>
       </option>
+    </option>
+    
+    <option var="ahbmem" name="AHB Memory" type="bool" default="true">
+      <option var="index" name="Bus Index" type="int" default="1" range="0..15"/>
+      <option var="addr" name="AHB Address" type="int" default="0xA00" range="0..0xFFF"/>
+      <option var="mask" name="AHB Mask" type="int" default="0xFFF" range="0..0xFFF"/>
     </option>
     
     <option var="gptimer" name="GPTimer" type="bool" default="true">

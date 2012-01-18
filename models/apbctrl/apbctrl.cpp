@@ -188,7 +188,8 @@ void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bo
   unsigned int length = ahb_gp.get_data_length();
 
   // Is this an access to the configuration area
-  if (!(((addr >> 20) ^ mhaddr) & mhmask)) {
+  // The configuration area is always in the upper FF000 area
+  if (!((addr ^ 0xFF000) & 0xFF000)) {
 
      // Access configuration area (upper most 4kb)?
     if (addr >= mpnpbase) {    

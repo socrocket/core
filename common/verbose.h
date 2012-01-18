@@ -218,6 +218,9 @@ class logstream {
          return *this;
          }*/
 
+        operator bool() const {
+            return level < VERBOSITY;
+        }
     private:
         msgstream<level> m_stream;
 };

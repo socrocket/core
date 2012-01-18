@@ -120,3 +120,9 @@ def build(bld):
                      'cacheasm.S',
                      'cache.c'],
   )
+  
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'readpnp.sparc',
+     source       = ['readpnp.c'],
+  )
