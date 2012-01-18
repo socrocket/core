@@ -263,7 +263,7 @@ void Mctrl::start_of_simulation() {
                         uint32_t bits = (device->get_bits() >> 3) & 3;
                         r[MCFG1] = r[MCFG1] | (bits << 8);
                     } else {
-                        v::error << name() << "More than one ROM is connected to the Controler!" << v::endl;
+                        v::error << name() << "More than one ROM is connected to the Controller!" << v::endl;
                     }
                 } break;
                 case MEMDevice::IO: {
@@ -272,7 +272,7 @@ void Mctrl::start_of_simulation() {
                         uint32_t bits = (device->get_bits() >> 3) & 3;
                         r[MCFG1] = r[MCFG1] | (bits << 27);
                     } else {
-                        v::error << name() << "More than one IO area is connected to the Controler!" << v::endl;
+                        v::error << name() << "More than one IO area is connected to the Controller!" << v::endl;
                     }
                 } break;
                 case MEMDevice::SRAM: {
@@ -283,7 +283,7 @@ void Mctrl::start_of_simulation() {
                                    (((int)(log2(device->get_bsize())-13) & 0xF) << 9) | 
                                    (((int)(log2(device->get_bits())-3) & 0x3) << 4);
                     } else {
-                        v::error << name() << "More than one SRAM area is connected to the Controler!" << v::endl;
+                        v::error << name() << "More than one SRAM area is connected to the Controller!" << v::endl;
                     }
                 } break;
                 case MEMDevice::SDRAM: {
@@ -293,7 +293,7 @@ void Mctrl::start_of_simulation() {
                                      (((int)(log2(device->get_bsize())-22) & 0x7) << 23) | 
                                      (((int)(log2(device->get_cols())-8) & 0x3) << 21);
                     } else {
-                        v::error << name() << "More than one SDRAM area is connected to the Controler!" << v::endl;
+                        v::error << name() << "More than one SDRAM area is connected to the Controller!" << v::endl;
                     }
                 } break;
             }
@@ -677,10 +677,10 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                           default: break;
                           case 1: trans_delay += 1; break; // Power-Down Mode Delay TODO: Needs to be adjusted
                           case 2: trans_delay += 1; 
-                              v::warn << name() << "The Controler is in Auto Self-Refresh Mode. Transaction might not be wanted!" <<v::endl;
+                              v::warn << name() << "The Controller is in Auto-Self-Refresh Mode. Transaction might not be wanted!" <<v::endl;
                               break;  // Auto-Self Refresh
                           case 5: { // Deep power down! No transaction possible:
-                              v::error << name() << "The Controler is in deep Power-Down Mode. No transactions possible." <<v::endl;
+                              v::error << name() << "The Controller is in Deep-Power-Down Mode. No transactions possible." <<v::endl;
                               gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
                               return;
                           }

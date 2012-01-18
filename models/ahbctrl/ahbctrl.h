@@ -212,7 +212,6 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 	const uint32_t *mMasters[64];
 
 	/// PEQs for arbitration, request notification and responses
-	tlm_utils::peq_with_get<payload_t> mArbiterPEQ;
 	tlm_utils::peq_with_get<payload_t> mRequestPEQ;
 	tlm_utils::peq_with_get<payload_t> mDataPEQ;
 	tlm_utils::peq_with_get<payload_t> mEndDataPEQ;

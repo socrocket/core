@@ -45,9 +45,7 @@
 
 #include "tlm.h"
 
-#define DUMP(name, msg) std::cout<<"@"<<sc_core::sc_time_stamp()<<" /"<<(unsigned)sc_core::sc_delta_count()<<" ("<<name  <<"): "<<msg<<std::endl
-
-// structure of a cache tag
+// Structure of a cache tag
 // ========================
 // atag  - width of the cache tag:    32bit virt. addr
 //                                  - index bits        (log2(cache_set_size/cache_line_size))

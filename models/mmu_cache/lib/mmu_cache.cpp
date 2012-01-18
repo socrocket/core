@@ -216,7 +216,20 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
   icio_payload_extension * iext;
   trans.get_extension(iext);
 
-  unsigned int * debug = iext->debug;
+  unsigned int *debug;
+
+  // Check/extract instruction payload extension
+  if (iext!=NULL) {
+
+    debug = iext->debug;
+
+  } else {
+
+    // No iext
+    debug = NULL;
+  
+    v::error << name() << "IEXT Payload extension missing" << v::endl;
+  }
 
   if (cmd == tlm::TLM_READ_COMMAND) {
 
@@ -259,16 +272,46 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
   unsigned int asi;
   unsigned int *debug;
+  unsigned int flush;
+  unsigned int lock;
+  unsigned int flushl;
 
+  // Check/extract data payload extension
   if(dext!=NULL) {
-      asi   = dext->asi;
-      debug = dext->debug;
+
+      asi    = dext->asi;
+      debug  = dext->debug;
+      flush  = dext->flush;
+      flushl = dext->flushl;
+      lock   = dext->lock;
+      
   } else {
       // No dext extension
       // assuming normal access
-      asi   = 0x8;
-      debug = NULL;
+      asi    = 0x8;
+      debug  = NULL;
+      flush  = 0;
+      flushl = 0;
+      lock   = 0;
+
+      v::error << name() << "DEXT Payload extension missing - assume ASI 0x8" << v::endl;
   }
+
+  // Flush instruction
+  if (flush) {
+
+    v::debug << name() << "Received flush instruction - flushing both caches" << v::endl;
+
+    // Simultaneous flush of both caches
+    icache->flush(&delay, debug, is_dbg);
+    dcache->flush(&delay, debug, is_dbg);
+
+    trans.set_response_status(tlm::TLM_OK_RESPONSE);
+
+    return;
+
+  }
+
 
   // Access to system registers
   if (asi == 2) {
@@ -595,7 +638,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
     delay = clock_cycle;
 
   // Flush instruction cache
-  } else if (asi == 0x10) {
+  } else if (asi == 0x15) {
 
     // icache is flushed on any write with ASI 0x10
     if (cmd == tlm::TLM_WRITE_COMMAND) {
@@ -615,7 +658,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
     }
     
   // Flush data cache
-  } else if (asi == 0x11) {
+  } else if (asi == 0x16) {
 
     // dcache is flushed on any write with ASI 0x11
     if (cmd == tlm::TLM_WRITE_COMMAND) {
@@ -1322,6 +1365,7 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
     amba::amba_trans_type * trans_ext;
     ahb.validate_extension<amba::amba_trans_type> (*trans);
     ahb.get_extension<amba::amba_trans_type> (trans_ext, *trans);
+    trans_ext->value = amba::NON_SEQUENTIAL;
     
     // Init delay
     delay = SC_ZERO_TIME;
@@ -1335,9 +1379,6 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
 	ahb->b_transport(*trans, delay);
 
 	v::debug << name() << "Release transaction: " << hex << trans << v::endl;
-
-	// Release transaction
-	ahb.release_transaction(trans);
 
 	// Consume delay
 	wait(delay);
@@ -1414,9 +1455,6 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
 
       v::debug << name() << "Release transaction: " << hex << trans << v::endl;
 
-      // Release transaction
-      ahb.release_transaction(trans);
-
     }
 
     // Check cacheability:
@@ -1434,6 +1472,13 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
 	cacheable = (ahb.get_extension<amba::amba_cacheable>(*trans)) ? true : false;
 	
     }    
+
+    if (is_dbg || m_abstractionLayer == amba::amba_LT) {
+
+	// Release transaction
+	ahb.release_transaction(trans);
+
+    }
 
     // return cacheability state
     return cacheable;

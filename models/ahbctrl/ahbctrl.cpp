@@ -80,7 +80,6 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       mmcheck(mcheck),
       m_pow_mon(pow_mon),
       robin(0),
-      mArbiterPEQ("ArbiterPEQ"),
       mRequestPEQ("RequestPEQ"),
       mDataPEQ("DataPEQ"),
       mEndDataPEQ("EndDataPEQ"),
@@ -358,9 +357,6 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
     connection.state     = PENDING;
 
     addPendingTransaction(trans, connection);
-
-    // All new transactions go in a PEQ to wait for sync
-    mArbiterPEQ.notify(trans, delay);
 
     // Transaction accepted
     return tlm::TLM_ACCEPTED;
