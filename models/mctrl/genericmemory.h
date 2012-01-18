@@ -84,6 +84,9 @@ class GenericMemory : public MEMDevice,
         typedef std::map<uint32_t, uint8_t> type;
         type memory;
 
+        /// SystemC end of simulation
+        void end_of_simulation();
+        
 	/// TLM 2.0 blocking transport function
         void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
 
@@ -101,6 +104,9 @@ class GenericMemory : public MEMDevice,
 
 	/// Power monitoring
 	bool g_powmon;
+  
+  uint64_t m_reads;
+  uint64_t m_writes; 
 };
 
 #endif

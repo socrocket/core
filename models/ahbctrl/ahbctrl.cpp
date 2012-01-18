@@ -84,7 +84,9 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       mRequestPEQ("RequestPEQ"),
       mDataPEQ("DataPEQ"),
       mEndDataPEQ("EndDataPEQ"),
-      mResponsePEQ("ResponsePEQ") {
+      mResponsePEQ("ResponsePEQ"),
+      m_total_transactions(0), 
+      m_right_transactions(0) {
 
   if(ambaLayer==amba::amba_LT) {
 
@@ -153,7 +155,7 @@ void AHBCtrl::setAddressMap(const uint32_t binding,const uint32_t hindex, const 
 
 // Find slave index by address
 int AHBCtrl::get_index(const uint32_t address) {
-
+  m_total_transactions++;
   // Use 12 bit segment address for decoding
   uint32_t addr = address >> 20;
 
@@ -165,8 +167,9 @@ int AHBCtrl::get_index(const uint32_t address) {
 
 	// There may be up to four BARs per device.
 	// Only return device ID.
+  m_right_transactions++;
 	return ((it->first)>>2);
-
+ 
       }
   }
 
@@ -177,6 +180,7 @@ int AHBCtrl::get_index(const uint32_t address) {
 // Returns a PNP register from the slave configuration area
 unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 
+  m_total_transactions++;
   // Calculate address offset in configuration area (slave info starts from 0x800)
   unsigned int addr   = address - ((mcfgaddr & mcfgmask) << 20);
   v::debug << name() << "Accessing PNP area at " << addr << v::endl;
@@ -199,6 +203,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(result);
     #endif
+    m_right_transactions++;
     return result;
 
   } else {
@@ -940,6 +945,17 @@ void AHBCtrl::start_of_simulation() {
     checkMemMap();
   }
 }
+
+// Print execution statistic at end of simulation
+void AHBCtrl::end_of_simulation() {
+    v::info << name() << " ********************************************" << v::endl;
+    v::info << name() << " * AHBCtrl Statistic:" << v::endl;
+    v::info << name() << " * ------------------" << v::endl;
+    v::info << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
+    v::info << name() << " * Total Transactions:      " << m_total_transactions << v::endl;
+    v::info << name() << " ******************************************** " << v::endl;
+}
+
 
 struct ahb_check_slave_type {
     uint32_t start;

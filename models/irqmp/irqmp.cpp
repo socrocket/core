@@ -145,7 +145,13 @@ Irqmp::Irqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, in
                 0x00000000, PROC_EXTIR_ID_EID, 32, 0x00);
     }
 
-    SC_THREAD(launch_irq); 
+    SC_THREAD(launch_irq);
+    
+    // Initialize performance counter by zerooing
+    // Keep in mind counter will not be reseted in reset 
+    for(int i = 0; i < 32; i++) {
+      m_counter[i] = 0;
+    }
 }
 
 Irqmp::~Irqmp() {
@@ -174,8 +180,25 @@ void Irqmp::end_of_elaboration() {
     GR_SENSITIVE(r[MP_STAT].add_rule(gs::reg::POST_WRITE, "mpstat_write", gs::reg::NOTIFY));
 }
 
-/// Reset registers to default values
-/// Process sensitive to reset signal
+// Print execution statistic at end of simulation
+void Irqmp::end_of_simulation() {
+
+  v::info << name() << " ********************************************" << v::endl;
+  v::info << name() << " * IRQMP statistic:" << v::endl;
+  v::info << name() << " * ================" << v::endl;
+  uint64_t sum = 0;
+  for(int i = 1; i < 32; i++) {
+    v::info << name() << " * + IRQ Line " << std::dec << i << ":    " << m_counter[i] << v::endl;
+    sum += m_counter[i];
+  }
+  v::info << name() << " * -------------------------------------- " << v::endl;
+  v::info << name() << " * = Sum      :    " << sum << v::endl;
+  v::info << name() << " ******************************************** " << v::endl;
+
+}
+
+// Reset registers to default values
+// Process sensitive to reset signal
 void Irqmp::dorst() {
     //initialize registers with values defined above
     r[IR_LEVEL]   = static_cast<uint32_t>(LEVEL_DEFAULT);
@@ -195,10 +218,10 @@ void Irqmp::dorst() {
     }
 }
 
-///  - watch interrupt bus signals (apbi.pirq)
-///  - write incoming interrupts into pending or force registers
-///
-/// process sensitive to apbi.pirq
+//  - watch interrupt bus signals (apbi.pirq)
+//  - write incoming interrupts into pending or force registers
+//
+// process sensitive to apbi.pirq
 void Irqmp::incomming_irq(const bool &value, const uint32_t &irq, const sc_time &time) {
     // A variable with true as workaround for greenreg.
     bool t = true;
@@ -208,6 +231,8 @@ void Irqmp::incomming_irq(const bool &value, const uint32_t &irq, const sc_time 
         // So we cann simply ignore a false value.
         return;
     }
+    // Performance counter increase
+    m_counter[irq]++;
     
     // If the incomming interrupt is not listed in the broadcast register 
     // it goes in the pending register
@@ -229,13 +254,13 @@ void Irqmp::incomming_irq(const bool &value, const uint32_t &irq, const sc_time 
     e_signal.notify(2 * clock_cycle);
 }
 
-/// launch irq:
-///  - combine pending, force, and mask register
-///  - prioritize pending interrupts
-///  - send highest priority IR to processor via irqo port
-///
-/// callback registered on IR pending register,
-///                        IR force registers
+// launch irq:
+//  - combine pending, force, and mask register
+//  - prioritize pending interrupts
+//  - send highest priority IR to processor via irqo port
+//
+// callback registered on IR pending register,
+//                        IR force registers
 void Irqmp::launch_irq() {
     int16_t high;
     uint32_t masked, pending, all;
@@ -293,16 +318,16 @@ void Irqmp::launch_irq() {
     }
 }
 
-///
-/// clear acknowledged IRQs                                           (three processes)
-///  - interrupts can be cleared
-///    - by software writing to the IR_Clear register                 (process 1: clear_write)
-///    - by software writing to the upper half of IR_Force registers  (process 2: Clear_forced_ir)
-///    - by processor sending irqi.intack signal and irqi.irl data    (process 3: clear_acknowledged_irq)
-///  - remove IRQ from pending / force registers
-///  - in case of eirq, release eirq ID in eirq ID register
-///
-/// callback registered on interrupt clear register
+//
+// clear acknowledged IRQs                                           (three processes)
+//  - interrupts can be cleared
+//    - by software writing to the IR_Clear register                 (process 1: clear_write)
+//    - by software writing to the upper half of IR_Force registers  (process 2: Clear_forced_ir)
+//    - by processor sending irqi.intack signal and irqi.irl data    (process 3: clear_acknowledged_irq)
+//  - remove IRQ from pending / force registers
+//  - in case of eirq, release eirq ID in eirq ID register
+//
+// callback registered on interrupt clear register
 void Irqmp::clear_write() {
     // pending reg only: forced IRs are cleared in the next function
     bool extirq = false;
@@ -333,7 +358,7 @@ void Irqmp::clear_write() {
     e_signal.notify(2 * clock_cycle);
 }
 
-/// callback registered on interrupt force registers
+// callback registered on interrupt force registers
 void Irqmp::force_write() {
     for(int cpu = 0; cpu < ncpu; cpu++) {
         uint32_t reg = r[PROC_IR_FORCE(cpu)];
@@ -356,7 +381,7 @@ void Irqmp::force_write() {
     e_signal.notify(2 * clock_cycle);
 }
 
-/// process sensitive to ack_irq
+// process sensitive to ack_irq
 void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_core::sc_time &time) {
     bool f = false;
     if(eirq != 0 && r[PROC_EXTIR_ID(cpu)]!=0) {
@@ -375,8 +400,8 @@ void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_
     e_signal.notify(2 * clock_cycle);
 }
 
-/// reset cpus after write to cpu status register
-/// callback registered on mp status register
+// reset cpus after write to cpu status register
+// callback registered on mp status register
 void Irqmp::mpstat_write() {
     r[MP_STAT] = MP_STAT_DEFAULT | (ncpu << 28) | (eirq << 16);
     cpu_rst.write(0xFFFFFFFF, true);

@@ -74,7 +74,9 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
       mAcceptPEQ("AcceptPEQ"),
       mTransactionPEQ("TransactionPEQ"),
       mambaLayer(ambaLayer),
-      busy(false) {
+      busy(false),
+      m_total_transactions(0),
+      m_right_transactions(0) {
 
     // Assert generics are withing allowed ranges
     assert(haddr_ <= 0xfff);
@@ -148,6 +150,7 @@ int APBCtrl::get_index(const uint32_t address) {
     if (((addr ^ info.paddr) & info.pmask) == 0) {
 
       // APB: Device == BAR)
+      m_right_transactions++;
       return(it->first);
 
     }
@@ -168,13 +171,15 @@ unsigned int APBCtrl::getPNPReg(const uint32_t address) {
   // Calculate offset within device information
   unsigned int offset = addr & 0x1;
 
+  m_right_transactions++;
   return(mSlaves[device][offset]);
 
 }
 
 // Functional part of the model (decoding logic)
 void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bool debug) {
-
+  m_total_transactions++;
+  
   // Extract data pointer from payload
   unsigned char * data = ahb_gp.get_data_ptr();
   // Extract address from payload
@@ -512,6 +517,16 @@ void APBCtrl::start_of_simulation() {
   if(mmcheck) {
       checkMemMap();
   }
+}
+
+// Print execution statistic at end of simulation
+void APBCtrl::end_of_simulation() {
+    v::info << name() << " ********************************************" << v::endl;
+    v::info << name() << " * APBCtrl Statistic:" << v::endl;
+    v::info << name() << " * ------------------" << v::endl;
+    v::info << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
+    v::info << name() << " * Total Transactions:      " << m_total_transactions << v::endl;
+    v::info << name() << " ******************************************** " << v::endl;
 }
 
 struct apb_check_slave_type {

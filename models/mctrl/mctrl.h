@@ -146,6 +146,10 @@ class Mctrl : public gs::reg::gr_device,
         /// Gathers information about the connected memory types when SystemC reaches the start of simulation.
         void start_of_simulation();
 
+        /// SystemC end of simulation handler.
+        /// It's needed to print performance counter
+        void end_of_simulation();
+
         // Signal Callbacks
         /// Reset Handler
         ///
@@ -244,6 +248,12 @@ class Mctrl : public gs::reg::gr_device,
         
         /// Capture current state of power mode
         uint8_t m_pmode; 
+        
+        /// The number of total transactions handled by the mctrl
+        uint64_t m_total_transactions;
+        
+        /// The number of successfull ended transactions
+        uint64_t m_right_transactions;
 
         // Constructor parameters (modeling VHDL generics)
         const int g_romasel;

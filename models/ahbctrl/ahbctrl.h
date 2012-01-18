@@ -228,11 +228,20 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 	/// The number of masters in the system
 	unsigned int num_of_master_bindings;
 
+  /// Total number of transactions handled by the instance
+  uint64_t m_total_transactions;
+
+  /// Succeeded number of transaction handled by the instance
+  uint64_t m_right_transactions;
+
 	// Private functions
 	// -----------------
 
 	/// Set up slave map and collect plug & play information
         void start_of_simulation();
+    /// SystemC End of Simulation handler
+    /// Prints out the Performance Counter
+    void end_of_simulation();
 
 	/// Helper function for creating slave map decoder entries
         void setAddressMap(const uint32_t binding, const uint32_t hindex, const uint32_t haddr, const uint32_t hmask);

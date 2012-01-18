@@ -20,7 +20,7 @@ using namespace sc_core;
 using namespace tlm;
 using namespace std;
 
-GenericMemory::GenericMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) : MEMDevice(type, banks, bsize, bits, cols), bus("bus"), g_powmon(powmon) {
+GenericMemory::GenericMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) : MEMDevice(type, banks, bsize, bits, cols), bus("bus"), g_powmon(powmon), m_reads(0), m_writes(0) {
     // register transport functions to sockets
     gs::socket::config<tlm::tlm_base_protocol_types> bus_cfg;
     bus_cfg.use_mandatory_phase(BEGIN_REQ);
@@ -50,6 +50,31 @@ GenericMemory::GenericMemory(sc_core::sc_module_name name, MEMDevice::device_typ
 }
 
 GenericMemory::~GenericMemory() {}
+
+// Print execution statistic at end of simulation
+void GenericMemory::end_of_simulation() {
+    char *type_name;
+    switch(get_type()) {
+      case MEMDevice::IO:
+          type_name = "IO";
+          break;
+      case MEMDevice::SRAM:
+          type_name = "SRAM";
+          break;
+      case MEMDevice::SDRAM:
+          type_name = "SDRAM";
+          break;
+      default:
+        type_name = "ROM";
+    }
+    
+    v::info << name() << " ********************************************" << v::endl;
+    v::info << name() << " * "<< type_name <<" Memory Statistic:" << v::endl;
+    v::info << name() << " * -----------------------------------------" << v::endl;
+    v::info << name() << " * Bytes read:    " << m_reads << v::endl;
+    v::info << name() << " * Bytes written: " << m_writes << v::endl;
+    v::info << name() << " ******************************************** " << v::endl;
+}
 
 void GenericMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     ext_erase::ext_erase* ers;
@@ -120,11 +145,13 @@ unsigned int GenericMemory::transport_dbg(tlm::tlm_generic_payload& gp) {
 
 void GenericMemory::write(const uint32_t addr, const uint8_t byte) {
     memory[addr] = byte;
+    m_writes++;
     v::debug << name() << v::uint32 << addr << ": "<< v::uint8 << (uint32_t)byte << v::endl;
 }
 
 uint8_t GenericMemory::read(const uint32_t addr) {
     uint8_t byte = memory[addr];
+    m_reads++;
     v::debug << name() << v::uint32 << addr << ": "<< v::uint8 << (uint32_t)byte << v::endl;
     return byte;
 }

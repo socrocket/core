@@ -86,7 +86,8 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             ), 
             mem("mem", gs::socket::GS_TXN_ONLY),
 	    mAcceptPEQ("mAcceptPEQ"), mTransactionPEQ("TransactionPEQ"),
-	    busy(false), g_romasel(_romasel), g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask), 
+	    busy(false), m_total_transactions(0), m_right_transactions(0), 
+            g_romasel(_romasel), g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask), 
             g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr), 
             g_rammask(_rammask), g_paddr(_paddr), g_pmask(_pmask), g_wprot(_wprot),
             g_srbanks(_srbanks), g_ram8(_ram8), g_ram16(_ram16), g_sepbus(_sepbus),
@@ -300,6 +301,16 @@ void Mctrl::start_of_simulation() {
               v::warn << name() << "There is a device connected on the mem bus which is not inherite by MEMDevice named " << obj->name() << v::endl;
         }
     }
+}
+
+// Print execution statistic at end of simulation
+void Mctrl::end_of_simulation() {
+    v::info << name() << " ********************************************" << v::endl;
+    v::info << name() << " * MCtrl Statistic:" << v::endl;
+    v::info << name() << " * ----------------" << v::endl;
+    v::info << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
+    v::info << name() << " * Total Transactions:      " << m_total_transactions << v::endl;
+    v::info << name() << " ******************************************** " << v::endl;
 }
 
 Mctrl::MEMPort::MEMPort(uint32_t _id, MEMDevice *_dev) : id(_id), dev(_dev), addr(0), length(0) {}
@@ -545,7 +556,9 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
     bool rmw = (r[MCFG2].get() >> 6) & 1;
     MEMPort  port   = get_port(addr);
     sc_time mem_delay;
-
+    
+    m_total_transactions++;
+    
     v::debug << name() << "Try to access memory at " << v::uint32 << addr << " of length " << length << "." << " pmode: " << (uint32_t)m_pmode << v::endl;
 
     if(port.id!=100) {
@@ -712,6 +725,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
             memgp.set_data_ptr(data);
             mem[port.id]->b_transport(memgp, mem_delay);
             gp.set_response_status(memgp.get_response_status());
+            m_right_transactions++;
 
             // Bus Ready used? 
             // If IO Bus Ready take the delay from the memmory.

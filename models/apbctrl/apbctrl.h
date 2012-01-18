@@ -172,8 +172,17 @@ class APBCtrl : public sc_core::sc_module, public AHBDevice, public CLKDevice {
 	/// Array of slave device information (PNP)
 	const uint32_t *mSlaves[16];
 
-	/// Set up slave map and collect plug & play information
-        void start_of_simulation();
+  /// Total number of transactions
+  uint64_t m_total_transactions;
+
+  /// Successful number of transactions
+  uint64_t m_right_transactions;
+
+    /// Set up slave map and collect plug & play information
+    void start_of_simulation();
+        
+    /// SystemC end of simulation hook
+    void end_of_simulation();
 
 };
 

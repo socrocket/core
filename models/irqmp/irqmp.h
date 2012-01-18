@@ -102,6 +102,9 @@ class Irqmp : public gs::reg::gr_device,
        
         /// SystemC end of elaboration implementation
         void end_of_elaboration();
+        
+        /// SystemC end of simulation
+        void end_of_simulation();
        
         /// Recalculates the output for the CPUs.
         ///
@@ -179,6 +182,10 @@ class Irqmp : public gs::reg::gr_device,
         /// Status of the force registers
         /// To determ the change in the status force fields.
         uint32_t *forcereg;
+
+        /// Performance Counter per IRQ Line
+        /// The number of executed interrupts is stored in the variable
+        uint64_t m_counter[32];
 
     public:
         //---register address offset
