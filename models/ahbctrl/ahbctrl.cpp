@@ -288,7 +288,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     other_socket = ahbOUT.get_other_side(index, a);
     sc_core::sc_object *obj = other_socket->get_parent();
 
-    v::debug  << name() << "AHB Request for address: " << hex << v::setfill('0')
+    v::debug  << name() << "AHB Request for address: 0x" << hex << v::setfill('0')
               << v::setw(8) << trans.get_address() << ", from master: "
               << mstobj->name() << ", forwarded to slave: " << obj->name() << endl;
 
@@ -345,7 +345,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
 
   connection_t connection;
 
-  v::debug << name() << "nb_transport_fw received transaction " << hex << &trans << " with phase " << phase << v::endl;
+  v::debug << name() << "nb_transport_fw received transaction 0x" << hex << &trans << " with phase " << phase << v::endl;
 
   // The master has sent BEGIN_REQ
   if (phase == tlm::BEGIN_REQ) {
@@ -392,7 +392,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
 // with TLM_ACCEPTED.
 tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(uint32_t id, tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time &delay) {
 
-  v::debug << name() << "nb_transport_bw received transaction " << hex << &trans << " with phase: " << phase << v::endl;
+  v::debug << name() << "nb_transport_bw received transaction 0x" << hex << &trans << " with phase: " << phase << v::endl;
 
   // The slave has sent END_REQ
   if (phase == tlm::END_REQ) {
@@ -455,7 +455,7 @@ void AHBCtrl::arbitrate_me() {
 	  selected_transaction = pm_itr->first;
 	  grand_id = connection.master_id;
 
-	  v::debug << name() << "Arbiter selects master " << grand_id << " (Trans. " << hex << selected_transaction << ")" << v::endl;
+	  v::debug << name() << "Arbiter selects master " << grand_id << " (Trans. 0x" << hex << selected_transaction << ")" << v::endl;
 
 	}
       }
@@ -521,7 +521,7 @@ void AHBCtrl::RequestThread() {
       // Find slave by address / returns slave index or -1 for not mapped
       int slave_id = get_index(trans->get_address());
 
-      v::debug << name() << "Decoder: slave " << slave_id << " address " << hex << addr << v::endl;
+      v::debug << name() << "Decoder: slave " << dec << slave_id << " address 0x" << hex << addr << v::endl;
 
       if (slave_id >= 0) {
 
@@ -536,7 +536,7 @@ void AHBCtrl::RequestThread() {
 	phase = tlm::BEGIN_REQ;
 	delay = sc_time(1, SC_PS);
 
-	v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+	v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 	  
 	status = ahbOUT[slave_id]->nb_transport_fw(*trans, phase, delay);
 
@@ -562,7 +562,7 @@ void AHBCtrl::RequestThread() {
     phase = tlm::END_REQ;
     delay = SC_ZERO_TIME;
 	  
-    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
+    v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
 
     status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
 
@@ -607,7 +607,7 @@ void AHBCtrl::DataThread() {
       // Send BEGIN_DATA to slave
       phase = amba::BEGIN_DATA;
 
-      v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+      v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 
       status = ahbOUT[connection.slave_id]->nb_transport_fw(*trans, phase, delay);
 
@@ -652,7 +652,7 @@ void AHBCtrl::EndData() {
     phase = amba::END_DATA;
     delay = SC_ZERO_TIME;
 
-    v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
+    v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
 
     status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
 
@@ -847,14 +847,14 @@ void AHBCtrl::start_of_simulation() {
 	  uint32_t addr = slave->get_bar_base(j);
 	  uint32_t mask = slave->get_bar_mask(j);
 
-	  v::info << name() << "* BAR" << j << " with MSB addr: " << hex << addr << " and mask: " << mask <<  v::endl; 
+	  v::info << name() << "* BAR" << dec << j << " with MSB addr: 0x" << hex << addr << " and mask: 0x" << hex << mask <<  v::endl; 
 
 	  // Insert slave region into memory map
 	  setAddressMap(i+j, sbusid, addr, mask);
 
 	} else {
 
-	  v::info << name() << "* BAR" << j << " not used." << v::endl;
+	  v::info << name() << "* BAR" << dec << j << " not used." << v::endl;
 
 	}
       
@@ -915,11 +915,11 @@ void AHBCtrl::start_of_simulation() {
 	  uint32_t addr = master->get_bar_base(j);
 	  uint32_t mask = master->get_bar_mask(j);
 
-	  v::info << name() << "* BAR" << j << " with MSB addr: " << hex << addr << " and mask: " << mask <<  v::endl; 
+	  v::info << name() << "* BAR" << dec << j << " with MSB addr: 0x" << hex << addr << " and mask: 0x" << hex << mask <<  v::endl; 
 
 	} else {
 
-	  v::info << name() << "* BAR" << j << " not used." << v::endl;
+	  v::info << name() << "* BAR" << dec << j << " not used." << v::endl;
 
 	}
       

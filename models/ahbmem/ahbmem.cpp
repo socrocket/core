@@ -78,9 +78,9 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
     // Display AHB slave information
     v::info << name() << "********************************************************************" << v::endl;
     v::info << name() << "* Create AHB simulation memory with following parameters:           " << v::endl;
-    v::info << name() << "* haddr/hmask: " << hex << mhaddr << "/" << mhmask                    << v::endl;
-    v::info << name() << "* Slave base address: " << hex << get_base_addr()                     << v::endl;
-    v::info << name() << "* Slave size (bytes): " << hex << get_size()                          << v::endl;
+    v::info << name() << "* haddr/hmask: 0x" << std::setw(4) << std::setfill('0') << hex << mhaddr << "/0x" << std::setw(4) << std::setfill('0') << mhmask                    << v::endl;
+    v::info << name() << "* Slave base address: 0x" << std::setw(8) << std::setfill('0') << hex << get_base_addr()                     << v::endl;
+    v::info << name() << "* Slave size (bytes): 0x" << std::setw(8) << std::setfill('0') << hex << get_size()                          << v::endl;
     v::info << name() << "********************************************************************" << v::endl;
 
     // For LT register blocking transport
@@ -125,25 +125,37 @@ void AHBMem::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
     delay = sc_core::SC_ZERO_TIME;
 
     if(trans.get_command() == tlm::TLM_WRITE_COMMAND) {
+      std::stringstream ss;
+      ss << "Write to address: 0x" << std::setw(8) << std::setfill('0') << hex << trans.get_address() << ", data: ";
       for(uint32_t i = 0; i < trans.get_data_length(); i++) {
 	    
-	v::debug << name() << "Write with address: " << hex << trans.get_address() + i << " and data: " << hex << (unsigned int)*(trans.get_data_ptr() + i) << v::endl;
-
+        if (i < 200)
+          ss << " " << std::setw(2) << std::setfill('0') << hex << (unsigned int)*(trans.get_data_ptr() + i);
+        else if (i== 200) ss << " ...<omnitted>... ";
+        //v::debug << name() << "Write with address: " << hex << trans.get_address() + i << " and data: " << hex << (unsigned int)*(trans.get_data_ptr() + i) << v::endl;
+        
         // write simulation memory
         mem[trans.get_address() + i] = *(trans.get_data_ptr() + i);
       }
+      v::debug << name() << ss.str() << v::endl;
 
       delay = clock_cycle * (trans.get_data_length() >> 2);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
     } else {
+      std::stringstream ss;
+      ss << "Read from address: 0x" << std::setw(8) << std::setfill('0') << hex << trans.get_address() << ", data: ";
       for(uint32_t i = 0; i < trans.get_data_length(); i++) {
        
-	v::debug << name() << "Read with address: " << hex << trans.get_address() + i << " to return: " << hex << (unsigned int)mem[trans.get_address() + i] << v::endl;
+        //v::debug << name() << "Read with address: " << hex << trans.get_address() + i << " to return: " << hex << (unsigned int)mem[trans.get_address() + i] << v::endl;
+        if (i < 200)
+          ss << " " << std::setw(2) << std::setfill('0') << hex << (unsigned int)mem[trans.get_address() + i];
+        else if (i== 200) ss << " ...<omnitted>... ";
 
-	// read simulation memory
-	*(trans.get_data_ptr() + i) = mem[trans.get_address() + i];
+        // read simulation memory
+        *(trans.get_data_ptr() + i) = mem[trans.get_address() + i];
         
       }
+      v::debug << name() << ss.str() << v::endl;
 
       delay = clock_cycle * (trans.get_data_length() >> 2);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
@@ -203,7 +215,7 @@ void AHBMem::processTXN() {
       v::debug << name() << "Process transaction " << hex << trans << v::endl;
       if(trans->get_command() == tlm::TLM_WRITE_COMMAND) {
         for(uint32_t i = 0; i < trans->get_data_length(); i++) {
-	  v::debug << name() << "Write with address: " << hex << trans->get_address() + i << " and data: " << hex << (unsigned int)*(trans->get_data_ptr() + i) << v::endl;
+	  v::debug << name() << "Write with address: 0x" << std::setw(8) << std::setfill('0') << hex << trans->get_address() + i << " and data: 0x" << std::setw(2) << std::setfill('0') << hex << (unsigned int)*(trans->get_data_ptr() + i) << v::endl;
 
 	  // write simulation memory
           mem[trans->get_address() + i] = *(trans->get_data_ptr() + i);
@@ -221,7 +233,7 @@ void AHBMem::processTXN() {
 	assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_COMPLETED));
       } else {
         for(uint32_t i = 0; i < trans->get_data_length(); i++) {
-	  v::debug << name() << "Read with address: " << hex << trans->get_address() + i << " to return: " << hex << (unsigned int)mem[trans->get_address() + i] << v::endl;
+	  v::debug << name() << "Read with address: 0x" << std::setw(8) << std::setfill('0') << hex << trans->get_address() + i << " to return: 0x" << std::setw(2) << std::setfill('0') << hex << (unsigned int)mem[trans->get_address() + i] << v::endl;
 
 	  // read simulation memory
 	  *(trans->get_data_ptr() + i) = mem[trans->get_address() + i];
