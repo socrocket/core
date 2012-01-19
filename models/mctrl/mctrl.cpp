@@ -915,10 +915,12 @@ void Mctrl::mcfg1_write() {
     if((((mcfg>>8)&0x3)==0)&&!g_ram8) {
       mcfg &= ~MCFG1_PROM_WIDTH;
       mcfg |= (2 << 8);
+      v::warn << name() << "PROM access with 8bit width configured in MCFG1, but RAM8 Generic is 0 so 32bit access assumed." << v::endl;
     }
     if((((mcfg>>8)&0x3)==1)&&!g_ram16) {
       mcfg &= ~MCFG1_PROM_WIDTH;
       mcfg |= (2 << 8);
+      v::warn << name() << "PROM access with 16bit width configured in MCFG1, but RAM16 Generic is 0 so 32bit access assumed." << v::endl;
     }
     v::debug << name() << "Old MCFG1: " << v::uint32 << r[MCFG1].get() 
                        << " new MCFG1: " << v::uint32 << mcfg 
@@ -931,10 +933,12 @@ void Mctrl::mcfg2_write() {
     if((((mcfg>>4)&0x3)==0)&&!g_ram8) {
       mcfg &= ~MCFG2_RAM_WIDTH;
       mcfg |= (2 << 4);
+      v::warn << name() << "RAM access with 8bit width configured in MCFG2, but RAM8 Generic is 0 so 32bit access assumed." << v::endl;
     }
     if((((mcfg>>4)&0x3)==1)&&!g_ram16) {
       mcfg &= ~MCFG2_RAM_WIDTH;
       mcfg |= (2 << 4);
+      v::warn << name() << "RAM access with 16bit width configured in MCFG2, but RAM16 Generic is 0 so 32bit access assumed." << v::endl;
     }
     v::debug << name() << "Old MCFG2: " << v::uint32 << r[MCFG2].get() 
                        << " new MCFG2: " << v::uint32 << mcfg 
