@@ -181,7 +181,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 
   m_total_transactions++;
   // Calculate address offset in configuration area (slave info starts from 0x800)
-  unsigned int addr   = address - ((mcfgaddr & mcfgmask) << 20);
+  unsigned int addr   = address - (((mioaddr << 20) | (mcfgaddr << 8)) & ((miomask << 20) | (mcfgmask << 8)));
   v::debug << name() << "Accessing PNP area at " << addr << v::endl;
 
   // Slave area
@@ -196,6 +196,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     unsigned int offset = (addr >> 2) & 0x7;
 
     if(device>=num_of_slave_bindings) {
+        v::warn << name() << "Access to unregistered PNP Slave Register!" << v::endl;
         return 0;
     }
     uint32_t result =  mSlaves[device][offset];
@@ -214,6 +215,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     unsigned int offset = (addr >> 2) & 0x7;
 
     if(device>=num_of_master_bindings) {
+        v::warn << name() << "Access to unregistered PNP Master Register!" << v::endl;
         return 0;
     }
     uint32_t result = mMasters[device][offset];
@@ -244,7 +246,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
   unsigned int length = trans.get_data_length();
 
   // Is this an access to configuration area
-  if (mfpnpen && ((((addr >> 20) ^ mcfgaddr) & mcfgmask)==0)) {
+  if (mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8))))==0)) {
 
     // Configuration area is read only
     if (trans.get_command() == tlm::TLM_READ_COMMAND) {
