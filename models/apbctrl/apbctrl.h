@@ -148,8 +148,8 @@ class APBCtrl : public sc_core::sc_module, public AHBDevice, public CLKDevice {
 	bool busy;
 
 	/// The base address of the PNP APB device records
-	/// (top 4kb of the bridge address space)
-	unsigned int mpnpbase;
+	/// 0xFF000
+	const uint32_t m_pnpbase;
 
         typedef tlm::tlm_generic_payload payload_t;
         typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;

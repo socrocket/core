@@ -44,6 +44,7 @@
 
 #include "apbctrl.h"
 #include "verbose.h"
+#include "vendian.h"
 
 
 /// Constructor of class APBCtrl
@@ -57,7 +58,7 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
 
       sc_module(nm),
       AHBDevice(hindex, // AHB bus index
-		0x04,   // vendor_id: ESA
+                0x04,   // vendor_id: ESA
                 0x006,  // device_id: APBCtrl (p. 92 GRIP) 
                 0,      //
                 0,      // IRQ
@@ -75,16 +76,13 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
       mTransactionPEQ("TransactionPEQ"),
       mambaLayer(ambaLayer),
       busy(false),
+      m_pnpbase(0xFF000),
       m_total_transactions(0),
       m_right_transactions(0) {
 
     // Assert generics are withing allowed ranges
     assert(haddr_ <= 0xfff);
     assert(hmask_ <= 0xfff);
-
-    // Calculate base address of PNP APB device records
-    // (Upper 4kb of device address space)
-    mpnpbase = get_base_addr_()+get_size_()-0x1000;
 
     if (mambaLayer==amba::amba_LT) {
 
@@ -162,17 +160,26 @@ int APBCtrl::get_index(const uint32_t address) {
 }
 
 /// Returns a PNP register from the APB configuration area (upper 4kb of address space)
-unsigned int APBCtrl::getPNPReg(const uint32_t address) {
+uint32_t APBCtrl::getPNPReg(const uint32_t address) {
 
   // Calculate address offset in configuration area
-  unsigned int addr = address - mpnpbase;
+  uint32_t addr = address - (get_bar_addr(0) + m_pnpbase);
   // Calculate index of the device in mSlaves pointer array (8 byte per device)
-  unsigned int device = addr >> 1;
+  uint32_t device = addr >> 1;
   // Calculate offset within device information
-  unsigned int offset = addr & 0x1;
+  uint32_t offset = addr & 0x1;
 
-  m_right_transactions++;
-  return(mSlaves[device][offset]);
+  if((device < 16) && (mSlaves[device] != NULL)) {
+      m_right_transactions++;
+      uint32_t result = mSlaves[device][offset];
+      #ifdef LITTLE_ENDIAN_BO
+      swap_Endianess(result);
+      #endif
+      return result;
+  } else {
+      v::warn << name() << "Access to not existing PNP Register!" << v::endl;
+      return 0;
+  }
 
 }
 
@@ -181,44 +188,35 @@ void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bo
   m_total_transactions++;
   
   // Extract data pointer from payload
-  unsigned char * data = ahb_gp.get_data_ptr();
+  uint8_t *data = ahb_gp.get_data_ptr();
   // Extract address from payload
-  unsigned int addr = ahb_gp.get_address();
+  uint32_t addr = ahb_gp.get_address();
   // Extract length from payload
-  unsigned int length = ahb_gp.get_data_length();
+  uint32_t length = ahb_gp.get_data_length();
 
   // Is this an access to the configuration area
-  // The configuration area is always in the upper FF000 area
-  if (!((addr ^ 0xFF000) & 0xFF000)) {
-
-     // Access configuration area (upper most 4kb)?
-    if (addr >= mpnpbase) {    
- 
+  // The configuration area is always in the upper 0xFF000 area
+  if(((addr ^ m_pnpbase) & m_pnpbase) == 0) {
       // Configuration area is read only
-      if (ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
+      if(ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
 
-	// No subword access supported here!
-	assert(length%4==0);
+	        // No subword access supported here!
+	        assert(length%4==0);
 
-	// Get registers from config area
-	for (uint32_t i = 0; i < (length >> 2); i++) {
+	        // Get registers from config area
+	        uint32_t *data32 = (uint32_t*)data;
+	        for(uint32_t i = 0; i < (length >> 2); i++) {
+              data32[i] = getPNPReg(addr);
+	            // one cycle delay per 32bit register
+	            delay += clock_cycle;
+	        }
 
-	  data[i] = getPNPReg(addr);
-
-	  // one cycle delay per 32bit register
-	  delay += clock_cycle;
-
-	}
-
-	ahb_gp.set_response_status(tlm::TLM_OK_RESPONSE);
-
+	        ahb_gp.set_response_status(tlm::TLM_OK_RESPONSE);
+          return;
       } else {
-
-	v::error << name() << " Forbidden write to APBCTRL configuration area (PNP)!" << v::endl;
-	ahb_gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-
+	        v::error << name() << " Forbidden write to APBCTRL configuration area (PNP)!" << v::endl;
+          ahb_gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
       }
-    }
   }
 
   // Find slave by address / returns slave index or -1 for not mapped
@@ -481,7 +479,7 @@ void APBCtrl::start_of_simulation() {
     if(slave) {
 
       // Get pointer to device information
-      const uint32_t * deviceinfo = slave->get_device_info();
+      const uint32_t *deviceinfo = slave->get_device_info();
 
       // Get slave id (pindex)
       const uint32_t sbusid = slave->get_busid();
