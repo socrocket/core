@@ -65,12 +65,12 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
                      unsigned int itlb_num, unsigned int dtlb_num,
                      unsigned int tlb_type, unsigned int tlb_rep,
                      unsigned int mmupgsz, sc_core::sc_module_name name,
-                     unsigned int id,
+                     unsigned int hindex,
 		     bool pow_mon,
 		     amba::amba_layer_ids abstractionLayer) :
 
     sc_module(name),
-    AHBDevice(id,
+    AHBDevice(hindex,
 	      0x01,  // vendor: Gaisler Research (Fake the LEON)
 	      0x003,  // 
 	      0,
@@ -94,7 +94,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     m_dlramstart(dlramstart),
     m_cached(cached),
     m_mmu_en(mmu_en),
-    m_master_id(id), 
+    m_master_id(hindex), 
     m_pow_mon(pow_mon),
     m_abstractionLayer(abstractionLayer), 
     m_txn_count(0), 
