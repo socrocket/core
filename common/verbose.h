@@ -201,6 +201,9 @@ class logstream {
                         m_stream << v::Yellow << "Warning: " << v::Normal;
                         break;
                     case 2:
+                        m_stream << v::Green << "Report: " << v::Normal;
+                        break;
+                    case 3:
                         m_stream << v::Cyan << "Info: " << v::Normal;
                         break;
                     default:
@@ -227,8 +230,9 @@ class logstream {
 
 extern logstream<0> error;
 extern logstream<1> warn;
-extern logstream<2> info;
-extern logstream<3> debug;
+extern logstream<2> report;
+extern logstream<3> info;
+extern logstream<4> debug;
 
 /// This function can be used if you wish to log all verbose output in a file.
 /// The logfile gets filled with data in parallel to the screen output.
