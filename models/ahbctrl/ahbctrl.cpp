@@ -508,7 +508,7 @@ void AHBCtrl::RequestThread() {
     // Access to configuration area?
     // Do not need to send BEGIN_REQ to slave
     // ---------------------------------------
-    if (mfpnpen && ((((addr >> 20) ^ mcfgaddr) & mcfgmask)==0)) {
+    if (mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8))))==0)) {
 
       v::debug << name() << "Access to configuration area" << v::endl;
 
@@ -598,7 +598,7 @@ void AHBCtrl::DataThread() {
     // Access to configuration area?
     // Do not need to send BEGIN_REQ to slave
     // ---------------------------------------
-    if (mfpnpen && ((((addr >> 20) ^ mcfgaddr) & mcfgmask)==0)) {
+    if (mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8))))==0)) {
 
       v::error << name() << "Configuration area is read-only" << v::endl;    
     
@@ -699,7 +699,8 @@ void AHBCtrl::ResponseThread() {
 
     // Access to configuration area?
     // ---------------------------------------
-    if (mfpnpen && ((((addr >> 20) ^ mcfgaddr) & mcfgmask)==0)) {
+    if (mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8))))==0)) {
+
 
       v::error << name() << "Reading configuration area" << v::endl;    
     
@@ -713,7 +714,7 @@ void AHBCtrl::ResponseThread() {
       // Get registers from config area
       for (uint32_t i = 0; i < (length >> 2); i++) {
 
-	data[i] = getPNPReg(addr);
+	data[i] = getPNPReg(addr + (i<<2));
 
 	// One cycle delay per 32bit register
 	delay += clock_cycle;
@@ -745,7 +746,7 @@ void AHBCtrl::ResponseThread() {
     }
 
     // If not config, send END_RESP
-    if (!(mfpnpen && ((((addr >> 20) ^ mcfgaddr) & mcfgmask)==0))) {
+    if(!(mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8))))==0))) {
 
       // Send END_RESP to slave
       phase = tlm::END_RESP;
@@ -1015,7 +1016,7 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
     unsigned int length = trans.get_data_length(); 
 
     // Is this an access to configuration area
-    if (mfpnpen && ((((addr >> 20) ^ mcfgaddr) & mcfgmask)==0)) {
+    if(mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8))))==0)) {
 
         // Configuration area is read only
         if (trans.get_command() == tlm::TLM_READ_COMMAND) {
