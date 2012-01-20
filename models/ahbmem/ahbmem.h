@@ -113,8 +113,6 @@ class AHBMem : public sc_module, public AHBDevice, public CLKDevice {
         const uint32_t ahbBaseAddress;
         // size is saved in bytes
         const uint32_t ahbSize;
-        const uint32_t hmask;
-        const uint32_t haddr;
 
         /// 12 bit MSB address and mask (constructor parameters)
         const uint32_t mhaddr;

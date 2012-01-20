@@ -66,9 +66,7 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
             ahb("ahb", amba::amba_AHB, ambaLayer, false /* arbiter? */),
             mTransactionPEQ("TransactionPEQ"),
             ahbBaseAddress(static_cast<uint32_t> (hmask_ & haddr_) << 20),
-            ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1), hmask(
-                    static_cast<uint32_t> (hmask_ << 20)), haddr(
-                    static_cast<uint32_t> (haddr_ << 20)),
+            ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1), 
             mhaddr(haddr_),
             mhmask(hmask_) {
 
@@ -78,7 +76,7 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
     // Display AHB slave information
     v::info << name() << "********************************************************************" << v::endl;
     v::info << name() << "* Create AHB simulation memory with following parameters:           " << v::endl;
-    v::info << name() << "* haddr/hmask: 0x" << std::setw(4) << std::setfill('0') << hex << mhaddr << "/0x" << std::setw(4) << std::setfill('0') << mhmask                    << v::endl;
+    v::info << name() << "* haddr/hmask: " << v::uint32 << mhaddr << v::uint32 << mhmask << v::endl;
     v::info << name() << "* Slave base address: 0x" << std::setw(8) << std::setfill('0') << hex << get_base_addr()                     << v::endl;
     v::info << name() << "* Slave size (bytes): 0x" << std::setw(8) << std::setfill('0') << hex << get_size()                          << v::endl;
     v::info << name() << "********************************************************************" << v::endl;
@@ -118,53 +116,27 @@ void AHBMem::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
        v::warn << name() << "Transaction exceeds slave memory region" << endl;
     }
 
-    // consume router delay (address phase)
-    wait(delay);
-
-    // reset timing
-    delay = sc_core::SC_ZERO_TIME;
-
-    if(trans.get_command() == tlm::TLM_WRITE_COMMAND) {
-      std::stringstream ss;
-      ss << "Write to address: 0x" << std::setw(8) << std::setfill('0') << hex << trans.get_address() << ", data: ";
+    if(trans.is_write()) {
       for(uint32_t i = 0; i < trans.get_data_length(); i++) {
-	    
-        if (i < 200)
-          ss << " " << std::setw(2) << std::setfill('0') << hex << (unsigned int)*(trans.get_data_ptr() + i);
-        else if (i== 200) ss << " ...<omnitted>... ";
-        //v::debug << name() << "Write with address: " << hex << trans.get_address() + i << " and data: " << hex << (unsigned int)*(trans.get_data_ptr() + i) << v::endl;
-        
         // write simulation memory
         mem[trans.get_address() + i] = *(trans.get_data_ptr() + i);
       }
-      v::debug << name() << ss.str() << v::endl;
-
-      delay = clock_cycle * (trans.get_data_length() >> 2);
+      // delay a clock cycle per word
+      delay += clock_cycle * (trans.get_data_length() >> 2);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
     } else {
-      std::stringstream ss;
-      ss << "Read from address: 0x" << std::setw(8) << std::setfill('0') << hex << trans.get_address() << ", data: ";
       for(uint32_t i = 0; i < trans.get_data_length(); i++) {
-       
-        //v::debug << name() << "Read with address: " << hex << trans.get_address() + i << " to return: " << hex << (unsigned int)mem[trans.get_address() + i] << v::endl;
-        if (i < 200)
-          ss << " " << std::setw(2) << std::setfill('0') << hex << (unsigned int)mem[trans.get_address() + i];
-        else if (i== 200) ss << " ...<omnitted>... ";
-
         // read simulation memory
         *(trans.get_data_ptr() + i) = mem[trans.get_address() + i];
-        
       }
-      v::debug << name() << ss.str() << v::endl;
-
-      delay = clock_cycle * (trans.get_data_length() >> 2);
+      
+      // delay a clock cycle per word
+      delay += clock_cycle * (trans.get_data_length() >> 2);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
-
     }
 
-  // address not valid
   } else {
-
+    // address not valid
     v::error << name() << "Address not within permissable slave memory space" << v::endl;
     trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
 
@@ -172,7 +144,6 @@ void AHBMem::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
 }
 
 tlm::tlm_sync_enum AHBMem::nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay) {
-
   v::debug << name() << "nb_transport_fw received transaction " << hex << &trans << " with phase: " << phase << v::endl;
 
   // The master has sent BEGIN_REQ
@@ -263,7 +234,7 @@ void AHBMem::writeByteDBG(const uint32_t address, const uint8_t byte) {
 // TLM debug interface
 unsigned int AHBMem::transport_dbg(tlm::tlm_generic_payload &gp) {
     // Check address befor before doing anything else
-    if(!((haddr ^ (gp.get_address() & 0xfff00000)) & hmask)) {
+    if(!((mhaddr ^ (gp.get_address() >> 20)) & mhmask)) {
         // warn if access exceeds slave memory region
         if((gp.get_address() + gp.get_data_length()) >
            (ahbBaseAddress + ahbSize)) {
@@ -275,7 +246,7 @@ unsigned int AHBMem::transport_dbg(tlm::tlm_generic_payload &gp) {
             // Read command
             case tlm::TLM_READ_COMMAND:
                 for(uint32_t i = 0; i < gp.get_data_length(); i++) {
-                    *(gp.get_data_ptr() + i) = mem[gp.get_address() + i];
+                    gp.get_data_ptr()[i] = mem[gp.get_address() + i];
                 }
                 gp.set_response_status(tlm::TLM_OK_RESPONSE);
                 return gp.get_data_length();
@@ -297,7 +268,6 @@ unsigned int AHBMem::transport_dbg(tlm::tlm_generic_payload &gp) {
                 return 0;
                 break;
         }
-    } // if( !((haddr ^ (gp.get_address() & 0xfff00000)) & hmask) )
-
+    }
     return 0;
 }
