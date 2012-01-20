@@ -191,7 +191,7 @@ def configure(ctx):
         if not '-Wall' in ctx.env['CXXFLAGS']:
             ctx.env.append_unique('CXXFLAGS', '-Wall')
         if not ctx.options.verbosity:
-            ctx.env.append_unique('DEFINES', 'GLOBALVERBOSITY=3')
+            ctx.env.append_unique('DEFINES', 'GLOBALVERBOSITY=4')
 
     #############################################################
     # Check support for profilers
@@ -862,7 +862,7 @@ def options(ctx):
     # Custom Options
     prof.add_option('--tsim-comp', default=False, action='store_true', help='Defines the TSIM_COMPATIBILITY directive', dest='define_tsim_compatibility')
 
-    ctx.add_option("--verbosity", dest="verbosity", help="Defines the verbosity for the build", default=environ.get("VERBOSITY",'3'))
+    ctx.add_option("--verbosity", dest="verbosity", help="Defines the verbosity for the build", default=environ.get("VERBOSITY",'4'))
 
     conf = ctx.add_option_group("'./waf generate' Options")
     conf.add_option('-t', '--template', default=None, type='string', help='Defines a template to generate a new platform', dest='template')

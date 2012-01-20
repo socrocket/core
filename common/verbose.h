@@ -145,7 +145,7 @@ extern Number noint;
 #  ifdef GLOBALVERBOSITY
 #    define VERBOSITY GLOBALVERBOSITY
 #  else
-#    define VERBOSITY 3
+#    define VERBOSITY 4
 #  endif
 #endif
 
