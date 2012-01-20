@@ -5,33 +5,32 @@ typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 
 int main(int argc, char *argv[]) {
-  uint32_t *ahb_pnp_master = (uint32_t *)0xFFFFF000;
-  uint32_t *ahb_pnp_slave =  (uint32_t *)0xFFFFF800;
-  uint32_t *apb_pnp_slave =  (uint32_t *)0x800FF000;
-
-  // AHB Master 0 MMUCache
-  // AHB Slave 0 MCtrl
-  // AHB Slave 1 AHBMem ?
-  // APB Slave 1 MCtrl
-  uint8_t *mctrl_sdram = (uint8_t *)0x400F000;
-  uint8_t *ahbmem = (uint8_t *)0xA0000000;
+  volatile uint32_t *ahb_pnp_master = (uint32_t *)0xFFFFF000;
+  volatile uint32_t *ahb_pnp_slave =  (uint32_t *)0xFFFFF800;
+  volatile uint32_t *apb_pnp_slave =  (uint32_t *)0x800FF000;
+  volatile uint8_t *mctrl_sdram = (uint8_t *)0x400F000;
+  volatile uint8_t *ahbmem = (uint8_t *)0xA0000000;
+  uint32_t error = 0;
+  uint32_t *test;
+  uint32_t value;
   
-  uint32_t mctrl_mcfg1 = *((uint32_t *)0x80000000);
   printf("To use this test you are adviced to use the standard singlecore lt platform\n");
   printf("This test reads and writes all memmorys. Uses MCtrl, AHBMem and PNP area over AHB & APB\n");
   printf("\n");
   
-  printf("1. Read MCFG1 MCtrl Register from APB:\n");
-  printf("   Reading: 0x%08x\n", mctrl_mcfg1);
+  printf("1.  Read MCFG1 MCtrl Register from APB:\n");
+  uint32_t mctrl_mcfg1 = *((uint32_t *)0x80000000);
+  printf("    Reading: 0x%08x\n", mctrl_mcfg1);
   if(mctrl_mcfg1 == 0x10280033) {
-    printf("   Test successful\n");
+    printf("    Test successful\n");
   } else {
-    printf("   Test failed\n");
+    printf("    Test failed\n");
+    error |= 1 << 1;
   }
   printf("\n");
   
-  printf("2. DBG Read from MCtrl\n");
-  printf("   Preparing memory (Write Bytes)\n");
+  printf("2.  DBG Read from MCtrl\n");
+  printf("    Preparing memory (Write Bytes)\n");
   mctrl_sdram[0] = 'R';
   mctrl_sdram[1] = 'e';
   mctrl_sdram[2] = 'a';
@@ -48,12 +47,12 @@ int main(int argc, char *argv[]) {
   mctrl_sdram[13] = 'A';
   mctrl_sdram[14] = 'M';
   mctrl_sdram[15] = '\0';
-  printf("   Reading:   '%s'\n", (char *)mctrl_sdram);
-  printf("   Should be: 'Read from SDRAM'\n");
+  printf("    Reading:   '%s'\n", (char *)mctrl_sdram);
+  printf("    Should be: 'Read from SDRAM'\n");
   printf("\n");
   
-  printf("3. DBG Read from AHBMem\n");
-  printf("   Preparing memory (Write Bytes)\n");
+  printf("3.  DBG Read from AHBMem\n");
+  printf("    Preparing memory (Write Bytes)\n");
   ahbmem[0] = 'R';
   ahbmem[1] = 'e';
   ahbmem[2] = 'a';
@@ -71,43 +70,123 @@ int main(int argc, char *argv[]) {
   ahbmem[14] = 'e';
   ahbmem[15] = 'm';
   ahbmem[16] = '\0';
-  printf("   Read:      '%s'\n", (char *)ahbmem);
-  printf("   Should be: 'Read from AHBMem'\n");
+  printf("    Read:      '%s'\n", (char *)ahbmem);
+  printf("    Should be: 'Read from AHBMem'\n");
   printf("\n");
   
   
-  printf("4. AHB Master PNP Read\n");
-  printf("   Reading: 0x%08hx\n", ahb_pnp_master[0]);
+  printf("4.  AHB Master PNP Read\n");
+  printf("    Reading: 0x%08hx\n", ahb_pnp_master[0]);
   if(ahb_pnp_master[0] == 0x01003000) {
-    printf("   Test successful\n");
+    printf("    Test successful\n");
   } else {
-    printf("   Test failed\n");
+    printf("    Test failed\n");
+    error |= 1 << 4;
   }
   printf("\n");
   
-  printf("5. AHB Slave PNP Read\n");
-  printf("   Reading: 0x%08hx\n", ahb_pnp_slave[0]);
+  printf("5.  AHB Slave PNP Read\n");
+  printf("    Reading: 0x%08hx\n", ahb_pnp_slave[0]);
   if(ahb_pnp_slave[0] == 0x0400F000) {
-    printf("   Test successful\n");
+    printf("    Test successful\n");
   } else {
-    printf("   Test failed\n");
+    printf("    Test failed\n");
+    error |= 1 << 5;
   }
   printf("\n");
   
-  printf("6. APB Slave PNP Read\n");
-  printf("   Reading: 0x%08hx\n", apb_pnp_slave[0]);
+  printf("6.  APB Slave PNP Read\n");
+  printf("    Reading: 0x%08hx\n", apb_pnp_slave[0]);
   if(apb_pnp_slave[0] == 0x0400F000) {
-    printf("   Test successful\n");
+    printf("    Test successful\n");
   } else {
-    printf("   Test failed\n");
+    printf("    Test failed\n");
+    error |= 1 << 6;
   }
   printf("\n");
   
-  // Try to read from all
-  // Try to write a text in the AHBMem/MCtrl
-  // Printf the text from AHBMem/MCtrl
-  // Try to write into ahb_pnp and apb_pnp
-  // Try to printf pnp mems
+  printf("Now follow some messy tests:\n");
+  printf("The folowing tests will all produce ugly signs\n");
+  printf("We test DBG transport of the PNP Areas!\n");
+  printf("\n");
+
+  printf("7.  AHB Master PNP DBG Read\n");
+  printf("    Reading: '%s'\n", (char *)ahb_pnp_master);
+  printf("    Please report bus errors\n");
+  printf("\n");
   
-  return 0;
+  printf("8.  AHB Slave PNP DBG Read\n");
+  printf("    Reading: '%s'\n", (char *)ahb_pnp_slave);
+  printf("    Please report bus errors\n");
+  printf("\n");
+  
+  printf("9.  APB Slave PNP DBG Read\n");
+  printf("    Reading: '%s'\n", (char *)apb_pnp_slave);
+  printf("    Please report bus errors\n");
+  printf("\n");
+  
+  printf("The folowing tests will all produce errors\n");
+  printf("\n");
+  
+  printf("10. AHB Master PNP Write\n");
+  printf("    Writing: '0xDEADBEEF'\n");
+  ahb_pnp_master[0] = 0xDEADBEEF;
+  if(ahb_pnp_master[0] == 0x01003000) {
+    printf("    Test successful\n");
+  } else {
+    printf("    Reading: 0x%08hx\n", ahb_pnp_master[0]);
+    printf("    Test failed\n");
+    error |= 1 << 10;
+  }
+  printf("\n");
+  
+  printf("11. AHB Slave PNP Write\n");
+  printf("    Writing: 0xDEADBEEF\n");
+  ahb_pnp_slave[0] = 0xDEADBEEF;
+  if(ahb_pnp_slave[0] == 0x0400F000) {
+    printf("    Test successful\n");
+  } else {
+    printf("    Reading: 0x%08hx\n", ahb_pnp_slave[0]);
+    printf("    Test failed\n");
+    error |= 1 << 11;
+  }
+  printf("\n");
+  
+  printf("12. APB Slave PNP Write\n");
+  printf("    Writing: 0xDEADBEEF\n");
+  apb_pnp_slave[0] = 0xDEADBEEF;
+  if(apb_pnp_slave[0] == 0x0400F000) {
+    printf("    Test successful\n");
+  } else {
+    printf("    Reading: 0x%08hx\n", apb_pnp_slave[0]);
+    printf("    Test failed\n");
+    error |= 1 << 12;
+  }
+  printf("\n");
+  
+  printf("13. Failing AHB Read\n");
+  printf("    Accessing: 0xF0000000\n");
+  test = (uint32_t *)0xF0000000;
+  value = *test;
+  printf("\n");
+  
+  printf("14. Failing APB Read\n");
+  printf("    Accessing: 0x800F0000\n");
+  test = (uint32_t *)0x800F0000;
+  value = *test;
+  printf("\n");
+  
+  printf("15. Failing AHB Master PNP Read\n");
+  value = ahb_pnp_master[40];
+  printf("\n");
+  
+  printf("16. Failing AHB Slave PNP Read\n");
+  value = ahb_pnp_slave[40];
+  printf("\n");
+  
+  printf("17. Failing APB Slave PNP Read\n");
+  value = apb_pnp_slave[40];
+  printf("\n");
+  
+  return error;
 }
