@@ -206,7 +206,7 @@ void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bo
 	        // Get registers from config area
 	        uint32_t *data32 = (uint32_t*)data;
 	        for(uint32_t i = 0; i < (length >> 2); i++) {
-              data32[i] = getPNPReg(addr);
+              data32[i] = getPNPReg(addr + (i<<2));
 	            // one cycle delay per 32bit register
 	            delay += clock_cycle;
 	        }
