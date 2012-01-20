@@ -49,7 +49,7 @@
 
 class CLKDevice {
     public:
-        SIGNALMODULE(CLKDevice);
+        SK_HAS_SIGNALS(CLKDevice);
 
         /// Reset input signal
         signal<bool>::in rst;
@@ -94,7 +94,7 @@ class CLKDevice {
         ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
         ///
         /// @param period An sc_time variable which holds the clockcycle length.
-        void set_clk(sc_core::sc_time &period);
+        void set_clk(sc_core::sc_time period);
 
         /// Set the clockcycle length.
         ///

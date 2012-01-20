@@ -79,19 +79,16 @@ void APBDevice::print_device_info(char *name) const {
 
 // Returns pointer to PNP device information
 const uint32_t *APBDevice::get_device_info() const {
-
     return m_register;
 }
 
 // Returns the device type
 const APBDevice::device_type APBDevice::get_type() const {
-
     return static_cast<APBDevice::device_type>(m_register[1] & 0xf);
 }
 
 // Returns the 12 bit MSB address of the device
 const uint32_t APBDevice::get_base() const {
-
     return (m_register[1] >> 20) & 0xFFF;
 }
 

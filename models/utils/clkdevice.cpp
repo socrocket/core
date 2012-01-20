@@ -75,7 +75,7 @@ void CLKDevice::set_clk(sc_core::sc_clock &clk) {
 }
 
 // Extract basic cycle rate from a clock period
-void CLKDevice::set_clk(sc_core::sc_time &period) {
+void CLKDevice::set_clk(sc_core::sc_time period) {
     clock_cycle = period;
     clkcng();
 }
