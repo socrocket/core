@@ -48,6 +48,7 @@
 
 #include <stdint.h>
 #include <amba.h>
+#include <tlm.h>
 
 /// @addtogroup utils
 /// @{
@@ -130,12 +131,24 @@ class AHBDevice : public amba_slave_base {
 
         /// Prints the device info of the device.
         virtual void print_device_info(char *name) const;
+
+        /// Collect common transport statistics.
+        virtual void transport_statistics(tlm::tlm_generic_payload &gp);
+
+        /// Print common transport statistics.
+        virtual void print_transport_statistics(const char *name) const;
     private:
         /// Impementation of the device register file.
         uint32_t m_register[8];
 	
         /// The master of slave bus id of the device
         uint32_t m_busid;
+
+        /// Stores the number of Bytes read from the device
+        uint32_t m_reads;
+
+        /// Stores the number of Bytes written from the device
+        uint32_t m_writes;
 };
 
 /// This function returns a grlib bank address register.

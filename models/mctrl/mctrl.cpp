@@ -330,12 +330,13 @@ void Mctrl::start_of_simulation() {
 
 // Print execution statistic at end of simulation
 void Mctrl::end_of_simulation() {
-    v::info << name() << " ********************************************" << v::endl;
-    v::info << name() << " * MCtrl Statistic:" << v::endl;
-    v::info << name() << " * ----------------" << v::endl;
-    v::info << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
-    v::info << name() << " * Total Transactions:      " << m_total_transactions << v::endl;
-    v::info << name() << " ******************************************** " << v::endl;
+    v::report << name() << " ********************************************" << v::endl;
+    v::report << name() << " * MCtrl Statistic:" << v::endl;
+    v::report << name() << " * ----------------" << v::endl;
+    v::report << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
+    v::report << name() << " * Total Transactions:      " << m_total_transactions << v::endl;
+    print_transport_statistics(name());
+    v::report << name() << " ******************************************** " << v::endl;
 }
 
 Mctrl::MEMPort::MEMPort(uint32_t _id, MEMDevice *_dev) : id(_id), dev(_dev), addr(0), length(0) {}
@@ -749,6 +750,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
             memgp.set_byte_enable_ptr(gp.get_byte_enable_ptr());
             memgp.set_data_ptr(data);
             mem[port.id]->b_transport(memgp, mem_delay);
+            transport_statistics(gp);
             gp.set_response_status(memgp.get_response_status());
             m_right_transactions++;
 

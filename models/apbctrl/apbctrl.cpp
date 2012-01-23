@@ -196,6 +196,7 @@ uint32_t APBCtrl::getPNPReg(const uint32_t address) {
 // Functional part of the model (decoding logic)
 void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bool debug) {
   m_total_transactions++;
+  transport_statistics(ahb_gp);
   
   // Extract data pointer from payload
   uint8_t *data = ahb_gp.get_data_ptr();
@@ -530,12 +531,13 @@ void APBCtrl::start_of_simulation() {
 
 // Print execution statistic at end of simulation
 void APBCtrl::end_of_simulation() {
-    v::info << name() << " ********************************************" << v::endl;
-    v::info << name() << " * APBCtrl Statistic:" << v::endl;
-    v::info << name() << " * ------------------" << v::endl;
-    v::info << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
-    v::info << name() << " * Total Transactions:      " << m_total_transactions << v::endl;
-    v::info << name() << " ******************************************** " << v::endl;
+    v::report << name() << " ********************************************" << v::endl;
+    v::report << name() << " * APBCtrl Statistic:" << v::endl;
+    v::report << name() << " * ------------------" << v::endl;
+    v::report << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
+    v::report << name() << " * Total Transactions:      " << m_total_transactions << v::endl;
+    print_transport_statistics(name());
+    v::report << name() << " ******************************************** " << v::endl;
 }
 
 struct apb_check_slave_type {

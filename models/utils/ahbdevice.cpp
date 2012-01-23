@@ -53,7 +53,8 @@ using namespace std;
 
 AHBDevice::AHBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
                      uint8_t version, uint8_t irq, uint32_t bar0,
-                     uint32_t bar1, uint32_t bar2, uint32_t bar3) {
+                     uint32_t bar1, uint32_t bar2, uint32_t bar3) :
+    m_reads(0), m_writes(0) {
     m_register[0] = (irq & 0x1F) | ((version & 0x1F) << 5)
             | ((deviceid & 0xFFF) << 12) | (vendorid << 24);
     m_register[1] = m_register[2] = m_register[3] = 0;
@@ -217,4 +218,17 @@ const uint32_t AHBDevice::get_busid() const {
 
   return m_busid;
 
+}
+
+void AHBDevice::transport_statistics(tlm::tlm_generic_payload &gp) {
+  if(gp.is_write()) {
+    m_writes += gp.get_data_length();
+  } else if(gp.is_read()){
+    m_reads += gp.get_data_length();
+  }
+}
+
+void AHBDevice::print_transport_statistics(const char *name) const {
+  v::report << name << " * Bytes read: " << m_reads << v::endl;
+  v::report << name << " * Bytes written: " << m_writes << v::endl;
 }
