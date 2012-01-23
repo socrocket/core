@@ -255,6 +255,24 @@ class Mctrl : public gs::reg::gr_device,
         /// The number of successfull ended transactions
         uint64_t m_right_transactions;
 
+        /// Total time of power down mode
+        sc_time m_power_down_time;
+        
+        /// Last time switched to power down mode
+        sc_time m_power_down_start;
+
+        /// Total time of deep power down mode
+        sc_time m_deep_power_down_time;
+        
+        /// Last time switched to deep power down mode
+        sc_time m_deep_power_down_start;
+
+        /// Total time of auto self refresh mode
+        sc_time m_self_refresh_time;
+        
+        /// Last time switched to auto self refresh mode
+        sc_time m_self_refresh_start;
+
         // Constructor parameters (modeling VHDL generics)
         const int g_romasel;
         const int g_sdrasel;

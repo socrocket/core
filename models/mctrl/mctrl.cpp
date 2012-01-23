@@ -87,6 +87,9 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             mem("mem", gs::socket::GS_TXN_ONLY),
 	    mAcceptPEQ("mAcceptPEQ"), mTransactionPEQ("TransactionPEQ"),
 	    busy(false), m_total_transactions(0), m_right_transactions(0), 
+            m_power_down_time(0, SC_NS), m_power_down_start(0, SC_NS),
+            m_deep_power_down_time(0, SC_NS), m_deep_power_down_start(0, SC_NS),
+            m_self_refresh_time(0, SC_NS), m_self_refresh_start(0, SC_NS),
             g_romasel(_romasel), g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask), 
             g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr), 
             g_rammask(_rammask), g_paddr(_paddr), g_pmask(_pmask), g_wprot(_wprot),
@@ -330,12 +333,16 @@ void Mctrl::start_of_simulation() {
 
 // Print execution statistic at end of simulation
 void Mctrl::end_of_simulation() {
+    switch_power_mode(); 
     v::report << name() << " ********************************************" << v::endl;
     v::report << name() << " * MCtrl Statistic:" << v::endl;
     v::report << name() << " * ----------------" << v::endl;
     v::report << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
-    v::report << name() << " * Total Transactions:      " << m_total_transactions << v::endl;
+    v::report << name() << " * Total Transactions: " << m_total_transactions << v::endl;
     print_transport_statistics(name());
+    v::report << name() << " * Total self refresh time: " << m_self_refresh_time << v::endl;
+    v::report << name() << " * Total power down time: " << m_power_down_time << v::endl;
+    v::report << name() << " * Total deep power down time: " << m_deep_power_down_time << v::endl;
     v::report << name() << " ******************************************** " << v::endl;
 }
 
@@ -867,7 +874,19 @@ void Mctrl::switch_power_mode() {
     gp.set_data_length(4);
     gp.set_data_ptr((unsigned char*)&data);
     gp.set_extension(erase);
-
+    switch(m_pmode) {
+        case 1: 
+            m_power_down_time += (sc_time_stamp() - m_power_down_start);
+            break;
+        case 2: 
+            m_self_refresh_time += (sc_time_stamp() - m_self_refresh_start);
+            break;
+        case 5: 
+            m_deep_power_down_time += (sc_time_stamp() - m_deep_power_down_start);
+            break;
+        default:
+            break;
+    }
     v::debug << name() << "set pmode: " << (uint32_t)((r[MCFG4] >> 16) & 0x7) << v::endl;
     switch((r[MCFG4] >> 16) & 0x7) {
         default:
@@ -883,11 +902,13 @@ void Mctrl::switch_power_mode() {
             v::debug << name() << "Power Mode: Power Down" << v::endl;
             m_pmode = 1;
             PM::send_idle(this, "idle_powerdown", sc_time_stamp(), true);
+            m_power_down_start = sc_time_stamp();
         }   break;
         
         //partial array self refresh: partially erase SDRAM
         case 2: {
             uint8_t pasr = r[MCFG4] & MCFG4_PASR;
+            m_self_refresh_start = sc_time_stamp();
             if(pasr) {
                 // Delete
                 v::debug << name() << "Power Mode: Partial-Self Refresh" << v::endl;
@@ -933,6 +954,7 @@ void Mctrl::switch_power_mode() {
             gp.set_address(0);
             data = dsize;
             mem[c_sdram.id]->b_transport(gp,delay);
+            m_deep_power_down_start = sc_time_stamp();
         }   break;
     }
 }
