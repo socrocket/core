@@ -110,6 +110,9 @@ class GPCounter : public gs::reg::gr_subdevice {
         /// Execute the callback registering when systemc reaches the end of elaboration.
         void end_of_elaboration();
 
+        /// Execute the callback registering when systemc reaches the end of simulation.
+        void end_of_simulation();
+
       // Register Callbacks
         /// This is a callback which gets executed before the control register is read.
         /// It updates the control register with the current values.
@@ -160,6 +163,8 @@ class GPCounter : public gs::reg::gr_subdevice {
         /// This function contains the core functionality of the Counter.
         /// It is a SC_THREAD which triggers the interupt and waits for the e_tick event.
         void ticking();
+    private:
+        uint64_t m_underflows;
 
 
 };

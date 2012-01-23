@@ -54,7 +54,7 @@
 /// @{
 
 GPCounter::GPCounter(GPTimer &_parent, unsigned int _nr, sc_core::sc_module_name name) :
-    gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false) {
+    gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false), m_underflows(0) {
     SC_THREAD(ticking);
 
     PM::registerIP(this, "gpcounter", p.powermon);
@@ -83,6 +83,15 @@ void GPCounter::end_of_elaboration() {
             gen_unique_name("value_write", false), gs::reg::NOTIFY));
 
     p.r[GPTimer::VALUE(nr)].enable_events();
+}
+
+void GPCounter::end_of_simulation() {
+    v::report << name() << " ********************************************" << v::endl;
+    v::report << name() << " * GPCounter Statistic:" << v::endl;
+    v::report << name() << " * ----------------" << v::endl;
+    v::report << name() << " * Counter Underflows: " << m_underflows << v::endl;
+    v::report << name() << " ********************************************" << v::endl;
+ 
 }
 
 void GPCounter::ctrl_read() {
@@ -179,6 +188,7 @@ void GPCounter::ticking() {
 
         v::debug << name() << "GPCounter_" << nr << " is wait" << v::endl;
         wait(e_wait);
+        m_underflows++;
         v::debug << name() << "GPCounter_" << nr << " is rockin'" << v::endl;
         PM::send(this, "underflow", 1, sc_time_stamp(),0,1);
         // Send interupt and set outputs
