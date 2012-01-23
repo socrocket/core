@@ -198,6 +198,7 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
 	  unsigned int master_id;
 	  unsigned int slave_id;
+	  sc_time start_time;
 	  TransStateType state;
 
 	} connection_t;
@@ -227,20 +228,40 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 	/// The number of masters in the system
 	unsigned int num_of_master_bindings;
 
-  /// Total number of transactions handled by the instance
-  uint64_t m_total_transactions;
+	/// Total waiting time in arbiter
+	sc_time m_total_wait;
 
-  /// Succeeded number of transaction handled by the instance
-  uint64_t m_right_transactions;
+	/// Total number of arbitrated instructions
+	uint64_t m_arbitrated;
+
+	/// Maximum waiting time in arbiter
+	sc_time m_max_wait;
+
+	/// ID of the master with the maximum waiting time
+	uint32_t m_max_wait_master;
+
+	/// Number of idle cycles
+	uint64_t m_idle_count;
+
+	/// Total number of transactions handled by the instance
+	uint64_t m_total_transactions;
+
+	/// Succeeded number of transaction handled by the instance
+	uint64_t m_right_transactions;
+
+	/// The abstraction layer of the model
+	amba::amba_layer_ids m_ambaLayer;
 
 	// Private functions
 	// -----------------
 
 	/// Set up slave map and collect plug & play information
         void start_of_simulation();
-    /// SystemC End of Simulation handler
-    /// Prints out the Performance Counter
-    void end_of_simulation();
+    
+
+	/// SystemC End of Simulation handler
+	/// Prints out the Performance Counter
+	void end_of_simulation();
 
 	/// Helper function for creating slave map decoder entries
         void setAddressMap(const uint32_t binding, const uint32_t hindex, const uint32_t haddr, const uint32_t hmask);

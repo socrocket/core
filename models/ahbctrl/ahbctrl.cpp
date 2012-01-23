@@ -84,14 +84,21 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       mDataPEQ("DataPEQ"),
       mEndDataPEQ("EndDataPEQ"),
       mResponsePEQ("ResponsePEQ"),
+      m_total_wait(SC_ZERO_TIME),
+      m_arbitrated(0),
+      m_max_wait(SC_ZERO_TIME),
+      m_max_wait_master(defmast),
+      m_idle_count(0),
       m_total_transactions(0), 
-      m_right_transactions(0) {
+      m_right_transactions(0),
+      m_ambaLayer(ambaLayer) 
+
+{
 
   if(ambaLayer==amba::amba_LT) {
 
     // Register tlm blocking transport function
     ahbIN.register_b_transport(this, &AHBCtrl::b_transport);
-    ahbIN.register_transport_dbg(this, &AHBCtrl::transport_dbg);
 
   }
 
@@ -371,9 +378,10 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
 
     // Memorize the master this was coming from
     // The slave info (second) will be filled in after decoding
-    connection.master_id = master_id;
-    connection.slave_id  = 0;
-    connection.state     = PENDING;
+    connection.master_id  = master_id;
+    connection.slave_id   = 0;
+    connection.start_time = sc_time_stamp();
+    connection.state      = PENDING;
 
     addPendingTransaction(trans, connection);
 
@@ -447,6 +455,9 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(uint32_t id, tlm::tlm_generic_payloa
 // the one with the highest priority or the one pointed by the
 // round 'robin' counter is select. All others get delayed.
 void AHBCtrl::arbitrate_me() {
+  
+  // The arbiter waiting time of a certain transaction
+  sc_time waiting_time;
 
   connection_t connection;
   int grand_id;
@@ -483,11 +494,33 @@ void AHBCtrl::arbitrate_me() {
     // There is a winner
     if (grand_id > -1) {
 
+      // Get the selected transaction from pending map
       connection = pending_map[selected_transaction];
+
+      // Calculate the waiting time of the transaction
+      waiting_time = sc_time_stamp() - connection.start_time;
+
+      if (waiting_time > m_max_wait) {
+
+	// New maximum waiting time
+	m_max_wait = waiting_time;
+	m_max_wait_master = grand_id;
+
+      }
+
+      // Accumulate total waiting time 
+      m_total_wait += waiting_time;
+      // Increment absolute number of arbitrated transactions
+      m_arbitrated++;
+
       connection.state = BUSY;
       pending_map[selected_transaction] = connection;
 
       mRequestPEQ.notify(*selected_transaction);
+
+    } else {
+
+      m_idle_count++;
 
     }
   }
@@ -964,12 +997,29 @@ void AHBCtrl::start_of_simulation() {
 
 // Print execution statistic at end of simulation
 void AHBCtrl::end_of_simulation() {
-    v::info << name() << " ********************************************" << v::endl;
-    v::info << name() << " * AHBCtrl Statistic:" << v::endl;
-    v::info << name() << " * ------------------" << v::endl;
-    v::info << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
-    v::info << name() << " * Total Transactions:      " << m_total_transactions << v::endl;
-    v::info << name() << " ******************************************** " << v::endl;
+
+  double busy_cycles;
+
+    v::report << name() << " ********************************************" << v::endl;
+    v::report << name() << " * AHBCtrl Statistic:" << v::endl;
+    v::report << name() << " * ------------------" << v::endl;
+    v::report << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
+    v::report << name() << " * Total Transactions:      " << m_total_transactions << v::endl;
+
+    if (m_ambaLayer == amba::amba_AT) {
+
+      busy_cycles = sc_time_stamp() / clock_cycle;
+
+      v::report << name() << " * Simulation cycles: " << busy_cycles << v::endl;
+      v::report << name() << " * Idle cycles: " << m_idle_count << v::endl;
+      v::report << name() << " * Bus utilization (simulation cycles / idle cycles): " << (busy_cycles - m_idle_count)/busy_cycles << v::endl;
+      v::report << name() << " * Maximum arbiter waiting time: " << m_max_wait << v::endl;
+      v::report << name() << " * Master with maximum waiting time: " << m_max_wait_master << v::endl;
+      v::report << name() << " * Average arbitration time / transaction: " << m_total_wait / m_arbitrated << v::endl;
+
+    }
+
+    v::report << name() << " ******************************************** " << v::endl;
 }
 
 
