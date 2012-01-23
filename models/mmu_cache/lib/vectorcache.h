@@ -240,11 +240,11 @@ class vectorcache : public sc_core::sc_module, public cache_if {
 	// Statistics
 	// ----------
 	/// Counter for read hits
-	uint64_t rhits;
+	uint64_t rhits[4];
 	/// Counter for read misses
 	uint64_t rmisses;
 	/// Counter for write hits
-	uint64_t whits;
+	uint64_t whits[4];
 	/// Counter for write misses
 	uint64_t wmisses;
 	/// Counter for bypass operations

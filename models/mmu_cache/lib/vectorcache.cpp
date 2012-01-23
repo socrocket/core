@@ -173,9 +173,14 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     CACHE_CONFIG_REG |= ((m_repl & 0x3) << 28);
 
     // Reset statistics
-    rhits = 0;
+    for(uint32_t i = 0; i<sets; i++) {
+
+      rhits[i] = 0;
+      whits[i] = 0;
+
+    }
+
     rmisses = 0;
-    whits = 0;
     wmisses = 0;
     bypassops = 0;
 
@@ -259,7 +264,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
                         cache_hit = i;
 			
 			// increment hit counter
-			rhits++;
+			rhits[i]++;
 
                         break;
                     } else {
@@ -532,7 +537,7 @@ void vectorcache::mem_write(unsigned int address, unsigned char * data,
                     }
 
 		    // Increment hit counter
-		    whits++;
+		    whits[i]++;
 
                     // valid is already set
 
@@ -1045,15 +1050,51 @@ inline unsigned int vectorcache::offset2valid(unsigned int offset) {
 // Print execution statistic at end of simulation
 void vectorcache::end_of_simulation() {
 
-  v::info << name() << " ******************************************** " << v::endl;
-  v::info << name() << " * Cacheing statistic:                        " << v::endl;
-  v::info << name() << " * -------------------" << v::endl;
-  v::info << name() << " * Read hits:    " << rhits << v::endl;
-  v::info << name() << " * Read misses:  " << rmisses << v::endl; 
-  v::info << name() << " * Write hits:   " << whits << v::endl;
-  v::info << name() << " * Write misses: " << wmisses << v::endl;
-  v::info << name() << " * Bypass ops:   " << bypassops << v::endl;
-  v::info << name() << " ******************************************** " << v::endl;
+  uint64_t total_rhits = 0;
+  uint64_t total_whits = 0;
+
+  v::report << name() << " ******************************************** " << v::endl;
+  v::report << name() << " * Cacheing statistic:                        " << v::endl;
+  v::report << name() << " * -------------------" << v::endl;
+ 
+  for (uint32_t i=0;i<=m_sets;i++) {
+  
+    v::report << name() << " * Read hits set" << i << ": " << rhits[i] << v::endl;
+
+    total_rhits += rhits[i];
+
+  }
+
+  v::report << name() << " * Total Read Hits: " << total_rhits << v::endl;
+  v::report << name() << " * Read Misses:  " << rmisses << v::endl; 
+
+  // avoid / 0
+  if (total_rhits+rmisses != 0) {
+
+    v::report << name() << " * Read Hit Rate: " << (double)total_rhits/(double)(total_rhits+rmisses) << v::endl;
+
+  }
+
+  for (uint32_t i=0;i<=m_sets;i++) {
+
+    v::report << name() << " * Write hits set" << i << ": " << whits[i] << v::endl;
+
+    total_whits += whits[i];
+  
+  }
+
+  v::report << name() << " * Total Write Hits: " << total_whits << v::endl;
+  v::report << name() << " * Write Misses: " << wmisses << v::endl;
+
+  // avoid / 0
+  if (total_whits + wmisses != 0) {
+
+  v::report << name() << " * Write Hit Rate: " << (double)total_whits/(double)(total_whits+wmisses) << v::endl;
+
+  }
+
+  v::report << name() << " * Bypass ops:   " << bypassops << v::endl;
+  v::report << name() << " ******************************************** " << v::endl;
 
 }
 

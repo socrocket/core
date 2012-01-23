@@ -113,6 +113,12 @@ class localram : public sc_core::sc_module, public mem_if {
 	/// Number of write accesses
 	uint64_t swrites;
 
+	/// Volume of total reads (bytes)
+	uint64_t sreads_byte;
+
+	/// Volume of total writes (bytes)
+	uint64_t swrites_byte;
+
 	/// Clock cycle time
 	sc_core::sc_time clockcycle;
 };

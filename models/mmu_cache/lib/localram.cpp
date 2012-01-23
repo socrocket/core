@@ -51,7 +51,14 @@
 /// constructor
 localram::localram(sc_core::sc_module_name name, unsigned int lrsize,
                    unsigned int lrstart) :
-                   sc_module(name), m_lrsize(lrsize<<10), m_lrstart(lrstart << 24) {
+                   sc_module(name), 
+		   m_lrsize(lrsize<<10), 
+		   m_lrstart(lrstart << 24),
+		   sreads(0),
+		   swrites(0),
+		   sreads_byte(0),
+		   swrites_byte(0)
+{
 
     // Parameter check
     // ---------------
@@ -71,10 +78,6 @@ localram::localram(sc_core::sc_module_name name, unsigned int lrsize,
     v::info << this->name() << " * lrstart (start address): " << std::hex << m_lrstart << v::endl;
     v::info << this->name() << " * lrsize: " << std::hex << m_lrsize  << " bytes" << v::endl;
     v::info << this->name() << " ******************************************************************************* "  << v::endl;
-
-    // Init executions statistics
-    sreads = 0;
-    swrites = 0;
 
 }
 
@@ -102,6 +105,7 @@ bool localram::mem_read(unsigned int addr, unsigned char *data, unsigned int len
   // Copy data to payload pointer
   for (unsigned int i = 0; i < len; i++) {
     *(data + i) = scratchpad[(addr - m_lrstart) >> 2].c[byt + i];
+    sreads_byte++;
   }
 
   v::debug << this->name() << "Read from address: " << std::hex << addr << v::endl;
@@ -134,6 +138,7 @@ void localram::mem_write(unsigned int addr, unsigned char *data, unsigned int le
   // memcpy ??
   for (unsigned int i = 0; i < len; i++) {
     scratchpad[(addr - m_lrstart) >> 2].c[byt + i] = *(data + i);
+    swrites_byte++;
   }
 
   v::debug << this->name() << "Write to address: " << std::hex << addr << v::endl;
@@ -152,12 +157,12 @@ void localram::mem_write(unsigned int addr, unsigned char *data, unsigned int le
 void localram::end_of_simulation() {
 
   // Localram execution statistic
-  v::info << name() << " ******************************************** " << v::endl;
-  v::info << name() << " * Scratchpad statisitics: " << v::endl;
-  v::info << name() << " * -----------------------" << v::endl;
-  v::info << name() << " * Read accesses:  " << sreads  << v::endl;
-  v::info << name() << " * Write accesses: " << swrites << v::endl;
-  v::info << name() << " ******************************************** " << v::endl;
+  v::report << name() << " ******************************************************* " << v::endl;
+  v::report << name() << " * Scratchpad statisitics: " << v::endl;
+  v::report << name() << " * -----------------------" << v::endl;
+  v::report << name() << " * Read accesses:  " << sreads  << " (Bytes: " << sreads_byte << ")" << v::endl;
+  v::report << name() << " * Write accesses: " << swrites << " (Bytes: " << swrites_byte << ")" << v::endl;
+  v::report << name() << " ******************************************************* " << v::endl;
 
 }
 
