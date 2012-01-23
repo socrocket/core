@@ -102,15 +102,22 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
         m_current_cacheline.push_back(current_cacheline);
     }
 
+    // Configuration report
     v::info << this->name() << " ******************************************************************************* " << v::endl;
     v::info << this->name() << " * Created cache memory with following parameters:                               " << v::endl;
-    v::info << this->name() << " * Number of cache sets " << (m_sets + 1)            << v::endl;
-    //v::info << this->name() << " * Size of each cache set " << (unsigned int)pow(2, m_setsize) << " kb" << v::endl;
+    v::info << this->name() << " * ----------------------------------------------- " << v::endl;
+    v::info << this->name() << " * mmu_en: " << mmu_en << v::endl;
+    v::info << this->name() << " * burst_en: " << burst_en << v::endl;
+    v::info << this->name() << " * sets: " << sets << v::endl;
+    v::info << this->name() << " * setsize: " << setsize << v::endl;
+    v::info << this->name() << " * setlock: " << m_setlock << v::endl;
+    v::info << this->name() << " * linesize: " << linesize << v::endl;
+    v::info << this->name() << " * repl (0-Direct Mapped, 1-LRU, 2-LRR, 3-RANDOM): " << m_repl << v::endl;
+    v::info << this->name() << " * ---------------------------------------------------------- " << v::endl;
+    v::info << this->name() << " * Size of each cache set " << (unsigned int)pow(2, (double)m_setsize) << " kb" << v::endl;
     v::info << this->name() << " * Bytes per line " << m_bytesperline << " (offset bits: " << m_offset_bits << ")" << v::endl;
     v::info << this->name() << " * Number of cache lines per set " << m_number_of_vectors << " (index bits: " << m_idx_bits << ")" << v::endl;
     v::info << this->name() << " * Width of cache tag in bits " << m_tagwidth << v::endl;
-    v::info << this->name() << " * Replacement strategy: " << m_repl << v::endl;
-    v::info << this->name() << " * Line Locking: " << m_setlock << v::endl;
     v::info << this->name() << " ******************************************************************************* "  << v::endl;
 
     // lru counter saturation

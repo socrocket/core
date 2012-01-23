@@ -53,21 +53,23 @@ localram::localram(sc_core::sc_module_name name, unsigned int lrsize,
                    unsigned int lrstart) :
                    sc_module(name), m_lrsize(lrsize<<10), m_lrstart(lrstart << 24) {
 
-    // parameter check
+    // Parameter check
     // ---------------
-    // scratchpad size max 512 kbyte
+    // Scratchpad size max 512 kbyte
     assert(m_lrsize <= 524288);
 
-    // initialize allocator
+    // Initialize allocator
     m_default_entry.i = 0;
 
-    // create the actual ram
+    // Create the actual ram
     scratchpad = new t_cache_data[m_lrsize>>2];
 
+    // Configuration report
     v::info << this->name() << " ******************************************************************************* " << v::endl;
-    v::info << this->name() << " * Created local ram with following parameters:                                  " << v::endl;
-    v::info << this->name() << " * start address " << std::hex << m_lrstart << v::endl;
-    v::info << this->name() << " * size in bytes " << std::hex << m_lrsize  << v::endl;
+    v::info << this->name() << " * Created localram with following parameters:                                   " << v::endl;
+    v::info << this->name() << " * ------------------------------------------- " << v::endl;
+    v::info << this->name() << " * lrstart (start address): " << std::hex << m_lrstart << v::endl;
+    v::info << this->name() << " * lrsize: " << std::hex << m_lrsize  << " bytes" << v::endl;
     v::info << this->name() << " ******************************************************************************* "  << v::endl;
 
     // Init executions statistics
@@ -76,7 +78,7 @@ localram::localram(sc_core::sc_module_name name, unsigned int lrsize,
 
 }
 
-// destructor
+// Destructor
 localram::~localram() {
 
     // free the memory
@@ -84,7 +86,7 @@ localram::~localram() {
 
 }
 
-// read from scratchpad
+// Read from scratchpad
 bool localram::mem_read(unsigned int addr, unsigned char *data, unsigned int len,
 			sc_core::sc_time *delay, unsigned int *debug, bool is_dbg) {
 
@@ -94,10 +96,10 @@ bool localram::mem_read(unsigned int addr, unsigned char *data, unsigned int len
 
   }
 
-  // byte offset
+  // Byte offset
   unsigned int byt = addr & 0x3;
 
-  // memcpy ??
+  // Copy data to payload pointer
   for (unsigned int i = 0; i < len; i++) {
     *(data + i) = scratchpad[(addr - m_lrstart) >> 2].c[byt + i];
   }
@@ -116,7 +118,7 @@ bool localram::mem_read(unsigned int addr, unsigned char *data, unsigned int len
 
 }
 
-// write to scratchpad
+// Write to scratchpad
 void localram::mem_write(unsigned int addr, unsigned char *data, unsigned int len,
 			 sc_core::sc_time *delay, unsigned int *debug, bool is_dbg) {
 
@@ -149,6 +151,7 @@ void localram::mem_write(unsigned int addr, unsigned char *data, unsigned int le
 // Print execution statistic at end of simulation
 void localram::end_of_simulation() {
 
+  // Localram execution statistic
   v::info << name() << " ******************************************** " << v::endl;
   v::info << name() << " * Scratchpad statisitics: " << v::endl;
   v::info << name() << " * -----------------------" << v::endl;

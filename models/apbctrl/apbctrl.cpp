@@ -110,6 +110,16 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
     // Register power monitor
     PM::registerIP(this, "apbctrl", m_pow_mon);
     PM::send_idle(this, "idle", sc_time_stamp(), m_pow_mon);
+
+    v::info << name() << " ***********************************************************************" << v::endl;
+    v::info << name() << " * Created APBCTRL with following parameters: " << v::endl;
+    v::info << name() << " * ------------------------------------------ " << v::endl;
+    v::info << name() << " * haddr/hmask: " << hex << haddr_ << "/" << hmask_ << v::endl;
+    v::info << name() << " * mcheck: " << mcheck << v::endl;
+    v::info << name() << " * hindex: " << hindex << v::endl;
+    v::info << name() << " * pow_mon: " << pow_mon << v::endl;
+    v::info << name() << " * ambaLayer (LT = 8 / AT = 4): " << ambaLayer << v::endl;
+    v::info << name() << " ***********************************************************************" << v::endl;
 }
 
 // Do reset
@@ -494,7 +504,7 @@ void APBCtrl::start_of_simulation() {
         uint32_t addr = slave->get_base();
         uint32_t mask = slave->get_mask();
 
-	v::info << name() << "*  - BAR with MSB addr: " << hex << addr << " and mask: " << mask << v::endl;
+	v::info << name() << "* BAR with MSB addr: " << hex << addr << " and mask: " << mask << v::endl;
 
 	// insert slave region into memory map
         setAddressMap(i, sbusid, addr, mask);

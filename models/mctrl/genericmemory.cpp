@@ -47,6 +47,20 @@ GenericMemory::GenericMemory(sc_core::sc_module_name name, MEMDevice::device_typ
     
     bus.register_b_transport(this, &GenericMemory::b_transport);
     bus.register_transport_dbg(this, &GenericMemory::transport_dbg);
+
+    // Module configuration report
+    v::info << this->name() << " ******************************************************************************* " << v::endl;
+    v::info << this->name() << " * Created GenericMemory with following parameters: " << v::endl;
+    v::info << this->name() << " * ------------------------------------------------ " << v::endl;
+    v::info << this->name() << " * device_type (0-ROM, 1-IO, 2-SRAM, 3-SDRAM): " << type << v::endl;
+    v::info << this->name() << " * banks: " << banks << v::endl;
+    v::info << this->name() << " * bsize (bytes): " << hex << bsize << v::endl;
+    v::info << this->name() << " * bit width: " << bits << v::endl;
+    v::info << this->name() << " * cols (SD only): " << cols << v::endl;
+    v::info << this->name() << " * pow_mon: " << powmon << v::endl;
+    v::info << this->name() << " ******************************************************************************* " << v::endl;
+    
+
 }
 
 GenericMemory::~GenericMemory() {}

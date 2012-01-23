@@ -129,6 +129,23 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
   PM::registerIP(this, "ahbctrl", m_pow_mon);
   PM::send_idle(this, "idle", sc_time_stamp(), m_pow_mon);
 
+  // Module configuration report
+  v::info << name() << " ******************************************************************************* " << v::endl;
+  v::info << name() << " * Created AHBCTRL with following parameters: " << v::endl;
+  v::info << name() << " * ------------------------------------------ " << v::endl;
+  v::info << name() << " * ioaddr/iomask: " << hex << ioaddr << "/" << iomask << v::endl;
+  v::info << name() << " * cfgaddr/cfmask: " << hex << cfgaddr << "/" << cfgmask << v::endl;
+  v::info << name() << " * rrobin: " << rrobin << v::endl;
+  v::info << name() << " * split: " << split << v::endl;
+  v::info << name() << " * defmast: " << defmast << v::endl;
+  v::info << name() << " * ioen: " << ioen << v::endl;
+  v::info << name() << " * fixbrst: " << fixbrst << v::endl;
+  v::info << name() << " * fpnpen: " << fpnpen << v::endl;
+  v::info << name() << " * mcheck: " << mcheck << v::endl;
+  v::info << name() << " * pow_mon: " << pow_mon << v::endl;
+  v::info << name() << " * ambaLayer (LT = 8 / AT = 4):  " << ambaLayer << v::endl;
+  v::info << name() << " ******************************************************************************* " << v::endl; 
+
 }
 
 void AHBCtrl::dorst() {
@@ -803,8 +820,8 @@ void AHBCtrl::start_of_simulation() {
   assert(num_of_master_bindings<=16);
 
   v::info << name() << "******************************************************************************* " << v::endl;
-  v::info << name() << "* DECODER INITIALIZATION " << v::endl;
-  v::info << name() << "* ---------------------- " << v::endl;
+  v::info << name() << "* AHB DECODER INITIALIZATION " << v::endl;
+  v::info << name() << "* -------------------------- " << v::endl;
 
   // Iterate/detect the registered slaves
   // ------------------------------------
