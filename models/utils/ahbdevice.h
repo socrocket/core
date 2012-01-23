@@ -145,10 +145,10 @@ class AHBDevice : public amba_slave_base {
         uint32_t m_busid;
 
         /// Stores the number of Bytes read from the device
-        uint32_t m_reads;
+        uint64_t m_reads;
 
         /// Stores the number of Bytes written from the device
-        uint32_t m_writes;
+        uint64_t m_writes;
 };
 
 /// This function returns a grlib bank address register.

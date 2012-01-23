@@ -194,17 +194,17 @@ void Irqmp::end_of_elaboration() {
 // Print execution statistic at end of simulation
 void Irqmp::end_of_simulation() {
 
-  v::info << name() << " ********************************************" << v::endl;
-  v::info << name() << " * IRQMP statistic:" << v::endl;
-  v::info << name() << " * ================" << v::endl;
+  v::report << name() << " ********************************************" << v::endl;
+  v::report << name() << " * IRQMP statistic:" << v::endl;
+  v::report << name() << " * ================" << v::endl;
   uint64_t sum = 0;
   for(int i = 1; i < 32; i++) {
-    v::info << name() << " * + IRQ Line " << std::dec << i << ":    " << m_counter[i] << v::endl;
+    v::report << name() << " * + IRQ Line " << std::dec << i << ":    " << m_counter[i] << v::endl;
     sum += m_counter[i];
   }
-  v::info << name() << " * -------------------------------------- " << v::endl;
-  v::info << name() << " * = Sum      :    " << sum << v::endl;
-  v::info << name() << " ******************************************** " << v::endl;
+  v::report << name() << " * -------------------------------------- " << v::endl;
+  v::report << name() << " * = Sum      :    " << sum << v::endl;
+  v::report << name() << " ******************************************** " << v::endl;
 
 }
 

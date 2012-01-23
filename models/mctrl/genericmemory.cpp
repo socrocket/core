@@ -82,12 +82,12 @@ void GenericMemory::end_of_simulation() {
         type_name = "ROM";
     }
     
-    v::info << name() << " ********************************************" << v::endl;
-    v::info << name() << " * "<< type_name <<" Memory Statistic:" << v::endl;
-    v::info << name() << " * -----------------------------------------" << v::endl;
-    v::info << name() << " * Bytes read:    " << m_reads << v::endl;
-    v::info << name() << " * Bytes written: " << m_writes << v::endl;
-    v::info << name() << " ******************************************** " << v::endl;
+    v::report << name() << " ********************************************" << v::endl;
+    v::report << name() << " * "<< type_name <<" Memory Statistic:" << v::endl;
+    v::report << name() << " * -----------------------------------------" << v::endl;
+    v::report << name() << " * Bytes read:    " << m_reads << v::endl;
+    v::report << name() << " * Bytes written: " << m_writes << v::endl;
+    v::report << name() << " ******************************************** " << v::endl;
 }
 
 void GenericMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
