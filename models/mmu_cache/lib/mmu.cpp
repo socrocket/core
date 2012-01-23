@@ -165,12 +165,15 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
     thits = 0;
     tmisses = 0;
 
+    // Configuration report
     v::info << this->name() << " ******************************************************************************* " << v::endl;
     v::info << this->name() << " * Created mmu with following parameters: " << v::endl;
-    v::info << this->name() << " * number of instruction tlbs: " << m_itlbnum << v::endl;
-    v::info << this->name() << " * number of data tlbs: " << m_dtlbnum << v::endl;
-    v::info << this->name() << " * tlb type (0 - split, 1 - shared): " << m_tlb_type << v::endl;
-    v::info << this->name() << " * MMU_CONTROL_REG: " << hex << MMU_CONTROL_REG << v::endl;
+    v::info << this->name() << " * -------------------------------------- " << v::endl;
+    v::info << this->name() << " * itlbnum: " << m_itlbnum << v::endl;
+    v::info << this->name() << " * dtlbnum: " << m_dtlbnum << v::endl;
+    v::info << this->name() << " * tlb_type (0 - split, 1 - shared): " << m_tlb_type << v::endl;
+    v::info << this->name() << " * tlb_rep: " << tlb_rep << v::endl;
+    v::info << this->name() << " * mmupgsz (0, 2 - 4kb, 3 - 8kb, 4 - 16kb, 5 - 32kb): " << mmupgsz << v::endl;
     v::info << this->name() << " * ***************************************************************************** " << v::endl;
 }
 

@@ -152,6 +152,17 @@ Irqmp::Irqmp(sc_core::sc_module_name name, int _paddr, int _pmask, int _ncpu, in
     for(int i = 0; i < 32; i++) {
       m_counter[i] = 0;
     }
+
+    // Configuration report
+    v::info << this->name() << " ******************************************************************************* " << v::endl;
+    v::info << this->name() << " * Created configuration report with following parameters: " << v::endl;
+    v::info << this->name() << " * ------------------------------------------------------- " << v::endl;
+    v::info << this->name() << " * paddr/pmask: " << hex << _paddr << "/" << _pmask << v::endl;
+    v::info << this->name() << " * ncpu: " << _ncpu << v::endl;
+    v::info << this->name() << " * eirq: " << _eirq << v::endl;
+    v::info << this->name() << " * pindex: " << pindex << v::endl;
+    v::info << this->name() << " ******************************************************************************* " << v::endl;
+    
 }
 
 Irqmp::~Irqmp() {
