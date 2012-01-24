@@ -536,6 +536,8 @@ void APBCtrl::end_of_simulation() {
     v::report << name() << " * ------------------" << v::endl;
     v::report << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
     v::report << name() << " * Total Transactions:      " << m_total_transactions << v::endl;
+    v::report << name() << " *  " << v::endl;
+    v::report << name() << " * AHB Slave interface reports: " << v::endl;
     print_transport_statistics(name());
     v::report << name() << " ******************************************** " << v::endl;
 }

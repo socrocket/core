@@ -90,19 +90,32 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
         /// TLM debug interface
         unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);	
 
-	/// The arbiter thread
+	/// The arbiter thread. Responsible for arbitrating transactions in AT mode.
 	void arbitrate_me();
 	
-	/// The data thread
+	// Thread for modeling the AHB data phase for write transactions.
+	// Sends BEGIN_DATA to slave and handles snooping.
 	void DataThread();
 
+	/// Thread for signalling END_DATA to the master (AT mode).
 	void EndData();
 
-	/// The request thread (for com. with nb_trans_fw of slaves)
+	/// The RequestThread is activated by the ArbitrationThread
+	/// when a master has won arbitration. It takes care about
+	/// address decoding (slave selection) and communication with
+	/// the slaves nb_transport_fw interface
 	void RequestThread();
 
-	/// The response thread (for com. with nb_trans_bw of masters)
+	// The ResponseThread can be activated by the nb_transport_bw function 
+	// (Slave sends BEGIN_RESP) or by the RequestThread (Slave returns 
+	// TLM_UPDATED with BEGIN_RESP or TLM_COMPLETED).
 	void ResponseThread();
+
+        /// Collect common transport statistics.
+        void transport_statistics(tlm::tlm_generic_payload &gp);
+
+        /// Print common transport statistics.
+        void print_transport_statistics(const char *name) const;
 
         /// Constructor
         AHBCtrl(sc_core::sc_module_name nm, ///< SystemC name
@@ -248,6 +261,12 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
 	/// Succeeded number of transaction handled by the instance
 	uint64_t m_right_transactions;
+
+	/// Counts bytes written to AHBCTRL from the master side
+	uint64_t m_writes;
+
+	/// Counts bytes read from AHBCTRL from the master side
+	uint64_t m_reads;
 
 	/// The abstraction layer of the model
 	amba::amba_layer_ids m_ambaLayer;

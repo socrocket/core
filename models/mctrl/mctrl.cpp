@@ -333,16 +333,26 @@ void Mctrl::start_of_simulation() {
 
 // Print execution statistic at end of simulation
 void Mctrl::end_of_simulation() {
+ 
+  sc_time nominal_time;
+ 
     switch_power_mode(); 
     v::report << name() << " ********************************************" << v::endl;
-    v::report << name() << " * MCtrl Statistic:" << v::endl;
+    v::report << name() << " * Mctrl Statistic:" << v::endl;
     v::report << name() << " * ----------------" << v::endl;
     v::report << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
     v::report << name() << " * Total Transactions: " << m_total_transactions << v::endl;
+    v::report << name() << " *  " << v::endl;
+    // Calculate time in nominal operation mode
+    nominal_time = sc_time_stamp() - (m_self_refresh_time + m_power_down_time + m_deep_power_down_time);
+
+    v::report << name() << " * Total time in nominal operation: " << nominal_time  << " (" << (nominal_time*100/sc_time_stamp()) << "%)" << v::endl;
+    v::report << name() << " * Total time in self-refresh mode: " << m_self_refresh_time << " (" << (m_self_refresh_time*100/sc_time_stamp()) << "%)" << v::endl;
+    v::report << name() << " * Total time in power down mode: " << m_power_down_time << " (" << (m_power_down_time*100/sc_time_stamp()) << "%)" << v::endl;
+    v::report << name() << " * Total time in deep power down mode: " << m_deep_power_down_time << " (" <<(m_deep_power_down_time*100/sc_time_stamp()) << "%)" << v::endl;
+    v::report << name() << " *  " << v::endl;
+    v::report << name() << " * AHB Slave interface reports: " << v::endl;
     print_transport_statistics(name());
-    v::report << name() << " * Total self refresh time: " << m_self_refresh_time << v::endl;
-    v::report << name() << " * Total power down time: " << m_power_down_time << v::endl;
-    v::report << name() << " * Total deep power down time: " << m_deep_power_down_time << v::endl;
     v::report << name() << " ******************************************** " << v::endl;
 }
 

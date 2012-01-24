@@ -51,6 +51,7 @@
 
 using namespace std;
 
+// Standard constructor
 AHBDevice::AHBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
                      uint8_t version, uint8_t irq, uint32_t bar0,
                      uint32_t bar1, uint32_t bar2, uint32_t bar3) :

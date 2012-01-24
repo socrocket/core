@@ -91,6 +91,8 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       m_idle_count(0),
       m_total_transactions(0), 
       m_right_transactions(0),
+      m_writes(0),
+      m_reads(0),
       m_ambaLayer(ambaLayer) 
 
 {
@@ -264,6 +266,9 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
   sc_core::sc_object *mstobj = other_socket->get_parent();
   // --------------------
 
+  // Collect transport statistics
+  transport_statistics(trans);
+
   // Extract address from payload
   unsigned int addr   = trans.get_address();
   // Extract length from payload
@@ -315,10 +320,9 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     sc_core::sc_object *obj = other_socket->get_parent();
 
     v::debug  << name() << "AHB Request for address: 0x" << hex << v::setfill('0')
-              << v::setw(8) << trans.get_address() << ", from master: "
-              << mstobj->name() << ", forwarded to slave: " << obj->name() << endl;
-
-    // -------------------
+	      << v::setw(8) << trans.get_address() << ", from master: "
+	      << mstobj->name() << ", forwarded to slave: " << obj->name() << endl;
+    // --------------------
 
     // Broadcast master_id and address for dcache snooping
     if (trans.get_command() == tlm::TLM_WRITE_COMMAND) {
@@ -383,6 +387,10 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
     connection.start_time = sc_time_stamp();
     connection.state      = PENDING;
 
+    // Collect transport statistics
+    transport_statistics(trans);
+
+    // Add to arbiter queue
     addPendingTransaction(trans, connection);
 
     // Transaction accepted
@@ -623,6 +631,8 @@ void AHBCtrl::RequestThread() {
   }
 }
 
+// Thread for modeling the AHB data phase for write transactions.
+// Sends BEGIN_DATA to slave and handles snooping.
 void AHBCtrl::DataThread() {
 
   payload_t* trans;
@@ -1005,6 +1015,7 @@ void AHBCtrl::end_of_simulation() {
     v::report << name() << " * ------------------" << v::endl;
     v::report << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
     v::report << name() << " * Total Transactions:      " << m_total_transactions << v::endl;
+    v::report << name() << " * " << v::endl;
 
     if (m_ambaLayer == amba::amba_AT) {
 
@@ -1012,12 +1023,16 @@ void AHBCtrl::end_of_simulation() {
 
       v::report << name() << " * Simulation cycles: " << busy_cycles << v::endl;
       v::report << name() << " * Idle cycles: " << m_idle_count << v::endl;
-      v::report << name() << " * Bus utilization (simulation cycles / idle cycles): " << (busy_cycles - m_idle_count)/busy_cycles << v::endl;
-      v::report << name() << " * Maximum arbiter waiting time: " << m_max_wait << v::endl;
+      v::report << name() << " * Bus utilization: " << (busy_cycles - m_idle_count)/busy_cycles << v::endl;
+      v::report << name() << " * Maximum arbiter waiting time: " << m_max_wait << " (" << m_max_wait/clock_cycle << " cycles)" << v::endl;
       v::report << name() << " * Master with maximum waiting time: " << m_max_wait_master << v::endl;
-      v::report << name() << " * Average arbitration time / transaction: " << m_total_wait / m_arbitrated << v::endl;
-
+      v::report << name() << " * Average arbitration time / transaction: " << m_total_wait / m_arbitrated << " (" << (m_total_wait / m_arbitrated) / clock_cycle << " cycles)" << v::endl;
+      v::report << name() << " * " << v::endl;
+    
     }
+
+      v::report << name() << " * AHB Master interface reports: " << v::endl;
+      print_transport_statistics(name());
 
     v::report << name() << " ******************************************** " << v::endl;
 }
@@ -1136,4 +1151,19 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
        trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
        return 0;
     }
+}
+
+// Collect common transport statistics
+void AHBCtrl::transport_statistics(tlm::tlm_generic_payload &gp) {
+  if(gp.is_write()) {
+    m_writes += gp.get_data_length();
+  } else if(gp.is_read()){
+    m_reads += gp.get_data_length();
+  }
+}
+
+// Displays common transport statistics
+void AHBCtrl::print_transport_statistics(const char *name) const {
+  v::report << name << " * Bytes read: " << m_reads << v::endl;
+  v::report << name << " * Bytes written: " << m_writes << v::endl;
 }
