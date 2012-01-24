@@ -1022,9 +1022,9 @@ void vectorcache::dbg_out(unsigned int line) {
     dbg_cacheline = (*cache_mem[i])[line];
 
     // display the tag
-    v::debug << this->name() << "SET: " << i << " ATAG: 0x" << hex
-             << dbg_cacheline.tag.atag << " VALID: 0x" << hex
-             << dbg_cacheline.tag.valid << v::endl;
+    std::cout << "SET: " << i << " ATAG: 0x" << hex
+              << dbg_cacheline.tag.atag << " VALID: 0x" << hex
+              << dbg_cacheline.tag.valid << v::endl;
 
     std::cout << "Byte:       0 1 2 3" << v::endl;
     std::cout << "-------------------" << v::endl;

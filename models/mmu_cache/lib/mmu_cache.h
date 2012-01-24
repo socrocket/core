@@ -184,16 +184,20 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 	/// Data service thread for AT
 	void dcio_service_thread();
 
+	/// Thread for response synchronization (AT only: sync and send END_RESP)
 	void ResponseThread();
 
+	/// Thread for data phase processing in write operations (AT only: sends BEGIN_DATA)
 	void DataThread();
 
+	/// Delayed release of transactions (AT only)
 	void cleanUP();
 
-        // Interface to AMBA master socket (impl. mem_if)
+        /// MemIF implementation - writes data to AHB master
         virtual void mem_write(unsigned int addr, unsigned char * data,
                                unsigned int length, sc_core::sc_time * t,
                                unsigned int * debug, bool is_dbg);
+	/// MemIF implementation - reads data from AHB master
         virtual bool mem_read(unsigned int addr, unsigned char * data,
                               unsigned int length, sc_core::sc_time * t,
                               unsigned int * debug, bool is_dbg);
@@ -206,11 +210,14 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 	/// Snooping function (For calling dcache->snoop_invalidate)
 	void snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& delay);
 
-  /// Reset function
-  void dorst();
+	/// Called at end of simulation to print execution statistics
+	void end_of_simulation();
 
-  /// Deal with clock changes
-  void clkcng();
+	/// Reset function
+	void dorst();
+
+	/// Deal with clock changes
+	void clkcng();
 
         // data members
         // ------------
@@ -250,55 +257,48 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
         // [23] - Data cache snoop enable (DS) - If set, will enable data cache snooping.
         unsigned int CACHE_CONTROL_REG;
 
-	// icache enabled
+	/// icache enable
         unsigned int m_icen;
-	// dcache enabled
+	/// dcache enabled
         unsigned int m_dcen;
-
-	// dcache snooping enabled
+	/// dcache snooping enabled
 	unsigned int m_dsnoop;
-
-	// instruction scratchpad settings
+	/// instruction scratchpad enabled
         unsigned int m_ilram;
+	/// instruction scratchpad starting address
         unsigned int m_ilramstart;
-
-	// data scratchpad settings
+	/// data scratchpad enabled
         unsigned int m_dlram;
+	/// data scratchpad starting address
         unsigned int m_dlramstart;
-
-	// fixed cacheability mask
+	/// enables fixed cacheability mask
 	unsigned int m_cached;
-
-	// mmu enable
+	/// mmu enabled
         unsigned int m_mmu_en;
-
-        // amba master id
+        /// amba master id
         unsigned int m_master_id;
 
-	// power monitoring enabled
+	/// Total number of successful transactions for execution statistics 
+	uint64_t m_right_transactions;
+	/// Total number of transactions for execution statistics
+	uint64_t m_total_transactions;
+
+	/// power monitoring enabled
 	bool m_pow_mon;
 
-	// amba abstraction layer
+	/// amba abstraction layer
 	amba::amba_layer_ids m_abstractionLayer;
 
-        unsigned int m_txn_count;
-        unsigned int m_data_count;
-
-        bool m_bus_granted;
-        tlm::tlm_generic_payload *current_trans;
-        bool m_request_pending;
-        bool m_data_pending;
-        bool m_bus_req_pending;
-        bool m_restart_pending_req;
-
-	// events
-	sc_event ahb_transaction_response;
-
+	/// Event for unblocking mem_read and mem_write from ahb_nb_transport_bw (on END_REQ)
 	sc_event  mEndRequestEvent;
+	/// Event for unblocking mem_read from ahb_nb_transport_bw (on BEGIN_RESP)
 	sc_event  mBeginResponseEvent;
 
+	/// PEQ for transfer of payload from ahb_nb_transport_bw to ResponseThread (on BEGIN_RESP)
 	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mResponsePEQ;
+	/// PEQ for transfer of payload from ahb_nb_transport_bw or mem_write to DataThread (after END_REQ)
 	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mDataPEQ;
+	/// PEQ for transfer of expired payload to cleanUP thread.
 	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mEndTransactionPEQ;
 };
 

@@ -95,17 +95,15 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     m_cached(cached),
     m_mmu_en(mmu_en),
     m_master_id(hindex), 
+    m_right_transactions(0),
+    m_total_transactions(0),
     m_pow_mon(pow_mon),
     m_abstractionLayer(abstractionLayer), 
-    m_txn_count(0), 
-    m_data_count(0),
-    m_bus_granted(false), 
-    current_trans(NULL),
     mResponsePEQ("ResponsePEQ"),
     mDataPEQ("DataPEQ"),
     mEndTransactionPEQ("EndTransactionPEQ") {
 
-    // parameter checks
+    // Parameter checks
     // ----------------
 
     // check range of cacheability mask (0x0 - 0xffff)
@@ -198,6 +196,18 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 
     // Initialize cache control registers
     CACHE_CONTROL_REG = 0;
+
+    // Module Configuration Report
+    v::info << this->name() << " ************************************************** " << v::endl;
+    v::info << this->name() << " * Created MMU_CACHE in following configuration: " << v::endl;
+    v::info << this->name() << " * --------------------------------------------- " << v::endl;
+    v::info << this->name() << " * instruction cache enable (icen): " << icen << v::endl;
+    v::info << this->name() << " * data cache enable (dcen): " << dcen << v::endl;
+    v::info << this->name() << " * mmu enable (mmu_en): " << mmu_en << v::endl;
+    v::info << this->name() << " * instruction scratchpad enable (ilram): " << ilram << v::endl;
+    v::info << this->name() << " * data scratchpad enable (dlram): " << dlram << v::endl;
+    v::info << this->name() << " * abstraction Layer (LT = 8 / AT = 4): " << abstractionLayer << v::endl;
+    v::info << this->name() << " ************************************************** " << v::endl;   
 }
 
 void mmu_cache::dorst() {
@@ -1130,7 +1140,7 @@ unsigned int mmu_cache::dcio_transport_dbg(tlm::tlm_generic_payload &trans) {
 
 } 
 
-// Delayed release of transactions (for non-blocking pipelined transactions)
+// Delayed release of transactions (AT only)
 void mmu_cache::cleanUP() {
 
   tlm::tlm_generic_payload * trans;
@@ -1141,8 +1151,18 @@ void mmu_cache::cleanUP() {
 
     while((trans = mEndTransactionPEQ.get_next_transaction())) {
 
-      v::debug << name() << "Release transaction: " << hex << trans << v::endl;
+      // Check TLM RESPONSE
+      if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
 
+	v::error << name() << "Transaction " << hex << trans << " failed with " << trans->get_response_status() << v::endl;
+	  
+      } else {
+
+	m_right_transactions++;
+
+      }
+
+      v::debug << name() << "Release transaction: " << hex << trans << v::endl;
       ahb.release_transaction(trans);
 
     }
@@ -1207,6 +1227,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
 
     // Allocate new transaction
     tlm::tlm_generic_payload *trans = ahb.get_transaction();
+    m_total_transactions++;
 
     v::debug << name() << "Allocate new transaction " << hex << trans << v::endl;
 
@@ -1234,7 +1255,10 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
     ahb.validate_extension<amba::amba_trans_type>(*trans);
     ahb.get_extension<amba::amba_trans_type> (trans_ext, *trans);
     trans_ext->value = amba::NON_SEQUENTIAL;
-    
+
+    // Collect transport statistics
+    transport_statistics(*trans);
+
     // Initialize delay
     delay = SC_ZERO_TIME;
 
@@ -1247,6 +1271,17 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
         ahb->b_transport(*trans, delay);
 
 	v::debug << name() << "Release transaction: " << hex << trans << v::endl;
+
+	// Check TLM RESPONSE
+	if (trans->get_response_status()!=tlm::TLM_OK_RESPONSE) {
+	  
+	  v::error << name() << "Transaction " << hex << trans << " failed with " << trans->get_response_status() << v::endl;
+	  
+	} else {
+
+	  m_right_transactions++;
+
+	}
 
 	// Release transaction
 	ahb.release_transaction(trans);
@@ -1339,6 +1374,7 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
 
     // Allocate new transaction
     tlm::tlm_generic_payload *trans = ahb.get_transaction();
+    m_total_transactions++;
 
     v::debug << name() << "Allocate new transaction: " << hex << trans << v::endl;
 
@@ -1366,6 +1402,9 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
     ahb.validate_extension<amba::amba_trans_type> (*trans);
     ahb.get_extension<amba::amba_trans_type> (trans_ext, *trans);
     trans_ext->value = amba::NON_SEQUENTIAL;
+
+    // Collect transport statistics
+    transport_statistics(*trans);
     
     // Init delay
     delay = SC_ZERO_TIME;
@@ -1379,6 +1418,17 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
 	ahb->b_transport(*trans, delay);
 
 	v::debug << name() << "Release transaction: " << hex << trans << v::endl;
+
+	// Check TLM RESPONSE
+	if (trans->get_response_status()!=tlm::TLM_OK_RESPONSE) {
+	  
+	  v::error << name() << "Transaction " << hex << trans << " failed with " << trans->get_response_status() << v::endl;
+	  
+	} else {
+
+	  m_right_transactions++;
+
+	}
 
 	// Consume delay
 	wait(delay);
@@ -1645,7 +1695,7 @@ void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
     v::debug << name() << "CACHE_CONTROL_REG: " << hex << v::setw(8) << CACHE_CONTROL_REG << v::endl;
 }
 
-// read the cache control register
+// Read the cache control register
 unsigned int mmu_cache::read_ccr() {
 
   unsigned int tmp = CACHE_CONTROL_REG;
@@ -1673,6 +1723,22 @@ void mmu_cache::snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& d
 
     }
   }
+}
+
+// Automatically called by SystemC scheduler at end of simulation
+// Displays execution statistics.
+void mmu_cache::end_of_simulation() {
+
+    v::report << name() << " ********************************************" << v::endl;
+    v::report << name() << " * MMU_CACHE Statistics: " << v::endl;
+    v::report << name() << " * --------------------- " << v::endl;
+    v::report << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
+    v::report << name() << " * Total Transactions: " << m_total_transactions << v::endl;
+    v::report << name() << " * " << v::endl;
+    v::report << name() << " * AHB Master interface reports: " << v::endl;
+    print_transport_statistics(name());
+    v::report << name() << " ********************************************" << v::endl;    
+
 }
 
 // Helper for setting clock cycle latency using a value-time_unit pair

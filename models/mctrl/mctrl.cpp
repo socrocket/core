@@ -223,7 +223,7 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
     v::info << this->name() << " * hindex: " << hindex << v::endl;
     v::info << this->name() << " * pindex: " << pindex << v::endl;
     v::info << this->name() << " * pow_mon: " << powermon << v::endl;
-    v::info << this->name() << " * ambaLayer (LT = 8 / AT = 4): " << ambaLayer << v::endl;
+    v::info << this->name() << " * abstractionLayer (LT = 8 / AT = 4): " << ambaLayer << v::endl;
     v::info << this->name() << " ******************************************************************************* " << v::endl;
 
     
@@ -336,24 +336,24 @@ void Mctrl::end_of_simulation() {
  
   sc_time nominal_time;
  
-    switch_power_mode(); 
-    v::report << name() << " ********************************************" << v::endl;
-    v::report << name() << " * Mctrl Statistic:" << v::endl;
-    v::report << name() << " * ----------------" << v::endl;
-    v::report << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
-    v::report << name() << " * Total Transactions: " << m_total_transactions << v::endl;
-    v::report << name() << " *  " << v::endl;
-    // Calculate time in nominal operation mode
-    nominal_time = sc_time_stamp() - (m_self_refresh_time + m_power_down_time + m_deep_power_down_time);
+  switch_power_mode(); 
+  v::report << name() << " ********************************************" << v::endl;
+  v::report << name() << " * Mctrl Statistic:" << v::endl;
+  v::report << name() << " * ----------------" << v::endl;
+  v::report << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
+  v::report << name() << " * Total Transactions: " << m_total_transactions << v::endl;
+  v::report << name() << " *  " << v::endl;
+  // Calculate time in nominal operation mode
+  nominal_time = sc_time_stamp() - (m_self_refresh_time + m_power_down_time + m_deep_power_down_time);
 
-    v::report << name() << " * Total time in nominal operation: " << nominal_time  << " (" << (nominal_time*100/sc_time_stamp()) << "%)" << v::endl;
-    v::report << name() << " * Total time in self-refresh mode: " << m_self_refresh_time << " (" << (m_self_refresh_time*100/sc_time_stamp()) << "%)" << v::endl;
-    v::report << name() << " * Total time in power down mode: " << m_power_down_time << " (" << (m_power_down_time*100/sc_time_stamp()) << "%)" << v::endl;
-    v::report << name() << " * Total time in deep power down mode: " << m_deep_power_down_time << " (" <<(m_deep_power_down_time*100/sc_time_stamp()) << "%)" << v::endl;
-    v::report << name() << " *  " << v::endl;
-    v::report << name() << " * AHB Slave interface reports: " << v::endl;
-    print_transport_statistics(name());
-    v::report << name() << " ******************************************** " << v::endl;
+  v::report << name() << " * Total time in nominal operation: " << nominal_time  << " (" << (nominal_time*100/sc_time_stamp()) << "%)" << v::endl;
+  v::report << name() << " * Total time in self-refresh mode: " << m_self_refresh_time << " (" << (m_self_refresh_time*100/sc_time_stamp()) << "%)" << v::endl;
+  v::report << name() << " * Total time in power down mode: " << m_power_down_time << " (" << (m_power_down_time*100/sc_time_stamp()) << "%)" << v::endl;
+  v::report << name() << " * Total time in deep power down mode: " << m_deep_power_down_time << " (" <<(m_deep_power_down_time*100/sc_time_stamp()) << "%)" << v::endl;
+  v::report << name() << " *  " << v::endl;
+  v::report << name() << " * AHB Slave interface reports: " << v::endl;
+  print_transport_statistics(name());
+  v::report << name() << " ******************************************** " << v::endl;
 }
 
 Mctrl::MEMPort::MEMPort(uint32_t _id, MEMDevice *_dev) : id(_id), dev(_dev), addr(0), length(0) {}
