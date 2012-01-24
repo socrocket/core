@@ -173,11 +173,11 @@ class Irqmp : public gs::reg::gr_device,
     private:
         /// Number of CPUs in the System
         /// Needet to determ the number of receiver lines.
-        const int ncpu;
+        const int g_ncpu;
 
         /// Extended Interrupt Number
         /// Behind this interrupt are all extended interrupt cascaded.
-        const int eirq;
+        const int g_eirq;
 
         /// Status of the force registers
         /// To determ the change in the status force fields.
@@ -185,7 +185,11 @@ class Irqmp : public gs::reg::gr_device,
 
         /// Performance Counter per IRQ Line
         /// The number of executed interrupts is stored in the variable
-        uint64_t m_counter[32];
+        uint64_t m_irq_counter[32];
+
+        /// Performance Counter per CPU Line
+        /// The number of executed interrupts on each cpu line is stored in the variable
+        uint64_t *m_cpu_counter;
 
     public:
         //---register address offset
