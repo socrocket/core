@@ -78,29 +78,47 @@ class mmu : public sc_core::sc_module, public mmu_if {
             unsigned int dtlbnum, unsigned int tlb_type, unsigned int tlb_rep,
             unsigned int mmupgsz);
 
-        // member functions
+        // Member functions
         // ----------------
 
-        // page descriptor cache (PDC) lookup
+        /// Page descriptor cache (PDC) lookup
         unsigned int tlb_lookup(unsigned int addr, std::map<t_VAT,
                 t_PTE_context> * tlb, unsigned int tlb_size,
                 sc_core::sc_time * t, unsigned int * debug, bool is_dbg);
-        // read mmu internal registers (ASI 0x19)
+        /// Read mmu control register (ASI 0x19)
         unsigned int read_mcr();
+	/// Read mmu context pointer register (ASI 0x19)
         unsigned int read_mctpr();
+	/// Read mmu context register (ASI 0x19)
         unsigned int read_mctxr();
+	/// Read mmu fault status register (ASI 0x19)
         unsigned int read_mfsr();
+	/// Read mmu fault address register (ASI 0x19)
         unsigned int read_mfar();
-        // write mmu internal registers (ASI 0x19)
+
+	/// Write mmu control register (ASI 0x19)
         void write_mcr(unsigned int * data);
+	/// Write mmu context pointer register (ASI 0x19)
         void write_mctpr(unsigned int * data);
+	/// Write mmu context register (ASI 0x19)
         void write_mctxr(unsigned int * data);
-        // diagnostic read/write of instruction PDC (ASI 0x5)
+
+        /// Diagnostic read of instruction PDC (ASI 0x5)
         void diag_read_itlb(unsigned int addr, unsigned int * data);
+	/// Diagnostic write of instruction PDC (ASI 0x5)
         void diag_write_itlb(unsigned int addr, unsigned int * data);
-        // diagnostic read/write of data PDC or shared instruction and data PDC (ASI 0x6)
+        /// Diagnostic read of data PDC or shared instruction and data PDC (ASI 0x6)
         void diag_read_dctlb(unsigned int addr, unsigned int * data);
+	/// Diagnostic write of data PDC or shared instruction and data PDC (ASI 0x6)
         void diag_write_dctlb(unsigned int addr, unsigned int * data);
+
+	/// Selects a TLB entry for replacement (LRU or RANDOM replacement). 
+	/// Removes the selected entry from the TLB map and returns the 'number'
+	/// of the TLB (which is now free).
+	unsigned int tlb_remove(std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size);
+	
+	/// LRU replacement history updater
+	void lru_update(t_VAT vpn, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size);
 
         /// Return pointer to tlb instruction interface
         tlb_adaptor * get_itlb_if();
@@ -115,7 +133,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
 
     public:
 
-        // data members
+        // Data members
         // ------------
         /// pointer to mmu_cache module (ahb interface functions)
         mmu_cache_if * m_mmu_cache;
@@ -275,9 +293,15 @@ class mmu : public sc_core::sc_module, public mmu_if {
 	// Execution statistics
 	// --------------------
 	/// Number of TLB hits
-	uint64_t thits;
+	uint64_t tihits[8];
+	uint64_t tdhits[8];
+
 	/// Number of TLB misses
-	uint64_t tmisses;
+	uint64_t timisses;
+        uint64_t tdmisses;
+
+	/// Pseudo random counter for LRU
+	uint32_t m_pseudo_rand;
 
 	/// Clock cycle time
 	sc_core::sc_time clockcycle;

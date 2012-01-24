@@ -90,14 +90,14 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
             // mmu enabled≈
             if (mmu_ctrl & 0x1) {
 
-	      v::info << name() << "MMU enabled - lookup TLB" << v::endl;
+	      v::debug << name() << "MMU enabled - lookup TLB" << v::endl;
               paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug, is_dbg);
 
             }
             // mmu in bypass mode
             else {
 
-	      v::info << name() << "MMU disabled - physical addressing" << v::endl;
+	      v::debug << name() << "MMU disabled - physical addressing" << v::endl;
               paddr = addr;
 
             }
@@ -125,14 +125,14 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
             // mmu enabled
             if (mmu_ctrl & 0x1) {
 
-	      v::info << name() << "MMU enabled - lookup TLB" << v::endl;
+	      v::debug << name() << "MMU enabled - lookup TLB" << v::endl;
               paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug, is_dbg);
 
             }
             // mmu in bypass mode
             else {
 
-	      v::info << name() << "MMU disabled - physical addressing" << v::endl;
+	      v::debug << name() << "MMU disabled - physical addressing" << v::endl;
               paddr = addr;
 
             }

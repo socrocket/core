@@ -58,11 +58,16 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
          unsigned int tlb_rep, // tlb replacement strategy
          unsigned int mmupgsz) :
             sc_module(name), // tlb mmu page size (default 4kB)
-            m_mmu_cache(_mmu_cache), m_itlbnum(itlbnum), m_dtlbnum(dtlbnum), 
+            m_mmu_cache(_mmu_cache), 
+	    m_itlbnum(itlbnum), 
+	    m_dtlbnum(dtlbnum), 
 	    m_itlblog2((unsigned int)log2((double)m_itlbnum)), 
 	    m_dtlblog2((unsigned int)log2((double)m_dtlbnum)), 
-	    m_tlb_type(tlb_type), m_tlb_rep(tlb_rep),
-            m_mmupgsz(mmupgsz), clockcycle(10, sc_core::SC_NS) {
+	    m_tlb_type(tlb_type), 
+	    m_tlb_rep(tlb_rep),
+            m_mmupgsz(mmupgsz),
+	    m_pseudo_rand(0),
+	    clockcycle(10, sc_core::SC_NS) {
 
     // initialize internal registers
 
@@ -95,7 +100,7 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
         // update MMU control register (ST)
         MMU_CONTROL_REG |= (1 << 14);
 
-        v::info << this->name() << "Created split instruction and data TLBs."
+        v::debug << this->name() << "Created split instruction and data TLBs."
                 << v::endl;
 
     } else {
@@ -104,7 +109,7 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
         dtlb = itlb;
         dtlb_adaptor = itlb_adaptor;
 
-        v::info << this->name()
+        v::debug << this->name()
                 << "Created combined instruction and data TLBs." << v::endl;
 
     }
@@ -161,9 +166,16 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
             assert(false);
     }
 
-    // Init execeution statistics
-    thits = 0;
-    tmisses = 0;
+    // Init execution statistic
+    for (uint32_t i=0; i<8; i++) {
+
+      tihits[8] = 0;
+      tdhits[8] = 0;
+
+    }
+
+    timisses = 0;
+    tdmisses = 0;
 
     // Configuration report
     v::info << this->name() << " ******************************************************************************* " << v::endl;
@@ -197,30 +209,30 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     unsigned int idx2 = (vpn << (32 - m_idx2 - m_idx3)) >> (30 - m_idx3);
     unsigned int idx3 = (vpn << (32 - m_idx3)) >> (30 - m_idx3);
 
-    // locals for intermediate results
+    // Locals for intermediate results
     t_PTE_context tmp;
     unsigned int paddr;
     unsigned int data;
 
+    unsigned int slot_no;
+
     bool context_miss = false;
 
-    // search virtual address tag in ipdc (associative)
+
+
+    // Search virtual address tag in ipdc (associative)
     v::info << this->name() << "lookup with VPN: " << std::hex << vpn
             << " and OFFSET: " << std::hex << offset << v::endl;
     pdciter = tlb->find(vpn);
 
-    v::info << this->name() << "pdciter->first: " << std::hex << pdciter->first
-            << " pdciter->second: " << std::hex << (pdciter->second).pte
-            << v::endl;
-
     // TLB hit
     if (pdciter != tlb->end()) {
 
-        v::info << this->name() << "Virtual Address Tag hit on address: "
-                << std::hex << addr << v::endl;
+      // Read the PDC entry
+      tmp = pdciter->second;
 
-        // Read the PDC entry
-        tmp = pdciter->second;
+      v::info << this->name() << "Virtual Address Tag Hit in TLB " << tmp.tlb_no << " for address: "
+                << hex << addr << v::endl;
 
         // Check the context tag
         if (tmp.context == MMU_CONTEXT_REG) {
@@ -232,7 +244,23 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
             // Update debug information
             TLBHIT_SET(*debug);
-	    thits++;
+
+	    if (tlb == itlb) {
+
+	      tihits[tmp.tlb_no]++;
+
+	    } else {
+
+	      tdhits[tmp.tlb_no]++;
+
+	    }
+
+	    // Update LRU history
+	    if (m_tlb_rep==1) {
+
+	      lru_update(vpn, tlb, tlb_size);
+	      
+	    }
 
             return (paddr);
 
@@ -242,7 +270,17 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
             // Update debug information
             TLBMISS_SET(*debug);
-	    tmisses++;
+
+	    if (tlb == itlb) {
+
+	      timisses++;
+
+	    } else {
+
+	      tdmisses++;
+
+	    }
+
             context_miss = true;
 
         }
@@ -252,7 +290,16 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
         // Update debug information
         TLBMISS_SET(*debug);
-	tmisses++;
+
+	if (tlb == itlb) {
+
+	  timisses++;
+
+	} else {
+
+	  tdmisses++;
+
+	}
 
     }
 
@@ -285,8 +332,6 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     // 3-Level TLB table walk
     // ***************************************
 
-    // todo: should we wrap this in a function ??
-
     // 1. load from 1st-level page table
     m_mmu_cache->mem_read(MMU_CONTEXT_TABLE_POINTER_REG + idx1,
             (unsigned char *)&data, 4, t, debug, is_dbg);
@@ -299,8 +344,6 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
             << (MMU_CONTEXT_TABLE_POINTER_REG + idx1) << " data: " << std::hex
             << data << v::endl;
 
-    // !!!! todo: why is is it always loosing the sc_module_name here ????
-
     // page table entry (PTE) or page table descriptor (PTD) (to level 2)
     if ((data & 0x3) == 0x2) {
 
@@ -311,15 +354,25 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         // For context miss the existing entry will be replaced.
         if ((!context_miss) && (tlb->size() == tlb_size)) {
 
-            v::info << this->name() << "TLB full" << std::hex << data
+            v::info << this->name() << "PDC full" << std::hex << data
                     << v::endl;
-            // kick out an entry to make room for a new one
-            // todo !!
-        }
+
+	    // Remove a TLB entry, with respect to replacement strategy
+	    slot_no = tlb_remove(tlb, tlb_size);
+	    
+	    tmp.tlb_no = slot_no;
+	    
+        } else {
+
+	  v::info << this->name() << "Create new entry PDC entry - TLB number: " << tlb->size() << v::endl;
+	  tmp.tlb_no = tlb->size();
+
+	}
 
         // add to PDC
         tmp.context = MMU_CONTEXT_REG;
         tmp.pte = data;
+	tmp.lru = 7;
 
         (*tlb)[vpn] = tmp;
 
@@ -363,15 +416,25 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         // For context miss the existing entry will be replaced.
         if ((!context_miss) && (tlb->size() == tlb_size)) {
 
-            v::info << this->name() << "TLB full" << std::hex << data
-                    << v::endl;
-            // kick out an entry to make room for a new one
-            // todo !!
+          v::info << this->name() << "PDC full" << std::hex << data
+                  << v::endl;
+
+	  // Remove a TLB entry, with respect to replacement strategy
+	  slot_no = tlb_remove(tlb, tlb_size);
+	    
+	  tmp.tlb_no = slot_no;
+	    
+        } else {
+
+	  v::info << this->name() << "Create new entry PDC entry - TLB number: " << tlb->size() << v::endl;
+	  tmp.tlb_no = tlb->size();
+
         }
 
         // add to PDC
         tmp.context = MMU_CONTEXT_REG;
         tmp.pte = data;
+	tmp.lru = 7;
 
         (*tlb)[vpn] = tmp;
 
@@ -415,15 +478,25 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         // For context miss the existing entry will be replaced.
         if ((!context_miss) && (tlb->size() == tlb_size)) {
 
-            v::info << this->name() << "TLB full" << std::hex << data
+            v::info << this->name() << "PDC full" << std::hex << data
                     << v::endl;
-            // kick out an entry to make room for a new one
-            // todo !!
+
+	    // Remove a TLB entry, with respect to replacement strategy
+	    slot_no = tlb_remove(tlb, tlb_size);
+
+	    tmp.tlb_no = slot_no;
+	    
+        } else {
+
+	  v::info << this->name() << "Create new entry PDC entry - TLB number: " << tlb->size() << v::endl;
+	  tmp.tlb_no = tlb->size();
+
         }
 
         // add to PDC
         tmp.context = MMU_CONTEXT_REG;
         tmp.pte = data;
+	tmp.lru = 7;
 
         (*tlb)[vpn] = tmp;
 
@@ -444,7 +517,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     }
 }
 
-/// Read MMU Control Register
+// Read MMU Control Register
 unsigned int mmu::read_mcr() {
 
   unsigned int tmp = MMU_CONTROL_REG;
@@ -457,7 +530,7 @@ unsigned int mmu::read_mcr() {
 
 }
 
-/// Write MMU Control Register
+// Write MMU Control Register
 void mmu::write_mcr(unsigned int * data) {
 
   unsigned int tmp = *data;
@@ -473,7 +546,7 @@ void mmu::write_mcr(unsigned int * data) {
 
 }
 
-/// Read MMU Context Table Pointer Register
+// Read MMU Context Table Pointer Register
 unsigned int mmu::read_mctpr() {
 
   unsigned int tmp = MMU_CONTEXT_TABLE_POINTER_REG;
@@ -486,7 +559,7 @@ unsigned int mmu::read_mctpr() {
 
 }
 
-/// Write MMU Context Table Pointer Register
+// Write MMU Context Table Pointer Register
 void mmu::write_mctpr(unsigned int * data) {
 
   unsigned int tmp = *data;
@@ -502,7 +575,7 @@ void mmu::write_mctpr(unsigned int * data) {
 
 }
 
-/// Read MMU Context Register
+// Read MMU Context Register
 unsigned int mmu::read_mctxr() {
 
   unsigned int tmp = MMU_CONTEXT_REG;
@@ -515,7 +588,7 @@ unsigned int mmu::read_mctxr() {
 
 }
 
-/// Write MMU Context Register
+// Write MMU Context Register
 void mmu::write_mctxr(unsigned int * data) {
 
   unsigned int tmp = *data;
@@ -530,7 +603,7 @@ void mmu::write_mctxr(unsigned int * data) {
 
 }
 
-/// Read MMU Fault Status Register
+// Read MMU Fault Status Register
 unsigned int mmu::read_mfsr() {
 
   unsigned int tmp = MMU_FAULT_STATUS_REG;
@@ -543,7 +616,7 @@ unsigned int mmu::read_mfsr() {
 
 }
 
-/// Read MMU Fault Address Register
+// Read MMU Fault Address Register
 unsigned int mmu::read_mfar() {
 
   unsigned int tmp = MMU_FAULT_ADDRESS_REG;
@@ -577,7 +650,7 @@ unsigned int mmu::read_mfar() {
 //            PDC entry.
 
 
-/// Diagnostic read of instruction PDC (ASI 0x5)
+// Diagnostic read of instruction PDC (ASI 0x5)
 void mmu::diag_read_itlb(unsigned int addr, unsigned int * data) {
 
   unsigned int tmp;
@@ -610,11 +683,107 @@ void mmu::diag_read_itlb(unsigned int addr, unsigned int * data) {
   *data = tmp;
 }
 
-/// Diagnostic write of instruction PDC (ASI 0x5)
+// Selects a TLB entry for replacement (LRU or RANDOM replacement).
+// Removes the selected entry from the TLB map
+// and returns the 'number' of the TLB (which is now free).
+unsigned int mmu::tlb_remove(std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size) {
+
+  std::map<t_VAT, t_PTE_context>::iterator selector;
+  std::map<t_VAT, t_PTE_context>::iterator lru_selector;
+
+  unsigned int tlb_select=0;
+  unsigned int min_lru=7;
+
+  uint32_t count;
+
+  switch(m_tlb_rep) {
+
+    // LRU
+    case 0:
+
+      // LRU replaces the TLB, which hasn't been used for the longest time.
+
+      // Find the TLB with the lowest LRU value
+      for(selector = tlb->begin(); selector != tlb->end(); selector++) {
+
+	if (selector->second.lru < min_lru) {
+
+	  lru_selector = selector;
+	  tlb_select = selector->second.tlb_no;
+
+	}
+      }
+
+      v::info << this->name() << "Select TLB (LRU): " << tlb_select << " for replacement. " << v::endl;
+
+      tlb->erase(lru_selector);
+
+      break;
+
+    // Pseudo Random
+    default:
+
+      // Random replacement is implemented through
+      // modulo-N counter that selects the TLB entry
+      // to be removed from the PDC.
+      tlb_select = m_pseudo_rand % (tlb_size + 1);
+
+      v::info << this->name() << "Select TLB (Random): " << tlb_select << " for replacement. " << v::endl;
+
+      count = 0;
+      
+      for(selector = tlb->begin(); selector != tlb->end(); selector++) {
+
+	if (count == tlb_select) {
+
+	  tlb->erase(selector);
+	  break;
+
+	}
+      }
+    
+  }
+
+  return tlb_select;
+
+}
+
+// LRU replacement history updater
+void mmu::lru_update(t_VAT vpn, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size) {
+  
+  std::map<t_VAT, t_PTE_context>::iterator selector;
+
+  v::info << name() << "LRU_UPDATE for VPN: " << hex << vpn << v::endl;
+
+  // The LRU counters of all TLBs, except the selected one (vpn),
+  // are decrement. The counter of the selected TLB is set to the maximum.
+  for (selector = tlb->begin(); selector != tlb->end(); selector++) {
+
+    if (selector->first != vpn) {
+
+      if (selector->second.lru != 0) {
+
+	(selector->second.lru)--;
+
+      }
+ 
+    } else {
+
+	selector->second.lru = 7;
+
+    }
+
+    v::info << name() << "TLB " << selector->second.tlb_no << " LRU " << selector->second.lru << v::endl;
+
+  }
+}
+
+
+// Diagnostic write of instruction PDC (ASI 0x5)
 void mmu::diag_write_itlb(unsigned int addr, unsigned int * data) {
 }
 
-/// Diagnostic read of data or shared instruction and data PDC (ASI 0x6)
+// Diagnostic read of data or shared instruction and data PDC (ASI 0x6)
 void mmu::diag_read_dctlb(unsigned int addr, unsigned int * data) {
 
   unsigned int tmp;
@@ -630,7 +799,7 @@ void mmu::diag_read_dctlb(unsigned int addr, unsigned int * data) {
     if (pdciter != dtlb->end()) {
 
       // hit
-      tmp = ((pdciter->second).pte);
+      tmp = (pdciter->second).pte;
 
     } else {
 
@@ -650,27 +819,74 @@ void mmu::diag_read_dctlb(unsigned int addr, unsigned int * data) {
 // Print execution statistic at end of simulation
 void mmu::end_of_simulation() {
 
-  v::info << name() << " ******************************************** " << v::endl;
-  v::info << name() << " * MMU statistic:                             " << v::endl;
-  v::info << name() << " * -------------------" << v::endl;
-  v::info << name() << " * TLB hits:    " << thits << v::endl;
-  v::info << name() << " * TLB misses:  " << tmisses << v::endl; 
+  uint64_t total_ihits = 0;
+  uint64_t total_dhits = 0;
+
+  v::info << name() << "******************************************** " << v::endl;
+  v::info << name() << "* MMU statistic:                             " << v::endl;
+  v::info << name() << "* -------------------" << v::endl;
+
+  if (m_tlb_type == 0) {
+
+    for (uint32_t i=0; i<m_itlbnum; i++) {
+
+      v::info << name() << "* Hits in ITLB" << i << ": " << tihits[i] << v::endl;
+      total_ihits += tihits[i];
+    }
+
+    v::info << name() << "* Misses in ITLB: " << timisses << v::endl;
+
+    if (total_ihits+timisses != 0) {
+      v::info << name() << "* ITLB hit rate: " << (total_ihits * 100) / (total_ihits+timisses) << "%" << v::endl;
+    }
+
+    for (uint32_t i=0; i<m_dtlbnum; i++) {
+
+      v::info << name() << "* Hits in DTLB" << i << ": " << tdhits[i] << v::endl;
+      total_dhits += tdhits[i];
+
+    }
+
+    v::info << name() << "* Misses in DTLB: " << tdmisses << v::endl;
+
+    if (total_dhits+tdmisses != 0) {
+      v::info << name() << "* DTLB hit rate: " << (total_dhits * 100) / (total_dhits+tdmisses) << "%" << v::endl;
+    }
+
+  } else {
+
+    for (uint32_t i=0; i<m_itlbnum;i++) {
+
+      v::info << name() << "* Hits in shared I/D TLB" << i << ": " << tihits[i] << v::endl;
+      total_ihits += tihits[i];
+
+    }
+
+    v::info << name() << "* Misses in shared I/D TLB: " << timisses << v::endl;
+
+    if (total_ihits+timisses != 0) {
+      v::info << name() << "* I/D TLB hit rate: " << (total_ihits * 100) / (total_ihits+timisses) << "%" << v::endl;
+    }
+
+  }
+  
   v::info << name() << " ******************************************** " << v::endl;
 
 }
 
-/// Diagnostic write of data or shared instruction and data PDC (ASI 0x6)
+// Diagnostic write of data or shared instruction and data PDC (ASI 0x6)
 void mmu::diag_write_dctlb(unsigned int addr, unsigned int * data) {
+
 }
 
-/// return handle to itlb memory interface object
+// Returns handle to itlb memory interface object
 tlb_adaptor * mmu::get_itlb_if() {
 
     return (itlb_adaptor);
 
 }
 
-/// return handle to dtlb memory interface object
+// Returns handle to dtlb memory interface object
 tlb_adaptor * mmu::get_dtlb_if() {
 
     return (dtlb_adaptor);

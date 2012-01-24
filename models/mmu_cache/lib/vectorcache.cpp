@@ -841,14 +841,14 @@ unsigned int vectorcache::replacement_selector(unsigned int mode) {
             // LRU - least recently used
         case 1:
 
-            // LRU replaces the line which hasn't been used for the longest time.
+            // LRU replaces the line, which hasn't been used for the longest time.
 
             // The LRU algorithm needs extra "flip-flops"
             // per cache line to store access history.
             // Within the TLM model the LRU bits will be
             // attached to tag ram.
 
-            // find the line with the lowest lru
+            // Find the cache line with the lowest LRU value
             min_lru = m_max_lru;
 
             for (unsigned int i = 0; i <= m_sets; i++) {
@@ -938,17 +938,33 @@ void vectorcache::lrr_update(unsigned int set_select) {
 /// LRU replacement history updater
 void vectorcache::lru_update(unsigned int set_select) {
 
-    for (unsigned int i = 0; i <= m_sets; i++) {
+  uint32_t tmp;
 
-        // LRU: Counter for each line of a set
-        // (2 way - 1 bit, 3 way - 3 bit, 4 way - 5 bit)
-        (*m_current_cacheline[i]).tag.lru
-                = (i == set_select)? m_max_lru
-                                    : (*m_current_cacheline[i]).tag.lru - 1;
-        v::debug << this->name() << "Set " << i << " lru: "
+  for (unsigned int i = 0; i <= m_sets; i++) {
+
+    // LRU: Counter for each line of a set
+    // (2 way - 1 bit, 3 way - 3 bit, 4 way - 5 bit)
+
+    tmp = (*m_current_cacheline[i]).tag.lru;
+
+    if (i == set_select) {
+
+      (*m_current_cacheline[i]).tag.lru = m_max_lru;
+
+    } else {
+
+      if (tmp > 0) {
+
+        (*m_current_cacheline[i]).tag.lru--;
+
+      }
+    }
+
+    v::debug << this->name() << "Set " << i << " lru: "
                 << (*m_current_cacheline[i]).tag.lru << v::endl;
 
-    }
+  }
+
 }
 
 /// Snooping function (invalidates cache lines)
@@ -1054,7 +1070,7 @@ void vectorcache::end_of_simulation() {
   uint64_t total_whits = 0;
 
   v::report << name() << " ******************************************** " << v::endl;
-  v::report << name() << " * Cacheing statistic:                        " << v::endl;
+  v::report << name() << " * Caching statistic:                        " << v::endl;
   v::report << name() << " * -------------------" << v::endl;
  
   for (uint32_t i=0;i<=m_sets;i++) {

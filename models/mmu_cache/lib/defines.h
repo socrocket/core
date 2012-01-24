@@ -91,8 +91,10 @@ typedef struct {
 
 // page descriptor cache entry
 typedef struct {
-        unsigned int context;
-        unsigned int pte;
+  unsigned int tlb_no;
+  unsigned int context;
+  unsigned int pte;
+  unsigned int lru;
 } t_PTE_context;
 
 // virtual address tag
