@@ -792,7 +792,7 @@ void AHBCtrl::ResponseThread() {
     phase = tlm::BEGIN_RESP;
     delay = SC_ZERO_TIME;
 
-    v::debug << name() << "Call to nb_transport_bw with phase " << phase << v::endl; 
+    v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl; 
 
     // Call nb_transport_bw of master
     status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
