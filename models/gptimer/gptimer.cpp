@@ -257,15 +257,14 @@ void GPTimer::dorst() {
     scaler_write();
     scaler_read();
 
-    for (std::vector<GPCounter *>::iterator iter = counter.begin(); iter
-            != counter.end(); iter++) {
+    for (std::vector<GPCounter *>::iterator iter = counter.begin(); iter != counter.end(); iter++) {
         (*iter)->do_reset();
     }
     if(g_wdog_length) {
         size_t count = counter.size() -1;
         r[GPTimer::RELOAD(count)] = g_wdog_length;
         r[GPTimer::CTRL(count)] = 0xD; // Enabled, Load, Irq
-        counter.back()->ctrl_write();
+        counter[count]->ctrl_write();
     }
 }
 

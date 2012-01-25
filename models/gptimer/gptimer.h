@@ -76,7 +76,6 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
         /// APB Slave socket for all bus communication
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;
 
-        signal<bool>::in rst;
         signal<bool>::selector irq;
         signal<bool>::out wdog;
 

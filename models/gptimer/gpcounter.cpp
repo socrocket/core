@@ -102,21 +102,7 @@ void GPCounter::ctrl_read() {
 void GPCounter::ctrl_write() {
     p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_DH] = 0;
 
-    // Clean irq if desired
-    //bool old_pirq = m_pirq;
-
     m_pirq = p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_IP];
-
-#if 0
-    // Unset IRQ
-    if (old_pirq && !m_pirq) {
-        unsigned int irqnr = (p.r[GPTimer::CONF] >> 3) & 0xF;
-        if (p.r[GPTimer::CONF].b[GPTimer::CONF_SI]) {
-            irqnr += nr;
-        }
-        p.irq.write(p.irq.read() & ~(1 << irqnr));
-    }
-#endif
 
     // Prepare for chainging
     if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]) {
