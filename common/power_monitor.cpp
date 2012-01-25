@@ -158,7 +158,7 @@ void PM::send(sc_module* ip, string action, bool start, sc_time timestamp, unsig
     
     // check if IP registered and insert data
     if( i==PM::IpData.end() ){
-      v::warn << "Power Monitor" << "sending IP not registered" << endl;
+      v::debug << "Power Monitor" << "sending IP not registered" << endl;
     }else{
       i->entry.push_back(data);
     }
@@ -195,7 +195,7 @@ void PM::send_idle(sc_module* ip, string action, sc_time timestamp, bool active)
 
     // check if IP registered and insert data
     if( i==PM::IpData.end() ){
-      v::warn << "Power Monitor" << " sending IP not registered" << endl;
+      v::debug << "Power Monitor" << " sending IP not registered" << endl;
     }else{
       if( PM::LimitedRegion && (data.timestamp < PM::start_log) ){
 	i->idle.clear();
