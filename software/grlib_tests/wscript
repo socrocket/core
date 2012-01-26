@@ -51,6 +51,14 @@ def build(bld):
      target       = 'hello.sparc',
      source       = ['hello.c'],
   )
+
+  bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.lt.platform',
+      rom         = 'singlecore.lt.prom',
+      ram         = 'hello.sparc',
+  )
   
   bld(
      features     = 'c cprogram sparc',
@@ -63,7 +71,15 @@ def build(bld):
                      'cacheasm.S', 
                      'cache.c'],
   )
-  
+  """
+  bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.lt.platform',
+      rom         = 'singlecore.lt.prom',
+      ram         = 'cache.sparc',
+  )
+  """
   bld(
      features     = 'c cprogram sparc',
      target       = 'gptimer.sparc',
@@ -75,7 +91,15 @@ def build(bld):
                      'cacheasm.S', 
                      'cache.c'],
   )
-  
+  """
+  bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.lt.platform',
+      rom         = 'singlecore.lt.prom',
+      ram         = 'gptimer.sparc',
+  )
+  """
   bld(
      features     = 'c cprogram sparc',
      target       = 'irqmp.sparc',
@@ -86,7 +110,15 @@ def build(bld):
                      'cacheasm.S', 
                      'cache.c'],
   )
-  
+  """
+  bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.lt.platform',
+      rom         = 'singlecore.lt.prom',
+      ram         = 'irqmp.sparc',
+  )
+  """
   bld(
      features     = 'c cprogram sparc',
      target       = 'ram.sparc',
@@ -99,6 +131,14 @@ def build(bld):
   )
   
   bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.lt.platform',
+      rom         = 'singlecore.lt.prom',
+      ram         = 'ram.sparc',
+  )
+  
+  bld(
      features     = 'c cprogram sparc',
      target       = 'reg.sparc',
      source       = ['top_reg_test.c',
@@ -107,6 +147,14 @@ def build(bld):
                      'regtest.S',
                      'cacheasm.S',
                      'cache.c'],
+  )
+  
+  bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.lt.platform',
+      rom         = 'singlecore.lt.prom',
+      ram         = 'reg.sparc',
   )
   
   bld(
@@ -122,7 +170,25 @@ def build(bld):
   )
   
   bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.lt.platform',
+      rom         = 'singlecore.lt.prom',
+      ram         = 'mmu.sparc',
+  )
+  
+  bld(
      features     = 'c cprogram sparc',
      target       = 'readpnp.sparc',
      source       = ['readpnp.c'],
   )
+  
+  bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.lt.platform',
+      rom         = 'singlecore.lt.prom',
+      ram         = 'readpnp.sparc',
+  )
+  
+
