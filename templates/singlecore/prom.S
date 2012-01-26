@@ -161,7 +161,7 @@ _fsrxx:
 !	st  %g2, [%g1+0x10]
 
 ! Check if vendor and device id is higher than 0x1009!
-	set (((conf_ahbctrl_cfgaddr&conf_ahbctrl_cfgmask)<<20)|(conf_memctrl_ahb_index<<5)), %g1
+	set (((conf_ahbctrl_ioaddr&conf_ahbctrl_iomask)<<20)|((conf_ahbctrl_cfgaddr&conf_ahbctrl_cfgmask)<<8)|(conf_memctrl_ahb_index<<5)), %g1
 	ld  [%g1], %g2
 	srl %g2, 12, %g2
 	set 0x01009, %g1

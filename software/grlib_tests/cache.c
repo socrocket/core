@@ -242,10 +242,12 @@ long long int getdw(void *addr) {
 }
 
 static int maintest() {
-    volatile char data1[(8192 + 8) * sizeof(double)];
+    volatile char data1[(8192 + 8) * sizeof(double)]; // or long long
+    //volatile long long *mrl = (long long *)data1; /* enough for 64 K caches */
     volatile double *mrl = (double *)data1; /* enough for 64 K caches */
     volatile char data2[16 * sizeof(int)];
     volatile int *mrx = (int *)data2;
+    //volatile long long *ll = (long long *)data2;
     volatile double *ll = (double *)data2;
     volatile int *mr = (int *) data1;
     volatile unsigned char *mrc = (unsigned char *) data1;

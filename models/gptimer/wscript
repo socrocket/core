@@ -158,30 +158,4 @@ def build(bld):
     config       =  vsim_conf,
   )
   
-  bld(
-    target       = 'gptimer.3.lt.test',
-    features     = 'cxx cprogram test',
-    source       = ['tests/test3/top_lt.cpp',
-                    'tests/test3/testbench.cpp'],
-    includes     = '. tests/test3',
-    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
-    use          = 'gptimer utils signalkit common',
-  )
-
-  bld(
-    target       = 'gptimer.3.rtl.test',
-    features     = 'modelsim test',
-    source       = ['tests/gptimer_wrapper.vhd',
-                    'tests/test3/testbench.cpp',
-                    'tests/test3/top_rtl.cpp',
-                    '../../common/verbose.cpp',
-                    '../../common/timingmonitor.cpp',
-                    '../../adapters/apb_tlmbus_rtlslave_transactor.cpp',
-                    '../../adapters/ahbpipe.cpp',
-                    '../utils/clkdevice.cpp',
-                    '../utils/apbdevice.cpp'],
-    uselib       = 'AMBA GREENSOCS',
-    includes     = '. ./tests ./tests/test3 ../utils ../../signalkit ../../common ../../adapters',
-    config       =  vsim_conf,
-  )
 

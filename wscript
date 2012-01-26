@@ -358,12 +358,14 @@ def configure(ctx):
     ########################################
     # Load unit test framework
     ########################################
-    ctx.load('modelsim', tooldir='wadtools')
+    ctx.load('waf_unit_test')
 
     ########################################
     # Load modelsim and check for dependenies
     ########################################
-    ctx.load('waf_unit_test')
+    ctx.load('modelsim', tooldir='waftools')
+    ctx.load('generate', tooldir='waftools')
+    
     ###########################################################
     # Check for ELF library and headers
     ###########################################################
@@ -799,10 +801,16 @@ def configure(ctx):
     ctx.env['CXX'] = ctx.env['LINK_CXX'] = crossxx
     ctx.env['AR'] = crossar
     #ctx.set_env_name('sparc', sparc_env)
-    sparcFlags = ['-Wall', '-static', '-O3']
-    ctx.env.append_unique('LINKFLAGS', sparcFlags);
+    sparcFlags = ['-Wall', '-static', '-O3', '-mno-fpu']
+    ctx.env.append_unique('LINKFLAGS', sparcFlags)
+    if  '-Wl,-Bdynamic' in ctx.env['LINKFLAGS']:
+      ctx.env['LINKFLAGS'].remove('-Wl,-Bdynamic')
     ctx.env.append_unique('CFLAGS', sparcFlags)
+    if  '-Wl,-Bdynamic' in ctx.env['CFLAGS']:
+      ctx.env['CFLAGS'].remove('-Wl,-Bdynamic')
     ctx.env.append_unique('CCFLAGS', sparcFlags)
+    if  '-Wl,-Bdynamic' in ctx.env['CCFLAGS']:
+      ctx.env['CCFLAGS'].remove('-Wl,-Bdynamic')
     #ctx.env.append_unique('CXXFLAGS', sparcFlags)
     
     if ctx.env['CFLAGS']:
@@ -825,6 +833,7 @@ def options(ctx):
     ctx.load('waf_unit_test', option_group=configuration_options)
     ctx.load('common', option_group=configuration_options, tooldir='waftools')
     ctx.load('modelsim', option_group=configuration_options, tooldir='waftools')
+    ctx.load('generate', option_group=configuration_options, tooldir='waftools')
   
     #ctx.add_option('--onlytests', action='store_true', default=True, help='Exec unit tests only', dest='only_tests')
     # Specify SystemC and TLM options
