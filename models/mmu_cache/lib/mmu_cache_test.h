@@ -109,17 +109,21 @@ class mmu_cache_test : public sc_module, public CLKDevice{
 
   /// Helper functions for maintaining data, reference and debug pointers
   unsigned char * get_datap();
-  unsigned char * get_datap_word(unsigned int value);
-  unsigned char * get_datap_short(unsigned int value);
-  unsigned char * get_datap_byte(unsigned int value);
+  unsigned char * get_datap_dword(uint64_t value);
+  unsigned char * get_datap_word(uint32_t value);
+  unsigned char * get_datap_short(uint32_t value);
+  unsigned char * get_datap_byte(uint32_t value);
   unsigned char * get_refp();
-  unsigned char * get_refp_word(unsigned int value);
-  unsigned char * get_refp_short(unsigned int value);
-  unsigned char * get_refp_byte(unsigned int value);
+  unsigned char * get_refp_dword(uint64_t value);
+  unsigned char * get_refp_word(uint32_t value);
+  unsigned char * get_refp_short(uint32_t value);
+  unsigned char * get_refp_byte(uint32_t value);
 
-  unsigned int  * get_debugp();
-  unsigned int  * get_debugp_clean();
+  uint32_t  * get_debugp();
+  uint32_t  * get_debugp_clean();
+
   void inc_tptr();
+  void inc_tptr(uint32_t value);
   void inc_ec();
 
   // Delayed release of transactions

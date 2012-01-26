@@ -88,6 +88,20 @@ unsigned char * mmu_cache_test::get_datap() {
 
 }
 
+
+// Returns a character pointer to an 8byte data buffer (dword).
+// The buffer is initialized with 'value'.
+// Eventually, the endianess will be turned.
+unsigned char * mmu_cache_test::get_datap_dword(uint64_t value) {
+
+  memcpy(data+tc, (unsigned char *)&value, 8);
+
+  swap_Endianess(*(uint64_t *)(data+tc));
+
+  return(data+tc);
+
+}
+
 unsigned char * mmu_cache_test::get_datap_word(unsigned int value) {
 
   memset(data+tc,0,4);
@@ -129,6 +143,19 @@ unsigned char * mmu_cache_test::get_refp() {
   return(ref+tc);
 
 }
+
+// Returns a character pointer to an 8byte data buffer.
+// The buffer will be initialized with 'value'.
+// Eventually, the endianess is turned.
+unsigned char * mmu_cache_test::get_refp_dword(uint64_t value) {
+
+  memcpy(ref+tc,(unsigned char*)&value, 8);
+
+  swap_Endianess(*(uint64_t*)(ref+tc));
+  
+  return(ref+tc);
+
+} 
 
 unsigned char * mmu_cache_test::get_refp_word(unsigned int value) {
 
@@ -178,8 +205,15 @@ unsigned int * mmu_cache_test::get_debugp_clean() {
   return(debug+(tc>>2));
 }
 
-// Increment test counter (tc)
-// tc is offset for data, ref and debug arrays
+// Increment test counter (tc) by value
+// The tc serves as an offset in the data, ref and debug arrays.
+void mmu_cache_test::inc_tptr(uint32_t value) {
+
+  tc = (tc + value) % 1024;
+
+}
+
+// Increment test counter by 4 (one word - default)
 void mmu_cache_test::inc_tptr() {
 
   tc = (tc + 4) % 1024;
@@ -838,6 +872,8 @@ void mmu_cache_test::dread(unsigned int addr, unsigned char * data, unsigned int
 
     // Blocking transport
     dcio->b_transport(*trans, delay);
+    // Consume component delay
+    wait(delay);
 
   } else {
 
@@ -942,6 +978,9 @@ void mmu_cache_test::dwrite(unsigned int addr, unsigned char * data, unsigned in
 
     // Blocking transport
     dcio->b_transport(*trans, delay);
+
+    // Consume component delay
+    wait(delay);
 
   } else {
 

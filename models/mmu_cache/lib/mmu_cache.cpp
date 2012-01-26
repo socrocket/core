@@ -1223,7 +1223,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
 
     tlm::tlm_phase phase;
     tlm::tlm_sync_enum status;
-    sc_core::sc_time delay;
+    sc_core::sc_time delay = SC_ZERO_TIME;
 
     // Allocate new transaction
     tlm::tlm_generic_payload *trans = ahb.get_transaction();
@@ -1259,9 +1259,6 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
     // Collect transport statistics
     transport_statistics(*trans);
 
-    // Initialize delay
-    delay = SC_ZERO_TIME;
-
     // Timed transport
     if (!is_dbg) {
 
@@ -1270,7 +1267,10 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
         // Blocking transport
         ahb->b_transport(*trans, delay);
 
-	v::debug << name() << "Release transaction: " << hex << trans << v::endl;
+	//v::debug << name() << "Delay after return from b_transport: " << delay << v::endl;
+
+        // Consume delay
+        wait(delay);
 
 	// Check TLM RESPONSE
 	if (trans->get_response_status()!=tlm::TLM_OK_RESPONSE) {
@@ -1283,13 +1283,10 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
 
 	}
 
+	v::debug << name() << "Release transaction: " << hex << trans << v::endl;
+
 	// Release transaction
 	ahb.release_transaction(trans);
-
-        // Consume delay
-        wait(delay);
-        delay = SC_ZERO_TIME;
-
 
       } else {
 

@@ -192,7 +192,7 @@ int AHBCtrl::get_index(const uint32_t address) {
 
 	// There may be up to four BARs per device.
 	// Only return device ID.
-  m_right_transactions++;
+	m_right_transactions++;
 	return ((it->first)>>2);
  
       }
@@ -260,11 +260,17 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
   // master-address pair for dcache snooping
   t_snoop snoopy;
 
-  // -- For Debug only --
   uint32_t a = 0;
-  socket_t* other_socket = ahbIN.get_other_side(id, a);
-  sc_core::sc_object *mstobj = other_socket->get_parent();
-  // --------------------
+  socket_t* other_socket;
+  sc_core::sc_object *slvobj;
+  sc_core::sc_object *mstobj;
+
+  if (v::debug) {
+
+    other_socket = ahbIN.get_other_side(id, a);
+    mstobj = other_socket->get_parent();
+  }
+
 
   // Collect transport statistics
   transport_statistics(trans);
@@ -315,14 +321,16 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
   // For valid slave index
   if(index >= 0) {
 
-    // -- For Debug only --
-    other_socket = ahbOUT.get_other_side(index, a);
-    sc_core::sc_object *obj = other_socket->get_parent();
+    if (v::debug) {
 
-    v::debug  << name() << "AHB Request for address: 0x" << hex << v::setfill('0')
-	      << v::setw(8) << trans.get_address() << ", from master: "
-	      << mstobj->name() << ", forwarded to slave: " << obj->name() << endl;
-    // --------------------
+      other_socket = ahbOUT.get_other_side(index, a);
+      slvobj = other_socket->get_parent();
+
+      v::debug  << name() << "AHB Request for address: 0x" << hex << v::setfill('0')
+		<< v::setw(8) << trans.get_address() << ", from master: "
+		<< mstobj->name() << ", forwarded to slave: " << slvobj->name() << endl;
+
+    }
 
     // Broadcast master_id and address for dcache snooping
     if (trans.get_command() == tlm::TLM_WRITE_COMMAND) {
@@ -345,14 +353,10 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     // Forward request to the selected slave
     ahbOUT[index]->b_transport(trans, delay);
 
+    //v::debug << name() << "Delay after return from slave: " << delay << v::endl;
+
     // Power event end
     PM::send(this,"ahb_trans",0,sc_time_stamp()+delay,(unsigned int)trans.get_data_ptr(),m_pow_mon);
-
-    // !!!! TMP FOR BUGFIXING
-    unsigned char * test_data;
-    test_data = trans.get_data_ptr();
-
-    v::debug << name() << "Data after call to slave: " << v::uint32 << *((uint32_t *)test_data) << v::endl;
 
     return;
 

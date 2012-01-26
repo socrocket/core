@@ -118,6 +118,8 @@ void AHBMem::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
 
     if(trans.is_write()) {
       for(uint32_t i = 0; i < trans.get_data_length(); i++) {
+
+	v::debug << name() << "mem[" << trans.get_address() + i << "] = 0x" << hex << v::setw(2) << (unsigned int)*(trans.get_data_ptr() + i) << v::endl;
         // write simulation memory
         mem[trans.get_address() + i] = *(trans.get_data_ptr() + i);
       }
@@ -126,6 +128,8 @@ void AHBMem::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
     } else {
       for(uint32_t i = 0; i < trans.get_data_length(); i++) {
+
+	v::debug << name() << "0x" << hex << v::setw(2) << (unsigned int)mem[trans.get_address() + i] << "= mem[" << trans.get_address() + i << "]" << v::endl;
         // read simulation memory
         *(trans.get_data_ptr() + i) = mem[trans.get_address() + i];
       }
@@ -134,6 +138,8 @@ void AHBMem::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
       delay += clock_cycle * (trans.get_data_length() >> 2);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
     }
+
+    v::debug << name() << "Delay increment: " << delay << v::endl;
 
   } else {
     // address not valid

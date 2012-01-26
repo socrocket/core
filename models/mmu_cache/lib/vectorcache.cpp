@@ -198,7 +198,7 @@ vectorcache::~vectorcache() {
 
 /// read from cache
 bool vectorcache::mem_read(unsigned int address, unsigned char *data,
-                           unsigned int len, sc_core::sc_time *t,
+                           unsigned int len, sc_core::sc_time *delay,
                            unsigned int * debug, bool is_dbg) {
 
     int set_select = -1;
@@ -258,7 +258,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
                         memcpy(data, &(*m_current_cacheline[i]).entry[offset >> 2].c[byt], len);
 
                         // increment time
-                        *t += clockcycle;
+                        *delay += ((len >> 3)+1)*clockcycle;
 
                         // valid data in set i
                         cache_hit = i;
@@ -286,17 +286,20 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
         }
 
 
-	for (unsigned int i=0;i<=m_sets;i++) {
+	if (m_pow_mon) {
+
+	  for (unsigned int i=0;i<=m_sets;i++) {
 
 	    // Power Monitor: parallel read of all cache sets (1 cycle)
 	    sprintf(buf,"set_read%d",i);
 	    PM::send(this,buf,1,sc_time_stamp(),0,m_pow_mon);
 	    PM::send(this,buf,0,sc_time_stamp()+clockcycle,0,m_pow_mon);
 
+	  }
 	}
 
 
-        // in case no matching tag was found or data is not valid:
+        // In case no matching tag was found or data is not valid:
         // -------------------------------------------------------
         // read miss - On a data cache read miss to a cachable location 4 bytes of data
         // are loaded into the cache from main memory.
@@ -306,12 +309,12 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 	    rmisses++;
 
             // increment time
-            *t += clockcycle;
+            *delay += clockcycle;
 
             // Set length of bus transfer depending on mode:
             // ---------------------------------------------
             // If burst fetch is enabled, the cache line is filled starting at the missed address
-            // until the end of the line. At the same time the instructions are forwarded to the IU (todo AT ??).
+            // until the end of the line.
             if (m_burst_en && (m_mmu_cache->read_ccr() & 0x10000)) {
 
                 burst_len = m_bytesperline - ((offset >> 2) << 2);
@@ -319,13 +322,23 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 
             } else {
 
-                burst_len = 4;
-                replacer_limit = offset;
+	      if (len == 8) {
 
-            }
+		// 64bit
+		burst_len = 8;
+		replacer_limit = offset+4;
+
+	      } else {
+
+		// 32bit or below
+		burst_len =  4;
+		replacer_limit = offset;
+
+	      }
+	    }
 
 	    // Access ahb interface or mmu - return true if data is cacheable
-            if (m_tlb_adaptor->mem_read(((address >> 2) << 2), ahb_data, burst_len, t, debug, is_dbg)) {
+            if (m_tlb_adaptor->mem_read(((address >> 2) << 2), ahb_data, burst_len, delay, debug, is_dbg)) {
 
 	      // Check for unvalid data which can be replaced without harm
 	      for (unsigned int i = 0; i <= m_sets; i++) {
@@ -464,13 +477,13 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 
         // Cache is disabled
         // Forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
-        m_mmu_cache->mem_read(address, data, len, t, debug, is_dbg);
+        m_mmu_cache->mem_read(address, data, len, delay, debug, is_dbg);
 
         // update debug information
         CACHEBYPASS_SET(*debug);
 
         // increment time
-        *t += clockcycle;
+        *delay += clockcycle;
 
     }
 
@@ -487,7 +500,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned char *data,
 //   So, some time is saved not bringing the block in the cache on a miss because it appears useless anyway.
 
 void vectorcache::mem_write(unsigned int address, unsigned char * data,
-                            unsigned int len, sc_core::sc_time * t,
+                            unsigned int len, sc_core::sc_time * delay,
                             unsigned int * debug, bool is_dbg) {
 
     // is the cache enabled (0x11) or frozen (0x01)
@@ -542,7 +555,7 @@ void vectorcache::mem_write(unsigned int address, unsigned char * data,
                     // valid is already set
 
                     // increment time
-                    *t += clockcycle;
+                    *delay += clockcycle;
 
                     break;
                 } else {
@@ -576,7 +589,7 @@ void vectorcache::mem_write(unsigned int address, unsigned char * data,
         // or byte stores, the data has to be properly aligned for writing to word-
         // addressed device, before writing the WRB.
 
-        m_tlb_adaptor->mem_write(address, data, len, t, debug, is_dbg);
+        m_tlb_adaptor->mem_write(address, data, len, delay, debug, is_dbg);
 
     } else {
 
@@ -588,7 +601,7 @@ void vectorcache::mem_write(unsigned int address, unsigned char * data,
 
         // cache is disabled
         // forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
-        m_mmu_cache->mem_write(address, data, len, t, debug, is_dbg);
+        m_mmu_cache->mem_write(address, data, len, delay, debug, is_dbg);
 
         // update debug information
         CACHEBYPASS_SET(*debug);
