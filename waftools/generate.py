@@ -84,6 +84,7 @@ def make_systest(self):
   sysname = getattr(self, 'system', None)
   romname = getattr(self, 'prom', getattr(self, 'rom', None)) 
   ramname = getattr(self, 'ram', getattr(self, 'sram', getattr(self, 'sdram', None)))
+  param = Utils.to_list(getattr(self, 'args', getattr(self, 'param', getattr(self, 'ut_param', []))))
   
   if sysname and romname and ramname:
     systgen = self.bld.get_tgen_by_name(sysname)
@@ -95,7 +96,7 @@ def make_systest(self):
     
     test = self.create_task('utest', [ram, rom, sys])
     test.filename = getattr(self, 'name', getattr(self, 'target', ramname))
-    test.ut_exec = [sys.abspath(), rom.abspath(), ram.abspath()]
+    test.ut_exec = [sys.abspath(), rom.abspath(), ram.abspath()] + param
 
 from waflib.TaskGen import feature,after_method
 feature('systest')(make_systest)

@@ -801,7 +801,7 @@ def configure(ctx):
     ctx.env['CXX'] = ctx.env['LINK_CXX'] = crossxx
     ctx.env['AR'] = crossar
     #ctx.set_env_name('sparc', sparc_env)
-    sparcFlags = ['-Wall', '-static', '-O3', '-mno-fpu']
+    sparcFlags = ['-Wall', '-static', '-O3']
     ctx.env.append_unique('LINKFLAGS', sparcFlags)
     if  '-Wl,-Bdynamic' in ctx.env['LINKFLAGS']:
       ctx.env['LINKFLAGS'].remove('-Wl,-Bdynamic')

@@ -117,17 +117,29 @@ using namespace sc_core;
 #define LOCAL_CLOCK 10
 #define CACHE_MASTER_ID 0
 
+namespace trap {
+  extern int exitValue;
+};
+
 int sc_main(int argc, char** argv) {
 
     clock_t cstart, cend;
     char *sram_app, *prom_app;
-    v::logApplication(argv[0]);
+    int app_argc = 0;
+    bool gdb_en = false;
     if(argc >= 3) {
        prom_app = argv[1];
        sram_app = argv[2];
+       app_argc += 3;
+       v::logApplication(sram_app);
     } else {
-       v::error << "Please use: '" << argv[0] << " [prom.elf] [sram.elf] [gdb]" << "' to define an application." << endl;
+       v::error << "Please use: '" << argv[0] << " prom.elf sram.elf [gdb] [...]" << "' to define an application." << endl;
        return -1;
+    }
+    
+    gdb_en = ((argc>3) && (std::strcmp(argv[3],"gdb")==0));
+    if(gdb_en) {
+        app_argc++;
     }
 
     // Decide weather LT or AT
@@ -436,14 +448,17 @@ int sc_main(int argc, char** argv) {
     osEmu.initSysCalls(sram_app);
     std::vector<std::string> options;
     options.push_back(sram_app);
+    for(int i = app_argc; i < argc; i++) {
+        options.push_back(argv[i]);
+    }
     OSEmulatorBase::set_program_args(options);
 
     leon3.toolManager.addTool(osEmu);
-    leon3.enableHistory("cmdHistLTSys"); 
+    //leon3.enableHistory("cmdHistLTSys"); 
     // ******************************************
    
     // * GDBStubs *******************************
-    if((argc>3) && (std::strcmp(argv[3],"gdb")==0)) {
+    if(gdb_en) {
         GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3.abiIf));
         leon3.toolManager.addTool(*gdbStub);
         gdbStub->initialize(); 
@@ -467,15 +482,15 @@ int sc_main(int argc, char** argv) {
     sc_core::sc_start();
     cend = clock();
     // call power analyzer
-    if(conf_sys_power) {
-        PM::analyze("./models/","main-power.dat","singlecore2.eslday1.stats");
-    }
+    //if(conf_sys_power) {
+    //    PM::analyze("./models/","main-power.dat","singlecore2.eslday1.stats");
+    //}
 
     if(conf_sys_timing) {
         v::info << "Summary" << "Start: " << dec << cstart << v::endl;
         v::info << "Summary" << "End:   " << dec << cend << v::endl;
         v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
     }
-    return 0;
+    return trap::exitValue;
 
 }

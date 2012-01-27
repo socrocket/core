@@ -49,6 +49,8 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'hello.sparc',
+     cflags       = '-static -g -O1 -lm -mno-fpu',
+     linkflags    = '-static -g -O1 -lm -mno-fpu',
      source       = ['hello.c'],
   )
 
@@ -71,8 +73,8 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'cache.sparc',
-     ccflags      = '-static -g -O1 -lm',
-     linkflags    = '-static -g -O1 -lm',
+     cflags       = '-static -g -O1 -lm -mno-fpu',
+     linkflags    = '-static -g -O1 -lm -mno-fpu',
      source       = ['top_cache_test.c',
                      'ramfill.c', 
                      'standalone.c', 
@@ -131,8 +133,11 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'ram.sparc',
+     cflags       = '-static -g -O1 -lm -mno-fpu',
+     linkflags    = '-static -g -O1 -lm -mno-fpu',
      source       = ['top_ram_test.c',
                      'ramfill.c', 
+                     'standaloneasm.S', 
                      'standalone.c', 
                      'ramtest.c',
                      'cacheasm.S',
@@ -158,8 +163,11 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'reg.sparc',
+     cflags       = '-static -g -O1 -lm -mno-fpu',
+     linkflags    = '-static -g -O1 -lm -mno-fpu',
      source       = ['top_reg_test.c',
                      'ramfill.c', 
+                     'standaloneasm.S', 
                      'standalone.c', 
                      'regtest.S',
                      'cacheasm.S',
@@ -185,9 +193,12 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'mmu.sparc',
+     cflags       = '-static -g -O1 -lm -mno-fpu',
+     linkflags    = '-static -g -O1 -lm -mno-fpu',
      source       = ['top_mmu_test.c',
                      'ramfill.c', 
                      'standalone.c', 
+                     'standaloneasm.S', 
                      'mmu.c',
                      'mmu_asm.S',
                      'cacheasm.S',
@@ -212,6 +223,8 @@ def build(bld):
   
   bld(
      features     = 'c cprogram sparc',
+     cflags       = '-static -g -O1 -lm -mno-fpu',
+     linkflags    = '-static -g -O1 -lm -mno-fpu',
      target       = 'readpnp.sparc',
      source       = ['readpnp.c'],
   )
@@ -230,6 +243,32 @@ def build(bld):
       system      = 'singlecore.at.platform',
       rom         = 'singlecore.at.prom',
       ram         = 'readpnp.sparc',
+  )
+  
+  bld(
+     features     = 'c cprogram sparc',
+     cflags       = '-static -g -O1 -lm -mno-fpu',
+     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     target       = 'argstest.sparc',
+     source       = ['top_args_test.c'],
+  )
+  
+  bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.lt.platform',
+      rom         = 'singlecore.lt.prom',
+      ram         = 'argstest.sparc',
+      args        = 'one two three four'
+  )
+  
+  bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.at.platform',
+      rom         = 'singlecore.at.prom',
+      ram         = 'argstest.sparc',
+      args        = ['one', 'two', 'three', 'four']
   )
   
 
