@@ -23,7 +23,7 @@ void flush(void) {
         "flush"
     );
 }
-
+ 
 int getitag(int addr, int set) {
     int tag;
 

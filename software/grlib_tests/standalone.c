@@ -17,7 +17,6 @@ int device = 0;
 void report_device(int dev) {
     device = dev;
     printf("%s\n", dev_to_string(dev));
-    return 1;
 }
 
 void report_subtest(int test) {
@@ -99,4 +98,5 @@ char *dev_to_subtest(int dev, int test) {
             default:  return("sub-test");
         }
     }
+    return "";
 }

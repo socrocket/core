@@ -55,4 +55,9 @@ def build(bld):
       target='singlecore.lt',
   )
   
+  bld(
+      features='generate',
+      target='singlecore.at',
+  )
+  
   bld.recurse(get_subdirs(bld.path.abspath()))

@@ -9,4 +9,10 @@ void fail(int dev);
 char *dev_to_string(unsigned int dev);
 char *dev_to_subtest(int dev, int test);
 
+int get_sem();
+int ret_sem();
+int get_pid();
+int mread(int);
+int getccfg();
+	
 #endif

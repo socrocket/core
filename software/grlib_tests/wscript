@@ -61,13 +61,22 @@ def build(bld):
   )
   
   bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.at.platform',
+      rom         = 'singlecore.at.prom',
+      ram         = 'hello.sparc',
+  )
+  
+  bld(
      features     = 'c cprogram sparc',
      target       = 'cache.sparc',
-     cxxflags     = '-static -g -O1 -lm',
+     ccflags      = '-static -g -O1 -lm',
      linkflags    = '-static -g -O1 -lm',
      source       = ['top_cache_test.c',
                      'ramfill.c', 
                      'standalone.c', 
+                     'standaloneasm.S', 
                      'cacheasm.S', 
                      'cache.c'],
   )
@@ -139,6 +148,14 @@ def build(bld):
   )
   
   bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.at.platform',
+      rom         = 'singlecore.at.prom',
+      ram         = 'ram.sparc',
+  )
+  
+  bld(
      features     = 'c cprogram sparc',
      target       = 'reg.sparc',
      source       = ['top_reg_test.c',
@@ -154,6 +171,14 @@ def build(bld):
       target      = 'systest.test',
       system      = 'singlecore.lt.platform',
       rom         = 'singlecore.lt.prom',
+      ram         = 'reg.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.at.platform',
+      rom         = 'singlecore.at.prom',
       ram         = 'reg.sparc',
   )
   
@@ -178,6 +203,14 @@ def build(bld):
   )
   
   bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.at.platform',
+      rom         = 'singlecore.at.prom',
+      ram         = 'mmu.sparc',
+  )
+  
+  bld(
      features     = 'c cprogram sparc',
      target       = 'readpnp.sparc',
      source       = ['readpnp.c'],
@@ -188,6 +221,14 @@ def build(bld):
       target      = 'systest.test',
       system      = 'singlecore.lt.platform',
       rom         = 'singlecore.lt.prom',
+      ram         = 'readpnp.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      target      = 'systest.test',
+      system      = 'singlecore.at.platform',
+      rom         = 'singlecore.at.prom',
       ram         = 'readpnp.sparc',
   )
   
