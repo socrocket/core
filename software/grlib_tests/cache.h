@@ -26,6 +26,7 @@ int asmgetddata(int addr);
 void asmsetddata(int addr, int data);
 void setudata(int addr,int data);
 int getudata(int addr);
+int asmgetudata(int addr);
 int xgetpsr(void);
 void setpsr(int psr);
 void flushi(int addr,int data);

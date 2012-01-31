@@ -20,9 +20,17 @@ void ramfill(void) {
     dsets = ((dcconf >> 24) & 3) + 1;
     ibytes = (1 << (((icconf >> 20) & 0xF) + 10)) * isets;
     dbytes = (1 << (((dcconf >> 20) & 0xF) + 10)) * dsets;
+
+    printf("isets: %i dsets: %i ibytes: %i dbytes: %i\n", isets, dsets, ibytes, dbytes);
+
+    printf("Disable Cache\n");
     cache_disable();
     ifill(ibytes);
     dfill(dbytes);
+
+    printf("Flush Cache\n");
     flush();
+
+    printf("Enable Cache\n");
     cache_enable();    
 }

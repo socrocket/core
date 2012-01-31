@@ -1,4 +1,5 @@
 #include "testmod.h"
+
 #include "leon3.h"
 #include "cache.h"
 #include "stdio.h"
@@ -24,33 +25,34 @@ void flush(void) {
     );
 }
  
-int getitag(int addr, int set) {
-    int tag;
+int getitag(volatile int addr, volatile int set) {
+    volatile int tag;
 
     tag = asmgetitag((addr & IDIAGMSK) + (set<<isetbits));
     return tag;
 }
 
 
-void setitag(int addr, int set, int data) {
+void setitag(volatile int addr, volatile int set, volatile int data) {
+
     asmsetitag(((addr & IDIAGMSK) + (set<<isetbits)), data);
 }
 
-void setidata(int addr, int set, int data) {
+void setidata(volatile int addr, volatile int set, volatile int data) {
     asmsetidata(((addr & IDIAGMSK) + (set<<isetbits)), data);
 }
 
 
-int getidata(int addr, int set) {
-    int idata;
+int getidata(volatile int addr, volatile int set) {
+    volatile int idata;
   
     idata = asmgetidata((addr & IDIAGMSK) + (set<<isetbits));
     return idata;
 }
 
 
-int asmgetitag(int addr) {
-    int result;
+int asmgetitag(volatile int addr) {
+    volatile int result;
     asm(
         "lda [%[addr]] 0xc, %[result]"
         : [result] "=r" (result)
@@ -59,15 +61,15 @@ int asmgetitag(int addr) {
     return result;
 }
 
-void asmsetitag(int addr, int data) {
+void asmsetitag(volatile int addr, volatile int data) {
     asm(
         "sta %[data], [%[addr]] 0xc"
         :: [addr] "r" (addr), [data] "r" (data)
     );
 }
 
-int asmgetidata(int addr) {
-    int result;
+int asmgetidata(volatile int addr) {
+    volatile int result;
     asm(
         "lda [%[addr]] 0xd, %[result]"
         : [result] "=r" (result)
@@ -76,22 +78,22 @@ int asmgetidata(int addr) {
     return result;
 }
 
-void asmsetidata(int addr, int data) {
+void asmsetidata(volatile int addr, volatile int data) {
     asm(
         "sta %[data], [%[addr]] 0xd"
         :: [addr] "r" (addr), [data] "r" (data)
     );
 }
 
-void wsysreg(int addr, int data) {
+void wsysreg(volatile int addr, volatile int data) {
     asm(
         "sta %[data], [%[addr]] 0x2"
         :: [addr] "r" (addr), [data] "r" (data)
     );
 }
 
-int rsysreg(int addr) {
-    int result;
+int rsysreg(volatile int addr) {
+    volatile int result;
     asm(
         "lda [%[addr]] 0x2, %[result]"
         : [result] "=r" (result)
@@ -101,24 +103,28 @@ int rsysreg(int addr) {
 }
 
 
-void setdtag(int addr, int set, int data) {
+void setdtag(volatile int addr, volatile int set, volatile int data) {
     asmsetdtag((addr & DDIAGMSK) + (set<<dsetbits), data);
 }
 
-void setddata(int addr, int set, int data) {
+void setddata(volatile int addr, volatile int set, volatile int data) {
     asmsetddata(((addr & DDIAGMSK) + (set<<dsetbits)), data);
 }
 
-int chkdtag(int addr) {
+// Returns true if tag is found in cache
+int chkdtag(volatile int addr) {
     //int tm[16];
     int tmp, i;
 
     tmp = 0; 
     for(i=0; i<DSETS; i++) {
-        if(((asmgetdtag((addr & DDIAGMSK) + (i<<dsetbits))) & DTAGAMSK) == (addr & DTAGAMSK)) {
-            tmp++;
-        }
+
+      // Increment counter tmp for each set that contains the tag of addr.
+      if(((asmgetdtag((addr & DDIAGMSK) + (i<<dsetbits))) & DTAGAMSK) == (addr & DTAGAMSK)) {
+        tmp++;
+      }
     }
+
     if(tmp != 0) {
         return 0;
     } else {
@@ -126,16 +132,16 @@ int chkdtag(int addr) {
     }
 }  
 
-int getdtag(int addr, int set) {
-    int tag;
+int getdtag(volatile int addr, volatile int set) {
+    volatile int tag;
   
     tag = asmgetdtag((addr & DDIAGMSK) + (set<<dsetbits));
     return tag;
 }
 
 
-int getddata(int addr, int set) {
-    int ddata;
+int getddata(volatile int addr, volatile int set) {
+    volatile int ddata;
 
     ddata = asmgetddata(((addr & DDIAGMSK) + (set<<dsetbits))); 
     return ddata;
@@ -150,8 +156,8 @@ void dma(int addr, int len,  int write) {
     dm[1] = (write <<13) + 0x1000 + len;
 }
 
-int asmgetdtag(int addr) {
-    int result;
+int asmgetdtag(volatile int addr) {
+    volatile int result;
     asm(
         "lda [%[addr]] 0xe, %[result]"
         : [result] "=r" (result)
@@ -160,15 +166,15 @@ int asmgetdtag(int addr) {
     return result;
 }
 
-void asmsetdtag(int addr, int data) {
+void asmsetdtag(volatile int addr, volatile int data) {
     asm(
         "sta %[data], [%[addr]] 0xe"
         :: [addr] "r" (addr), [data] "r" (data)
     );
 }
 
-int asmgetddata(int addr) { 
-    int result;
+int asmgetddata(volatile int addr) { 
+    volatile int result;
     asm(
         "lda [%[addr]] 0xf, %[result]"
         : [result] "=r" (result)
@@ -177,22 +183,28 @@ int asmgetddata(int addr) {
     return result;
 }
 
-void asmsetddata(int addr, int data) {
+void asmsetddata(volatile int addr, volatile int data) {
     asm(
         "sta %[data], [%[addr]] 0xf"
         :: [addr] "r" (addr), [data] "r" (data)
     );
 }
 
-void setudata(int addr,int data) {
+void setudata(volatile int addr,volatile int data) {
     asm(
         "sta %[data], [%[addr]] 0x0"
         :: [addr] "r" (addr), [data] "r" (data)
     );
 }
 
-int getudata(int addr) {
-    int result;
+int getudata(volatile int addr) {
+    volatile int data;
+    data = asmgetudata(addr);
+    return data;  
+}
+
+int asmgetudata(volatile int addr) {
+    volatile int result;
     asm(
         "lda [%[addr]] 0x0, %[result]"
         : [result] "=r" (result)
@@ -266,7 +278,10 @@ static int maintest() {
 
     report_subtest(CACHE_TEST);
 
-    cachectrl = rsysreg(0); 
+    cachectrl = rsysreg(0);
+
+    printf("Cache control register: %x\n", cachectrl);
+
     wsysreg(0, cachectrl & ~0x0f);
     
     do {
@@ -305,21 +320,47 @@ static int maintest() {
     ITAGLOW = 10 + ((icconf >> 20) & 15);
     DTAGLOW = 10 + ((dcconf >> 20) & 15); 
 
+    printf("Software Cache Info: \n");
+    printf("-----------------------\n");
+    printf("ilinebits: %x\n", ILINEBITS);
+    printf("dlinebits: %x\n", DLINEBITS);
+    printf("itag_bits: %x\n", ITAG_BITS);
+    printf("dtag_bits: %x\n", DTAG_BITS);
+    printf("isetsize: %x\n", isetsize);
+    printf("dsetsize: %x\n", dsetsize);
+    printf("isetbits: %x\n", isetbits);
+    printf("dsetbits: %x\n", dsetbits);
+    printf("itags: %x\n", ITAGS);
+    printf("ilinesz: %x\n", ILINESZ);
+    printf("dtags: %x\n", DTAGS);
+    printf("dlinesz: %x\n", DLINESZ);
+    printf("ivalmsk: %x\n", IVALMSK);
+    printf("itagamsk: %x\n", ITAGAMSK);
+    printf("dtagamsk: %x\n", DTAGAMSK);
+    printf("isets: %x\n", ISETS);
+    printf("dsets: %x\n", DSETS);
+    printf("itaglow: %x\n", ITAGLOW);
+    printf("dtaglow: %x\n", DTAGLOW);
+    printf("idiagmask: %x\n", IDIAGMSK);
+    printf("ddiagmask: %x\n", DDIAGMSK);
+    
     /**** INSTRUCTION CACHE TESTS ****/
+
+    cachectrl = rsysreg(0); 
 
     for(i=0;i<ISETS;i++) {
         line[i]();
     }
     
-    cachectrl = rsysreg(0); 
     wsysreg(0, cachectrl & ~0x03); /* disable icache */
-    
+
     /* check tags */
     tmp = 0;
     for(i=0;i<ISETS;i++) { 
-        for(j=0;j<ISETS;j++) { 
-            tag = getitag((int) line[i], j);
-            if(((tag & IVALMSK) == IVALMSK) && ((tag & ITAGAMSK) == (((int) line[i]) & ITAGAMSK))) {
+        for(j=0;j<ISETS;j++) {
+	    tag = getitag((int) line[i], j);
+	    printf("Addr: %x Tag: %x\n", (int)line[i], tag);
+	    if(((tag & IVALMSK) == IVALMSK) && ((tag & ITAGAMSK) == (((int) line[i]) & ITAGAMSK))) {
                 tmp++;
             }
         }
@@ -333,6 +374,7 @@ static int maintest() {
     }
 
     if(((cachectrl >> ITE_BIT) & 3) == 0) {
+ 
         /* iparity checks */
         if((cachectrl >> CPP_CONF_BIT) & CPP_CONF_MASK) {
             cachectrl = rsysreg(0);
@@ -362,15 +404,24 @@ static int maintest() {
 
         /**** DATA CACHE TESTS ****/
 
+	// IFP - instruction flush pending (bit 15)
+	// DFP - data flush pending (bit 14)
         flush();
+
         do {
             cachectrl = rsysreg(0); 
         } while(cachectrl & (CCTRL_IFP | CCTRL_DFP));
 
+	//printf("Clear MR Tags\n");
+
+	// Delete address mr from all cache sets
         for(i=0;i<DSETS;i++) {
             setdtag((int) mr, i, 0); /* clear tags */
         }
         
+	//printf("Write through\n");
+
+	// Initialize mr by writing zeros
         for(i=0;i<31;i++) {
             mr[i] = 0;
         }
@@ -379,36 +430,53 @@ static int maintest() {
         mr[2] = 2;
         mr[3] = 3;
 	
-        /* check that write does not allocate line */
+        // Check that write does not allocate line (write through - no write allocate).
+	// (Function returns true if any cache contains the tag of address).
+
+	//printf("Check not buffered\n");
+
         if(chkdtag((int) mr) == 0) {
             fail(5);
         }
 
+	//printf("Load MR[0] into dcache\n");
+
+	// Load from address mr - check result (cache miss)	
         if(mr[0] != 5) {
             fail(6);
         }
 
-        /* check that line was allocated */
+
+	//printf("Check if MR[0] cached\n");
+
+        // Address suppossed to be cached now.
+	// (Returns true if address is in cache.)
         if(chkdtag((int) mr) != 0) {
             fail(7);
         }
 
-        /* check that data is in cache */
-        for(i=0;i<DSETS;i++) { 
-            setddata((int)mr,i,0); setddata((int) &mr[1], i, 0);
+        // Check that data is in cache */
+        for(i=0;i<DSETS;i++) {
+
+	  // Removes the data entries mr[0] and mr[1]
+          setddata((int)mr, i, 0); 
+	  setddata((int) &mr[1], i, 0);
         }
 	
+	// Bring the data back to cache e.g. mr[0]
         getudata((int) &mr[0]);
         getudata((int) &mr[8]); 
         getudata((int) &mr[16]);
-        getudata((int) &mr[24]); 
+        getudata((int) &mr[24]);
+
         tmp = 0;
         for(i=0;i<DSETS;i++) { 
-            if(getddata((int) mr, i) == 5) {
+ 
+           if(getddata((int) mr, i) == 5) {
                 tmp++;
-            }
+           }
         }
-        
+
         if(tmp == 0) {
             fail(8);
         }
