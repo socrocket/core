@@ -163,9 +163,9 @@ void TimingMonitor::report_timing() {
 
   it = timing_map.begin();
 
-  v::info << "TimingMonitor" << "******************************************************************" << v::endl;
-  v::info << "TimingMonitor" << "* TIMING SUMMARY " << v::endl;
-  v::info << "TimingMonitor" << "* -------------- " << v::endl;
+  v::report << "TimingMonitor" << "******************************************************************" << v::endl;
+  v::report << "TimingMonitor" << "* TIMING SUMMARY " << v::endl;
+  v::report << "TimingMonitor" << "* -------------- " << v::endl;
 
   // Walk through timing map
   while(it != timing_map.end()) {
@@ -173,16 +173,16 @@ void TimingMonitor::report_timing() {
     id  = it->first;
     tmp = it->second;
 
-    v::info << "TimingMonitor" << "* Phase: " << id << v::endl;
-    v::info << "TimingMonitor" << "* Name: " << ((it->second).name) << v::endl;
-    v::info << "TimingMonitor" << "* SystemC Time: " << TimingMonitor::phase_systime(id) \
+    v::report << "TimingMonitor" << "* Phase: " << id << v::endl;
+    v::report << "TimingMonitor" << "* Name: " << ((it->second).name) << v::endl;
+    v::report << "TimingMonitor" << "* SystemC Time: " << TimingMonitor::phase_systime(id) \
 	    << " (Start: " << tmp.st_start << " End: " << tmp.st_end << ")" << v::endl;
-    v::info << "TimingMonitor" << "* Real Time: " << TimingMonitor::phase_realtime(id) << " sec " << v::endl;
-    v::info << "TimingMonitor" << "* --------------------------------------------------------------" << v::endl;
+    v::report << "TimingMonitor" << "* Real Time: " << TimingMonitor::phase_realtime(id) << " sec " << v::endl;
+    v::report << "TimingMonitor" << "* --------------------------------------------------------------" << v::endl;
   
     it++;
   }
 
-  v::info << "TimingMonitor" << "******************************************************************" << v::endl;
+  v::report << "TimingMonitor" << "******************************************************************" << v::endl;
 
 }

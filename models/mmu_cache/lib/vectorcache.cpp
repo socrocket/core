@@ -85,8 +85,12 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     // initialize cache line allocator
     memset(&m_default_cacheline, 0, sizeof(t_cache_line));
 
-    // cache may have 1 to 4 sets
+    // Cache may have 1 to 4 sets
     assert((m_sets>=0)&&(m_sets<=3));
+    // Linesize may be 4 or 8 words
+    assert((linesize==4)||(linesize==8));
+    // Set size may be 1 to 256 kb
+    assert((setsize>=1)&&(setsize<=256));
 
     // create the cache sets
     for (unsigned int i = 0; i <= m_sets; i++) {

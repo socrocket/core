@@ -262,8 +262,8 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
 
   uint32_t a = 0;
   socket_t* other_socket;
-  sc_core::sc_object *slvobj;
-  sc_core::sc_object *mstobj;
+  sc_core::sc_object *slvobj = NULL;
+  sc_core::sc_object *mstobj = NULL;
 
   if (v::debug) {
 
