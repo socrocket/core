@@ -66,13 +66,13 @@ class localram : public sc_core::sc_module, public mem_if {
 
     public:
 
-        // External interface functions:
+        // Memory nterface functions (mem_if):
         // -----------------------------
         /// Read from scratchpad
-        virtual bool mem_read(unsigned int address, unsigned char *data, unsigned int len,
+        virtual bool mem_read(unsigned int address, unsigned int asi, unsigned char *data, unsigned int len,
 			      sc_core::sc_time *t, unsigned int *debug, bool is_dbg);
         /// Write to scratchpad
-        virtual void mem_write(unsigned int address, unsigned char *data, unsigned int len,
+        virtual void mem_write(unsigned int address, unsigned int asi, unsigned char *data, unsigned int len,
 			       sc_core::sc_time *t, unsigned int *debug, bool is_dbg);
 
 	/// Helper functions for definition of clock cycle

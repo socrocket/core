@@ -53,20 +53,20 @@ nocache::nocache(sc_core::sc_module_name name, mem_if * _mem_adapter) :
 }
 
 /// memory interface write function: forwards calls to mmu or bus interface
-void nocache::mem_write(unsigned int addr, unsigned char *data,
+void nocache::mem_write(unsigned int addr, unsigned int asi, unsigned char *data,
                         unsigned int length, sc_core::sc_time *t,
                         unsigned int * debug, bool is_dbg) {
 
-    m_mem_adapter->mem_write(addr, data, length, t, debug, is_dbg);
+    m_mem_adapter->mem_write(addr, asi, data, length, t, debug, is_dbg);
 
 }
 
 /// memory interface read functions: forwards calls to mmu or bus interface
-bool nocache::mem_read(unsigned int addr, unsigned char * data,
+bool nocache::mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
                        unsigned int length, sc_core::sc_time *t,
                        unsigned int * debug, bool is_dbg) {
 
-    return(m_mem_adapter->mem_read(addr, data, length, t, debug, is_dbg));
+    return(m_mem_adapter->mem_read(addr, asi, data, length, t, debug, is_dbg));
     
 }
 

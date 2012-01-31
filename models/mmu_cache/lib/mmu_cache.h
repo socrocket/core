@@ -194,18 +194,18 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 	void cleanUP();
 
         /// MemIF implementation - writes data to AHB master
-        virtual void mem_write(unsigned int addr, unsigned char * data,
+        virtual void mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
                                unsigned int length, sc_core::sc_time * t,
                                unsigned int * debug, bool is_dbg);
 	/// MemIF implementation - reads data from AHB master
-        virtual bool mem_read(unsigned int addr, unsigned char * data,
+        virtual bool mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
                               unsigned int length, sc_core::sc_time * t,
                               unsigned int * debug, bool is_dbg);
 
         /// Writes the cache control register
         void write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time *delay, bool is_dbg);
 	/// Read the cache control register
-        virtual unsigned int read_ccr();
+        virtual unsigned int read_ccr(bool internal);
 
 	/// Snooping function (For calling dcache->snoop_invalidate)
 	void snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& delay);

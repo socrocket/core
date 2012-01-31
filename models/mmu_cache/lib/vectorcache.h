@@ -65,14 +65,14 @@ class vectorcache : public sc_core::sc_module, public cache_if {
 
     public:
 
-        // External interface functions
+        // Memory interface functions (mem_if)
         // -----------------------------------------------------------
         /// Read from cache
-        virtual bool mem_read(unsigned int address, unsigned char * data,
+        virtual bool mem_read(unsigned int address, unsigned int asi, unsigned char * data,
                               unsigned int len, sc_core::sc_time * t,
                               unsigned int * debug, bool is_dbg);
         /// Write through cache
-        virtual void mem_write(unsigned int address, unsigned char * data,
+        virtual void mem_write(unsigned int address, unsigned int asi, unsigned char * data,
                                unsigned int len, sc_core::sc_time * t,
                                unsigned int * debug, bool is_dbg);
         /// Flush cache

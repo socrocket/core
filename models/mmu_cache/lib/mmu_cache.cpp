@@ -246,12 +246,12 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
     // Instruction scratchpad enabled && address points into selecte 16MB region
     if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-      ilocalram->mem_read((unsigned int)addr, ptr, 4, &delay, debug, is_dbg);
+      ilocalram->mem_read((unsigned int)addr, 0, ptr, 4, &delay, debug, is_dbg);
 
     // Instruction cache access
     } else {
 
-      icache->mem_read((unsigned int)addr, ptr, 4, &delay, debug, is_dbg);
+      icache->mem_read((unsigned int)addr, 0x8, ptr, 4, &delay, debug, is_dbg);
     
     }
 
@@ -322,7 +322,6 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
   }
 
-
   // Access to system registers
   if (asi == 2) {
 
@@ -335,7 +334,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       if (addr == 0) {
 
 	// Cache Control Register
-        *(unsigned int *)ptr = read_ccr();
+        *(unsigned int *)ptr = read_ccr(false);
 	// Setting response status
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -813,8 +812,8 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
     // Reading and writing MMU internal registers has a delay of one clock cycle
     delay = clock_cycle;
 
-  // Ordinary access
-  } else if ((asi == 0x8) || (asi == 0x9) || (asi == 0xa) || (asi == 0xb)) {
+  // Ordinary access (asi <= 3 forces miss)
+  } else if ((asi <= 3) || (asi == 0x8) || (asi == 0x9) || (asi == 0xa) || (asi == 0xb)) {
 
     // Read from memory/cache
     if (cmd == tlm::TLM_READ_COMMAND) {
@@ -822,21 +821,21 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       // Instruction scratchpad enabled && address points into selected 16 MB region
       if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-	ilocalram->mem_read((unsigned int)addr, ptr, len, &delay, debug, is_dbg);
+	ilocalram->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // Data scratchpad enabled && address points into selected 16MB region
       } else if (m_dlram && (((addr >> 24) & 0xff) == m_dlramstart)) {
 
-	dlocalram->mem_read((unsigned int)addr, ptr, len, &delay, debug, is_dbg);
+	dlocalram->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // Cache access || bypass || direct mmu
       } else {
 
-        dcache->mem_read((unsigned int)addr, ptr, len, &delay, debug, is_dbg);
+        dcache->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -848,21 +847,21 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       // Instruction scratchpad enabled && address points into selected 16 MB region
       if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-	ilocalram->mem_write((unsigned int)addr, ptr, len, &delay, debug, is_dbg);
+	ilocalram->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
 	// set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // Data scratchpad enabled && address points into selected 16MB region
       } else if (m_dlram && (((addr >> 24) & 0xff) == m_dlramstart)) {
 
-        dlocalram->mem_write((unsigned int)addr, ptr, len, &delay, debug, is_dbg);
+        dlocalram->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // Cache access (write through) || bypass || direct mmu
       } else {
 
-        dcache->mem_write((unsigned int)addr, ptr, len, &delay, debug, is_dbg);
+        dcache->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -1217,7 +1216,7 @@ tlm::tlm_sync_enum mmu_cache::ahb_nb_transport_bw(tlm::tlm_generic_payload &tran
 }
 
 /// Function for write access to AHB master socket
-void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
+void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
                           unsigned int length, sc_core::sc_time * t,
                           unsigned int * debug, bool is_dbg) {
 
@@ -1359,7 +1358,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned char * data,
 }
 
 /// Function for read access to AHB master socket
-bool mmu_cache::mem_read(unsigned int addr, unsigned char * data,
+bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
                          unsigned int length, sc_core::sc_time * t,
                          unsigned int * debug, bool is_dbg) {
 
@@ -1683,23 +1682,27 @@ void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
     if (tmp & (1 << 4)) {
     }
 
-    // [DCS] data cache state (bits 3:2 - read only)
-    // [ICS] instruction cache state (bits 1:0 - read only)
+    // [DCS] data cache state (bits 3:2)
+    // [ICS] instruction cache state (bits 1:0)
 
     // read only masking: 1111 1111 1001 1111 0011 1111 1111 1111
     CACHE_CONTROL_REG = (tmp & 0xff9f3fff);
 
-    v::debug << name() << "CACHE_CONTROL_REG: " << hex << v::setw(8) << CACHE_CONTROL_REG << v::endl;
+    v::info << name() << "CACHE_CONTROL_REG: " << hex << v::setw(8) << CACHE_CONTROL_REG << v::endl;
 }
 
-// Read the cache control register
-unsigned int mmu_cache::read_ccr() {
+// Read the cache control register from processor interface
+unsigned int mmu_cache::read_ccr(bool internal) {
 
   unsigned int tmp = CACHE_CONTROL_REG;
 
-  #ifdef LITTLE_ENDIAN_BO
-  swap_Endianess(tmp);
-  #endif
+  if (!internal) {
+
+    #ifdef LITTLE_ENDIAN_BO
+    swap_Endianess(tmp);
+    #endif
+
+  }
 
   return (tmp);
 }

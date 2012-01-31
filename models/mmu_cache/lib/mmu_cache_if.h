@@ -53,7 +53,7 @@ class mmu_cache_if : public mem_if {
     public:
 
         // Reads the cache control register
-        virtual unsigned int read_ccr() {
+        virtual unsigned int read_ccr(bool internal) {
             return (0);
         };
 

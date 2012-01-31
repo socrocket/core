@@ -56,14 +56,14 @@ class nocache : public sc_core::sc_module, public cache_if {
 
     public:
 
-        // external interface functions
+        // External interface functions (mem_if):
         // -----------------------------------------------------------
         /// read from cache
-        virtual bool mem_read(unsigned int address, unsigned char * data,
+        virtual bool mem_read(unsigned int address, unsigned int asi, unsigned char * data,
                               unsigned int len, sc_core::sc_time * t,
                               unsigned int * debug, bool is_dbg);
         /// write through cache
-        virtual void mem_write(unsigned int address, unsigned char * data,
+        virtual void mem_write(unsigned int address, unsigned int asi, unsigned char * data,
                                unsigned int len, sc_core::sc_time * t,
                                unsigned int * debug, bool is_dbg);
         /// flush cache

@@ -52,13 +52,7 @@ unsigned int dvectorcache::check_mode() {
 
   unsigned int tmp;
 
-  tmp = m_mmu_cache->read_ccr();
-
-  #ifdef LITTLE_ENDIAN_BO
-  
-  swap_Endianess(tmp);
-
-  #endif
+  tmp = m_mmu_cache->read_ccr(true);
 
   return (tmp & 0x3);
 

@@ -333,7 +333,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     // ***************************************
 
     // 1. load from 1st-level page table
-    m_mmu_cache->mem_read(MMU_CONTEXT_TABLE_POINTER_REG + idx1,
+    m_mmu_cache->mem_read(MMU_CONTEXT_TABLE_POINTER_REG + idx1, 0x8,
             (unsigned char *)&data, 4, t, debug, is_dbg);
 
     #ifdef LITTLE_ENDIAN_BO
@@ -399,7 +399,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     }
 
     // 2. load from 2nd-level page table
-    m_mmu_cache->mem_read((((data) >> 2) << 2) + idx2, (unsigned char *)&data,
+    m_mmu_cache->mem_read((((data) >> 2) << 2) + idx2, 0x8, (unsigned char *)&data,
             4, t, debug, is_dbg);
 
     #ifdef LITTLE_ENDIAN_BO
@@ -461,7 +461,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     }
 
     // 3. load from 3rd-level page table
-    m_mmu_cache->mem_read((((data) >> 2) << 2) + idx3, (unsigned char *)&data,
+    m_mmu_cache->mem_read((((data) >> 2) << 2) + idx3, 0x8, (unsigned char *)&data,
             4, t, debug, is_dbg);
 
     #ifdef LITTLE_ENDIAN_BO

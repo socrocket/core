@@ -90,7 +90,7 @@ localram::~localram() {
 }
 
 // Read from scratchpad
-bool localram::mem_read(unsigned int addr, unsigned char *data, unsigned int len,
+bool localram::mem_read(unsigned int addr, unsigned int asi, unsigned char *data, unsigned int len,
 			sc_core::sc_time *delay, unsigned int *debug, bool is_dbg) {
 
   if(!((addr - m_lrstart) < m_lrsize)) {
@@ -123,7 +123,7 @@ bool localram::mem_read(unsigned int addr, unsigned char *data, unsigned int len
 }
 
 // Write to scratchpad
-void localram::mem_write(unsigned int addr, unsigned char *data, unsigned int len,
+void localram::mem_write(unsigned int addr, unsigned int asi, unsigned char *data, unsigned int len,
 			 sc_core::sc_time *delay, unsigned int *debug, bool is_dbg) {
 
   if(!((addr - m_lrstart) < m_lrsize)) {
