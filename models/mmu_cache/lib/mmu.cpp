@@ -822,55 +822,55 @@ void mmu::end_of_simulation() {
   uint64_t total_ihits = 0;
   uint64_t total_dhits = 0;
 
-  v::info << name() << "******************************************** " << v::endl;
-  v::info << name() << "* MMU statistic:                             " << v::endl;
-  v::info << name() << "* -------------------" << v::endl;
+  v::debug << name() << "******************************************** " << v::endl;
+  v::debug << name() << "* MMU statistic:                             " << v::endl;
+  v::debug << name() << "* -------------------" << v::endl;
 
   if (m_tlb_type == 0) {
 
     for (uint32_t i=0; i<m_itlbnum; i++) {
 
-      v::info << name() << "* Hits in ITLB" << i << ": " << tihits[i] << v::endl;
+      v::debug << name() << "* Hits in ITLB" << i << ": " << tihits[i] << v::endl;
       total_ihits += tihits[i];
     }
 
-    v::info << name() << "* Misses in ITLB: " << timisses << v::endl;
+    v::debug << name() << "* Misses in ITLB: " << timisses << v::endl;
 
     if (total_ihits+timisses != 0) {
-      v::info << name() << "* ITLB hit rate: " << (total_ihits * 100) / (total_ihits+timisses) << "%" << v::endl;
+      v::debug << name() << "* ITLB hit rate: " << (total_ihits * 100) / (total_ihits+timisses) << "%" << v::endl;
     }
 
     for (uint32_t i=0; i<m_dtlbnum; i++) {
 
-      v::info << name() << "* Hits in DTLB" << i << ": " << tdhits[i] << v::endl;
+      v::debug << name() << "* Hits in DTLB" << i << ": " << tdhits[i] << v::endl;
       total_dhits += tdhits[i];
 
     }
 
-    v::info << name() << "* Misses in DTLB: " << tdmisses << v::endl;
+    v::debug << name() << "* Misses in DTLB: " << tdmisses << v::endl;
 
     if (total_dhits+tdmisses != 0) {
-      v::info << name() << "* DTLB hit rate: " << (total_dhits * 100) / (total_dhits+tdmisses) << "%" << v::endl;
+      v::debug << name() << "* DTLB hit rate: " << (total_dhits * 100) / (total_dhits+tdmisses) << "%" << v::endl;
     }
 
   } else {
 
     for (uint32_t i=0; i<m_itlbnum;i++) {
 
-      v::info << name() << "* Hits in shared I/D TLB" << i << ": " << tihits[i] << v::endl;
+      v::debug << name() << "* Hits in shared I/D TLB" << i << ": " << tihits[i] << v::endl;
       total_ihits += tihits[i];
 
     }
 
-    v::info << name() << "* Misses in shared I/D TLB: " << timisses << v::endl;
+    v::debug << name() << "* Misses in shared I/D TLB: " << timisses << v::endl;
 
     if (total_ihits+timisses != 0) {
-      v::info << name() << "* I/D TLB hit rate: " << (total_ihits * 100) / (total_ihits+timisses) << "%" << v::endl;
+      v::debug << name() << "* I/D TLB hit rate: " << (total_ihits * 100) / (total_ihits+timisses) << "%" << v::endl;
     }
 
   }
   
-  v::info << name() << " ******************************************** " << v::endl;
+  v::debug << name() << " ******************************************** " << v::endl;
 
 }
 

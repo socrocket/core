@@ -298,4 +298,12 @@ def build(bld):
     use          = 'mmu_cache ahbctrl ahbmem common utils',
   )
 
-
+  bld(
+    target       = 'mmu_cache.7.at.test',
+    features     = 'cxx cprogram test',
+    source       = ['test7/testbench.cpp',
+                    'test7/top_at.cpp'],
+    includes     = '. lib test7',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mmu_cache ahbctrl ahbmem common utils',
+  )

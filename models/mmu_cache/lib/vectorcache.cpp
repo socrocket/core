@@ -694,7 +694,7 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
 
     unsigned int tmp;
 
-    unsigned int set = (address >> (m_idx_bits + m_offset_bits));
+    unsigned int set = ((address >> (m_idx_bits + m_offset_bits)) & 0x3);
     unsigned int idx = ((address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits));
 
     // find the required cache line
@@ -740,7 +740,7 @@ void vectorcache::write_cache_tag(unsigned int address, unsigned int * data,
   swap_Endianess(*data);
   #endif
 
-  unsigned int set = (address >> (m_idx_bits + m_offset_bits));
+  unsigned int set = ((address >> (m_idx_bits + m_offset_bits)) & 0x3);
   unsigned int idx = ((address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits));
 
   // find the required cache line
@@ -776,7 +776,7 @@ void vectorcache::write_cache_tag(unsigned int address, unsigned int * data,
 void vectorcache::read_cache_entry(unsigned int address, unsigned int * data,
                                    sc_core::sc_time *t) {
 
-  unsigned int set = (address >> (m_idx_bits + m_offset_bits));
+  unsigned int set = ((address >> (m_idx_bits + m_offset_bits)) & 0x3);
   unsigned int idx = ((address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits));
   unsigned int sb = (address << (32 - m_offset_bits) >> (34 - m_offset_bits));
 
@@ -802,7 +802,7 @@ void vectorcache::read_cache_entry(unsigned int address, unsigned int * data,
 void vectorcache::write_cache_entry(unsigned int address, unsigned int * data,
                                     sc_core::sc_time *t) {
 
-    unsigned int set = (address >> (m_idx_bits + m_offset_bits));
+    unsigned int set = ((address >> (m_idx_bits + m_offset_bits)) & 0x3);
     unsigned int idx = ((address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits));
     unsigned int sb = (address << (32 - m_offset_bits) >> (34 - m_offset_bits));
 

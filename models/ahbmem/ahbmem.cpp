@@ -119,7 +119,7 @@ void AHBMem::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
     if(trans.is_write()) {
       for(uint32_t i = 0; i < trans.get_data_length(); i++) {
 
-	v::debug << name() << "mem[" << trans.get_address() + i << "] = 0x" << hex << v::setw(2) << (unsigned int)*(trans.get_data_ptr() + i) << v::endl;
+	v::debug << name() << "mem[" << hex << trans.get_address() + i << "] = 0x" << hex << v::setw(2) << (unsigned int)*(trans.get_data_ptr() + i) << v::endl;
         // write simulation memory
         mem[trans.get_address() + i] = *(trans.get_data_ptr() + i);
       }
@@ -129,7 +129,7 @@ void AHBMem::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
     } else {
       for(uint32_t i = 0; i < trans.get_data_length(); i++) {
 
-	v::debug << name() << "0x" << hex << v::setw(2) << (unsigned int)mem[trans.get_address() + i] << "= mem[" << trans.get_address() + i << "]" << v::endl;
+	v::debug << name() << "0x" << hex << v::setw(2) << (unsigned int)mem[trans.get_address() + i] << "= mem[" << hex << trans.get_address() + i << "]" << v::endl;
         // read simulation memory
         *(trans.get_data_ptr() + i) = mem[trans.get_address() + i];
       }
