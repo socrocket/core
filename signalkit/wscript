@@ -54,7 +54,7 @@ def build(bld):
   )
  
   bld(
-    target       = 'simple.signalkit',
+    target       = 'signalkit.simple.test',
     features     = 'cxx cprogram test',
     source       = 'tests/simple.cpp',
     includes     = '.',
@@ -63,7 +63,7 @@ def build(bld):
   )
   
   bld(
-    target       = 'systemc.signalkit',
+    target       = 'signalkit.systemc.test',
     features     = 'cxx cprogram test',
     source       = 'tests/systemc.cpp',
     includes     = '.',
@@ -72,7 +72,7 @@ def build(bld):
   )
   
   bld(
-    target       = 'datatypemapping.signalkit',
+    target       = 'signalkit.datatypemapping.test',
     features     = 'cxx cprogram test',
     source       = 'tests/datatypemapping.cpp',
     includes     = '.',
