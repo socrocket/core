@@ -69,9 +69,7 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
 	    m_pseudo_rand(0),
 	    clockcycle(10, sc_core::SC_NS) {
 
-    // initialize internal registers
-
-    // the number of instruction and data tlbs must be in the range of 2-32
+    // The number of instruction and data tlbs must be in the range of 2-32
     assert((m_itlbnum>=2)&&(m_itlbnum<=32));
     assert((m_dtlbnum>=2)&&(m_dtlbnum<=32));
 
@@ -125,39 +123,29 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
             m_idx2 = 6;
             m_idx3 = 6;
             m_vtag_width = 20;
-
             break;
-        case 2: // also 4 kB
-            m_idx1 = 8;
-            m_idx2 = 6;
-            m_idx3 = 6;
-            m_vtag_width = 20;
-            break;
-        case 3: // 8 kB
+        case 1: // 8 kB
             m_idx1 = 7;
             m_idx2 = 6;
             m_idx3 = 6;
             m_vtag_width = 19;
-
-            // update MMU control register (PSZ)
+            // Update MMU control register (PSZ)
             MMU_CONTROL_REG |= (1 << 16);
             break;
-        case 4: // 16 kB
+        case 2: // 16 kB
             m_idx1 = 6;
             m_idx2 = 6;
             m_idx3 = 6;
             m_vtag_width = 18;
-
-            // update MMU control register (PSZ)
+            // Update MMU control register (PSZ)
             MMU_CONTROL_REG |= (2 << 16);
             break;
-        case 5: // 32 kB
+        case 3: // 32 kB
             m_idx1 = 4;
             m_idx2 = 7;
             m_idx3 = 6;
             m_vtag_width = 17;
-
-            // update MMU control register (PSZ)
+            // Update MMU control register (PSZ)
             MMU_CONTROL_REG |= (3 << 16);
             break;
         default: // not supported
@@ -391,7 +379,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     } else {
 
-        v::info << this->name()
+        v::error << this->name()
                 << "Error in 1st-Level Page Table / Entry type not valid"
                 << v::endl;
         assert(false);
@@ -453,9 +441,9 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     } else {
 
-        v::info << this->name()
-                << "Error in 2-Level Page Table / Entry type not valid"
-                << v::endl;
+        v::error << this->name()
+                 << "Error in 2-Level Page Table / Entry type not valid"
+                 << v::endl;
         assert(false);
         return (0);
     }
@@ -509,9 +497,9 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         return (paddr);
     } else {
 
-        v::info << this->name()
-                << "Error in 3-Level Page Table / Entry type not valid"
-                << v::endl;
+        v::error << this->name()
+                 << "Error in 3-Level Page Table / Entry type not valid"
+                 << v::endl;
         assert(false);
         return (0);
     }
