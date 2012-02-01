@@ -56,7 +56,6 @@ def build(bld):
 
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.lt.platform',
       rom         = 'singlecore.lt.prom',
       ram         = 'hello.sparc',
@@ -64,7 +63,6 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.at.platform',
       rom         = 'singlecore.at.prom',
       ram         = 'hello.sparc',
@@ -85,7 +83,6 @@ def build(bld):
   """
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.lt.platform',
       rom         = 'singlecore.lt.prom',
       ram         = 'cache.sparc',
@@ -105,7 +102,6 @@ def build(bld):
   """
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.lt.platform',
       rom         = 'singlecore.lt.prom',
       ram         = 'gptimer.sparc',
@@ -124,7 +120,6 @@ def build(bld):
   """
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.lt.platform',
       rom         = 'singlecore.lt.prom',
       ram         = 'irqmp.sparc',
@@ -146,7 +141,6 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.lt.platform',
       rom         = 'singlecore.lt.prom',
       ram         = 'ram.sparc',
@@ -154,7 +148,6 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.at.platform',
       rom         = 'singlecore.at.prom',
       ram         = 'ram.sparc',
@@ -176,7 +169,6 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.lt.platform',
       rom         = 'singlecore.lt.prom',
       ram         = 'reg.sparc',
@@ -184,7 +176,6 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.at.platform',
       rom         = 'singlecore.at.prom',
       ram         = 'reg.sparc',
@@ -207,7 +198,6 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.lt.platform',
       rom         = 'singlecore.lt.prom',
       ram         = 'mmu.sparc',
@@ -215,7 +205,6 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.at.platform',
       rom         = 'singlecore.at.prom',
       ram         = 'mmu.sparc',
@@ -231,7 +220,6 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.lt.platform',
       rom         = 'singlecore.lt.prom',
       ram         = 'readpnp.sparc',
@@ -239,7 +227,6 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.at.platform',
       rom         = 'singlecore.at.prom',
       ram         = 'readpnp.sparc',
@@ -255,7 +242,6 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.lt.platform',
       rom         = 'singlecore.lt.prom',
       ram         = 'argstest.sparc',
@@ -264,7 +250,6 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      target      = 'systest.test',
       system      = 'singlecore.at.platform',
       rom         = 'singlecore.at.prom',
       ram         = 'argstest.sparc',
