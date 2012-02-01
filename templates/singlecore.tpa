@@ -175,13 +175,8 @@
         <option var="index" name="Bus Index" type="int" default="3" range="0..15"/>
         <option var="pirq" name="Interupt identifier" type="int" default="10" range="0..0xFFFF"/>
       </option>
-      <option var="socw" name="SoCWire Interface">
+      <option var="socw" name="AHB Bus Interface">
         <option var="index" name="Bus Index" type="int" default="1" range="0..15"/>
-        <option var="datawidth" name="Width of the socwire link" type="int" default="32" range="16..32"/>
-        <option var="speed" name="SoCWire clock period in nano seconds" type="int" default="10" range="1..100"/>
-        <option var="after64" name="6.4us timeout in ns" type="int" default="64" range="1..6400"/>
-        <option var="after128" name="12.8us timeout in ns" type="int" default="128" range="1..12800"/>
-        <option var="disconnect_detection" name="Disconnect detection timeout in ns" type="int" default="85" range="1..850"/>
       </option>
     </option>
     

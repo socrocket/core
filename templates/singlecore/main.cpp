@@ -127,6 +127,8 @@ int sc_main(int argc, char** argv) {
     char *sram_app, *prom_app;
     int app_argc = 0;
     bool gdb_en = false;
+    
+    // Sort out arguments
     if(argc >= 3) {
        prom_app = argv[1];
        sram_app = argv[2];
@@ -137,6 +139,7 @@ int sc_main(int argc, char** argv) {
        return -1;
     }
     
+    // Whant to connect to GDB
     gdb_en = ((argc>3) && (std::strcmp(argv[3],"gdb")==0));
     if(gdb_en) {
         app_argc++;
@@ -178,6 +181,9 @@ int sc_main(int argc, char** argv) {
     // ===================================================
     // Always enabled.
     // Needed for basic platform.
+
+    // For each Abstraction is another model needed
+    // Unfortuantely they use the same includes so we have to build them new per abstraction
 #if conf_sys_lt_at
     leon3_funclt_trap::Processor_leon3_funclt leon3("leon3", sc_core::sc_time(1, SC_US));
 #else
@@ -219,9 +225,9 @@ int sc_main(int argc, char** argv) {
 		        //conf_mmu_cache_addr,          // The MSB address of the AHB area. Sets the 12 MSBs of the AHB address
 		        //conf_mmu_cache_mask,          // The 12bit AHB area address mask
             //conf_mmu_cache_dsu,           // Enable debug support unit interface
-            conf_mmu_cache_index,           // - id of the AHB master
-            false,                           // Power Monitor,
-	          ambaLayer                   // LT abstraction
+            conf_mmu_cache_index,           // Id of the AHB master
+            false,                          // Power Monitor,
+	          ambaLayer                       // LT abstraction
     );
     
     // Connecting AHB Master
@@ -240,8 +246,6 @@ int sc_main(int argc, char** argv) {
     APBCtrl apbctrl("apbctrl", 
 		    conf_apbctrl_ioaddr,                // The MSB address of the AHB area. Sets the 12 MSBs of the AHB address
 		    conf_apbctrl_iomask,                // The 12bit AHB area address mask
-		    //conf_apbctrl_cfgaddr,             // The MSB address of the AHB area. Sets the 12 MSBs of the AHB address
-		    //conf_apbctrl_cfgmask,             // The 12bit AHB area address mask
 		    conf_apbctrl_check,                 // Check if there are any intersections between APB slave memory regions 
         conf_apbctrl_index,
 		    ambaLayer
@@ -266,7 +270,7 @@ int sc_main(int argc, char** argv) {
         conf_memctrl_apb_addr, 
         conf_memctrl_apb_mask, 
         conf_memctrl_ram_wprot, 
-        4, //conf_memctrl_srbanks, // <-- needs to be option
+        conf_memctrl_ram_s_banks,
         conf_memctrl_ram8,
         conf_memctrl_ram16, 
         conf_memctrl_sepbus, 
@@ -339,11 +343,13 @@ int sc_main(int argc, char** argv) {
     for(unsigned int i = 0; i < sdram_loader.getProgDim(); i++) {
        sdram.write(sdram_loader.getDataStart() + i - ((conf_memctrl_ram_addr&conf_memctrl_ram_mask)<<20), execData[i]);
     }
+    
     //leon3.ENTRY_POINT   = sdram_loader.getProgStart();
     leon3.PROGRAM_LIMIT = sdram_loader.getProgDim() + sdram_loader.getDataStart();
     leon3.PROGRAM_START = sdram_loader.getDataStart();
     ExecLoader prom_loader(prom_app); 
     execData = prom_loader.getProgData();
+    
     for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
        rom.write(prom_loader.getDataStart() + i - ((conf_memctrl_prom_addr&conf_memctrl_prom_mask)<<20), execData[i]);
        //ahb_mem.writeByteDBG(prom_loader.getDataStart() + i, execData[i]);
@@ -420,24 +426,26 @@ int sc_main(int argc, char** argv) {
 #if disconf_socwire != 0
     // CREATE AHB2Socwire bridge
     // =========================
-    AHB2Socwire u_ahb2socwire("ahb2socwire",
-                               conf_socwire_apb_addr,  // paddr
-                               conf_socwire_apb_mask,  // pmask
-                               conf_socwire_apb_irq,  // pirq
-                               amba::amba_LT,
-                               conf_socwire_socw_datawidth,  // data width
-                               conf_socwire_socw_speed,  // sw speed
-                               conf_socwire_socw_after64,  // short timeout
-                               conf_socwire_socw_after128, // long timeout
-                               conf_socwire_socw_disconnect_detection); // disconnect timeout
+    AHB2Socwire ahb2socwire("ahb2socwire",
+        conf_socwire_apb_addr,                   // paddr
+        conf_socwire_apb_mask,                   // pmask
+        conf_socwire_apb_index,                  // pindex
+        conf_socwire_apb_irq,                    // pirq
+        conf_socwire_socw_index,                 // hindex
+        amba::amba_LT                            // abstraction
+    );
+    
     // Connecting AHB Master
-    u_ahb2socwire.ahb(ahbctrl.ahbIN);
+    ahb2socwire.ahb(ahbctrl.ahbIN);
+    
     // Connecting APB Slave
-    apbctrl.apb(u_ahb2socwire.apb);
+    apbctrl.apb(ahb2socwire.apb);
+    
     // Connecting Interrupts
-    //u_irqmp.irq_in(u_ahb2socwire.irq, 1);
+    connect(irqmp.irqi_in, ahb2socwire.irq, conf_socwire_apb_irq);
+    
     // Connect socwire ports as loopback
-    u_ahb2socwire.master_socket(u_ahb2socwire.slave_socket);
+    ahb2socwire.master_socket(ahb2socwire.slave_socket);
 #endif
     // ******************************************
     
