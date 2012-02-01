@@ -55,4 +55,15 @@ def build(bld):
     uselib          = 'SYSTEMC TLM AMBA GREENSOCS',
     use             = 'utils common'
   )
+  
+  bld(
+    features     = 'cxx cprogram test',
+    target       = 'apbctrl.1.lt.test',
+    source       = ['tests/test1/testbench.cpp',
+                    'tests/test1/top_lt.cpp'],
+    includes     = '. tests tests/test1',
+    uselib       = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'ahbctrl apbctrl gptimer utils signalkit common'
+  )
+
 
