@@ -115,7 +115,8 @@ typedef tlm::tlm_generic_payload *gp_ptr;
 //                        result of a read miss is not cached.
 // [13]    Cache Bypass - Is set to 1 if cache bypass was used (cache disabled in ccr)
 // [12]    Scratchpad   - Is set to 1 for scratchpad access
-// [11-4]  Reserved
+// [11-5]  Reserved
+// [4]     Flush        - Set to 1 if transaction causes a cache flush
 // [3-2]   Cache State  - 00 read hit, 01, read miss, 10, write hit, 11 write miss
 // [1-0]   Cache Set    - for read hit:  contains number of set that delivered the hit
 //                       for read miss: number of set containing the new data
@@ -133,6 +134,8 @@ typedef tlm::tlm_generic_payload *gp_ptr;
 #define CACHEWRITEHIT_SET(debug, cache_set) (((debug &= 0xfffff7f0)  |= 0x8) |= (cache_set & 0x3))
 #define CACHEWRITEMISS_SET(debug)           ((debug  &= 0xfffff7f0)  |= 0xc)
 
+#define CACHEFLUSH_SET(debug) (debug |= 0x10)
+
 #define TLBHIT_SET(debug) (debug &= ~(1 << 21));
 #define TLBMISS_SET(debug) (debug |= (1 << 21));
 
@@ -146,9 +149,11 @@ typedef tlm::tlm_generic_payload *gp_ptr;
 #define CACHEWRITEHIT_CHECK(debug)   ((debug & 0xc) == 8)
 #define CACHEWRITEMISS_CHECK(debug)  (((debug & 0xc) == 0xc) && ((debug & 0x3) == 0))
 
+#define CACHEFLUSH_CHECK(debug) ((debug & 0x10) == 0x10)
+
 #define TLBHIT_CHECK(debug) ((debug & (1 << 21)) == 0)
 #define TLBMISS_CHECK(debug) ((debug & (1 << 21)) != 0)
 
-enum check_t { NOCHECK, FROZENMISS, NOTFROZENMISS, CACHEBYPASS, SCRATCHPAD, CACHEREADHIT, CACHEREADMISS, CACHEWRITEHIT, CACHEWRITEMISS, TLBHIT, TLBMISS};
+enum check_t { NOCHECK, FROZENMISS, NOTFROZENMISS, CACHEBYPASS, SCRATCHPAD, CACHEREADHIT, CACHEREADMISS, CACHEWRITEHIT, CACHEWRITEMISS, CACHEFLUSH, TLBHIT, TLBMISS};
 
 #endif // __DEFINES_H__

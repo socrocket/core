@@ -1641,7 +1641,7 @@ void mmu_cache::ResponseThread() {
 
 
 
-/// writes the cache control register and handles the commands
+// Writes the cache control register and handles the commands
 void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
                           sc_core::sc_time * delay, bool is_dbg) {
 

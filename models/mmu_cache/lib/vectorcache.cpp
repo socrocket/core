@@ -655,6 +655,8 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) 
 
     unsigned int addr;
 
+    v::info << name() << "Cache flush!" << v::endl;
+
     // for all cache sets
     for (unsigned int set = 0; set <= m_sets; set++) {
 
@@ -688,6 +690,9 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) 
             }
         }
     }
+
+    // Update debug information
+    CACHEFLUSH_SET(*debug);
 }
 
 // ------------------------------
