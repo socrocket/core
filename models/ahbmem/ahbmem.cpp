@@ -76,7 +76,7 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
     // Display AHB slave information
     v::info << name() << "********************************************************************" << v::endl;
     v::info << name() << "* Create AHB simulation memory with following parameters:           " << v::endl;
-    v::info << name() << "* haddr/hmask: " << v::uint32 << mhaddr << v::uint32 << mhmask << v::endl;
+    v::info << name() << "* haddr/hmask: " << v::uint32 << mhaddr << "/" << v::uint32 << mhmask << v::endl;
     v::info << name() << "* Slave base address: 0x" << std::setw(8) << std::setfill('0') << hex << get_base_addr()                     << v::endl;
     v::info << name() << "* Slave size (bytes): 0x" << std::setw(8) << std::setfill('0') << hex << get_size()                          << v::endl;
     v::info << name() << "********************************************************************" << v::endl;

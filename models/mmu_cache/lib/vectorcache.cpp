@@ -86,12 +86,37 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     memset(&m_default_cacheline, 0, sizeof(t_cache_line));
 
     // Cache may have 1 to 4 sets
-    assert((m_sets>=0)&&(m_sets<=3));
-    // Linesize may be 4 or 8 words
-    assert((linesize==4)||(linesize==8));
-    // Set size may be 1 to 256 kb
-    assert((setsize>=1)&&(setsize<=256));
+    if ((m_sets < 0)||(m_sets>3)) {
 
+      v::error << this->name() << "Cache may have 1-4 sets (not " << m_sets + 1 << ")!" << v::endl;
+      assert(0);
+
+    }
+
+    // Linesize may be 4 or 8 words
+    if ((linesize!=4)&&(linesize!=8)) {
+
+      v::error << this->name() << "Cache line size may be 4 or 8 words (not " << linesize << ")!" << v::endl;
+      assert(0);
+
+    }
+
+    // Set size may be 1 to 256 kb
+    if ((setsize < 1)||(setsize > 256)) {
+
+      v::error << this->name() << "Size of cache set must be between 1 and 225 kb (not " << setsize << ")!" << v::endl;
+      assert(0);
+
+    }
+      
+    // LRR replacement may only be selected for two-way caches
+    if ((m_repl==2)&(m_sets!=1)) {
+
+      v::error << this->name() << "LRR replacement may only be selected for two-way associative caches!" << v::endl;
+      assert(0);
+
+    }
+    
     // create the cache sets
     for (unsigned int i = 0; i <= m_sets; i++) {
 
