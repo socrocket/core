@@ -203,7 +203,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
                               unsigned int * debug, bool is_dbg);
 
         /// Writes the cache control register
-        void write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time *delay, bool is_dbg);
+        void write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time *delay, unsigned int * debug, bool is_dbg);
 	/// Read the cache control register
         virtual unsigned int read_ccr(bool internal);
 

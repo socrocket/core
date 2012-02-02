@@ -385,7 +385,8 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
 
 	if (!CACHEFLUSH_CHECK(*debug)) {
 
-	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no CACHE FLUSH!! (debug = " << hex << *debug << "(" << v::endl;
+	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no CACHE FLUSH!! (debug = " << hex << *debug << ")" << v::endl;
+	  ec++;
 
 	}
 

@@ -368,7 +368,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       if (addr == 0) {
 
         // Cache Control Register
-	write_ccr(ptr, len, &delay, is_dbg);
+	write_ccr(ptr, len, &delay, debug, is_dbg);
 	// Setting response status
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -1516,9 +1516,22 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * da
 
 	// use PNP - information is carried by protection extension
 	cacheable = (ahb.get_extension<amba::amba_cacheable>(*trans)) ? true : false;
-	
-    }    
 
+	if(v::debug) {	
+	  
+	  if (cacheable) {
+
+	    v::debug << name() << "Target region cacheable!" << v::endl;
+
+	  } else {
+
+	    v::debug << name() << "Target region not cacheable!" << v::endl;
+
+	  }
+
+	}
+    }
+	
     if (is_dbg || m_abstractionLayer == amba::amba_LT) {
 
 	// Release transaction
@@ -1643,12 +1656,10 @@ void mmu_cache::ResponseThread() {
 
 // Writes the cache control register and handles the commands
 void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
-                          sc_core::sc_time * delay, bool is_dbg) {
+                          sc_core::sc_time * delay, unsigned int * debug, bool is_dbg) {
 
     unsigned int tmp1 = *(unsigned int *)data;
     unsigned int tmp;
-
-    unsigned int dummy;
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(tmp1);
@@ -1661,11 +1672,11 @@ void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
     }
     // [FD] dcache flush (do not set; always reads as zero)
     if (tmp & (1 << 22)) {
-        dcache->flush(delay, &dummy, is_dbg);
+        dcache->flush(delay, debug, is_dbg);
     }
     // [FI] icache flush (do not set; always reads as zero)
     if (tmp & (1 << 21)) {
-        icache->flush(delay, &dummy, is_dbg);
+        icache->flush(delay, debug, is_dbg);
     }
     // [IB] instruction burst fetch (todo)
     if (tmp & (1 << 16)) {

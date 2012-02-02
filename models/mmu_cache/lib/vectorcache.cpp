@@ -693,6 +693,8 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) 
 
     // Update debug information
     CACHEFLUSH_SET(*debug);
+
+    v::info << name() << "FLUSH SET DEBUG: " << hex << *debug << v::endl;
 }
 
 // ------------------------------

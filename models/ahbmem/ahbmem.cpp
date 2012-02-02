@@ -60,15 +60,17 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
                uint16_t haddr_, // AMBA AHB address (12 bit)
                uint16_t hmask_, // AMBA AHB address mask (12 bit)
                amba::amba_layer_ids ambaLayer, // abstraction layer
-               uint32_t slave_id) :
+               uint32_t slave_id,
+	       bool cacheable) :
             sc_module(nm),
-            AHBDevice(slave_id, /*Gaisler*/ 0x01, /*AHBMem*/0x00E, 0, 0, BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr_)),
+            AHBDevice(slave_id, /*Gaisler*/ 0x01, /*AHBMem*/0x00E, 0, 0, BAR(AHBDevice::AHBMEM, hmask_, cacheable, 0, haddr_)),
             ahb("ahb", amba::amba_AHB, ambaLayer, false /* arbiter? */),
             mTransactionPEQ("TransactionPEQ"),
             ahbBaseAddress(static_cast<uint32_t> (hmask_ & haddr_) << 20),
             ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1), 
             mhaddr(haddr_),
-            mhmask(hmask_) {
+            mhmask(hmask_),
+	    mcacheable(cacheable) {
 
     // haddr and hmask must be 12 bit
     assert(!((mhaddr|mhmask)>>12));
@@ -137,6 +139,14 @@ void AHBMem::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
       // delay a clock cycle per word
       delay += clock_cycle * (trans.get_data_length() >> 2);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
+
+      // set cacheability
+      if (mcacheable) {
+
+	ahb.validate_extension<amba::amba_cacheable> (trans);
+
+      }
+
     }
 
     v::debug << name() << "Delay increment: " << delay << v::endl;
@@ -158,6 +168,13 @@ tlm::tlm_sync_enum AHBMem::nb_transport_fw(tlm::tlm_generic_payload& trans, tlm:
     // Writes have to wait for BEGIN_DATA
     if (trans.get_command() == tlm::TLM_READ_COMMAND) {
       mTransactionPEQ.notify(trans,delay);
+    }
+
+    // set cacheability
+    if (mcacheable) {
+
+	ahb.validate_extension<amba::amba_cacheable> (trans);
+
     }
 
     phase = tlm::END_REQ;

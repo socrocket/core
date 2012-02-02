@@ -59,7 +59,7 @@ class mmu_cache_if : public mem_if {
 
 	// Writes the cache control register
         virtual void write_ccr(unsigned char *data, unsigned int len,
-                               sc_core::sc_time *delay, bool is_dbg) {
+                               sc_core::sc_time *delay, unsigned int * debug, bool is_dbg) {
         };
 
         virtual ~mmu_cache_if() {

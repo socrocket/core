@@ -68,7 +68,12 @@ class AHBMem : public sc_module, public AHBDevice, public CLKDevice {
         /// @param ambaLayer Abstraction layer used (AT/LT)
         /// @param infile File name of a text file to initialize the memory from
         /// @param addr Start address for memory initilization
-        AHBMem(const sc_core::sc_module_name nm, uint16_t haddr_, uint16_t hmask_ = 0, amba::amba_layer_ids ambaLayer = amba::amba_LT, uint32_t slave_id = 0);
+        AHBMem(const sc_core::sc_module_name nm, 
+	       uint16_t haddr_, 
+	       uint16_t hmask_ = 0, 
+	       amba::amba_layer_ids ambaLayer = amba::amba_LT, 
+	       uint32_t slave_id = 0,
+	       bool cacheable = 1);
 
         /// Destructor
         ~AHBMem();
@@ -117,6 +122,9 @@ class AHBMem : public sc_module, public AHBDevice, public CLKDevice {
         /// 12 bit MSB address and mask (constructor parameters)
         const uint32_t mhaddr;
         const uint32_t mhmask;
+
+	/// Device cacheable or not
+	const bool mcacheable;
 };
 
 #endif
