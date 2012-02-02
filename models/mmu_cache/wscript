@@ -327,4 +327,24 @@ def build(bld):
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache ahbctrl ahbmem common utils',
   )
+
+  bld(
+    target       = 'mmu_cache.9.lt.test',
+    features     = 'cxx cprogram test',
+    source       = ['test9/testbench.cpp',
+                    'test9/top_lt.cpp'],
+    includes     = '. lib test9',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mmu_cache ahbctrl ahbmem common utils',
+  )
+
+  bld(
+    target       = 'mmu_cache.9.at.test',
+    features     = 'cxx cprogram test',
+    source       = ['test9/testbench.cpp',
+                    'test9/top_at.cpp'],
+    includes     = '. lib test9',
+    uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'mmu_cache ahbctrl ahbmem common utils',
+  )  
   
