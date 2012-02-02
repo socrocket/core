@@ -785,7 +785,7 @@ void vectorcache::write_cache_tag(unsigned int address, unsigned int * data,
   // lock bit can only be set, if line locking is enabled
   // locking only works in multi-set configurations. the last set may never be locked.
   (*m_current_cacheline[set]).tag.lock
-          = ((m_setlock) && (set != m_sets))? ((*data & 0x080) >> 8) : 0;
+          = ((m_setlock) && (set != m_sets))? ((*data & 0x100) >> 8) : 0;
   (*m_current_cacheline[set]).tag.valid = (*data & 0xff);
 
   v::info  << this->name() << "Diagnostic tag write set: " << hex << set
