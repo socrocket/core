@@ -578,9 +578,6 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay
   // -------------------------------------
   exec_func(trans, delay);
 
-  // Consume component delay
-  wait(delay);
-
   // Reset delay
   delay = SC_ZERO_TIME;
 
@@ -710,7 +707,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                         word_delay = 0;//((r[MCFG2].bit_get(26)?3:2));
                     } else {
                         // RCD DELAY
-                        trans_delay = 0 + (r[MCFG2].bit_get(26)?3:2);
+                        trans_delay = 0 + (r[MCFG2].bit_get(30)?3:2);
                         // CAS DELAY
                         word_delay = 3 + (r[MCFG2].bit_get(26)?3:2);
                         //word_delay = 0; //((r[MCFG2].get()>>0) & 0xF);
@@ -718,7 +715,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                     if(g_mobile) {
                       switch(m_pmode) {
                           default: break;
-                          case 1: trans_delay += 1; break; // Power-Down Mode Delay TODO: Needs to be adjusted
+                          case 1: trans_delay += 1; break; // Power-Down Mode Delay
                           case 2: trans_delay += 1; 
                               v::warn << name() << "The Controller is in Auto-Self-Refresh Mode. Transaction might not be wanted!" <<v::endl;
                               break;  // Auto-Self Refresh
@@ -989,6 +986,9 @@ void Mctrl::mcfg1_write() {
 
 void Mctrl::mcfg2_write() {
     uint32_t mcfg = r[MCFG2].get();
+    if(!g_sden) {
+      mcfg &= ~MCFG2_SE; 
+    }
     if((((mcfg>>4)&0x3)==0)&&!g_ram8) {
       mcfg &= ~MCFG2_RAM_WIDTH;
       mcfg |= (2 << 4);
@@ -1067,7 +1067,7 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
             uint32_t banks = c_sram.dev->get_banks();
             uint32_t bsize = c_sram.dev->get_bsize();
             uint32_t size = 0;
-            if(banks > 5) {
+            if(banks < 5) {
                 size = banks * bsize;
             } else {
                 size = 8 * bsize;
