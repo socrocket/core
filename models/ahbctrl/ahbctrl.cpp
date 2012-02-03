@@ -300,9 +300,6 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
           delay += clock_cycle;
       }
       
-      // burn delay
-      wait(delay);
-
       // and return
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return;
