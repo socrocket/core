@@ -122,6 +122,7 @@ def build(bld):
                     'tests/test1/testbench.cpp',
                     'tests/test1/top_rtl.cpp',
                     '../../common/verbose.cpp',
+                    '../../common/timingmonitor.cpp',
                     '../../adapters/apb_tlmbus_rtlslave_transactor.cpp',
                     '../../adapters/ahbpipe.cpp',
                     '../utils/clkdevice.cpp',
