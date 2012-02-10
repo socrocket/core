@@ -1,0 +1,13 @@
+In order to compile the benchmarks run the command:
+CC_CROSS=your_compiler CFLAGS=your_cflags make
+remember to specify -DBIG_TARGET among the cflags in case you want to test
+a big endian processor. For example, for the LEON3 processor:
+CC_CROSS=/home/luke/cross/sparc/bin/sparc-elf-gcc CFLAGS="-DBIG_TARGET -specs=osemu.specs" make
+
+Once compiled, to run the benchmarks execute:
+SIMULATOR=your_simulator make run
+for exmple:
+SIMULATOR=/home/luke/temp/processor/_build_/default/funcLT/funcLT make run
+
+After benchmarks execution you shall get a summary of the simulator performance
+all over the benchmarks
