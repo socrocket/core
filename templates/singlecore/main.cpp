@@ -127,6 +127,14 @@ int sc_main(int argc, char** argv) {
     char *sram_app, *prom_app;
     int app_argc = 0;
     bool gdb_en = false;
+    bool paramlist = false;
+
+    for(int i = 1; i < argc; i++) {
+        if(std::strcmp("listparams", argv[i])==0) {
+            paramlist = true;
+            break;
+        }
+    }
     
     // Sort out arguments
     if(argc >= 3) {
@@ -476,13 +484,15 @@ int sc_main(int argc, char** argv) {
     // ******************************************
 
     // * Param Listing **************************
-#if conf_paramlist
-    v::info << "main" << "System Parameter:" << v::endl;
-    std::vector<std::string> plist = CFG->getParamList();
-    for(uint32_t i = 0; i < plist.size(); i++) {
-        v::info << "main" << plist[i] << v::endl;
+    v::info << "main" << "Param" << paramlist << v::endl;
+    if(paramlist) {
+        gs::cnf::cnf_api *CFG = gs::cnf::GCnf_Api::getApiInstance(NULL);
+        v::info << "main" << "System Values:" << v::endl;
+        std::vector<std::string> plist = CFG->getParamList();
+        for(uint32_t i = 0; i < plist.size(); i++) {
+            v::info << "main" << plist[i] << v::endl;
+        }
     }
-#endif
     // ******************************************
 
     // start simulation
