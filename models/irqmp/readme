@@ -1,4 +1,4 @@
-= This directory contains a TLM of the Gaisler GRIP IRQMP interrupt controller =
+= This directory contains a SystemC/TL model of the GRLIB IRQMP interrupt controller =
 == TLM Model ==
  irqmp.h                     - The IRQMP TLM Header
  irqmp.cpp                   - The IRQMP TLM Implementation
@@ -17,14 +17,12 @@
 Every testcase will contain the following files:
  testbench.h                 - The test definition
  testbench.cpp               - The test implementation
- top_tlm.cpp                 - Top-level class and parametrisation for a test with tlm model tested
- top_ctb.cpp                 - Top-level class and parametrisation for a test with tlm model but ct busses
-                               This is needed to compare timing of the tlm model with the rtl model
- top_rtl.cpp                 - Top-level class and parametrisation for a test with rtl model
+ top_lt.cpp                  - Top-level classes for tests of the TL model
+ top_rtl.cpp                 - Top-level classes for co-simulation of the RTL reference implementation
   
 == Others ==
 wscript                      - Build instructions for waf
-README                       - This file
+readme                       - This file
 
 = How to build =
 The best way to build and execute everything is to use the top-level waf build system:

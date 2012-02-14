@@ -52,7 +52,9 @@
 #include "clkdevice.h"
 
 #include "signalkit.h"
+#include "power_monitor.h"
 #include <utility>
+
 /// @addtogroup irqmp IRQMP
 /// @{
 
@@ -91,7 +93,12 @@ class Irqmp : public gs::reg::gr_device,
         /// @param _pmask Upper 12bit of the APB mask.
         /// @param _ncpu  Number of CPU which receive interupts.
         /// @param _eirq  Interrupt channel which hides all the extended interrupt channels.
-        Irqmp(sc_module_name name, int _paddr = 0, int _pmask = 0xFFF, int _ncpu = 2, int _eirq = 1, unsigned int pindex = 0); 
+        Irqmp(sc_module_name name, int _paddr = 0, 
+	      int _pmask = 0xFFF, 
+	      int _ncpu = 2, 
+	      int _eirq = 1, 
+	      unsigned int pindex = 0,
+	      bool powmon = false); 
 
         /// Default destructor
         ///
@@ -287,6 +294,9 @@ class Irqmp : public gs::reg::gr_device,
 
         /// extended interrupt identification register
         static const uint32_t EXTIR_ID_DEFAULT   = 0x00000000;
+
+	/// power monitoring enabled or not
+	const uint32_t powermon;
 };
 
 /// @}
