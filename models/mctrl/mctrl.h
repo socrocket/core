@@ -55,6 +55,8 @@
 #include <signalkit.h>
 #include <greensocket/initiator/multi_socket.h>
 #include <greenreg_ambasockets.h>
+#include <greencontrol/config.h>
+
 #include "amba.h"
 #include "genericmemory.h"
 #include "ahbdevice.h"
@@ -81,39 +83,39 @@ class Mctrl : public gs::reg::gr_device,
         /// Creates a new Instance of an MCtrl.
         ///
         /// @param name The SystemC name of the component to be created.
-        /// @param _romasel
-        /// @param _sdrasel
-        /// @param _romaddr
-        /// @param _rommask
-        /// @param _ioaddr
-        /// @param _iomask
-        /// @param _ramaddr
-        /// @param _rammask
-        /// @param _paddr
-        /// @param _pmask
-        /// @param _wprot
-        /// @param _srbanks
-        /// @param _ram8
-        /// @param _ram16
-        /// @param _sepbus
-        /// @param _sdbits
-        /// @param _mobile
-        /// @param _sden
-        /// @param _hindex
-        /// @param _pindex
-        /// @param _powermon
-        /// @param _abstractionLayer
+        /// @param romasel
+        /// @param sdrasel
+        /// @param romaddr
+        /// @param rommask
+        /// @param ioaddr
+        /// @param iomask
+        /// @param ramaddr
+        /// @param rammask
+        /// @param paddr
+        /// @param pmask
+        /// @param wprot
+        /// @param srbanks
+        /// @param ram8
+        /// @param ram16
+        /// @param sepbus
+        /// @param sdbits
+        /// @param mobile
+        /// @param sden
+        /// @param hindex
+        /// @param pindex
+        /// @param powermon
+        /// @param abstractionLayer
         ///
         /// All constructor parameter are directly related to an VHDL Generic in the original Model. 
         /// Therefore read the GRLIB IP Core User's Manual Section 66.15 for more information.  
-        Mctrl(sc_module_name name, int _romasel = 28, int _sdrasel = 29,
-              int _romaddr = 0x0, int _rommask = 0xE00, 
-              int _ioaddr = 0x200, int _iomask = 0xE00, 
-              int _ramaddr = 0x400, int _rammask = 0xC00,
-              int _paddr = 0x0, int _pmask = 0xFFF, 
-              int _wprot = 0, int _srbanks = 4, 
-              int _ram8 = 0, int _ram16 = 0, int _sepbus = 0, 
-              int _sdbits = 32, int _mobile = 0, int _sden = 0, 
+        Mctrl(sc_module_name name, int romasel = 28, int sdrasel = 29,
+              int romaddr = 0x0, int rommask = 0xE00, 
+              int ioaddr = 0x200, int iomask = 0xE00, 
+              int ramaddr = 0x400, int rammask = 0xC00,
+              int paddr = 0x0, int pmask = 0xFFF, 
+              int wprot = 0, int srbanks = 4, 
+              int ram8 = 0, int ram16 = 0, int sepbus = 0, 
+              int sdbits = 32, int mobile = 0, int sden = 0, 
 	      unsigned int hindex = 0, unsigned int pindex = 0, 
 	      bool powmon = false,
 	      amba::amba_layer_ids ambaLayer = amba::amba_LT);
@@ -240,38 +242,44 @@ class Mctrl : public gs::reg::gr_device,
         // so it might be necessary to stall
         sc_core::sc_time refresh_stall;
 
-	/// False - ready to accept new transaction
-	bool busy;
+	      /// False - ready to accept new transaction
+	      bool busy;
         
         /// Length of refresh cycle
         uint8_t m_trfc; 
         
         /// Capture current state of power mode
         uint8_t m_pmode; 
+
+        /// GreenControl API container
+        gs::cnf::cnf_api *m_api;
+        
+        /// Open a namespace for performance counting in the greencontrol realm
+        gs::gs_param_array m_performance_counters;
         
         /// The number of total transactions handled by the mctrl
-        uint64_t m_total_transactions;
+        gs::gs_param<uint64_t> m_total_transactions;
         
         /// The number of successfull ended transactions
-        uint64_t m_right_transactions;
+        gs::gs_param<uint64_t> m_right_transactions;
 
         /// Total time of power down mode
-        sc_time m_power_down_time;
+        gs::gs_param<sc_time> m_power_down_time;
         
         /// Last time switched to power down mode
-        sc_time m_power_down_start;
+        gs::gs_param<sc_time> m_power_down_start;
 
         /// Total time of deep power down mode
-        sc_time m_deep_power_down_time;
+        gs::gs_param<sc_time> m_deep_power_down_time;
         
         /// Last time switched to deep power down mode
-        sc_time m_deep_power_down_start;
+        gs::gs_param<sc_time> m_deep_power_down_start;
 
         /// Total time of auto self refresh mode
-        sc_time m_self_refresh_time;
+        gs::gs_param<sc_time> m_self_refresh_time;
         
         /// Last time switched to auto self refresh mode
-        sc_time m_self_refresh_start;
+        gs::gs_param<sc_time> m_self_refresh_start;
 
         // Constructor parameters (modeling VHDL generics)
         const int g_romasel;

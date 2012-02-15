@@ -55,7 +55,8 @@ using namespace std;
 AHBDevice::AHBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
                      uint8_t version, uint8_t irq, uint32_t bar0,
                      uint32_t bar1, uint32_t bar2, uint32_t bar3) :
-    m_reads(0), m_writes(0) {
+    m_performance_counters("performance_counters"),
+    m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters) {
     m_register[0] = (irq & 0x1F) | ((version & 0x1F) << 5)
             | ((deviceid & 0xFFF) << 12) | (vendorid << 24);
     m_register[1] = m_register[2] = m_register[3] = 0;
@@ -65,6 +66,13 @@ AHBDevice::AHBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
     m_register[7] = bar3;
 
     m_busid = busid;
+    sc_module *self = dynamic_cast<sc_module *>(this);
+    if(self) {
+        m_api = gs::cnf::GCnf_Api::getApiInstance(self);
+    } else {
+        v::error << "AHBDevice" << "A AHBDevice instance must also inherit from sc_module when it gets instantiated. "
+                                << "To ensure the performance counter will work correctly" << v::endl;
+    }
 }
 
 AHBDevice::~AHBDevice() {

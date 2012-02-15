@@ -49,6 +49,7 @@
 #include <stdint.h>
 #include <amba.h>
 #include <tlm.h>
+#include <greencontrol/config.h>
 
 /// @addtogroup utils
 /// @{
@@ -144,11 +145,17 @@ class AHBDevice : public amba_slave_base {
         /// The master of slave bus id of the device
         uint32_t m_busid;
 
+        /// GreenControl API container
+        gs::cnf::cnf_api *m_api;
+        
+        /// Open a namespace for performance counting in the greencontrol realm
+        gs::gs_param_array m_performance_counters;
+
         /// Stores the number of Bytes read from the device
-        uint64_t m_reads;
+        gs::gs_param<uint64_t> m_reads;
 
         /// Stores the number of Bytes written from the device
-        uint64_t m_writes;
+        gs::gs_param<uint64_t> m_writes;
 };
 
 /// This function returns a grlib bank address register.

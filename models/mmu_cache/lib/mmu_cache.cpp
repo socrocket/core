@@ -95,8 +95,9 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     m_cached(cached),
     m_mmu_en(mmu_en),
     m_master_id(hindex), 
-    m_right_transactions(0),
-    m_total_transactions(0),
+    m_performance_counters("performance_counters"),
+    m_right_transactions("successful_transactions", 0llu, m_performance_counters),
+    m_total_transactions("total_transactions", 0llu, m_performance_counters),
     m_pow_mon(pow_mon),
     m_abstractionLayer(abstractionLayer), 
     mResponsePEQ("ResponsePEQ"),
@@ -108,6 +109,9 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 
     // check range of cacheability mask (0x0 - 0xffff)
     assert((m_cached>=0)&&(m_cached<=0xffff));
+
+    // Register GreenConfig api instance
+    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
     // create mmu (if required)
     m_mmu = (mmu_en == 1)? new mmu("mmu", 

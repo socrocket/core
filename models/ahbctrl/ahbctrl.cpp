@@ -84,18 +84,21 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       mDataPEQ("DataPEQ"),
       mEndDataPEQ("EndDataPEQ"),
       mResponsePEQ("ResponsePEQ"),
-      m_total_wait(SC_ZERO_TIME),
-      m_arbitrated(0),
-      m_max_wait(SC_ZERO_TIME),
-      m_max_wait_master(defmast),
-      m_idle_count(0),
-      m_total_transactions(0), 
-      m_right_transactions(0),
-      m_writes(0),
-      m_reads(0),
+      m_performance_counters("performance_counters"),
+      m_total_wait("total_wait", SC_ZERO_TIME, m_performance_counters),
+      m_arbitrated("abitrated", 0llu, m_performance_counters),
+      m_max_wait("maximum_waiting_time", SC_ZERO_TIME, m_performance_counters),
+      m_max_wait_master("maximum_wating_master_id", defmast, m_performance_counters),
+      m_idle_count("idle_cycles", 0llu, m_performance_counters),
+      m_total_transactions("total_transactions", 0llu, m_performance_counters), 
+      m_right_transactions("successful_transactions", 0llu, m_performance_counters),
+      m_writes("bytes_written", 0llu, m_performance_counters),
+      m_reads("bytes_read", 0llu, m_performance_counters),
       m_ambaLayer(ambaLayer) 
 
 {
+
+  m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
   if(ambaLayer==amba::amba_LT) {
 
@@ -518,7 +521,7 @@ void AHBCtrl::arbitrate_me() {
       }
 
       // Accumulate total waiting time 
-      m_total_wait += waiting_time;
+      m_total_wait = m_total_wait.getValue() + waiting_time;
       // Increment absolute number of arbitrated transactions
       m_arbitrated++;
 
@@ -1021,13 +1024,15 @@ void AHBCtrl::end_of_simulation() {
     if (m_ambaLayer == amba::amba_AT) {
 
       busy_cycles = sc_time_stamp() / clock_cycle;
+      sc_time max_wait = m_max_wait;
+      sc_time total_wait = m_total_wait;
 
       v::report << name() << " * Simulation cycles: " << busy_cycles << v::endl;
       v::report << name() << " * Idle cycles: " << m_idle_count << v::endl;
       v::report << name() << " * Bus utilization: " << (busy_cycles - m_idle_count)/busy_cycles << v::endl;
-      v::report << name() << " * Maximum arbiter waiting time: " << m_max_wait << " (" << m_max_wait/clock_cycle << " cycles)" << v::endl;
+      v::report << name() << " * Maximum arbiter waiting time: " << m_max_wait << " (" << max_wait/clock_cycle << " cycles)" << v::endl;
       v::report << name() << " * Master with maximum waiting time: " << m_max_wait_master << v::endl;
-      v::report << name() << " * Average arbitration time / transaction: " << m_total_wait / m_arbitrated << " (" << (m_total_wait / m_arbitrated) / clock_cycle << " cycles)" << v::endl;
+      v::report << name() << " * Average arbitration time / transaction: " << total_wait / m_arbitrated << " (" << (total_wait / m_arbitrated) / clock_cycle << " cycles)" << v::endl;
       v::report << name() << " * " << v::endl;
     
     }

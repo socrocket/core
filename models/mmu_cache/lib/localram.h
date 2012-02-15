@@ -47,6 +47,8 @@
 #define __LOCALRAM_H__
 
 #include <tlm.h>
+#include <greencontrol/config.h>
+
 #include "mem_if.h"
 #include "defines.h"
 
@@ -107,17 +109,23 @@ class localram : public sc_core::sc_module, public mem_if {
 
 	// For execution statistic
 	// -----------------------
+  /// GreenControl API container
+  gs::cnf::cnf_api *m_api;
+        
+  /// Open a namespace for performance counting in the greencontrol realm
+  gs::gs_param_array m_performance_counters;
+  
 	/// Number of read accesses
-	uint64_t sreads;
+  gs::gs_param<uint64_t> sreads;
 
 	/// Number of write accesses
-	uint64_t swrites;
+  gs::gs_param<uint64_t> swrites;
 
 	/// Volume of total reads (bytes)
-	uint64_t sreads_byte;
+  gs::gs_param<uint64_t> sreads_byte;
 
 	/// Volume of total writes (bytes)
-	uint64_t swrites_byte;
+  gs::gs_param<uint64_t> swrites_byte;
 
 	/// Clock cycle time
 	sc_core::sc_time clockcycle;

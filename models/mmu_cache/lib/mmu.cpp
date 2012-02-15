@@ -66,12 +66,19 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
 	    m_tlb_type(tlb_type), 
 	    m_tlb_rep(tlb_rep),
             m_mmupgsz(mmupgsz),
+      m_performance_counters("performance_counters"),
+      tihits("instruction_tlb_hits", 8, m_performance_counters),
+      tdhits("data_tlb_hits", 8, m_performance_counters),
+      timisses("instruction_tlb_misses", 0llu, m_performance_counters),
+      tdmisses("data_tlb_misses", 0llu, m_performance_counters),
 	    m_pseudo_rand(0),
 	    clockcycle(10, sc_core::SC_NS) {
 
     // The number of instruction and data tlbs must be in the range of 2-32
     assert((m_itlbnum>=2)&&(m_itlbnum<=32));
     assert((m_dtlbnum>=2)&&(m_dtlbnum<=32));
+
+    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
     // initialize MMU control register (ITLB, DTLB)
     MMU_CONTROL_REG = 0;

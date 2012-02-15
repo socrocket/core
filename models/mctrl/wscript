@@ -322,7 +322,7 @@ def build(bld):
     includes      = '. tests tests/test7 lib ../utils ../../signalkit ../../common ../ahbctrl ../ahbctrl/tests ../apbctrl ../../adapters',
     config        = vsim_conf,
   )
-  
+  """ 
   bld(
     features     = 'cxx cprogram test',
     target       = 'mctrl.8.lt.test',
@@ -368,7 +368,7 @@ def build(bld):
     includes      = '. tests tests/test8 lib ../utils ../../signalkit ../../common ../ahbctrl ../ahbctrl/tests ../apbctrl ../../adapters',
     config        = vsim_conf,
   )
-  
+  """
   bld(
     features     = 'cxx cprogram test',
     target       = 'mctrl.10.lt.test',

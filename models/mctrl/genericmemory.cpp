@@ -20,13 +20,20 @@ using namespace sc_core;
 using namespace tlm;
 using namespace std;
 
-GenericMemory::GenericMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) : MEMDevice(type, banks, bsize, bits, cols), bus("bus"), g_powmon(powmon), m_reads(0), m_writes(0) {
+GenericMemory::GenericMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) : 
+  MEMDevice(type, banks, bsize, bits, cols), 
+  bus("bus"), 
+  g_powmon(powmon), 
+  m_performance_counters("performance_counters"),
+  m_reads("bytes_read", 0llu, m_performance_counters), 
+  m_writes("bytes_writen", 0llu, m_performance_counters) {
     // register transport functions to sockets
     gs::socket::config<tlm::tlm_base_protocol_types> bus_cfg;
     bus_cfg.use_mandatory_phase(BEGIN_REQ);
     bus_cfg.use_mandatory_phase(END_REQ);
     //mem_cfg.treat_unknown_as_ignorable();
     bus.set_config(bus_cfg);
+    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
     char *type_name;
     switch(type) {

@@ -77,10 +77,18 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     m_lram(lram), 
     m_lramstart(lramstart), 
     m_lramsize((unsigned int)log2((double)lramsize)),
+    m_performance_counters("performance_counters"),
+    rhits("read_hits", sets, m_performance_counters),
+    rmisses("read_misses", 0llu, m_performance_counters),
+    whits("write_hits", sets, m_performance_counters),
+    wmisses("write_misses", 0llu, m_performance_counters),
+    bypassops("bypass_opperations", 0llu, m_performance_counters),
     m_pow_mon(pow_mon),
     clockcycle(10, sc_core::SC_NS)
 
 {
+
+    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
     // initialize cache line allocator
     memset(&m_default_cacheline, 0, sizeof(t_cache_line));

@@ -401,6 +401,8 @@ int sc_main(int argc, char** argv) {
     irqmp.set_clk(LOCAL_CLOCK,SC_NS);
     connect(irqmp.irq_req, leon3.IRQ_port.irq_signal, 0);
     connect(leon3.irqAck.initSignal, irqmp.irq_ack, 0);
+    connect(leon3.irqAck.halt, irqmp.cpu_rst, 0);
+    connect(leon3.irqAck.status, irqmp.cpu_stat, 0);
     // ******************************************
     
     // * GPTimer ********************************

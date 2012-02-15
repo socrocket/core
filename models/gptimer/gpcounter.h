@@ -48,9 +48,9 @@
 
 #include <greenreg.h>
 #include <systemc>
-#include <boost/config.hpp>
+//#include <boost/config.hpp>
+#include <greencontrol/config.h>
 
-#include "greencontrol/all.h"
 #include "signalkit.h"
 
 #include <string>
@@ -164,9 +164,14 @@ class GPCounter : public gs::reg::gr_subdevice {
         /// It is a SC_THREAD which triggers the interupt and waits for the e_tick event.
         void ticking();
     private:
-        uint64_t m_underflows;
+        /// GreenControl api instance
+        gs::cnf::cnf_api *m_api;
 
+        /// performance counter namespace
+        gs::gs_param_array m_performance_counters;
 
+        /// Number of underflows of the counter
+        gs::gs_param<uint64_t> m_underflows;
 };
 
 /// @}

@@ -73,25 +73,27 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
                     ::amba::amba_LT, // communication type / abstraction level
                     false // not used
             ), 
-            cpu_rst("CPU_RESET"), 
-	    irq_req("CPU_REQUEST"), 
+            cpu_rst("CPU_RESET"), cpu_stat("CPU_STAT"), irq_req("CPU_REQUEST"), 
             irq_ack(&Irqmp::acknowledged_irq,"IRQ_ACKNOWLEDGE"), 
             irq_in(&Irqmp::incomming_irq, "IRQ_INPUT"), 
-            g_ncpu(ncpu), 
-	    g_eirq(eirq),
-	    powermon(powmon) {
+            g_ncpu(ncpu), g_eirq(eirq),
+            m_performance_counters("performance_counters"), 
+            m_irq_counter("irq_line_activity", 32, m_performance_counters),
+            m_cpu_counter("cpu_line_activity", ncpu, m_performance_counters),
+	          powermon(powmon) {
 
-            forcereg = new uint32_t[g_ncpu];
+    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
+    forcereg = new uint32_t[g_ncpu];
 
-            // Create performance counter for cpu lines;
-            m_cpu_counter = new uint64_t[g_ncpu];
-   // Display APB slave information
-   v::info << name << "APB slave @0x" << hex << v::setw(8)
-           << v::setfill('0') << apb_slv.get_base_addr() << " size: 0x" << hex
-           << v::setw(8) << v::setfill('0') << apb_slv.get_size() << " byte"
-           << endl;
+    // Display APB slave information
+    v::info << name << "APB slave @0x" << hex << v::setw(8)
+            << v::setfill('0') << apb_slv.get_base_addr() << " size: 0x" << hex
+            << v::setw(8) << v::setfill('0') << apb_slv.get_size() << " byte"
+            << endl;
+
     assert(ncpu < 16 && "the IRQMP can only handle up to 16 CPUs");
-    // create register | name + description
+
+    // create register | name + description        
     r.create_register("level", "Interrupt Level Register",
             // offset
             0x00,
@@ -168,7 +170,7 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
     // Initialize performance counter by zerooing
     // Keep in mind counter will not be reseted in reset 
     for(int i = 0; i < 32; i++) {
-      m_irq_counter[i] = 0;
+        m_irq_counter[i] = 0;
     }
 
     // Configuration report
@@ -348,62 +350,75 @@ void Irqmp::launch_irq() {
                     v::debug << name() << "For CPU " << cpu << " really sent send IRQ: " << high << v::endl;
                     irq_req.write(1 << cpu, value);
 
-		    // Depending on CPU ID emit power event
-		    switch (cpu) {
-
-		    case 0:  PM::send(this, "irq0", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq0", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 1:  PM::send(this, "irq1", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq1", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 2:  PM::send(this, "irq2", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq2", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 3:  PM::send(this, "irq3", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq3", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 4:  PM::send(this, "irq4", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq4", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 5:  PM::send(this, "irq5", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq5", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 6:  PM::send(this, "irq6", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq6", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 7:  PM::send(this, "irq7", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq7", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 8:  PM::send(this, "irq8", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq8", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 9:  PM::send(this, "irq9", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq9", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 10: PM::send(this, "irq10", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq10", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 11: PM::send(this, "irq11", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq11", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 12: PM::send(this, "irq12", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq12", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 13: PM::send(this, "irq13", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq13", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 14: PM::send(this, "irq14", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq14", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    case 15: PM::send(this, "irq15", 1, sc_time_stamp(), 0, powermon);
-		             PM::send(this, "irq15", 1, sc_time_stamp()+clock_cycle, 0, powermon);
-			     break;
-		    default:
-
-		      v::warn << name() << "CPU index not valid for power monitoring (1-16) - is: " << hex << cpu << v::endl;
-
-		    }
+                    // Depending on CPU ID emit power event
+                    switch (cpu) {
+                        case 0:
+                            PM::send(this, "irq0", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq0", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 1:
+                            PM::send(this, "irq1", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq1", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 2:
+                            PM::send(this, "irq2", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq2", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 3:
+                            PM::send(this, "irq3", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq3", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 4:
+                            PM::send(this, "irq4", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq4", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 5:
+                            PM::send(this, "irq5", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq5", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 6:
+                            PM::send(this, "irq6", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq6", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 7:
+                            PM::send(this, "irq7", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq7", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 8:
+                            PM::send(this, "irq8", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq8", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 9:
+                            PM::send(this, "irq9", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq9", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 10:
+                            PM::send(this, "irq10", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq10", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 11:
+                            PM::send(this, "irq11", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq11", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 12:
+                            PM::send(this, "irq12", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq12", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 13:
+                            PM::send(this, "irq13", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq13", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 14:
+                            PM::send(this, "irq14", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq14", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        case 15:
+                            PM::send(this, "irq15", 1, sc_time_stamp(), 0, powermon);
+                            PM::send(this, "irq15", 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                            break;
+                        default:
+                          v::warn << name() << "CPU index not valid for power monitoring (1-16) - is: " << hex << cpu << v::endl;
+                    }
 		    
                     m_cpu_counter[cpu]++;
                 }
@@ -499,8 +514,20 @@ void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_
 // reset cpus after write to cpu status register
 // callback registered on mp status register
 void Irqmp::mpstat_write() {
-    r[MP_STAT] = MP_STAT_DEFAULT | (g_ncpu << 28) | (g_eirq << 16);
-    cpu_rst.write(0xFFFFFFFF, true);
+    uint32_t stat = r[MP_STAT] & 0xFFFF;
+    for(int i = 0; i < g_ncpu; i++) {
+        if((stat & (1<<i)) && cpu_stat.read(i)) {
+            cpu_rst.write(1<<i, true);
+        }
+    }
+}
+
+void Irqmp::mpstat_read() {
+    uint32_t reg = MP_STAT_DEFAULT | (g_ncpu << 28) | (g_eirq << 16);
+    for(int i = 0; i < g_ncpu; i++) {
+        reg |= cpu_stat.read(i) << i;
+    }
+    r[MP_STAT] = reg;
 }
 
 void Irqmp::pending_write() {

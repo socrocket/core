@@ -44,7 +44,8 @@
 #define APBCTRL_H
 
 #include <systemc>
-#include "amba.h"
+#include <amba.h>
+#include <greencontrol/config.h>
 
 #include "ahbdevice.h"
 #include "apbdevice.h"
@@ -172,11 +173,17 @@ class APBCtrl : public sc_core::sc_module, public AHBDevice, public CLKDevice {
 	/// Array of slave device information (PNP)
 	const uint32_t *mSlaves[16];
 
+  /// GreenControle api instance
+  gs::cnf::cnf_api *m_api;
+
+  /// Open a namespace for performance counting in the greencontrol realm
+  gs::gs_param_array m_performance_counters;
+
   /// Total number of transactions
-  uint64_t m_total_transactions;
+  gs::gs_param<uint64_t> m_total_transactions;
 
   /// Successful number of transactions
-  uint64_t m_right_transactions;
+  gs::gs_param<uint64_t> m_right_transactions;
 
     /// Set up slave map and collect plug & play information
     void start_of_simulation();

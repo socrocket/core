@@ -67,7 +67,6 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
     g_nbits(nbits),
     g_wdog_length(wdog),
     powermon(powmon) {
-
     assert("gsbits has to be between 1 and 32" && sbits > 0 && sbits < 33);
     assert("nbits has to be between 1 and 32" && nbits > 0 && nbits < 33);
     assert("ntimers has to be between 1 and 7" && ntimers > 0 && ntimers < 8);

@@ -46,9 +46,10 @@
 #ifndef __VECTORCACHE_H__
 #define __VECTORCACHE_H__
 
-#include "tlm.h"
-
+#include <tlm.h>
 #include <vector>
+#include <greencontrol/config.h>
+
 #include "math.h"
 #include "verbose.h"
 #include "defines.h"
@@ -239,16 +240,26 @@ class vectorcache : public sc_core::sc_module, public cache_if {
 
 	// Statistics
 	// ----------
+  /// GreenControl API container
+  gs::cnf::cnf_api *m_api;
+        
+  /// Open a namespace for performance counting in the greencontrol realm
+  gs::gs_param_array m_performance_counters;
+
 	/// Counter for read hits
-	uint64_t rhits[4];
+  gs::gs_param<uint64_t *> rhits;
+
 	/// Counter for read misses
-	uint64_t rmisses;
+  gs::gs_param<uint64_t> rmisses;
+
 	/// Counter for write hits
-	uint64_t whits[4];
+  gs::gs_param<uint64_t *> whits;
+
 	/// Counter for write misses
-	uint64_t wmisses;
+  gs::gs_param<uint64_t> wmisses;
+
 	/// Counter for bypass operations
-	uint64_t bypassops;
+  gs::gs_param<uint64_t> bypassops;
 
 	/// enable power monitoring
 	bool m_pow_mon;

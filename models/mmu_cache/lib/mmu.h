@@ -50,6 +50,7 @@
 
 #include <tlm.h>
 #include <map>
+#include <greencontrol/config.h>
 
 #include "mmu_if.h"
 #include "tlb_adaptor.h"
@@ -292,13 +293,19 @@ class mmu : public sc_core::sc_module, public mmu_if {
 
 	// Execution statistics
 	// --------------------
+  /// GreenControl API container
+  gs::cnf::cnf_api *m_api;
+        
+  /// Open a namespace for performance counting in the greencontrol realm
+  gs::gs_param_array m_performance_counters;
+
 	/// Number of TLB hits
-	uint64_t tihits[8];
-	uint64_t tdhits[8];
+  gs::gs_param<uint64_t *> tihits;
+  gs::gs_param<uint64_t *> tdhits;
 
 	/// Number of TLB misses
-	uint64_t timisses;
-        uint64_t tdmisses;
+  gs::gs_param<uint64_t> timisses;
+  gs::gs_param<uint64_t> tdmisses;
 
 	/// Pseudo random counter for LRU
 	uint32_t m_pseudo_rand;

@@ -77,13 +77,15 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
       mambaLayer(ambaLayer),
       busy(false),
       m_pnpbase(0xFF000),
-      m_total_transactions(0),
-      m_right_transactions(0) {
+      m_performance_counters("performance_counters"),
+      m_total_transactions("total_transactions", 0llu, m_performance_counters),
+      m_right_transactions("successful_transactions", 0llu, m_performance_counters) {
 
     // Assert generics are withing allowed ranges
     assert(haddr_ <= 0xfff);
     assert(hmask_ <= 0xfff);
 
+    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
     if (mambaLayer==amba::amba_LT) {
 
       // Register tlm blocking transport function

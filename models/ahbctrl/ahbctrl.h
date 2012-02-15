@@ -46,8 +46,9 @@
 #define AHBCTRL_H
 
 #include <tlm.h>
+#include <amba.h>
+#include <greencontrol/config.h>
 
-#include "amba.h"
 #include "socrocket.h"
 #include "power_monitor.h"
 
@@ -241,32 +242,38 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 	/// The number of masters in the system
 	unsigned int num_of_master_bindings;
 
+  /// GreenControl API container
+  gs::cnf::cnf_api *m_api;
+        
+  /// Open a namespace for performance counting in the greencontrol realm
+  gs::gs_param_array m_performance_counters;
+
 	/// Total waiting time in arbiter
-	sc_time m_total_wait;
+  gs::gs_param<sc_time> m_total_wait;
 
 	/// Total number of arbitrated instructions
-	uint64_t m_arbitrated;
+  gs::gs_param<uint64_t> m_arbitrated;
 
 	/// Maximum waiting time in arbiter
-	sc_time m_max_wait;
+  gs::gs_param<sc_time> m_max_wait;
 
 	/// ID of the master with the maximum waiting time
-	uint32_t m_max_wait_master;
+  gs::gs_param<uint32_t> m_max_wait_master;
 
 	/// Number of idle cycles
-	uint64_t m_idle_count;
+  gs::gs_param<uint64_t> m_idle_count;
 
 	/// Total number of transactions handled by the instance
-	uint64_t m_total_transactions;
+  gs::gs_param<uint64_t> m_total_transactions;
 
 	/// Succeeded number of transaction handled by the instance
-	uint64_t m_right_transactions;
+  gs::gs_param<uint64_t> m_right_transactions;
 
 	/// Counts bytes written to AHBCTRL from the master side
-	uint64_t m_writes;
+  gs::gs_param<uint64_t> m_writes;
 
 	/// Counts bytes read from AHBCTRL from the master side
-	uint64_t m_reads;
+  gs::gs_param<uint64_t> m_reads;
 
 	/// The abstraction layer of the model
 	amba::amba_layer_ids m_ambaLayer;

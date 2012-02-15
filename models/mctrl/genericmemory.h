@@ -51,6 +51,7 @@
 #include <systemc.h>
 #include <tlm.h>
 #include <greensocket/target/single_socket.h>
+#include <greencontrol/config.h>
 
 /// @brief This class models a generic memory. Depending on the configuration
 /// it can be used as ROM, IO, SRAM or SDRAM, in conjunction with the SoCRocket MCTRL.
@@ -62,14 +63,14 @@ class GenericMemory : public MEMDevice,
         /// Slave socket -  for communication with Mctrl
         gs::socket::target_socket<32> bus;
 
-	/// Creates a new Instance of GenericMemory
-	///
-	/// @param name The SystemC name of the component to be created
-	/// @param type The type of memory to be modeled (0-ROM, 1-IO, 2-SRAM, 3-SDRAM)
-	/// @param banks Number of parallel banks
-	/// @param bsize Size of one memory bank in bytes (all banks always considered to have equal size)
-	/// @param bits Bit width of memory
-	/// @param cols Number of SDRAM cols.
+        /// Creates a new Instance of GenericMemory
+        ///
+        /// @param name The SystemC name of the component to be created
+        /// @param type The type of memory to be modeled (0-ROM, 1-IO, 2-SRAM, 3-SDRAM)
+        /// @param banks Number of parallel banks
+        /// @param bsize Size of one memory bank in bytes (all banks always considered to have equal size)
+        /// @param bits Bit width of memory
+        /// @param cols Number of SDRAM cols.
         GenericMemory(sc_module_name name, 
 		      MEMDevice::device_type type, 
 		      uint32_t banks, 
@@ -78,7 +79,7 @@ class GenericMemory : public MEMDevice,
 		      uint32_t cols,
 		      bool pow_mon = false);
 
-	/// Destructor
+        /// Destructor
         ~GenericMemory();
         
         typedef std::map<uint32_t, uint8_t> type;
@@ -87,26 +88,35 @@ class GenericMemory : public MEMDevice,
         /// SystemC end of simulation
         void end_of_simulation();
         
-	/// TLM 2.0 blocking transport function
+        /// TLM 2.0 blocking transport function
         void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
 
-	/// TLM 2.0 debug transport function
+        /// TLM 2.0 debug transport function
         unsigned int transport_dbg(tlm::tlm_generic_payload& gp);
         
-	/// Read byte from functional memory
+        /// Read byte from functional memory
         uint8_t read(const uint32_t addr);
 
-	/// Write byte to functional memory
+        /// Write byte to functional memory
         void write(const uint32_t addr, const uint8_t byte);
 
         /// Erase sdram - Required for deep power down and PASR mode
         void erase(uint32_t start, uint32_t end);
 
-	/// Power monitoring
-	bool g_powmon;
+        /// Power monitoring
+        bool g_powmon;
   
-  uint64_t m_reads;
-  uint64_t m_writes; 
+        /// GreenControl API Pointer
+        gs::cnf::cnf_api *m_api;
+
+        /// Performance Counter Array
+        gs::gs_param_array m_performance_counters;
+
+        /// Performance counter to store transaction byte reads
+        gs::gs_param<uint64_t> m_reads;
+
+        /// Performance counter to store the transaction byte writes
+        gs::gs_param<uint64_t> m_writes; 
 };
 
 #endif

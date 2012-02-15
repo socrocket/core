@@ -86,10 +86,15 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             ), 
             mem("mem", gs::socket::GS_TXN_ONLY),
 	    mAcceptPEQ("mAcceptPEQ"), mTransactionPEQ("TransactionPEQ"),
-	    busy(false), m_total_transactions(0), m_right_transactions(0), 
-            m_power_down_time(0, SC_NS), m_power_down_start(0, SC_NS),
-            m_deep_power_down_time(0, SC_NS), m_deep_power_down_start(0, SC_NS),
-            m_self_refresh_time(0, SC_NS), m_self_refresh_start(0, SC_NS),
+	    busy(false), m_performance_counters("performance_counters"),
+            m_total_transactions("total_transactions", 0llu, m_performance_counters), 
+            m_right_transactions("successful_transactions", 0llu, m_performance_counters), 
+            m_power_down_time("total_power_down", sc_core::SC_ZERO_TIME, m_performance_counters), 
+            m_power_down_start("last_power_down", sc_core::SC_ZERO_TIME, m_performance_counters),
+            m_deep_power_down_time("total_deep_power_down", sc_core::SC_ZERO_TIME, m_performance_counters), 
+            m_deep_power_down_start("last_deep_power_down", sc_core::SC_ZERO_TIME, m_performance_counters),
+            m_self_refresh_time("total_self_refresh", sc_core::SC_ZERO_TIME, m_performance_counters), 
+            m_self_refresh_start("last_self_refresh", sc_core::SC_ZERO_TIME, m_performance_counters),
             g_romasel(_romasel), g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask), 
             g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr), 
             g_rammask(_rammask), g_paddr(_paddr), g_pmask(_pmask), g_wprot(_wprot),
@@ -99,9 +104,12 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
     // Display APB slave information 
     v::info << this->name() << "APB slave @" << v::uint32 << apb.get_base_addr() 
             << " size: " << v::uint32 << apb.get_size() << " byte" << v::endl;
-
     v::info << this->name() << "(" << hex << _paddr << ":" << hex << _pmask << ")" << hex << ::APBDevice::get_device_info()[1] << v::endl;
     
+    // Register greenconfig instance
+    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
+
+    // Prepare the device for power monitoring
     PM::registerIP(this, "mctrl", powermon);
     PM::send_idle(this, "idle", sc_time_stamp(), true);
 
@@ -344,12 +352,12 @@ void Mctrl::end_of_simulation() {
   v::report << name() << " * Total Transactions: " << m_total_transactions << v::endl;
   v::report << name() << " *  " << v::endl;
   // Calculate time in nominal operation mode
-  nominal_time = sc_time_stamp() - (m_self_refresh_time + m_power_down_time + m_deep_power_down_time);
+  nominal_time = sc_time_stamp() - (m_self_refresh_time.getValue() + m_power_down_time.getValue() + m_deep_power_down_time.getValue());
 
   v::report << name() << " * Total time in nominal operation: " << nominal_time  << " (" << (nominal_time*100/sc_time_stamp()) << "%)" << v::endl;
-  v::report << name() << " * Total time in self-refresh mode: " << m_self_refresh_time << " (" << (m_self_refresh_time*100/sc_time_stamp()) << "%)" << v::endl;
-  v::report << name() << " * Total time in power down mode: " << m_power_down_time << " (" << (m_power_down_time*100/sc_time_stamp()) << "%)" << v::endl;
-  v::report << name() << " * Total time in deep power down mode: " << m_deep_power_down_time << " (" <<(m_deep_power_down_time*100/sc_time_stamp()) << "%)" << v::endl;
+  v::report << name() << " * Total time in self-refresh mode: " << m_self_refresh_time << " (" << (m_self_refresh_time.getValue()*100/sc_time_stamp()) << "%)" << v::endl;
+  v::report << name() << " * Total time in power down mode: " << m_power_down_time << " (" << (m_power_down_time.getValue()*100/sc_time_stamp()) << "%)" << v::endl;
+  v::report << name() << " * Total time in deep power down mode: " << m_deep_power_down_time << " (" <<(m_deep_power_down_time.getValue()*100/sc_time_stamp()) << "%)" << v::endl;
   v::report << name() << " *  " << v::endl;
   v::report << name() << " * AHB Slave interface reports: " << v::endl;
   print_transport_statistics(name());
@@ -577,10 +585,6 @@ void Mctrl::b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay
   // Call the functional part of the model
   // -------------------------------------
   exec_func(trans, delay);
-
-  // Reset delay
-  delay = SC_ZERO_TIME;
-
 }
 
 // Interface to functional part of the model
@@ -643,7 +647,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                             gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
                             return;
                         }
-                        trans_delay = 0;
+                        trans_delay = 1;
                         word_delay = 1 + ((r[MCFG1].get()>>4) & 0xF);
                     } else {
                         trans_delay = 2;
@@ -771,12 +775,12 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
             // Bus Ready used? 
             // If IO Bus Ready take the delay from the memmory.
               // Or if the RAM Bus Ready is set.
-            if((port.dev->get_type() == MEMDevice::IO && (r[MCFG1].get() & MCFG1_IBRDY)) ||
-               (port.dev->get_type() == MEMDevice::SRAM && r[MCFG2].get() & MCFG2_RBRDY)) {
-                delay = mem_delay;
-            } else {
-                delay = (trans_delay + (length/mem_width) * word_delay) * clock_cycle;
-            }
+            //if((port.dev->get_type() == MEMDevice::IO && (r[MCFG1].get() & MCFG1_IBRDY)) ||
+            //   (port.dev->get_type() == MEMDevice::SRAM && r[MCFG2].get() & MCFG2_RBRDY)) {
+            //    delay = mem_delay;
+            //} else {
+                delay += (trans_delay + (length/mem_width) * word_delay) * clock_cycle;
+            //}
             if(data!=gp.get_data_ptr()) {
               delete data;
             }
@@ -883,13 +887,13 @@ void Mctrl::switch_power_mode() {
     gp.set_extension(erase);
     switch(m_pmode) {
         case 1: 
-            m_power_down_time += (sc_time_stamp() - m_power_down_start);
+            m_power_down_time = m_power_down_time.getValue() + (sc_time_stamp() - m_power_down_start.getValue());
             break;
         case 2: 
-            m_self_refresh_time += (sc_time_stamp() - m_self_refresh_start);
+            m_self_refresh_time = m_self_refresh_time.getValue() + (sc_time_stamp() - m_self_refresh_start.getValue());
             break;
         case 5: 
-            m_deep_power_down_time += (sc_time_stamp() - m_deep_power_down_start);
+            m_deep_power_down_time = m_deep_power_down_time.getValue() + (sc_time_stamp() - m_deep_power_down_start.getValue());
             break;
         default:
             break;

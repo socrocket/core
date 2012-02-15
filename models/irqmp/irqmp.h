@@ -47,13 +47,15 @@
 #include <greenreg_ambasockets.h>
 #include <systemc.h>
 #include <boost/config.hpp>
-#include <greencontrol/all.h>
+#include <greencontrol/config.h>
+#include <utility>
+#include <stdint.h>
+
 #include "apbdevice.h"
 #include "clkdevice.h"
 
 #include "signalkit.h"
 #include "power_monitor.h"
-#include <utility>
 
 /// @addtogroup irqmp IRQMP
 /// @{
@@ -72,6 +74,9 @@ class Irqmp : public gs::reg::gr_device,
         /// CPU reset out signals
         signal<bool>::selector cpu_rst;
 
+        /// CPU reset out signals
+        signal<bool>::infield cpu_stat;
+
         /// IRQ Request out signals
         signal<std::pair<uint32_t, bool> >::selector irq_req;
 
@@ -89,16 +94,11 @@ class Irqmp : public gs::reg::gr_device,
         ///  The constructor is taking the VHDL generics as parameters.
         ///
         /// @param name SystemC instance name.
-        /// @param _paddr Upper 12bit of the APB address.
-        /// @param _pmask Upper 12bit of the APB mask.
-        /// @param _ncpu  Number of CPU which receive interupts.
-        /// @param _eirq  Interrupt channel which hides all the extended interrupt channels.
-        Irqmp(sc_module_name name, int _paddr = 0, 
-	      int _pmask = 0xFFF, 
-	      int _ncpu = 2, 
-	      int _eirq = 1, 
-	      unsigned int pindex = 0,
-	      bool powmon = false); 
+        /// @param paddr Upper 12bit of the APB address.
+        /// @param pmask Upper 12bit of the APB mask.
+        /// @param ncpu  Number of CPU which receive interupts.
+        /// @param eirq  Interrupt channel which hides all the extended interrupt channels.
+        Irqmp(sc_module_name name, int32_t paddr = 0, int32_t pmask = 0xFFF, int32_t ncpu = 2, int32_t eirq = 1, uint32_t pindex = 0, bool powmon = false); 
 
         /// Default destructor
         ///
@@ -133,9 +133,10 @@ class Irqmp : public gs::reg::gr_device,
         ///  the interrupt force settings and trigger a recalculation of the outputs.
         void force_write();
 
+        /// Prepare reading of the MP status register
+        void mpstat_read();
+
         /// Write to MP status register
-        ///
-        ///  Triggers reset of processors.
         void mpstat_write();
 
         /// Write to pending register
@@ -190,14 +191,22 @@ class Irqmp : public gs::reg::gr_device,
         /// To determ the change in the status force fields.
         uint32_t *forcereg;
 
+        /// GreenControl API container
+        gs::cnf::cnf_api *m_api;
+        
+        /// Open a namespace for performance counting in the greencontrol realm
+        gs::gs_param_array m_performance_counters;
+        
         /// Performance Counter per IRQ Line
         /// The number of executed interrupts is stored in the variable
-        uint64_t m_irq_counter[32];
+        gs::gs_param<uint64_t *> m_irq_counter;
 
         /// Performance Counter per CPU Line
         /// The number of executed interrupts on each cpu line is stored in the variable
-        uint64_t *m_cpu_counter;
+        gs::gs_param<uint64_t *>m_cpu_counter;
 
+        /// power monitoring enabled or not
+        const uint32_t powermon;
     public:
         //---register address offset
         static const uint32_t IR_LEVEL           = 0x00;
@@ -294,9 +303,6 @@ class Irqmp : public gs::reg::gr_device,
 
         /// extended interrupt identification register
         static const uint32_t EXTIR_ID_DEFAULT   = 0x00000000;
-
-	/// power monitoring enabled or not
-	const uint32_t powermon;
 };
 
 /// @}

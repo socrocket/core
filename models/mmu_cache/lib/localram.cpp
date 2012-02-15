@@ -54,16 +54,19 @@ localram::localram(sc_core::sc_module_name name, unsigned int lrsize,
                    sc_module(name), 
 		   m_lrsize(lrsize<<10), 
 		   m_lrstart(lrstart << 24),
-		   sreads(0),
-		   swrites(0),
-		   sreads_byte(0),
-		   swrites_byte(0)
+       m_performance_counters("performance_counters"),
+		   sreads("read_transactions", 0llu, m_performance_counters),
+		   swrites("written_transactions", 0llu, m_performance_counters),
+		   sreads_byte("bytes_read", 0llu, m_performance_counters),
+		   swrites_byte("bytes_written", 0llu, m_performance_counters)
 {
 
     // Parameter check
     // ---------------
     // Scratchpad size max 512 kbyte
     assert(m_lrsize <= 524288);
+
+    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
     // Initialize allocator
     m_default_entry.i = 0;

@@ -54,8 +54,12 @@
 /// @{
 
 GPCounter::GPCounter(GPTimer &_parent, unsigned int _nr, sc_core::sc_module_name name) :
-    gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false), m_underflows(0) {
+    gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false), 
+    m_performance_counters("performance_counters"),
+    m_underflows("undeflows", 0llu, m_performance_counters) {
     SC_THREAD(ticking);
+
+    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
     PM::registerIP(this, "gpcounter", p.powermon);
     PM::send_idle(this, "idle", sc_time_stamp(), true);
@@ -174,8 +178,11 @@ void GPCounter::ticking() {
 
         v::debug << name() << "GPCounter_" << nr << " is wait" << v::endl;
         wait(e_wait);
+
+        // update performance counter
         m_underflows++;
-        v::debug << name() << "GPCounter_" << nr << " is rockin'" << v::endl;
+
+        v::debug << name() << "GPCounter_" << nr << " underflows'" << v::endl;
         PM::send(this, "underflow", 1, sc_time_stamp(),0,1);
         // Send interupt and set outputs
         if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_IE]) {
