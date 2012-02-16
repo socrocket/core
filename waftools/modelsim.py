@@ -313,11 +313,11 @@ def modelsim(self):
   
   if hasattr(self, "uselib"):
     for lib in Utils.to_list(self.uselib):
-      for path in self.env["INCLUDES_%s" % lib]:
+      for path in Utils.to_list(self.env["INCLUDES_%s" % lib]):
         self.env["_SCCOMFLAGS"] += ['-I%s' % path]
-      for path in self.env["LIBPATH_%s" % lib]:
+      for path in Utils.to_list(self.env["LIBPATH_%s" % lib]):
         self.env["_VLINKFLAGS"] += ['-L%s' % path]
-      for lib in self.env["LIB_%s" % lib]:
+      for lib in Utils.to_list(self.env["LIB_%s" % lib]):
         self.env["_VLINKFLAGS"] += ['-l%s' % lib]
   
   #if hasattr(self, "use"):

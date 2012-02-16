@@ -105,6 +105,9 @@ if Context.g_module.__dict__.has_key('uninstall'):
 def get_subdirs(dir='.'):
   return [name for name in os.listdir(dir) if os.path.isfile(os.path.join(dir, name, "wscript"))]
 
+def get_testdirs(dir='.'):
+  return [os.path.join(name, "tests") for name in os.listdir(dir) if os.path.isfile(os.path.join(dir, name, "tests", "wscript"))]
+
 #
 # For external resources
 #  Not used at the moment, maybe with greenreg or grlib

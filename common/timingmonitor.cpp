@@ -177,8 +177,8 @@ void TimingMonitor::report_timing() {
     v::report << "TimingMonitor" << id << ", " << ((it->second).name) << ", " << TimingMonitor::phase_systime(id) << ", " << tmp.st_start << ", " << tmp.st_end << ", " << TimingMonitor::phase_realtime(id) << v::endl;
     //v::report << "TimingMonitor" << "* Phase: " << id << v::endl;
     //v::report << "TimingMonitor" << "* Name: " << ((it->second).name) << v::endl;
-    //v::report << "TimingMonitor" << "* SystemC Time: " << TimingMonitor::phase_systime(id) \
-	    << " (Start: " << tmp.st_start << " End: " << tmp.st_end << ")" << v::endl;
+    //v::report << "TimingMonitor" << "* SystemC Time: " << TimingMonitor::phase_systime(id)
+	  //  << " (Start: " << tmp.st_start << " End: " << tmp.st_end << ")" << v::endl;
     //v::report << "TimingMonitor" << "* Real Time: " << TimingMonitor::phase_realtime(id) << " sec " << v::endl;
     //v::report << "TimingMonitor" << "* --------------------------------------------------------------" << v::endl;
   

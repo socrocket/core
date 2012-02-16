@@ -53,10 +53,12 @@ import os, io, sys, stat
 import datetime, time
 
 def options(opt):
-  pass
+  conf = opt.get_option_group("--download")
+  conf.add_option('--nosystests', dest='systests', action='store_false', default=True, help='Deactivates all tests executed on a platform')
 
 def configure(ctx):
-  pass
+  if not Options.options.systests:
+    ctx.env["SYSTESTS"] = False
 
 @TaskGen.feature('generate')
 def make_generate(self):
@@ -81,6 +83,9 @@ def make_generate(self):
 
 # Extended Testing support
 def make_systest(self):
+  if not (Options.options.systests and self.env["SYSTESTS"]):
+    return
+
   sysname = getattr(self, 'system', None)
   romname = getattr(self, 'prom', getattr(self, 'rom', None)) 
   ramname = getattr(self, 'ram', getattr(self, 'sram', getattr(self, 'sdram', None)))

@@ -852,8 +852,8 @@ def options(ctx):
     trap = ctx.add_option_group("TrapGen Configuration Options")
     # Specify libELF library path
     trap.add_option('--with-elf', type='string', help='libELF installation directory', dest='elfdir', default=environ.get("ELF"))
-    trap.add_option('--static', default=False, action="store_true", help='Triggers a static build, with no dependences from any dynamic library', dest='static_build')
-    trap.add_option('--sparc-cross', default=None, help='Triggers a static build, with no dependences from any dynamic library', dest='sparc_cross')
+    trap.add_option('--static', default=False, action="store_true", help='Triggers a static build, with no dependences from any dynamic library (LEON3)', dest='static_build')
+    trap.add_option('--sparc-cross', default=None, help='Explicit path to the cross compiler. If not given it will searched on the path', dest='sparc_cross')
     trap.add_option('--sparc-prefix', default='sparc-elf-', type='string', help='Defines the sparc compiler prefix', dest='sparc_prefix')
     # Specify if OS emulation support should be compiled inside processor models
     trap.add_option('-T', '--disable-tools', default=True, action="store_false", help='Disables support for support tools (debuger, os-emulator, etc.) (switch)', dest='enable_tools')

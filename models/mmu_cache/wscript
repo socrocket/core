@@ -158,7 +158,7 @@ def build(bld):
                     '../ahbmem/ahbmem.cpp',
                     'test1/testbench.cpp',
                     'test1/top_rtl.cpp'],
-    uselib       = 'AMBA GREENSOCS',
+    uselib       = 'AMBA GREENSOCS BOOST',
     includes     = '. test1 lib ../utils ../../signalkit ../../common ../ahbctrl/ ../../adapters ../ahbmem',
     config       =  vsim_conf,
   )
@@ -203,7 +203,7 @@ def build(bld):
                     '../ahbctrl/ahbctrl.cpp',
                     'test2/testbench.cpp',
                     'test2/top_rtl.cpp'],
-    uselib       = 'AMBA GREENSOCS',
+    uselib       = 'AMBA GREENSOCS BOOST',
     includes     = '. test2 lib ../utils ../../signalkit ../../common ../ahbctrl/ ../../adapters ../ahbmem',
     config       =  vsim_conf,
   )
