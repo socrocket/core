@@ -210,3 +210,30 @@ def build(bld):
     config       =  vsim_conf,
   )  
 
+  bld(
+    features     = 'cxx cprogram test',
+    source       = 'tests/test5/top_lt.cpp tests/test5/testbench.cpp',
+    target       = 'irqmp.5.lt.test',
+    includes     = '.',
+    uselib       = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
+    use          = 'irqmp utils signalkit common'
+  )
+  """ # Cosimulation not supported
+  bld(
+    features     = 'modelsim test',
+    target       = 'irqmp.5.rtl.test',
+    source       = ['tests/irqmp_wrapper.vhd',
+                    'tests/test5/testbench.cpp',
+                    'tests/test5/top_rtl.cpp',
+                    '../utils/clkdevice.cpp',
+                    '../utils/apbdevice.cpp',
+                    '../../adapters/ahbpipe.cpp',
+                    '../../adapters/apb_tlmbus_rtlslave_transactor.cpp',
+                    '../../common/verbose.cpp',
+                    '../../common/timingmonitor.cpp'],
+    uselib       = 'AMBA GREENSOCS AMBAMEM',
+    includes     = '. tests tests/test5 ../utils ../../signalkit ../../common ../../adapters',
+    config       =  vsim_conf,
+  )  
+  """
+

@@ -91,7 +91,7 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
             << v::setw(8) << v::setfill('0') << apb_slv.get_size() << " byte"
             << endl;
 
-    assert(ncpu < 16 && "the IRQMP can only handle up to 16 CPUs");
+    assert(ncpu < 17 && "the IRQMP can only handle up to 16 CPUs");
 
     // create register | name + description        
     r.create_register("level", "Interrupt Level Register",
@@ -209,6 +209,9 @@ void Irqmp::end_of_elaboration() {
     // manage cpu run / reset signals after write into MP status reg
     GR_FUNCTION(Irqmp, mpstat_write);
     GR_SENSITIVE(r[MP_STAT].add_rule(gs::reg::POST_WRITE, "mpstat_write", gs::reg::NOTIFY));
+
+    GR_FUNCTION(Irqmp, mpstat_read);
+    GR_SENSITIVE(r[MP_STAT].add_rule(gs::reg::PRE_READ, "mpstat_read", gs::reg::NOTIFY));
 }
 
 // Print execution statistic at end of simulation
@@ -247,7 +250,7 @@ void Irqmp::dorst() {
     }
     r[IR_CLEAR] = static_cast<uint32_t>(CLEAR_DEFAULT);
     //mp status register contains g_ncpu and g_eirq at bits 31..28 and 19..16 respectively
-    r[MP_STAT] = MP_STAT_DEFAULT | (g_ncpu << 28) | (g_eirq << 16);
+    r[MP_STAT] = 0xFFFE | (g_ncpu << 28) | (g_eirq << 16);
     r[BROADCAST] = static_cast<uint32_t>(BROADCAST_DEFAULT);
     for(int cpu = 0; cpu < g_ncpu; cpu++) {
         r[PROC_IR_MASK(cpu)]  = static_cast<uint32_t>(MASK_DEFAULT);
@@ -255,6 +258,7 @@ void Irqmp::dorst() {
         r[PROC_EXTIR_ID(cpu)] = static_cast<uint32_t>(EXTIR_ID_DEFAULT);
         forcereg[cpu] = 0;
     }
+    cpu_rst.write(1, true);
 }
 
 //  - watch interrupt bus signals (apbi.pirq)
@@ -516,16 +520,16 @@ void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_
 void Irqmp::mpstat_write() {
     uint32_t stat = r[MP_STAT] & 0xFFFF;
     for(int i = 0; i < g_ncpu; i++) {
-        if((stat & (1<<i)) && cpu_stat.read(i)) {
-            cpu_rst.write(1<<i, true);
+        if((stat & (1 << i)) && cpu_stat.read(i)) {
+            cpu_rst.write(1 << i, true);
         }
     }
 }
 
 void Irqmp::mpstat_read() {
-    uint32_t reg = MP_STAT_DEFAULT | (g_ncpu << 28) | (g_eirq << 16);
+    uint32_t reg = (g_ncpu << 28) | (g_eirq << 16);
     for(int i = 0; i < g_ncpu; i++) {
-        reg |= cpu_stat.read(i) << i;
+        reg |= (cpu_stat.read(i) << i);
     }
     r[MP_STAT] = reg;
 }
