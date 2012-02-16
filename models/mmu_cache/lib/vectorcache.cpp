@@ -226,7 +226,7 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
 }
 
-// destructor
+// Destructor
 vectorcache::~vectorcache() {
 }
 
@@ -243,8 +243,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
     unsigned int burst_len;
     unsigned int replacer_limit;
-
-    char buf[256];
 
     // Is the cache enabled (0b11) or frozen (0b01) ?
     if ((!is_dbg) && (check_mode() & 0x1)) {
@@ -339,10 +337,23 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 	  for (unsigned int i=0;i<=m_sets;i++) {
 
 	    // Power Monitor: parallel read of all cache sets (1 cycle)
-	    sprintf(buf,"set_read%d",i);
-	    PM::send(this,buf,1,sc_time_stamp(),0,m_pow_mon);
-	    PM::send(this,buf,0,sc_time_stamp()+clockcycle,0,m_pow_mon);
+	    switch(i) {
 
+	    case 0:   PM::send(this, "set_read0", 1, sc_time_stamp(), 0, m_pow_mon);
+	              PM::send(this, "set_read0", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+		      break;
+	    case 1:   PM::send(this, "set_read1", 1, sc_time_stamp(), 0, m_pow_mon);
+	              PM::send(this, "set_read1", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+		      break;
+	    case 2:   PM::send(this, "set_read2", 1, sc_time_stamp(), 0, m_pow_mon);
+	              PM::send(this, "set_read2", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+		      break;
+	    case 3:   PM::send(this, "set_read3", 1, sc_time_stamp(), 0, m_pow_mon);
+	              PM::send(this, "set_read3", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+		      break;
+	    default:  v::warn << name() << "Set not valid in call to power monitor (0-3) - is: " << i << v::endl;
+
+	    }
 	  }
 	}
 
@@ -356,7 +367,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 	    // Increment miss counter 
 	    rmisses++;
 
-            // increment time
+            // Increment time
             *delay += clockcycle;
 
             // Set length of bus transfer depending on mode:
@@ -424,12 +435,27 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
                 memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2],
 		       ahb_data, burst_len);
 
+		if (m_pow_mon) {
 
-		sprintf(buf,"set_write%d",set_select);
+		  // Power Monitor: Write new data to set 'set_select'
+		  switch(set_select) {
 
-		// Power Monitor: Write new data to set 'set_select'
-		PM::send(this,buf,1,sc_time_stamp(),0,m_pow_mon);
-		PM::send(this,buf,0,sc_time_stamp()+clockcycle,0,m_pow_mon);		
+		  case 0: PM::send(this,"set_write0", 1, sc_time_stamp(), 0, m_pow_mon);
+		          PM::send(this,"set_write0", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+			  break;
+		  case 1: PM::send(this,"set_write1", 1, sc_time_stamp(), 0, m_pow_mon);
+		          PM::send(this,"set_write1", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+		  	  break;
+		  case 2: PM::send(this,"set_write2", 1, sc_time_stamp(), 0, m_pow_mon);
+		          PM::send(this,"set_write2", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+			  break;
+		  case 3: PM::send(this,"set_write3", 1, sc_time_stamp(), 0, m_pow_mon);
+		          PM::send(this,"set_write3", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+			  break;
+		  default: v::warn << name() << "Set not valid in call to power monitor (0-3) - is: " << set_select << v::endl;
+		  }
+
+		}
 
                 // has the tag changed?
                 if ((*m_current_cacheline[set_select]).tag.atag != tag) {
@@ -484,10 +510,26 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
                   memcpy(&(*m_current_cacheline[set_select]).entry[offset
                             >> 2], ahb_data, burst_len);
 
-		  // Power Monitor: Write new data to set 'set_select'
-		  sprintf(buf,"set_write%d",set_select);
-		  PM::send(this,buf,1,sc_time_stamp(),0,m_pow_mon);
-		  PM::send(this,buf,0,sc_time_stamp()+clockcycle,0,m_pow_mon);	
+		  if (m_pow_mon) {
+
+		    // Power Monitor: Write new data to set 'set_select'
+		    switch(set_select) {
+
+		    case 0: PM::send(this,"set_write0", 1, sc_time_stamp(), 0, m_pow_mon);
+		            PM::send(this,"set_write0", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+			    break;
+		    case 1: PM::send(this,"set_write1", 1, sc_time_stamp(), 0, m_pow_mon);
+		            PM::send(this,"set_write1", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+			    break;
+		    case 2: PM::send(this,"set_write2", 1, sc_time_stamp(), 0, m_pow_mon);
+		            PM::send(this,"set_write2", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+			    break;
+		    case 3: PM::send(this,"set_write3", 1, sc_time_stamp(), 0, m_pow_mon);
+		            PM::send(this,"set_write3", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+			    break;
+		    default: v::warn << name() << "Set not valid in call to power monitor (0-3) - is: " << set_select << v::endl;
+		    }
+		  }
 
                   // switch on the valid bits for the new entries
                   for (unsigned int i = offset; i <= replacer_limit; i += 4) {

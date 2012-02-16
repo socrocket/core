@@ -49,16 +49,19 @@
 #include "verbose.h"
 
 /// constructor
-localram::localram(sc_core::sc_module_name name, unsigned int lrsize,
-                   unsigned int lrstart) :
+localram::localram(sc_core::sc_module_name name, 
+		   unsigned int lrsize,
+                   unsigned int lrstart,
+		   bool pow_mon) :
                    sc_module(name), 
 		   m_lrsize(lrsize<<10), 
 		   m_lrstart(lrstart << 24),
-       m_performance_counters("performance_counters"),
+		   m_performance_counters("performance_counters"),
 		   sreads("read_transactions", 0llu, m_performance_counters),
 		   swrites("written_transactions", 0llu, m_performance_counters),
 		   sreads_byte("bytes_read", 0llu, m_performance_counters),
-		   swrites_byte("bytes_written", 0llu, m_performance_counters)
+		   swrites_byte("bytes_written", 0llu, m_performance_counters),
+		   m_pow_mon(pow_mon)
 {
 
     // Parameter check
@@ -73,6 +76,10 @@ localram::localram(sc_core::sc_module_name name, unsigned int lrsize,
 
     // Create the actual ram
     scratchpad = new t_cache_data[m_lrsize>>2];
+
+    // Register for power monitoring
+    PM::registerIP(this,"localram",m_pow_mon);
+    PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
 
     // Configuration report
     v::info << this->name() << " ******************************************************************************* " << v::endl;
@@ -101,6 +108,9 @@ bool localram::mem_read(unsigned int addr, unsigned int asi, unsigned char *data
     v::error << name() << "Read with address " << hex << addr << " out of range!!" << v::endl;
 
   }
+
+  PM::send(this,"lram_read", 1, sc_time_stamp(), 0, m_pow_mon);
+  PM::send(this,"lram_read", 0, sc_time_stamp(), 0, m_pow_mon);
 
   // Byte offset
   unsigned int byt = addr & 0x3;
@@ -134,6 +144,9 @@ void localram::mem_write(unsigned int addr, unsigned int asi, unsigned char *dat
     v::error << name() << "Write with address " << hex << addr << " out of range!!" << v::endl;
 
   }
+
+  PM::send(this,"lram_write", 1, sc_time_stamp(), 0, m_pow_mon);
+  PM::send(this,"lram_write", 0, sc_time_stamp(), 0, m_pow_mon);
 
   // byte offset
   unsigned int byt = addr & 0x3;

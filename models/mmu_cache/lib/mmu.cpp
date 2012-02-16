@@ -51,13 +51,14 @@
 #include "verbose.h"
 
 mmu::mmu(sc_core::sc_module_name name, // sysc module name,
-         mmu_cache_if * _mmu_cache, // pointer to memory interface
-         unsigned int itlbnum, // number of instruction tlbs
-         unsigned int dtlbnum, // number of data tlbs
-         unsigned int tlb_type, // tlb type
-         unsigned int tlb_rep, // tlb replacement strategy
-         unsigned int mmupgsz) :
-            sc_module(name), // tlb mmu page size (default 4kB)
+         mmu_cache_if * _mmu_cache,    // pointer to memory interface
+         unsigned int itlbnum,         // number of instruction tlbs
+         unsigned int dtlbnum,         // number of data tlbs
+         unsigned int tlb_type,        // tlb type
+         unsigned int tlb_rep,         // tlb replacement strategy
+         unsigned int mmupgsz,         // mmu page size 
+	 bool pow_mon) :               // power monitoring on/off
+            sc_module(name), 
             m_mmu_cache(_mmu_cache), 
 	    m_itlbnum(itlbnum), 
 	    m_dtlbnum(dtlbnum), 
@@ -72,6 +73,7 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
       timisses("instruction_tlb_misses", 0llu, m_performance_counters),
       tdmisses("data_tlb_misses", 0llu, m_performance_counters),
 	    m_pseudo_rand(0),
+	    m_pow_mon(pow_mon),
 	    clockcycle(10, sc_core::SC_NS) {
 
     // The number of instruction and data tlbs must be in the range of 2-32
@@ -161,6 +163,10 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
             assert(false);
     }
 
+    // Register for power monitoring
+    PM::registerIP(this,"mmu",m_pow_mon);
+    PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
+
     // Init execution statistic
     for (uint32_t i=0; i<8; i++) {
 
@@ -213,7 +219,10 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     bool context_miss = false;
 
-
+    // TLB lookup is full-associative. All TLBs are read at once and in parallel.
+    // For performance reasons, this is modeled as one event.
+    PM::send(this, "tlb_lookup", 1, sc_time_stamp(), 0, m_pow_mon);
+    PM::send(this, "tlm_lookup", 0, sc_time_stamp(), 0, m_pow_mon);
 
     // Search virtual address tag in ipdc (associative)
     v::info << this->name() << "lookup with VPN: " << std::hex << vpn
@@ -369,6 +378,9 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         tmp.pte = data;
 	tmp.lru = 7;
 
+	PM::send(this, "tlb_write", 1, sc_time_stamp(), 0, m_pow_mon);
+	PM::send(this, "tlb_write", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+
         (*tlb)[vpn] = tmp;
 
         // build physical address from PTE and offset
@@ -431,6 +443,9 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         tmp.pte = data;
 	tmp.lru = 7;
 
+	PM::send(this, "tlb_write", 1, sc_time_stamp(), 0, m_pow_mon);
+	PM::send(this, "tlb_write", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+
         (*tlb)[vpn] = tmp;
 
         // build physical address from PTE and offset
@@ -492,6 +507,9 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         tmp.context = MMU_CONTEXT_REG;
         tmp.pte = data;
 	tmp.lru = 7;
+
+	PM::send(this, "tlb_write", 1, sc_time_stamp(), 0, m_pow_mon);
+	PM::send(this, "tlb_write", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
 
         (*tlb)[vpn] = tmp;
 

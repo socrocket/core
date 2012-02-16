@@ -56,6 +56,7 @@
 #include "tlb_adaptor.h"
 #include "mmu_cache_if.h"
 
+#include "power_monitor.h"
 #include "vendian.h"
 #include "defines.h"
 
@@ -77,7 +78,8 @@ class mmu : public sc_core::sc_module, public mmu_if {
         mmu(sc_core::sc_module_name name, mmu_cache_if * _mmu_cache,
 	    unsigned int itlbnum,
             unsigned int dtlbnum, unsigned int tlb_type, unsigned int tlb_rep,
-            unsigned int mmupgsz);
+            unsigned int mmupgsz,
+	    bool pow_mon = false);
 
         // Member functions
         // ----------------
@@ -309,6 +311,9 @@ class mmu : public sc_core::sc_module, public mmu_if {
 
 	/// Pseudo random counter for LRU
 	uint32_t m_pseudo_rand;
+
+	/// Power Monitoring enabled?
+	bool m_pow_mon;
 
 	/// Clock cycle time
 	sc_core::sc_time clockcycle;

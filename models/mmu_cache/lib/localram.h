@@ -51,6 +51,7 @@
 
 #include "mem_if.h"
 #include "defines.h"
+#include "power_monitor.h"
 
 // Local scratchpad ram can optionally be attached to both instruction and data cache controllers.
 // The scratch pad ram provides fast 0-waitstates ram memories for instructions and data.
@@ -88,7 +89,10 @@ class localram : public sc_core::sc_module, public mem_if {
         /// @param name    SystemC module name
         /// @param lrsize  Local ram size. Size in kbyte = 2^lrsize (like top-level template)
         /// @param lrstart Local ram start address. The 8 most significant bits of the address.
-        localram(sc_core::sc_module_name name, unsigned int lrsize, unsigned int lrstart);
+        localram(sc_core::sc_module_name name, 
+		 unsigned int lrsize, 
+		 unsigned int lrstart,
+		 bool pow_mon = false);
 
         /// destructor
         ~localram();
@@ -126,6 +130,9 @@ class localram : public sc_core::sc_module, public mem_if {
 
 	/// Volume of total writes (bytes)
   gs::gs_param<uint64_t> swrites_byte;
+
+	/// Power monitoring enabled or not
+	bool m_pow_mon;
 
 	/// Clock cycle time
 	sc_core::sc_time clockcycle;
