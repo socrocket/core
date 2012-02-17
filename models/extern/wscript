@@ -50,6 +50,7 @@ extern = [
   #'LEON2/simulatorSources/funcLT', 
   'LEON3/simulatorSources/funcAT', 
   'LEON3/simulatorSources/funcLT', 
+  'SpaceWire/SystemcSources',
 ]
 
 def build(bld):
