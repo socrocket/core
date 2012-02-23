@@ -146,16 +146,16 @@ class AHBDevice : public amba_slave_base {
         uint32_t m_busid;
 
         /// GreenControl API container
-        gs::cnf::cnf_api *m_api;
+        //gs::cnf::cnf_api *m_api;
         
         /// Open a namespace for performance counting in the greencontrol realm
-        gs::gs_param_array m_performance_counters;
+        //gs::gs_param_array m_performance_counters;
 
         /// Stores the number of Bytes read from the device
-        gs::gs_param<uint64_t> m_reads;
+        //gs::gs_param<uint64_t> m_reads;
 
         /// Stores the number of Bytes written from the device
-        gs::gs_param<uint64_t> m_writes;
+        //gs::gs_param<uint64_t> m_writes;
 };
 
 /// This function returns a grlib bank address register.

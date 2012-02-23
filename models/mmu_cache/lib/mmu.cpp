@@ -169,10 +169,8 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
 
     // Init execution statistic
     for (uint32_t i=0; i<8; i++) {
-
-      tihits[8] = 0;
-      tdhits[8] = 0;
-
+      tihits[i] = 0;
+      tdhits[i] = 0;
     }
 
     timisses = 0;

@@ -91,6 +91,7 @@ def build(bld):
   )
   """
 
+  """
   # gptimer.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -103,7 +104,6 @@ def build(bld):
                      'cacheasm.S', 
                      'cache.c'],
   )
-  """
   bld(
       features    = 'systest',
       system      = 'singlecore.lt.platform',
@@ -112,6 +112,7 @@ def build(bld):
   )
   """
 
+  """
   # irqmp.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -123,7 +124,6 @@ def build(bld):
                      'cacheasm.S', 
                      'cache.c'],
   )
-  """
   bld(
       features    = 'systest',
       system      = 'singlecore.lt.platform',

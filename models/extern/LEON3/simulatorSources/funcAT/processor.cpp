@@ -85,6 +85,9 @@ void leon3_funcat_trap::Processor_leon3_funcat::mainLoop(){
 
     while(true){
         unsigned int numCycles = 0;
+        while(irqAck.stopped) {
+            wait(irqAck.start);
+        }
         this->instrExecuting = true;
         if((IRQ != -1) && (PSR[key_ET] && (IRQ == 15 || IRQ > PSR[key_PIL]))){
             this->IRQ_irqInstr->setInterruptValue(IRQ);

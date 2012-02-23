@@ -98,7 +98,7 @@ void GenericMemory::end_of_simulation() {
 }
 
 void GenericMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
-    ext_erase::ext_erase* ers;
+    ext_erase *ers;
     gp.get_extension(ers);
     if(ers) {
         // check erase extension first

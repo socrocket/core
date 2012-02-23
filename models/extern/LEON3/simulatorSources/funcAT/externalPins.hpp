@@ -46,16 +46,29 @@
 #define FUNC_MODEL
 #define AT_IF
 namespace leon3_funcat_trap{
-
-    class PinTLM_out_32 : public signalkit::signal_module<PinTLM_out_32>, public sc_module{
-
-        public:
+    class PinTLM_out_32 : public sc_module {
+      public:
+        SK_HAS_SIGNALS(PinTLM_out_32);
         PinTLM_out_32( sc_module_name portName );
         void send_pin_req( const unsigned int & value ) throw();
+        void on_run(const bool &value, const sc_time &delay) throw();
 
         signal< unsigned int >::out initSignal;
-    };
 
+        /// If the processor is stoped status will be true
+        /// If it is running it will be false.
+        signal<bool>::out           status;
+
+        /// Will prepare the start of the processor.
+        /// If set to 1 stoped will be false and the start notification will be sent.
+        signal<bool>::in            run;
+
+        /// Needed to halt the main processor loop
+        bool stopped;
+
+        /// Needed to start the main processor loop
+        sc_event start;
+    };
 };
 
 

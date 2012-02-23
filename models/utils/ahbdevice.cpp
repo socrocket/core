@@ -54,9 +54,10 @@ using namespace std;
 // Standard constructor
 AHBDevice::AHBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
                      uint8_t version, uint8_t irq, uint32_t bar0,
-                     uint32_t bar1, uint32_t bar2, uint32_t bar3) :
-    m_performance_counters("performance_counters"),
-    m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters) {
+                     uint32_t bar1, uint32_t bar2, uint32_t bar3) //:
+    //m_performance_counters("performance_counters"),
+    //m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters) 
+    {
     m_register[0] = (irq & 0x1F) | ((version & 0x1F) << 5)
             | ((deviceid & 0xFFF) << 12) | (vendorid << 24);
     m_register[1] = m_register[2] = m_register[3] = 0;
@@ -66,13 +67,13 @@ AHBDevice::AHBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
     m_register[7] = bar3;
 
     m_busid = busid;
-    sc_module *self = dynamic_cast<sc_module *>(this);
-    if(self) {
-        m_api = gs::cnf::GCnf_Api::getApiInstance(self);
-    } else {
-        v::error << "AHBDevice" << "A AHBDevice instance must also inherit from sc_module when it gets instantiated. "
-                                << "To ensure the performance counter will work correctly" << v::endl;
-    }
+    //sc_module *self = dynamic_cast<sc_module *>(this);
+    //if(self) {
+        //m_api = gs::cnf::GCnf_Api::getApiInstance(self);
+    //} else {
+        //v::error << "AHBDevice" << "A AHBDevice instance must also inherit from sc_module when it gets instantiated. "
+        //                        << "To ensure the performance counter will work correctly" << v::endl;
+    //}
 }
 
 AHBDevice::~AHBDevice() {
@@ -231,13 +232,13 @@ const uint32_t AHBDevice::get_busid() const {
 
 void AHBDevice::transport_statistics(tlm::tlm_generic_payload &gp) {
   if(gp.is_write()) {
-    m_writes += gp.get_data_length();
+    //m_writes += gp.get_data_length();
   } else if(gp.is_read()){
-    m_reads += gp.get_data_length();
+    //m_reads += gp.get_data_length();
   }
 }
 
 void AHBDevice::print_transport_statistics(const char *name) const {
-  v::report << name << " * Bytes read: " << m_reads << v::endl;
-  v::report << name << " * Bytes written: " << m_writes << v::endl;
+  //v::report << name << " * Bytes read: " << m_reads << v::endl;
+  //v::report << name << " * Bytes written: " << m_writes << v::endl;
 }
