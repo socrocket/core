@@ -12,7 +12,7 @@
 /* Maintainer: Rolf Meyer                                              */
 /***********************************************************************/
 
-#include "genericmemory.h"
+#include "arraymemory.h"
 #include "power_monitor.h"
 #include <tlm.h>
 
@@ -20,7 +20,7 @@ using namespace sc_core;
 using namespace tlm;
 using namespace std;
 
-GenericMemory::GenericMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) : 
+ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) : 
   MEMDevice(type, banks, bsize, bits, cols), 
   bus("bus"), 
   g_powmon(powmon), 
@@ -52,12 +52,12 @@ GenericMemory::GenericMemory(sc_core::sc_module_name name, MEMDevice::device_typ
     PM::registerIP(this, type_name, powmon);
     PM::send_idle(this, "idle", sc_time_stamp(), true);
     
-    bus.register_b_transport(this, &GenericMemory::b_transport);
-    bus.register_transport_dbg(this, &GenericMemory::transport_dbg);
+    bus.register_b_transport(this, &ArrayMemory::b_transport);
+    bus.register_transport_dbg(this, &ArrayMemory::transport_dbg);
 
     // Module configuration report
     v::info << this->name() << " ******************************************************************************* " << v::endl;
-    v::info << this->name() << " * Created GenericMemory with following parameters: " << v::endl;
+    v::info << this->name() << " * Created ArrayMemory with following parameters: " << v::endl;
     v::info << this->name() << " * ------------------------------------------------ " << v::endl;
     v::info << this->name() << " * device_type (0-ROM, 1-IO, 2-SRAM, 3-SDRAM): " << type << v::endl;
     v::info << this->name() << " * banks: " << banks << v::endl;
@@ -70,10 +70,10 @@ GenericMemory::GenericMemory(sc_core::sc_module_name name, MEMDevice::device_typ
 
 }
 
-GenericMemory::~GenericMemory() {}
+ArrayMemory::~ArrayMemory() {}
 
 // Print execution statistic at end of simulation
-void GenericMemory::end_of_simulation() {
+void ArrayMemory::end_of_simulation() {
     char *type_name;
     switch(get_type()) {
       case MEMDevice::IO:
@@ -97,7 +97,7 @@ void GenericMemory::end_of_simulation() {
     v::report << name() << " ******************************************** " << v::endl;
 }
 
-void GenericMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
+void ArrayMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     ext_erase *ers;
     gp.get_extension(ers);
     if(ers) {
@@ -137,7 +137,7 @@ void GenericMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     }
 }
 
-unsigned int GenericMemory::transport_dbg(tlm::tlm_generic_payload& gp) {
+unsigned int ArrayMemory::transport_dbg(tlm::tlm_generic_payload& gp) {
     tlm::tlm_command cmd = gp.get_command();
     uint32_t addr        = gp.get_address();
     uint32_t len         = gp.get_data_length();
@@ -164,13 +164,13 @@ unsigned int GenericMemory::transport_dbg(tlm::tlm_generic_payload& gp) {
     }
 }
 
-void GenericMemory::write(const uint32_t addr, const uint8_t byte) {
+void ArrayMemory::write(const uint32_t addr, const uint8_t byte) {
     memory[addr] = byte;
     m_writes++;
     v::debug << name() << v::uint32 << addr << ": "<< v::uint8 << (uint32_t)byte << v::endl;
 }
 
-uint8_t GenericMemory::read(const uint32_t addr) {
+uint8_t ArrayMemory::read(const uint32_t addr) {
     uint8_t byte = memory[addr];
     m_reads++;
     v::debug << name() << v::uint32 << addr << ": "<< v::uint8 << (uint32_t)byte << v::endl;
@@ -178,7 +178,7 @@ uint8_t GenericMemory::read(const uint32_t addr) {
 }
 
 //erase memory
-void GenericMemory::erase(uint32_t start, uint32_t end) {
+void ArrayMemory::erase(uint32_t start, uint32_t end) {
     v::debug << name() << "eraising memory from " << v::uint32 << start 
                        << " to " << v::uint32 << end << v::endl;
 

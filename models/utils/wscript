@@ -51,6 +51,7 @@ def build(bld):
     target          = 'utils',
     features        = 'cxx cxxstlib',
     source          = ['ahbdevice.cpp',
+                       'ahbslave.cpp',
                        'apbdevice.cpp',
                        'memdevice.cpp',
                        'clkdevice.cpp',

@@ -51,7 +51,7 @@
 #include <execLoader.hpp>
 #include <osEmulator.hpp>
 #include "mmu_cache.h"
-#include "genericmemory.h"
+#include "arraymemory.h"
 #include "apbctrl.h"
 #include "mctrl.h"
 #include "defines.h"
@@ -299,7 +299,7 @@ int sc_main(int argc, char** argv) {
 
     // CREATE MEMORIES
     // ===============                                                  
-    GenericMemory rom(
+    ArrayMemory rom(
         "rom", 
         MEMDevice::ROM, 
         conf_memctrl_prom_banks, 
@@ -307,7 +307,7 @@ int sc_main(int argc, char** argv) {
         conf_memctrl_prom_width, 
         0
     );
-    GenericMemory io(
+    ArrayMemory io(
         "io", 
         MEMDevice::IO, 
         conf_memctrl_prom_banks, 
@@ -315,7 +315,7 @@ int sc_main(int argc, char** argv) {
         conf_memctrl_prom_width, 
         0
     );
-    GenericMemory sram(
+    ArrayMemory sram(
         "sram", 
         MEMDevice::SRAM, 
         conf_memctrl_ram_s_banks, 
@@ -323,7 +323,7 @@ int sc_main(int argc, char** argv) {
         conf_memctrl_ram_s_width, 
         0
     );
-    GenericMemory sdram(
+    ArrayMemory sdram(
         "sdram", 
         MEMDevice::SDRAM, 
         conf_memctrl_ram_sd_banks, 
@@ -496,6 +496,11 @@ int sc_main(int argc, char** argv) {
         }
     }
     // ******************************************
+
+    signalkit::signal_out<bool, Irqmp> irqmp_rst;
+    connect(irqmp_rst, irqmp.rst);
+    irqmp_rst.write(0);
+    irqmp_rst.write(1);
 
     // start simulation
     cstart = clock();

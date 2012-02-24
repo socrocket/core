@@ -50,8 +50,8 @@ def build(bld):
   bld(
     target          = 'mctrl',
     features        = 'cxx cxxstlib',
-    source          = 'mctrl.cpp genericmemory.cpp', 
+    source          = 'mctrl.cpp', 
     export_includes = '.',
     uselib          = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
-    use             = 'utils signalkit common'
+    use             = 'memory utils signalkit common'
   )

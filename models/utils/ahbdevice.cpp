@@ -54,7 +54,7 @@ using namespace std;
 // Standard constructor
 AHBDevice::AHBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
                      uint8_t version, uint8_t irq, uint32_t bar0,
-                     uint32_t bar1, uint32_t bar2, uint32_t bar3) //:
+                     uint32_t bar1, uint32_t bar2, uint32_t bar3) throw() //:
     //m_performance_counters("performance_counters"),
     //m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters) 
     {
@@ -79,11 +79,11 @@ AHBDevice::AHBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
 AHBDevice::~AHBDevice() {
 }
 
-const uint16_t AHBDevice::get_device_id() const {
+const uint16_t AHBDevice::get_device_id() const throw() {
   return (m_register[0] >> 12) & 0xFFF; 
 }
 
-const uint8_t AHBDevice::get_vendor_id() const {
+const uint8_t AHBDevice::get_vendor_id() const throw() {
   return (m_register[0] >> 24) & 0xFF; 
 }
 
@@ -95,41 +95,45 @@ void AHBDevice::print_device_info(char *name) const {
 }
 
 // Returns the device info record of the device
-const uint32_t *AHBDevice::get_device_info() const {
+const uint32_t *AHBDevice::get_device_info() const throw() {
     return m_register;
 }
 
 // Returns the device type entry for BAR bar
-const AHBDevice::device_type AHBDevice::get_bar_type(uint32_t bar) const {
+const AHBDevice::device_type AHBDevice::get_bar_type(uint32_t bar) const throw() {
     return static_cast<AHBDevice::device_type>(m_register[4 + bar] & 0xf); 
 }
 
 // Extracts the 12bit MSB address for BAR bar
-const uint32_t AHBDevice::get_bar_base(uint32_t bar) const {
+const uint32_t AHBDevice::get_bar_base(uint32_t bar) const throw() {
     return (m_register[4 + bar] >> 20) & 0xFFF;
 }
 
 // Extracts the 12bit address mask for BAR bar.
-const uint32_t AHBDevice::get_bar_mask(uint32_t bar) const {
+const uint32_t AHBDevice::get_bar_mask(uint32_t bar) const throw() {
     return  (m_register[4 + bar] >>  4) & 0xFFF;
 }
 
 // Calculates the base address (32bit) of the device for BAR bar.
-const uint32_t AHBDevice::get_bar_addr(uint32_t bar) const {
+const uint32_t AHBDevice::get_bar_addr(uint32_t bar) const throw() {
     uint32_t addr = get_bar_base(bar);
     uint32_t mask = get_bar_mask(bar);
     return (addr & mask) << 20;
 }
 
 // Calculates the size in bytes of the device address space for BAR bar.
-const uint32_t AHBDevice::get_bar_size(uint32_t bar) const {
+const uint32_t AHBDevice::get_bar_size(uint32_t bar) const throw() {
     uint32_t mask = get_bar_mask(bar);
     return (((~mask & 0xFFF) + 1) << 20);
 }
 
+const uint32_t AHBDevice::get_bar_relative_addr(uint32_t bar, uint32_t addr) const throw() {
+    return addr - get_bar_addr(bar);
+}
+
 // Returns the base address (32bit) of the device (lowest of the BAR entries)
 // (Required by GreenSocs dependencies)
-sc_dt::uint64 AHBDevice::get_base_addr() {
+sc_dt::uint64 AHBDevice::get_base_addr() throw() {
     uint32_t addr = get_bar_addr(0);
     if(get_bar_addr(1)) {
         addr = min(addr, get_bar_addr(1));
@@ -144,7 +148,7 @@ sc_dt::uint64 AHBDevice::get_base_addr() {
 }
 
 // Returns the base address (32bit) of the device (lowest of the BAR entries)
-const uint32_t AHBDevice::get_base_addr_() const {
+const uint32_t AHBDevice::get_base_addr_() const throw() {
     uint32_t addr = get_bar_addr(0);
     if(get_bar_addr(1)) {
         addr = min(addr, get_bar_addr(1));
@@ -160,7 +164,7 @@ const uint32_t AHBDevice::get_base_addr_() const {
 
 // Returns the total size (bytes) of the device address space (all BARs)
 // (Required by GreenSocs dependencies)
-sc_dt::uint64 AHBDevice::get_size() {
+sc_dt::uint64 AHBDevice::get_size() throw() {
     uint32_t addr = get_bar_addr(0);
     uint32_t size = get_bar_size(0);
     uint32_t old = addr;
@@ -189,7 +193,7 @@ sc_dt::uint64 AHBDevice::get_size() {
 }
 
 // Returns the total size (bytes) of the device address space (all BARs)
-const uint32_t AHBDevice::get_size_() const {
+const uint32_t AHBDevice::get_size_() const throw() {
     uint32_t addr = get_bar_addr(0);
     uint32_t size = get_bar_size(0);
     uint32_t old = addr;
@@ -218,19 +222,19 @@ const uint32_t AHBDevice::get_size_() const {
 }
 
 uint32_t BAR(AHBDevice::device_type type, uint16_t mask, bool cacheable,
-             bool prefetchable, uint16_t address) {
+             bool prefetchable, uint16_t address) throw() {
     return (static_cast<uint8_t>(type) | (mask << 4) | (cacheable << 16)
             | (prefetchable << 17) | (address << 20));
 }
 
 // Returns the bus id of the device
-const uint32_t AHBDevice::get_busid() const {
+const uint32_t AHBDevice::get_busid() const throw() {
 
   return m_busid;
 
 }
 
-void AHBDevice::transport_statistics(tlm::tlm_generic_payload &gp) {
+void AHBDevice::transport_statistics(tlm::tlm_generic_payload &gp) throw() {
   if(gp.is_write()) {
     //m_writes += gp.get_data_length();
   } else if(gp.is_read()){
@@ -238,7 +242,7 @@ void AHBDevice::transport_statistics(tlm::tlm_generic_payload &gp) {
   }
 }
 
-void AHBDevice::print_transport_statistics(const char *name) const {
+void AHBDevice::print_transport_statistics(const char *name) const throw() {
   //v::report << name << " * Bytes read: " << m_reads << v::endl;
   //v::report << name << " * Bytes written: " << m_writes << v::endl;
 }

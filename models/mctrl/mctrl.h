@@ -58,7 +58,6 @@
 #include <greencontrol/config.h>
 
 #include "amba.h"
-#include "genericmemory.h"
 #include "ahbdevice.h"
 #include "apbdevice.h"
 #include "clkdevice.h"

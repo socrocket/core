@@ -41,13 +41,13 @@
 // Reviewed:
 //*********************************************************************
 
-#ifndef GENERIC_MEMORY_H
-#define GENERIC_MEMORY_H
+#ifndef MAPMEMORY_H
+#define MAPMEMORY_H
 
 #include "verbose.h"
 #include "memdevice.h"
 #include "ext_erase.h"
-#include <map>
+#include "vmap.h"
 #include <systemc.h>
 #include <tlm.h>
 #include <greensocket/target/single_socket.h>
@@ -55,7 +55,7 @@
 
 /// @brief This class models a generic memory. Depending on the configuration
 /// it can be used as ROM, IO, SRAM or SDRAM, in conjunction with the SoCRocket MCTRL.
-class GenericMemory : public MEMDevice, 
+class MapMemory : public MEMDevice, 
 	              public sc_core::sc_module {
 
     public:
@@ -63,7 +63,7 @@ class GenericMemory : public MEMDevice,
         /// Slave socket -  for communication with Mctrl
         gs::socket::target_socket<32> bus;
 
-        /// Creates a new Instance of GenericMemory
+        /// Creates a new Instance of MapMemory
         ///
         /// @param name The SystemC name of the component to be created
         /// @param type The type of memory to be modeled (0-ROM, 1-IO, 2-SRAM, 3-SDRAM)
@@ -71,7 +71,7 @@ class GenericMemory : public MEMDevice,
         /// @param bsize Size of one memory bank in bytes (all banks always considered to have equal size)
         /// @param bits Bit width of memory
         /// @param cols Number of SDRAM cols.
-        GenericMemory(sc_module_name name, 
+        MapMemory(sc_module_name name, 
 		      MEMDevice::device_type type, 
 		      uint32_t banks, 
 		      uint32_t bsize, 
@@ -80,9 +80,9 @@ class GenericMemory : public MEMDevice,
 		      bool pow_mon = false);
 
         /// Destructor
-        ~GenericMemory();
+        ~MapMemory();
         
-        typedef std::map<uint32_t, uint8_t> type;
+        typedef vmap<uint32_t, uint8_t> type;
         type memory;
 
         /// SystemC end of simulation

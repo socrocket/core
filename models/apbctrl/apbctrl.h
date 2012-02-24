@@ -51,6 +51,7 @@
 #include "apbdevice.h"
 #include "clkdevice.h"
 #include "power_monitor.h"
+#include "vmap.h"
 
 /// @addtogroup apbctrl APBctrl
 /// @{
@@ -164,11 +165,11 @@ class APBCtrl : public sc_core::sc_module, public AHBDevice, public CLKDevice {
 	} slave_info_t;
 
 	/// Address decoder table (slave index, (bar addr, mask))
-        std::map<uint32_t, slave_info_t> slave_map;
+  vmap<uint32_t, slave_info_t> slave_map;
 	/// iterator for slave map
-	std::map<uint32_t, slave_info_t>::iterator it;
+	vmap<uint32_t, slave_info_t>::iterator it;
 	/// iterator for slave map
-	typedef std::map<uint32_t, slave_info_t>::iterator slave_iter;
+	typedef vmap<uint32_t, slave_info_t>::iterator slave_iter;
 
 	/// Array of slave device information (PNP)
 	const uint32_t *mSlaves[16];

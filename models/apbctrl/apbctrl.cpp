@@ -552,8 +552,8 @@ struct apb_check_slave_type {
 
 // Check the memory map for overlaps
 void APBCtrl::checkMemMap() {
-   std::map<uint32_t, apb_check_slave_type> slaves;
-   typedef std::map<uint32_t, apb_check_slave_type>::iterator iter_t;
+   vmap<uint32_t, apb_check_slave_type> slaves;
+   typedef vmap<uint32_t, apb_check_slave_type>::iterator iter_t;
    struct apb_check_slave_type last;
    last.start = 0;
    last.end = 0;
