@@ -279,17 +279,14 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
         /// amba master id
         unsigned int m_master_id;
 
-  /// GreenControl API container
-  gs::cnf::cnf_api *m_api;
+        /// GreenControl API container
+        gs::cnf::cnf_api *m_api;
         
-  /// Open a namespace for performance counting in the greencontrol realm
-  gs::gs_param_array m_performance_counters;
-
-	/// Total number of successful transactions for execution statistics 
-  gs::gs_param<uint64_t> m_right_transactions;
+        /// Total number of successful transactions for execution statistics 
+        gs::gs_param<uint64_t> m_right_transactions;
 
 	/// Total number of transactions for execution statistics
-  gs::gs_param<uint64_t> m_total_transactions;
+        gs::gs_param<uint64_t> m_total_transactions;
 
 	/// power monitoring enabled
 	bool m_pow_mon;

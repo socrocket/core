@@ -181,6 +181,11 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 	bool mfpnpen;
 	/// Check if there are any intersections between core memory regions
 	bool mmcheck;
+
+        const sc_time arbiter_eval_delay;
+
+        sc_semaphore bus_in_use;
+
 	/// Enable power monitoring (Only TLM)
 	bool m_pow_mon;
 
@@ -237,6 +242,9 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 	/// Event triggered by transport_bw to notify request thread about END_REQ
 	sc_event mEndRequestEvent;
 
+        /// Used to unblock the bus in LT mode
+        sc_event mUnblockEvent;
+
 	/// The number of slaves in the system
 	unsigned int num_of_slave_bindings;
 	/// The number of masters in the system
@@ -274,6 +282,11 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
 	/// Counts bytes read from AHBCTRL from the master side
   gs::gs_param<uint64_t> m_reads;
+
+  /// ID of the master which currently 'owns' the bus
+  uint32_t current_master;
+
+  uint32_t requests_pending;
 
 	/// The abstraction layer of the model
 	amba::amba_layer_ids m_ambaLayer;

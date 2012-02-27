@@ -95,7 +95,6 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     m_cached(cached),
     m_mmu_en(mmu_en),
     m_master_id(hindex), 
-    m_performance_counters("performance_counters"),
     m_right_transactions("successful_transactions", 0llu, m_performance_counters),
     m_total_transactions("total_transactions", 0llu, m_performance_counters),
     m_pow_mon(pow_mon),
@@ -111,7 +110,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     assert((m_cached>=0)&&(m_cached<=0xffff));
 
     // Register GreenConfig api instance
-    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
+    //m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
     // create mmu (if required)
     m_mmu = (mmu_en == 1)? new mmu("mmu", 
@@ -931,6 +930,9 @@ tlm::tlm_sync_enum mmu_cache::icio_nb_transport_fw(tlm::tlm_generic_payload &tra
     // Put transaction in PEQ
     icio_PEQ.notify(trans, delay);
 
+    // Reset delay
+    delay = SC_ZERO_TIME;
+
     // Advance transaction state.
     phase = tlm::END_REQ;
 
@@ -969,7 +971,7 @@ void mmu_cache::icio_service_thread() {
 
     while((trans = icio_PEQ.get_next_transaction()) != 0) {
 
-      v::debug << name() << "Start ICIO transaction response processing." << v::endl;
+      v::debug << name() << "Start ICIO transaction processing." << v::endl;
 
       delay = SC_ZERO_TIME;
 
@@ -1020,13 +1022,14 @@ void mmu_cache::icio_service_thread() {
 /// TLM non-blocking forward transport function for dcio socket
 tlm::tlm_sync_enum mmu_cache::dcio_nb_transport_fw(tlm::tlm_generic_payload &trans, tlm::tlm_phase &phase, sc_core::sc_time &delay) {
 
-  v::debug << name() << "DCIO nb_transport forward received transaction: " << hex << &trans << " with  phase " << phase << v::endl;
+  v::debug << name() << "DCIO nb_transport forward received transaction: " << hex << &trans << " with  phase " << phase << " and delay: " << delay << v::endl;
 
   // The master has sent BEGIN_REQ
   if (phase == tlm::BEGIN_REQ) {
 
     // Put transaction in PEQ
     dcio_PEQ.notify(trans, delay);
+    delay = SC_ZERO_TIME;
 
     // Advance transaction state
     phase = tlm::END_REQ;
@@ -1067,7 +1070,7 @@ void mmu_cache::dcio_service_thread() {
 
     while((trans = dcio_PEQ.get_next_transaction()) != 0) {
 
-      v::debug << name() << "Start dcio transaction response processing." << v::endl;
+      v::debug << name() << "Start dcio transaction processing." << v::endl;
 
       delay = SC_ZERO_TIME;
 
@@ -1175,7 +1178,7 @@ void mmu_cache::cleanUP() {
 // TLM non-blocking backward transport function for ahb socket
 tlm::tlm_sync_enum mmu_cache::ahb_nb_transport_bw(tlm::tlm_generic_payload &trans, tlm::tlm_phase &phase, sc_core::sc_time &delay) {
 
-  v::debug << name() << "nb_transport_bw received transaction " << hex << &trans << " with phase " << phase << v::endl;
+  v::debug << name() << "nb_transport_bw received transaction " << hex << &trans << " with phase " << phase << " and delay " << delay << v::endl;
 
   // The slave has sent END_REQ
   if (phase == tlm::END_REQ) {
@@ -1444,6 +1447,8 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * da
 	// Non-blocking transport
 	status = ahb->nb_transport_fw(*trans, phase, delay);
 
+        v::debug << name() << "Transaction returned with phase: " << phase << " and status " << status << v::endl;
+
 	switch(status) {
 
           case tlm::TLM_ACCEPTED:
@@ -1454,13 +1459,15 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * da
 	      // The slave returned TLM_ACCEPTED.
 	      // Wait until BEGIN_RESP before giving control
 	      // to the user (for sending next transaction).
-	      wait(mEndRequestEvent);
-	      wait(mBeginResponseEvent);
+ 	      wait(mBeginResponseEvent);
+              v::warn << name() << "Received BeginResponseEvent" << v::endl;
 
 	    } else if (phase == tlm::END_REQ) {
 
 	      // The slave returned TLM_UPDATED with END_REQ
+              v::warn << name() << "Waiting for BeginResponseEvent" << v::endl;
 	      wait(mBeginResponseEvent);
+              v::warn << name() << "Received BeginResponseEvent" << v::endl;
 
 	    } else if (phase == tlm::BEGIN_RESP) {
 
@@ -1639,7 +1646,7 @@ void mmu_cache::ResponseThread() {
 
     // Prepare END_RESP
     phase = tlm::END_RESP;
-    delay = sc_core::SC_ZERO_TIME;
+    delay = clock_cycle;
 
     v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 

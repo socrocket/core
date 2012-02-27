@@ -160,7 +160,7 @@ void AHBMem::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
 }
 
 tlm::tlm_sync_enum AHBMem::nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay) {
-  v::debug << name() << "nb_transport_fw received transaction " << hex << &trans << " with phase: " << phase << v::endl;
+  v::debug << name() << "nb_transport_fw received transaction " << hex << &trans << " with phase: " << phase << " and delay " << delay << v::endl;
 
   // The master has sent BEGIN_REQ
   if (phase == tlm::BEGIN_REQ) {
