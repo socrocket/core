@@ -164,6 +164,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
 
 }
 
+// Reset handler
 void AHBCtrl::dorst() {
 }
 
@@ -187,22 +188,24 @@ void AHBCtrl::setAddressMap(const uint32_t binding,const uint32_t hindex, const 
 
 // Find slave index by address
 int AHBCtrl::get_index(const uint32_t address) {
+
   m_total_transactions++;
+
   // Use 12 bit segment address for decoding
   uint32_t addr = address >> 20;
 
   for (it = slave_map.begin(); it != slave_map.end(); it++) {
 
-      slave_info_t info = it->second;
+    slave_info_t info = it->second;
   
-      if (((addr ^ info.haddr) & info.hmask) == 0) {
+    if (((addr ^ info.haddr) & info.hmask) == 0) {
 
-	// There may be up to four BARs per device.
-	// Only return device ID.
-	m_right_transactions++;
-	return ((it->first)>>2);
+      // There may be up to four BARs per device.
+      // Only return device ID.
+      m_right_transactions++;
+      return ((it->first)>>2);
  
-      }
+    }
   }
 
   // no slave found
@@ -233,6 +236,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
         return 0;
     }
     uint32_t result =  mSlaves[device][offset];
+ 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(result);
     #endif
@@ -543,7 +547,9 @@ void AHBCtrl::arbitrate_me() {
       grand_id = -1;
 
       // Increment round robin pointer
-      robin=(robin++) % num_of_master_bindings;
+      robin=(++robin) % num_of_master_bindings;
+
+      //v::debug << name() << robin << "(num_of_master_bindings: " << num_of_master_bindings << ")" << v::endl;
 
       for(pm_itr = pending_map.begin(); pm_itr != pending_map.end(); pm_itr++) {
 
@@ -575,6 +581,8 @@ void AHBCtrl::arbitrate_me() {
             v::debug << name() << "Round-Robin arbiter selects master " << grand_id << " (Trans. 0x" << hex << selected_transaction << ")" << v::endl;
 
           }
+
+          //v::debug << name() << "Robin compare - transaction master id: " << connection.master_id << " robin: " << robin << v::endl;
 
         }
 
