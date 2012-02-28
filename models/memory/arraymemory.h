@@ -82,8 +82,7 @@ class ArrayMemory : public MEMDevice,
         /// Destructor
         ~ArrayMemory();
         
-        typedef vmap<uint32_t, uint8_t> type;
-        type memory;
+        uint8_t *memory;
 
         /// SystemC end of simulation
         void end_of_simulation();

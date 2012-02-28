@@ -33,6 +33,8 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
     bus_cfg.use_mandatory_phase(END_REQ);
     //mem_cfg.treat_unknown_as_ignorable();
     bus.set_config(bus_cfg);
+
+    // gs_param class identifier
     m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
     char *type_name;
@@ -67,7 +69,11 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
     v::info << this->name() << " * pow_mon: " << powmon << v::endl;
     v::info << this->name() << " ******************************************************************************* " << v::endl;
     
-
+    // Calculate array size
+    size_t mem_size = bsize;
+    mem_size *= (banks<5)?banks:8;
+    memory = new uint8_t[mem_size];
+    erase(0, mem_size);
 }
 
 ArrayMemory::~ArrayMemory() {}
@@ -116,7 +122,7 @@ void ArrayMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
         tlm::tlm_command cmd = gp.get_command();
         uint32_t addr        = gp.get_address();
         uint32_t len         = gp.get_data_length();
-        unsigned char* ptr   = gp.get_data_ptr();
+        uint8_t *ptr         = gp.get_data_ptr();
         if(cmd == tlm::TLM_READ_COMMAND) {
             for(uint32_t i = 0; i < len; i++) {
                 ptr[i] = read(addr + i);
@@ -141,7 +147,7 @@ unsigned int ArrayMemory::transport_dbg(tlm::tlm_generic_payload& gp) {
     tlm::tlm_command cmd = gp.get_command();
     uint32_t addr        = gp.get_address();
     uint32_t len         = gp.get_data_length();
-    unsigned char* ptr   = gp.get_data_ptr();
+    uint8_t *ptr         = gp.get_data_ptr();
 
     switch(cmd) {
         case tlm::TLM_READ_COMMAND:
@@ -182,21 +188,8 @@ void ArrayMemory::erase(uint32_t start, uint32_t end) {
     v::debug << name() << "eraising memory from " << v::uint32 << start 
                        << " to " << v::uint32 << end << v::endl;
 
-    // Find or insert start address
-    type::iterator start_iter = memory.find(start);
-    if(start_iter==memory.end()) {
-        memory.insert(std::make_pair(start, 0));
-        start_iter = memory.find(start);
+    for(size_t i = start; i < end + 1; i++) {
+        memory[i] = 0;
     }
-    
-    // Find or insert end address
-    type::iterator end_iter = memory.find(end);
-    if(end_iter==memory.end()) {
-        memory.insert(std::make_pair(end, 0));
-        end_iter = memory.find(end);
-    }
-
-    // erase section
-    memory.erase(start_iter, end_iter);
 }
 

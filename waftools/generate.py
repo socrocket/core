@@ -57,8 +57,7 @@ def options(opt):
   conf.add_option('--nosystests', dest='systests', action='store_false', default=True, help='Deactivates all tests executed on a platform')
 
 def configure(ctx):
-  if not Options.options.systests:
-    ctx.env["SYSTESTS"] = False
+  ctx.env["SYSTESTS"] = Options.options.systests
 
 @TaskGen.feature('generate')
 def make_generate(self):
@@ -72,7 +71,7 @@ def make_generate(self):
   src = self.bld.srcnode.find_resource(os.path.join("templates", template + ".tpa"))
   dstpath = os.path.join(self.bld.srcnode.abspath(),("platforms/%s-%s" % (template, load)))
   if os.path.exists(src.abspath()):
-    if not os.path.isdir(dstpath):
+    if not os.path.isdir(dstpath) or (os.stat(src.abspath()).st_ctime > os.stat(dstpath)):
       import subprocess
       print "Generate Platform"
       cmd = """from generator.wizard import main; main("%s", "%s")""" % (template, load)

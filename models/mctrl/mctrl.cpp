@@ -842,10 +842,6 @@ void Mctrl::launch_sdram_command() {
     switch(cmd) {
         // LMR / EMR
         case 3:
-            // LMR / EMR commands are assumed to be issued right after 
-            // changes of TCAS, DS, TCSR, PASR.
-            // The delay has already been added in the according callback 
-            // (configure_sdram).
             break;
         // Auto-Refresh: Forces a refresh, which needs idle state!
         // How can that be guaranteed?
@@ -858,6 +854,7 @@ void Mctrl::launch_sdram_command() {
         case 2:
             callback_delay += clock_cycle *(3 + MCFG2_SDRAM_TRFC_DEFAULT >> 30);
             break;
+
         // Precharge: Terminate current burst transaction 
         // (no effect in LT) --> wait for tRP
         case 1:
