@@ -282,6 +282,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
         /// GreenControl API container
         gs::cnf::cnf_api *m_api;
         
+        gs::gs_param_array m_performance_counters;
         /// Total number of successful transactions for execution statistics 
         gs::gs_param<uint64_t> m_right_transactions;
 

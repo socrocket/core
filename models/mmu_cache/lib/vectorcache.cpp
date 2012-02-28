@@ -259,7 +259,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
 	if ((address & 0xffffff00) == 0x40001500) {
 
-	  v::info << this->name() << "READ ACCESS with asi: " << asi << " idx: " << hex << idx
+	  v::debug << this->name() << "READ ACCESS with asi: " << asi << " idx: " << hex << idx
 		  << " tag: " << hex << tag << " offset: " << hex
 		  << offset << v::endl;
 
@@ -838,7 +838,7 @@ void vectorcache::write_cache_tag(unsigned int address, unsigned int * data,
           = ((m_setlock) && (set != m_sets))? ((*data & 0x100) >> 8) : 0;
   (*m_current_cacheline[set]).tag.valid = (*data & 0xff);
 
-  v::info  << this->name() << "Diagnostic tag write set: " << hex << set
+  v::debug  << this->name() << "Diagnostic tag write set: " << hex << set
            << " idx: " << hex << idx << " atag: " << hex
            << (*m_current_cacheline[set]).tag.atag << " lrr: " << hex
            << (*m_current_cacheline[set]).tag.lrr << " lock: " << hex
@@ -867,7 +867,7 @@ void vectorcache::read_cache_entry(unsigned int address, unsigned int * data,
 
   *data = (*m_current_cacheline[set]).entry[sb].i;
 
-  v::info << this->name() << "Diagnostic data read set: " << hex << set
+  v::debug << this->name() << "Diagnostic data read set: " << hex << set
            << " idx: " << hex << idx << " sub-block: " << sb
            << " - data: " << hex << *data << v::endl;
 
@@ -893,7 +893,7 @@ void vectorcache::write_cache_entry(unsigned int address, unsigned int * data,
 
     (*m_current_cacheline[set]).entry[sb].i = *data;
 
-    v::info << this->name() << "Diagnostic data write set: " << hex << set
+    v::debug << this->name() << "Diagnostic data write set: " << hex << set
             << " idx: " << hex << idx << " sub-block: " << sb
             << " - data: " << hex << *data << v::endl;
 
