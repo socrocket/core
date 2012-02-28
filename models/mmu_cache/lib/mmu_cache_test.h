@@ -101,8 +101,11 @@ class mmu_cache_test : public sc_module, public CLKDevice{
 
   /// Functions for result checking
   void check(unsigned char * result, unsigned char * refer, unsigned int length);
+  void check(unsigned char * result, unsigned char * refer, unsigned int length, bool fail);
   void check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int length);
+  void check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int length, bool fail);
   void check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int length, unsigned int * debug, check_t check);
+  void check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int length, unsigned int * debug, check_t check, bool fail);
 
   /// Thread for delayed result checking (AT pipeline)
   void check_delayed();

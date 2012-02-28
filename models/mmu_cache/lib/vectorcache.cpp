@@ -930,8 +930,8 @@ inline t_cache_line * vectorcache::lookup(unsigned int set, unsigned int idx) {
 
   } else {
 
-    v::error << "Parameters of cache lookup not valid - set: " << set << "(range 0 - " << m_sets << ")" \
-             << idx << "(range 0 - " << m_number_of_vectors << ")" << v::endl;
+    v::error << name() << "Parameters of cache lookup not valid - set: " << set << " (allowed 0 - " << m_sets << "), idx: " \
+             << idx << " (allowed 0 - " << m_number_of_vectors << ")" << v::endl;
 
     memset(&m_default_cacheline, 0, sizeof(t_cache_line));
     return (&m_default_cacheline);

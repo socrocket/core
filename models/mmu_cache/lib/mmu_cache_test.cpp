@@ -236,26 +236,53 @@ unsigned int mmu_cache_test::error_stat() {
 
 }
 
-// Result checking without id and debug pointer
+// Result checking without id, debug pointer and fail indicator
 void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsigned int len) {
 
   unsigned int dummy = 0;
 
-  check(0xffffffff, result, refer, len, &dummy, NOCHECK);
+  check(0xffffffff, result, refer, len, &dummy, NOCHECK, false);
 
 }
 
-// Result checking without debug pointer
+// Result checking without id and debug pointer)
+void mmu_cache_test::check(unsigned char * result, unsigned char * refer, unsigned int len, bool fail) {
+
+  unsigned int dummy = 0;
+
+  check(0xffffffff, result, refer, len, &dummy, NOCHECK, fail);
+
+}
+
+// Result checking without debug pointer and fail indicator
 void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int len) {
 
   unsigned int dummy = 0;
 
-  check(id, result, refer, len, &dummy, NOCHECK);
+  check(id, result, refer, len, &dummy, NOCHECK, false);
 
 }
 
+
+// Result checking without debug pointer
+void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int len, bool fail) {
+
+  unsigned int dummy = 0;
+
+  check(id, result, refer, len, &dummy, NOCHECK, fail);
+
+}
+
+// Result checking without fail indicator
+void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int len, unsigned int * debug, check_t my_check) {
+
+  check(id, result, refer, len, debug, my_check, false);
+
+}
+
+
 // Function for result checking / Prototype with debug checking
-void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int len, unsigned int * debug, check_t check) {
+void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned char * refer, unsigned int len, unsigned int * debug, check_t check, bool fail) {
 
   checkpair_type* checkpair;
   unsigned int i;

@@ -1196,20 +1196,28 @@ tlm::tlm_sync_enum mmu_cache::ahb_nb_transport_bw(tlm::tlm_generic_payload &tran
 
     }
 
+    // Reset delay
+    delay = SC_ZERO_TIME;
+
   // New response (read operations only)
   } else if (phase == tlm::BEGIN_RESP) {
 
-    mBeginResponseEvent.notify();
-
     // Put into ResponsePEQ for response processing
     mResponsePEQ.notify(trans, delay);
+
+    // Reset delay
+    delay = SC_ZERO_TIME;
 
   // Data phase completed
   } else if (phase == amba::END_DATA) {
 
     // Add some delay and remove transaction
-    delay = 100*clock_cycle;
+    delay = 1000*clock_cycle;
+    // Release transaction
     mEndTransactionPEQ.notify(trans, delay);
+
+    // Reset delay
+    delay = SC_ZERO_TIME;
 
   // Phase not valid
   } else {
@@ -1230,7 +1238,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * d
 
     tlm::tlm_phase phase;
     tlm::tlm_sync_enum status;
-    sc_core::sc_time delay = SC_ZERO_TIME;
+    sc_core::sc_time delay;
 
     // Allocate new transaction
     tlm::tlm_generic_payload *trans = ahb.get_transaction();
@@ -1265,6 +1273,9 @@ void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * d
 
     // Collect transport statistics
     transport_statistics(*trans);
+
+    // Initialize delay
+    delay = SC_ZERO_TIME;
 
     // Timed transport
     if (!is_dbg) {
@@ -1460,15 +1471,13 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * da
 	      // The slave returned TLM_ACCEPTED.
 	      // Wait until BEGIN_RESP before giving control
 	      // to the user (for sending next transaction).
- 	      wait(mBeginResponseEvent);
-              v::warn << name() << "Received BeginResponseEvent" << v::endl;
+ 	      wait(mEndRequestEvent);
 
 	    } else if (phase == tlm::END_REQ) {
 
 	      // The slave returned TLM_UPDATED with END_REQ
-              v::warn << name() << "Waiting for BeginResponseEvent" << v::endl;
-	      wait(mBeginResponseEvent);
-              v::warn << name() << "Received BeginResponseEvent" << v::endl;
+
+	      wait(mEndRequestEvent);
 
 	    } else if (phase == tlm::BEGIN_RESP) {
 
