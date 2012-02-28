@@ -76,6 +76,8 @@ class dcio_payload_extension : public tlm::tlm_extension<dcio_payload_extension>
         unsigned int lock;
         /// debug information
         unsigned int * debug;
+        /// intended failure
+        bool fail;
 
 };
 

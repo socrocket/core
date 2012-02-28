@@ -88,13 +88,20 @@ class mmu_cache_test : public sc_module, public CLKDevice{
   void dorst();
 
   // Instruction read
+  void iread(unsigned int addr, unsigned char * data, unsigned int flush, unsigned int flushl, unsigned int fline, unsigned int *debug, bool fail);
+  // Instruction read without fail indicator
   void iread(unsigned int addr, unsigned char * data, unsigned int flush, unsigned int flushl, unsigned int fline, unsigned int *debug);
 
   // Data read
+  void dread(unsigned int addr, unsigned char * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int *debug, bool fail);
+  // Data read without fail indicator
   void dread(unsigned int addr, unsigned char * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int *debug);
 
   // Data write
+  void dwrite(unsigned int addr, unsigned char * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int *debug, bool fail);
+  // Data write without fail indicator
   void dwrite(unsigned int addr, unsigned char * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int *debug);
+
 
   // Displays and returns number of errors during test
   unsigned int error_stat();
@@ -165,6 +172,7 @@ class mmu_cache_test : public sc_module, public CLKDevice{
     sc_time check_time;
     unsigned int * debug;
     check_t check;
+    bool fail;
   } checkpair_type;
 
   tlm_utils::peq_with_get<checkpair_type> m_CheckPEQ;

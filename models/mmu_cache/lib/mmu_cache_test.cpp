@@ -299,12 +299,13 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
       if (result[i] != refer[i]) {
 
 	is_error = true;
-	ec++;
+	
+        if (!fail) ec++;
 
       }
     }
 
-    if (is_error) {
+    if (!fail && is_error) {
 
       v::error << name() << "CHECK ID " << id << " Testbench Error (Expected/Received): " << v::endl;
 
@@ -325,7 +326,7 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
 	if (!FROZENMISS_CHECK(*debug)) {
 
 	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no FROZEN MISS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  if (!fail) ec++;
 
         }
 
@@ -336,7 +337,7 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
 	if (FROZENMISS_CHECK(*debug)) {
 
 	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - FROZEN MISS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  if (!fail) ec++;
 
 	}
 
@@ -347,7 +348,7 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
 	if (!CACHEBYPASS_CHECK(*debug)) {
 
 	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no CACHE BYPASS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  if (!fail) ec++;
 
         }
 
@@ -358,7 +359,7 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
         if (!SCRATCHPAD_CHECK(*debug)) {
 
 	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no SCRATCHPAD ACCESS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  if (!fail) ec++;
 
         }
 
@@ -369,7 +370,7 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
 	if (!CACHEREADHIT_CHECK(*debug)) {
 
 	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no READ HIT!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  if (!fail) ec++;
 
 	}
 
@@ -380,7 +381,7 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
 	if (!CACHEREADMISS_CHECK(*debug)) {
 
 	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no READ MISS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  if (!fail) ec++;
 
 	}
 	  
@@ -391,7 +392,7 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
 	if (!CACHEWRITEHIT_CHECK(*debug)) {
 
 	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no WRITE HIT!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  if (!fail) ec++;
 
 	}
 
@@ -402,7 +403,7 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
 	if (!CACHEWRITEMISS_CHECK(*debug)) {
 
 	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no WRITE MISS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  if (!fail) ec++;
 
 	}
 	
@@ -413,7 +414,7 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
 	if (!CACHEFLUSH_CHECK(*debug)) {
 
 	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no CACHE FLUSH!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  if (!fail) ec++;
 
 	}
 
@@ -422,7 +423,7 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
 	if (!TLBHIT_CHECK(*debug)) {
 
 	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no TLB HIT!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  if (!fail) ec++;
 
 	}
 	
@@ -433,7 +434,7 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
 	if (!TLBMISS_CHECK(*debug)) {
 
 	  v::error << name() << "CHECK ID " << id << " Unexpected type of access - no TLB MISS!! (debug = " << hex << *debug << ")" << v::endl;
-	  ec++;
+	  if (!fail) ec++;
 
 	}
 	
@@ -460,6 +461,7 @@ void mmu_cache_test::check(const uint32_t id, unsigned char * result, unsigned c
     checkpair->check_time = sc_time_stamp();
     checkpair->debug      = debug;
     checkpair->check      = check;
+    checkpair->fail       = fail;
 
     m_CheckPEQ.notify(*checkpair, delay);
 
@@ -491,12 +493,12 @@ void mmu_cache_test::check_delayed() {
 	if (checkpair->result[i] != checkpair->refer[i]) {
 
 	  is_error = true;
-	  ec++;
+	  if (!checkpair->fail) ec++;
 
 	}
       }
 
-      if (is_error) {
+      if ((!checkpair->fail) && is_error) {
 
 	v::error << name() << "CHECK ID " << checkpair->id << " Testbench Error (Expected/Received) from check @ " << checkpair->check_time << v::endl;
 
@@ -522,7 +524,7 @@ void mmu_cache_test::check_delayed() {
 	  if (!FROZENMISS_CHECK(debug)) {
 
 	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no FROZEN MISS!! (debug = " << hex << debug << ")" << v::endl;
-	    ec++;
+	    if (!checkpair->fail) ec++;
 
 	  } else {
 
@@ -537,7 +539,7 @@ void mmu_cache_test::check_delayed() {
 	  if (FROZENMISS_CHECK(debug)) {
 
 	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - FROZEN MISS!! (debug = " << hex << debug << ")" << v::endl;
-	    ec++;
+	    if (!checkpair->fail) ec++;
 
 	  } else {
 
@@ -552,7 +554,7 @@ void mmu_cache_test::check_delayed() {
 	  if (!CACHEBYPASS_CHECK(debug)) {
 
 	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no CACHE BYPASS!! (debug = " << hex << debug << ")" << v::endl;
-	    ec++;
+	    if (!checkpair->fail) ec++;
 
 	  } else {
 
@@ -567,7 +569,7 @@ void mmu_cache_test::check_delayed() {
 	  if (!SCRATCHPAD_CHECK(debug)) {
 
 	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no SCRATCHPAD ACCESS!! (debug = " << hex << debug << ")" << v::endl;
-	    ec++;
+	    if (!checkpair->fail) ec++;
 
 	  } else {
 
@@ -582,7 +584,7 @@ void mmu_cache_test::check_delayed() {
 	  if (!CACHEREADHIT_CHECK(debug)) {
 
 	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no READ HIT!! (debug = " << hex << debug << ")" << v::endl;
-	    ec++;
+	    if (!checkpair->fail) ec++;
 
 	  } else {
 
@@ -597,7 +599,7 @@ void mmu_cache_test::check_delayed() {
 	  if (!CACHEREADMISS_CHECK(debug)) {
 
 	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no READ MISS!! (debug = " << hex << debug << ")" << v::endl;
-	    ec++;
+	    if (!checkpair->fail) ec++;
 
 	  } else {
 
@@ -612,7 +614,7 @@ void mmu_cache_test::check_delayed() {
 	  if (!CACHEWRITEHIT_CHECK(debug)) {
 
 	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no WRITE HIT!! (debug = " << hex << debug << ")" << v::endl;
-	    ec++;
+	    if (!checkpair->fail) ec++;
 
 	  } else {
 
@@ -627,7 +629,7 @@ void mmu_cache_test::check_delayed() {
 	  if (!CACHEWRITEMISS_CHECK(debug)) {
 
 	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no WRITE MISS!! (debug = " << hex << debug << ")" << v::endl;
-	    ec++;
+	    if (!checkpair->fail) ec++;
 
 	  } else {
 
@@ -642,7 +644,7 @@ void mmu_cache_test::check_delayed() {
 	  if (!TLBHIT_CHECK(debug)) {
  
 	    v::error << name() << "CHECK ID " << checkpair->id << " Unexpected type of access - no TLB HIT!! (debug = " << hex << debug << ")" << v::endl;
-	    ec++;
+	    if (!checkpair->fail) ec++;
 
 	  } else {
 
@@ -657,7 +659,7 @@ void mmu_cache_test::check_delayed() {
 	  if (!TLBMISS_CHECK(debug)) {
 
 	    v::error << name() << "CHECK ID" << checkpair->id << " Unexpected type of access - no TLB MISS!! (debug = " << hex << debug << ")" << v::endl;
-	    ec++;
+	    if (!checkpair->fail) ec++;
 
 	  } else {
 
@@ -764,8 +766,16 @@ tlm::tlm_sync_enum mmu_cache_test::dcio_nb_transport_bw(tlm::tlm_generic_payload
 
 }
 
-// Instruction read
+// Instruction read without fail indicator
 void mmu_cache_test::iread(unsigned int addr, unsigned char * data, unsigned int flush, unsigned int flushl, unsigned int fline, unsigned int *debug) {
+
+  iread(addr, data, flush, flushl, fline, debug, false);
+
+}
+
+
+// Instruction read
+void mmu_cache_test::iread(unsigned int addr, unsigned char * data, unsigned int flush, unsigned int flushl, unsigned int fline, unsigned int *debug, bool fail) {
 
   tlm::tlm_phase phase;
   tlm::tlm_sync_enum status;
@@ -792,6 +802,7 @@ void mmu_cache_test::iread(unsigned int addr, unsigned char * data, unsigned int
   iext->flushl = flushl;
   iext->fline  = fline;
   iext->debug  = debug;
+  iext->fail   = fail;
 
   // Hook extension to payload
   trans->set_extension(iext);
@@ -867,8 +878,15 @@ void mmu_cache_test::iread(unsigned int addr, unsigned char * data, unsigned int
   }
 }
 
-// Data read
+// Data read without fail indicator
 void mmu_cache_test::dread(unsigned int addr, unsigned char * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int *debug) {
+
+  dread(addr, data, length, asi, flush, flushl, lock, debug, false);
+
+}
+
+// Data read
+void mmu_cache_test::dread(unsigned int addr, unsigned char * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int *debug, bool fail) {
 
   tlm::tlm_phase phase;
   tlm::tlm_sync_enum status;
@@ -897,6 +915,7 @@ void mmu_cache_test::dread(unsigned int addr, unsigned char * data, unsigned int
   dext->flushl = flushl;
   dext->lock   = lock;
   dext->debug  = debug;
+  dext->fail   = fail;
 
   // Hook extension to payload
   trans->set_extension(dext);
@@ -974,8 +993,15 @@ void mmu_cache_test::dread(unsigned int addr, unsigned char * data, unsigned int
   }
 }
 
-// Data write
+// Data write without fail indicator
 void mmu_cache_test::dwrite(unsigned int addr, unsigned char * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int *debug) {
+
+  dwrite(addr, data, length, asi, flush, flushl, lock, debug, false);
+
+}
+
+// Data write
+void mmu_cache_test::dwrite(unsigned int addr, unsigned char * data, unsigned int length, unsigned int asi, unsigned int flush, unsigned int flushl, unsigned int lock, unsigned int *debug, bool fail) {
 
   tlm::tlm_phase phase;
   tlm::tlm_sync_enum status;
@@ -1003,6 +1029,7 @@ void mmu_cache_test::dwrite(unsigned int addr, unsigned char * data, unsigned in
   dext->flushl = flushl;
   dext->lock   = lock;
   dext->debug  = debug;
+  dext->fail   = fail;
 
   // Hook extension to payload
   trans->set_extension(dext);
@@ -1078,6 +1105,7 @@ void mmu_cache_test::dwrite(unsigned int addr, unsigned char * data, unsigned in
 void mmu_cache_test::InstrResponseThread() {
 
   tlm::tlm_generic_payload* trans;
+  icio_payload_extension* iext;
   tlm::tlm_phase phase;
   sc_core::sc_time delay;
   tlm::tlm_sync_enum status;
@@ -1102,11 +1130,32 @@ void mmu_cache_test::InstrResponseThread() {
     // Return value must be TLM_COMPLETED or TLM_ACCEPTED
     assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
 
+    // Extract data payload extension
+    trans->get_extension(iext);
+
+    // Check response status
+    if ((trans->get_response_status() == tlm::TLM_OK_RESPONSE) && (iext->fail == true)) {
+
+      v::error << name() << "Transaction was suppossed to fail, but returned TLM_OK_RESPONSE" << v::endl;
+      inc_ec();
+
+    }
+
+    if ((trans->get_response_status() != tlm::TLM_OK_RESPONSE) && (iext->fail == false)) {
+      
+      v::error << name() << "Transaction failed, but was expected to succeed (" << trans->get_response_status() << ")" << v::endl;
+      inc_ec();
+
+    }    
+
     // Add some delay before removing transaction
     delay = sc_core::sc_time(1000, SC_NS);
 
     // Cleanup
     m_EndTransactionPEQ.notify(*trans, delay);
+
+    // Reset delay
+    delay = SC_ZERO_TIME;
   }
 }
 
@@ -1114,6 +1163,7 @@ void mmu_cache_test::InstrResponseThread() {
 void mmu_cache_test::DataResponseThread() {
 
   tlm::tlm_generic_payload* trans;
+  dcio_payload_extension* dext;
   tlm::tlm_phase phase;
   sc_core::sc_time delay;
   tlm::tlm_sync_enum status;
@@ -1142,6 +1192,24 @@ void mmu_cache_test::DataResponseThread() {
 
     // Return value must be TLM_COMPLETED or TLM_ACCEPTED
     assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
+
+    // Extract data payload extension
+    trans->get_extension(dext);
+
+    // Check response status
+    if ((trans->get_response_status() == tlm::TLM_OK_RESPONSE) && (dext->fail == true)) {
+
+      v::error << name() << "Transaction was suppossed to fail, but returned TLM_OK_RESPONSE" << v::endl;
+      inc_ec();
+
+    }
+
+    if ((trans->get_response_status() != tlm::TLM_OK_RESPONSE) && (dext->fail == false)) {
+      
+      v::error << name() << "Transaction failed, but was expected to succeed (" << trans->get_response_status() << ")" << v::endl;
+      inc_ec();
+
+    }
 
     // Add some delay before removing transaction
     delay = sc_core::sc_time(1000, SC_NS);

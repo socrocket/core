@@ -74,6 +74,8 @@ class icio_payload_extension : public tlm::tlm_extension<icio_payload_extension>
         unsigned int fline;
         /// debug information
         unsigned int * debug;
+        /// failure intended
+        bool fail;
 };
 
 #endif // __ICIO_PAYLOAD_EXTENSION_H__
