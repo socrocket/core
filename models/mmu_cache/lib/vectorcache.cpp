@@ -923,8 +923,20 @@ unsigned int vectorcache::read_config_reg(sc_core::sc_time *t) {
 /// reads a cache line from a cache set
 inline t_cache_line * vectorcache::lookup(unsigned int set, unsigned int idx) {
 
+  if ((set <= m_sets) && (idx <= m_number_of_vectors)) {
+
     // return the cache line from the selected set
     return (&(*cache_mem[set])[idx]);
+
+  } else {
+
+    v::error << "Parameters of cache lookup not valid - set: " << set << "(range 0 - " << m_sets << ")" \
+             << idx << "(range 0 - " << m_number_of_vectors << ")" << v::endl;
+
+    memset(&m_default_cacheline, 0, sizeof(t_cache_line));
+    return (&m_default_cacheline);
+
+  }
 
 }
 
