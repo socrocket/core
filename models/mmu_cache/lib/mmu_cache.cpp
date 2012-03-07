@@ -994,7 +994,7 @@ tlm::tlm_sync_enum mmu_cache::dcio_nb_transport_fw(tlm::tlm_generic_payload &tra
   // The master has sent BEGIN_REQ
   if (phase == tlm::BEGIN_REQ) {
 
-    // Put transaction in PEQ
+    // Put transaction into PEQ
     dcio_PEQ.notify(trans, delay);
     delay = SC_ZERO_TIME;
 
@@ -1011,7 +1011,7 @@ tlm::tlm_sync_enum mmu_cache::dcio_nb_transport_fw(tlm::tlm_generic_payload &tra
 
   } else {
    
-    v::error << name() << " Illegal phase in call to dcio_nb_transport_fw !" << v::endl;
+    v::error << name() << "Illegal phase in call to dcio_nb_transport_fw: " << phase << v::endl;
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
   }
@@ -1164,6 +1164,11 @@ tlm::tlm_sync_enum mmu_cache::ahb_nb_transport_bw(tlm::tlm_generic_payload &tran
 
     // Reset delay
     delay = SC_ZERO_TIME;
+
+  } else if (phase == amba::DATA_SPLIT) {
+
+    // Master never reacts on data split!!
+    v::warn << name() << "Master received DATA_SPLIT" << v::endl;
 
   // New response (read operations only)
   } else if (phase == tlm::BEGIN_RESP) {

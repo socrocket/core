@@ -82,7 +82,7 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     rmisses("read_misses", 0llu, m_performance_counters),
     whits("write_hits", sets, m_performance_counters),
     wmisses("write_misses", 0llu, m_performance_counters),
-    bypassops("bypass_opperations", 0llu, m_performance_counters),
+    bypassops("bypass_operations", 0llu, m_performance_counters),
     m_pow_mon(pow_mon),
     clockcycle(10, sc_core::SC_NS)
 
@@ -495,7 +495,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
                 // Cache is frozen !!
 
-                // Purpose of a cache freeze is to prevent data that is in the cache from being evicted:
+                // Cache is kept in sync with main memory, but no new lines are allocated on read miss:
                 // The new data will only be filled in as long there is unvalid data in one of the sets (set_select != -1)
                 // && the new data does not change the atag, because this would invalidate all the other entries
                 // in the line (tag.atag == tag).

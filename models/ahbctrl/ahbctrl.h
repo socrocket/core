@@ -258,31 +258,31 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   /// Open a namespace for performance counting in the greencontrol realm
   gs::gs_param_array m_performance_counters;
 
-	/// Total waiting time in arbiter
+  /// Total waiting time in arbiter
   gs::gs_param<sc_time> m_total_wait;
 
-	/// Total number of arbitrated instructions
+  /// Total number of arbitrated instructions
   gs::gs_param<uint64_t> m_arbitrated;
 
-	/// Maximum waiting time in arbiter
+  /// Maximum waiting time in arbiter
   gs::gs_param<sc_time> m_max_wait;
 
-	/// ID of the master with the maximum waiting time
+  /// ID of the master with the maximum waiting time
   gs::gs_param<uint32_t> m_max_wait_master;
 
-	/// Number of idle cycles
+  /// Number of idle cycles
   gs::gs_param<uint64_t> m_idle_count;
 
-	/// Total number of transactions handled by the instance
+  /// Total number of transactions handled by the instance
   gs::gs_param<uint64_t> m_total_transactions;
 
-	/// Succeeded number of transaction handled by the instance
+  /// Succeeded number of transaction handled by the instance
   gs::gs_param<uint64_t> m_right_transactions;
 
-	/// Counts bytes written to AHBCTRL from the master side
+  /// Counts bytes written to AHBCTRL from the master side
   gs::gs_param<uint64_t> m_writes;
 
-	/// Counts bytes read from AHBCTRL from the master side
+  /// Counts bytes read from AHBCTRL from the master side
   gs::gs_param<uint64_t> m_reads;
 
   /// ID of the master which currently 'owns' the bus

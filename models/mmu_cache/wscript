@@ -135,7 +135,7 @@ def build(bld):
     uselib       = 'SYSTEMC TLM AMBA GREENSOCS',
     use          = 'mmu_cache ahbctrl ahbmem common utils',
   )  
-  """
+
   bld(
     features     = 'modelsim',
     target       = 'mmu_cache.1.rtl.test',
@@ -163,7 +163,6 @@ def build(bld):
     includes     = '. tests tests/test1 lib ../utils ../../signalkit ../../common ../ahbctrl/ ../../adapters ../ahbmem',
     config       =  vsim_conf,
   )
-  """
 
   bld(
     target       = 'mmu_cache.2.lt.test',

@@ -88,7 +88,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       mResponsePEQ("ResponsePEQ"),
       m_performance_counters("performance_counters"),
       m_total_wait("total_wait", SC_ZERO_TIME, m_performance_counters),
-      m_arbitrated("abitrated", 0llu, m_performance_counters),
+      m_arbitrated("arbitrated", 0llu, m_performance_counters),
       m_max_wait("maximum_waiting_time", SC_ZERO_TIME, m_performance_counters),
       m_max_wait_master("maximum_wating_master_id", defmast, m_performance_counters),
       m_idle_count("idle_cycles", 0llu, m_performance_counters),
@@ -486,6 +486,12 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(uint32_t id, tlm::tlm_generic_payloa
 
     mEndRequestEvent.notify(delay);
     delay = SC_ZERO_TIME;
+
+  } else if (phase == amba::DATA_SPLIT) {
+
+    // Ignore DATA_SPLIT!
+    // Current version of AHBCTRL does not rearbitrate on DATA_SPLIT!
+    // Slave expected to continue with BEGIN_RESP.
 
   // New response - goes into response PEQ
   } else if (phase == tlm::BEGIN_RESP) {
