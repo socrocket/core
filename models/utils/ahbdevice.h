@@ -73,7 +73,7 @@ class AHBDevice : public amba_slave_base {
         /// The register content is formed here.
         AHBDevice(uint32_t bus_id, uint8_t vendorid, uint16_t deviceid, uint8_t version,
                   uint8_t irq, uint32_t bar0, uint32_t bar1 = 0,
-                  uint32_t bar2 = 0, uint32_t bar3 = 0) throw();
+                  uint32_t bar2 = 0, uint32_t bar3 = 0);
 
         /// Empty destructor
         virtual ~AHBDevice();

@@ -54,7 +54,7 @@ using namespace std;
 // Standard constructor
 AHBDevice::AHBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
                      uint8_t version, uint8_t irq, uint32_t bar0,
-                     uint32_t bar1, uint32_t bar2, uint32_t bar3) throw() //:
+                     uint32_t bar1, uint32_t bar2, uint32_t bar3) //:
     //m_performance_counters("performance_counters"),
     //m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters) 
     {

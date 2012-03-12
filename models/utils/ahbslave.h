@@ -8,7 +8,7 @@
 
 #include "ahbdevice.h"
 
-class AHBSlave : public sc_module, public AHBDevice {
+class AHBSlave : public virtual sc_module, public AHBDevice {
     public:
         SC_HAS_PROCESS(AHBSlave);
 
