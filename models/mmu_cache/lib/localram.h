@@ -48,6 +48,7 @@
 
 #include <tlm.h>
 #include <greencontrol/config.h>
+#include <stdint.h>
 
 #include "mem_if.h"
 #include "defines.h"

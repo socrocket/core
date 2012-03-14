@@ -48,10 +48,11 @@
 #include "memdevice.h"
 #include "ext_erase.h"
 #include "vmap.h"
-#include <systemc.h>
-#include <tlm.h>
+
 #include <greensocket/target/single_socket.h>
 #include <greencontrol/config.h>
+#include <systemc.h>
+#include <tlm.h>
 
 /// @brief This class models a array memory. Depending on the configuration
 /// it can be used as ROM, IO, SRAM or SDRAM, in conjunction with the SoCRocket MCTRL.

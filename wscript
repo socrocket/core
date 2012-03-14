@@ -155,7 +155,7 @@ def configure(ctx):
     # specify any flags I set optimized flags
     #############################################################
     if not ctx.env['CXXFLAGS'] and not ctx.env['CCFLAGS']:
-        testFlags = ['-O2', '-march=native', '-pipe', '-finline-functions', '-ftracer', '-fomit-frame-pointer']
+        testFlags = ['-O2', '-march=native', '-pipe', '-finline-functions', '-ftracer', '-fomit-frame-pointer', '-fpermissive']
         if ctx.check_cxx(cxxflags=testFlags, msg='Checking for g++ optimization flags', mandatory=False) and ctx.check_cc(cflags=testFlags, msg='Checking for gcc optimization flags'):
             ctx.env.append_unique('CXXFLAGS', testFlags)
             ctx.env.append_unique('CCFLAGS', testFlags)
@@ -789,10 +789,10 @@ def configure(ctx):
     
     try:
         path = os.path.abspath(os.path.expanduser(getattr(ctx.options,'sparc_cross')))
-        crosscc = [ctx.find_program(ctx.options.sparc_prefix + 'gcc', os.path.join(path, 'bin'))]
-        crossxx = [ctx.find_program(ctx.options.sparc-prefix + 'g++', os.path.join(path, 'bin'))]
-        crossar = [ctx.find_program(ctx.options.sparc_prefix + 'ar', os.path.join(path, 'bin'))]
-    except AttributeError:
+        crosscc = [ctx.find_program(ctx.options.sparc_prefix + 'gcc', path_list=[os.path.join(path, 'bin')])]
+        crossxx = [ctx.find_program(ctx.options.sparc-prefix + 'g++', path_list=[os.path.join(path, 'bin')])]
+        crossar = [ctx.find_program(ctx.options.sparc_prefix + 'ar', path_list=[os.path.join(path, 'bin')])]
+    except AttributeError as e:
         # If the path was not specified look in the search PATH
         crosscc = [ctx.find_program(ctx.options.sparc_prefix + 'gcc')]
         crossxx = [ctx.find_program(ctx.options.sparc_prefix + 'g++')]
