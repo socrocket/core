@@ -59,8 +59,8 @@ def options(opt):
 def configure(ctx):
   ctx.env["SYSTESTS"] = Options.options.systests
 
-@TaskGen.feature('generate')
-def make_generate(self):
+@TaskGen.feature('systemplate')
+def make_systemplate(self):
   # Put the execution of the generate task directly in here if any problems happen
   # Be careful only to execute the test if the platform is not jet generated
   

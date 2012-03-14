@@ -51,12 +51,12 @@ def build(bld):
   import sys
 
   bld(
-      features='generate',
+      features='systemplate',
       target='singlecore.lt',
   )
   
   bld(
-      features='generate',
+      features='systemplate',
       target='singlecore.at',
   )
   

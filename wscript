@@ -364,7 +364,7 @@ def configure(ctx):
     # Load modelsim and check for dependenies
     ########################################
     ctx.load('modelsim', tooldir='waftools')
-    ctx.load('generate', tooldir='waftools')
+    ctx.load('systools', tooldir='waftools')
     
     ###########################################################
     # Check for ELF library and headers
@@ -833,7 +833,7 @@ def options(ctx):
     ctx.load('waf_unit_test', option_group=configuration_options)
     ctx.load('common', option_group=configuration_options, tooldir='waftools')
     ctx.load('modelsim', option_group=configuration_options, tooldir='waftools')
-    ctx.load('generate', option_group=configuration_options, tooldir='waftools')
+    ctx.load('systools', option_group=configuration_options, tooldir='waftools')
   
     #ctx.add_option('--onlytests', action='store_true', default=True, help='Exec unit tests only', dest='only_tests')
     # Specify SystemC and TLM options
