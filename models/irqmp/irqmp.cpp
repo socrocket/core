@@ -126,12 +126,12 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
     // 1) A system with 0 cpus will never be implemented
     // 2) If there were 0 cpus, no cpu would need an IR force register
     // 3) The IR force register for the first CPU ('CPU 0') will always be located at address 0x80
-    if (g_ncpu == 0) {
-        r.create_register("force", "Interrupt Force Register", 0x08,
-                gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-                        | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                0x00000000, IR_FORCE_IF, 32, 0x00);
-    }
+    //if (g_ncpu == 0) {
+    r.create_register("force", "Interrupt Force Register", 0x08,
+            gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
+                    | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+            0x00000000, IR_FORCE_IF, 32, 0x00);
+    //}
     r.create_register("clear", "Interrupt Clear Register", 0x0C,
             gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
                     | gs::reg::FULL_WIDTH, 0x00000000, IR_CLEAR_IC, 32,
@@ -198,13 +198,17 @@ void Irqmp::end_of_elaboration() {
     // send interrupts to processors after write to pending / force regs
     GR_FUNCTION(Irqmp, pending_write); // args: module name, callback function name
     GR_SENSITIVE(r[IR_PENDING].add_rule(gs::reg::POST_WRITE,"pending_write", gs::reg::NOTIFY));
+    GR_SENSITIVE(r[IR_FORCE].add_rule(gs::reg::POST_WRITE,"force_write", gs::reg::NOTIFY));
+    for(int i_cpu = 0; i_cpu < g_ncpu; i_cpu++) {
+        GR_SENSITIVE(r[PROC_IR_MASK(i_cpu)].add_rule(gs::reg::POST_WRITE,"proc_ir_mask_write", gs::reg::NOTIFY));
+    }
 
     // unset pending bits of cleared interrupts
     GR_FUNCTION(Irqmp, clear_write);
     GR_SENSITIVE(r[IR_CLEAR].add_rule(gs::reg::POST_WRITE, "clear_write", gs::reg::NOTIFY));
 
     // unset force bits of cleared interrupts
-    for (int i_cpu = 0; i_cpu < g_ncpu; i_cpu++) {
+    for(int i_cpu = 0; i_cpu < g_ncpu; i_cpu++) {
         GR_FUNCTION(Irqmp, force_write);
         GR_SENSITIVE(r[PROC_IR_FORCE(i_cpu)].add_rule(
                 gs::reg::POST_WRITE, gen_unique_name("force_write", false), gs::reg::NOTIFY));
@@ -316,7 +320,8 @@ void Irqmp::launch_irq() {
         wait(e_signal);
         for(int cpu = g_ncpu-1; cpu > -1; cpu--) {
             // Pending register for this CPU line.
-            pending = r[IR_PENDING] & r[PROC_IR_MASK(cpu)];
+            pending = (r[IR_PENDING] | r[IR_FORCE]) & r[PROC_IR_MASK(cpu)];
+            v::debug << name() << "For CPU " << cpu << " pending: " << v::uint32 << r[IR_PENDING].get() << ", force: " << v::uint32 << r[IR_FORCE].get() << ", proc_ir_mask: " << r[PROC_IR_MASK(cpu)].get() << v::endl;
 
             // All relevant interrupts for this CPU line to determ pending extended interrupts
             masked  = pending | (r[PROC_IR_FORCE(cpu)] & IR_FORCE_IF);
@@ -330,7 +335,7 @@ void Irqmp::launch_irq() {
             }
             // Recalculate relevant interrupts
             all = pending | (eirq_en << g_eirq) | (r[PROC_IR_FORCE(cpu)] & IR_FORCE_IF);
-            v::debug << name() << "For CPU " << cpu << " pending: " << v::uint32 << hex << pending << ", all " << v::uint32 << hex << all << v::endl;
+            v::debug << name() << "For CPU " << cpu << " pending: " << v::uint32 << pending << ", all " << v::uint32 << all << v::endl;
             
             // Find the highes not extended interrupt on level 1 
             masked = (all & r[IR_LEVEL]) & IR_PENDING_IP;
@@ -407,6 +412,8 @@ void Irqmp::clear_write() {
     
     uint32_t cleared_vector = r[IR_PENDING] & ~r[IR_CLEAR];
     r[IR_PENDING] = cleared_vector;
+    cleared_vector = r[IR_FORCE] & ~r[IR_CLEAR];
+    r[IR_FORCE] = cleared_vector;
     r[IR_CLEAR]   = 0;
     e_signal.notify(2 * clock_cycle);
 }
@@ -449,6 +456,7 @@ void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_
     
     irq_req.write(~0, std::pair<uint32_t, bool>(irq, false));
     r[IR_PENDING].bit_set(irq, f);
+    r[IR_FORCE].bit_set(irq, f);
     r[PROC_EXTIR_ID(cpu)] = 0;
     e_signal.notify(2 * clock_cycle);
 }
@@ -473,6 +481,7 @@ void Irqmp::mpstat_read() {
 }
 
 void Irqmp::pending_write() {
+    v::debug << name() << "Pending/Force write" << v::endl;
     e_signal.notify(1 * clock_cycle);
 }
 

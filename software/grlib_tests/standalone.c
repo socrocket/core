@@ -27,6 +27,9 @@ void fail(int dev) {
     printf("    test failed at %d\n", dev);
 }
 
+void success(int dev) {
+    printf("    test passed stage %d\n", dev);
+}
 
 char *dev_to_string(unsigned int dev) {
     switch (dev >> 24) {

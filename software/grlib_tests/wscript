@@ -99,6 +99,7 @@ def build(bld):
      source       = ['top_gptimer_test.c',
                      'ramfill.c', 
                      'standalone.c', 
+                     'standaloneasm.S',
                      'irqmp.c',
                      'gptimer.c',
                      'cacheasm.S', 
@@ -112,7 +113,7 @@ def build(bld):
   )
   """
 
-  """
+  
   # irqmp.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -120,10 +121,12 @@ def build(bld):
      source       = ['top_irqmp_test.c',
                      'ramfill.c', 
                      'standalone.c', 
+                     'standaloneasm.S',
                      'irqmp.c', 
                      'cacheasm.S', 
                      'cache.c'],
   )
+  """
   bld(
       features    = 'systest',
       system      = 'singlecore.lt.platform',

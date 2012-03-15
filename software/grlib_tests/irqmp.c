@@ -1,4 +1,5 @@
 #include "testmod.h"
+#include "standalone.h"
 #include "irqmp.h"
 #include "cache.h"
 
@@ -36,11 +37,15 @@ int irqtest(int addr) {
     lr->irqforce = 0x0fffe; /* force all interrupts */
     if(lr->irqforce != 0x0fffe) {
         fail(1); /* check force reg */
+    } else {
+        success(1);
     }
 
     lr->irqmask = 0x0fffe;	  /* unmask all interrupts */
     if(lr->irqmask != 0x0fffe) {
         fail(2); /* check mask reg */
+    } else {
+        success(2);
     }
     
     while(lr->irqforce) {
@@ -49,11 +54,15 @@ int irqtest(int addr) {
     /* check that all interrupts were take in right order */
     if(irqtbl[0] != 16) {
         fail(3);
+    } else {
+        success(3);
     }
     
 	  for(i=1;i<16;i++) { 
         if(irqtbl[i] != (0x20 - i)) {
-            fail(4);
+            fail(3+i);
+        } else {
+            success(3+i);
         }
     }
 
@@ -63,11 +72,15 @@ int irqtest(int addr) {
     lr->irqlevel = 0xaaaa;	/* set level reg to  odd irq -> level 1 */
     lr->irqmask = 0xfffe;	        
     if(lr->irqlevel != 0xaaaa) {
-        fail(5); /* check level reg */
+        fail(19); /* check level reg */
+    } else {
+        success(19);
     }
     
 	  if(lr->irqmask != 0xfffe) {
-        fail(5); /* check mask reg */
+        fail(20); /* check mask reg */
+    } else {
+        success(20);
     }
     
 	  lr->irqforce = 0x0fffe;	/* force all interrupts */
@@ -76,25 +89,35 @@ int irqtest(int addr) {
 
 	  /* check that all interrupts were take in right order */
 	  if(irqtbl[0] != 16) {
-        fail(6);
+        fail(21);
+    } else {
+        success(21);
     }
     
 	  for(i=1;i<8;i++) { 
         if(irqtbl[i] != (0x20 - (i*2-1))) {
-            fail(7);
+            fail(21+i);
+        } else {
+            success(21+i);
         }
     }
     
 	  for(i=2;i<8;i++) { 
         if(irqtbl[i+8] != (0x20 - (i*2))) {
-		        fail(8);
+		        fail(27+i);
+        } else {
+            success(27+i);
         }
     }
 
     /* check interrupts of multi-cycle instructions */
 
-    marr[0] = 1; marr[1] = marr[0]+1; marr[2] = marr[1]+1; 
-    a = marr[2]+1; marr[3] = a; larr[0] = 6;
+    marr[0] = 1; 
+    marr[1] = marr[0]+1; 
+    marr[2] = marr[1]+1; 
+    a = marr[2]+1; 
+    marr[3] = a; 
+    larr[0] = 6;
 
     lr->irqlevel = 0;	/* clear level reg */
     lr->irqmask = 0x0;	/* mask all interrupts */
@@ -117,21 +140,30 @@ int irqtest(int addr) {
     asm("nop;");
     larr[1] = larr[0];
     if(larr[0] != 6) {
-        fail(10);
+        fail(35);
+    } else {
+        success(35);
     }
     
     lr->irqforce = 0x00002;	/* force interrupt */
     asm("nop;");
     larr[1] = 0;
     if(larr[1] != 0) {
-        fail(11);
+        fail(36);
+    } else {
+        success(36);
     }
 
-    while(lr->irqforce) {
-    };  /* wait until all iterrupts are taken */
+    //while(lr->irqforce) {
+    //    printf("irq_force: 0x%08x\n", lr->irqforce);
+    //};  /* wait until all iterrupts are taken */
 
     /* check number of interrupts */
-    if(irqtbl[0] != 4) fail(13);
+    if(irqtbl[0] != 4) {
+        fail(37);
+    } else {
+        success(37);
+    }
 
     lr->irqmask = 0x0;	/* mask all interrupts */
 
@@ -144,19 +176,27 @@ int irqtest(int addr) {
     lr->irqmask = -1;	/* enable all interrupts */
     while(!lr->irqmask);   /* avoid compiler optimisation */
     if(irqtbl[0] != 2) {
-        fail(14);
+        fail(38);
+    } else {
+        success(38);
     }
     if(irqtbl[1] != 0x1f) {
-        fail(15);
+        fail(39);
+    } else {
+        success(39);
     }
     setpsr(xgetpsr() - (1 << 8));
     for(i=2;i<16;i++) { 
         setpsr(xgetpsr() - (1 << 8));
         if(irqtbl[0] != i+1) {
-            fail(16);
+            fail(38+i*2);
+        } else {
+            success(38+i*2);
         }
         if(irqtbl[i] != (0x20 - i)) {
-            fail(17);
+            fail(39+2*i);
+        } else {
+            success(39+2*i);
         }
     }
 
@@ -174,15 +214,22 @@ int irqtest(int addr) {
     for(i=lr->istat2 & 0x1f; i >=0; i--) {
 		    if((lr->istat2 & 0x1f) != i) {
             fail (17+i);
+        } else {
+            success(17+i);
         }
         lr->istat2 = (1 << i);
         lr->irqclear = -1;
     }
+
     if(lr->istat2 & 0x20) {
         fail(33);
+    } else {
+        success(33);
     }
     if(lr->irqpend) {
         fail(34);
+    } else {
+        success(34);
     }
     */
     lr->irqmask = 0x0;	/* mask all interrupts */
