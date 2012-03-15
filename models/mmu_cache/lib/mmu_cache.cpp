@@ -1691,7 +1691,7 @@ void mmu_cache::write_ccr(unsigned char * data, unsigned int len,
     // read only masking: 1111 1111 1001 1111 0011 1111 1111 1111
     CACHE_CONTROL_REG = (tmp & 0xff9f3fff);
 
-    v::info << name() << "CACHE_CONTROL_REG: " << hex << v::setw(8) << CACHE_CONTROL_REG << v::endl;
+    v::debug << name() << "CACHE_CONTROL_REG: " << hex << v::setw(8) << CACHE_CONTROL_REG << v::endl;
 }
 
 // Read the cache control register from processor interface
