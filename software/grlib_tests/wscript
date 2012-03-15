@@ -126,14 +126,20 @@ def build(bld):
                      'cacheasm.S', 
                      'cache.c'],
   )
-  """
+  
   bld(
       features    = 'systest',
       system      = 'singlecore.lt.platform',
       rom         = 'singlecore.lt.prom',
       ram         = 'irqmp.sparc',
   )
-  """
+  
+  bld(
+      features    = 'systest',
+      system      = 'singlecore.at.platform',
+      rom         = 'singlecore.at.prom',
+      ram         = 'irqmp.sparc',
+  )
 
   # ram.sparc
   bld(
