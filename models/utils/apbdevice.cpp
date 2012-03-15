@@ -128,6 +128,11 @@ const uint32_t APBDevice::get_size_() const {
     return (((~mask & 0xFFF) + 1) << 8);
 }
 
+const uint32_t APBDevice::get_relative_addr(uint32_t addr) const {
+    return addr - get_base_addr_();
+}
+
+
 // Returns the bus id of the device
 const uint32_t APBDevice::get_busid() const {
 

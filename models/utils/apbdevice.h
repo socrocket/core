@@ -111,11 +111,14 @@ class APBDevice : public amba_slave_base {
         virtual sc_dt::uint64 get_size();
         virtual const uint32_t get_size_() const;
 
-	/// Returns the bus id of the module (pindex)
-	const uint32_t get_busid() const;
+        virtual const uint32_t get_relative_addr(uint32_t addr) const;
+
+        /// Returns the bus id of the module (pindex)
+        const uint32_t get_busid() const;
 
         /// Prints the device info of the device.
         virtual void print_device_info(char *name) const;
+
     private:
         /// Impementation of the device register file.
         uint32_t m_register[2];
