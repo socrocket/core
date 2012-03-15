@@ -58,8 +58,7 @@ class greenreg_socket;
 
 /// greenreg_socket: A greenreg port class
 template<>
-class greenreg_socket<gs::amba::amba_slave<32> > : public gs::amba::amba_slave<
-        32> {
+class greenreg_socket<gs::amba::amba_slave<32> > : public gs::amba::amba_slave<32> {
     public:
 
         greenreg_socket(sc_core::sc_module_name _name,
@@ -83,8 +82,7 @@ class greenreg_socket<gs::amba::amba_slave<32> > : public gs::amba::amba_slave<
 };
 
 template<>
-class greenreg_socket<gs::amba::amba_master<32> > : public gs::amba::amba_master<
-        32> {
+class greenreg_socket<gs::amba::amba_master<32> > : public gs::amba::amba_master<32> {
     public:
 
         greenreg_socket(sc_core::sc_module_name _name,
