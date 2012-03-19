@@ -62,6 +62,8 @@
 
 #include "irqGenerator.hpp"
 
+#define LEON3_STANDALONE
+
 std::string banner = std::string("\n\
 \t\n\
 \t      _/        _/_/_/_/    _/_/    _/      _/   _/_/_/\n\

@@ -41,15 +41,10 @@ def build(bld):
         uselib          = uselib,
         use             = use,
     )
-    sources = 'main.cpp'
+    sources = sources + 'main.cpp'
     includes = '.'
     uselib = 'TRAP ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
-    import sys
-    cppflags_custom = ''
-    if sys.platform == 'cygwin':
-        cppflags_custom = ' -D__USE_W32_SOCKETS'
-        uselib += ' WINSOCK'
-    objects = 'LEON3_funcLT_objs'
-    target = 'funcLT'
+    #objects = 'LEON3_funcLT_objs'
+    target = 'LEON3_funcLT'
 
-    bld.program(source = sources, target = target, uselib = uselib, use = use + ' ' + objects, includes = includes, defines = cppflags_custom)
+    bld.program(source = sources, defines = 'LEON3_STANDALONE', target = target, uselib = uselib, use = use, includes = includes)

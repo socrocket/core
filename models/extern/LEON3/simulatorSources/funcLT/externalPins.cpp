@@ -34,8 +34,6 @@
  *
 \***************************************************************************/
 
-
-
 #include <externalPins.hpp>
 #include <trap_utils.hpp>
 
@@ -59,7 +57,15 @@ void leon3_funclt_trap::PinTLM_out_32::send_pin_req(const unsigned int &value) t
 }
 
 leon3_funclt_trap::PinTLM_out_32::PinTLM_out_32(sc_module_name portName) : sc_module(portName), \
+
+  // In stand-alone mode do not wait for run-bit to be set
+  #ifdef LEON3_STANDALONE
+    initSignal(sc_gen_unique_name(portName)), status("status"), run(&leon3_funclt_trap::PinTLM_out_32::on_run, "run"), stopped(false) {
+    status.write(true);
+    end_module();
+  #else
     initSignal(sc_gen_unique_name(portName)), status("status"), run(&leon3_funclt_trap::PinTLM_out_32::on_run, "run"), stopped(true) {
     status.write(true);
     end_module();
+  #endif
 }
