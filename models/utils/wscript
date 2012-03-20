@@ -55,7 +55,6 @@ def build(bld):
                        'apbdevice.cpp',
                        'memdevice.cpp',
                        'clkdevice.cpp',
-                       'ahbslave.cpp'
                       ],
     export_includes = '.',
     uselib          = 'SYSTEMC TLM AMBA GREENSOCS',

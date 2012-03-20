@@ -65,6 +65,9 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
             sc_module(nm),
             AHBDevice(slave_id, /*Gaisler*/ 0x01, /*AHBMem*/0x00E, 0, 0, BAR(AHBDevice::AHBMEM, hmask_, cacheable, 0, haddr_)),
             ahb("ahb", amba::amba_AHB, ambaLayer, false /* arbiter? */),
+            m_performance_counters("performance_counters"),
+            m_bytes_read("bytes_read", 0llu, m_performance_counters),
+            m_bytes_written("bytes_written", 0llu, m_performance_counters),
             mTransactionPEQ("TransactionPEQ"),
             ahbBaseAddress(static_cast<uint32_t> (hmask_ & haddr_) << 20),
             ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1), 
@@ -125,6 +128,10 @@ void AHBMem::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
         // write simulation memory
         mem[trans.get_address() + i] = *(trans.get_data_ptr() + i);
       }
+
+      // Update statistics
+      m_bytes_written += trans.get_data_length();
+
       // delay a clock cycle per word
       delay += clock_cycle * (trans.get_data_length() >> 2);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
@@ -135,7 +142,10 @@ void AHBMem::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &dela
         // read simulation memory
         *(trans.get_data_ptr() + i) = mem[trans.get_address() + i];
       }
-      
+
+      // Update statistics
+      m_bytes_read += trans.get_data_length();
+
       // delay a clock cycle per word
       delay += clock_cycle * (trans.get_data_length() >> 2);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
@@ -216,6 +226,9 @@ void AHBMem::processTXN() {
 
         }
 
+        // Update statistics
+        m_bytes_written += trans->get_data_length();
+
         // Send END_DATA
         phase = amba::END_DATA;
         delay = clock_cycle * (trans->get_data_length() >> 2);
@@ -233,6 +246,9 @@ void AHBMem::processTXN() {
 	  *(trans->get_data_ptr() + i) = mem[trans->get_address() + i];
         
         }
+
+        // Update statistics
+        m_bytes_read += trans->get_data_length();
 
         // Send BEGIN_RESP
         phase = tlm::BEGIN_RESP;
@@ -293,4 +309,15 @@ unsigned int AHBMem::transport_dbg(tlm::tlm_generic_payload &gp) {
         }
     }
     return 0;
+}
+
+void AHBMem::end_of_simulation() {
+
+  v::report << name() << " **************************************************** " << v::endl;
+  v::report << name() << " * AHBMem Statistics: " << v::endl;
+  v::report << name() << " * ------------------ " << v::endl;
+  v::report << name() << " * Bytes read: " << m_bytes_read << v::endl;
+  v::report << name() << " * Bytes written: " << m_bytes_written << v::endl;
+  v::report << name() << " * ************************************************** " << v::endl;
+
 }
