@@ -30,12 +30,13 @@
 //
 // Purpose:    64 Point Radix-4 FFT Implementation
 //             Simple test for Leon ISS / regular computation
-//             / word load-store 
-//             (Version with File I/O)
+//             / word load-store
+//             (Version without File I/O - All input/output diverted
+//             to headers)
 //
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
+// Modified on $Date: 2011-10-14 17:05:38 +0200 (Fri, 14 Oct 2011) $
+//          at $Revision: 531 $
+//          by $Author: HWSWSIM $
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
@@ -46,13 +47,16 @@
 // datatyp definitions 
 #include "defines.h"
 
+#include <asm-leon/irq.h>
+
 // input stimuli
 #include "./input/data.h"
+#include "results.h"
 #include "stdio.h"
 
 #ifdef LINUX_TEST
 // linux input output files
-#define OUTFILENAME "./output/spectrum_linux.dat"
+#define OUTFILENAME "./outputs/spectrum_linux.dat"
 #else
 // for platform simulation
 #define OUTFILENAME "com3"
@@ -61,7 +65,72 @@
 // allow tolerance in precision
 #define tol 10 
 
-void fft_radix4(complex32 samples[], complex32 twiddles[], complex32 inplace[], FILE * outfile, int N){
+int got_irq = 0;
+
+#include "../grlib_tests/irqmp.h"
+
+struct irqmp *irqmp_base;
+static volatile int irqtbl[18];
+
+void irqhandler_f(int irq) {
+
+  irqtbl[irqtbl[0]] = irq + 0x10;
+  irqtbl[0]++;
+  got_irq++;
+  
+}
+
+void init_irqmp(struct irqmp *lr) {
+    lr->irqlevel = 0;   /* clear level reg */
+    lr->irqmask = 0x0;  /* mask all interrupts */
+    lr->irqclear = -1;  /* clear all pending interrupts */
+    irqtbl[0] = 1;      /* init irqtable */
+}
+
+void fft_radix4(complex32 samples[], complex32 twiddles[], complex32 inplace[], int N);
+
+//int start() {
+int main() {
+
+  int i;
+  int r=0;
+  unsigned int addr = 0x8001F000;
+
+  struct irqmp *lr = (struct irqmp *)addr;
+  irqmp_base = lr;
+  init_irqmp(lr);
+  
+  // Install interrupt handler
+  for(i=1;i<16;i++) {
+
+    catch_interrupt(irqhandler_f, i);
+
+  }
+
+  // Unmask all interrupts
+  lr->irqmask = 0x0fffe;
+
+  while(got_irq==0) {
+
+  }
+
+
+  printf("Received IRQ\n");
+
+  // computation function (samples: input stimuli, twiddles: twiddle factors, inplace: space for results)
+  fft_radix4(samples, twiddles, inplace, N);
+  /*
+  for(i=0; i<N; i++) {
+    r |= inplace[i].real-result[i].real + inplace[i].imag-result[i].imag;
+  }
+  */
+
+  printf("Test completed\n");
+
+  return r;
+}
+
+void fft_radix4(complex32 samples[], complex32 twiddles[], complex32 inplace[], int N) {
 
   int input0I, input0Q, input1I, input1Q, input2I, input2Q, input3I, input3Q;
   int intdft0I, intdft0Q, intdft1I, intdft1Q, intdft2I, intdft2Q, intdft3I, intdft3Q;
@@ -153,24 +222,6 @@ void fft_radix4(complex32 samples[], complex32 twiddles[], complex32 inplace[], 
 
   }  
 
-  #ifdef LINUX_TEST
-  //fprintf(outfile,"first stage \n");
-  #else
-  //fiprintf(outfile,"first stage \n");
-  #endif
-
-  /*
-  for (i=0; i<N; i++) {
-    
-    #ifdef LINUX_TEST
-    fprintf(outfile,"%d + %di\n", inplace[i].real, inplace[i].imag);
-    #else
-    fiprintf(outfile,"%d + %di\n",inplace[i].real, inplace[i].imag);
-    #endif
-
-  }
-  */
-   
   // ********************************************************************
   // second stage
 
@@ -353,24 +404,6 @@ void fft_radix4(complex32 samples[], complex32 twiddles[], complex32 inplace[], 
  
   }
 
-  #ifdef LINUX_TEST
-  //fprintf(outfile,"second stage \n");
-  #else
-  //fiprintf(outfile,"second stage \n");
-  #endif
-
-  /*
-  for (i=0; i<N; i++) {
-    
-    #ifdef LINUX_TEST
-    fprintf(outfile,"%d + %di\n", inplace[i].real, inplace[i].imag);
-    #else
-    fiprintf(outfile,"%d + %di\n",inplace[i].real, inplace[i].imag);
-    #endif
-
-  }
-  */
-
   // ********************************************************************
   // third stage
 
@@ -429,50 +462,6 @@ void fft_radix4(complex32 samples[], complex32 twiddles[], complex32 inplace[], 
     inplace[k3].imag = tmp1Q + tmp3I;
 	
   }
-
-  #ifdef LINUX_TEST
-  //fprintf(outfile,"third stage \n");
-  #else
-  //fiprintf(outfile,"third stage \n");
-  #endif
-
-  /*
-  for (i=0; i<N; i++) {
-    
-    #ifdef LINUX_TEST
-    //fprintf(outfile,"%d + %di\n", inplace[i].real, inplace[i].imag);
-    #else
-    //fiprintf(outfile,"%d + %di\n",inplace[i].real, inplace[i].imag);
-    #endif
-
-  }
-  */
-
 }
 
-int main()
-{
-
-  int i;
-  FILE * outfile;
-
-  if ((outfile = fopen(OUTFILENAME,"w"))==NULL) { return(1); }
-
-  // computation function (samples: input stimuli, twiddles: twiddle factors, inplace: space for results)
-  fft_radix4(samples, twiddles, inplace, outfile, N);
-  printf("complex32 twiddles[%d] = {\n", N);
-  for (i=0; i<N; i++) {
-    
-    //#ifdef LINUX_TEST
-    printf("\t{%d, %d},\n", inplace[i].real, inplace[i].imag);
-    //#else
-    //fprintf(outfile,"%d + %di\n",inplace[i].real, inplace[i].imag);
-    //#endif
-  }
-  printf("};\n");
-
-  fclose(outfile);
-
-  return(0);
-}
 

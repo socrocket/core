@@ -54,3 +54,11 @@ def build(bld):
      source       = ['radix4_nofile.c'],
   )
 
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'fft64_input_gen.sparc',
+     cxxflags     = '-static -g -O1 -lm',
+     linkflags    = '-static -g -O1 -lm',
+     source       = ['radix4_input_gen.c'],
+  )
+
