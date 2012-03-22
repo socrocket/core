@@ -65,7 +65,7 @@ def build(bld):
     bld(
         target       = '$template.$configuration.prom',
         features     = 'c cprogram sparc',
-        cflags       = '-g'
+        cflags       = '-g',
         linkflags    = '-g -Ttext=0 -nostartfiles -nostdlib -T%s -N' % (ldscript.abspath()),
         source       = [ 'prom.S' ],
         includes     = '.',
