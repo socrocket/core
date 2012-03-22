@@ -199,11 +199,11 @@ class Irqmp : public gs::reg::gr_device,
         
         /// Performance Counter per IRQ Line
         /// The number of executed interrupts is stored in the variable
-        gs::gs_param<uint64_t *> m_irq_counter;
+        gs::gs_param<unsigned long long *> m_irq_counter;
 
         /// Performance Counter per CPU Line
         /// The number of executed interrupts on each cpu line is stored in the variable
-        gs::gs_param<uint64_t *>m_cpu_counter;
+        gs::gs_param<unsigned long long *>m_cpu_counter;
 
         /// power monitoring enabled or not
         const uint32_t powermon;

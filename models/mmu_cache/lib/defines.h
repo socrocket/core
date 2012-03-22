@@ -43,7 +43,7 @@
 #ifndef __DEFINES_H__
 #define __DEFINES_H__
 
-#include "tlm.h"
+#include <tlm.h>
 
 // Structure of a cache tag
 // ========================

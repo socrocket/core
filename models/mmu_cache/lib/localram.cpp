@@ -57,10 +57,10 @@ localram::localram(sc_core::sc_module_name name,
 		   m_lrsize(lrsize<<10), 
 		   m_lrstart(lrstart << 24),
 		   m_performance_counters("performance_counters"),
-		   sreads("read_transactions", 0llu, m_performance_counters),
-		   swrites("written_transactions", 0llu, m_performance_counters),
-		   sreads_byte("bytes_read", 0llu, m_performance_counters),
-		   swrites_byte("bytes_written", 0llu, m_performance_counters),
+		   sreads("read_transactions", 0ull, m_performance_counters),
+		   swrites("written_transactions", 0ull, m_performance_counters),
+		   sreads_byte("bytes_read", 0ull, m_performance_counters),
+		   swrites_byte("bytes_written", 0ull, m_performance_counters),
 		   m_pow_mon(pow_mon)
 {
 

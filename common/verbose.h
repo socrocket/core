@@ -44,12 +44,12 @@
 #ifndef VERBOSE_H
 #define VERBOSE_H
 
-#include <systemc.h>
 #include <iostream>
 #include <streambuf>
 #include <iomanip>
 #include <cstdio>
 #include <cstring>
+#include <systemc.h>
 
 /// @addtogroup utils
 /// @{

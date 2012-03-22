@@ -44,15 +44,16 @@
 #ifndef MAPMEMORY_H
 #define MAPMEMORY_H
 
-#include "verbose.h"
-#include "memdevice.h"
-#include "ext_erase.h"
 #include "vmap.h"
+#include "memdevice.h"
 
-#include <greensocket/target/single_socket.h>
 #include <greencontrol/config.h>
-#include <systemc.h>
+#include <greensocket/target/single_socket.h>
+#include "ext_erase.h"
 #include <tlm.h>
+#include <systemc.h>
+
+#include "verbose.h"
 
 /// @brief This class models a generic memory. Depending on the configuration
 /// it can be used as ROM, IO, SRAM or SDRAM, in conjunction with the SoCRocket MCTRL.
@@ -114,10 +115,10 @@ class MapMemory : public MEMDevice,
         gs::gs_param_array m_performance_counters;
 
         /// Performance counter to store transaction byte reads
-        gs::gs_param<uint64_t> m_reads;
+        gs::gs_param<unsigned long long> m_reads;
 
         /// Performance counter to store the transaction byte writes
-        gs::gs_param<uint64_t> m_writes; 
+        gs::gs_param<unsigned long long> m_writes; 
 };
 
 #endif

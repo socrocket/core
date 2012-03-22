@@ -48,17 +48,17 @@
 #ifndef __INPUT_DEVICE_H__
 #define __INPUT_DEVICE_H__
 
-#include <tlm.h>
-#include <tlm_utils/simple_target_socket.h>
+#include "ahbdevice.h"
+#include "clkdevice.h"
 
 #include <math.h>
 #include <greencontrol/config.h>
-
+#include <tlm.h>
+#include <tlm_utils/simple_target_socket.h>
 #include <amba.h>
+
 #include "socrocket.h"
 #include "signalkit.h"
-#include "ahbdevice.h"
-#include "clkdevice.h"
 #include "power_monitor.h"
 
 #include "verbose.h"
@@ -162,9 +162,9 @@ class input_device : public sc_core::sc_module, public AHBDevice, public CLKDevi
         gs::gs_param_array m_performance_counters;
 
         /// Total number of successful transactions for execution statistics 
-        gs::gs_param<uint64_t> m_right_transactions;
+        gs::gs_param<unsigned long long> m_right_transactions;
 	/// Total number of transactions for execution statistics
-        gs::gs_param<uint64_t> m_total_transactions;
+        gs::gs_param<unsigned long long> m_total_transactions;
 
 	/// Power monitoring enabled/disable
 	bool m_pow_mon;

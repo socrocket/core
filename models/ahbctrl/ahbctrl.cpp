@@ -88,14 +88,14 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       mResponsePEQ("ResponsePEQ"),
       m_performance_counters("performance_counters"),
       m_total_wait("total_wait", SC_ZERO_TIME, m_performance_counters),
-      m_arbitrated("arbitrated", 0llu, m_performance_counters),
+      m_arbitrated("arbitrated", 0ull, m_performance_counters),
       m_max_wait("maximum_waiting_time", SC_ZERO_TIME, m_performance_counters),
       m_max_wait_master("maximum_wating_master_id", defmast, m_performance_counters),
-      m_idle_count("idle_cycles", 0llu, m_performance_counters),
-      m_total_transactions("total_transactions", 0llu, m_performance_counters), 
-      m_right_transactions("successful_transactions", 0llu, m_performance_counters),
-      m_writes("bytes_written", 0llu, m_performance_counters),
-      m_reads("bytes_read", 0llu, m_performance_counters),
+      m_idle_count("idle_cycles", 0ull, m_performance_counters),
+      m_total_transactions("total_transactions", 0ull, m_performance_counters), 
+      m_right_transactions("successful_transactions", 0ull, m_performance_counters),
+      m_writes("bytes_written", 0ull, m_performance_counters),
+      m_reads("bytes_read", 0ull, m_performance_counters),
       m_ambaLayer(ambaLayer) 
 
 {
@@ -406,7 +406,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     }
 
     // Power event start
-    PM::send(this,"ahb_trans",1,sc_time_stamp(),(unsigned int)trans.get_data_ptr(),m_pow_mon);
+    PM::send(this,"ahb_trans",1,sc_time_stamp(),(size_t)trans.get_data_ptr(),m_pow_mon);
 
     // Forward request to the selected slave
     ahbOUT[index]->b_transport(trans, delay);
@@ -414,7 +414,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     //v::debug << name() << "Delay after return from slave: " << delay << v::endl;
 
     // Power event end
-    PM::send(this,"ahb_trans",0,sc_time_stamp()+delay,(unsigned int)trans.get_data_ptr(),m_pow_mon);
+    PM::send(this,"ahb_trans",0,sc_time_stamp()+delay,(size_t)trans.get_data_ptr(),m_pow_mon);
     
     wait(delay);
 

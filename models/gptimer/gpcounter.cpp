@@ -56,7 +56,7 @@
 GPCounter::GPCounter(GPTimer &_parent, unsigned int _nr, sc_core::sc_module_name name) :
     gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false), 
     m_performance_counters("performance_counters"),
-    m_underflows("undeflows", 0llu, m_performance_counters) {
+    m_underflows("undeflows", 0ull, m_performance_counters) {
     SC_THREAD(ticking);
 
     m_api = gs::cnf::GCnf_Api::getApiInstance(this);
@@ -180,7 +180,7 @@ void GPCounter::ticking() {
         wait(e_wait);
 
         // update performance counter
-        m_underflows++;
+        m_underflows = m_underflows + 1;
 
         v::debug << name() << "GPCounter_" << nr << " underflows'" << v::endl;
         PM::send(this, "underflow", 1, sc_time_stamp(),0,1);

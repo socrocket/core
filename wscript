@@ -162,7 +162,7 @@ def configure(ctx):
             if not ctx.options.debug:
               ctx.env.append_unique('DEFINES', 'NDEBUG')
         else:
-            testFlags = ['-O2', '-pipe', '-finline-functions', '-fomit-frame-pointer']
+            testFlags = ['-O2', '-pipe', '-finline-functions', '-fomit-frame-pointer', '-fpermissive']
             if ctx.check_cxx(cxxflags=testFlags, msg='Checking for g++ optimization flags') and ctx.check_cc(cflags=testFlags, msg='Checking for gcc optimization flags'):
                 ctx.env.append_unique('CXXFLAGS', testFlags)
                 ctx.env.append_unique('CCFLAGS', testFlags)
@@ -761,6 +761,7 @@ def configure(ctx):
     ##################################################
     # Extend GreenSocs with TLM extensionPool.h
     ##################################################
+    """
     if ctx.options.tlmdir:
         tlmPath = os.path.normpath(os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.tlmdir))))
     if tlmPath.endswith('include'):
@@ -780,23 +781,38 @@ def configure(ctx):
       uselib        = 'SYSTEMC TLM GREENSOCS',
       okmsg        = "ok",
     )
-     
+    """
+    
+    ##################################################
+    # SPARC compiler search
+    ##################################################
     ctx.setenv('sparc')
     ctx.load('compiler_c')
     #sparc_env = ctx.env.copy()
     # Check if the compiler is present
-    crosscc = crossxx = path = None
+    crosscc = crossxx = crossar = path = None
     
     try:
         path = os.path.abspath(os.path.expanduser(getattr(ctx.options,'sparc_cross')))
         crosscc = [ctx.find_program(ctx.options.sparc_prefix + 'gcc', path_list=[os.path.join(path, 'bin')])]
-        crossxx = [ctx.find_program(ctx.options.sparc-prefix + 'g++', path_list=[os.path.join(path, 'bin')])]
-        crossar = [ctx.find_program(ctx.options.sparc_prefix + 'ar', path_list=[os.path.join(path, 'bin')])]
     except AttributeError as e:
         # If the path was not specified look in the search PATH
         crosscc = [ctx.find_program(ctx.options.sparc_prefix + 'gcc')]
+
+    try:
+        path = os.path.abspath(os.path.expanduser(getattr(ctx.options,'sparc_cross')))
+        crossxx = [ctx.find_program(ctx.options.sparc_prefix + 'g++', path_list=[os.path.join(path, 'bin')])]
+    except AttributeError as e:
+        # If the path was not specified look in the search PATH
         crossxx = [ctx.find_program(ctx.options.sparc_prefix + 'g++')]
+
+    try:
+        path = os.path.abspath(os.path.expanduser(getattr(ctx.options,'sparc_cross')))
+        crossar = [ctx.find_program(ctx.options.sparc_prefix + 'ar', path_list=[os.path.join(path, 'bin')])]
+    except AttributeError as e:
+        # If the path was not specified look in the search PATH
         crossar = [ctx.find_program(ctx.options.sparc_prefix + 'ar')]
+
     ctx.env['CC'] = ctx.env['LINK_CC'] = crosscc
     ctx.env['CXX'] = ctx.env['LINK_CXX'] = crossxx
     ctx.env['AR'] = crossar

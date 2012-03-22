@@ -43,13 +43,14 @@
 #ifndef APBCTRL_H
 #define APBCTRL_H
 
-#include <systemc>
-#include <amba.h>
-#include <greencontrol/config.h>
-
 #include "ahbdevice.h"
 #include "apbdevice.h"
 #include "clkdevice.h"
+
+#include <greencontrol/config.h>
+#include <amba.h>
+#include <systemc>
+
 #include "power_monitor.h"
 #include "vmap.h"
 
@@ -181,10 +182,10 @@ class APBCtrl : public sc_core::sc_module, public AHBDevice, public CLKDevice {
   gs::gs_param_array m_performance_counters;
 
   /// Total number of transactions
-  gs::gs_param<uint64_t> m_total_transactions;
+  gs::gs_param<unsigned long long> m_total_transactions;
 
   /// Successful number of transactions
-  gs::gs_param<uint64_t> m_right_transactions;
+  gs::gs_param<unsigned long long> m_right_transactions;
 
     /// Set up slave map and collect plug & play information
     void start_of_simulation();

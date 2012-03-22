@@ -79,10 +79,10 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     m_lramsize((unsigned int)log2((double)lramsize)),
     m_performance_counters("performance_counters"),
     rhits("read_hits", sets, m_performance_counters),
-    rmisses("read_misses", 0llu, m_performance_counters),
+    rmisses("read_misses", 0ull, m_performance_counters),
     whits("write_hits", sets, m_performance_counters),
-    wmisses("write_misses", 0llu, m_performance_counters),
-    bypassops("bypass_operations", 0llu, m_performance_counters),
+    wmisses("write_misses", 0ull, m_performance_counters),
+    bypassops("bypass_operations", 0ull, m_performance_counters),
     m_pow_mon(pow_mon),
     clockcycle(10, sc_core::SC_NS)
 

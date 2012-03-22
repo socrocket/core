@@ -46,22 +46,24 @@
 
 #define DEBUG
 
-//#include <cmath.h>
-#include <algorithm>
-#include <iostream>
-#include <boost/config.hpp>
-#include <systemc.h>
-#include <tlm.h>
-#include <signalkit.h>
-#include <greensocket/initiator/multi_socket.h>
-#include <greenreg_ambasockets.h>
-#include <greencontrol/config.h>
-
-#include "amba.h"
 #include "ahbdevice.h"
 #include "apbdevice.h"
 #include "clkdevice.h"
 #include "memdevice.h"
+
+//#include <cmath.h>
+#include <algorithm>
+#include <iostream>
+#include <boost/config.hpp>
+
+#include <greencontrol/config.h>
+#include <greensocket/initiator/multi_socket.h>
+#include <greenreg_ambasockets.h>
+#include <amba.h>
+#include <tlm.h>
+#include <systemc.h>
+
+#include <signalkit.h>
 #include "vendian.h"
 #include "verbose.h"
 #include "ext_erase.h"
@@ -257,10 +259,10 @@ class Mctrl : public gs::reg::gr_device,
         gs::gs_param_array m_performance_counters;
         
         /// The number of total transactions handled by the mctrl
-        gs::gs_param<uint64_t> m_total_transactions;
+        gs::gs_param<unsigned long long> m_total_transactions;
         
         /// The number of successfull ended transactions
-        gs::gs_param<uint64_t> m_right_transactions;
+        gs::gs_param<unsigned long long> m_right_transactions;
 
         /// Total time of power down mode
         gs::gs_param<sc_time> m_power_down_time;

@@ -283,7 +283,7 @@ void Irqmp::incomming_irq(const bool &value, const uint32_t &irq, const sc_time 
         return;
     }
     // Performance counter increase
-    m_irq_counter[irq]++;
+    m_irq_counter[irq] = m_irq_counter[irq] + 1;
     
     // If the incomming interrupt is not listed in the broadcast register 
     // it goes in the pending register

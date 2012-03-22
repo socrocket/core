@@ -43,8 +43,8 @@
 #ifndef EXT_ERASE
 #define EXT_ERASE
 
-#include <systemc.h>
 #include <tlm.h>
+#include <systemc.h>
 
 //simple payload extension for erasing memory
 struct ext_erase : public tlm::tlm_extension<ext_erase> {

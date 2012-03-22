@@ -44,8 +44,6 @@
 // Reviewed:
 //*********************************************************************
 
-#include <systemc.h>
-#include <tlm.h>
 
 #include "processor.hpp"
 #include <execLoader.hpp>
@@ -53,6 +51,7 @@
 #include "mmu_cache.h"
 #include "arraymemory.h"
 #include "apbctrl.h"
+#include "ahbmem.h"
 #include "mctrl.h"
 #include "defines.h"
 #include "gptimer.h"
@@ -71,7 +70,8 @@
 
 #include "config.h"
 #include <GDBStub.hpp>
-#include "ahbmem.h"
+#include <systemc.h>
+#include <tlm.h>
 using namespace std;
 using namespace sc_core;
 

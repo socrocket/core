@@ -46,18 +46,18 @@
 #ifndef GPTIMER_H
 #define GPTIMER_H
 
-#include <greenreg_ambasockets.h>
+#include "gpcounter.h"
+#include "apbdevice.h"
+#include "clkdevice.h"
+
 #include <greencontrol/all.h>
+#include <greenreg_ambasockets.h>
 #include <systemc>
 #include <boost/config.hpp>
 
 #include "signalkit.h"
 #include "power_monitor.h"
 #include "verbose.h"
-
-#include "gpcounter.h"
-#include "apbdevice.h"
-#include "clkdevice.h"
 
 #include <string>
 #include <ostream>

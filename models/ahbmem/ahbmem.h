@@ -43,19 +43,19 @@
 #ifndef AHBMEM_H
 #define AHBMEM_H
 
-#include <systemc.h>
-#include <tlm.h>
+#include "ahbdevice.h"
+#include "clkdevice.h"
+
 #include <map>
 #include <amba.h>
+#include <tlm.h>
+#include <systemc.h>
 
 #if defined(MTI_SYSTEMC)
 #include "peq_with_get.h"
 #else
 #include "tlm_utils/peq_with_get.h"
 #endif
-
-#include "ahbdevice.h"
-#include "clkdevice.h"
 
 class AHBMem : public sc_module, public AHBDevice, public CLKDevice {
  public:
@@ -113,8 +113,8 @@ class AHBMem : public sc_module, public AHBDevice, public CLKDevice {
   gs::gs_param_array m_performance_counters;
 
   // Performance counters
-  gs::gs_param<uint64_t> m_bytes_read;
-  gs::gs_param<uint64_t> m_bytes_written;
+  gs::gs_param<unsigned long long> m_bytes_read;
+  gs::gs_param<unsigned long long> m_bytes_written;
 
  private:
   /// The actual memory

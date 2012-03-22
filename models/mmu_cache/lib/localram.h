@@ -46,9 +46,9 @@
 #ifndef __LOCALRAM_H__
 #define __LOCALRAM_H__
 
-#include <tlm.h>
-#include <greencontrol/config.h>
 #include <stdint.h>
+#include <greencontrol/config.h>
+#include <tlm.h>
 
 #include "mem_if.h"
 #include "defines.h"
@@ -121,16 +121,16 @@ class localram : public sc_core::sc_module, public mem_if {
   gs::gs_param_array m_performance_counters;
   
 	/// Number of read accesses
-  gs::gs_param<uint64_t> sreads;
+  gs::gs_param<unsigned long long> sreads;
 
 	/// Number of write accesses
-  gs::gs_param<uint64_t> swrites;
+  gs::gs_param<unsigned long long> swrites;
 
 	/// Volume of total reads (bytes)
-  gs::gs_param<uint64_t> sreads_byte;
+  gs::gs_param<unsigned long long> sreads_byte;
 
 	/// Volume of total writes (bytes)
-  gs::gs_param<uint64_t> swrites_byte;
+  gs::gs_param<unsigned long long> swrites_byte;
 
 	/// Power monitoring enabled or not
 	bool m_pow_mon;

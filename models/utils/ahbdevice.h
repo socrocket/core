@@ -47,9 +47,9 @@
 #define AHB_DEVICE_H
 
 #include <stdint.h>
+#include <greencontrol/config.h>
 #include <amba.h>
 #include <tlm.h>
-#include <greencontrol/config.h>
 
 /// @addtogroup utils
 /// @{

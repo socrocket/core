@@ -45,16 +45,17 @@
 #ifndef AHBCTRL_H
 #define AHBCTRL_H
 
-#include <tlm.h>
-#include <amba.h>
-#include <greencontrol/config.h>
-
 #include "socrocket.h"
-#include "power_monitor.h"
 
 #include "ahbdevice.h"
 #include "clkdevice.h"
 #include "signalkit.h"
+
+#include <greencontrol/config.h>
+#include <amba.h>
+#include <tlm.h>
+
+#include "power_monitor.h"
 
 /// @addtogroup ahbctrl AHBctrl
 /// @{
@@ -262,28 +263,28 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   gs::gs_param<sc_time> m_total_wait;
 
   /// Total number of arbitrated instructions
-  gs::gs_param<uint64_t> m_arbitrated;
+  gs::gs_param<unsigned long long> m_arbitrated;
 
   /// Maximum waiting time in arbiter
   gs::gs_param<sc_time> m_max_wait;
 
   /// ID of the master with the maximum waiting time
-  gs::gs_param<uint32_t> m_max_wait_master;
+  gs::gs_param<unsigned long long> m_max_wait_master;
 
   /// Number of idle cycles
-  gs::gs_param<uint64_t> m_idle_count;
+  gs::gs_param<unsigned long long> m_idle_count;
 
   /// Total number of transactions handled by the instance
-  gs::gs_param<uint64_t> m_total_transactions;
+  gs::gs_param<unsigned long long> m_total_transactions;
 
   /// Succeeded number of transaction handled by the instance
-  gs::gs_param<uint64_t> m_right_transactions;
+  gs::gs_param<unsigned long long> m_right_transactions;
 
   /// Counts bytes written to AHBCTRL from the master side
-  gs::gs_param<uint64_t> m_writes;
+  gs::gs_param<unsigned long long> m_writes;
 
   /// Counts bytes read from AHBCTRL from the master side
-  gs::gs_param<uint64_t> m_reads;
+  gs::gs_param<unsigned long long> m_reads;
 
   /// ID of the master which currently 'owns' the bus
   uint32_t current_master;

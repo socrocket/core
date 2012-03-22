@@ -25,8 +25,8 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
   bus("bus"), 
   g_powmon(powmon), 
   m_performance_counters("performance_counters"),
-  m_reads("bytes_read", 0llu, m_performance_counters), 
-  m_writes("bytes_writen", 0llu, m_performance_counters) {
+  m_reads("bytes_read", 0ull, m_performance_counters), 
+  m_writes("bytes_writen", 0ull, m_performance_counters) {
     // register transport functions to sockets
     gs::socket::config<tlm::tlm_base_protocol_types> bus_cfg;
     bus_cfg.use_mandatory_phase(BEGIN_REQ);

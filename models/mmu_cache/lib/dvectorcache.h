@@ -46,10 +46,10 @@
 #ifndef __DVECTORCACHE_H__
 #define __DVECTORCACHE_H__
 
-#include "tlm.h"
-
-#include "defines.h"
 #include "vectorcache.h"
+#include "defines.h"
+
+#include "tlm.h"
 
 // implementation of cache memory and controller
 // ---------------------------------------------

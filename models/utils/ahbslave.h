@@ -1,14 +1,14 @@
 #ifndef AHBSLAVE_H
 #define AHBSLAVE_H 
 
-#include <systemc.h>
-#include <tlm.h>
-#include <amba.h>
-#include <stdint.h>
-
 #include "ahbdevice.h"
 
-class AHBSlave : public virtual sc_module, public AHBDevice {
+#include <stdint.h>
+#include <tlm.h>
+#include <amba.h>
+#include <systemc.h>
+
+class AHBSlave : public sc_module, public AHBDevice {
     public:
         SC_HAS_PROCESS(AHBSlave);
 

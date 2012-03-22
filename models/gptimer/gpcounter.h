@@ -46,10 +46,10 @@
 #ifndef GPCOUNTER_H
 #define GPCOUNTER_H
 
+#include <greencontrol/config.h>
 #include <greenreg.h>
 #include <systemc>
 //#include <boost/config.hpp>
-#include <greencontrol/config.h>
 
 #include "signalkit.h"
 
@@ -171,7 +171,7 @@ class GPCounter : public gs::reg::gr_subdevice {
         gs::gs_param_array m_performance_counters;
 
         /// Number of underflows of the counter
-        gs::gs_param<uint64_t> m_underflows;
+        gs::gs_param<unsigned long long> m_underflows;
 };
 
 /// @}

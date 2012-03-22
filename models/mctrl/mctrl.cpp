@@ -44,8 +44,8 @@
 //*********************************************************************
 
 #include "mctrl.h"
-#include "power_monitor.h"
 #include <tlm.h>
+#include "power_monitor.h"
 #include <algorithm>
 
 using namespace sc_core;
@@ -87,8 +87,8 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             mem("mem", gs::socket::GS_TXN_ONLY),
 	    mAcceptPEQ("mAcceptPEQ"), mTransactionPEQ("TransactionPEQ"),
 	    busy(false), m_performance_counters("performance_counters"),
-            m_total_transactions("total_transactions", 0llu, m_performance_counters), 
-            m_right_transactions("successful_transactions", 0llu, m_performance_counters), 
+            m_total_transactions("total_transactions", 0ull, m_performance_counters), 
+            m_right_transactions("successful_transactions", 0ull, m_performance_counters), 
             m_power_down_time("total_power_down", sc_core::SC_ZERO_TIME, m_performance_counters), 
             m_power_down_start("last_power_down", sc_core::SC_ZERO_TIME, m_performance_counters),
             m_deep_power_down_time("total_deep_power_down", sc_core::SC_ZERO_TIME, m_performance_counters), 

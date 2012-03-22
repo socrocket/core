@@ -78,8 +78,8 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
       busy(false),
       m_pnpbase(0xFF000),
       m_performance_counters("performance_counters"),
-      m_total_transactions("total_transactions", 0llu, m_performance_counters),
-      m_right_transactions("successful_transactions", 0llu, m_performance_counters) {
+      m_total_transactions("total_transactions", 0ull, m_performance_counters),
+      m_right_transactions("successful_transactions", 0ull, m_performance_counters) {
 
     // Assert generics are withing allowed ranges
     assert(haddr_ <= 0xfff);
