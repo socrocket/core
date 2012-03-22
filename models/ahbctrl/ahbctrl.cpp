@@ -102,6 +102,15 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
 
   m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
+  // Initialize slave and master table
+  // (Pointers to deviceinfo fields will be set in start_of_simulation)
+  for(int i = 0; i < 64; i++) {
+
+    mSlaves[i] = NULL;
+    mMasters[i] = NULL;
+
+  }
+
   if(ambaLayer==amba::amba_LT) {
 
     // Register tlm blocking transport function
@@ -215,6 +224,8 @@ int AHBCtrl::get_index(const uint32_t address) {
 // Returns a PNP register from the slave configuration area
 unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 
+  uint32_t result;
+
   m_total_transactions++;
   // Calculate address offset in configuration area (slave info starts from 0x800)
   unsigned int addr   = address - (((mioaddr << 20) | (mcfgaddr << 8)) & ((miomask << 20) | (mcfgmask << 8)));
@@ -235,7 +246,21 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
         v::warn << name() << "Access to unregistered PNP Slave Register!" << v::endl;
         return 0;
     }
-    uint32_t result =  mSlaves[device][offset];
+    
+    v::info << name() << "Access mSlaves - device: " << device << " offset: " << offset << v::endl;
+
+    uint32_t result;
+
+    // If the device exists, access deviceinfo (otherwise 0)
+    if (mSlaves[device] != NULL) {
+      
+      result =  mSlaves[device][offset];
+
+    } else {
+
+      result = 0;
+
+    }
  
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(result);
@@ -255,7 +280,17 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
         v::warn << name() << "Access to unregistered PNP Master Register!" << v::endl;
         return 0;
     }
-    uint32_t result = mMasters[device][offset];
+
+    if (mMasters[device] != NULL) {
+      
+      result = mMasters[device][offset];
+
+    } else {
+
+      result = 0;
+
+    }
+
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(result);
     #endif
