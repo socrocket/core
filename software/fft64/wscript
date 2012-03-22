@@ -49,7 +49,7 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'fft64.sparc',
-     cxxflags     = '-static -g -O1 -lm',
+     cflags       = '-static -g -O1 -lm',
      linkflags    = '-static -g -O1 -lm',
      source       = ['radix4_nofile.c'],
   )
@@ -57,7 +57,7 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'fft64_input_gen.sparc',
-     cxxflags     = '-static -g -O1 -lm',
+     cflags       = '-static -g -O1 -lm',
      linkflags    = '-static -g -O1 -lm',
      source       = ['radix4_input_gen.c'],
   )

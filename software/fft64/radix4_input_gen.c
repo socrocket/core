@@ -65,12 +65,11 @@
 // allow tolerance in precision
 #define tol 10 
 
-int got_irq = 0;
-
 #include "../grlib_tests/irqmp.h"
 
 struct irqmp *irqmp_base;
 static volatile int irqtbl[18];
+volatile int got_irq = 0;
 
 void irqhandler_f(int irq) {
 
@@ -110,9 +109,7 @@ int main() {
   // Unmask all interrupts
   lr->irqmask = 0x0fffe;
 
-  while(got_irq==0) {
-
-  }
+  while(got_irq==0) {}
 
 
   printf("Received IRQ\n");
