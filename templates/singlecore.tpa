@@ -1,25 +1,27 @@
 <template name="Single-Core Platform">
   <description>
-    A simple Platform consisting of one LEON3 processor with MMUCACHE IP connected to AHB and APB Busses with IRQ and Memory controler. 
-    Optional GPTimer, SoCWire IPs can be enabled. All IPs can be fully configured.
+    A standard LEON3 system: The template provides a LEON3 instruction set simulator, models for caches and memory management unit (MMU_CACHE),
+    a memory controller with PROM, SRAM and SDRAM simulation memories, an interrupt controller and an AMBA AHB/APB interconnect. 
+    The AHB2SoCWire bridge and the general purpose timer can be optionally enabled.
     <br/>
     <h2>Features:</h2>
     <ul>
       <li>Direct elf file loading</li>
       <li>GDB Stubs build in</li>
-      <li>Event Monitor</li>
+      <li>Power Estimation</li>
       <li>Timing Report</li>
-      <li>Cache Report</li>
-      <li>RAM Application Initial PROM is included</li>
+      <li>RAM Application - Initial PROM is included</li>
     </ul>
   </description>
   <option name="Basic Configuration" var="conf">
     <option name="System Options" var="sys">
-      <option var="lt_at" name="LT or AT simulation" type="bool" default="true" hint="If this switch is set to true the simulation models will be instantiated in LT. Otherwise in AT."/>
+      <option var="lt_at" name="LT or AT simulation" type="bool" default="true" hint="True - LT abstraction, False - AT abstraction."/>
+      <option var="clock" name="Clock period in NS" type="int" default="10" hit="Assumes a single clock domain for all components"/>
       <option var="gdb" name="Enable GDB support" type="bool" default="true" hint="If this switch is set to true the simulation models will include GDB support. Just add ' gdb' to the end of the comandline to wait for GDB connection."/>
-      <option var="timing" name="Enable Timing Report" type="bool" default="true" hint="If this switch is set to true the simulation models will print a timing report at the end of simulation."/>
-      <option var="power" name="Enable Global Power Report" type="bool" default="true" hint="If this switch is set to true the simulation models will iagregate power data for all components. This is very slow and eats up a lot of RAM and HDD space. (Not recomended)"/>
+      <option var="timing" name="Enable timing report" type="bool" default="true" hint="If this switch is set to true the simulation models will print a timing report at the end of simulation."/>
+      <option var="power" name="Enable power monitoring" type="bool" default="false" hint="If this switch is set to true the simulation models will iagregate power data for all components. This is very slow and eats up a lot of RAM and HDD space. (Not recomended)"/>
     </option>
+
     <option var="ahbctrl" name="AHB Controller">
       <option var="ioaddr" name="AHB IO Area Address" type="int" default="0xFFF" range="0..0xFFF"/>
       <option var="iomask" name="AHB IO Area Mask" type="int" default="0xFFF" range="0..0xFFF"/>
@@ -27,7 +29,7 @@
       <option var="cfgmask" name="AHB CFG Area Mask" type="int" default="0xFF0" range="0..0xFF0"/>
       <option var="rrobin" name="Round robin arbitration." type="bool" default="false">
         <description>
-          Sets the arbiter work in rount robin mode. Alternativly fixed priority arbitration is applied.
+          True - round-robin arbitration, False - priority arbitration (highest master id has highest priority)
         </description> 
       </option>
       <option var="defmast" name="Default AHB Master" type="int" default="0" range="0..16"/>
@@ -47,33 +49,35 @@
     </option>
     
     <option var="apbctrl" name="APB Controller">
-      <option var="index" name="Bus Index" type="int" default="2" range="0..15"/>
-      <option var="ioaddr" name="APB IO Area Address" type="int" default="0x800" range="0..0xFFF"/>
-      <option var="iomask" name="APB IO Area Mask" type="int" default="0xFFF" range="0..0xFFF"/>
-      <option var="cfgaddr" name="APB CFG Area Address" type="int" default="0" range="0..0xFF0"/>
-      <option var="cfgmask" name="APB CFG Area Mask" type="int" default="0" range="0..0xFF0"/>
-      <option var="check" name="Intersection checking" type="bool" default="true">
+      <option var="haddr" name="AHB base address" type="int" default="0x800" range="0..0xFFF"/>
         <description>
-          Check if there are any intersections between core memory areas. If two areas intersect an assert with level failure will be triggered.
+          The 12 bit MSB address of the APB region in the AHB address map.
+        </description>
+      <option var="hmask" name="AHB address mask" type="int" default="0xFFF" range="0..0xFFF"/>
+        <description>
+          The 12 bit address mask of the APB region.
+        </description>
+      <option var="index" name="Bus Index" type="int" default="2" range="0..15"/> 
+        <description>
+          The AHB slave index of the device.
+        </description>
+      <option var="check" name="Memory check" type="bool" default="true">
+       <description>
+          Checks the APB address map for overlaps.
+          Stops the simulation (assert level failure) on errors.
         </description>
       </option>
     </option>
 
     <option var="mmu_cache" name="MMU Cache">
-      <option var="addr" name="AHB Base Address" type="int" default="0" range="0..4095"/>
-      <option var="mask" name="AHB Base Mask" type="int" default="0" range="0..4095"/>
-      <option var="index" name="Bus Index" type="int" default="0" range="0..15"/>
-      <option var="dsu" name="Enable debug support" type="bool" default="true">
-        <description>Enable debug support unit interface (not implemented)"</description>
-      </option>
-      <option var="icen" name="Enable instruction cache" type="bool" default="true">
+      <option var="icen" name="Enable instruction cache" type="bool" default="false">
         <option var="repl" name="Cache replacement strategy" type="int" default="2" range="0..3" hint="00 = non, 01 = LRU, 10 = LRR, 11 = random"/>
         <option var="sets" name="Number of cache sets" type="int" default="1" range="1..4"/>
         <option var="linesize" name="Indicates size of cache line in words" type="int" default="4" hint="(line size = 2^linesize, linesize &lt;= 3 )"/>
         <option var="setsize" name="Indicates size (kBytes) of cache set" type="int" default="1" hint="(set size = 2^setsize, setsize &lt;= 6 (max. 64 kbytes))"/>
         <option var="setlock" name="Enable cache locking" type="bool" default="false"/>
       </option>
-      <option var="dcen" name="Enable data cache" type="bool" default="true">
+      <option var="dcen" name="Enable data cache" type="bool" default="false">
         <option var="repl" name="Cache replacement strategy" type="int" default="2" range="0..3" hint="00 = non, 01 = LRU, 10 = LRR, 11 = random"/>
         <option var="sets" name="Number of cache sets" type="int" default="1" range="1..4"/>
         <option var="linesize" name="Indicates size of cache line in words" type="int" default="4" hint="(line size = 2^linesize, linesize &lt;= 3 )"/>
@@ -90,6 +94,7 @@
         <option var="start" name="8 MSB bits used to decode local RAM area" type="int" default="0x8f" range="0..0xF" hint="16MByte segment"/>
       </option>
       <option var="cached" name="Fixed cachability mask" type="int" default="0xffff" hint="(overrides AMBA Plug and Play settings)"/>
+      <option var="index" name="AHB master bus index" type="int" default="0"/>
       <option var="mmu_en" name="Enable MMU" type="bool" default="false">
         <option var="itlb_num" name="Indicates number of instruction TLBs" type="int" default="8" range="5..32" hint="(tlb number = 2^itlb_num, itlb_num &lt;= 5 (max. 32))"/>
         <option var="dtlb_num" name="Indicates number of data TLBs" type="int" default="8" range="5..32" hint="(tlb number = 2^dtlb_num, dtlb_num &lt;= 5 (max. 32))"/>
@@ -99,36 +104,32 @@
       </option>
     </option>
     
-    <option var="ahbmem" name="AHB Memory" type="bool" default="true">
+    <option var="ahbmem" name="AHB Memory" type="bool" default="false">
       <option var="index" name="Bus Index" type="int" default="1" range="0..15"/>
       <option var="addr" name="AHB Address" type="int" default="0xA00" range="0..0xFFF"/>
       <option var="mask" name="AHB Mask" type="int" default="0xFFF" range="0..0xFFF"/>
     </option>
     
     <option var="gptimer" name="GPTimer" type="bool" default="true">
-      <option var="addr" name="APB Base Address" type="int" default="0xF0" range="0..4095"/>
-      <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..4095"/>
-      <option var="index" name="Bus Index" type="int" default="2" range="0..15"/>
-      <option var="pirq" name="IRQ Line" type="int" default="8" range="0..15"/>
-      <option var="sepirq" name="Seperated IRQs" type="bool" default="true"/>
-      <option var="ntimers" name="Number of Counters" type="int" default="7" range="1..7"/>
-      <option var="sbits" name="Scaler Bits" hint="Defines the number of bits in the scaler" type="int" default="16" range="1..32"/>
-      <option var="nbits" name="Counter Bits" hint="Defines the number of bits in the counters" type="int" default="32" range="1..32"/>
-      <option var="wdog" name="Watchdog" type="int" default="0" range="0..0xFFFFFFF"/>
+       <option var="addr" name="APB Base Address" type="int" default="0xF0" range="0..4095"/>
+       <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..4095"/>
+       <option var="index" name="Bus Index" type="int" default="2" range="0..15"/>
+       <option var="pirq" name="IRQ Line" type="int" default="8" range="0..15"/>
+       <option var="sepirq" name="Seperated IRQs" type="bool" default="true"/>
+       <option var="ntimers" name="Number of Counters" type="int" default="7" range="1..7"/>
+       <option var="sbits" name="Scaler Bits" hint="Defines the number of bits in the scaler" type="int" default="16" range="1..32"/>
+       <option var="nbits" name="Counter Bits" hint="Defines the number of bits in the counters" type="int" default="32" range="1..32"/>
+       <option var="wdog" name="Watchdog" type="int" default="0" range="0..0xFFFFFFF"/>
     </option>
     
     <option var="memctrl" name="Memory Controller">
-      <option var="ahb" name="AHB Bus Interface">
-        <option var="addr" name="AHB Base Address" type="int" default="0" range="0..0xFFF"/>
-        <option var="mask" name="AHB Base Mask" type="int" default="0" range="0..0xFFF"/>
-        <option var="index" name="Bus Index" type="int" default="0" range="0..15"/>
-      </option>
+      <option var="index" name="Bus Index" type="int" default="0" range="0..15"/>
       <option var="apb" name="APB Bus Interface">
         <option var="addr" name="APB Base Address" type="int" default="0" range="0..0xFFF"/>
         <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..0xFFF"/>
         <option var="index" name="Bus Index" type="int" default="0" range="0..15"/>
       </option>
-      <option var="prom" name="PROM Configuration">
+      <option var="prom" name="PROM configuration" type="bool" default="true">
         <option var="addr" name="Address Space Base" type="int" default="0x000" range="0..0xFFF"/>
         <option var="mask" name="Address Space Mask" type="int" default="0xE00" range="0..0xFFF"/>
         <option var="asel" name="Address Space Selector" type="int" default="28" range="0..31"/>
@@ -136,24 +137,24 @@
         <option var="bsize" name="Size of a Memory Bank in MByte" type="int" default="256" range="0..1024"/>
         <option var="width" name="Width of Memory Bus" type="int" default="32" range="8..32"/>
       </option>
-      <option var="io" name="IO ROM Configuration">
+      <option var="io" name="IO memory configuration" type="bool" default="false">
         <option var="addr" name="Address Space Base" type="int" default="0x200" range="0..0xFFF"/>
         <option var="mask" name="Address Space Mask" type="int" default="0xE00" range="0..0xFFF"/>
         <option var="banks" name="Number of Memory Banks" type="int" default="1" range="0..2"/>
         <option var="bsize" name="Size of a Memory Bank in MByte" type="int" default="512" range="0..1024"/>
         <option var="width" name="Width of Memory Bus" type="int" default="32" range="8..32"/>
       </option>
-      <option var="ram" name="RAM Configuration">
+      <option var="ram" name="RAM configuration">
         <option var="addr" name="Address Space Base" type="int" default="0x400" range="0..0xFFF"/>
         <option var="mask" name="Address Space Mask" type="int" default="0xC00" range="0..0xFFF"/>
         <option var="wprot" name="RAM write protection" type="bool" default="false"/>
         <option var="asel" name="Address Space Selector" type="int" default="29" range="0..31"/>
-        <option var="s" name="SRAM">
+        <option var="sram" name="SRAM configuration" type="bool" default="false">
           <option var="banks" name="Number of Memory Banks" type="int" default="4" range="0..5"/>
           <option var="bsize" name="Size of a Memory Bank in MByte" type="int" default="128" range="0..1024"/>
           <option var="width" name="Width of Memory Bus" type="int" default="32" range="8..32"/>
         </option>
-        <option var="sd" name="SDRAM">
+        <option var="sdram" name="SDRAM configuration" type="bool" default="true">
           <option var="banks" name="Number of Memory Banks" type="int" default="2" range="0..2"/>
           <option var="bsize" name="Size of a Memory Bank in MByte" type="int" default="256" range="0..1024"/>
           <option var="width" name="Width of Memory Bus" type="int" default="32" range="8..32"/>
@@ -168,7 +169,7 @@
       <option var="mobile" name="Enable SDRAM support" type="int" default="0" range="0..3"/>
     </option>
     
-    <option var="socwire" name="SoCWire" type="bool" default="true">
+    <option var="socwire" name="SoCWire" type="bool" default="false">
       <option var="apb" name="APB Bus Interface">
         <option var="paddr" name="Base Address" type="int" default="10" range="0..4095"/>
         <option var="pmask" name="Base Mask" type="int" default="4095" range="0..4095"/>
@@ -178,6 +179,14 @@
       <option var="socw" name="AHB Bus Interface">
         <option var="index" name="Bus Index" type="int" default="1" range="0..15"/>
       </option>
+    </option>
+
+    <option var="inputdev" name="Input device (sensor)" type="bool" default="false">
+      <option var="hindex" name="AHB master index" type="int" default="1" range="0..15"/>
+      <option var="hirq" name="Interrupt number" type="int" default="5" range="0..0xFFFF"/>
+      <option var="framesize" name="Size of frame buffer in 32bit words" type="int" default="128" range="0..0xFFFF"/>
+      <option var="frameaddr" name="12bit MSB target address" type="int" default="0xa00" range="0..0xFFFF"/>
+      <option var="interval" name="Frame interval in MS" type="int" default="1" range="0..0xFFFF"/>
     </option>
     
     <option var="irqmp" name="IRQ Controller">

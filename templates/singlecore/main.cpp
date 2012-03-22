@@ -49,6 +49,7 @@
 #include <execLoader.hpp>
 #include <osEmulator.hpp>
 #include "mmu_cache.h"
+#include "input_device.h"
 #include "arraymemory.h"
 #include "apbctrl.h"
 #include "ahbmem.h"
@@ -110,12 +111,65 @@ using namespace sc_core;
 #  define conf_mmu_cache_mmu_en_mmupgsz 0
 #endif
 
+#if conf_ahbmem == false
+#  define conf_ahbmem_index 0
+#  define conf_ahbmem_addr 0
+#  define conf_ahbmem_mask 0
+#endif
+
+#if conf_gptimer == false
+#  define conf_gptimer_addr 0
+#  define conf_gptimer_mask 0
+#  define conf_gptimer_index 0
+#  define conf_gptimer_pirq 0
+#  define conf_gptimer_sepirq 0
+#  define conf_gptimer_ntimers 0
+#  define conf_gptimer_sbits 0
+#  define conf_gptimer_nbits 0
+#  define conf_gptimer_wdog 0
+#endif
+
+#if conf_memctrl_prom == false
+#  define conf_memctrl_prom_addr  0
+#  define conf_memctrl_prom_mask  0
+#  define conf_memctrl_prom_asel  0
+#  define conf_memctrl_prom_banks 0
+#  define conf_memctrl_prom_bsize 0
+#  define conf_memctrl_prom_width 0
+#endif
+
+#if conf_memctrl_io == false
+#  define conf_memctrl_io_addr 0x200
+#  define conf_memctrl_io_mask 0xE00
+#  define conf_memctrl_io_banks 0
+#  define conf_memctrl_io_bsize 0
+#  define conf_memctrl_io_width 0
+#endif
+
+#if conf_memctrl_ram_sram == false
+#  define conf_memctrl_ram_sram_banks 0
+#  define conf_memctrl_ram_sram_bsize 0
+#  define conf_memctrl_ram_sram_width 0
+#endif
+
+#if conf_memctrl_ram_sdram == false
+#  define conf_memctrl_sdram_banks 0
+#  define conf_memctrl_sdram_bsize 0
+#  define conf_memctrl_sdram_width 0
+#  define conf_memctrl_sdram_cols 0
+#endif
+
+#if conf_inputdev == false
+#  define conf_inputdev_hindex    = 0
+#  define conf_inputdev_hirq      = 0
+#  define conf_inputdev_framesize = 0
+#  define conf_inputdev_frameaddr = 0
+#  define conf_inputdev_interval  = 0
+#endif
+
 #ifndef conf_paramlist
 #define conf_paramlist false
 #endif
-
-#define LOCAL_CLOCK 10
-#define CACHE_MASTER_ID 0
 
 namespace trap {
   extern int exitValue;
@@ -147,13 +201,13 @@ int sc_main(int argc, char** argv) {
        return -1;
     }
     
-    // Whant to connect to GDB
+    // Want to connect to GDB
     gdb_en = ((argc>3) && (std::strcmp(argv[3],"gdb")==0));
     if(gdb_en) {
         app_argc++;
     }
 
-    // Decide weather LT or AT
+    // Decide whether LT or AT
     amba::amba_layer_ids ambaLayer;
     if(conf_sys_lt_at) {
         ambaLayer = amba::amba_LT;
@@ -179,11 +233,12 @@ int sc_main(int argc, char** argv) {
 		    conf_ahbctrl_fixbrst,               // Enable support for fixed-length bursts (disabled)
 		    conf_ahbctrl_fpnpen,                // Enable full decoding of PnP configuration records
 		    conf_ahbctrl_mcheck,                // Check if there are any intersections between core memory regions
-        true, // Powermon
+                    conf_sys_power,                     // Enable/disable power monitoring
 		    ambaLayer
     );
+
     // Set clock
-    ahbctrl.set_clk(LOCAL_CLOCK,SC_NS);
+    ahbctrl.set_clk(conf_sys_clock, SC_NS);
     
     // CREATE LEON3 Processor
     // ===================================================
@@ -191,12 +246,11 @@ int sc_main(int argc, char** argv) {
     // Needed for basic platform.
 
     // For each Abstraction is another model needed
-    // Unfortuantely they use the same includes so we have to build them new per abstraction
-#if conf_sys_lt_at
-    leon3_funclt_trap::Processor_leon3_funclt leon3("leon3", sc_core::sc_time(1, SC_US));
-#else
-    leon3_funcat_trap::Processor_leon3_funcat leon3("leon3", sc_core::sc_time(1, SC_US));
-#endif
+    #if conf_sys_lt_at
+      leon3_funclt_trap::Processor_leon3_funclt leon3("leon3", sc_core::sc_time(1, SC_US));
+    #else
+      leon3_funcat_trap::Processor_leon3_funcat leon3("leon3", sc_core::sc_time(1, SC_US));
+    #endif
 
     // CREATE MMU_CACHE
     // ================
@@ -230,12 +284,9 @@ int sc_main(int argc, char** argv) {
             conf_mmu_cache_mmu_en_tlb_rep,  //  int tlb_rep = 1 (random replacement)
             conf_mmu_cache_mmu_en_mmupgsz,  //  int mmupgsz = 0 (4kB mmu page size)>
             "mmu_cache",                    // name of sysc module
-		        //conf_mmu_cache_addr,          // The MSB address of the AHB area. Sets the 12 MSBs of the AHB address
-		        //conf_mmu_cache_mask,          // The 12bit AHB area address mask
-            //conf_mmu_cache_dsu,           // Enable debug support unit interface
             conf_mmu_cache_index,           // Id of the AHB master
-            false,                          // Power Monitor,
-	          ambaLayer                       // LT abstraction
+            conf_sys_power,                 // Power Monitor,
+            ambaLayer                       // TLM abstraction layer
     );
     
     // Connecting AHB Master
@@ -247,21 +298,23 @@ int sc_main(int argc, char** argv) {
     leon3.dataMem.initSocket(mmu_cache.dcio);
    
     // Set clock
-    mmu_cache.set_clk(LOCAL_CLOCK,SC_NS);
+    mmu_cache.set_clk(conf_sys_clock, SC_NS);
     
     // CREATE AHB APB BRIDGE
     // =====================
     APBCtrl apbctrl("apbctrl", 
-		    conf_apbctrl_ioaddr,                // The MSB address of the AHB area. Sets the 12 MSBs of the AHB address
-		    conf_apbctrl_iomask,                // The 12bit AHB area address mask
-		    conf_apbctrl_check,                 // Check if there are any intersections between APB slave memory regions 
-        conf_apbctrl_index,
-		    ambaLayer
+		    conf_apbctrl_haddr,    // The 12 bit MSB address of the AHB area.
+		    conf_apbctrl_hmask,    // The 12 bit AHB area address mask
+		    conf_apbctrl_check,    // Check for intersections in the memory map 
+                    conf_apbctrl_index,    // AHB bus index
+                    conf_sys_power,        // Power Monitoring on/off
+		    ambaLayer              // TLM abstraction layer
     );
     // Connecting AHB Slave
     ahbctrl.ahbOUT(apbctrl.ahb);
+
     // Set clock
-    apbctrl.set_clk(LOCAL_CLOCK,SC_NS);
+    apbctrl.set_clk(conf_sys_clock,SC_NS);
 
     // CREATE MEMORY CONTROLLER
     // ========================
@@ -278,16 +331,17 @@ int sc_main(int argc, char** argv) {
         conf_memctrl_apb_addr, 
         conf_memctrl_apb_mask, 
         conf_memctrl_ram_wprot, 
-        conf_memctrl_ram_s_banks,
+        conf_memctrl_ram_sram_banks,
         conf_memctrl_ram8,
         conf_memctrl_ram16, 
         conf_memctrl_sepbus, 
         conf_memctrl_sdbits, 
         conf_memctrl_mobile, 
         conf_memctrl_sden, 
-        conf_memctrl_ahb_index, 
-        conf_memctrl_apb_index, 
-        false // <-- powermon
+        conf_memctrl_index, 
+        conf_memctrl_apb_index,
+        conf_sys_power,
+        ambaLayer
     );
     
     // Connecting AHB Slave
@@ -295,10 +349,11 @@ int sc_main(int argc, char** argv) {
     // Connecting APB Slave
     apbctrl.apb(mctrl.apb);
     // Set clock
-    mctrl.set_clk(LOCAL_CLOCK,SC_NS);
+    mctrl.set_clk(conf_sys_clock, SC_NS);
 
     // CREATE MEMORIES
-    // ===============                                                  
+    // ===============
+    #if conf_memctrl_prom != 0
     ArrayMemory rom(
         "rom", 
         MEMDevice::ROM, 
@@ -307,6 +362,10 @@ int sc_main(int argc, char** argv) {
         conf_memctrl_prom_width, 
         0
     );
+    mctrl.mem(rom.bus);
+    #endif
+
+    #if conf_memctrl_io != 0
     ArrayMemory io(
         "io", 
         MEMDevice::IO, 
@@ -315,28 +374,32 @@ int sc_main(int argc, char** argv) {
         conf_memctrl_prom_width, 
         0
     );
+    mctrl.mem(io.bus);
+    #endif
+
+    #if conf_memctrl_ram_sram != 0
     ArrayMemory sram(
         "sram", 
         MEMDevice::SRAM, 
-        conf_memctrl_ram_s_banks, 
-        conf_memctrl_ram_s_bsize * 1024 * 1024, 
-        conf_memctrl_ram_s_width, 
+        conf_memctrl_ram_sram_banks, 
+        conf_memctrl_ram_sram_bsize * 1024 * 1024, 
+        conf_memctrl_ram_sram_width, 
         0
     );
+    mctrl.mem(sram.bus);    
+    #endif
+   
+    #if conf_memctrl_ram_sdram != 0
     ArrayMemory sdram(
         "sdram", 
         MEMDevice::SDRAM, 
-        conf_memctrl_ram_sd_banks, 
-        conf_memctrl_ram_sd_bsize * 1024 * 1024, 
-        conf_memctrl_ram_sd_width, 
-        conf_memctrl_ram_sd_cols
+        conf_memctrl_ram_sdram_banks, 
+        conf_memctrl_ram_sdram_bsize * 1024 * 1024, 
+        conf_memctrl_ram_sdram_width, 
+        conf_memctrl_ram_sdram_cols
     );
-    
-    // connect memories to memory controller
-    mctrl.mem(rom.bus);
-    mctrl.mem(io.bus);
-    mctrl.mem(sram.bus);
     mctrl.mem(sdram.bus);
+    #endif
     
     //AHBMemem ahb_mem("AHBMEM", 0x0, 0x800);
     //ahbctrl.ahbOUT(ahb_mem.ahb);
@@ -373,7 +436,7 @@ int sc_main(int argc, char** argv) {
     //assert((sram_loader.getProgDim() + sram_loader.getDataStart()) < 0x1fffffff);
     // ******************************************
     
-#if conf_ahbmem != 0
+    #if conf_ahbmem != 0
     AHBMem ahbmem("ahbmem",
         conf_ahbmem_addr,
         conf_ahbmem_mask,
@@ -381,7 +444,7 @@ int sc_main(int argc, char** argv) {
         conf_ahbmem_index
     );
     ahbctrl.ahbOUT(ahbmem.ahb);
-#endif
+    #endif
     
     // * IRQMP **********************************
     // CREATE IRQ controller
@@ -398,15 +461,36 @@ int sc_main(int argc, char** argv) {
     // Connecting APB Slave
     apbctrl.apb(irqmp.apb_slv);
     // Set clock
-    irqmp.set_clk(LOCAL_CLOCK,SC_NS);
+    irqmp.set_clk(conf_sys_clock,SC_NS);
+
     connect(irqmp.irq_req, leon3.IRQ_port.irq_signal, 0);
     connect(leon3.irqAck.initSignal, irqmp.irq_ack, 0);
     connect(leon3.irqAck.run, irqmp.cpu_rst, 0);
     connect(leon3.irqAck.status, irqmp.cpu_stat, 0);
     // ******************************************
+
+    #if conf_inputdev != 0
+    input_device sensor(
+        "sensor",
+        conf_inputdev_hindex,
+        conf_inputdev_hirq,
+        conf_inputdev_framesize,
+        conf_inputdev_frameaddr,
+        sc_core::sc_time(conf_inputdev_interval, SC_MS),
+        conf_sys_power,
+        ambaLayer
+    );
+    // Connect sensor to bus
+    sensor.ahb(ahbctrl.ahbIN);
+    sensor.set_clk(conf_sys_clock, SC_NS);
+
+    // Connect interrupt out
+    signalkit::connect(irqmp.irq_in, sensor.irq, 13);
+
+    #endif
     
     // * GPTimer ********************************
-#if conf_gptimer != 0
+    #if conf_gptimer != 0
     // CREATE GPTimer
     // ==============
     GPTimer gptimer("gptimer",
@@ -419,7 +503,7 @@ int sc_main(int argc, char** argv) {
         conf_gptimer_sbits,  // sbits
         conf_gptimer_nbits,  // nbits
         conf_gptimer_wdog,   // wdog
-        false                // powmon
+        conf_sys_power      // powmon
     );
     // Connecting APB Slave
     apbctrl.apb(gptimer.bus);
@@ -428,12 +512,12 @@ int sc_main(int argc, char** argv) {
       signalkit::connect(irqmp.irq_in, gptimer.irq, conf_gptimer_pirq + i);
     }
     // Set clock
-    gptimer.set_clk(LOCAL_CLOCK,SC_NS);
-#endif
+    gptimer.set_clk(conf_sys_clock,SC_NS);
+    #endif
     // ******************************************
     
     // * SoCWire ********************************
-#if disconf_socwire != 0
+    #if conf_socwire != 0
     // CREATE AHB2Socwire bridge
     // =========================
     AHB2Socwire ahb2socwire("ahb2socwire",
@@ -442,7 +526,7 @@ int sc_main(int argc, char** argv) {
         conf_socwire_apb_index,                  // pindex
         conf_socwire_apb_irq,                    // pirq
         conf_socwire_socw_index,                 // hindex
-        amba::amba_LT                            // abstraction
+        ambaLayer                                // abstraction
     );
     
     // Connecting AHB Master
@@ -456,7 +540,7 @@ int sc_main(int argc, char** argv) {
     
     // Connect socwire ports as loopback
     ahb2socwire.master_socket(ahb2socwire.slave_socket);
-#endif
+    #endif
     // ******************************************
     
     // * OS Emulator ****************************
@@ -519,3 +603,4 @@ int sc_main(int argc, char** argv) {
     return trap::exitValue;
 
 }
+
