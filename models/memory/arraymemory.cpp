@@ -72,11 +72,13 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
     // Calculate array size
     size_t mem_size = bsize;
     mem_size *= (banks<5)?banks:8;
-    memory = new uint8_t[mem_size];
+    memory = new uint8_t[mem_size+1];
     erase(0, mem_size);
 }
 
-ArrayMemory::~ArrayMemory() {}
+ArrayMemory::~ArrayMemory() {
+    delete[] memory;
+}
 
 // Print execution statistic at end of simulation
 void ArrayMemory::end_of_simulation() {

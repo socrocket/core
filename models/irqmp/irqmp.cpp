@@ -316,9 +316,10 @@ void Irqmp::launch_irq() {
     int16_t high;
     uint32_t masked, pending, all;
     bool eirq_en;
+    int cpu = 0;
     while(1) {
         wait(e_signal);
-        for(int cpu = g_ncpu-1; cpu > -1; cpu--) {
+        for(cpu = g_ncpu-1; cpu > -1; cpu--) {
             // Pending register for this CPU line.
             pending = (r[IR_PENDING] | r[IR_FORCE]) & r[PROC_IR_MASK(cpu)];
             v::debug << name() << "For CPU " << cpu << " pending: " << v::uint32 << r[IR_PENDING].get() << ", force: " << v::uint32 << r[IR_FORCE].get() << ", proc_ir_mask: " << r[PROC_IR_MASK(cpu)].get() << v::endl;

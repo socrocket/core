@@ -132,7 +132,7 @@ void PM::limit_region(sc_time start, sc_time end){
 // send data
 // called by IP 
 //------------------------------------------------
-void PM::send(sc_module* ip, string action, bool start, sc_time timestamp, unsigned int id, bool active){
+void PM::send(sc_module* ip, const char *action, bool start, sc_time timestamp, unsigned int id, bool active){
 
   if (PM::LimitedRegion == 1){
     if ( (timestamp.value() < PM::start_log) || (timestamp.value() > PM::end_log) ){
@@ -144,7 +144,7 @@ void PM::send(sc_module* ip, string action, bool start, sc_time timestamp, unsig
 
     // summarize data in struct
     IpPowerData data;
-    data.action = action;
+    data.action = string(action);
     data.start = start;
     data.timestamp = timestamp.value();
     data.power = 0;
@@ -171,7 +171,7 @@ void PM::send(sc_module* ip, string action, bool start, sc_time timestamp, unsig
 // send idle date
 // called by IP
 //------------------------------------------------
-void PM::send_idle(sc_module* ip, string action, sc_time timestamp, bool active){
+void PM::send_idle(sc_module* ip, const char *action, sc_time timestamp, bool active){
 
   if (PM::LimitedRegion == 1 && (timestamp.value() > PM::end_log) ){
       active = 0;
@@ -181,7 +181,7 @@ void PM::send_idle(sc_module* ip, string action, sc_time timestamp, bool active)
 
     // summarize and complete data in struct
     IpPowerData data;
-    data.action = action;
+    data.action = string(action);
     data.start = 1;
     data.timestamp = timestamp.value();
     data.power = 0;

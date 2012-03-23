@@ -47,6 +47,7 @@
 #include "ahbctrl.h"
 #include "verbose.h"
 #include "vendian.h"
+#include <string>
 
 // Constructor of class AHBCtrl
 AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
@@ -406,7 +407,10 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     }
 
     // Power event start
-    PM::send(this,"ahb_trans",1,sc_time_stamp(),(size_t)trans.get_data_ptr(),m_pow_mon);
+    const char *event_name = "ahb_trans";
+    size_t data_int = trans.get_data_ptr();
+    uint32_t id = data_int & 0xFFFFFFFF;
+    PM::send(this,event_name,1,sc_time_stamp(),id,m_pow_mon);
 
     // Forward request to the selected slave
     ahbOUT[index]->b_transport(trans, delay);
@@ -414,7 +418,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     //v::debug << name() << "Delay after return from slave: " << delay << v::endl;
 
     // Power event end
-    PM::send(this,"ahb_trans",0,sc_time_stamp()+delay,(size_t)trans.get_data_ptr(),m_pow_mon);
+    PM::send(this,event_name,0,sc_time_stamp()+delay,id,m_pow_mon);
     
     wait(delay);
 

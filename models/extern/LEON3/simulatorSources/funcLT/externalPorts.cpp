@@ -70,20 +70,18 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword( const unsigned int & add
             this->quantKeeper.sync();
         }
 
-    }
-    else{
+    } else{
         //sc_time delay = this->quantKeeper.get_local_time();
+        unsigned int debug = 0;
         sc_time delay = SC_ZERO_TIME;
+        dcio_payload_extension *dcioExt = new dcio_payload_extension();
         tlm::tlm_generic_payload trans;
 
-	// Create & init data payload extension
-	dcio_payload_extension* dcioExt = new dcio_payload_extension();
-	dcioExt->asi   = asi;
-	dcioExt->flush = flush;
-	dcioExt->lock  = lock;
-
-	unsigned int* debug = new unsigned int;
-	dcioExt->debug = debug;
+        // Create & init data payload extension
+        dcioExt->asi   = asi;
+        dcioExt->flush = flush;
+        dcioExt->lock  = lock;
+        dcioExt->debug = &debug;
 
         trans.set_address(address);
         trans.set_read();
@@ -93,8 +91,8 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword( const unsigned int & add
         trans.set_dmi_allowed(false);
         trans.set_response_status( tlm::TLM_INCOMPLETE_RESPONSE );
 
-	// Hook extension onto payload
-	trans.set_extension(dcioExt);
+        // Hook extension onto payload
+        trans.set_extension(dcioExt);
 
         this->initSocket->b_transport(trans, delay);
 
@@ -107,7 +105,7 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword( const unsigned int & add
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
 
-	wait(delay);
+        wait(delay);
         //Now lets keep track of time
         //this->quantKeeper.set(delay);
         //if(this->quantKeeper.need_sync()){
@@ -144,20 +142,18 @@ unsigned short int leon3_funclt_trap::TLMMemory::read_half( const unsigned int &
             this->quantKeeper.sync();
         }
 
-    }
-    else{
+    } else{
       //sc_time delay = this->quantKeeper.get_local_time();
+        unsigned int debug = 0;
         sc_time delay = SC_ZERO_TIME;
+        dcio_payload_extension *dcioExt = new dcio_payload_extension();
         tlm::tlm_generic_payload trans;
 
-	// Create & init data payload extension
-	dcio_payload_extension* dcioExt = new dcio_payload_extension();
-	dcioExt->asi   = asi;
-	dcioExt->flush = flush;
-	dcioExt->lock  = lock;
-
-        unsigned int* debug = new unsigned int;
-        dcioExt->debug = debug;
+        // Create & init data payload extension
+        dcioExt->asi   = asi;
+        dcioExt->flush = flush;
+        dcioExt->lock  = lock;
+        dcioExt->debug = &debug;
 
         trans.set_address(address);
         trans.set_read();
@@ -168,8 +164,8 @@ unsigned short int leon3_funclt_trap::TLMMemory::read_half( const unsigned int &
         trans.set_dmi_allowed(false);
         trans.set_response_status( tlm::TLM_INCOMPLETE_RESPONSE );
 
-	// Hook extension onto payload
-	trans.set_extension(dcioExt);
+        // Hook extension onto payload
+        trans.set_extension(dcioExt);
 
         this->initSocket->b_transport(trans, delay);
 
@@ -182,7 +178,7 @@ unsigned short int leon3_funclt_trap::TLMMemory::read_half( const unsigned int &
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
 
-	wait(delay);
+        wait(delay);
         //Now lets keep track of time
         //this->quantKeeper.set(delay);
         //if(this->quantKeeper.need_sync()){
@@ -218,20 +214,18 @@ unsigned char leon3_funclt_trap::TLMMemory::read_byte( const unsigned int & addr
             this->quantKeeper.sync();
         }
 
-    }
-    else{
-      //sc_time delay = this->quantKeeper.get_local_time();
+    } else {
+        //sc_time delay = this->quantKeeper.get_local_time();
+        unsigned int debug = 0;
         sc_time delay = SC_ZERO_TIME;
+        dcio_payload_extension *dcioExt = new dcio_payload_extension();
         tlm::tlm_generic_payload trans;
 
-	// Create & init data payload extension
-        dcio_payload_extension* dcioExt = new dcio_payload_extension();
+        // Create & init data payload extension
         dcioExt->asi    = asi;
-	dcioExt->flush  = flush;
-	dcioExt->lock   = lock;
-
-        unsigned int* debug = new unsigned int;
-        dcioExt->debug = debug;
+        dcioExt->flush  = flush;
+        dcioExt->lock   = lock;
+        dcioExt->debug  = &debug;
 
         trans.set_address(address);
         trans.set_read();
@@ -242,10 +236,10 @@ unsigned char leon3_funclt_trap::TLMMemory::read_byte( const unsigned int & addr
         trans.set_dmi_allowed(false);
         trans.set_response_status( tlm::TLM_INCOMPLETE_RESPONSE );
         
-	// Hook extension onto payload
+        // Hook extension onto payload
         trans.set_extension(dcioExt);
 
-	this->initSocket->b_transport(trans, delay);
+        this->initSocket->b_transport(trans, delay);
 
         if(trans.is_response_error()){
             std::string errorStr("Error from b_transport, response status = " + trans.get_response_string());
@@ -256,7 +250,7 @@ unsigned char leon3_funclt_trap::TLMMemory::read_byte( const unsigned int & addr
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
 
-	wait(delay);
+        wait(delay);
         //Now lets keep track of time
         //this->quantKeeper.set(delay);
         //if(this->quantKeeper.need_sync()){
@@ -295,20 +289,18 @@ void leon3_funclt_trap::TLMMemory::write_dword( const unsigned int & address,
         if(this->quantKeeper.need_sync()){
             this->quantKeeper.sync();
         }
-    }
-    else{
-      //sc_time delay = this->quantKeeper.get_local_time();
+    } else {
+        //sc_time delay = this->quantKeeper.get_local_time();
+        unsigned int debug = 0;
         sc_time delay = SC_ZERO_TIME;
+        dcio_payload_extension *dcioExt = new dcio_payload_extension();
         tlm::tlm_generic_payload trans;
 
-	// Create & init data payload extension
-        dcio_payload_extension* dcioExt = new dcio_payload_extension();
+        // Create & init data payload extension
         dcioExt->asi    = asi;
-	dcioExt->flush  = flush;
-	dcioExt->lock   = lock;
-
-        unsigned int* debug = new unsigned int;
-        dcioExt->debug = debug;
+        dcioExt->flush  = flush;
+        dcioExt->lock   = lock;
+        dcioExt->debug  = &debug;
 
         trans.set_address(address);
         trans.set_write();
@@ -319,10 +311,10 @@ void leon3_funclt_trap::TLMMemory::write_dword( const unsigned int & address,
         trans.set_dmi_allowed(false);
         trans.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
         
-	// Hook extension onto payload
+        // Hook extension onto payload
         trans.set_extension(dcioExt);	
 
-	this->initSocket->b_transport(trans, delay);
+        this->initSocket->b_transport(trans, delay);
 
         if(trans.is_response_error()){
             std::string errorStr("Error from b_transport, response status = " + trans.get_response_string());
@@ -333,7 +325,7 @@ void leon3_funclt_trap::TLMMemory::write_dword( const unsigned int & address,
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
 
-	wait(delay);
+        wait(delay);
         //Now lets keep track of time
         //this->quantKeeper.set(delay);
         //if(this->quantKeeper.need_sync()){
@@ -372,20 +364,18 @@ void leon3_funclt_trap::TLMMemory::write_half( const unsigned int & address,
         if(this->quantKeeper.need_sync()){
             this->quantKeeper.sync();
         }
-    }
-    else{
+    } else{
         //sc_time delay = this->quantKeeper.get_local_time();
+        unsigned int debug = 0;
         sc_time delay = SC_ZERO_TIME;
+        dcio_payload_extension *dcioExt = new dcio_payload_extension();
         tlm::tlm_generic_payload trans;
 		
-	// Create & init data payload extension
-        dcio_payload_extension* dcioExt = new dcio_payload_extension();
+        // Create & init data payload extension
         dcioExt->asi    = asi;
-	dcioExt->flush  = flush;
-	dcioExt->lock   = lock;
-
-        unsigned int* debug = new unsigned int;
-        dcioExt->debug = debug;
+        dcioExt->flush  = flush;
+        dcioExt->lock   = lock;
+        dcioExt->debug = &debug;
 
         trans.set_address(address);
         trans.set_write();
@@ -396,7 +386,7 @@ void leon3_funclt_trap::TLMMemory::write_half( const unsigned int & address,
         trans.set_dmi_allowed(false);
         trans.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
-	// Hook extension onto payload
+        // Hook extension onto payload
         trans.set_extension(dcioExt);
 
         this->initSocket->b_transport(trans, delay);
@@ -410,7 +400,7 @@ void leon3_funclt_trap::TLMMemory::write_half( const unsigned int & address,
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
 
-	wait(delay);
+        wait(delay);
         //Now lets keep track of time
         //this->quantKeeper.set(delay);
         //if(this->quantKeeper.need_sync()){
@@ -443,20 +433,18 @@ void leon3_funclt_trap::TLMMemory::write_byte( const unsigned int & address,
         if(this->quantKeeper.need_sync()){
             this->quantKeeper.sync();
         }
-    }
-    else{
+    } else {
         //sc_time delay = this->quantKeeper.get_local_time();
+        unsigned int debug = 0;
         sc_time delay = SC_ZERO_TIME;
+        dcio_payload_extension *dcioExt = new dcio_payload_extension();
         tlm::tlm_generic_payload trans;
 
-	// Create & init data payload extension
-        dcio_payload_extension* dcioExt = new dcio_payload_extension();
+        // Create & init data payload extension
         dcioExt->asi    = asi;
-	dcioExt->flush  = flush;
-	dcioExt->lock   = lock;
-
-        unsigned int* debug = new unsigned int;
-        dcioExt->debug = debug;	
+        dcioExt->flush  = flush;
+        dcioExt->lock   = lock;
+        dcioExt->debug  = &debug;	
 
         trans.set_address(address);
         trans.set_write();
@@ -467,7 +455,7 @@ void leon3_funclt_trap::TLMMemory::write_byte( const unsigned int & address,
         trans.set_dmi_allowed(false);
         trans.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
  
-	// Hook extension onto payload
+        // Hook extension onto payload
         trans.set_extension(dcioExt);	
 
         this->initSocket->b_transport(trans, delay);
@@ -481,7 +469,7 @@ void leon3_funclt_trap::TLMMemory::write_byte( const unsigned int & address,
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
 
-	wait(delay);
+        wait(delay);
 
         //Now lets keep track of time
         //this->quantKeeper.set(delay);
@@ -494,7 +482,10 @@ void leon3_funclt_trap::TLMMemory::write_byte( const unsigned int & address,
 sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword_dbg( const unsigned int & \
     address ) throw(){
 
+    unsigned int debug = 0;
+    dcio_payload_extension *dcioExt = new dcio_payload_extension();
     tlm::tlm_generic_payload trans;
+    
     trans.set_address(address);
     trans.set_read();
     trans.set_data_length(8);
@@ -503,13 +494,10 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword_dbg( const unsigned int &
     trans.set_data_ptr(reinterpret_cast<unsigned char *>(&datum));
     
     // Create & init data payload extension
-    dcio_payload_extension* dcioExt = new dcio_payload_extension();
     dcioExt->asi   = 8;
     dcioExt->flush = 0;
     dcioExt->lock  = 0;
-
-    unsigned int* debug = new unsigned int;
-    dcioExt->debug = debug;
+    dcioExt->debug = &debug;
 
     // Hook extension onto payload
     trans.set_extension(dcioExt);
@@ -527,22 +515,22 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword_dbg( const unsigned int &
 
 unsigned int leon3_funclt_trap::TLMMemory::read_word_dbg( const unsigned int & address \
     ) throw(){
+    unsigned int debug = 0;
+    unsigned int datum = 0;
+    dcio_payload_extension *dcioExt = new dcio_payload_extension();
     tlm::tlm_generic_payload trans;
+
     trans.set_address(address);
     trans.set_read();
     trans.set_data_length(4);
     trans.set_streaming_width(4);
-    unsigned int datum = 0;
     trans.set_data_ptr(reinterpret_cast<unsigned char *>(&datum));
 
     // Create & init data payload extension
-    dcio_payload_extension* dcioExt = new dcio_payload_extension();
     dcioExt->asi   = 8;
     dcioExt->flush = 0;
     dcioExt->lock  = 0;
-
-    unsigned int* debug = new unsigned int;
-    dcioExt->debug = debug;
+    dcioExt->debug = &debug;
 
     // Hook extension onto payload
     trans.set_extension(dcioExt);
@@ -559,22 +547,22 @@ unsigned int leon3_funclt_trap::TLMMemory::read_word_dbg( const unsigned int & a
 
 unsigned short int leon3_funclt_trap::TLMMemory::read_half_dbg( const unsigned int \
     & address ) throw(){
+    unsigned int debug = 0;
+    unsigned short int datum = 0;
+    dcio_payload_extension *dcioExt = new dcio_payload_extension();
     tlm::tlm_generic_payload trans;
+
     trans.set_address(address);
     trans.set_read();
     trans.set_data_length(2);
     trans.set_streaming_width(2);
-    unsigned short int datum = 0;
     trans.set_data_ptr(reinterpret_cast<unsigned char *>(&datum));
 
     // Create & init data payload extension
-    dcio_payload_extension* dcioExt = new dcio_payload_extension();
     dcioExt->asi   = 8;
     dcioExt->flush = 0;
     dcioExt->lock  = 0;
-
-    unsigned int* debug = new unsigned int;
-    dcioExt->debug = debug;
+    dcioExt->debug = &debug;
 
     // Hook extension onto payload
     trans.set_extension(dcioExt);
@@ -591,22 +579,22 @@ unsigned short int leon3_funclt_trap::TLMMemory::read_half_dbg( const unsigned i
 
 unsigned char leon3_funclt_trap::TLMMemory::read_byte_dbg( const unsigned int & address \
     ) throw(){
+    unsigned int debug = 0;
+    unsigned char datum = 0;
+    dcio_payload_extension *dcioExt = new dcio_payload_extension();
     tlm::tlm_generic_payload trans;
+
     trans.set_address(address);
     trans.set_read();
     trans.set_data_length(1);
     trans.set_streaming_width(1);
-    unsigned char datum = 0;
     trans.set_data_ptr(reinterpret_cast<unsigned char *>(&datum));
 
     // Create & init data payload extension
-    dcio_payload_extension* dcioExt = new dcio_payload_extension();
     dcioExt->asi   = 8;
     dcioExt->flush = 0;
     dcioExt->lock  = 0;
-
-    unsigned int* debug = new unsigned int;
-    dcioExt->debug = debug;
+    dcioExt->debug = &debug;
 
     // Hook extension onto payload
     trans.set_extension(dcioExt);
@@ -624,6 +612,9 @@ void leon3_funclt_trap::TLMMemory::write_dword_dbg( const unsigned int & address
     this->swapEndianess(datum2);
     datum = datum1 | (((sc_dt::uint64)datum2) << 32);
     #endif
+
+    unsigned int debug = 0;
+    dcio_payload_extension *dcioExt = new dcio_payload_extension();
     tlm::tlm_generic_payload trans;
     trans.set_address(address);
     trans.set_write();
@@ -632,13 +623,10 @@ void leon3_funclt_trap::TLMMemory::write_dword_dbg( const unsigned int & address
     trans.set_data_ptr((unsigned char *)&datum);
 
     // Create & init data payload extension
-    dcio_payload_extension* dcioExt = new dcio_payload_extension();
     dcioExt->asi   = 8;
     dcioExt->flush = 0;
     dcioExt->lock  = 0;
-
-    unsigned int* debug = new unsigned int;
-    dcioExt->debug = debug;
+    dcioExt->debug = &debug;
 
     // Hook extension onto payload
     trans.set_extension(dcioExt);
@@ -654,7 +642,10 @@ void leon3_funclt_trap::TLMMemory::write_word_dbg( const unsigned int & address,
     #ifdef LITTLE_ENDIAN_BO
     this->swapEndianess(datum);
     #endif
+    unsigned int debug = 0;
+    dcio_payload_extension *dcioExt = new dcio_payload_extension();
     tlm::tlm_generic_payload trans;
+
     trans.set_address(address);
     trans.set_write();
     trans.set_data_length(4);
@@ -662,13 +653,10 @@ void leon3_funclt_trap::TLMMemory::write_word_dbg( const unsigned int & address,
     trans.set_data_ptr((unsigned char *)&datum);
 
     // Create & init data payload extension
-    dcio_payload_extension* dcioExt = new dcio_payload_extension();
     dcioExt->asi   = 8;
     dcioExt->flush = 0;
     dcioExt->lock  = 0;
-
-    unsigned int* debug = new unsigned int;
-    dcioExt->debug = debug;
+    dcioExt->debug = &debug;
 
     // Hook extension onto payload
     trans.set_extension(dcioExt);
@@ -687,6 +675,8 @@ void leon3_funclt_trap::TLMMemory::write_half_dbg( const unsigned int & address,
     #ifdef LITTLE_ENDIAN_BO
     #else
     #endif
+    unsigned int debug = 0;
+    dcio_payload_extension *dcioExt = new dcio_payload_extension();
     tlm::tlm_generic_payload trans;
     trans.set_address(address);
     trans.set_write();
@@ -695,13 +685,10 @@ void leon3_funclt_trap::TLMMemory::write_half_dbg( const unsigned int & address,
     trans.set_data_ptr((unsigned char *)&datum);
 
     // Create & init data payload extension
-    dcio_payload_extension* dcioExt = new dcio_payload_extension();
     dcioExt->asi   = 8;
     dcioExt->flush = 0;
     dcioExt->lock  = 0;
-
-    unsigned int* debug = new unsigned int;
-    dcioExt->debug = debug;
+    dcioExt->debug = &debug;
 
     // Hook extension onto payload
     trans.set_extension(dcioExt);
@@ -714,7 +701,10 @@ void leon3_funclt_trap::TLMMemory::write_byte_dbg( const unsigned int & address,
     #ifdef LITTLE_ENDIAN_BO
     #else
     #endif
+    unsigned int debug = 0;
+    dcio_payload_extension *dcioExt = new dcio_payload_extension();
     tlm::tlm_generic_payload trans;
+
     trans.set_address(address);
     trans.set_write();
     trans.set_data_length(1);
@@ -722,13 +712,10 @@ void leon3_funclt_trap::TLMMemory::write_byte_dbg( const unsigned int & address,
     trans.set_data_ptr((unsigned char *)&datum);
 
     // Create & init data payload extension
-    dcio_payload_extension* dcioExt = new dcio_payload_extension();
     dcioExt->asi   = 8;
     dcioExt->flush = 0;
     dcioExt->lock  = 0;
-
-    unsigned int* debug = new unsigned int;
-    dcioExt->debug = debug;
+    dcioExt->debug = &debug;
 
     // Hook extension onto payload
     trans.set_extension(dcioExt);

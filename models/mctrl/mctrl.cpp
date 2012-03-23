@@ -596,7 +596,8 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
     uint32_t length = gp.get_data_length();
     uint32_t width  = 4;
     uint32_t mem_width = 4;
-    unsigned char *data = gp.get_data_ptr();
+    unsigned char *orig_data = gp.get_data_ptr();
+    unsigned char *data = orig_data;
     bool rmw = (r[MCFG2].get() >> 6) & 1;
     MEMPort  port   = get_port(addr);
     sc_time mem_delay;
@@ -781,8 +782,8 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
             //} else {
                 delay += (trans_delay + (length/mem_width) * word_delay) * clock_cycle;
             //}
-            if(data!=gp.get_data_ptr()) {
-              delete data;
+            if(data!=orig_data) {
+              delete[] data;
             }
             return;
         } else {

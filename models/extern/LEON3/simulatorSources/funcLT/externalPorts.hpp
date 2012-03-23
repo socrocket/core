@@ -78,7 +78,7 @@ namespace leon3_funclt_trap{
 				       const unsigned int lock) throw(){
 
             unsigned int datum = 0;
-            if (this->dmi_ptr_valid){
+            if(this->dmi_ptr_valid) {
                 v::debug << name() << "DMI Access" << endl;
                 if(address + this->dmi_data.get_start_address() > this->dmi_data.get_end_address()){
                     SC_REPORT_ERROR("TLM-2", "Error in reading memory data through DMI: address out of \
@@ -91,20 +91,18 @@ namespace leon3_funclt_trap{
                     this->quantKeeper.sync();
                 }
 
-            }
-            else{
-	        //sc_time delay = this->quantKeeper.get_local_time();
-	        sc_time delay = SC_ZERO_TIME;
-	        tlm::tlm_generic_payload trans;
+            } else {
+                //sc_time delay = this->quantKeeper.get_local_time();
+                unsigned int debug = 0;
+                sc_time delay = SC_ZERO_TIME;
+                dcio_payload_extension *dcioExt = new dcio_payload_extension();
+                tlm::tlm_generic_payload trans;
 		
-		// Create & init data payload extension
-                dcio_payload_extension* dcioExt = new dcio_payload_extension();
+                // Create & init data payload extension
                 dcioExt->asi    = asi;
-		dcioExt->flush  = flush;
-		dcioExt->lock   = lock;
-
-                unsigned int* debug = new unsigned int;
-                dcioExt->debug = debug;
+                dcioExt->flush  = flush;
+                dcioExt->lock   = lock;
+                dcioExt->debug  = &debug;
 
                 trans.set_address(address);
                 trans.set_read();
@@ -114,7 +112,7 @@ namespace leon3_funclt_trap{
                 trans.set_dmi_allowed(false);
                 trans.set_response_status( tlm::TLM_INCOMPLETE_RESPONSE );
 
-		// Hook extension onto payload
+                // Hook extension onto payload
                 trans.set_extension(dcioExt);
 
                 this->initSocket->b_transport(trans, delay);
@@ -128,7 +126,7 @@ namespace leon3_funclt_trap{
                     this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
                 }
 
-		wait(delay);
+                wait(delay);
                 //Now lets keep track of time
                 //this->quantKeeper.set(delay);
                 //if(this->quantKeeper.need_sync()){
@@ -178,18 +176,16 @@ namespace leon3_funclt_trap{
                     this->quantKeeper.sync();
                 }
 
-            }
-            else{
-	        //sc_time delay = this->quantKeeper.get_local_time();
-	        sc_time delay = SC_ZERO_TIME;
-	        tlm::tlm_generic_payload trans;
+            } else {
+	              //sc_time delay = this->quantKeeper.get_local_time();
+                unsigned int debug = 0;
+	              sc_time delay = SC_ZERO_TIME;
+                icio_payload_extension *icioExt = new icio_payload_extension();
+	              tlm::tlm_generic_payload trans;
 		
-		// Create & init instruction payload extension
-                icio_payload_extension* icioExt = new icio_payload_extension();
-		icioExt->flush  = flush;
-
-                unsigned int* debug = new unsigned int;
-                icioExt->debug = debug;
+		            // Create & init instruction payload extension
+                icioExt->flush  = flush;
+                icioExt->debug = &debug;
 
                 trans.set_address(address);
                 trans.set_read();
@@ -197,9 +193,9 @@ namespace leon3_funclt_trap{
                 trans.set_data_length(sizeof(datum));
                 trans.set_byte_enable_ptr(0);
                 trans.set_dmi_allowed(false);
-                trans.set_response_status( tlm::TLM_INCOMPLETE_RESPONSE );
+                trans.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
-		// Hook extension onto payload
+		            // Hook extension onto payload
                 trans.set_extension(icioExt);
 
                 this->initSocket->b_transport(trans, delay);
@@ -213,7 +209,7 @@ namespace leon3_funclt_trap{
                     this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
                 }
 
-		wait(delay);
+                wait(delay);
                 //Now lets keep track of time
                 //this->quantKeeper.set(delay);
                 //if(this->quantKeeper.need_sync()){
@@ -270,20 +266,18 @@ namespace leon3_funclt_trap{
                 if(this->quantKeeper.need_sync()){
                     this->quantKeeper.sync();
                 }
-            }
-            else{
-	        //sc_time delay = this->quantKeeper.get_local_time();
-	        sc_time delay = SC_ZERO_TIME;
-	        tlm::tlm_generic_payload trans;
+            } else {
+                //sc_time delay = this->quantKeeper.get_local_time();
+                unsigned int debug = 0;
+                sc_time delay = SC_ZERO_TIME;
+                dcio_payload_extension *dcioExt = new dcio_payload_extension();
+                tlm::tlm_generic_payload trans;
 
-		// Create & init data payload extension
-                dcio_payload_extension* dcioExt = new dcio_payload_extension();
+                // Create & init data payload extension
                 dcioExt->asi = asi;
-		dcioExt->flush = flush;
-		dcioExt->lock = lock;
-
-                unsigned int* debug = new unsigned int;
-                dcioExt->debug = debug;
+                dcioExt->flush = flush;
+                dcioExt->lock = lock;
+                dcioExt->debug = &debug;
 
                 trans.set_address(address);
                 trans.set_write();
@@ -308,7 +302,7 @@ namespace leon3_funclt_trap{
                     this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
                 }
 
-		wait(delay);
+                wait(delay);
                 //Now lets keep track of time
                 //this->quantKeeper.set(delay);
                 //if(this->quantKeeper.need_sync()){

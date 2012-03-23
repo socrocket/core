@@ -223,8 +223,8 @@ class PM {
     // methods
     //----------------------------------------------
     static void registerIP(sc_module* ip, string name, bool active);
-    static void send(sc_module* ip, string action, bool start, sc_time timestamp, unsigned int id, bool active);
-    static void send_idle(sc_module* ip, string action, sc_time timestamp, bool active);
+    static void send(sc_module* ip, const char *action, bool start, sc_time timestamp, unsigned int id, bool active);
+    static void send_idle(sc_module* ip, const char *action, sc_time timestamp, bool active);
     static void analyze(string const path, string const infile, string const outfile);
 
     static void raw_logprint(string const file);

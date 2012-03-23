@@ -73,7 +73,7 @@ class icio_payload_extension : public tlm::tlm_extension<icio_payload_extension>
         /// line offset in cache flush
         unsigned int fline;
         /// debug information
-        unsigned int * debug;
+        unsigned int *debug;
         /// failure intended
         bool fail;
 };
