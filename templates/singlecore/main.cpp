@@ -75,6 +75,7 @@
 #include <tlm.h>
 using namespace std;
 using namespace sc_core;
+using namespace socw;
 
 #if conf_mmu_cache_icen == false
 #  define conf_mmu_cache_icen_repl 0
@@ -521,12 +522,12 @@ int sc_main(int argc, char** argv) {
     // CREATE AHB2Socwire bridge
     // =========================
     AHB2Socwire ahb2socwire("ahb2socwire",
-        conf_socwire_apb_addr,                   // paddr
-        conf_socwire_apb_mask,                   // pmask
-        conf_socwire_apb_index,                  // pindex
-        conf_socwire_apb_irq,                    // pirq
-        conf_socwire_socw_index,                 // hindex
-        ambaLayer                                // abstraction
+        conf_socwire_apb_paddr,                   // paddr
+        conf_socwire_apb_pmask,                   // pmask
+        conf_socwire_apb_pindex,                  // pindex
+        conf_socwire_apb_pirq,                    // pirq
+        conf_socwire_ahb_hindex,                   // hindex
+        ambaLayer                                 // abstraction
     );
     
     // Connecting AHB Master
@@ -536,10 +537,10 @@ int sc_main(int argc, char** argv) {
     apbctrl.apb(ahb2socwire.apb);
     
     // Connecting Interrupts
-    connect(irqmp.irqi_in, ahb2socwire.irq, conf_socwire_apb_irq);
+    connect(irqmp.irq_in, ahb2socwire.irq, conf_socwire_apb_pirq);
     
     // Connect socwire ports as loopback
-    ahb2socwire.master_socket(ahb2socwire.slave_socket);
+    ahb2socwire.socwire.master_socket(ahb2socwire.socwire.slave_socket);
     #endif
     // ******************************************
     

@@ -173,11 +173,11 @@
       <option var="apb" name="APB Bus Interface">
         <option var="paddr" name="Base Address" type="int" default="10" range="0..4095"/>
         <option var="pmask" name="Base Mask" type="int" default="4095" range="0..4095"/>
-        <option var="index" name="Bus Index" type="int" default="3" range="0..15"/>
+        <option var="pindex" name="Bus Index" type="int" default="3" range="0..15"/>
         <option var="pirq" name="Interupt identifier" type="int" default="10" range="0..0xFFFF"/>
       </option>
-      <option var="socw" name="AHB Bus Interface">
-        <option var="index" name="Bus Index" type="int" default="1" range="0..15"/>
+      <option var="ahb" name="AHB Bus Interface">
+        <option var="hindex" name="Bus Index" type="int" default="1" range="0..15"/>
       </option>
     </option>
 
