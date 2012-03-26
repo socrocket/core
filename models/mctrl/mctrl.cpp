@@ -537,8 +537,8 @@ void Mctrl::processTXN() {
       busy = true;
 
       // Consume component delay
-      wait(delay);
-      delay = SC_ZERO_TIME;
+      //wait(delay);
+      //delay = SC_ZERO_TIME;
 
       // Device idle
       busy = false;
@@ -649,11 +649,11 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                             gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
                             return;
                         }
-                        trans_delay = 1;
-                        word_delay = 2 + ((r[MCFG1].get()>>4) & 0xF);
+                        trans_delay = 0;
+                        word_delay = 3 + ((r[MCFG1].get()>>4) & 0xF);
                     } else {
-                        trans_delay = 2;
-                        word_delay = (1 + ((r[MCFG1].get()>>0) & 0xF));
+                        trans_delay = 1;
+                        word_delay = (2 + ((r[MCFG1].get()>>0) & 0xF));
                         
                         // The RTL Model reads every mem_word as an 32bit word from the memory.
                         // So we need to ensure the same behaviour here we multiply the read times to fit 32bit each.
@@ -683,7 +683,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                         return;
                     }
                     if(gp.is_write()) {
-                        word_delay = ( 4 + ((r[MCFG1].get()>>20) & 0xF));
+                        word_delay = ( 3 + ((r[MCFG1].get()>>20) & 0xF));
                     } else {
                         word_delay = ( 5 + ((r[MCFG1].get()>>20) & 0xF));
                     }
@@ -691,7 +691,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                 case MEMDevice::SRAM:
                     if(gp.is_write()) {
                         trans_delay = 0;
-                        word_delay = 4 + ((r[MCFG2].get()>>2) & 0x3);
+                        word_delay = 3 + ((r[MCFG2].get()>>2) & 0x3);
                         if(rmw && (mem_width>length)) {
                             trans_delay += 0;
                             word_delay += 2 + ((r[MCFG2].get()>>0) & 0x3);
@@ -699,7 +699,6 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                     } else {
                         trans_delay = 0;
                         word_delay = 4 + ((r[MCFG2].get()>>0) & 0x3);
-                        v::info << name() << "SRAM Standard delay: " << ((trans_delay + (((length-1)/mem_width)+1) * word_delay) * clock_cycle) << v::endl;
                     }
                     break;
                 case MEMDevice::SDRAM:
@@ -710,7 +709,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                     // And it is by default read modify write, due to the fact that we have to load a column.
                     rmw = true;
                     if(gp.is_write()) {
-                        trans_delay = (r[MCFG2].bit_get(26)?3:2);
+                        trans_delay = (r[MCFG2].bit_get(26)?2:1);
                         word_delay = 0;//((r[MCFG2].bit_get(26)?3:2));
                     } else {
                         // RCD DELAY
@@ -781,11 +780,8 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
             if((port.dev->get_type() == MEMDevice::IO && (r[MCFG1].get() & MCFG1_IBRDY)) ||
                (port.dev->get_type() == MEMDevice::SRAM && r[MCFG2].get() & MCFG2_RBRDY)) {
                 delay += mem_delay;
-                v::info << name() << "Memory calculated delay: " << delay << v::endl;
             } else {
                 delay += (trans_delay + (((length-1)/mem_width)+1) * word_delay) * clock_cycle;
-                v::info << name() << "Standard delay: " << delay << v::endl;
-                v::info << name() << "Standard delay: " << ((trans_delay + (((length-1)/mem_width)+1) * word_delay) * clock_cycle) << v::endl;
             }
             if(data!=orig_data) {
               delete[] data;
