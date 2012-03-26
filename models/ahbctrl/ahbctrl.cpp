@@ -576,7 +576,7 @@ void AHBCtrl::arbitrate_me() {
 
   connection_t connection;
   int grand_id;
-  
+
   // Phase shift against clock (make sure multiple masters have the chance to send a request for the cycle)
   wait(arbiter_eval_delay);
 
@@ -591,47 +591,50 @@ void AHBCtrl::arbitrate_me() {
     
       grand_id = -1;
 
-      // Increment round robin pointer
-      robin=(++robin) % num_of_master_bindings;
+      do {
 
-      //v::debug << name() << robin << "(num_of_master_bindings: " << num_of_master_bindings << ")" << v::endl;
+        // Increment round robin pointer
+        robin=(++robin) % num_of_master_bindings;
 
-      for(pm_itr = pending_map.begin(); pm_itr != pending_map.end(); pm_itr++) {
+        v::debug << name() << "Try robin: " << robin << " (num_of_master_bindings: " << num_of_master_bindings << ", pending_map.size(): " << pending_map.size() << v::endl;
 
-        connection = pm_itr->second;
+        for(pm_itr = pending_map.begin(); pm_itr != pending_map.end(); pm_itr++) {
 
-        // Priority arbitration
-        if (mrrobin == 0) {
+          connection = pm_itr->second;
 
-          if (((int)connection.master_id) >= grand_id) {
+          // Priority arbitration
+          if (mrrobin == 0) {
 
-            // make sure same transaction is not arbitrated twice
-            if (connection.state == PENDING) {
+            if (((int)connection.master_id) >= grand_id) {
 
-              selected_transaction = pm_itr->first;
-              grand_id = connection.master_id;
+              // make sure same transaction is not arbitrated twice
+              if (connection.state == PENDING) {
 
-              v::debug << name() << "Priority arbiter selects master " << grand_id << " (Trans. 0x" << hex << selected_transaction << ")" << v::endl;
+                selected_transaction = pm_itr->first;
+                grand_id = connection.master_id;
 
+                v::debug << name() << "Priority arbiter selects master " << grand_id << " (Trans. 0x" << hex << selected_transaction << ")" << v::endl;
+                
+              }
             }
+          
+          } else {
+
+            if (connection.master_id == robin) {
+
+              if (connection.state == PENDING) {
+
+                selected_transaction = pm_itr->first;
+                grand_id = connection.master_id;
+
+                v::debug << name() << "Round-Robin arbiter selects master " << grand_id << " (Trans. 0x" << hex << selected_transaction << ")" << v::endl;
+
+              }
+            } 
           }
-
-        } else {
-
-          if (connection.master_id == robin) {
-
-            selected_transaction = pm_itr->first;
-            grand_id = connection.master_id;
-
-            v::debug << name() << "Round-Robin arbiter selects master " << grand_id << " (Trans. 0x" << hex << selected_transaction << ")" << v::endl;
-
-          }
-
-          //v::debug << name() << "Robin compare - transaction master id: " << connection.master_id << " robin: " << robin << v::endl;
-
         }
 
-      }
+      } while (((mrrobin == 1)&&(grand_id == -1)&&((pending_map.size()-requests_pending) > 0)));
 
       // There is a winner
       if (grand_id > -1) {
