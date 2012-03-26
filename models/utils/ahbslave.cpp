@@ -118,6 +118,7 @@ void AHBSlave::processTXN() {
 
             // Consume component delay
             wait(delay);
+            delay = SC_ZERO_TIME;
 
             // Device idle
             busy = false;

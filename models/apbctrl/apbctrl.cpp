@@ -407,6 +407,7 @@ void APBCtrl::processTXN() {
 
       // Consume APB + Component delay
       wait(delay);
+      delay = SC_ZERO_TIME;
 
       // Device idle
       busy = false;
