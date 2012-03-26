@@ -31,12 +31,19 @@ void gptimer_test(int addr, int irq) {
     //int pil;
     int i, j, ntimers;
 
+    cache_disable(); // <-- needs to be removed
+
     report_device(0x01011000);
     ntimers = lr->configreg & 0x7;
     lr->scalerload = -1;
     if(lr->scalercnt == lr->scalercnt) {
         fail(1);
+    } else {
+        success(1);
     }
+    printf("Scaler 0x%08x\n", lr->scalercnt);
+    printf("Reload 0x%08x\n", lr->scalerload);
+    printf("Config 0x%08x\n", lr->configreg);
 
     /* timer 1 test */
 
@@ -53,24 +60,35 @@ void gptimer_test(int addr, int irq) {
         lr->timer[i].reload = 15;
         lr->timer[i].control = 0x6;
         if(lr->timer[i].counter != 15) {
-            fail(3); // check loading
+            fail(2+3*i); // check loading
+        } else {
+            success(2+3*i);
         }
         
+        printf("loop\n");
         lr->timer[i].control = 0xf;
+        printf("loop\n");
         for(j=14; j >= 0; j--) { 
-            while (lr->timer[i].counter != j) {
+            while(lr->timer[i].counter != j) {
             }
+            printf("Counter %d Hit %d\n", i, j);
         }
+        printf("loop\n");
         while(lr->timer[i].counter != 15) {
         }
+        printf("loop\n");
     
         if(!(lr->timer[i].control & IRQPEND)) {
-            fail(4);
+            fail(3+3*i);
+        } else {
+            success(3+3*i);
         }
         
         lr->timer[i].control = 0;	
         if(lr->timer[i].control & IRQPEND) {
-            fail(5);
+            fail(4+3*i);
+        } else {
+            success(4+3*i);
         }
     }
 

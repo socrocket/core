@@ -200,30 +200,18 @@ void GPTimer::scaler_read() {
     sc_core::sc_time now = sc_core::sc_time_stamp();
     int reload = r[SCRELOAD] + 1;
     int value = valueof(now, 0, clock_cycle) - (reload);
-    //  v::debug << name() << " pure: " << std::dec << valueof(now) << "->" << value << v::endl;
 
-    //  if(value<0) {
     if (reload) {
         value = value % (reload);
     }
     r[SCALER] = reload + value - 1;
-    //  v::debug << name() << " reg: " << std::dec << value << " +reload: " << reload + value << v::endl;
-    //  } else {
-    //  if(reload + 1) {
-    //    value = value % (reload + 1);
-    //  }
-    //    r[SCALER] = value;
-    //    v::debug << name() << "unten" << std::dec << value << v::endl;
-    //  }
-    // lastvalue = r[SCALER];
-    // lasttime  = now;
+    v::debug << name() << "Scaler: " << v::uint32 << value << " Reload: " << v::uint32 << reload << v::endl;
 }
 
 // Callback for scaler relaod register. Updates Prescaler Ticks and all Counters on write.
 void GPTimer::screload_write() {
     uint32_t reload = r[SCRELOAD];
     r[SCALER] = reload;
-    //  v::debug << name() << "!Reload: " << reload << v::endl;
     scaler_write();
 }
 

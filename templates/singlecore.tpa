@@ -149,7 +149,7 @@
         <option var="mask" name="Address Space Mask" type="int" default="0xC00" range="0..0xFFF"/>
         <option var="wprot" name="RAM write protection" type="bool" default="false"/>
         <option var="asel" name="Address Space Selector" type="int" default="29" range="0..31"/>
-        <option var="sram" name="SRAM configuration" type="bool" default="false">
+        <option var="sram" name="SRAM configuration" type="bool" default="true">
           <option var="banks" name="Number of Memory Banks" type="int" default="4" range="0..5"/>
           <option var="bsize" name="Size of a Memory Bank in MByte" type="int" default="128" range="0..1024"/>
           <option var="width" name="Width of Memory Bus" type="int" default="32" range="8..32"/>
@@ -201,6 +201,6 @@
   <generator type="template" path="systemc" name="wscript" src="singlecore/scwscript.py" />
   <file type="systemc" name="sc_main.cpp" src="singlecore/main.cpp" />
   <file type="systemc" name="prom.S" src="singlecore/prom.S" />
-  <file type="systemc" name="prom.ld" src="singlecore/prom.ld" />
+  <generator type="template" path="systemc" name="prom.ld" src="singlecore/prom.ld" />
   <file name="wscript" src="singlecore/wscript.py" />
 </template>

@@ -32,14 +32,18 @@ __DYNAMIC  =  0;
 
 
 /* Default values, can be overridden */
+_PROM_BANKS = $conf_memctrl_prom_banks;
+_PROM_BSIZE = ${conf_memctrl_prom_bsize}M;
+_PROM_SIZE = (_PROM_BANKS * _PROM_BSIZE);
 
-_PROM_SIZE = 2M;
-_RAM_SIZE = 4M;
+_RAM_BANKS = $conf_memctrl_ram_sram_banks;
+_RAM_BSIZE = ${conf_memctrl_ram_sram_bsize}M;
+_RAM_SIZE = (_RAM_BANKS * _RAM_BSIZE);
 
-_RAM_START = 0x02000000;
+_RAM_START = $conf_memctrl_ram_addr * 0x100000;
 _RAM_END = _RAM_START + _RAM_SIZE;
 
-_PROM_START = 0x00000000;
+_PROM_START = $conf_memctrl_prom_addr * 0x100000;
 _PROM_END = _PROM_START + _PROM_SIZE;
 
 /*

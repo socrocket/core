@@ -125,10 +125,10 @@ void GPCounter::ctrl_write() {
     // Enable
     //v::debug << name() << "StartStop_" << nr << v::endl;
     if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN] && stopped) {
-        v::debug << name() << "Start_" << nr << v::endl;
+        v::info << name() << "Start_" << nr << v::endl;
         start();
     } else if ((!p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN]) && !stopped) {
-        v::debug << name() << "Stop_" << nr << v::endl;
+        v::info << name() << "Stop_" << nr << v::endl;
         stop();
     }
 }

@@ -538,6 +538,7 @@ void Mctrl::processTXN() {
 
       // Consume component delay
       wait(delay);
+      delay = SC_ZERO_TIME;
 
       // Device idle
       busy = false;
@@ -649,7 +650,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                             return;
                         }
                         trans_delay = 1;
-                        word_delay = 1 + ((r[MCFG1].get()>>4) & 0xF);
+                        word_delay = 2 + ((r[MCFG1].get()>>4) & 0xF);
                     } else {
                         trans_delay = 2;
                         word_delay = (1 + ((r[MCFG1].get()>>0) & 0xF));
@@ -682,22 +683,23 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                         return;
                     }
                     if(gp.is_write()) {
-                        word_delay = ( 3 + ((r[MCFG1].get()>>20) & 0xF));
-                    } else {
                         word_delay = ( 4 + ((r[MCFG1].get()>>20) & 0xF));
+                    } else {
+                        word_delay = ( 5 + ((r[MCFG1].get()>>20) & 0xF));
                     }
                     break;
                 case MEMDevice::SRAM:
                     if(gp.is_write()) {
                         trans_delay = 0;
-                        word_delay = 0 + ((r[MCFG2].get()>>2) & 0x3);
-                        if(rmw) {
+                        word_delay = 4 + ((r[MCFG2].get()>>2) & 0x3);
+                        if(rmw && (mem_width>length)) {
                             trans_delay += 0;
-                            word_delay += 0 + ((r[MCFG2].get()>>0) & 0x3);
+                            word_delay += 2 + ((r[MCFG2].get()>>0) & 0x3);
                         }
                     } else {
                         trans_delay = 0;
-                        word_delay = 0 + ((r[MCFG2].get()>>0) & 0x3);
+                        word_delay = 4 + ((r[MCFG2].get()>>0) & 0x3);
+                        v::info << name() << "SRAM Standard delay: " << ((trans_delay + (((length-1)/mem_width)+1) * word_delay) * clock_cycle) << v::endl;
                     }
                     break;
                 case MEMDevice::SDRAM:
@@ -712,7 +714,7 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
                         word_delay = 0;//((r[MCFG2].bit_get(26)?3:2));
                     } else {
                         // RCD DELAY
-                        trans_delay = 0 + (r[MCFG2].bit_get(30)?3:2);
+                        trans_delay = 2 + (r[MCFG2].bit_get(30)?3:2);
                         // CAS DELAY
                         word_delay = 3 + (r[MCFG2].bit_get(26)?3:2);
                         //word_delay = 0; //((r[MCFG2].get()>>0) & 0xF);
@@ -776,12 +778,15 @@ void Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
             // Bus Ready used? 
             // If IO Bus Ready take the delay from the memmory.
               // Or if the RAM Bus Ready is set.
-            //if((port.dev->get_type() == MEMDevice::IO && (r[MCFG1].get() & MCFG1_IBRDY)) ||
-            //   (port.dev->get_type() == MEMDevice::SRAM && r[MCFG2].get() & MCFG2_RBRDY)) {
-            //    delay = mem_delay;
-            //} else {
-                delay += (trans_delay + (length/mem_width) * word_delay) * clock_cycle;
-            //}
+            if((port.dev->get_type() == MEMDevice::IO && (r[MCFG1].get() & MCFG1_IBRDY)) ||
+               (port.dev->get_type() == MEMDevice::SRAM && r[MCFG2].get() & MCFG2_RBRDY)) {
+                delay += mem_delay;
+                v::info << name() << "Memory calculated delay: " << delay << v::endl;
+            } else {
+                delay += (trans_delay + (((length-1)/mem_width)+1) * word_delay) * clock_cycle;
+                v::info << name() << "Standard delay: " << delay << v::endl;
+                v::info << name() << "Standard delay: " << ((trans_delay + (((length-1)/mem_width)+1) * word_delay) * clock_cycle) << v::endl;
+            }
             if(data!=orig_data) {
               delete[] data;
             }

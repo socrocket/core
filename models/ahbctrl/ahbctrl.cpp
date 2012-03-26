@@ -408,7 +408,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
 
     // Power event start
     const char *event_name = "ahb_trans";
-    size_t data_int = trans.get_data_ptr();
+    size_t data_int = (size_t)trans.get_data_ptr();
     uint32_t id = data_int & 0xFFFFFFFF;
     PM::send(this,event_name,1,sc_time_stamp(),id,m_pow_mon);
 
