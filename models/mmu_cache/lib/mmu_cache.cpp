@@ -965,11 +965,13 @@ void mmu_cache::icio_service_thread() {
 	case tlm::TLM_COMPLETED:
 
 	  wait(delay);
+          delay = SC_ZERO_TIME;
 	  break;
 
 	case tlm::TLM_ACCEPTED:
 
 	  wait(delay);
+          delay = SC_ZERO_TIME;
 	  break;
 
 	default:
@@ -1064,11 +1066,13 @@ void mmu_cache::dcio_service_thread() {
         case tlm::TLM_COMPLETED:
 
 	  wait(delay);
+          delay = SC_ZERO_TIME;
 	  break;
 
         case tlm::TLM_ACCEPTED:
 
 	  wait(delay);
+          delay = SC_ZERO_TIME;
 	  break;
 
         default:
@@ -1260,6 +1264,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * d
 
         // Consume delay
         wait(delay);
+        delay = SC_ZERO_TIME;
 
 	// Check TLM RESPONSE
 	if (trans->get_response_status()!=tlm::TLM_OK_RESPONSE) {
@@ -1583,6 +1588,7 @@ void mmu_cache::DataThread() {
 	  // Slave returned TLM_UPDATED with END_DATA
 	  // Data phase completed.
 	  wait(delay);
+          delay = SC_ZERO_TIME;
 
 	  // Add some delay and return transaction
 	  delay = 100*clock_cycle;
