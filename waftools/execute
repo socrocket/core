@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+template=$1
+level=$2
+app=$3
+shift
+shift
+shift
+
+ppath="build/platforms/$template-$level/systemc"
+platform="$ppath/$template.$level.platform"
+prom="$ppath/$template.$level.prom"
+ram=$(find build/software -name $app.sparc)
+
+$platform $prom $ram $@
+if [ "$?" == "0" ] ; then
+  echo "!!! Successfull"
+else
+  echo "!!! Failed"
+fi
