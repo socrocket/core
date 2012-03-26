@@ -421,8 +421,8 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     PM::send(this,event_name,0,sc_time_stamp()+delay,id,m_pow_mon);
     
     wait(delay);
-
     delay=SC_ZERO_TIME;
+
     bus_in_use.post();
 
     v::debug << name() << "DBUS free (" << bus_in_use.get_value() << ")" << v::endl;

@@ -302,10 +302,10 @@ void APBCtrl::ahb_b_transport(tlm::tlm_generic_payload& trans,sc_core::sc_time& 
   exec_decoder(trans, delay, false);
 
   // Consume APB + component delay
-  wait(delay);
+  //wait(delay);
 
   // Reset delay
-  delay = SC_ZERO_TIME;
+  //delay = SC_ZERO_TIME;
 
 }
 
