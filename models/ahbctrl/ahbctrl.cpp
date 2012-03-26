@@ -938,7 +938,7 @@ void AHBCtrl::ResponseThread() {
     if (mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8))))==0)) {
 
 
-      v::error << name() << "Reading configuration area" << v::endl;    
+      v::debug << name() << "Reading configuration area" << v::endl;    
     
       // Extract data pointer from payload
       unsigned int *data  = (unsigned int *)trans->get_data_ptr();
