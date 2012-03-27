@@ -164,10 +164,6 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
     v::info << this->name() << " * wdog: " << wdog << v::endl;
     v::info << this->name() << " * pow_mon: " << powmon << v::endl;
     v::info << this->name() << " ******************************************************************************* " << v::endl;
-    
-#ifdef DEBUG
-    SC_THREAD(diag);
-#endif
 }
 
 // Destructor: Unregister Register Callbacks.
@@ -272,25 +268,6 @@ int GPTimer::numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b,
     int num_b = val_b / reload;
     return std::abs(num_a - num_b);
 }
-
-#ifdef DEBUG
-#define SHOWGPCounter(n) \
-    GPCounter[n]->value_read(); \
-    v::debug << name() << " GPTimer"#n << ":{ v:" << r[TIM_VALUE(n)] << ", r:" << r[TIM_RELOAD(n)] << "}";
-
-// Diagnostic thread.
-void GPTimer::diag() {
-    while(1) {
-        std::printf("\n@%-7s /%-4d: ", sc_core::sc_time_stamp().to_string().c_str(), (unsigned)sc_core::sc_delta_count());
-        scaler_read();
-        std::cout << "Scaler:{ v:" << r[SCALER] << ", r:" << r[SCRELOAD] << "}";
-        SHOWGPCounter(0);
-        SHOWGPCounter(1);
-        SHOWGPCounter(2);
-        wait(clock_cycle);
-    }
-}
-#endif
 
 /// @}
 

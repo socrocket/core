@@ -514,7 +514,7 @@ def build(bld):
      linkflags    = '-static -g -O1 -lm -mno-fpu',
      source       = ['tolstoy.c'],
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'singlecore.lt.platform',
@@ -528,7 +528,7 @@ def build(bld):
       rom         = 'singlecore.at.prom',
       ram         = 'tolstoy.sparc',
   )
-
+  """
   # v42.sparc
   bld(
      features     = 'c cprogram sparc',

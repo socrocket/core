@@ -158,15 +158,6 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
         /// @param time A possible delay. Which means the reset might be performed in the future (Not used for resets!).
         virtual void dorst();
 
-      // Threads
-        /// Diagnostic Thread
-        ///
-        ///  diag is a diagnostic SC_THREAD it gets triggert once in a clockcycle. But this module does not receive
-        ///  a clock it calculates the clockcycle from the values set by a clk function.
-        ///  In this function are debuging commands to read current signals or register values.
-        ///
-        void diag();
-
       // Functions
         /// The time to value function of the prescaler or the counters.
         ///

@@ -237,7 +237,7 @@ def build(bld):
      target       = 'readpnp.sparc',
      source       = ['readpnp.c'],
   )
-  
+  """ 
   bld(
       features    = 'systest',
       system      = 'singlecore.lt.platform',
@@ -251,7 +251,7 @@ def build(bld):
       rom         = 'singlecore.at.prom',
       ram         = 'readpnp.sparc',
   )
-  
+  """
   # argstests.sparc
   bld(
      features     = 'c cprogram sparc',
