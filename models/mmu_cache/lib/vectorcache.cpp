@@ -697,6 +697,8 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
         // update debug information
         CACHEBYPASS_SET(*debug);
+
+        *delay += clockcycle;
     }
 }
 
