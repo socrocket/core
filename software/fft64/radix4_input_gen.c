@@ -69,14 +69,22 @@
 
 struct irqmp *irqmp_base;
 static volatile int irqtbl[18];
-volatile int got_irq = 0;
+volatile int inputdev_irq = 0;
+volatile int socwire_irq = 0;
 
 void irqhandler_f(int irq) {
 
   irqtbl[irqtbl[0]] = irq + 0x10;
   irqtbl[0]++;
-  got_irq++;
-  
+
+  if (irq == 13) {
+
+    inputdev_irq=1;
+  } 
+  else if (irq == 10) {
+
+    socwire_irq = 1;
+  }
 }
 
 void init_irqmp(struct irqmp *lr) {
@@ -86,6 +94,35 @@ void init_irqmp(struct irqmp *lr) {
     irqtbl[0] = 1;      /* init irqtable */
 }
 
+void socw_transfer(unsigned int address, unsigned int length) {
+
+  printf("Start SoCWire DMA action\n");
+
+  // Write TX descriptor to mem
+  unsigned int * descriptor_base;
+  descriptor_base = 0xa0001000;
+  *descriptor_base = 0x00070000 | (length & 0xffff);
+  *(descriptor_base + 1) = address;
+
+  // Write RX descriptor to mem (loopback)
+  *(descriptor_base+256) = 0x00030000 | (length & 0xffff);
+  *(descriptor_base+257) = address;
+
+  // Start transmission
+  unsigned int * socw_addr;
+  socw_addr = 0x80000a00;
+
+  // Init Transmit descriptor pointer reg
+  *(socw_addr+5) = (unsigned int)descriptor_base;
+
+  // Init Receive descriptor pointer reg
+  *(socw_addr+6) = (unsigned int)(descriptor_base+256);
+
+  // Codec enabled (SE) / Codec Interrupt (PI)
+  *socw_addr = 0x00000503;
+
+}
+
 void fft_radix4(complex32 samples[], complex32 twiddles[], complex32 inplace[], int N);
 
 //int start() {
@@ -93,13 +130,15 @@ int main() {
 
   int i;
   int r=0;
-  unsigned int addr = 0x8001F000;
+  int frames = 0;
 
-  struct irqmp *lr = (struct irqmp *)addr;
+  unsigned int irqmpaddr = 0x8001F000;
+
+  struct irqmp *lr = (struct irqmp *)irqmpaddr;
   irqmp_base = lr;
   init_irqmp(lr);
   
-  // Install interrupt handler
+  // Install interrupt handlers
   for(i=1;i<16;i++) {
 
     catch_interrupt(irqhandler_f, i);
@@ -109,18 +148,28 @@ int main() {
   // Unmask all interrupts
   lr->irqmask = 0x0fffe;
 
-  while(got_irq==0) {}
+  while(frames < 10) {
 
+    printf("Processor waiting for data\n");
 
-  printf("Received IRQ\n");
+    while(inputdev_irq==0) {
+      // Wait for IRQ from input device
+    }
+    
+    printf("Received IRQ\n");
+    inputdev_irq=0;
 
-  // computation function (samples: input stimuli, twiddles: twiddle factors, inplace: space for results)
-  fft_radix4(samples, twiddles, inplace, N);
-  /*
-  for(i=0; i<N; i++) {
-    r |= inplace[i].real-result[i].real + inplace[i].imag-result[i].imag;
+    // Computation function (samples: input stimuli, twiddles: twiddle factors, inplace: space for results)
+    fft_radix4(samples, twiddles, inplace, N);
+
+    printf("Completed FFT\n");
+
+    // Upload data with SoCWire DMA
+    socw_transfer(0xA0000000, 512);
+
+    frames++;
+
   }
-  */
 
   printf("Test completed\n");
 
