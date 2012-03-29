@@ -9,10 +9,10 @@ class IntroPage(QtGui.QWizardPage):
         #        QtGui.QPixmap(':/images/watermark1.png'))
 
         label = QtGui.QLabel("Welcome to the SoCRocket - Configuration Wizard.\n\n"
-                             "This wizard will guid you to the platform configuration. "
-                             "First we will choose a template and load a configuration. "
-                             "Afterwards we can alter the configuration and save it. "
-                             "And finaly generate a TLM platform. ")
+                             "This tool facilitates the generation of TLM system simulations from SoCRocket platform templates. "
+                             "The user is asked to select a template and enter the required configuration parameters. "
+                             "Configurations may be dynamically loaded, stored and modified. "
+                             "TLM system simulations can be generated at the push of a button.")
         label.setWordWrap(True)
 
         layout = QtGui.QVBoxLayout()
