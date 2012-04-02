@@ -41,6 +41,7 @@
 #include <trap_utils.hpp>
 
 #include "signalkit.h"
+#include "verbose.h"
 
 
 using namespace leon3_funclt_trap;
@@ -53,6 +54,7 @@ void leon3_funclt_trap::IntrTLMPort_32::callbackMethod( const std::pair<unsigned
     else{
         //Raise the interrupt
         this->irqSignal = value.first;
+        v::debug << name() << "InterruptIN " << value.first << v::endl;
     }
 }
 

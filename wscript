@@ -155,14 +155,14 @@ def configure(ctx):
     # specify any flags I set optimized flags
     #############################################################
     if not ctx.env['CXXFLAGS'] and not ctx.env['CCFLAGS']:
-        testFlags = ['-O2', '-march=native', '-pipe', '-finline-functions', '-ftracer', '-fomit-frame-pointer', '-fpermissive']
+        testFlags = ['-O1', '-march=native', '-pipe', '-finline-functions', '-ftracer', '-fomit-frame-pointer', '-fpermissive']
         if ctx.check_cxx(cxxflags=testFlags, msg='Checking for g++ optimization flags', mandatory=False) and ctx.check_cc(cflags=testFlags, msg='Checking for gcc optimization flags'):
             ctx.env.append_unique('CXXFLAGS', testFlags)
             ctx.env.append_unique('CCFLAGS', testFlags)
             if not ctx.options.debug:
               ctx.env.append_unique('DEFINES', 'NDEBUG')
         else:
-            testFlags = ['-O2', '-pipe', '-finline-functions', '-fomit-frame-pointer', '-fpermissive']
+            testFlags = ['-O1', '-pipe', '-finline-functions', '-fomit-frame-pointer', '-fpermissive']
             if ctx.check_cxx(cxxflags=testFlags, msg='Checking for g++ optimization flags') and ctx.check_cc(cflags=testFlags, msg='Checking for gcc optimization flags'):
                 ctx.env.append_unique('CXXFLAGS', testFlags)
                 ctx.env.append_unique('CCFLAGS', testFlags)

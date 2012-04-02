@@ -77,6 +77,7 @@
 #include <externalPins.hpp>
 #include <string>
 #include <systemc.h>
+#include "verbose.h"
 
 using namespace leon3_funclt_trap;
 using namespace trap;
@@ -87,6 +88,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
     while(true){
         unsigned int numCycles = 0;
         this->instrExecuting = true;
+        v::debug << name() << "Instr" << v::endl;
         while(irqAck.stopped) {
             if(sc_time_stamp()>sc_time(0, SC_NS)) {
               v::info << name() << "Print me" << v::endl;

@@ -324,7 +324,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
   v::debug << name() << "DBUS allocated (" << bus_in_use.get_value() << ")" << v::endl;
 
   // Collect transport statistics
-  transport_statistics(trans);
+  //transport_statistics(trans);
 
   // Extract address from payload
   unsigned int addr   = trans.get_address();
@@ -341,7 +341,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
       unsigned int *data  = (unsigned int *)trans.get_data_ptr();
 
       // No subword access supported here!
-      //assert(length%4==0);
+      assert(length%4==0);
 
       // Get registers from config area
       for (uint32_t i = 0; i < (length >> 2); i++) {
@@ -431,6 +431,8 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
 
   } else {
     
+    other_socket = ahbIN.get_other_side(id, a);
+    mstobj = other_socket->get_parent();
     v::error << name() << "AHB Request 0x" << hex << v::setfill('0')
                << v::setw(8) << trans.get_address() << ", from master:"
                << mstobj->name() << ": Unmapped address space." << endl;

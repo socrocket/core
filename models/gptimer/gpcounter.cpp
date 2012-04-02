@@ -166,7 +166,7 @@ void GPCounter::value_write() {
 
 void GPCounter::chaining() {
     chain_run = true;
-    //v::debug << name() << "Chaining_" << nr << v::endl;
+    v::info << name() << "Chaining" << nr << v::endl;
     start();
 }
 
@@ -176,13 +176,13 @@ void GPCounter::ticking() {
         // calculate sleep time, GPCounter timeout
         calculate();
 
-        v::debug << name() << "GPCounter_" << nr << " is wait" << v::endl;
+        v::debug << name() << "GPCounter" << nr << " is wait" << v::endl;
         wait(e_wait);
 
         // update performance counter
         m_underflows = m_underflows + 1;
 
-        v::debug << name() << "GPCounter_" << nr << " underflows'" << v::endl;
+        v::debug << name() << "GPCounter" << nr << " underflows" << v::endl;
         PM::send(this, "underflow", 1, sc_time_stamp(),0,1);
         // Send interupt and set outputs
         if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_IE]) {
@@ -211,7 +211,7 @@ void GPCounter::ticking() {
 
         unsigned int nrn = (nr + 1 < p.counter.size())? nr + 1 : 0;
         if (p.r[GPTimer::CTRL(nrn)].b[GPTimer::CTRL_CH]) {
-            p.counter[(nrn) % p.counter.size()]->chaining();
+            p.counter[nrn]->chaining();
         }
 
         // Enable value becomes restart value
@@ -236,8 +236,8 @@ sc_core::sc_time GPCounter::nextzero() {
     int x; // Per cycle
     if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]) { // We depend on the cycle time of the last GPCounter.
         if (nr) {
-            //p.counter[nr-1]->value_read();
-            //t = p.counter[nr-1]->cycletime();
+            p.counter[nr-1]->value_read();
+            t = p.counter[nr-1]->cycletime();
             x = p.r[GPTimer::VALUE(nr - 1)];
         } else {
             p.counter[p.counter.size() - 1]->value_read();

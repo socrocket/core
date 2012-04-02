@@ -36,6 +36,7 @@
 
 #include <externalPins.hpp>
 #include <trap_utils.hpp>
+#include "verbose.h"
 
 using namespace leon3_funclt_trap;
 
@@ -54,6 +55,7 @@ void leon3_funclt_trap::PinTLM_out_32::on_run(const bool &run, const sc_time &de
 
 void leon3_funclt_trap::PinTLM_out_32::send_pin_req(const unsigned int &value) throw() {
   initSignal = value;
+  v::debug << name() << "InterruptACK " << value << v::endl;
 }
 
 leon3_funclt_trap::PinTLM_out_32::PinTLM_out_32(sc_module_name portName) : sc_module(portName), \

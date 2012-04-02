@@ -25,7 +25,7 @@ static void gptimer_irqhandler(int irq) {
     gpirq += 1;
 }
 
-void gptimer_test(int addr, int irq, int irq_addr) {
+void gptimer_test(int addr, int irq) {
     struct gptimer *lr = (struct gptimer *) addr;
     //extern volatile int irqtbl[];
     //int pil;
@@ -34,27 +34,23 @@ void gptimer_test(int addr, int irq, int irq_addr) {
     cache_disable(); // <-- needs to be removed
 
     report_device(0x01011000);
-    
-    if(!irqmp_base) {
-      irqmp_base = (irq_addr);
-    }
-    for(i=0; i<16; i++) {
-        catch_interrupt((int)gptimer_irqhandler, i);
-    }
-    init_irqmp(irqmp_base);
-    irqmp_base->irqmask = 0xFFFE;  /* unmask interrupt */
-
     ntimers = lr->configreg & 0x7;
-    lr->scalerload = -1;
+    lr->scalerload = 0xFFFFFFFF;
     if(lr->scalercnt == lr->scalercnt) {
         fail(1);
     } else {
         success(1);
     }
+    //printf("Scaler 0x%08x\n", lr->scalercnt);
+    //printf("Reload 0x%08x\n", lr->scalerload);
+    //printf("Config 0x%08x\n", lr->configreg);
 
-    /* scaler test */
-    lr->scalerload = 31;
-    lr->scalercnt = 31;
+    /* timer 1 test */
+
+    lr->scalerload = 0xFFFFFFFF;
+    lr->scalercnt = 0xFFFFFFFF;
+    //lr->scalerload = 31;
+    //lr->scalercnt = 31;
     for(i=0; i<ntimers; i++) {
         lr->timer[i].control = 0; // halt all timers
 	  }
@@ -71,9 +67,7 @@ void gptimer_test(int addr, int irq, int irq_addr) {
             success(2+3*i);
         }
         
-        printf("before\n");
-        lr->timer[i].control = 0xF;
-        printf("after\n");
+        lr->timer[i].control = 0xf;
         for(j=14; j >= 0; j--) { 
             while(lr->timer[i].counter != j) {
             }
@@ -95,11 +89,18 @@ void gptimer_test(int addr, int irq, int irq_addr) {
         }
     }
 
+    //for(i=0; i<ntimers; i++) {
+    //    lr->timer[i].control = 0x0;
+    //}
+
     if(ntimers > 1) { /* simple check of chain function */
         report_subtest(CHAIN_TEST);
         lr->timer[0].control = 0xf;
         lr->timer[1].control = 0x2f;
-        while(lr->timer[1].counter != 13) {}
+        while(lr->timer[1].counter <= 13) {
+            printf("Counter0 %d\n", lr->timer[0].counter);
+            printf("Counter1 %d\n", lr->timer[1].counter);
+        }
     }
 
     for(i=0; i<ntimers; i++) {
@@ -107,6 +108,9 @@ void gptimer_test(int addr, int irq, int irq_addr) {
     }
 	
     if(irqmp_base) {
+        catch_interrupt((int)gptimer_irqhandler, irq);
+        init_irqmp(irqmp_base);
+        irqmp_base->irqmask = 1 << irq;  /* unmask interrupt */
         lr->timer[0].reload = 15;
         lr->timer[0].control = 0xd;
         asm("wr %g0, %g0, %asr19");  /* power-down */

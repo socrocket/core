@@ -248,9 +248,9 @@ int sc_main(int argc, char** argv) {
 
     // For each Abstraction is another model needed
     #if conf_sys_lt_at
-      leon3_funclt_trap::Processor_leon3_funclt leon3("leon3", sc_core::sc_time(1, SC_US));
+      leon3_funclt_trap::Processor_leon3_funclt leon3("leon3", sc_core::sc_time(conf_sys_clock, SC_NS));
     #else
-      leon3_funcat_trap::Processor_leon3_funcat leon3("leon3", sc_core::sc_time(1, SC_US));
+      leon3_funcat_trap::Processor_leon3_funcat leon3("leon3", sc_core::sc_time(conf_sys_clock, SC_NS));
     #endif
 
     // CREATE MMU_CACHE
