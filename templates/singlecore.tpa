@@ -104,7 +104,7 @@
       </option>
     </option>
     
-    <option var="ahbmem" name="AHB Memory" type="bool" default="false">
+    <option var="ahbmem" name="AHB Memory" type="bool" default="true">
       <option var="index" name="Bus Index" type="int" default="1" range="0..15"/>
       <option var="addr" name="AHB Address" type="int" default="0xA00" range="0..0xFFF"/>
       <option var="mask" name="AHB Mask" type="int" default="0xFFF" range="0..0xFFF"/>

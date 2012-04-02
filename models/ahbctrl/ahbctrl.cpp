@@ -224,7 +224,6 @@ int AHBCtrl::get_index(const uint32_t address) {
 
 // Returns a PNP register from the slave configuration area
 unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
-
   uint32_t result;
 
   m_total_transactions++;
@@ -243,24 +242,18 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     // Calculate offset within device information
     unsigned int offset = (addr >> 2) & 0x7;
 
+    v::debug << name() << "Access mSlaves - device: " << device << " offset: " << offset << v::endl;
+
     if(device>=num_of_slave_bindings) {
         v::warn << name() << "Access to unregistered PNP Slave Register!" << v::endl;
         return 0;
     }
-    
-    v::info << name() << "Access mSlaves - device: " << device << " offset: " << offset << v::endl;
-
-    uint32_t result;
 
     // If the device exists, access deviceinfo (otherwise 0)
     if (mSlaves[device] != NULL) {
-      
       result =  mSlaves[device][offset];
-
     } else {
-
       result = 0;
-
     }
  
     #ifdef LITTLE_ENDIAN_BO
@@ -313,7 +306,6 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
   sc_core::sc_object *mstobj = NULL;
 
   if (v::debug) {
-
     other_socket = ahbIN.get_other_side(id, a);
     mstobj = other_socket->get_parent();
   }
@@ -327,25 +319,25 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
   //transport_statistics(trans);
 
   // Extract address from payload
-  unsigned int addr   = trans.get_address();
+  uint32_t addr   = trans.get_address();
   // Extract length from payload
-  unsigned int length = trans.get_data_length();
+  uint32_t length = trans.get_data_length();
 
   // Is this an access to configuration area
   if (mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8))))==0)) {
 
     // Configuration area is read only
     if (trans.get_command() == tlm::TLM_READ_COMMAND) {
-
+      //addr = addr - (((mioaddr << 20) | (mcfgaddr << 8)) & ((miomask << 20) | (mcfgmask << 8)));
       // Extract data pointer from payload
-      unsigned int *data  = (unsigned int *)trans.get_data_ptr();
-
-      // No subword access supported here!
-      assert(length%4==0);
+      uint8_t *data  = trans.get_data_ptr();
 
       // Get registers from config area
-      for (uint32_t i = 0; i < (length >> 2); i++) {
-          data[i] = getPNPReg(addr + (i<<2));
+      for(uint32_t i = 0; i < length; i++) {
+          //uint32_t word = (addr + i) >> 2;
+          uint32_t byte = (addr + i) & 0x3;
+          uint32_t reg = getPNPReg(addr + i);
+          data[i] = ((uint8_t*)&reg)[byte];
 
           // one cycle delay per 32bit register
           delay += clock_cycle;
@@ -933,33 +925,32 @@ void AHBCtrl::ResponseThread() {
     trans = mResponsePEQ.get_next_transaction();
 
     // Extract address from payload
-    unsigned int addr       = trans->get_address();
+    uint32_t addr    = trans->get_address();
+    uint32_t length  = trans->get_data_length();
+    uint8_t *data    = trans->get_data_ptr();
 
-    // Access to configuration area?
-    // ---------------------------------------
+    // Is this an access to configuration area
     if (mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8))))==0)) {
 
+      // Configuration area is read only
+      if (trans->get_command() == tlm::TLM_READ_COMMAND) {
+        //addr = addr - (((mioaddr << 20) | (mcfgaddr << 8)) & ((miomask << 20) | (mcfgmask << 8)));
+        // Extract data pointer from payload
 
-      v::debug << name() << "Reading configuration area" << v::endl;    
-    
-      // Extract data pointer from payload
-      unsigned int *data  = (unsigned int *)trans->get_data_ptr();
-      unsigned int length = trans->get_data_length();
+        // Get registers from config area
+        for(uint32_t i = 0; i < length; i++) {
+            //uint32_t word = (addr + i) >> 2;
+            uint32_t byte = (addr + i) & 0x3;
+            uint32_t reg = getPNPReg(addr + i);
+            data[i] = ((uint8_t*)&reg)[byte];
 
-      // No subword access supported here!
-      assert(length%4==0);
-
-      // Get registers from config area
-      for (uint32_t i = 0; i < (length >> 2); i++) {
-
-	data[i] = getPNPReg(addr + (i<<2));
-
-	// One cycle delay per 32bit register
-	delay += clock_cycle;
-
+            // one cycle delay per 32bit register
+            //delay += clock_cycle;
+        }
+        
+        // and return
+        trans->set_response_status(tlm::TLM_OK_RESPONSE);
       }
-
-      trans->set_response_status(tlm::TLM_OK_RESPONSE);
 
     }
 
@@ -1293,25 +1284,24 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
     // --------------------
 
     // Extract address from payload
-    unsigned int addr   = trans.get_address();
+    uint32_t addr   = trans.get_address();
     // Extract length from payload
-    unsigned int length = trans.get_data_length(); 
+    uint32_t length = trans.get_data_length(); 
+    uint8_t *data  = trans.get_data_ptr();
 
-    // Is this an access to configuration area
-    if(mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8))))==0)) {
+    if (mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8))))==0)) {
 
         // Configuration area is read only
-        if (trans.get_command() == tlm::TLM_READ_COMMAND) {
-
+        if(trans.get_command() == tlm::TLM_READ_COMMAND) {
+            //addr = addr - (((mioaddr << 20) | (mcfgaddr << 8)) & ((miomask << 20) | (mcfgmask << 8)));
             // Extract data pointer from payload
-            unsigned int *data  = (unsigned int *)trans.get_data_ptr();
-            
-            // No subword access supported here!
-            //assert(length%4==0);
 
             // Get registers from config area
-            for(uint32_t i = 0 ; i < (length >> 2); i++) {
-                data[i] = getPNPReg(addr + (i<<2));
+            for(uint32_t i = 0; i < length; i++) {
+                //uint32_t word = (addr + i) >> 2;
+                uint32_t byte = (addr + i) & 0x3;
+                uint32_t reg = getPNPReg(addr + i);
+                data[i] = ((uint8_t*)&reg)[byte];
             }
 	
             trans.set_response_status(tlm::TLM_OK_RESPONSE);

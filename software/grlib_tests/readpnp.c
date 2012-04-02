@@ -1,10 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include "cache.h"
 
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 
 int main(int argc, char *argv[]) {
+	cache_disable();
   volatile uint32_t *ahb_pnp_master = (uint32_t *)0xFFFFF000;
   volatile uint32_t *ahb_pnp_slave =  (uint32_t *)0xFFFFF800;
   volatile uint32_t *apb_pnp_slave =  (uint32_t *)0x800FF000;
@@ -76,7 +78,7 @@ int main(int argc, char *argv[]) {
   
   
   printf("4.  AHB Master PNP Read\n");
-  printf("    Reading: 0x%08hx\n", ahb_pnp_master[0]);
+  printf("    Reading: 0x%08x\n", ahb_pnp_master[0]);
   if(ahb_pnp_master[0] == 0x01003000) {
     printf("    Test successful\n");
   } else {
@@ -86,7 +88,7 @@ int main(int argc, char *argv[]) {
   printf("\n");
   
   printf("5.  AHB Slave PNP Read\n");
-  printf("    Reading: 0x%08hx\n", ahb_pnp_slave[0]);
+  printf("    Reading: 0x%08x\n", ahb_pnp_slave[0]);
   if(ahb_pnp_slave[0] == 0x0400F000) {
     printf("    Test successful\n");
   } else {
@@ -96,7 +98,7 @@ int main(int argc, char *argv[]) {
   printf("\n");
   
   printf("6.  APB Slave PNP Read\n");
-  printf("    Reading: 0x%08hx\n", apb_pnp_slave[0]);
+  printf("    Reading: 0x%08x\n", apb_pnp_slave[0]);
   if(apb_pnp_slave[0] == 0x0400F000) {
     printf("    Test successful\n");
   } else {
@@ -105,7 +107,7 @@ int main(int argc, char *argv[]) {
   }
   printf("\n");
   
-  printf("Now follow some messy tests:\n");
+  printf("Now followed by some messy tests:\n");
   printf("The folowing tests will all produce ugly signs\n");
   printf("We test DBG transport of the PNP Areas!\n");
   printf("\n");
@@ -134,7 +136,7 @@ int main(int argc, char *argv[]) {
   if(ahb_pnp_master[0] == 0x01003000) {
     printf("    Test successful\n");
   } else {
-    printf("    Reading: 0x%08hx\n", ahb_pnp_master[0]);
+    printf("    Reading: 0x%08x\n", ahb_pnp_master[0]);
     printf("    Test failed\n");
     error |= 1 << 10;
   }
@@ -146,7 +148,7 @@ int main(int argc, char *argv[]) {
   if(ahb_pnp_slave[0] == 0x0400F000) {
     printf("    Test successful\n");
   } else {
-    printf("    Reading: 0x%08hx\n", ahb_pnp_slave[0]);
+    printf("    Reading: 0x%0hx\n", ahb_pnp_slave[0]);
     printf("    Test failed\n");
     error |= 1 << 11;
   }
@@ -158,7 +160,7 @@ int main(int argc, char *argv[]) {
   if(apb_pnp_slave[0] == 0x0400F000) {
     printf("    Test successful\n");
   } else {
-    printf("    Reading: 0x%08hx\n", apb_pnp_slave[0]);
+    printf("    Reading: 0x%08x\n", apb_pnp_slave[0]);
     printf("    Test failed\n");
     error |= 1 << 12;
   }

@@ -171,15 +171,15 @@ int APBCtrl::get_index(const uint32_t address) {
   return -1;
 }
 
-/// Returns a PNP register from the APB configuration area (upper 4kb of address space)
+// Returns a PNP register from the APB configuration area (upper 4kb of address space)
 uint32_t APBCtrl::getPNPReg(const uint32_t address) {
 
   // Calculate address offset in configuration area
   uint32_t addr = address - (get_bar_addr(0) + m_pnpbase);
   // Calculate index of the device in mSlaves pointer array (8 byte per device)
-  uint32_t device = addr >> 1;
+  uint32_t device = (addr >> 2) >> 1;
   // Calculate offset within device information
-  uint32_t offset = addr & 0x1;
+  uint32_t offset = (addr >> 2) & 0x1;
 
   if((device < 16) && (mSlaves[device] != NULL)) {
       m_right_transactions++;
@@ -212,15 +212,14 @@ void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bo
   if(((addr ^ m_pnpbase) & m_pnpbase) == 0) {
       // Configuration area is read only
       if(ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
+          //addr = addr - ((m_pnpbase) & (m_pnpbase));
+	        for(uint32_t i = 0; i < length; i++) {
+              //uint32_t word = (addr + i) >> 2;
+              uint32_t byte = (addr + i) & 0x3;
+              uint32_t reg = getPNPReg(addr + i);
 
-	        // No subword access supported here!
-	        assert(length%4==0);
+              data[i] = ((uint8_t *)&reg)[byte];
 
-	        // Get registers from config area
-	        uint32_t *data32 = (uint32_t*)data;
-	        for(uint32_t i = 0; i < (length >> 2); i++) {
-              data32[i] = getPNPReg(addr + (i<<2));
-	            // one cycle delay per 32bit register
 	            delay += clock_cycle;
 	        }
 
