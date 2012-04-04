@@ -53,6 +53,7 @@ def build(bld):
      cflags       = '-static -g -O1 -lm -mno-fpu',
      linkflags    = '-static -g -O1 -lm -mno-fpu',
      source       = ['hello.c'],
+     install_path = None,
   )
 
   bld(
@@ -81,6 +82,7 @@ def build(bld):
                      'standaloneasm.S', 
                      'cacheasm.S', 
                      'cache.c'],
+     install_path = None,
   )
   """
   bld(
@@ -103,6 +105,7 @@ def build(bld):
                      'gptimer.c',
                      'cacheasm.S', 
                      'cache.c'],
+     install_path = None,
   )
   """
   bld(
@@ -125,6 +128,7 @@ def build(bld):
                      'irqmp.c', 
                      'cacheasm.S', 
                      'cache.c'],
+     install_path = None,
   )
   
   bld(
@@ -154,6 +158,7 @@ def build(bld):
                      'ramtest.c',
                      'cacheasm.S',
                      'cache.c'],
+     install_path = None,
   )
   """
   bld(
@@ -183,6 +188,7 @@ def build(bld):
                      'regtest.S',
                      'cacheasm.S',
                      'cache.c'],
+     install_path = None,
   )
   """
   bld(
@@ -213,6 +219,7 @@ def build(bld):
                      'mmu_asm.S',
                      'cacheasm.S',
                      'cache.c'],
+     install_path = None,
   )
   """
   bld(
@@ -235,14 +242,17 @@ def build(bld):
      cflags       = '-static -g -O1 -lm -mno-fpu',
      linkflags    = '-static -g -O1 -lm -mno-fpu',
      target       = 'readpnp.sparc',
-     source       = ['readpnp.c',
-                     'ramfill.c',
-                     'cacheasm.S',
-                     'cache.c',
-                     'standalone.c',
-                     'standaloneasm.S'],
+     source       = [
+       'readpnp.c',
+       'standalone.c',
+       'standaloneasm.S',
+       'ramfill.c',
+       'cache.c',
+       'cacheasm.S',
+     ],
+     install_path = None,
   )
-
+  """ 
   bld(
       features    = 'systest',
       system      = 'singlecore.lt.platform',
@@ -256,7 +266,7 @@ def build(bld):
       rom         = 'singlecore.at.prom',
       ram         = 'readpnp.sparc',
   )
-
+  """
   # argstests.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -264,6 +274,7 @@ def build(bld):
      linkflags    = '-static -g -O1 -lm -mno-fpu',
      target       = 'argstest.sparc',
      source       = ['top_args_test.c'],
+     install_path = None,
   )
   
   bld(
