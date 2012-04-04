@@ -62,4 +62,5 @@ def build(bld):
     export_includes = 'lib',
     uselib         = 'SYSTEMC TLM AMBA AMBAMEM GREENSOCS',
     use            = 'common utils',
+    install_path   = '${PREFIX}/lib',
   )

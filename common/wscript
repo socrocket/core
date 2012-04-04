@@ -53,15 +53,17 @@ def build(bld):
                        'power_monitor.cpp',
                        'timingmonitor.cpp'],
     export_includes = '.',
-    uselib          = 'SYSTEMC TLM'
+    uselib          = 'SYSTEMC TLM',
+    install_path    = '${PREFIX}/lib',
   )
-  
+
   bld(
     target          = 'simple.common',
     features        = 'cxx cprogram test',
     source          = 'tests/simple.cpp',
     includes        = '.',
     uselib          = 'SYSTEMC',
-    use             = 'common'
+    use             = 'common',
+    install_path    = None,
   )
  

@@ -16,35 +16,29 @@ def build(bld):
         irqPorts.cpp
         externalPins.cpp
     """
-    uselib = 'BOOST BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM TRAP'
-    use = 'mmu_cache utils signalkit common'
-    objects = ''
-    includes = '.'
-    target = 'LEON3_funcLT_objs'
 
-    bld.objects(source = sources, target = target, uselib = uselib, use = use + ' ' + objects, includes = includes)
+    uselib = 'TRAP ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
+    use = 'mmu_cache utils signalkit common'
+
+    bld.install_files('${PREFIX}/include/models/LEON3/funcLT', bld.path.ant_glob('*.hpp'))
+
     bld(
         target          = 'leon3.funclt',
         features        = 'cxx cxxstlib',
-        source          = ['instructions.cpp',
-                           'registers.cpp',
-                           'alias.cpp',
-                           'processor.cpp',
-                           'interface.cpp',
-                           'decoder.cpp',
-                           'memory.cpp',
-                           'externalPorts.cpp',
-                           'irqPorts.cpp',
-                           'externalPins.cpp'],
         export_includes = '.',
         includes        = '.',
         uselib          = uselib,
         use             = use,
+        source          = sources,
+        install_path    = '${PREFIX}/lib',
     )
-    sources = sources + 'main.cpp'
-    includes = '.'
-    uselib = 'TRAP ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
-    #objects = 'LEON3_funcLT_objs'
-    target = 'LEON3_funcLT'
 
-    bld.program(source = sources, defines = 'LEON3_STANDALONE', target = target, uselib = uselib, use = use, includes = includes)
+    sources = sources + 'main.cpp'
+    bld.program(
+        target = 'leon3.funclt.platform',
+        includes = '.',
+        defines = 'LEON3_STANDALONE', 
+        source = sources, 
+        uselib = uselib, 
+        use = use, 
+    )

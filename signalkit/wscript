@@ -51,8 +51,10 @@ def build(bld):
     export_includes = '.',
     uselib          = 'BOOST SYSTEMC',
     use             = 'common',
+    install_path    = '${PREFIX}/lib',
   )
- 
+  bld.install_files('${PREFIX}/include', bld.path.ant_glob('**/*.h', excl=['**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']), relative_trick=True)
+
   bld(
     target       = 'signalkit.simple.test',
     features     = 'cxx cprogram test',
@@ -60,6 +62,7 @@ def build(bld):
     includes     = '.',
     uselib       = 'BOOST SYSTEMC',
     use          = 'signalkit common',
+    install_path = None,
   )
   
   bld(
@@ -69,6 +72,7 @@ def build(bld):
     includes     = '.',
     uselib       = 'BOOST SYSTEMC',
     use          = 'signalkit common',
+    install_path = None,
   )
   
   bld(
@@ -78,5 +82,6 @@ def build(bld):
     includes     = '.',
     uselib       = 'BOOST SYSTEMC',
     use          = 'signalkit common',
+    install_path = None,
   )
    

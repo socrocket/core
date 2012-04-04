@@ -53,5 +53,6 @@ def build(bld):
     source          = 'mctrl.cpp', 
     export_includes = '.',
     uselib          = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
-    use             = 'memory utils signalkit common'
+    use             = 'memory utils signalkit common',
+    install_path   = '${PREFIX}/lib',
   )
