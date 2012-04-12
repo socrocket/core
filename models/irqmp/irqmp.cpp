@@ -361,7 +361,7 @@ void Irqmp::launch_irq() {
                 v::debug << name() << "For CPU " << cpu << " send IRQ: " << high << v::endl;
                 std::pair<uint32_t, bool> value(0xF & high, true);
                 if(value != irq_req.read(cpu)) {
-                    v::debug << name() << "For CPU " << cpu << " really sent send IRQ: " << high << v::endl;
+                    v::debug << name() << "For CPU " << cpu << " really sent IRQ: " << high << v::endl;
                     irq_req.write(1 << cpu, value);
 
                     // Depending on CPU ID emit power event
