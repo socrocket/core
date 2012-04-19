@@ -20,13 +20,13 @@ def build(bld):
     uselib = 'TRAP ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
     use = 'mmu_cache utils signalkit common'
 
-    bld.install_files('${PREFIX}/include/models/LEON3/funcLT', bld.path.ant_glob('*.hpp'))
+    bld.install_files('${PREFIX}/include/', bld.path.parent.ant_glob(['leon3.funclt.h','leon3.funclt/*.hpp']), cwd=bld.path.parent, relative_trick=True)
 
     bld(
         target          = 'leon3.funclt',
         features        = 'cxx cxxstlib',
-        export_includes = '.',
-        includes        = '.',
+        export_includes = '..',
+        includes        = '..',
         uselib          = uselib,
         use             = use,
         source          = sources,
@@ -36,7 +36,7 @@ def build(bld):
     sources = sources + 'main.cpp'
     bld.program(
         target = 'leon3.funclt.platform',
-        includes = '.',
+        includes = '..',
         defines = 'LEON3_STANDALONE', 
         source = sources, 
         uselib = uselib, 

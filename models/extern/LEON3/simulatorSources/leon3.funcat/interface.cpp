@@ -36,11 +36,11 @@
 
 
 
-#include <interface.hpp>
+#include <leon3.funcat/interface.hpp>
 #include <ABIIf.hpp>
-#include <memory.hpp>
-#include <registers.hpp>
-#include <alias.hpp>
+#include <leon3.funcat/memory.hpp>
+#include <leon3.funcat/registers.hpp>
+#include <leon3.funcat/alias.hpp>
 #include <boost/circular_buffer.hpp>
 #include <instructionBase.hpp>
 #include <vector>

@@ -36,7 +36,7 @@
 
 
 
-#include <registers.hpp>
+#include <leon3.funcat/registers.hpp>
 #include <ostream>
 #include <trap_utils.hpp>
 

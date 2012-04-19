@@ -36,8 +36,8 @@
 
 
 
-#include <alias.hpp>
-#include <registers.hpp>
+#include <leon3.funcat/alias.hpp>
+#include <leon3.funcat/registers.hpp>
 #include <ostream>
 #include <list>
 

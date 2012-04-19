@@ -38,7 +38,7 @@
 #ifndef ALIAS_HPP
 #define ALIAS_HPP
 
-#include <registers.hpp>
+#include <leon3.funcat/registers.hpp>
 #include <ostream>
 #include <list>
 

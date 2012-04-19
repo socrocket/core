@@ -36,7 +36,7 @@
 
 
 #include <tlm.h>
-#include <irqPorts.hpp>
+#include <leon3.funcat/irqPorts.hpp>
 #include <trap_utils.hpp>
 
 #include "signalkit.h"

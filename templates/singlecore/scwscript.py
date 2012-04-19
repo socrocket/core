@@ -46,24 +46,28 @@
 top = '..'
 
 def build(bld):
-    ambaLayer = '${conf_sys_lt_at}'
-    use       = 'ahbctrl ahbmem irqmp gptimer apbctrl socwire socw_socket mmu_cache mctrl input_device utils signalkit common TRAP BOOST ELF_LIB SYSTEMC AMBA TLM GREENSOCS '
+    ambaLayer = 'true'
+    if not bld.env["LIB_SOCROCKET"]:
+        use       = 'ahbctrl ahbmem irqmp gptimer apbctrl socwire socw_socket mmu_cache mctrl input_device utils signalkit common TRAP BOOST ELF_LIB SYSTEMC AMBA TLM GREENSOCS '
+    else:
+        use       = 'SOCROCKET TRAP BOOST ELF_LIB SYSTEMC AMBA TLM GREENSOCS '
+
     if ambaLayer == 'true':
         use  += 'leon3.funclt'
     else:
         use  += 'leon3.funcat'
       
     bld(
-        target       = '$template.$configuration.platform',
+        target       = 'singlecore.lt.platform',
         features     = 'cxx cprogram',
         source       = [ 'sc_main.cpp' ],
         includes     = '.',
         use          = use,
-        #ut_param     = ['$template.$configuration.prom', 'irqmp.sparc'],
+        #ut_param     = ['singlecore.lt.prom', 'irqmp.sparc'],
     )
     ldscript = bld.path.find_resource('prom.ld')
     bld(
-        target       = '$template.$configuration.prom',
+        target       = 'singlecore.lt.prom',
         features     = 'c cprogram sparc',
         cflags       = '-g',
         linkflags    = '-g -Ttext=0 -nostartfiles -nostdlib -T%s -N' % (ldscript.abspath()),

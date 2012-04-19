@@ -36,7 +36,7 @@
 
 
 
-#include <memory.hpp>
+#include <leon3.funclt/memory.hpp>
 #include <ToolsIf.hpp>
 #include <trap_utils.hpp>
 #include <systemc.h>

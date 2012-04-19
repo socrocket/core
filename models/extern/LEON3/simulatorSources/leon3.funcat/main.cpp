@@ -49,8 +49,8 @@
 #include <boost/timer.hpp>
 #include <boost/filesystem.hpp>
 #include <SparseMemoryAT.hpp>
-#include <processor.hpp>
-#include <instructions.hpp>
+#include <leon3.funcat/processor.hpp>
+#include <leon3.funcat/instructions.hpp>
 #include <trap_utils.hpp>
 #include <elfFrontend.hpp>
 #include <execLoader.hpp>

@@ -34,7 +34,7 @@
  *
 \***************************************************************************/
 
-#include <externalPins.hpp>
+#include <leon3.funclt/externalPins.hpp>
 #include <trap_utils.hpp>
 #include "verbose.h"
 

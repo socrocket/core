@@ -37,7 +37,7 @@
 
 
 #include <systemc.h>
-#include <irqPorts.hpp>
+#include <leon3.funclt/irqPorts.hpp>
 #include <trap_utils.hpp>
 
 #include "signalkit.h"

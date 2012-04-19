@@ -36,7 +36,7 @@
 
 
 
-#include <externalPins.hpp>
+#include <leon3.funcat/externalPins.hpp>
 #include <trap_utils.hpp>
 
 using namespace leon3_funcat_trap;
