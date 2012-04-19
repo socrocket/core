@@ -53,6 +53,7 @@ def build(bld):
     source          = 'apbctrl.cpp', 
     export_includes = '.',
     uselib          = 'SYSTEMC TLM AMBA GREENSOCS',
-    use             = 'utils common'
+    use             = 'utils common',
+    install_path   = '${PREFIX}/lib',
   )
   

@@ -1,1 +1,6 @@
 *.pyc
+
+# waf files
+.lock-wafbuild
+.waf*
+build
