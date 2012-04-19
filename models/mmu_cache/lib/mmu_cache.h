@@ -98,7 +98,7 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
   signal<t_snoop>::in snoop;
 
   // Signalkit IRQ output
-  signal<bool>::out irq;
+  signal<bool>::selector irq;
 
   /// @brief Constructor of the top-level class of the memory sub-system (caches and mmu).
   /// @icen          instruction cache enable
@@ -204,6 +204,9 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
   virtual bool mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
                         unsigned int length, sc_core::sc_time * t,
                         unsigned int * debug, bool is_dbg);
+
+  /// Send an interrupt over the central IRQ interface
+  virtual void set_irq(uint32_t tt);
 
   /// Writes the cache control register
   void write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time *delay, unsigned int * debug, bool is_dbg);

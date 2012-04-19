@@ -1651,7 +1651,12 @@ void mmu_cache::ResponseThread() {
   }
 }
 
+// Send an interrupt over the central IRQ interface
+void mmu_cache::set_irq(uint32_t tt) {
 
+  irq.write(tt, true);
+
+}
 
 // Writes the cache control register and handles the commands
 void mmu_cache::write_ccr(unsigned char * data, unsigned int len,

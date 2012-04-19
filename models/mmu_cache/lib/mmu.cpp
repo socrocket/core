@@ -399,7 +399,27 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         v::error << this->name()
                 << "Error in 1st-Level Page Table / Entry type not valid"
                 << v::endl;
-        assert(false);
+        
+        // Set fault status and fault address
+        MMU_FAULT_STATUS_REG = 0;
+        MMU_FAULT_STATUS_REG |= 1 << 8; // L  - Level of Error
+        MMU_FAULT_STATUS_REG |= 4 << 2; // FT - Translation Error
+        MMU_FAULT_STATUS_REG |= 1 << 1; // FAV - Fault Address Register valid
+        
+        MMU_FAULT_ADDRESS_REG = addr;
+
+        if (tlb == itlb) {
+
+          v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
+          m_mmu_cache->set_irq(0x3c);
+
+        } else {
+
+          v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
+          m_mmu_cache->set_irq(0x2c);
+
+        }        
+
         return (0);
     }
 
@@ -464,7 +484,27 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         v::error << this->name()
                  << "Error in 2-Level Page Table / Entry type not valid"
                  << v::endl;
-        assert(false);
+
+        // Set fault status and fault address
+        MMU_FAULT_STATUS_REG = 0;
+        MMU_FAULT_STATUS_REG |= 2 << 8; // L  - Level of Error
+        MMU_FAULT_STATUS_REG |= 4 << 2; // FT - Translation Error
+        MMU_FAULT_STATUS_REG |= 1 << 1; // FAV - Fault Address Register valid
+        
+        MMU_FAULT_ADDRESS_REG = addr;
+
+        if (tlb == itlb) {
+
+          v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
+          m_mmu_cache->set_irq(0x3c);
+
+        } else {
+
+          v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
+          m_mmu_cache->set_irq(0x2c);
+
+        }
+
         return (0);
     }
 
@@ -523,7 +563,27 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         v::error << this->name()
                  << "Error in 3-Level Page Table / Entry type not valid"
                  << v::endl;
-        assert(false);
+
+        // Set fault status and fault address
+        MMU_FAULT_STATUS_REG = 0;
+        MMU_FAULT_STATUS_REG |= 3 << 8; // L  - Level of Error
+        MMU_FAULT_STATUS_REG |= 4 << 2; // FT - Translation Error
+        MMU_FAULT_STATUS_REG |= 1 << 1; // FAV - Fault Address Register valid
+        
+        MMU_FAULT_ADDRESS_REG = addr;
+
+        if (tlb == itlb) {
+
+          v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
+          m_mmu_cache->set_irq(0x3c);
+
+        } else {
+
+          v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
+          m_mmu_cache->set_irq(0x2c);
+
+        }
+
         return (0);
     }
 }

@@ -50,20 +50,25 @@
 
 class mmu_cache_if : public mem_if {
 
-    public:
+ public:
 
-        // Reads the cache control register
-        virtual unsigned int read_ccr(bool internal) {
-            return (0);
-        };
+  // Send an interrupt over the central IRQ interface
+  virtual void set_irq(uint32_t tt) {
 
-	// Writes the cache control register
-        virtual void write_ccr(unsigned char *data, unsigned int len,
-                               sc_core::sc_time *delay, unsigned int * debug, bool is_dbg) {
-        };
+  };
 
-        virtual ~mmu_cache_if() {
-        };
+  // Reads the cache control register
+  virtual unsigned int read_ccr(bool internal) {
+    return (0);
+  };
+
+  // Writes the cache control register
+  virtual void write_ccr(unsigned char *data, unsigned int len,
+                         sc_core::sc_time *delay, unsigned int * debug, bool is_dbg) {
+  };
+
+  virtual ~mmu_cache_if() {
+  };
 };
 
 #endif // __MMU_CACHE_IF_H__
