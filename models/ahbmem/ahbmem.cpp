@@ -189,6 +189,8 @@ tlm::tlm_sync_enum AHBMem::nb_transport_fw(tlm::tlm_generic_payload& trans, tlm:
 
     phase = tlm::END_REQ;
     delay = SC_ZERO_TIME;
+
+    msclogger::return_backward(this, &ahb, &trans, tlm::TLM_UPDATED, delay);
     return(tlm::TLM_UPDATED);
 
   } else if (phase == amba::BEGIN_DATA) {
@@ -202,6 +204,8 @@ tlm::tlm_sync_enum AHBMem::nb_transport_fw(tlm::tlm_generic_payload& trans, tlm:
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
   }
 
+
+  msclogger::return_backward(this, &ahb, &trans, tlm::TLM_ACCEPTED, delay);
   return(tlm::TLM_ACCEPTED);
 }
 
@@ -234,10 +238,13 @@ void AHBMem::processTXN() {
         delay = clock_cycle * (trans->get_data_length() >> 2);
 
 	v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << " (delay: " << delay << ")" << v::endl;
+        msclogger::backward(this, &ahb, trans, phase, delay);
 
         trans->set_response_status(tlm::TLM_OK_RESPONSE);
         status = ahb->nb_transport_bw(*trans, phase, delay);
+
 	assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_COMPLETED));
+
       } else {
         for(uint32_t i = 0; i < trans->get_data_length(); i++) {
 	  v::debug << name() << "Read with address: 0x" << std::setw(8) << std::setfill('0') << hex << trans->get_address() + i << " to return: 0x" << std::setw(2) << std::setfill('0') << hex << (unsigned int)mem[trans->get_address() + i] << v::endl;
@@ -255,9 +262,9 @@ void AHBMem::processTXN() {
         delay = clock_cycle * (trans->get_data_length() >> 2);
 
 	v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << " (delay: " << delay << ")" << v::endl; 
+        msclogger::backward(this, &ahb, trans, phase, delay);
 
         trans->set_response_status(tlm::TLM_OK_RESPONSE);
-
         status = ahb->nb_transport_bw(*trans, phase, delay);
 
 	assert(status==tlm::TLM_ACCEPTED);

@@ -45,6 +45,8 @@
 
 #include "ahbdevice.h"
 #include "clkdevice.h"
+#include "msclogger.h"
+
 
 #include <map>
 #include <amba.h>
