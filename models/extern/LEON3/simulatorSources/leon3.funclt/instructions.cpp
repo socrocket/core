@@ -199,6 +199,7 @@ void leon3_funclt_trap::Instruction::RaiseException( unsigned int pcounter, unsi
             }break;
             case MEM_ADDR_NOT_ALIGNED:{
                 TBR[key_TT] = 0x07;
+                v::info << "Instr" << "MEM_ADDR_NOT_ALIGNED " << pcounter << v::endl;
             }break;
             case FP_EXCEPTION:{
                 TBR[key_TT] = 0x08;

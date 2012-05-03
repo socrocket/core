@@ -31,6 +31,7 @@ def build(bld):
         use             = use,
         source          = sources,
         install_path    = '${PREFIX}/lib',
+        defines         = 'ENABLE_HISTORY', 
     )
 
     sources = sources + 'main.cpp'

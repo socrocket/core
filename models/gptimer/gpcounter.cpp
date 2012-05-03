@@ -182,7 +182,7 @@ void GPCounter::ticking() {
         // update performance counter
         m_underflows = m_underflows + 1;
 
-        v::debug << name() << "GPCounter" << nr << " underflows" << v::endl;
+        v::warn << name() << "GPCounter" << nr << " underflows" << v::endl;
         PM::send(this, "underflow", 1, sc_time_stamp(),0,1);
         // Send interupt and set outputs
         if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_IE]) {
@@ -284,7 +284,7 @@ void GPCounter::calculate() {
     if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN]) {
         sc_core::sc_time zero = this->nextzero();
         sc_core::sc_time cycle = this->cycletime();
-        v::debug << name() << " calc_" << nr << " Zero: " << zero << " Cycle: " << cycle << " Value: " << value << v::endl;
+        v::info << name() << " calc_" << nr << " Zero: " << zero << " Cycle: " << cycle << " Value: " << value << v::endl;
         time = zero;
         time += (cycle * value) + (nr + 1) * p.clock_cycle;
         v::debug << name() << " calc_" << nr << ": " << time << v::endl;
@@ -295,7 +295,7 @@ void GPCounter::calculate() {
 // Start counting imideately.
 // For example for enable, !dhalt, e_chain
 void GPCounter::start() {
-    v::debug << name() << "start_" << nr << " stopped: " << stopped << "-"
+    v::info << name() << "start_" << nr << " stopped: " << stopped << "-"
             << (bool)(p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN]) << "-"
             << "-"
             << (!p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]
@@ -305,7 +305,7 @@ void GPCounter::start() {
             /*&& (p.dhalt.read()!=0)*/&& (!p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]
                     || (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]
                             && chain_run))) {
-        v::debug << name() << "startnow_" << nr << v::endl;
+        v::info << name() << "startnow_" << nr << v::endl;
 
         lasttime = sc_core::sc_time_stamp();
         calculate();
