@@ -60,7 +60,7 @@
 
 #include "socrocket.h"
 #include "signalkit.h"
-#include "ahbdevice.h"
+#include "ahbmaster.h"
 #include "clkdevice.h"
 #include "power_monitor.h"
 
@@ -77,7 +77,7 @@
 /// @{
 
 /// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
-class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevice, public CLKDevice {
+class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
 
  public:
   SC_HAS_PROCESS(mmu_cache);
@@ -91,9 +91,6 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
   // iu3 data cache in/out
   tlm_utils::simple_target_socket<mmu_cache> dcio;
 
-  // amba master socket
-  amba::amba_master_socket<32> ahb;
-  
   // snooping port
   signal<t_snoop>::in snoop;
 
@@ -172,9 +169,6 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
   /// TLM non-blocking forward transport function for dcio socket
   tlm::tlm_sync_enum dcio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
 	
-  /// TLM non-blocking backward transport function for ahb master socket
-  tlm::tlm_sync_enum ahb_nb_transport_bw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
-  
   /// TLM instruction debug transport
   unsigned int icio_transport_dbg(tlm::tlm_generic_payload &trans);
 
@@ -186,15 +180,6 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
 
   /// Data service thread for AT
   void dcio_service_thread();
-
-  /// Thread for response synchronization (AT only: sync and send END_RESP)
-  void ResponseThread();
-
-  /// Thread for data phase processing in write operations (AT only: sends BEGIN_DATA)
-  void DataThread();
-
-  /// Delayed release of transactions (AT only)
-  void cleanUP();
 
   /// MemIF implementation - writes data to AHB master
   virtual void mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
@@ -300,17 +285,6 @@ class mmu_cache : public sc_core::sc_module, public mmu_cache_if, public AHBDevi
   /// amba abstraction layer
   amba::amba_layer_ids m_abstractionLayer;
   
-  /// Event for unblocking mem_read and mem_write from ahb_nb_transport_bw (on END_REQ)
-  sc_event  mEndRequestEvent;
-  /// Event for unblocking mem_read from ahb_nb_transport_bw (on BEGIN_RESP)
-  sc_event  mBeginResponseEvent;
-  
-  /// PEQ for transfer of payload from ahb_nb_transport_bw to ResponseThread (on BEGIN_RESP)
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> mResponsePEQ;
-  /// PEQ for transfer of payload from ahb_nb_transport_bw or mem_write to DataThread (after END_REQ)
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> mDataPEQ;
-  /// PEQ for transfer of expired payload to cleanUP thread.
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> mEndTransactionPEQ;
 };
 
 /// @}

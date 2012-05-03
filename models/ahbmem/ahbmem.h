@@ -43,15 +43,13 @@
 #ifndef AHBMEM_H
 #define AHBMEM_H
 
-#include "ahbdevice.h"
+#include <tlm.h>
+#include <amba.h>
+#include <map>
+
+#include "ahbslave.h"
 #include "clkdevice.h"
 #include "msclogger.h"
-
-
-#include <map>
-#include <amba.h>
-#include <tlm.h>
-#include <systemc.h>
 
 #if defined(MTI_SYSTEMC)
 #include "peq_with_get.h"
@@ -59,7 +57,7 @@
 #include "tlm_utils/peq_with_get.h"
 #endif
 
-class AHBMem : public sc_module, public AHBDevice, public CLKDevice {
+class AHBMem : public AHBSlave<>, public CLKDevice {
  public:
   SC_HAS_PROCESS(AHBMem);
   
@@ -80,18 +78,6 @@ class AHBMem : public sc_module, public AHBDevice, public CLKDevice {
   /// Destructor
   ~AHBMem();
 
-  /// AMBA slave socket
-  amba::amba_slave_socket<32> ahb;
-
-  /// TLM blocking transport function
-  void b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay);
-
-  /// TLM non blocking transport function
-  tlm::tlm_sync_enum nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay);
-
-  /// TLM debug interface
-  unsigned int transport_dbg(tlm::tlm_generic_payload& gp);
-        
   /// Reset callback
   void dorst();
 
@@ -104,6 +90,8 @@ class AHBMem : public sc_module, public AHBDevice, public CLKDevice {
   /// @param addr Write address
   /// @param byte Write data
   void writeByteDBG(const uint32_t addr, const uint8_t byte);
+
+  uint32_t exec_func(tlm::tlm_generic_payload &gp, sc_time &delay);
 
   /// Generates execution statistic at end of simulation
   void end_of_simulation();
@@ -122,9 +110,6 @@ class AHBMem : public sc_module, public AHBDevice, public CLKDevice {
   /// The actual memory
   std::map<uint32_t, uint8_t> mem;
         
-  /// Thread processign transactions when they emerge from the PEQ
-  void processTXN();
-
   /// Payload event queue. Transactions accompanied with a non-zero
   /// delay argument are queued here in case of AT abstraction level.
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> mTransactionPEQ;

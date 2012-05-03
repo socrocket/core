@@ -51,10 +51,11 @@ def build(bld):
     target          = 'utils',
     features        = 'cxx cxxstlib',
     source          = ['ahbdevice.cpp',
-                       'ahbslave.cpp',
                        'apbdevice.cpp',
                        'memdevice.cpp',
                        'clkdevice.cpp',
+	               'ahbslave.cpp',
+                       'ahbmaster.cpp'
                       ],
     export_includes = '.',
     uselib          = 'SYSTEMC TLM AMBA GREENSOCS',
