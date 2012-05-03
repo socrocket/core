@@ -43,8 +43,8 @@
 // Reviewed:
 // ********************************************************************
 
-#ifndef __TIMINGMONITOR_H__
-#define __TIMINGMONITOR_H__
+#ifndef TIMINGMONITOR_H
+#define TIMINGMONITOR_H
 
 #include <tlm.h>
 #include <map>
@@ -92,4 +92,4 @@ class TimingMonitor {
 };
 
 
-#endif // __TIMINGMONITOR_H__
+#endif // TIMINGMONITOR_H
