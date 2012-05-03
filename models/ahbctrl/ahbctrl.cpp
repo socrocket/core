@@ -468,6 +468,8 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
     // Add to arbiter queue
     addPendingTransaction(trans, connection);
 
+    msclogger::return_backward(this, &ahbIN, &trans, tlm::TLM_ACCEPTED, delay, master_id);
+
     // Transaction accepted
     return tlm::TLM_ACCEPTED;
 
@@ -484,6 +486,8 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
     // came in on the forward path.
     mEndResponseEvent.notify(delay);
 
+    msclogger::return_backward(this, &ahbIN, &trans, tlm::TLM_ACCEPTED, delay, master_id);
+
     // Transaction completed
     return tlm::TLM_COMPLETED;
 
@@ -493,6 +497,8 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
   }
+
+  msclogger::return_backward(this, &ahbIN, &trans, tlm::TLM_ACCEPTED, delay, master_id);
 
   return tlm::TLM_COMPLETED;
 }
@@ -554,6 +560,8 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(uint32_t id, tlm::tlm_generic_payloa
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
   }
+
+  msclogger::return_forward(this, &ahbOUT, &trans, tlm::TLM_ACCEPTED, delay, id);
 
   return tlm::TLM_ACCEPTED;
 }
@@ -731,6 +739,7 @@ void AHBCtrl::RequestThread() {
         delay = SC_ZERO_TIME;
 
 	v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+        msclogger::forward(this, &ahbOUT, trans, phase, delay, slave_id);
   
 	status = ahbOUT[slave_id]->nb_transport_fw(*trans, phase, delay);
 
@@ -767,6 +776,7 @@ void AHBCtrl::RequestThread() {
     delay = SC_ZERO_TIME;
 	  
     v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
+    msclogger::backward(this, &ahbIN, trans, phase, delay, connection.master_id);
 
     status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
 
@@ -821,6 +831,7 @@ void AHBCtrl::DataThread() {
       phase = amba::BEGIN_DATA;
 
       v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+      msclogger::forward(this, &ahbOUT, trans, phase, delay, connection.slave_id);
 
       status = ahbOUT[connection.slave_id]->nb_transport_fw(*trans, phase, delay);
 
@@ -875,6 +886,7 @@ void AHBCtrl::EndData() {
     delay = SC_ZERO_TIME;
 
     v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
+    msclogger::backward(this, &ahbIN, trans, phase, delay, connection.master_id);
 
     status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
 
@@ -969,6 +981,7 @@ void AHBCtrl::ResponseThread() {
     delay = SC_ZERO_TIME;
 
     v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl; 
+    msclogger::backward(this, &ahbIN, trans, phase, delay, connection.master_id);
 
     // Call nb_transport_bw of master
     status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
@@ -999,6 +1012,9 @@ void AHBCtrl::ResponseThread() {
       // Send END_RESP to slave
       phase = tlm::END_RESP;
       delay = SC_ZERO_TIME;
+
+      v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+      msclogger::forward(this, &ahbOUT, trans, phase, delay, connection.slave_id);
 
       // Call nb_transport_fw of slave
       status = ahbOUT[connection.slave_id]->nb_transport_fw(*trans, phase, delay);
