@@ -58,11 +58,11 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
 
       sc_module(nm),
       AHBDevice(hindex, // AHB bus index
-                0x04,   // vendor_id: ESA
+                0x01,   // vendor_id: Gaisler
                 0x006,  // device_id: APBCtrl (p. 92 GRIP) 
                 0,      //
                 0,      // IRQ
-                BAR(AHBDevice::APBIO, hmask_, 0, 0, haddr_), // BAR 0
+                BAR(AHBDevice::AHBIO, hmask_, 0, 0, haddr_), // BAR 0
                 0,      // BAR 1
                 0,      // BAR 2
                 0),     // BAR 3
@@ -85,7 +85,12 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
     assert(haddr_ <= 0xfff);
     assert(hmask_ <= 0xfff);
 
+    // API Instance for GreenControl
     m_api = gs::cnf::GCnf_Api::getApiInstance(this);
+
+    // Register debug transport
+    ahb.register_transport_dbg(this, &APBCtrl::transport_dbg);
+
     if (mambaLayer==amba::amba_LT) {
 
       // Register tlm blocking transport function
@@ -189,7 +194,7 @@ uint32_t APBCtrl::getPNPReg(const uint32_t address) {
       #endif
       return result;
   } else {
-      v::warn << name() << "Access to not existing PNP Register!" << v::endl;
+    v::debug << name() << "Access to not existing PNP Register!" << v::endl;
       return 0;
   }
 
@@ -446,7 +451,7 @@ void APBCtrl::processTXN() {
 
 
 // AHB debug transport
-unsigned int APBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans) {
+unsigned int APBCtrl::transport_dbg(tlm::tlm_generic_payload &trans) {
 
   sc_core::sc_time zero_delay = SC_ZERO_TIME;
 
@@ -582,8 +587,8 @@ void APBCtrl::checkMemMap() {
               sc_core::sc_object *obj2 = other_socket->get_parent();
 
               v::error << name() << "Overlap in AHB memory mapping." << v::endl;
-              v::error << name() << obj->name() << v::uint32 << last.start << " - " << v::uint32 << last.end << endl;
-              v::error << name() << obj2->name() << v::uint32 << iter->second.start << " - " << v::uint32 << iter->second.end << endl;
+              v::error << name() << obj->name() << " " << v::uint32 << last.start << " - " << v::uint32 << last.end << endl;
+              v::error << name() << obj2->name() << " " << v::uint32 << iter->second.start << " - " << v::uint32 << iter->second.end << endl;
           }
       }
       last = iter->second;

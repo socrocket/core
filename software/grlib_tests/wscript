@@ -293,4 +293,24 @@ def build(bld):
       args        = ['one', 'two', 'three', 'four']
   )
   
+  # amba.sparc
+  #bld(
+  #   features     = 'c cprogram sparc',
+  #   cflags       = '-static -g -O1 -lm -mno-fpu',
+  #   linkflags    = '-static -g -O1 -lm -mno-fpu',
+  #   target       = 'amba.sparc',
+  #   source       = ['amba.c'],
+  #   install_path = None,
+  #)
+
+  # ambalist.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     cflags       = '-static -g -O1 -lm -mno-fpu -lleonbare -Wl,--verbose',
+     linkflags    = '-static -g -O1 -lm -mno-fpu -lleonbare -Wl,--verbose',
+     target       = 'ambalist.sparc',
+     source       = ['ambalist.c'],
+     install_path = None,
+  )
+  
 
