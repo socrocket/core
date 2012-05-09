@@ -110,10 +110,6 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
   /// The actual memory
   std::map<uint32_t, uint8_t> mem;
         
-  /// Payload event queue. Transactions accompanied with a non-zero
-  /// delay argument are queued here in case of AT abstraction level.
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> mTransactionPEQ;
-  
   /// AHB slave base address and size
   const uint32_t ahbBaseAddress;
   // size is saved in bytes
