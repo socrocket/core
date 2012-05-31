@@ -57,11 +57,12 @@
 
 /// Constructor
 AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
-               uint16_t haddr_, // AMBA AHB address (12 bit)
-               uint16_t hmask_, // AMBA AHB address mask (12 bit)
-               amba::amba_layer_ids ambaLayer, // abstraction layer
+               uint16_t haddr_,                  // AMBA AHB address (12 bit)
+               uint16_t hmask_,                  // AMBA AHB address mask (12 bit)
+               amba::amba_layer_ids ambaLayer,   // abstraction layer
                uint32_t slave_id,
-	       bool cacheable) :
+	       bool cacheable,
+               uint32_t wait_states) :
             AHBSlave<>(nm,
                        slave_id, 
                        0x01, // Gaisler 
@@ -77,7 +78,8 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
             ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1), 
             mhaddr(haddr_),
             mhmask(hmask_),
-	    mcacheable(cacheable) {
+	    mcacheable(cacheable),
+            mwait_states(wait_states) {
 
     // haddr and hmask must be 12 bit
     assert(!((mhaddr|mhmask)>>12));
@@ -102,8 +104,10 @@ AHBMem::~AHBMem() {
     mem.clear();
 } 
 
-/// TLM blocking transport function
-uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay) {
+/// Encapsulated functionality
+uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay, bool debug) {
+
+  uint32_t words_transferred;
 
   // Is the address for me
   if(!((mhaddr ^ (trans.get_address() >> 20)) & mhmask)) {
@@ -128,8 +132,11 @@ uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &de
       // Update statistics
       m_bytes_written += trans.get_data_length();
 
-      // delay a clock cycle per word
-      delay += clock_cycle * (trans.get_data_length() >> 2);
+      // Base delay is one clock cycle per word
+      words_transferred = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
+
+      // Total delay is base delay + wait states
+      delay += clock_cycle * (words_transferred + mwait_states);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
     } else {
@@ -144,8 +151,11 @@ uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &de
       // Update statistics
       m_bytes_read += trans.get_data_length();
 
-      // delay a clock cycle per word
-      delay += clock_cycle * (trans.get_data_length() >> 2);
+      // Base delay is one clock cycle per word
+      words_transferred = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
+
+      // Total delay is base delay + wait states
+      delay += clock_cycle * (words_transferred + mwait_states);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // set cacheability
@@ -167,6 +177,12 @@ uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &de
   }
 
   return(trans.get_data_length());
+}
+
+sc_core::sc_time AHBMem::get_clock() {
+
+  return clock_cycle;
+
 }
 
 void AHBMem::writeByteDBG(const uint32_t address, const uint8_t byte) {
