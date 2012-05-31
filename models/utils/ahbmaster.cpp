@@ -29,7 +29,6 @@ AHBMaster<sc_module>::AHBMaster(sc_module_name nm,
             bar3),
   ahb("ahb", ::amba::amba_AHB, ambaLayer, false),
   m_ResponsePEQ("ResponsePEQ"),
-  m_DataPEQ("DataPEQ"),
   m_ambaLayer(ambaLayer) {
 
   if (ambaLayer == amba::amba_AT) {
@@ -39,9 +38,6 @@ AHBMaster<sc_module>::AHBMaster(sc_module_name nm,
 
     // Thread for response processing (read)
     SC_THREAD(ResponseThread);
-
-    // Thread for processing data-phase of write transactions
-    SC_THREAD(DataThread);
 
   }
 }
@@ -72,7 +68,6 @@ AHBMaster<gs::reg::gr_device>::AHBMaster(sc_module_name nm,
             bar3),
   ahb("ahb", ::amba::amba_AHB, ambaLayer, false),
   m_ResponsePEQ("ResponsePEQ"),
-  m_DataPEQ("DataPEQ"),
   m_ambaLayer(ambaLayer) {
 
   if (ambaLayer == amba::amba_AT) {
@@ -82,9 +77,6 @@ AHBMaster<gs::reg::gr_device>::AHBMaster(sc_module_name nm,
 
     // Thread for response processing (read)
     SC_THREAD(ResponseThread);
-
-    // Thread for processing data-phase of write transactions
-    SC_THREAD(DataThread);
 
   }
 }

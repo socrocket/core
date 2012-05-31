@@ -107,6 +107,7 @@ class CLKDevice {
 
         virtual void dorst();
         virtual void clkcng() {};
+
   protected:
     sc_time clock_cycle;
 };

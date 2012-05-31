@@ -28,9 +28,10 @@ AHBSlave<sc_module>::AHBSlave(sc_module_name nm,
             bar2, 
             bar3),
   ahb("ahb", ::amba::amba_AHB, ambaLayer, false /* Arbitration */ ),
-  m_AcceptPEQ("AcceptPEQ"),
-  m_TransactionPEQ("TransactionPEQ"), 
-  busy(false) {
+  m_RequestPEQ("RequestPEQ"),
+  m_ResponsePEQ("ResponsePEQ"), 
+  busy(false)
+  {
   
   // Register transport functions to sockets
   ahb.register_b_transport(this, &AHBSlave::b_transport);
@@ -42,11 +43,11 @@ AHBSlave<sc_module>::AHBSlave(sc_module_name nm,
     ahb.register_nb_transport_fw(this, &AHBSlave::nb_transport_fw);
         
     // Thread for modeling AHB pipeline delay
-    SC_THREAD(acceptTXN);
+    SC_THREAD(requestThread);
         
     // Thread for interfacing functional part of the model
     // in AT mode.
-    SC_THREAD(processTXN);
+    SC_THREAD(responseThread);
   }
 }
 
@@ -73,9 +74,9 @@ AHBSlave<gs::reg::gr_device>::AHBSlave(sc_module_name nm,
             bar2, 
             bar3),
   ahb("ahb", ::amba::amba_AHB, ambaLayer, false /* Arbitration */ ),
-  m_AcceptPEQ("AcceptPEQ"), 
-  m_TransactionPEQ("TransactionPEQ"), 
-  busy(false) {
+  m_RequestPEQ("RequestPEQ"), 
+  m_ResponsePEQ("ResponsePEQ"), 
+  busy(false)  {
   
   // Register transport functions to sockets
   ahb.register_b_transport(this, &AHBSlave::b_transport);
@@ -85,12 +86,13 @@ AHBSlave<gs::reg::gr_device>::AHBSlave(sc_module_name nm,
 
     // Register non-blocking transport for AT    
     ahb.register_nb_transport_fw(this, &AHBSlave::nb_transport_fw);
-        
+
     // Thread for modeling AHB pipeline delay
-    SC_THREAD(acceptTXN);
+    SC_THREAD(requestThread);
         
     // Thread for interfacing functional part of the model
     // in AT mode.
-    SC_THREAD(processTXN);
+    SC_THREAD(responseThread);
+        
   }
 }

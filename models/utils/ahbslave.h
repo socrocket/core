@@ -40,7 +40,10 @@ class AHBSlave : public BASE, public AHBDevice {
   ::amba::amba_slave_socket<32> ahb;
 
   /// Interface to functional part of the model
-  virtual uint32_t exec_func(tlm::tlm_generic_payload &gp, sc_time &delay) = 0;
+  virtual uint32_t exec_func(tlm::tlm_generic_payload &gp, sc_time &delay, bool debug = false) = 0;
+
+  /// Returns clock cycle time from child
+  virtual sc_core::sc_time get_clock() = 0;
 
   /// TLM blocking transport functions
   virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
@@ -52,20 +55,21 @@ class AHBSlave : public BASE, public AHBDevice {
   virtual tlm::tlm_sync_enum nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
   /// Accept new transaction (busy or not)
-  void acceptTXN();
+  void requestThread();
 
   /// Thread for interfacing functional part of the model in AT mode
-  void processTXN();
+  void responseThread();
 
  private: 
   /// Ready to accept new transaction (send END_REQ)
   sc_event unlock_event;
 
   /// Event queues for AT mode
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_AcceptPEQ;
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_TransactionPEQ;
+  tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_RequestPEQ;
+  tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_ResponsePEQ;
 
   bool busy;
+ //sc_core::sc_time clockcycle;
 };
 
 #include "ahbslave.tpp"
