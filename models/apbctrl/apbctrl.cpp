@@ -55,18 +55,15 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
 		 uint32_t hindex,            // AHB bus index
 		 bool pow_mon,               // Enable power monitoring
 		 amba::amba_layer_ids ambaLayer) :
-
-      sc_module(nm),
-      AHBDevice(hindex, // AHB bus index
-                0x01,   // vendor_id: Gaisler
-                0x006,  // device_id: APBCtrl (p. 92 GRIP) 
-                0,      //
-                0,      // IRQ
-                BAR(AHBDevice::AHBIO, hmask_, 0, 0, haddr_), // BAR 0
-                0,      // BAR 1
-                0,      // BAR 2
-                0),     // BAR 3
-      ahb("ahb", amba::amba_AHB, ambaLayer, false),  // TODO set arbiter flags to true as soon bug in ambasockets is fixed
+  AHBSlave<>(nm,
+             hindex,
+             0x01, // vendor_id: Gaisler
+             0x006, // device_id: APBCTRL (p. 92 GRIP)
+             0,
+             0,
+             ambaLayer,
+             BAR(AHBDevice::AHBIO, hmask_, 0, 0, haddr_)),
+       
       apb("apb", amba::amba_APB, amba::amba_LT, false),
       mhaddr(haddr_),
       mhmask(hmask_),
@@ -75,7 +72,6 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
       mAcceptPEQ("AcceptPEQ"),
       mTransactionPEQ("TransactionPEQ"),
       mambaLayer(ambaLayer),
-      busy(false),
       m_pnpbase(0xFF000),
       m_performance_counters("performance_counters"),
       m_total_transactions("total_transactions", 0ull, m_performance_counters),
@@ -87,32 +83,6 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
 
     // API Instance for GreenControl
     m_api = gs::cnf::GCnf_Api::getApiInstance(this);
-
-    // Register debug transport
-    ahb.register_transport_dbg(this, &APBCtrl::transport_dbg);
-
-    if (mambaLayer==amba::amba_LT) {
-
-      // Register tlm blocking transport function
-      ahb.register_b_transport(this, &APBCtrl::ahb_b_transport);
-
-    } else if (mambaLayer==amba::amba_AT) {
-
-      // Register non-blocking forward transport function for ahb slave
-      ahb.register_nb_transport_fw(this, &APBCtrl::ahb_nb_transport_fw);
-
-      // Thread for modeling AHB pipeline delay
-      SC_THREAD(acceptTXN);
-
-      // Thread for interfacing function part of the model in AT mode.
-      SC_THREAD(processTXN);
-
-    } else {
-
-      v::error << name() << "Abstraction Layer not valid!!" << v::endl;
-      assert(0);
-
-    }
 
     // Register power monitor
     PM::registerIP(this, "apbctrl", m_pow_mon);
@@ -201,7 +171,8 @@ uint32_t APBCtrl::getPNPReg(const uint32_t address) {
 }
 
 // Functional part of the model (decoding logic)
-void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bool debug) {
+uint32_t APBCtrl::exec_func(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bool debug) {
+
   m_total_transactions++;
   transport_statistics(ahb_gp);
   
@@ -215,25 +186,33 @@ void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bo
   // Is this an access to the configuration area
   // The configuration area is always in the upper 0xFF000 area
   if(((addr ^ m_pnpbase) & m_pnpbase) == 0) {
-      // Configuration area is read only
-      if(ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
-          //addr = addr - ((m_pnpbase) & (m_pnpbase));
-	        for(uint32_t i = 0; i < length; i++) {
-              //uint32_t word = (addr + i) >> 2;
-              uint32_t byte = (addr + i) & 0x3;
-              uint32_t reg = getPNPReg(addr + i);
+    // Configuration area is read only
 
-              data[i] = ((uint8_t *)&reg)[byte];
+    if(ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
 
-	            delay += clock_cycle;
-	        }
+      //addr = addr - ((m_pnpbase) & (m_pnpbase));
+      for(uint32_t i = 0; i < length; i++) {
 
-	        ahb_gp.set_response_status(tlm::TLM_OK_RESPONSE);
-          return;
-      } else {
-	        v::error << name() << " Forbidden write to APBCTRL configuration area (PNP)!" << v::endl;
-          ahb_gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+        //uint32_t word = (addr + i) >> 2;
+        uint32_t byte = (addr + i) & 0x3;
+        uint32_t reg = getPNPReg(addr + i);
+        
+        data[i] = ((uint8_t *)&reg)[byte];
+
+        delay += clock_cycle;
       }
+
+      ahb_gp.set_response_status(tlm::TLM_OK_RESPONSE);
+   
+    } else {
+    
+      v::error << name() << " Forbidden write to APBCTRL configuration area (PNP)!" << v::endl;
+      ahb_gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
+
+    }
+
+    return ahb_gp.get_data_length();
+
   }
 
   // Find slave by address / returns slave index or -1 for not mapped
@@ -284,7 +263,6 @@ void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bo
 
     }
 
-
     // Copy back response message
     ahb_gp.set_response_status(apb_gp->get_response_status());
 
@@ -296,171 +274,8 @@ void APBCtrl::exec_decoder(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, bo
     v::error << name() << "Access to unmapped APB address space." << endl;
     ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
   }
-}
 
-/// TLM blocking transport function
-void APBCtrl::ahb_b_transport(tlm::tlm_generic_payload& trans,sc_core::sc_time& delay) {
-
-  // Call the funtional part of the model
-  // ------------------------------------
-  exec_decoder(trans, delay, false);
-
-  // Consume APB + component delay
-  //wait(delay);
-
-  // Reset delay
-  //delay = SC_ZERO_TIME;
-
-}
-
-// AHB non-blocking transport forward
-tlm::tlm_sync_enum APBCtrl::ahb_nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay) {
-
-  v::debug << name() << "nb_transport_fw received transaction " << hex << &trans << " with phase: " << phase << v::endl;
-
-  // The master has sent BEGIN_REQ
-  if (phase == tlm::BEGIN_REQ) {
-
-    mAcceptPEQ.notify(trans, delay);
-    delay = SC_ZERO_TIME;
-
-  } else if (phase == amba::BEGIN_DATA) {
-
-    mTransactionPEQ.notify(trans, delay);
-    delay = SC_ZERO_TIME;
-
-  } else if (phase == tlm::END_RESP) {
-
-    // nothing to do
-
-  } else {
-
-    v::error << name() << "Invalid phase in call to nb_transport_fw!" << v::endl;
-    trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-
-  }
-
-  // todo
-  return tlm::TLM_ACCEPTED;
-  
-}
-
-// Thread for modeling the AHB pipeline delay
-void APBCtrl::acceptTXN() {
-
-  tlm::tlm_phase phase;
-  sc_core::sc_time delay;
-  tlm::tlm_sync_enum status;
-
-  tlm::tlm_generic_payload * trans;
-
-  while(1) {
-
-    wait(mAcceptPEQ.get_event());
-
-    while((trans = mAcceptPEQ.get_next_transaction())) {
-
-      // Read transaction will be processed directly.
-      // For write we wait for BEGIN_DATA (see nb_transport_fw)
-      if (trans->get_command() == tlm::TLM_READ_COMMAND) {
-
-	mTransactionPEQ.notify(*trans);
-
-      }
-
-      // Send END_REQ
-      phase = tlm::END_REQ;
-      delay = SC_ZERO_TIME;
-
-      v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
-
-      // Call to backward transport
-      status = ahb->nb_transport_bw(*trans, phase, delay);
-
-      assert(status==tlm::TLM_ACCEPTED);
-
-    }
-  }
-}
-
-// Process for interfacing the functional part of the model in AT mode
-void APBCtrl::processTXN() {
-
-  tlm::tlm_phase phase;
-  sc_core::sc_time delay;
-  tlm::tlm_sync_enum status;
-
-  tlm::tlm_generic_payload * trans;
-
-  while(1) {
-
-    wait(mTransactionPEQ.get_event());
-
-    while((trans = mTransactionPEQ.get_next_transaction())) {
-
-      v::debug << name() << "Process transaction " << hex << trans << v::endl;
-
-      // Reset delay
-      delay = SC_ZERO_TIME;
-
-      // Call the functional part of the model (decoder)
-      // -----------------------------------------------
-      exec_decoder(*trans, delay, false);
-
-      v::info << name() << "Return from exec_decoder with delay" << delay << v::endl;
-
-      // Consume APB + Component delay
-      wait(delay);
-      delay = SC_ZERO_TIME;
-
-      // Device idle
-      busy = false;
-
-      // Ready to accept new transaction
-      unlock_event.notify();
-
-      // For write commands send END_DATA.
-      // Transaction has been delayed until begin of Data Phase (see transport_fw)
-      if (trans->get_command() == tlm::TLM_WRITE_COMMAND) {
-
-	phase = amba::END_DATA;
-
-	v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << " (delay: " << delay << v::endl;
-
-	// Call backward transport
-	status = ahb->nb_transport_bw(*trans, phase, delay);
-
-	assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_COMPLETED));
-
-      // Read command - send BEGIN_RESP
-      } else {
-
-	phase = tlm::BEGIN_RESP;
-
-	v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << " (delay: " << delay << v::endl;
-
-	// Call backwared transport
-	status = ahb->nb_transport_bw(*trans, phase, delay);
-
-	assert(status==tlm::TLM_ACCEPTED);
-
-      }
-    }
-  }
-}
-
-
-// AHB debug transport
-unsigned int APBCtrl::transport_dbg(tlm::tlm_generic_payload &trans) {
-
-  sc_core::sc_time zero_delay = SC_ZERO_TIME;
-
-  // Call the functional part of the model (in debug mode)
-  // -----------------------------------------------------
-  exec_decoder(trans, zero_delay, true);
-  // -----------------------------------
-
-  return trans.get_data_length();
+  return ahb_gp.get_data_length();
 
 }
 
@@ -547,6 +362,12 @@ void APBCtrl::end_of_simulation() {
     v::report << name() << " * AHB Slave interface reports: " << v::endl;
     print_transport_statistics(name());
     v::report << name() << " ******************************************** " << v::endl;
+}
+
+sc_core::sc_time APBCtrl::get_clock() {
+
+  return clock_cycle;
+
 }
 
 struct apb_check_slave_type {
