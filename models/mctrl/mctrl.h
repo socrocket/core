@@ -148,6 +148,8 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         /// It's needed to print performance counter
         void end_of_simulation();
 
+        sc_core::sc_time get_clock();
+
         // Signal Callbacks
         /// Reset Handler
         ///
@@ -177,7 +179,7 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         void mcfg2_write();
 
 	/// Encapsulation function for functional part of the model
-	uint32_t exec_func(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay);
+	uint32_t exec_func(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay, bool debug = false);
 
     private:
 

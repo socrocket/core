@@ -413,7 +413,7 @@ void Mctrl::dorst() {
 }
 
 // Interface to functional part of the model
-uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay) {
+uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
 
     uint32_t word_delay = 0;
     uint32_t trans_delay = 0;
@@ -882,4 +882,10 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
         }
     }
     return c_null;
+}
+
+sc_core::sc_time Mctrl::get_clock() {
+
+  return clock_cycle;
+
 }
