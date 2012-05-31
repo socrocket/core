@@ -184,11 +184,11 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   /// MemIF implementation - writes data to AHB master
   virtual void mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
                          unsigned int length, sc_core::sc_time * t,
-                         unsigned int * debug, bool is_dbg);
+                         unsigned int * debug, bool is_dbg, bool is_lock);
   /// MemIF implementation - reads data from AHB master
   virtual bool mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
                         unsigned int length, sc_core::sc_time * t,
-                        unsigned int * debug, bool is_dbg);
+                        unsigned int * debug, bool is_dbg, bool is_lock);
 
   /// Send an interrupt over the central IRQ interface
   virtual void set_irq(uint32_t tt);
@@ -209,6 +209,9 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
 
   /// Deal with clock changes
   void clkcng();
+
+  /// Return clock period (for ahb interface)
+  sc_core::sc_time get_clock();
   
   // data members
   // ------------

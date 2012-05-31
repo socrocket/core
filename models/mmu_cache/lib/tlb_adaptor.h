@@ -78,7 +78,7 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
         /// implementation of mem_read function from mem_if.h
         virtual bool mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
                               unsigned int len, sc_core::sc_time * t,
-                              unsigned int * debug, bool is_dbg) {
+                              unsigned int * debug, bool is_dbg, bool is_lock) {
 
             unsigned int paddr;
 	    unsigned int mmu_ctrl = m_mmu->read_mcr();
@@ -103,7 +103,7 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
             }
 
             // forward request to amba interface - return cacheability
-            return (m_mmu_cache->mem_read(paddr, asi, data, len, t, debug, is_dbg));
+            return (m_mmu_cache->mem_read(paddr, asi, data, len, t, debug, is_dbg, is_lock));
 
 	    
 
@@ -112,7 +112,7 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
         /// implementation of mem_write function from mem_if.h
         virtual void mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
                                unsigned int len, sc_core::sc_time * t,
-                               unsigned int * debug, bool is_dbg) {
+                               unsigned int * debug, bool is_dbg, bool is_lock) {
 
             unsigned int paddr;
 	    unsigned int mmu_ctrl = m_mmu->read_mcr();
@@ -138,7 +138,7 @@ class tlb_adaptor : public sc_core::sc_module, public mem_if {
             }
  
             // forward request to mmu amba interface
-            m_mmu_cache->mem_write(paddr, asi, data, len, t, debug, is_dbg);
+            m_mmu_cache->mem_write(paddr, asi, data, len, t, debug, is_dbg, is_lock);
 
         }
 

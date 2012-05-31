@@ -236,7 +236,7 @@ vectorcache::~vectorcache() {
 /// read from cache
 bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char *data,
                            unsigned int len, sc_core::sc_time *delay,
-                           unsigned int * debug, bool is_dbg, bool is_lock) {
+                           unsigned int * debug, bool is_dbg) {
 
     int set_select = -1;
     int cache_hit = -1;
@@ -399,7 +399,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 	    }
 
 	    // Access ahb interface or mmu - return true if data is cacheable
-            if (m_tlb_adaptor->mem_read(((address >> 2) << 2), asi, ahb_data, burst_len, delay, debug, is_dbg, is_lock)) {
+            if (m_tlb_adaptor->mem_read(((address >> 2) << 2), asi, ahb_data, burst_len, delay, debug, is_dbg)) {
 
 	      // Check for unvalid data which can be replaced without harm
 	      for (unsigned int i = 0; i <= m_sets; i++) {
@@ -569,7 +569,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
         // Cache is disabled
         // Forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
-        m_mmu_cache->mem_read(address, asi, data, len, delay, debug, is_dbg, is_lock);
+        m_mmu_cache->mem_read(address, asi, data, len, delay, debug, is_dbg);
 
         // update debug information
         CACHEBYPASS_SET(*debug);
@@ -593,10 +593,10 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
 void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned char * data,
                             unsigned int len, sc_core::sc_time * delay,
-                            unsigned int * debug, bool is_dbg, bool is_lock) {
+                            unsigned int * debug, bool is_dbg) {
 
     // is the cache enabled (0x11) or frozen (0x01)
-    if (check_mode() & 0x1) {
+    if ((!is_dbg) && (check_mode() & 0x1)) {
 
         // extract index and tag from address
         unsigned int tag    = (address >> (m_idx_bits + m_offset_bits));
@@ -647,11 +647,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
                     // valid is already set
 
                     // increment time
-                    if (!is_dbg) {
-
-                      *delay += clockcycle;
-
-                    }
+                    *delay += clockcycle;
 
                     break;
                 } else {
@@ -685,7 +681,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
         // or byte stores, the data has to be properly aligned for writing to word-
         // addressed device, before writing the WRB.
 
-        m_tlb_adaptor->mem_write(address, asi, data, len, delay, debug, is_dbg, is_lock);
+        m_tlb_adaptor->mem_write(address, asi, data, len, delay, debug, is_dbg);
 
     } else {
 
@@ -697,7 +693,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
         // cache is disabled
         // forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
-        m_mmu_cache->mem_write(address, asi, data, len, delay, debug, is_dbg, is_lock);
+        m_mmu_cache->mem_write(address, asi, data, len, delay, debug, is_dbg);
 
         // update debug information
         CACHEBYPASS_SET(*debug);
@@ -740,7 +736,7 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) 
                             << v::endl;
 
                     m_tlb_adaptor->mem_write(addr, 0x8,(unsigned char *)&(*m_current_cacheline[set]).entry[entry],
-                                             4, t, debug, is_dbg, false);
+                            4, t, debug, is_dbg);
 
                 }
             }

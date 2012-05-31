@@ -213,7 +213,7 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
   // Extract extension
   icio_payload_extension * iext;
   trans.get_extension(iext);
- 
+
   unsigned int *debug;
 
   // Check/extract instruction payload extension
@@ -231,7 +231,7 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
 
   if (cmd == tlm::TLM_READ_COMMAND) {
 
-    // Instruction scratchpad enabled && address points into selected 16MB region
+    // Instruction scratchpad enabled && address points into selecte 16MB region
     if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
       ilocalram->mem_read((unsigned int)addr, 0, ptr, 4, &delay, debug, is_dbg);
@@ -239,7 +239,7 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
     // Instruction cache access
     } else {
 
-      icache->mem_read((unsigned int)addr, 0x8, ptr, 4, &delay, debug, is_dbg, false);
+      icache->mem_read((unsigned int)addr, 0x8, ptr, 4, &delay, debug, is_dbg);
     
     }
 
@@ -550,7 +550,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       // Cache access || bypass || direct mmu
       } else {
 
-        dcache->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, lock);
+        dcache->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -812,7 +812,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       // Cache access (write through) || bypass || direct mmu
       } else {
 
-        dcache->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, lock);
+        dcache->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
 	// Set TLM response
 	trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -1104,14 +1104,14 @@ unsigned int mmu_cache::dcio_transport_dbg(tlm::tlm_generic_payload &trans) {
 /// Function for write access to AHB master socket
 void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
                           unsigned int length, sc_core::sc_time * delay,
-                          unsigned int * debug, bool is_dbg, bool is_lock) {
+                          unsigned int * debug, bool is_dbg) {
 
   tlm::tlm_response_status response;
 
   // Timed transport
   if (!is_dbg) {
 
-    ahbwrite(addr, data, length, *delay, is_lock, response);
+    ahbwrite(addr, data, length, *delay, response);
  
   } else {
 
@@ -1124,7 +1124,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * d
 // Function for read access to AHB master socket
 bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
                          unsigned int length, sc_core::sc_time * delay,
-                         unsigned int * debug, bool is_dbg, bool is_lock) {
+                         unsigned int * debug, bool is_dbg) {
 
   bool cacheable = false;
   tlm::tlm_response_status response;
@@ -1132,7 +1132,7 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * da
   if (!is_dbg) {
 
     // Regular read
-    ahbread(addr, data, length, *delay, cacheable, is_lock, response);
+    ahbread(addr, data, length, *delay, cacheable, response);
 
   } else {
 
@@ -1258,12 +1258,6 @@ void mmu_cache::end_of_simulation() {
     v::report << name() << " * AHB Master interface reports: " << v::endl;
     print_transport_statistics(name());
     v::report << name() << " ********************************************" << v::endl;    
-
-}
-
-sc_core::sc_time mmu_cache::get_clock() {
-
-  return clock_cycle;
 
 }
 
