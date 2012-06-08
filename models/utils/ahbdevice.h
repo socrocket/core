@@ -46,10 +46,10 @@
 #ifndef AHB_DEVICE_H
 #define AHB_DEVICE_H
 
-#include <stdint.h>
 #include <greencontrol/config.h>
 #include <amba.h>
 #include <tlm.h>
+#include <stdint.h>
 
 /// @addtogroup utils
 /// @{
@@ -64,9 +64,9 @@ class AHBDevice : public amba_slave_base {
         /// Section 4.2.3
         enum device_type {
             NONE = 0,   /// Bar is not existing
-            APBIO = 1,  /// Bar is APB region
-            AHBMEM = 2, /// Bar is memory region
-            AHBIO = 3   /// Bar is IO region
+            APBIO = 1,  /// Bar is an APB Device
+            AHBMEM = 2, /// Bar is absolute addressed to 0 at AHB Bus
+            AHBIO = 3   /// Bar is relative to AHBIO region
         };
 
         /// All device informations are needed while constructing a device.
