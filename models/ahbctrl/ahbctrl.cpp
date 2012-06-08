@@ -245,7 +245,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     v::debug << name() << "Access mSlaves - device: " << device << " offset: " << offset << v::endl;
 
     if(device>=num_of_slave_bindings) {
-        v::warn << name() << "Access to unregistered PNP Slave Register!" << v::endl;
+        v::debug << name() << "Access to unregistered PNP Slave Register!" << v::endl;
         return 0;
     }
 
@@ -271,7 +271,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     unsigned int offset = (addr >> 2) & 0x7;
 
     if(device>=num_of_master_bindings) {
-        v::warn << name() << "Access to unregistered PNP Master Register!" << v::endl;
+        v::debug << name() << "Access to unregistered PNP Master Register!" << v::endl;
         return 0;
     }
 

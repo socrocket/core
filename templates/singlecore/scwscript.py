@@ -46,7 +46,7 @@
 top = '..'
 
 def build(bld):
-    ambaLayer = 'true'
+    ambaLayer = '${conf_sys_lt_at}'
     if not bld.env["LIB_SOCROCKET"]:
         use       = 'ahbctrl ahbmem irqmp gptimer apbctrl socwire socw_socket mmu_cache mctrl input_device utils signalkit common TRAP BOOST ELF_LIB SYSTEMC AMBA TLM GREENSOCS '
     else:
@@ -58,7 +58,7 @@ def build(bld):
         use  += 'leon3.funcat'
       
     bld(
-        target       = 'singlecore.lt.platform',
+        target       = '${template}.${configuration}.platform',
         features     = 'cxx cprogram',
         source       = [ 'sc_main.cpp' ],
         includes     = '.',
@@ -67,7 +67,7 @@ def build(bld):
     )
     ldscript = bld.path.find_resource('prom.ld')
     bld(
-        target       = 'singlecore.lt.prom',
+        target       = '${template}.${configuration}.prom',
         features     = 'c cprogram sparc',
         cflags       = '-g',
         linkflags    = '-g -Ttext=0 -nostartfiles -nostdlib -T%s -N' % (ldscript.abspath()),

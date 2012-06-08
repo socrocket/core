@@ -48,6 +48,8 @@
 
 #include "mem_if.h"
 
+#include <stdint.h>
+
 class mmu_cache_if : public mem_if {
 
  public:

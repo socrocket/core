@@ -139,6 +139,8 @@ class amba_slave : public generic_slave_base,
 
             // Bind amba blocking ...
             amba_slave::register_b_transport(this, &amba_slave::b_transport);
+            // Register debug transport
+            amba_slave::register_transport_dbg(this, &amba_slave::transport_dbg);
 
             gs::socket::GreenSocketAddress_base::base_addr = _base_address;
             gs::socket::GreenSocketAddress_base::high_addr = _base_address
@@ -150,8 +152,16 @@ class amba_slave : public generic_slave_base,
         }
 
     public:
+       unsigned int transport_dbg(tlm::tlm_generic_payload &trans) {
+           sc_time delay;
+           b_transport(trans, delay);
+           return trans.get_data_length();
+       }
+
         void b_transport(tlm::tlm_generic_payload& gp, sc_core::sc_time&) {
             unsigned int address = gp.get_address() - m_base;
+            unsigned int byteaddr = address & 0x3;
+            address = address & ~0x3;
             unsigned int length;
             unsigned int mask;
             unsigned int data;
@@ -161,61 +171,44 @@ class amba_slave : public generic_slave_base,
             if (gp.is_write()) {
                 //for (unsigned int i=0; i<gp.get_data_length(); i+=4) {  // Works only in nonburst mode max 4byte atime
                 length = gp.get_data_length();
+                data = 0;
 
+                memcpy(&data, &(gp.get_data_ptr()[0]), length);
                 switch (length) {
                     case 1:
                         mask = 0x1;
+                        data <<= (byteaddr << 3);
+                        mask <<= byteaddr;
                         break;
                     case 2:
                         mask = 0x3;
+                        printf("GreenReg AMBA Sockets: 2byte access is not implementet correctly\n");
                         break;
                     case 3:
                         mask = 0x7;
+                        printf("GreenReg AMBA Sockets: 3byte access is not implementet correctly\n");
                         break;
                     default:
                         mask = 0xF;
+                        #ifdef LITTLE_ENDIAN_BO
+                        swap_Endianess(data);
+                        #endif
                         break;
                 }
-                memcpy(&data, &(gp.get_data_ptr()[0]), length);
-                #ifdef LITTLE_ENDIAN_BO
-                swap_Endianess(data);
-                #endif
 
                 //  std::cout<<"    "<<address<<": "<<std::hex<<"0x"<<((gp.get_data_ptr()[address]<16)?"0":"")<<((unsigned short)gp.get_data_ptr()[address])<<std::endl;
-                m_registers->bus_write(data, address, mask, &trans,
-                        m_delay_enabled);
-                //}
+                m_registers->bus_write(data, address, mask, &trans, m_delay_enabled);
             }
             if (gp.is_read()) {
-                //for(unsigned int i=0; i<gp.get_data_length(); i+=4){
-                switch (gp.get_data_length()) {
-                    case 1:
-                        mask = 0x1;
-                        break;
-                    case 2:
-                        mask = 0x3;
-                        break;
-                    case 3:
-                        mask = 0x7;
-                        break;
-                    default:
-                        mask = 0xF;
-                        break;
-                }
-                //mask = (0xFFFFFFFF)>>(32-(address&0x3));
-                //gp.get_data_ptr()[address]=rddata++;
-                //    std::cout<<"    "<<address<<": "<<std::hex<<"0x"<<((gp.get_data_ptr()[address]<16)?"0":"")<<((unsigned short)gp.get_data_ptr()[address])<<std::endl;
-                m_registers->bus_read(m_bus_read_data, address, mask, &trans,
-                        m_delay_enabled);
-                gs::MData mdata(gs::GSDataType::dtype(
-                        (unsigned char *)&m_bus_read_data,
-                        trans->getMBurstLength()));
-                trans->setSData(mdata);
+                m_bus_read_data = 0;
+                m_registers->bus_read(m_bus_read_data, address, 0xF, &trans, m_delay_enabled);
+
                 #ifdef LITTLE_ENDIAN_BO
                 swap_Endianess(m_bus_read_data);
                 #endif
-                memcpy(&(gp.get_data_ptr()[0]), &m_bus_read_data, 4);
-                //}
+                m_bus_read_data >>= (byteaddr << 3);
+
+                memcpy(&(gp.get_data_ptr()[0]), &m_bus_read_data, gp.get_data_length());
             }
             gp.set_response_status(tlm::TLM_OK_RESPONSE);
         }

@@ -82,7 +82,7 @@ class APBCtrl : public sc_core::sc_module, public AHBDevice, public CLKDevice {
 					   tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
 	/// TLM debug interface
-	unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);
+	unsigned int transport_dbg(tlm::tlm_generic_payload& gp);
 
 	/// Helper function for creating slave map decoder entries
         void setAddressMap(const uint32_t binding, const uint32_t pindex, const uint32_t paddr, const uint32_t pmask);
