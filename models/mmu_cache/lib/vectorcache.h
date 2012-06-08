@@ -71,11 +71,11 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         /// Read from cache
         virtual bool mem_read(unsigned int address, unsigned int asi, unsigned char * data,
                               unsigned int len, sc_core::sc_time * t,
-                              unsigned int * debug, bool is_dbg);
+                              unsigned int * debug, bool is_dbg, bool is_lock);
         /// Write through cache
         virtual void mem_write(unsigned int address, unsigned int asi, unsigned char * data,
                                unsigned int len, sc_core::sc_time * t,
-                               unsigned int * debug, bool is_dbg);
+                               unsigned int * debug, bool is_dbg, bool is_lock);
         /// Flush cache
         virtual void flush(sc_core::sc_time * t, unsigned int * debug, bool is_dbg);
         /// Read data cache tags (ASI 0xe)

@@ -52,12 +52,12 @@ class mem_if {
         // amba master interface functions
         virtual void mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
                                unsigned int length, sc_core::sc_time * t,
-                               unsigned int * debug, bool is_dbg) {
+                               unsigned int * debug, bool is_dbg, bool is_lock = false) {
         };
 
         virtual bool mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
                               unsigned int length, sc_core::sc_time * t,
-                              unsigned int * debug, bool is_dbg) {
+                              unsigned int * debug, bool is_dbg, bool is_lock = false) {
 	  return true;
 
         };

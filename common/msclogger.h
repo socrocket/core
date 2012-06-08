@@ -104,7 +104,7 @@ class msclogger {
       sc_core::sc_object * to = socket_to->get_parent();
   
       msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
-          << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+          << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
 
     }
   }
@@ -117,7 +117,7 @@ class msclogger {
       sc_core::sc_object * to = socket_to->get_parent();
   
       msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/"  << sc_time_stamp() \
-          << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+          << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
 
     }
   }
@@ -131,7 +131,7 @@ class msclogger {
       sc_core::sc_object * to = socket_to->get_parent();
     
       msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
-          << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+          << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
 
     }
   }
@@ -145,7 +145,7 @@ class msclogger {
       sc_core::sc_object * to = socket_to->get_parent();
     
       msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
-          << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+          << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
     }
   }
 
@@ -174,7 +174,7 @@ class msclogger {
         msc << "TLM_COMPLETED";
       }
 
-      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
 
     }
   }
@@ -204,7 +204,7 @@ class msclogger {
         msc << "TLM_COMPLETED";
       }
 
-      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
     }
   }
 
@@ -233,7 +233,7 @@ class msclogger {
         msc << "TLM_COMPLETED";
       }
 
-      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
     }
   }
 
@@ -262,7 +262,7 @@ class msclogger {
         msc << "TLM_COMPLETED";
       }
 
-      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
     }
   }
 };

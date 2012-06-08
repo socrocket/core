@@ -220,7 +220,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     // TLB lookup is full-associative. All TLBs are read at once and in parallel.
     // For performance reasons, this is modeled as one event.
     PM::send(this, "tlb_lookup", 1, sc_time_stamp(), 0, m_pow_mon);
-    PM::send(this, "tlm_lookup", 0, sc_time_stamp(), 0, m_pow_mon);
+    PM::send(this, "tlb_lookup", 0, sc_time_stamp(), 0, m_pow_mon);
 
     // Search virtual address tag in ipdc (associative)
     v::info << this->name() << "lookup with VPN: " << std::hex << vpn
@@ -336,7 +336,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     // 1. load from 1st-level page table
     m_mmu_cache->mem_read(MMU_CONTEXT_TABLE_POINTER_REG + idx1, 0x8,
-            (unsigned char *)&data, 4, t, debug, is_dbg);
+                          (unsigned char *)&data, 4, t, debug, is_dbg, false);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);
@@ -425,7 +425,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     // 2. load from 2nd-level page table
     m_mmu_cache->mem_read((((data) >> 2) << 2) + idx2, 0x8, (unsigned char *)&data,
-            4, t, debug, is_dbg);
+                          4, t, debug, is_dbg, false);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);
@@ -510,7 +510,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     // 3. load from 3rd-level page table
     m_mmu_cache->mem_read((((data) >> 2) << 2) + idx3, 0x8, (unsigned char *)&data,
-            4, t, debug, is_dbg);
+                          4, t, debug, is_dbg, false);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);
