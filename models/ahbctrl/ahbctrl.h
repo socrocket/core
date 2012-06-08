@@ -96,28 +96,21 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);	
 
   /// The arbiter thread. Responsible for arbitrating transactions in AT mode.
-  void arbitrate_me();
+  void arbitrate();
 	
-  // Thread for modeling the AHB data phase for write transactions.
-  // Sends BEGIN_DATA to slave and handles snooping.
-  void DataThread();
+  void AcceptThread();
 
-  /// Thread for signalling END_DATA to the master (AT mode).
-  void EndData();
-
-  /// The RequestThread is activated by the ArbitrationThread
-  /// when a master has won arbitration. It takes care about
-  /// address decoding (slave selection) and communication with
-  /// the slaves nb_transport_fw interface
   void RequestThread();
 
-  // The ResponseThread can be activated by the nb_transport_bw function 
-  // (Slave sends BEGIN_RESP) or by the RequestThread (Slave returns 
-  // TLM_UPDATED with BEGIN_RESP or TLM_COMPLETED).
   void ResponseThread();
+
+  void EndResponseThread();
 
   /// Collect common transport statistics.
   void transport_statistics(tlm::tlm_generic_payload &gp);
+
+  /// Helper function - prints pending requests in arbiter
+  void print_requests();
 
   /// Print common transport statistics.
   void print_transport_statistics(const char *name) const;
@@ -188,7 +181,8 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
   const sc_time arbiter_eval_delay;
 
-  sc_semaphore bus_in_use;
+  // Shows if bus is busy in LT mode
+  bool busy;
 
   /// Enable power monitoring (Only TLM)
   bool m_pow_mon;
@@ -211,10 +205,13 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   std::map<uint32_t, slave_info_t>::iterator it;
   typedef std::map<uint32_t, slave_info_t>::iterator slave_iter;
 
-  payload_t * selected_transaction;
-
-  /// The internal state of the bus controller (concerning arbitration)
-  enum TransStateType {IDLE, PENDING, BUSY};
+  /// Connection state:
+  //  -----------------
+  //  PENDING - Waiting for arbitration
+  //  APHASE  - AHB address phase. BEGIN_REQ was sent to slave.
+  //  DPHASE  - AHB data phase. Slave has sent BEGIN_RESP.
+  enum TransStateType {TRANS_INIT, TRANS_PENDING, TRANS_SCHEDULED};
+  enum DbusStateType {IDLE, RESPONSE, WAITSTATES};
 
   /// Keeps track on where the transactions have been coming from
   typedef struct {
@@ -223,8 +220,12 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
     unsigned int slave_id;
     sc_time start_time;
     TransStateType state;
+    payload_t * trans;
     
   } connection_t;
+
+  connection_t request_map[16];
+  connection_t response_map[16];
 
   std::map<payload_t*, connection_t> pending_map;
   std::map<payload_t*, connection_t>::iterator pm_itr;
@@ -235,19 +236,15 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   /// Array of master device information (PNP)
   const uint32_t *mMasters[64];
 
+  int32_t address_bus_owner;
+  DbusStateType data_bus_state;
+
+
   /// PEQs for arbitration, request notification and responses
-  tlm_utils::peq_with_get<payload_t> mRequestPEQ;
-  tlm_utils::peq_with_get<payload_t> mDataPEQ;
-  tlm_utils::peq_with_get<payload_t> mEndDataPEQ;
-  tlm_utils::peq_with_get<payload_t> mResponsePEQ;	
-
-  /// Event triggered by transport_fw to notify response thread about END_RESP
-  sc_event mEndResponseEvent;
-  /// Event triggered by transport_bw to notify request thread about END_REQ
-  sc_event mEndRequestEvent;
-
-  /// Used to unblock the bus in LT mode
-  sc_event mUnblockEvent;
+  tlm_utils::peq_with_get<payload_t> m_AcceptPEQ;
+  tlm_utils::peq_with_get<payload_t> m_RequestPEQ;
+  tlm_utils::peq_with_get<payload_t> m_ResponsePEQ;
+  tlm_utils::peq_with_get<payload_t> m_EndResponsePEQ;	
 
   /// The number of slaves in the system
   unsigned int num_of_slave_bindings;
