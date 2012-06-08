@@ -69,4 +69,5 @@ def build(bld):
         linkflags    = '-g -Ttext=0 -nostartfiles -nostdlib -T%s -N' % (ldscript.abspath()),
         source       = [ 'prom.S' ],
         includes     = '.',
+        install_path = '${PREFIX}/prom/',
     )

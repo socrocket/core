@@ -16,40 +16,29 @@ def build(bld):
         irqPorts.cpp
         externalPins.cpp
     """
-    uselib = 'BOOST BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM TRAP'
-    use = 'mmu_cache utils signalkit common'
-    objects = ''
-    includes = '.'
-    target = 'LEON3_funcAT_objs'
 
-    bld.objects(source = sources, target = target, uselib = uselib, use = use + ' ' + objects, includes = includes)
+    uselib = 'TRAP ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
+    use = 'mmu_cache utils signalkit common'
+
+    bld.install_files('${PREFIX}/include/models/LEON3/funcAT', bld.path.ant_glob('*.hpp'))
+
     bld(
         target          = 'leon3.funcat',
         features        = 'cxx cxxstlib',
-        source          = ['instructions.cpp',
-                           'registers.cpp',
-                           'alias.cpp',
-                           'processor.cpp',
-                           'interface.cpp',
-                           'decoder.cpp',
-                           'memory.cpp',
-                           'externalPorts.cpp',
-                           'irqPorts.cpp',
-                           'externalPins.cpp'],
         export_includes = '.',
         includes        = '.',
         uselib          = uselib,
         use             = use,
+        source          = sources,
+        install_path    = '${PREFIX}/lib',
     )
-    sources = 'main.cpp'
-    includes = '.'
-    uselib = 'TRAP ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
-    import sys
-    cppflags_custom = ''
-    if sys.platform == 'cygwin':
-        cppflags_custom = ' -D__USE_W32_SOCKETS'
-        uselib += ' WINSOCK'
-    objects = 'LEON3_funcAT_objs'
-    target = 'funcAT'
 
-    bld.program(source = sources, target = target, use = uselib + ' ' + objects, includes = includes, defines = cppflags_custom)
+    sources = sources + 'main.cpp'
+    bld.program(
+        target = 'leon3.funcat.platform', 
+        includes = '.', 
+        defines = 'LEON3_STANDALONE',
+        source = sources, 
+        uselib = uselib, 
+        use = use,
+    )

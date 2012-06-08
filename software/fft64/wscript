@@ -52,6 +52,7 @@ def build(bld):
      cflags       = '-static -g -O1 -lm',
      linkflags    = '-static -g -O1 -lm',
      source       = ['radix4_nofile.c'],
+     install_path = None,
   )
 
   bld(
@@ -60,5 +61,6 @@ def build(bld):
      cflags       = '-static -g -O1 -lm',
      linkflags    = '-static -g -O1 -lm',
      source       = ['radix4_input_gen.c'],
+     install_path = None,
   )
 

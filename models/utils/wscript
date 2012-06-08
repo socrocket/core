@@ -58,5 +58,6 @@ def build(bld):
                       ],
     export_includes = '.',
     uselib          = 'SYSTEMC TLM AMBA GREENSOCS',
-    use             = 'signalkit common'
+    use             = 'signalkit common',
+    install_path   = '${PREFIX}/lib',
   )

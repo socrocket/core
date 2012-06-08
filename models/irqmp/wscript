@@ -53,5 +53,6 @@ def build(bld):
     source          = 'irqmp.cpp', 
     export_includes = '.',
     uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
-    use             = 'utils signalkit common'
+    use             = 'utils signalkit common',
+    install_path   = '${PREFIX}/lib',
   )

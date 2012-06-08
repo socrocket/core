@@ -60,6 +60,13 @@ def build(self):
     from waflib.Tools import waf_unit_test  
     from waftools.common import get_subdirs
     self.recurse(get_subdirs())
+
+    self.install_files('${PREFIX}/include', self.path.ant_glob('**/*.h', excl=['**/signalkit/**', '**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']))
+    self.install_files('${PREFIX}/', ['waf', 'wscript'])
+    self.install_files('${PREFIX}/', self.path.ant_glob('waftools/**', excl=['**/*.pyc', '**/.svn/**', '**/.git/**']), relative_trick=True)
+    self.install_files('${PREFIX}/', self.path.ant_glob('generator/**', excl=['**/*.pyc', '**/.svn/**', '**/.git/**']), relative_trick=True)
+    self.install_files('${PREFIX}/', self.path.ant_glob('templates/**', excl=['**/*~', '**/.svn/**', '**/.git/**']), relative_trick=True)
+    self.install_files('${PREFIX}/include', self.path.ant_glob('contrib/grambasockets/*.h', excl=['**/*~', '**/.svn/**', '**/.git/**']))
     self.add_post_fun(waf_unit_test.summary)
     #self.add_post_fun(lcov_summary)
 
@@ -89,6 +96,11 @@ class Coverage(BuildContext):
 def generate(bld):
   from generator.wizard import main
   main(bld.options.template, bld.options.configuration)
+
+class Generate(BuildContext):
+    cmd = 'generate'
+    fun = 'generate'
+
   
 def check_trap_linking(ctx, libName, libPaths, symbol):
     for libpath in libPaths:
