@@ -73,7 +73,8 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
          uint16_t hmask_ = 0, 
          amba::amba_layer_ids ambaLayer = amba::amba_LT, 
          uint32_t slave_id = 0,
-         bool cacheable = 1);
+         bool cacheable = 1,
+         uint32_t wait_states = 0);
 
   /// Destructor
   ~AHBMem();
@@ -91,7 +92,9 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
   /// @param byte Write data
   void writeByteDBG(const uint32_t addr, const uint8_t byte);
 
-  uint32_t exec_func(tlm::tlm_generic_payload &gp, sc_time &delay);
+  uint32_t exec_func(tlm::tlm_generic_payload &gp, sc_time &delay, bool debug = false);
+
+  sc_core::sc_time get_clock();
 
   /// Generates execution statistic at end of simulation
   void end_of_simulation();
@@ -121,6 +124,9 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
   
   /// Device cacheable or not
   const bool mcacheable;
+
+  /// Number of wait states to be inserted for each transfer
+  const uint32_t mwait_states;
 
 };
 
