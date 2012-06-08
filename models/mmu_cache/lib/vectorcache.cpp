@@ -596,7 +596,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
                             unsigned int * debug, bool is_dbg) {
 
     // is the cache enabled (0x11) or frozen (0x01)
-    if ((!is_dbg) && (check_mode() & 0x1)) {
+    if (check_mode() & 0x1) {
 
         // extract index and tag from address
         unsigned int tag    = (address >> (m_idx_bits + m_offset_bits));
@@ -647,7 +647,11 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
                     // valid is already set
 
                     // increment time
-                    *delay += clockcycle;
+                    if (!is_dbg) {
+
+                      *delay += clockcycle;
+
+                    }
 
                     break;
                 } else {
