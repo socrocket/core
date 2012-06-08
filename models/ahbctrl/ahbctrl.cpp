@@ -352,6 +352,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
       bus_in_use.post();
 
       v::debug << name() << "DBUS free (" << bus_in_use.get_value() << ")" << v::endl;
+      msclogger::return_backward(this, &ahbIN, &trans, tlm::TLM_COMPLETED, delay);
 
       return;
 
@@ -364,7 +365,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
       bus_in_use.post();
 
       v::debug << name() << "DBUS free (" << bus_in_use.get_value() << ")" << v::endl;
-
+      msclogger::return_backward(this, &ahbIN, &trans, tlm::TLM_COMPLETED, delay);
       return;
     }
   }

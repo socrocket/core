@@ -46,7 +46,10 @@
 
 #define DEBUG
 
-#include "ahbdevice.h"
+#include <tlm.h>
+#include <systemc.h>
+
+#include "ahbslave.h"
 #include "apbdevice.h"
 #include "clkdevice.h"
 #include "memdevice.h"
@@ -60,8 +63,6 @@
 #include <greensocket/initiator/multi_socket.h>
 #include <greenreg_ambasockets.h>
 #include <amba.h>
-#include <tlm.h>
-#include <systemc.h>
 
 #include <signalkit.h>
 #include "vendian.h"
@@ -73,8 +74,7 @@
 
 /// @brief This class is an TLM 2.0 Model of the Aeroflex Gaisler GRLIB mctrl.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 66.
-class Mctrl : public gs::reg::gr_device,
-              public AHBDevice,
+class Mctrl : public AHBSlave<gs::reg::gr_device>,
               public APBDevice,
               public CLKDevice {
     public:
@@ -129,11 +129,6 @@ class Mctrl : public gs::reg::gr_device,
         /// Connects mctrl config registers to APB
         gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb;
 
-        /// AHB Slave Socket
-        ///
-        /// Receives instructions (mem access) from CPU
-        ::amba::amba_slave_socket<32> ahb;
-
         /// Memory Master Socket
         ///
         /// Initiate communication with memory modules.
@@ -181,23 +176,8 @@ class Mctrl : public gs::reg::gr_device,
         void mcfg1_write();
         void mcfg2_write();
 
-        /// TLM blocking transport functions
-        virtual void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
-
-        /// TLM debug transport function
-        uint32_t transport_dbg(tlm::tlm_generic_payload& gp);
-
-	/// TLM non-blocking transport function
-	tlm::tlm_sync_enum nb_transport_fw(tlm::tlm_generic_payload& trans, tlm::tlm_phase& phase, sc_core::sc_time& delay);
-
 	/// Encapsulation function for functional part of the model
-	void exec_func(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay);
-
-	/// Accept new transaction (busy or not)
-	void acceptTXN();
-
-	/// Thread for interfacing functional part of the model in AT mode
-	void processTXN();
+	uint32_t exec_func(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay);
 
     private:
 
@@ -224,10 +204,6 @@ class Mctrl : public gs::reg::gr_device,
         /// Ready to accept new transaction (send END_REQ)
 	sc_event unlock_event;
 
-	/// Event queues for AT mode
-	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mAcceptPEQ;
-	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mTransactionPEQ;
-
         // Control / timing variables
         
         /// Count time elapsing in callbacks (to be added in next transaction)
@@ -243,8 +219,8 @@ class Mctrl : public gs::reg::gr_device,
         // so it might be necessary to stall
         sc_core::sc_time refresh_stall;
 
-	      /// False - ready to accept new transaction
-	      bool busy;
+        /// False - ready to accept new transaction
+        bool busy;
         
         /// Length of refresh cycle
         uint8_t m_trfc; 
