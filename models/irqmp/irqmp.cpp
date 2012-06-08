@@ -143,6 +143,11 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
             gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
                     | gs::reg::FULL_WIDTH, 0x00000000, BROADCAST_BM, 32,
             0x00);
+    r.create_register("asymctrl", "Asymetric Multicore Control Register", 0x20,
+            gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
+                    | gs::reg::FULL_WIDTH, 0x00000000, 0x00000000, 32,
+            0x00);
+
 
     for (int i = 0; i < g_ncpu; ++i) {
         r.create_register(gen_unique_name("mask", false),
