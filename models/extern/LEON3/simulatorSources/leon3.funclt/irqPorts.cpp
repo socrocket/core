@@ -54,7 +54,7 @@ void leon3_funclt_trap::IntrTLMPort_32::callbackMethod( const std::pair<unsigned
     else{
         //Raise the interrupt
         this->irqSignal = value.first;
-        v::info << name() << "InterruptIN " << value.first << v::endl;
+        v::debug << name() << "InterruptIN " << value.first << v::endl;
     }
 }
 
