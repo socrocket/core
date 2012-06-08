@@ -125,10 +125,10 @@ void GPCounter::ctrl_write() {
     // Enable
     //v::debug << name() << "StartStop_" << nr << v::endl;
     if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN] && stopped) {
-        v::info << name() << "Start_" << nr << v::endl;
+        v::debug << name() << "Start_" << nr << v::endl;
         start();
     } else if ((!p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN]) && !stopped) {
-        v::info << name() << "Stop_" << nr << v::endl;
+        v::debug << name() << "Stop_" << nr << v::endl;
         stop();
     }
 }
@@ -136,22 +136,21 @@ void GPCounter::ctrl_write() {
 void GPCounter::value_read() {
     if (!stopped) {
         sc_core::sc_time now = sc_core::sc_time_stamp();
-        int reload = p.r[GPTimer::RELOAD(nr)] + 1;
-        int dticks;
-        if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]) {
-            dticks = p.numberofticksbetween(lasttime, now, 0,
-                    p.counter[nr - 1]->cycletime());
-        } else {
-            dticks
-                    = p.numberofticksbetween(lasttime, now, nr + 2,
-                            p.clock_cycle);
-        }
-        int value = ((int)lastvalue - dticks) % reload;
+        int64_t reload = (int64_t)((uint32_t)p.r[GPTimer::RELOAD(nr)]) + 1ll;
 
-        if (value < 0) {
-            p.r[GPTimer::VALUE(nr)] = reload + value;
+        int64_t dticks;
+        if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]) {
+            dticks = p.numberofticksbetween(lasttime, now, 0, p.counter[nr - 1]->cycletime());
         } else {
-            p.r[GPTimer::VALUE(nr)] = value;
+            dticks = p.numberofticksbetween(lasttime, now, nr + 2, p.clock_cycle);
+        }
+        int64_t value = ((int64_t)lastvalue - dticks) % reload;
+
+        v::debug << name() << " value_read: value=" << v::uint64 << value << " reload=" << v::uint64 << reload << v::endl;
+        if (value < 0) {
+            p.r[GPTimer::VALUE(nr)] = (uint32_t)((reload + value));
+        } else {
+            p.r[GPTimer::VALUE(nr)] = (uint32_t)value;
         }
     }
 }
@@ -159,6 +158,7 @@ void GPCounter::value_read() {
 void GPCounter::value_write() {
     lastvalue = p.r[GPTimer::VALUE(nr)];
     lasttime = sc_core::sc_time_stamp();
+    v::debug << name() << " value_write: lastvalue=" << v::uint32 << lastvalue << " lasttime=" << lasttime << v::endl;
     if (!stopped) {
         calculate();
     }
@@ -166,7 +166,7 @@ void GPCounter::value_write() {
 
 void GPCounter::chaining() {
     chain_run = true;
-    v::info << name() << "Chaining" << nr << v::endl;
+    v::debug << name() << "Chaining" << nr << v::endl;
     start();
 }
 
@@ -176,13 +176,13 @@ void GPCounter::ticking() {
         // calculate sleep time, GPCounter timeout
         calculate();
 
-        v::debug << name() << "GPCounter" << nr << " is wait" << v::endl;
+        v::debug << name() << "GPCounter" << nr << " counting" << v::endl;
         wait(e_wait);
 
         // update performance counter
         m_underflows = m_underflows + 1;
 
-        v::warn << name() << "GPCounter" << nr << " underflows" << v::endl;
+        v::debug << name() << "GPCounter" << nr << " underflow" << v::endl;
         PM::send(this, "underflow", 1, sc_time_stamp(),0,1);
         // Send interupt and set outputs
         if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_IE]) {
@@ -233,7 +233,7 @@ void GPCounter::do_reset() {
 // Gets the time to the end of the next zero hit.
 sc_core::sc_time GPCounter::nextzero() {
     sc_core::sc_time t; // cycle time of foundation (other GPCounter or the cloccycle)
-    int x; // Per cycle
+    int64_t x; // Per cycle
     if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]) { // We depend on the cycle time of the last GPCounter.
         if (nr) {
             p.counter[nr-1]->value_read();
@@ -256,7 +256,7 @@ sc_core::sc_time GPCounter::nextzero() {
 // Gets the Cycletime of the CGPCounter.
 sc_core::sc_time GPCounter::cycletime() {
     sc_core::sc_time t; // cycle time of foundation (other GPCounter or the cloccycle)
-    int m; // Per cycle
+    int64_t m; // Per cycle
     if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]) { // We depend on the cycle time of the last GPCounter.
         if (nr) {
             t = p.counter[nr - 1]->cycletime();
@@ -278,16 +278,16 @@ sc_core::sc_time GPCounter::cycletime() {
 void GPCounter::calculate() {
     e_wait.cancel();
     value_read();
-    int value = p.r[GPTimer::VALUE(nr)];
+    uint32_t value = p.r[GPTimer::VALUE(nr)];
     sc_core::sc_time time;
     // Calculate with currentime, and lastvalue updates
     if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN]) {
         sc_core::sc_time zero = this->nextzero();
         sc_core::sc_time cycle = this->cycletime();
-        v::info << name() << " calc_" << nr << " Zero: " << zero << " Cycle: " << cycle << " Value: " << value << v::endl;
+        v::debug << name() << " calculate: " << nr << ": zero=" << zero << " cycle=" << cycle << " value=" << v::uint32 << value << v::endl;
         time = zero;
         time += (cycle * value) + (nr + 1) * p.clock_cycle;
-        v::debug << name() << " calc_" << nr << ": " << time << v::endl;
+        v::debug << name() << " calculate: " << nr << ": time=" << time << v::endl;
         e_wait.notify(time);
     }
 }
@@ -295,7 +295,7 @@ void GPCounter::calculate() {
 // Start counting imideately.
 // For example for enable, !dhalt, e_chain
 void GPCounter::start() {
-    v::info << name() << "start_" << nr << " stopped: " << stopped << "-"
+    v::debug << name() << "start: " << nr << ": stopped=" << stopped << "-"
             << (bool)(p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN]) << "-"
             << "-"
             << (!p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]
@@ -305,7 +305,7 @@ void GPCounter::start() {
             /*&& (p.dhalt.read()!=0)*/&& (!p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]
                     || (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_CH]
                             && chain_run))) {
-        v::info << name() << "startnow_" << nr << v::endl;
+        v::debug << name() << "startnow_" << nr << v::endl;
 
         lasttime = sc_core::sc_time_stamp();
         calculate();
@@ -319,7 +319,7 @@ void GPCounter::start() {
 //
 void GPCounter::stop() {
     if (!stopped) {
-        //v::debug << name() << "stop_" << nr << v::endl;
+        v::debug << name() << "stop: " << nr << v::endl;
         e_wait.cancel();
         value_read();
         lastvalue = p.r[GPTimer::VALUE(nr)];
