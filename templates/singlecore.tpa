@@ -113,7 +113,7 @@
     <option var="gptimer" name="GPTimer" type="bool" default="true">
        <option var="addr" name="APB Base Address" type="int" default="0xF0" range="0..4095"/>
        <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..4095"/>
-       <option var="index" name="Bus Index" type="int" default="2" range="0..15"/>
+       <option var="index" name="Bus Index" type="int" default="3" range="0..15"/>
        <option var="pirq" name="IRQ Line" type="int" default="8" range="0..15"/>
        <option var="sepirq" name="Seperated IRQs" type="bool" default="true"/>
        <option var="ntimers" name="Number of Counters" type="int" default="7" range="1..7"/>
@@ -192,7 +192,7 @@
     <option var="irqmp" name="IRQ Controller">
       <option var="addr" name="APB Base Address" type="int" default="0x1F0" range="0..4095"/>
       <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..4095"/>
-      <option var="index" name="Bus Index" type="int" default="1" range="0..15"/>
+      <option var="index" name="Bus Index" type="int" default="2" range="0..15"/>
       <option var="ncpu" name="Number of processor in multicore system" type="int" default="1" range="1..16"/>
       <option var="eirq" name="The cascade line of EIRs" type="int" default="4" range="0..15"/>
     </option>

@@ -59,6 +59,8 @@
 #include "ahbctrl.h"
 #include "AHB2Socwire.h"
 
+#include <boost/program_options.hpp>
+
 #include <iostream>
 #include <vector>
 #include <sys/time.h>
@@ -241,7 +243,7 @@ int sc_main(int argc, char** argv) {
 		    conf_ahbctrl_fixbrst,               // Enable support for fixed-length bursts (disabled)
 		    conf_ahbctrl_fpnpen,                // Enable full decoding of PnP configuration records
 		    conf_ahbctrl_mcheck,                // Check if there are any intersections between core memory regions
-                    conf_sys_power,                     // Enable/disable power monitoring
+        conf_sys_power,                     // Enable/disable power monitoring
 		    ambaLayer
     );
 
@@ -578,7 +580,6 @@ int sc_main(int argc, char** argv) {
     // ******************************************
 
     // * Param Listing **************************
-    v::info << "main" << "Param" << paramlist << v::endl;
     if(paramlist) {
         gs::cnf::cnf_api *CFG = gs::cnf::GCnf_Api::getApiInstance(NULL);
         v::info << "main" << "System Values:" << v::endl;
