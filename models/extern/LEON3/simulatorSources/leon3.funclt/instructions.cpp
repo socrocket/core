@@ -199,7 +199,6 @@ void leon3_funclt_trap::Instruction::RaiseException( unsigned int pcounter, unsi
             }break;
             case MEM_ADDR_NOT_ALIGNED:{
                 TBR[key_TT] = 0x07;
-                v::info << "Instr" << "MEM_ADDR_NOT_ALIGNED " << pcounter << v::endl;
             }break;
             case FP_EXCEPTION:{
                 TBR[key_TT] = 0x08;
@@ -781,6 +780,22 @@ unsigned int leon3_funclt_trap::WRITEpsr_imm::behavior(){
 
     if(!(supervisorException || illegalCWP)){
         PSR = result;
+        int newCwp = result & 0x0000001f;
+        #ifndef ACC_MODEL
+        //Functional model: we simply immediately update the alias
+        for(int i = 8; i < 32; i++){
+            REGS[i].updateAlias(WINREGS[(newCwp*16 + i - 8) & 0x7f]);
+        }
+        #else
+        //Cycle accurate model: we have to update the alias using the pipeline register
+        //We update the aliases for this stage and for all the preceding ones (we are in the
+        //decode stage and we need to update fetch, and decode)
+        for(int i = 8; i < 32; i++){
+            REGS_fetch[i].updateAlias(WINREGS_pipe[(newCwp*16 + i - 8) & 0x7f]);
+            REGS_decode[i].updateAlias(WINREGS_pipe[(newCwp*16 + i - 8) & 0x7f]);
+        }
+        #endif
+
     }
 
     if(supervisorException){
@@ -10660,6 +10675,22 @@ unsigned int leon3_funclt_trap::WRITEpsr_reg::behavior(){
 
     if(!(supervisorException || illegalCWP)){
         PSR = result;
+        int newCwp = result & 0x0000001f;
+        #ifndef ACC_MODEL
+        //Functional model: we simply immediately update the alias
+        for(int i = 8; i < 32; i++){
+            REGS[i].updateAlias(WINREGS[(newCwp*16 + i - 8) & 0x7f]);
+        }
+        #else
+        //Cycle accurate model: we have to update the alias using the pipeline register
+        //We update the aliases for this stage and for all the preceding ones (we are in the
+        //decode stage and we need to update fetch, and decode)
+        for(int i = 8; i < 32; i++){
+            REGS_fetch[i].updateAlias(WINREGS_pipe[(newCwp*16 + i - 8) & 0x7f]);
+            REGS_decode[i].updateAlias(WINREGS_pipe[(newCwp*16 + i - 8) & 0x7f]);
+        }
+        #endif
+
     }
 
     if(supervisorException){
