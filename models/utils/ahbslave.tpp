@@ -17,8 +17,11 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
   if(phase == tlm::BEGIN_REQ) {
 
     trans.acquire();
+
     m_AcceptPEQ.notify(trans, delay);
+
     delay = SC_ZERO_TIME;
+    phase = tlm::END_REQ;
 
   } else if(phase == amba::BEGIN_DATA) {
     
@@ -37,7 +40,7 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
   }
   
   msclogger::return_backward(this, &ahb, &trans, tlm::TLM_ACCEPTED, delay);
-  return(tlm::TLM_ACCEPTED);
+  return(tlm::TLM_UPDATED);
 }
 
 // Thread for modeling the AHB pipeline delay
