@@ -43,6 +43,9 @@
 // Reviewed:
 // ********************************************************************
 
+#include <tlm.h>
 #include <fstream>
 
 std::ofstream msc;
+sc_core::sc_time msclogger_start;
+sc_core::sc_time msclogger_end;
