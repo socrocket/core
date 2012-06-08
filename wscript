@@ -580,15 +580,22 @@ def configure(ctx):
             int main(int argc, char * argv[]){return 0;}
 ''', msg='Check for TRAP version', use='TRAP ELF_LIB BOOST SYSTEMC', mandatory=1, errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required')
 
-    """
+    
     ##################################################
     # Check for Lua Library and Headers
     ##################################################
+    if ctx.options.luadir:
+      lualib = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.luadir, "lib")))))
+      luadir = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.luadir, "include")))))
+    else:
+      lualib = "/usr/lib"
+      luadir = "/usr/include/lua5.1"
+
     ctx.check_cxx(
-      lib          = 'lua',
+      lib          = 'lua5.1',
       uselib_store = 'LUA',
       mandatory    = True,
-      libpath      = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.luadir, "lib"))))),
+      libpath      = lualib,
       errmsg       = "LUA Library not found. Use --lua option or set $LUA_HOME.",
       okmsg        = "ok"
     ) 
@@ -596,12 +603,11 @@ def configure(ctx):
       header_name  = 'lua.h',
       uselib_store = 'LUA',
       mandatory    = True,
-      includes     = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.luadir, "include")))),
+      includes     = luadir,
       uselib       = 'LUA',
       okmsg        = "ok"
     ) 
-    """
-    '''
+    
     ctx.check_cxx(
       msg          = "Checking for Lua 5.1.4 or higher",
       mandatory    = True,
@@ -609,13 +615,12 @@ def configure(ctx):
       fragment     = """
                      #include <lua.h>
                      int main(int argc, char *argv[]) {
-                       return !(LUA_VERSION_NUM > 501);
+                       return !(LUA_VERSION_NUM > 500);
                      }
                    """,
       uselib       = 'LUA',
       okmsg        = "ok",
     )
-    '''
 
     '''
     ##################################################
