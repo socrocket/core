@@ -51,7 +51,12 @@ void TcpIo::getReceivedChar(char * toRecv){
 
    boost::system::error_code asioError;
    this->socket->read_some(asio::buffer(toRecv, 1), asioError);
-   if(asioError == asio::error::eof){
+
+   if(*toRecv == '\r') {
+     *toRecv = '\0';
+   }
+
+   if(asioError == asio::error::eof) {
      v::error << "TcpIo" << "Connection with the UART Unexpetedly closed";
    }
 }
