@@ -48,8 +48,8 @@ top = '../..'
 extern = [
   #'LEON2/simulatorSources/funcAT', 
   #'LEON2/simulatorSources/funcLT', 
-  'LEON3/simulatorSources/funcAT', 
-  'LEON3/simulatorSources/funcLT', 
+  'LEON3/simulatorSources/leon3.funcat',
+  'LEON3/simulatorSources/leon3.funclt',
   #'SpaceWire',
   #'SpaceWire/tests',
 ]

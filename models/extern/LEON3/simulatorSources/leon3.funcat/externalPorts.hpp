@@ -38,7 +38,7 @@
 #ifndef EXTERNALPORTS_HPP
 #define EXTERNALPORTS_HPP
 
-#include <memory.hpp>
+#include <leon3.funcat/memory.hpp>
 #include <systemc.h>
 #include <ToolsIf.hpp>
 #include <tlm.h>

@@ -40,11 +40,11 @@
 #include <string>
 #include <customExceptions.hpp>
 #include <trap_utils.hpp>
-#include <registers.hpp>
-#include <alias.hpp>
-#include <externalPorts.hpp>
-#include <externalPins.hpp>
-#include <instructions.hpp>
+#include <leon3.funcat/registers.hpp>
+#include <leon3.funcat/alias.hpp>
+#include <leon3.funcat/externalPorts.hpp>
+#include <leon3.funcat/externalPins.hpp>
+#include <leon3.funcat/instructions.hpp>
 #include <sstream>
 #include <systemc.h>
 

@@ -36,8 +36,8 @@
 
 
 
-#include <externalPorts.hpp>
-#include <memory.hpp>
+#include <leon3.funcat/externalPorts.hpp>
+#include <leon3.funcat/memory.hpp>
 #include <ToolsIf.hpp>
 #include <tlm.h>
 #include <trap_utils.hpp>

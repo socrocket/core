@@ -45,7 +45,6 @@
 //*********************************************************************
 
 
-#include "processor.hpp"
 #include <execLoader.hpp>
 #include <osEmulator.hpp>
 #include "mmu_cache.h"
@@ -69,10 +68,18 @@
 #include "verbose.h"
 #include "power_monitor.h"
 
-#include "config.h"
 #include <GDBStub.hpp>
 #include <systemc.h>
 #include <tlm.h>
+
+#include "config.h"
+
+#if conf_sys_lt_at
+#include "leon3.funclt.h"
+#else
+#include "leon3.funcat.h"
+#endif
+
 using namespace std;
 using namespace sc_core;
 using namespace socw;

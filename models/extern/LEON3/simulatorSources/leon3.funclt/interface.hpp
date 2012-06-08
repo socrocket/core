@@ -39,9 +39,9 @@
 #define INTERFACE_HPP
 
 #include <ABIIf.hpp>
-#include <memory.hpp>
-#include <registers.hpp>
-#include <alias.hpp>
+#include <leon3.funclt/memory.hpp>
+#include <leon3.funclt/registers.hpp>
+#include <leon3.funclt/alias.hpp>
 #include <boost/circular_buffer.hpp>
 #include <instructionBase.hpp>
 #include <vector>

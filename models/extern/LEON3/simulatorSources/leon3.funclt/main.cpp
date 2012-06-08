@@ -49,8 +49,8 @@
 #include <boost/timer.hpp>
 #include <boost/filesystem.hpp>
 #include <SparseMemoryLT.hpp>
-#include <processor.hpp>
-#include <instructions.hpp>
+#include <leon3.funclt/processor.hpp>
+#include <leon3.funclt/instructions.hpp>
 #include <trap_utils.hpp>
 #include <elfFrontend.hpp>
 #include <execLoader.hpp>
@@ -60,7 +60,7 @@
 #include <osEmulator.hpp>
 #include <systemc.h>
 
-#include "irqGenerator.hpp"
+#include "leon3.funclt/irqGenerator.hpp"
 
 #define LEON3_STANDALONE
 

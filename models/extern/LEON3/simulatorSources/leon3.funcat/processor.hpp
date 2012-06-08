@@ -39,13 +39,13 @@
 #define PROCESSOR_HPP
 
 #include <customExceptions.hpp>
-#include <instructions.hpp>
-#include <decoder.hpp>
-#include <interface.hpp>
+#include <leon3.funcat/instructions.hpp>
+#include <leon3.funcat/decoder.hpp>
+#include <leon3.funcat/interface.hpp>
 #include <ToolsIf.hpp>
-#include <registers.hpp>
-#include <alias.hpp>
-#include <externalPorts.hpp>
+#include <leon3.funcat/registers.hpp>
+#include <leon3.funcat/alias.hpp>
+#include <leon3.funcat/externalPorts.hpp>
 #include <iostream>
 #include <fstream>
 #include <boost/circular_buffer.hpp>
@@ -73,8 +73,8 @@
 #endif
 #endif
 
-#include <irqPorts.hpp>
-#include <externalPins.hpp>
+#include <leon3.funcat/irqPorts.hpp>
+#include <leon3.funcat/externalPins.hpp>
 #include <string>
 #include <systemc.h>
 

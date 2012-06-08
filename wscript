@@ -62,7 +62,7 @@ def build(self):
     self.recurse(get_subdirs())
 
     self.install_files('${PREFIX}/include', self.path.ant_glob('**/*.h', excl=['**/signalkit/**', '**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']))
-    self.install_files('${PREFIX}/', ['waf', 'wscript'])
+    self.install_files('${PREFIX}/', ['waf', 'wscript', 'platforms/wscript'], relative_trick=True)
     self.install_files('${PREFIX}/', self.path.ant_glob('waftools/**', excl=['**/*.pyc', '**/.svn/**', '**/.git/**']), relative_trick=True)
     self.install_files('${PREFIX}/', self.path.ant_glob('generator/**', excl=['**/*.pyc', '**/.svn/**', '**/.git/**']), relative_trick=True)
     self.install_files('${PREFIX}/', self.path.ant_glob('templates/**', excl=['**/*~', '**/.svn/**', '**/.git/**']), relative_trick=True)
@@ -124,7 +124,7 @@ def check_trap_linking(ctx, libName, libPaths, symbol):
 def configure(ctx):
     import os.path
     import glob
-
+    
     #############################################################
     # Check for doxygen
     #############################################################
@@ -759,7 +759,7 @@ def configure(ctx):
       header_name   = "greenreg_ambasockets.h",
       uselib_store  = 'GREENSOCS',
       mandatory     = True,
-      includes      = [os.path.join(ctx.path.abspath(),'contrib', 'grambasockets'), os.path.join(ctx.path.abspath(), 'common')],
+      includes      = [os.path.join(ctx.path.abspath(),'contrib', 'grambasockets'), os.path.join(ctx.path.abspath(), 'common'), os.path.join(ctx.path.abspath(), 'include')],
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM AMBA',
       okmsg         = "ok",
       msg           = "Check compatibility of AMBAKit and GreenReg"
@@ -794,6 +794,55 @@ def configure(ctx):
       okmsg        = "ok",
     )
     """
+
+    sr_libdir = os.path.join(ctx.path.abspath(), 'lib')
+    sr_incdir = os.path.join(ctx.path.abspath(), 'include')
+    if os.path.isdir(sr_libdir) and os.path.isdir(sr_incdir):
+        ##################################################
+        # Check for SoCRocket Libs if lib dir is present
+        ##################################################
+        for lib in os.listdir(sr_libdir):
+            if lib.startswith("lib") and not lib in ['libcommon.a', 'libutils.a']:
+                name = lib[3:-2]
+                ctx.check_cxx(
+                    lib          = name,
+                    uselib_store = 'SOCROCKET',
+                    mandatory    = True,
+                    libpath      = sr_libdir,
+                ) 
+                ctx.check_cxx(
+                    header_name  = '%s.h' % (name),
+                    uselib_store = 'SOCROCKET',
+                    mandatory    = False,
+                    includes     = sr_incdir,
+                    uselib       = 'SOCROCKET SYSTEMC TLM AMBA BOOST GREENSOCS',
+                ) 
+        ctx.check_cxx(
+            lib          = 'utils',
+            uselib_store = 'SOCROCKET',
+            mandatory    = True,
+            libpath      = sr_libdir,
+        ) 
+        ctx.check_cxx(
+            header_name  = 'ahbdevice.h',
+            uselib_store = 'SOCROCKET',
+            mandatory    = False,
+            includes     = sr_incdir,
+            uselib       = 'SOCROCKET SYSTEMC TLM AMBA BOOST GREENSOCS',
+        ) 
+        ctx.check_cxx(
+            lib          = 'common',
+            uselib_store = 'SOCROCKET',
+            mandatory    = True,
+            libpath      = sr_libdir,
+        ) 
+        ctx.check_cxx(
+            header_name  = 'common.h',
+            uselib_store = 'SOCROCKET',
+            mandatory    = False,
+            includes     = sr_incdir,
+            uselib       = 'SOCROCKET SYSTEMC TLM AMBA BOOST GREENSOCS',
+        ) 
     
     ##################################################
     # SPARC compiler search

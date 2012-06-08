@@ -36,16 +36,16 @@
 
 
 
-#include <processor.hpp>
+#include <leon3.funclt/processor.hpp>
 #include <customExceptions.hpp>
-#include <instructions.hpp>
-#include <decoder.hpp>
-#include <interface.hpp>
+#include <leon3.funclt/instructions.hpp>
+#include <leon3.funclt/decoder.hpp>
+#include <leon3.funclt/interface.hpp>
 #include <ToolsIf.hpp>
 #include <tlm_utils/tlm_quantumkeeper.h>
-#include <registers.hpp>
-#include <alias.hpp>
-#include <externalPorts.hpp>
+#include <leon3.funclt/registers.hpp>
+#include <leon3.funclt/alias.hpp>
+#include <leon3.funclt/externalPorts.hpp>
 #include <iostream>
 #include <fstream>
 #include <boost/circular_buffer.hpp>
@@ -73,8 +73,8 @@
 #endif
 #endif
 
-#include <irqPorts.hpp>
-#include <externalPins.hpp>
+#include <leon3.funclt/irqPorts.hpp>
+#include <leon3.funclt/externalPins.hpp>
 #include <string>
 #include <systemc.h>
 #include "verbose.h"

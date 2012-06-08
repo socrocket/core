@@ -36,8 +36,8 @@
 
 
 
-#include <decoder.hpp>
-#include <instructions.hpp>
+#include <leon3.funclt/decoder.hpp>
+#include <leon3.funclt/instructions.hpp>
 
 using namespace leon3_funclt_trap;
 leon3_funclt_trap::CacheElem::CacheElem( Instruction * instr, unsigned int count \
