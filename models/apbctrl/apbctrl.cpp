@@ -62,7 +62,7 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
              0,
              0,
              ambaLayer,
-             BAR(AHBDevice::AHBIO, hmask_, 0, 0, haddr_)),
+             BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr_)),
        
       apb("apb", amba::amba_APB, amba::amba_LT, false),
       mhaddr(haddr_),
@@ -271,7 +271,7 @@ uint32_t APBCtrl::exec_func(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, b
 
   } else {
 
-    v::error << name() << "Access to unmapped APB address space." << endl;
+    v::error << name() << "Access to unmapped APB address space at address " << v::uint32 << addr << endl;
     ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
   }
 
@@ -378,8 +378,8 @@ struct apb_check_slave_type {
 
 // Check the memory map for overlaps
 void APBCtrl::checkMemMap() {
-   vmap<uint32_t, apb_check_slave_type> slaves;
-   typedef vmap<uint32_t, apb_check_slave_type>::iterator iter_t;
+   map<uint32_t, apb_check_slave_type> slaves;
+   typedef map<uint32_t, apb_check_slave_type>::iterator iter_t;
    struct apb_check_slave_type last;
    last.start = 0;
    last.end = 0;
