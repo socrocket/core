@@ -73,7 +73,6 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
             m_performance_counters("performance_counters"),
             m_bytes_read("bytes_read", 0ull, m_performance_counters),
             m_bytes_written("bytes_written", 0ull, m_performance_counters),
-            mTransactionPEQ("TransactionPEQ"),
             ahbBaseAddress(static_cast<uint32_t> (hmask_ & haddr_) << 20),
             ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1), 
             mhaddr(haddr_),

@@ -72,219 +72,20 @@ class msclogger {
   typedef tlm::tlm_generic_payload payload_t;
   typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;
 
-  static void init(const char * nodes, sc_core::sc_time start_time, sc_core::sc_time end_time) {
+  static void msc_start(const char * filename, const char * nodes) {
 
     if (msclogger_enable) {
 
-      msc.open("msc.txt");
+      msc.open(filename);
   
-      msc << "# MSC for ahbctrl.8.at.test\n";
       msc << "msc {\n";
       msc << "  hscale=\"2\";\n\n";
       msc << "  " << nodes << ";\n\n";
 
-      msclogger_start = start_time;
-      msclogger_end   = end_time;
-
     }
   }
 
-  static void forward(sc_core::sc_object * from, amba::amba_master_socket<32> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_phase phase, sc_core::sc_time delay = SC_ZERO_TIME) {
-    if (msclogger_enable) {
-
-      if ((msclogger_start <= sc_time_stamp()) && (msclogger_end >= sc_time_stamp())) {
-      
-        uint32_t a = 0;
-        socket_t *socket_to = ahb->get_other_side(0, a);
-        sc_core::sc_object * to = socket_to->get_parent();
-  
-        msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
-            << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
-
-      }
-    }
-  }
-
-  static void forward(sc_core::sc_object * from, amba::amba_master_socket<32,0> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_phase phase, sc_core::sc_time delay = SC_ZERO_TIME, uint32_t binding = 0) {
-    if (msclogger_enable) {
-
-      if ((msclogger_start <= sc_time_stamp()) && (msclogger_end >= sc_time_stamp())) {
-
-        uint32_t a = 0;
-        socket_t *socket_to = ahb->get_other_side(binding, a);
-        sc_core::sc_object * to = socket_to->get_parent();
-  
-        msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/"  << sc_time_stamp() \
-            << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
-
-      }
-    }
-  }
-
-  static void backward(sc_core::sc_object * from, amba::amba_slave_socket<32> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_phase phase, sc_core::sc_time delay = SC_ZERO_TIME) {
-
-    if (msclogger_enable) {
-
-      if ((msclogger_start <= sc_time_stamp()) && (msclogger_end >= sc_time_stamp())) {
-
-        uint32_t a = 0;
-        socket_t *socket_to = ahb->get_other_side(0, a);
-        sc_core::sc_object * to = socket_to->get_parent();
-    
-        msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
-            << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
-
-      }
-    }
-  }
-
-  static void backward(sc_core::sc_object * from, amba::amba_slave_socket<32,0> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_phase phase, sc_core::sc_time delay = SC_ZERO_TIME, uint32_t binding = 0) {
-
-    if (msclogger_enable) {
-
-      if ((msclogger_start <= sc_time_stamp()) && (msclogger_end >= sc_time_stamp())) {    
-        
-        uint32_t a = 0;
-        socket_t *socket_to = ahb->get_other_side(binding, a);
-        sc_core::sc_object * to = socket_to->get_parent();
-    
-        msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
-            << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
-      }
-    }
-  }
-
-  static void return_forward(sc_core::sc_object * from, amba::amba_master_socket<32> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_sync_enum status, sc_core::sc_time delay = SC_ZERO_TIME) {
-
-    if (msclogger_enable) {
-
-      if ((msclogger_start <= sc_time_stamp()) && (msclogger_end >= sc_time_stamp())) {
-
-        uint32_t a = 0;
-        socket_t *socket_to = ahb->get_other_side(0, a);
-        sc_core::sc_object * to = socket_to->get_parent();
-
-        msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
-        
-        switch (status) {
-
-          case 0:
-          
-            msc << "TLM_ACCEPTED";
-            break;
-          case 1:
-
-            msc << "TLM_UPDATED";
-            break;
-          default:
-
-            msc << "TLM_COMPLETED";
-        }
-
-        msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
-
-      }
-    }
-  }
-
-  static void return_forward(sc_core::sc_object * from, amba::amba_master_socket<32,0> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_sync_enum status, sc_core::sc_time delay = SC_ZERO_TIME, uint32_t binding = 0) {
-
-    if (msclogger_enable) {
-
-      if ((msclogger_start <= sc_time_stamp()) && (msclogger_end >= sc_time_stamp())) {
-
-        uint32_t a = 0;
-        socket_t *socket_to = ahb->get_other_side(binding, a);
-        sc_core::sc_object * to = socket_to->get_parent();
-
-        msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
-      
-        switch (status) {
-
-          case 0:
-          
-            msc << "TLM_ACCEPTED";
-            break;
-          case 1:
-
-            msc << "TLM_UPDATED";
-            break;
-          default:
-
-            msc << "TLM_COMPLETED";
-        }
-
-        msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
-      }
-    }
-  }
-
-  static void return_backward(sc_core::sc_object * from, amba::amba_slave_socket<32> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_sync_enum status, sc_core::sc_time delay = SC_ZERO_TIME) {
-
-    if (msclogger_enable) {
-
-      if ((msclogger_start <= sc_time_stamp()) && (msclogger_end >= sc_time_stamp())) {
-
-        uint32_t a = 0;
-        socket_t *socket_to = ahb->get_other_side(0, a);
-        sc_core::sc_object * to = socket_to->get_parent();
-
-        msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
-      
-        switch (status) {
-
-          case 0:
-          
-            msc << "TLM_ACCEPTED";
-            break;
-          case 1:
-
-            msc << "TLM_UPDATED";
-            break;
-          default:
-
-            msc << "TLM_COMPLETED";
-        }
-
-        msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
-      }
-    }
-  }
-
-  static void return_backward(sc_core::sc_object * from, amba::amba_slave_socket<32,0> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_sync_enum status, sc_core::sc_time delay = SC_ZERO_TIME, uint32_t binding = 0) {
-
-    if (msclogger_enable) {
-
-      if ((msclogger_start <= sc_time_stamp()) && (msclogger_end >= sc_time_stamp())) {
-
-        uint32_t a = 0;
-        socket_t *socket_to = ahb->get_other_side(binding, a);
-        sc_core::sc_object * to = socket_to->get_parent();
-
-        msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
-      
-        switch (status) {
-
-          case 0:
-          
-            msc << "TLM_ACCEPTED";
-            break;
-          case 1:
-
-            msc << "TLM_UPDATED";
-            break;
-          default:
-
-            msc << "TLM_COMPLETED";
-        }
-
-        msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
-      }
-    }
-  }
-
-
-  static void close() {
+  static void msc_end() {
 
     if (msclogger_enable) {
 
@@ -294,6 +95,176 @@ class msclogger {
     }
   }
 
+
+  static void forward(sc_core::sc_object * from, amba::amba_master_socket<32> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_phase phase, sc_core::sc_time delay = SC_ZERO_TIME) {
+    if (msclogger_enable) {
+
+      uint32_t a = 0;
+      socket_t *socket_to = ahb->get_other_side(0, a);
+      sc_core::sc_object * to = socket_to->get_parent();
+  
+      msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
+          << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+
+    }
+  }
+
+  static void forward(sc_core::sc_object * from, amba::amba_master_socket<32,0> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_phase phase, sc_core::sc_time delay = SC_ZERO_TIME, uint32_t binding = 0) {
+    if (msclogger_enable) {
+
+      uint32_t a = 0;
+      socket_t *socket_to = ahb->get_other_side(binding, a);
+      sc_core::sc_object * to = socket_to->get_parent();
+  
+      msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/"  << sc_time_stamp() \
+          << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+
+    }
+  }
+
+  static void backward(sc_core::sc_object * from, amba::amba_slave_socket<32> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_phase phase, sc_core::sc_time delay = SC_ZERO_TIME) {
+
+    if (msclogger_enable) {
+
+      uint32_t a = 0;
+      socket_t *socket_to = ahb->get_other_side(0, a);
+      sc_core::sc_object * to = socket_to->get_parent();
+    
+      msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
+          << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+
+    }
+  }
+
+  static void backward(sc_core::sc_object * from, amba::amba_slave_socket<32,0> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_phase phase, sc_core::sc_time delay = SC_ZERO_TIME, uint32_t binding = 0) {
+
+    if (msclogger_enable) {
+
+      uint32_t a = 0;
+      socket_t *socket_to = ahb->get_other_side(binding, a);
+      sc_core::sc_object * to = socket_to->get_parent();
+    
+      msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
+          << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+    }
+  }
+
+  static void return_forward(sc_core::sc_object * from, amba::amba_master_socket<32> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_sync_enum status, sc_core::sc_time delay = SC_ZERO_TIME) {
+
+    if (msclogger_enable) {
+
+      uint32_t a = 0;
+      socket_t *socket_to = ahb->get_other_side(0, a);
+      sc_core::sc_object * to = socket_to->get_parent();
+
+      msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
+        
+      switch (status) {
+
+      case 0:
+          
+        msc << "TLM_ACCEPTED";
+        break;
+      case 1:
+
+        msc << "TLM_UPDATED";
+        break;
+      default:
+
+        msc << "TLM_COMPLETED";
+      }
+
+      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+
+    }
+  }
+
+  static void return_forward(sc_core::sc_object * from, amba::amba_master_socket<32,0> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_sync_enum status, sc_core::sc_time delay = SC_ZERO_TIME, uint32_t binding = 0) {
+
+    if (msclogger_enable) {
+
+      uint32_t a = 0;
+      socket_t *socket_to = ahb->get_other_side(binding, a);
+      sc_core::sc_object * to = socket_to->get_parent();
+
+      msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
+      
+      switch (status) {
+
+      case 0:
+          
+        msc << "TLM_ACCEPTED";
+        break;
+      case 1:
+
+        msc << "TLM_UPDATED";
+        break;
+      default:
+
+        msc << "TLM_COMPLETED";
+      }
+
+      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+    }
+  }
+
+  static void return_backward(sc_core::sc_object * from, amba::amba_slave_socket<32> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_sync_enum status, sc_core::sc_time delay = SC_ZERO_TIME) {
+
+    if (msclogger_enable) {
+
+      uint32_t a = 0;
+      socket_t *socket_to = ahb->get_other_side(0, a);
+      sc_core::sc_object * to = socket_to->get_parent();
+
+      msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
+      
+      switch (status) {
+
+      case 0:
+          
+        msc << "TLM_ACCEPTED";
+        break;
+      case 1:
+            
+        msc << "TLM_UPDATED";
+        break;
+      default:
+
+        msc << "TLM_COMPLETED";
+      }
+
+      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+    }
+  }
+
+  static void return_backward(sc_core::sc_object * from, amba::amba_slave_socket<32,0> * ahb, tlm::tlm_generic_payload * trans, tlm::tlm_sync_enum status, sc_core::sc_time delay = SC_ZERO_TIME, uint32_t binding = 0) {
+
+    if (msclogger_enable) {
+
+      uint32_t a = 0;
+      socket_t *socket_to = ahb->get_other_side(binding, a);
+      sc_core::sc_object * to = socket_to->get_parent();
+
+      msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
+      
+      switch (status) {
+
+      case 0:
+          
+        msc << "TLM_ACCEPTED";
+        break;
+      case 1:
+
+        msc << "TLM_UPDATED";
+        break;
+      default:
+
+        msc << "TLM_COMPLETED";
+      }
+
+      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << (uint32_t)trans << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+    }
+  }
 };
 
 #endif // MSCLOGGER
