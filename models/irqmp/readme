@@ -5,7 +5,7 @@
 
 == RTL Wrapper ==
  tests/irqmp_wrapper.vhd     - For RTL Model co-simulation purpose: 
-                               A wrapter for the GRLIB Model of the IRQMP
+                               A wrapper for the GRLIB Model of the IRQMP
  tests/irqmp_adapter.h       - Contains an adapter to connect the GRLIB IRQMP RTL Model to the LT testbenches
 
 == Tests ==
