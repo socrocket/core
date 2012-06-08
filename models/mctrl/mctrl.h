@@ -44,8 +44,6 @@
 #ifndef MCTRL_H
 #define MCTRL_H
 
-#define DEBUG
-
 #include <tlm.h>
 #include <systemc.h>
 
