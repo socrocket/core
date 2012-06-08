@@ -156,6 +156,20 @@ uint32_t AHBSlave<BASE>::transport_dbg(tlm::tlm_generic_payload& trans) {
   return exec_func(trans, delay);
 }
 
+template<class BASE>
+void AHBSlave<BASE>::transport_statistics(tlm::tlm_generic_payload &gp) throw() {
+  if(gp.is_write()) {
+    m_writes += gp.get_data_length();
+  } else if(gp.is_read()){
+    m_reads += gp.get_data_length();
+  }
+}
+
+template<class BASE>
+void AHBSlave<BASE>::print_transport_statistics(const char *name) const throw() {
+  v::report << name << " * Bytes read: " << m_reads << v::endl;
+  v::report << name << " * Bytes written: " << m_writes << v::endl;
+}
 
 /* vim: set expandtab noai ts=4 sw=4: */
 /* -*- mode: c-mode; tab-width: 4; indent-tabs-mode: nil; -*- */

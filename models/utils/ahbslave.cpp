@@ -30,7 +30,9 @@ AHBSlave<sc_module>::AHBSlave(sc_module_name nm,
   ahb("ahb", ::amba::amba_AHB, ambaLayer, false /* Arbitration */ ),
   m_RequestPEQ("RequestPEQ"),
   m_ResponsePEQ("ResponsePEQ"), 
-  busy(false)
+  busy(false),
+  m_performance_counters("performance_counters"),
+  m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters) 
   {
   
   // Register transport functions to sockets
@@ -48,6 +50,13 @@ AHBSlave<sc_module>::AHBSlave(sc_module_name nm,
     // Thread for interfacing functional part of the model
     // in AT mode.
     SC_THREAD(responseThread);
+  }
+  sc_module *self = dynamic_cast<sc_module *>(this);
+  if(self) {
+    m_api = gs::cnf::GCnf_Api::getApiInstance(self);
+  } else {
+    v::error << name() << "A AHBDevice instance must also inherit from sc_module when it gets instantiated. "
+                            << "To ensure the performance counter will work correctly" << v::endl;
   }
 }
 
@@ -76,7 +85,9 @@ AHBSlave<gs::reg::gr_device>::AHBSlave(sc_module_name nm,
   ahb("ahb", ::amba::amba_AHB, ambaLayer, false /* Arbitration */ ),
   m_RequestPEQ("RequestPEQ"), 
   m_ResponsePEQ("ResponsePEQ"), 
-  busy(false)  {
+  busy(false),
+  m_performance_counters("performance_counters"),
+  m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters) {
   
   // Register transport functions to sockets
   ahb.register_b_transport(this, &AHBSlave::b_transport);
@@ -94,5 +105,12 @@ AHBSlave<gs::reg::gr_device>::AHBSlave(sc_module_name nm,
     // in AT mode.
     SC_THREAD(responseThread);
         
+  }
+  sc_module *self = dynamic_cast<sc_module *>(this);
+  if(self) {
+    m_api = gs::cnf::GCnf_Api::getApiInstance(self);
+  } else {
+    v::error << name() << "A AHBDevice instance must also inherit from sc_module when it gets instantiated. "
+                            << "To ensure the performance counter will work correctly" << v::endl;
   }
 }

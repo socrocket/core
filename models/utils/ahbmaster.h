@@ -1,20 +1,20 @@
 #ifndef AHBMASTER_H
 #define AHBMASTER_H
 
-#include <stdint.h>
+#include <tlm.h>
+#include <systemc.h>
 
 #include <greencontrol/config.h>
 #include <greensocket/initiator/multi_socket.h>
 #include <greenreg_ambasockets.h>
 
-
-#include <tlm.h>
 #include <amba.h>
-#include <systemc.h>
 
 #include "ahbdevice.h"
 #include "verbose.h"
 #include "msclogger.h"
+
+#include <stdint.h>
 
 template<class BASE=sc_module>
 class AHBMaster : public BASE, public AHBDevice {
@@ -81,6 +81,12 @@ class AHBMaster : public BASE, public AHBDevice {
   /// Thread for processing data-phase of write transactions
   void DataThread();
 
+        /// Collect common transport statistics.
+        virtual void transport_statistics(tlm::tlm_generic_payload &gp) throw();
+
+        /// Print common transport statistics.
+        virtual void print_transport_statistics(const char *name) const throw();
+
  protected:
 
   /// PEQs for response synchronization
@@ -92,6 +98,17 @@ class AHBMaster : public BASE, public AHBDevice {
   /// The abstraction layer of the instance (LT or AT)
   amba::amba_layer_ids m_ambaLayer;
 
+        /// GreenControl API container
+        gs::cnf::cnf_api *m_api;
+        
+        /// Open a namespace for performance counting in the greencontrol realm
+        gs::gs_param_array m_performance_counters;
+
+        /// Stores the number of Bytes read from the device
+        gs::gs_param<unsigned long long> m_reads;
+
+        /// Stores the number of Bytes written from the device
+        gs::gs_param<unsigned long long> m_writes;
 };
 
 #include "ahbmaster.tpp"
