@@ -39,7 +39,7 @@ class AHBMaster : public BASE, public AHBDevice {
   /// Destructor
   ~AHBMaster();
 
-  /// The AHB master socket
+  /// The AHB master socketo
   amba::amba_master_socket<32> ahb;
 
   /// Read data from AHB (SC_ZERO_TIME version)
@@ -51,8 +51,14 @@ class AHBMaster : public BASE, public AHBDevice {
   /// Read data from AHB
   virtual void ahbread(uint32_t addr, unsigned char * data, uint32_t length, sc_core::sc_time &delay, bool &cacheable, tlm::tlm_response_status &response );
 
+  /// Read data from AHB
+  virtual void ahbread(uint32_t addr, unsigned char * data, uint32_t length, sc_core::sc_time &delay, bool &cacheable, bool is_lock, tlm::tlm_response_status &response );
+
   /// Write data to AHB
   virtual void ahbwrite(uint32_t addr, unsigned char * data, uint32_t length, sc_core::sc_time &delay, tlm::tlm_response_status &response);
+
+  /// Write data to AHB
+  virtual void ahbwrite(uint32_t addr, unsigned char * data, uint32_t length, sc_core::sc_time &delay, bool is_lock, tlm::tlm_response_status &response);
 
   /// Debug read from AHB
   virtual uint32_t ahbread_dbg(uint32_t addr, unsigned char * data, uint32_t length);
@@ -61,10 +67,13 @@ class AHBMaster : public BASE, public AHBDevice {
   virtual uint32_t ahbwrite_dbg(uint32_t addr, unsigned char * data, uint32_t length);
 
   /// Function may be implemented by the child for payload checking (e.g. testbench master)
-  virtual void checkTXN(tlm::tlm_generic_payload * trans) {};
+  virtual void response_callback(tlm::tlm_generic_payload * trans) {};
 
   /// TLM non-blocking backward transport function
   virtual tlm::tlm_sync_enum nb_transport_bw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
+
+  /// Returns clock cycle time from master
+  virtual sc_core::sc_time get_clock() = 0;
 
   /// Thread for response processing (read)
   void ResponseThread();
@@ -76,12 +85,9 @@ class AHBMaster : public BASE, public AHBDevice {
 
   /// PEQs for response synchronization
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_ResponsePEQ;
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_DataPEQ;
 
   /// Events for phase notifications
   sc_event m_EndRequestEvent;
-  sc_event m_BeginResponseEvent;
-  sc_event m_EndDataEvent;
 
   /// The abstraction layer of the instance (LT or AT)
   amba::amba_layer_ids m_ambaLayer;

@@ -89,3 +89,4 @@ void CLKDevice::set_clk(double period, sc_core::sc_time_unit base) {
 void CLKDevice::dorst() {
     v::debug << "CLKDevice" << "Doing Reset" << v::endl;
 }
+

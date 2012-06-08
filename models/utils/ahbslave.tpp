@@ -11,26 +11,54 @@ AHBSlave<BASE>::~AHBSlave() {
 template<class BASE>
 tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &trans, tlm::tlm_phase& phase, sc_core::sc_time& delay) {
 
+  sc_core::sc_time request_delay;
+  sc_core::sc_time response_delay;
+
   v::debug << this->name() << "nb_transport_fw received transaction " << hex << &trans << " with phase: " << phase << v::endl;
 
-  // The master has sent BEGIN_REQ
-  if(phase == tlm::BEGIN_REQ) {
+  if (phase == tlm::BEGIN_REQ) {
 
+    // Increment reference counter
     trans.acquire();
 
-    m_AcceptPEQ.notify(trans, delay);
+    v::debug << name() << "Acquire " << hex << &trans << " Ref-Count = " << trans.get_ref_count() << v::endl;
+
+    uint32_t address_cycle_base;
+
+    // Call the functional part of the model
+    exec_func(trans, delay);
+
+    request_delay = (trans.get_data_length() <= 4) ? get_clock() - sc_core::sc_time(1, SC_PS) : delay - sc_core::sc_time(1, SC_PS);
+
+    v::debug << name() << "Request Delay: " << request_delay << v::endl;
+
+    m_RequestPEQ.notify(trans, request_delay);
+
+    // The delay returned by the function model relates to the time for delivering
+    // the data + wait states.
+    address_cycle_base = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
+    response_delay = (delay - (get_clock()*(address_cycle_base-1)) - sc_core::sc_time(1, SC_PS));
+
+    v::debug << name() << "Response Delay: " << response_delay << v::endl;
+
+    m_ResponsePEQ.notify(trans, response_delay);
 
     delay = SC_ZERO_TIME;
-    phase = tlm::END_REQ;
 
-  } else if(phase == amba::BEGIN_DATA) {
-    
-    m_TransactionPEQ.notify(trans, delay);
-    delay = SC_ZERO_TIME;
+    msclogger::return_backward(this, &ahb, &trans, tlm::TLM_ACCEPTED, delay);
 
-  } else if(phase == tlm::END_RESP) {
-    
-    // nothing to do
+    return(tlm::TLM_ACCEPTED);
+
+  } else if (phase == tlm::END_RESP) {
+
+    msclogger::return_backward(this, &ahb, &trans, tlm::TLM_COMPLETED, delay);
+
+    v::debug << name() << "Release " << &trans << " Ref-Count before calling release " << trans.get_ref_count() << v::endl;
+
+    // END_RESP corresponds to the end of the AHB data phase.
+    trans.release();
+
+    return(tlm::TLM_COMPLETED);
 
   } else {
   
@@ -38,14 +66,12 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
   }
-  
-  msclogger::return_backward(this, &ahb, &trans, tlm::TLM_ACCEPTED, delay);
-  return(tlm::TLM_UPDATED);
+  return(tlm::TLM_ACCEPTED);
 }
 
 // Thread for modeling the AHB pipeline delay
 template<class BASE>
-void AHBSlave<BASE>::acceptTXN() {
+void AHBSlave<BASE>::requestThread() {
 
   tlm::tlm_phase phase;
   sc_core::sc_time delay;
@@ -55,105 +81,60 @@ void AHBSlave<BASE>::acceptTXN() {
 
   while(1) {
     
-    wait(m_AcceptPEQ.get_event());
+    wait(m_RequestPEQ.get_event());
 
-    while((trans = m_AcceptPEQ.get_next_transaction())) {
+    trans = m_RequestPEQ.get_next_transaction();
 
-      // Read transaction will be processed directly.
-      // For write we wait for BEGIN_DATA (see nb_transport_fw)
-      if(trans->get_command() == TLM_READ_COMMAND) {
-        m_TransactionPEQ.notify(*trans);
-      }
-
-      // Check if new transaction can be accepted
-      if(busy == true) {
-        wait(unlock_event);
-      }
-
-      // Send END_REQ
-      phase = tlm::END_REQ;
-      delay = SC_ZERO_TIME;
+    // Send END_REQ
+    phase = tlm::END_REQ;
+    delay = SC_ZERO_TIME;
       
-      v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
-      msclogger::backward(this, &ahb, trans, phase, delay);
+    v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
+    
+    // Backward arrow for msc
+    msclogger::backward(this, &ahb, trans, phase, delay);
       
-      // Call to backward transport
-      status = ahb->nb_transport_bw(*trans, phase, delay);
-      assert(status==tlm::TLM_ACCEPTED);
-    }
+    // Call to backward transport
+    status = ahb->nb_transport_bw(*trans, phase, delay);
+    assert(status==tlm::TLM_ACCEPTED);
   }
 }
 
-// Process for interfacing the functional part of the model in AT mode
 template<class BASE>
-void AHBSlave<BASE>::processTXN() {
- 
+void AHBSlave<BASE>::responseThread() {
+
   tlm::tlm_phase phase;
   sc_core::sc_time delay;
   tlm::tlm_sync_enum status;
-  tlm::tlm_generic_payload *trans;
+
+  tlm::tlm_generic_payload * trans;
 
   while(1) {
 
-    wait(m_TransactionPEQ.get_event());
+    wait(m_ResponsePEQ.get_event());
 
-    while((trans = m_TransactionPEQ.get_next_transaction())) {
+    trans = m_ResponsePEQ.get_next_transaction();
 
-      v::debug << this->name() << "Process transaction " << hex << trans << v::endl;
+    // Send BEGIN_RESP
+    phase = tlm::BEGIN_RESP;
+    delay = SC_ZERO_TIME;
 
-      // Reset delay
-      delay = SC_ZERO_TIME;
+    v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
 
-      // Call the functional part of the model
-      exec_func(*trans, delay);
+    // Backward arrow for msc
+    msclogger::backward(this, &ahb, trans, phase, delay);
 
-      // Device busy (can not accept new transaction anymore)
-      busy = true;
+    // Call to backward transport
+    status = ahb->nb_transport_bw(*trans, phase, delay);
 
-      // Consume component delay
-      wait(delay);
-      delay = SC_ZERO_TIME;
-      
-      // Device idle
-      busy = false;
-
-      // Ready to accept new transaction
-      unlock_event.notify();
-
-      if(trans->get_command() == tlm::TLM_WRITE_COMMAND) {
-
-        // For write commands send END_DATA.
-        // Transaction has been delayed until begin of Data Phase (see transport_fw)
-        phase = amba::END_DATA;
-
-        v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << " (delay: " << delay << ")" << v::endl;
-        msclogger::backward(this, &ahb, trans, phase, delay);
-
-        // Call backward transport
-        status = ahb->nb_transport_bw(*trans, phase, delay);
-
-        assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_COMPLETED));
-
-      } else {
-
-        // Read command - send BEGIN_RESP
-        phase = tlm::BEGIN_RESP;
-        
-        v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << " (delay: " << delay << ")" << v::endl;
-        msclogger::backward(this, &ahb, trans, phase, delay);
-
-        // Call backward transport
-        status = ahb->nb_transport_bw(*trans, phase, delay);
-        assert(status==tlm::TLM_ACCEPTED);
-        
-      }
-
+    if ((phase == tlm::END_RESP)||(status == tlm::TLM_COMPLETED)) {
+     
       // Decrement reference counter
       trans->release();
+    
     }
   }
-}
-       
+}      
 
 // TLM blocking transport function
 template<class BASE>
