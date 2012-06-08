@@ -386,3 +386,18 @@ void AHBMaster<BASE>::ResponseThread() {
 
   }
 }
+
+template<class BASE>
+void AHBMaster<BASE>::transport_statistics(tlm::tlm_generic_payload &gp) throw() {
+  if(gp.is_write()) {
+    m_writes += gp.get_data_length();
+  } else if(gp.is_read()){
+    m_reads += gp.get_data_length();
+  }
+}
+
+template<class BASE>
+void AHBMaster<BASE>::print_transport_statistics(const char *name) const throw() {
+  v::report << name << " * Bytes read: " << m_reads << v::endl;
+  v::report << name << " * Bytes written: " << m_writes << v::endl;
+}

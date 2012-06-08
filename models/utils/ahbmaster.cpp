@@ -29,7 +29,10 @@ AHBMaster<sc_module>::AHBMaster(sc_module_name nm,
             bar3),
   ahb("ahb", ::amba::amba_AHB, ambaLayer, false),
   m_ResponsePEQ("ResponsePEQ"),
-  m_ambaLayer(ambaLayer) {
+  m_ambaLayer(ambaLayer),
+  m_performance_counters("performance_counters"),
+  m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters) { 
+    
 
   if (ambaLayer == amba::amba_AT) {
 
@@ -40,6 +43,13 @@ AHBMaster<sc_module>::AHBMaster(sc_module_name nm,
     SC_THREAD(ResponseThread);
 
   }
+    sc_module *self = dynamic_cast<sc_module *>(this);
+    if(self) {
+        m_api = gs::cnf::GCnf_Api::getApiInstance(self);
+    } else {
+        v::error << name() << "A AHBDevice instance must also inherit from sc_module when it gets instantiated. "
+                                << "To ensure the performance counter will work correctly" << v::endl;
+    }
 }
 
 // Constructor (gr_device version)
@@ -68,7 +78,9 @@ AHBMaster<gs::reg::gr_device>::AHBMaster(sc_module_name nm,
             bar3),
   ahb("ahb", ::amba::amba_AHB, ambaLayer, false),
   m_ResponsePEQ("ResponsePEQ"),
-  m_ambaLayer(ambaLayer) {
+  m_ambaLayer(ambaLayer),
+  m_performance_counters("performance_counters"),
+  m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters) {
 
   if (ambaLayer == amba::amba_AT) {
 
@@ -79,4 +91,11 @@ AHBMaster<gs::reg::gr_device>::AHBMaster(sc_module_name nm,
     SC_THREAD(ResponseThread);
 
   }
+    sc_module *self = dynamic_cast<sc_module *>(this);
+    if(self) {
+        m_api = gs::cnf::GCnf_Api::getApiInstance(self);
+    } else {
+        v::error << name() << "A AHBDevice instance must also inherit from sc_module when it gets instantiated. "
+                                << "To ensure the performance counter will work correctly" << v::endl;
+    }
 }
