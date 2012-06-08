@@ -2,7 +2,7 @@ int main() {
 	report_start();
 
 	ramfill();
-	irqtest(0x8001F000);
+	irqtest(0x00001000);
 	report_end();
   return 0;
 }
