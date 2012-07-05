@@ -195,6 +195,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     v::info << this->name() << " * instruction scratchpad enable (ilram): " << ilram << v::endl;
     v::info << this->name() << " * data scratchpad enable (dlram): " << dlram << v::endl;
     v::info << this->name() << " * abstraction Layer (LT = 8 / AT = 4): " << abstractionLayer << v::endl;
+    v::info << this->name() << " * data cache snooping (0 = off / 1 = on): " << dsnoop << v::endl;
     v::info << this->name() << " ************************************************** " << v::endl;   
 }
 
@@ -1230,14 +1231,17 @@ unsigned int mmu_cache::read_ccr(bool internal) {
 // Snooping function
 void mmu_cache::snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& delay) {
 
-  v::debug << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.master_id << " ADDR: " \
-	   << hex << snoop.address << " LENGTH: " << snoop.length << ")" << v::endl;
-
+  v::debug << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.master_id << " ADDR: "
+	   << v::uint32 << snoop.address << " LENGTH: " << snoop.length << ")" << v::endl;
   // Make sure we are not snooping ourself ;)
   if (snoop.master_id != m_master_id) {
 
     // If dcache and snooping enabled
     if (m_dcen && m_dsnoop) {
+  if(snoop.address == 0x40000040) {
+    v::info << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.master_id << " ADDR: "
+	          << v::uint32 << snoop.address << " LENGTH: " << snoop.length << ")" << v::endl;
+  }
 
       dcache->snoop_invalidate(snoop, delay);
 
