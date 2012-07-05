@@ -62,7 +62,7 @@ extern sc_core::sc_time msclogger_end;
 #ifdef MSCLOGGER
 static const uint32_t msclogger_enable = 1;
 #else
-static const uint32_t msclogger_enable = 1;
+static const uint32_t msclogger_enable = 0;
 #endif
 
 class msclogger {
