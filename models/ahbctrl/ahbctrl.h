@@ -289,6 +289,13 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
   uint32_t requests_pending;
 
+  /// Bus locking payload extension
+  amba::amba_lock * lock;
+  /// True if bus is supposed to be locked
+  bool is_lock;
+  /// ID of the master that locked the bus
+  uint32_t lock_master;
+
   /// The abstraction layer of the model
   amba::amba_layer_ids m_ambaLayer;
 

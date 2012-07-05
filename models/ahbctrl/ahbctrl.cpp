@@ -98,6 +98,8 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       m_right_transactions("successful_transactions", 0ull, m_performance_counters),
       m_writes("bytes_written", 0ull, m_performance_counters),
       m_reads("bytes_read", 0ull, m_performance_counters),
+      is_lock(false),
+      lock_master(0),
       m_ambaLayer(ambaLayer) 
 
 {
@@ -311,13 +313,17 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     mstobj = other_socket->get_parent();
   }
 
-  while(busy) {
+  // Bus occupied or locked by other master
+  while(busy || (is_lock && (id != lock_master))) {
 
     wait(clock_cycle);
 
   }
 
   busy = true;
+  
+  is_lock = ahbIN.get_extension<amba::amba_lock>(lock, trans);
+  lock_master = id;
 
   // Collect transport statistics
   transport_statistics(trans);
@@ -567,10 +573,6 @@ void AHBCtrl::arbitrate() {
   sc_core::sc_time waiting_time;
   sc_core::sc_time request_delay;
   sc_core::sc_time response_delay;
-
-  amba::amba_lock *lock;
-  bool is_lock = false;
-  uint32_t lock_master;
 
   wait(1, SC_PS);
 
