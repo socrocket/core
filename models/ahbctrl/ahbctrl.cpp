@@ -425,6 +425,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     
     other_socket = ahbIN.get_other_side(id, a);
     mstobj = other_socket->get_parent();
+    
     v::error << name() << "AHB Request 0x" << hex << v::setfill('0')
                << v::setw(8) << trans.get_address() << ", from master:"
                << mstobj->name() << ": Unmapped address space." << endl;
@@ -1252,6 +1253,7 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
 
     } else {
 
+    
        v::warn << name() << "AHB Request@0x" << hex << v::setfill('0')
                << v::setw(8) << trans.get_address() << ", from master:"
                << mstobj->name() << ": Unmapped address space." << endl;
