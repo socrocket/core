@@ -1,0 +1,729 @@
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      main.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Top level file (sc_main) for system test.
+//             THIS FILE IS AUTOMATIC GENERATED.
+//             CHANGES MIGHT GET LOST!!
+//
+// Method:
+//
+// Modified on $Date: 2011-02-24 10:53:41 +0100 (Thu, 24 Feb 2011) $
+//          at $Revision: 385 $
+//          by $Author: HWSWSIM $
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Thomas Schuster
+// Reviewed:
+//*********************************************************************
+
+
+#include <greencontrol/config.h>
+
+#include <greencontrol/config_api_lua_file_parser.h>
+
+#include <execLoader.hpp>
+#include <osEmulator.hpp>
+#include "mmu_cache.h"
+#include "input_device.h"
+#include "arraymemory.h"
+#include "apbctrl.h"
+#include "ahbmem.h"
+#include "mctrl.h"
+#include "defines.h"
+#include "gptimer.h"
+#include "apbuart.h"
+#include "tcpio.h"
+#include "irqmp.h"
+#include "ahbctrl.h"
+#include "AHB2Socwire.h"
+
+#include <iostream>
+#include <vector>
+#include <sys/time.h>
+#include <time.h>
+#include <amba.h>
+#include <cstring>
+#include "verbose.h"
+#include "power_monitor.h"
+
+#include <GDBStub.hpp>
+#include <systemc.h>
+#include <tlm.h>
+
+#include "config.h"
+
+#if conf_sys_lt_at
+#include "leon3.funclt.h"
+#else
+#include "leon3.funcat.h"
+#endif
+
+using namespace std;
+using namespace sc_core;
+using namespace socw;
+
+#if conf_mmu_cache_icen == false
+#  define conf_mmu_cache_icen_repl 0
+#  define conf_mmu_cache_icen_sets 0
+#  define conf_mmu_cache_icen_linesize 0
+#  define conf_mmu_cache_icen_setsize 0
+#  define conf_mmu_cache_icen_setlock 0
+#endif
+
+#if conf_mmu_cache_dcen == false
+#  define conf_mmu_cache_dcen_repl 0
+#  define conf_mmu_cache_dcen_sets 0
+#  define conf_mmu_cache_dcen_linesize 0
+#  define conf_mmu_cache_dcen_setsize 0
+#  define conf_mmu_cache_dcen_setlock 0
+#  define conf_mmu_cache_dcen_snoop 1
+#endif
+
+#if conf_mmu_cache_ilram == false
+#  define conf_mmu_cache_ilram_size 0
+#  define conf_mmu_cache_ilram_start 0
+#endif
+
+#if conf_mmu_cache_dlram == false
+#  define conf_mmu_cache_dlram_size 0
+#  define conf_mmu_cache_dlram_start 0
+#endif
+
+#if conf_mmu_cache_mmu_en == false
+#  define conf_mmu_cache_mmu_en_itlb_num 8
+#  define conf_mmu_cache_mmu_en_dtlb_num 8
+#  define conf_mmu_cache_mmu_en_tlb_type 0
+#  define conf_mmu_cache_mmu_en_tlb_rep 1
+#  define conf_mmu_cache_mmu_en_mmupgsz 0
+#endif
+
+#if conf_ahbmem == false
+#  define conf_ahbmem_index 0
+#  define conf_ahbmem_addr 0
+#  define conf_ahbmem_mask 0
+#endif
+
+#if conf_gptimer == false
+#  define conf_gptimer_addr 0
+#  define conf_gptimer_mask 0
+#  define conf_gptimer_index 0
+#  define conf_gptimer_pirq 0
+#  define conf_gptimer_sepirq 0
+#  define conf_gptimer_ntimers 0
+#  define conf_gptimer_sbits 0
+#  define conf_gptimer_nbits 0
+#  define conf_gptimer_wdog 0
+#endif
+
+#if conf_memctrl_prom == false
+#  define conf_memctrl_prom_addr  0
+#  define conf_memctrl_prom_mask  0
+#  define conf_memctrl_prom_asel  0
+#  define conf_memctrl_prom_banks 0
+#  define conf_memctrl_prom_bsize 0
+#  define conf_memctrl_prom_width 0
+#endif
+
+#if conf_memctrl_io == false
+#  define conf_memctrl_io_addr 0x200
+#  define conf_memctrl_io_mask 0xE00
+#  define conf_memctrl_io_banks 0
+#  define conf_memctrl_io_bsize 0
+#  define conf_memctrl_io_width 0
+#endif
+
+#if conf_memctrl_ram_sram == false
+#  define conf_memctrl_ram_sram_banks 0
+#  define conf_memctrl_ram_sram_bsize 0
+#  define conf_memctrl_ram_sram_width 0
+#endif
+
+#if conf_memctrl_ram_sdram == false
+#  define conf_memctrl_sdram_banks 0
+#  define conf_memctrl_sdram_bsize 0
+#  define conf_memctrl_sdram_width 0
+#  define conf_memctrl_sdram_cols 0
+#endif
+
+#if conf_inputdev == false
+#  define conf_inputdev_hindex    = 0
+#  define conf_inputdev_hirq      = 0
+#  define conf_inputdev_framesize = 0
+#  define conf_inputdev_frameaddr = 0
+#  define conf_inputdev_interval  = 0
+#endif
+
+#ifndef conf_paramlist
+#define conf_paramlist false
+#endif
+
+namespace trap {
+  extern int exitValue;
+};
+
+int sc_main(int argc, char** argv) {
+
+    clock_t cstart, cend;
+    char *sram_app, *prom_app;
+    int app_argc = 0;
+    bool gdb_en = false;
+    bool paramlist = false;
+
+  gs::ctr::GC_Core       core;
+
+  gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
+  gs::cnf::ConfigPlugin configPlugin(&cnfdatabase);
+
+  gs::cnf::LuaFile_Tool luareader("luareader");
+  //luareader.config("config.lua");
+  luareader.config("json.lua");
+
+  gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
+
+    for(int i = 1; i < argc; i++) {
+        if(std::strcmp("listparams", argv[i])==0) {
+            paramlist = true;
+            break;
+        }
+    }
+    
+    // Sort out arguments
+    if(argc >= 3) {
+       prom_app = argv[1];
+       sram_app = argv[2];
+       app_argc += 3;
+       //v::logApplication(sram_app);
+    } else {
+       v::error << "Please use: '" << argv[0] << " prom.elf sram.elf [gdb] [...]" << "' to define an application." << endl;
+       return -1;
+    }
+    
+    // Decide whether LT or AT
+    amba::amba_layer_ids ambaLayer;
+    if(conf_sys_lt_at) {
+        ambaLayer = amba::amba_LT;
+    } else {
+        ambaLayer = amba::amba_AT;
+    }
+    
+    // *** CREATE MODULES
+
+    // CREATE AHBCTRL unit
+    // ===================
+    // Always enabled.
+    // Needed for basic platform
+    AHBCtrl ahbctrl("ahbctrl",
+		    conf_ahbctrl_ioaddr,                // The MSB address of the I/O area
+		    conf_ahbctrl_iomask,                // The I/O area address mask
+		    conf_ahbctrl_cfgaddr,               // The MSB address of the configuration area
+		    conf_ahbctrl_cfgmask,               // The address mask for the configuration area
+		    conf_ahbctrl_rrobin,                // 1 - round robin, 0 - fixed priority arbitration (only AT)
+		    conf_ahbctrl_split,                 // Enable support for AHB SPLIT response (only AT)
+		    conf_ahbctrl_defmast,               // Default AHB master
+		    conf_ahbctrl_ioen,                  // AHB I/O area enable
+		    conf_ahbctrl_fixbrst,               // Enable support for fixed-length bursts (disabled)
+		    conf_ahbctrl_fpnpen,                // Enable full decoding of PnP configuration records
+		    conf_ahbctrl_mcheck,                // Check if there are any intersections between core memory regions
+                    conf_sys_power,                     // Enable/disable power monitoring
+		    ambaLayer
+    );
+
+    // Set clock
+    ahbctrl.set_clk(conf_sys_clock, SC_NS);
+    //
+    // CREATE AHB APB BRIDGE
+    // =====================
+    APBCtrl apbctrl("apbctrl", 
+		    conf_apbctrl_haddr,    // The 12 bit MSB address of the AHB area.
+		    conf_apbctrl_hmask,    // The 12 bit AHB area address mask
+		    conf_apbctrl_check,    // Check for intersections in the memory map 
+                    conf_apbctrl_index,    // AHB bus index
+                    conf_sys_power,        // Power Monitoring on/off
+		    ambaLayer              // TLM abstraction layer
+    );
+    // Connecting AHB Slave
+    ahbctrl.ahbOUT(apbctrl.ahb);
+
+    // Set clock
+    apbctrl.set_clk(conf_sys_clock,SC_NS);
+
+    int mmu_cache_num = 1;
+    mApi->getValue("conf.mmu_cache.num", mmu_cache_num);
+    // * IRQMP **********************************
+    // CREATE IRQ controller
+    // =====================
+    // Needed for basic platform.
+    // Always enabled
+    Irqmp irqmp("irqmp",
+        conf_irqmp_addr,  // paddr
+        conf_irqmp_mask,  // pmask
+        mmu_cache_num,  // ncpu
+        conf_irqmp_eirq,  // eirq
+        conf_irqmp_index
+    );
+    // Connecting APB Slave
+    apbctrl.apb(irqmp.apb_slv);
+    // Set clock
+    irqmp.set_clk(conf_sys_clock,SC_NS);
+
+    // ******************************************
+
+    
+    // CREATE LEON3 Processor
+    // ===================================================
+    // Always enabled.
+    // Needed for basic platform.
+    bool mmu_cache_ic_en = false;
+    int mmu_cache_ic_repl = 0;
+    int mmu_cache_ic_sets = 4;
+    int mmu_cache_ic_linesize = 4;
+    int mmu_cache_ic_setsize = 16;
+    int mmu_cache_ic_setlock = 1;
+    bool mmu_cache_dc_en = false;
+    int mmu_cache_dc_repl = 2;
+    int mmu_cache_dc_sets = 2;
+    int mmu_cache_dc_linesize = 4;
+    int mmu_cache_dc_setsize = 1;
+    int mmu_cache_dc_setlock = 1;
+    int mmu_cache_dc_snoop = 1;
+
+    mApi->getValue("conf.ic.en", mmu_cache_ic_en);
+    mApi->getValue("conf.ic.repl", mmu_cache_ic_repl);
+    mApi->getValue("conf.ic.sets", mmu_cache_ic_sets);
+    mApi->getValue("conf.ic.linesize", mmu_cache_ic_linesize);
+    mApi->getValue("conf.ic.setsize", mmu_cache_ic_setsize);
+    mApi->getValue("conf.ic.setlock", mmu_cache_ic_setlock);
+    mApi->getValue("conf.dc.en", mmu_cache_dc_en);
+    mApi->getValue("conf.dc.repl", mmu_cache_dc_repl);
+    mApi->getValue("conf.dc.sets", mmu_cache_dc_sets);
+    mApi->getValue("conf.dc.linesize", mmu_cache_dc_linesize);
+    mApi->getValue("conf.dc.setsize", mmu_cache_dc_setsize);
+    mApi->getValue("conf.dc.setlock", mmu_cache_dc_setlock);
+    mApi->getValue("conf.dc.snoop", mmu_cache_dc_snoop);
+
+
+    int gdb_port = 1500;
+    int gdb_proc = 0;
+    mApi->getValue("conf.gdb.en", gdb_en);
+    mApi->getValue("conf.gdb.port", gdb_port);
+    mApi->getValue("conf.gdb.proc", gdb_proc);
+    for(int i=0; i< mmu_cache_num; i++) {
+    // For each Abstraction is another model needed
+      #if conf_sys_lt_at
+        leon3_funclt_trap::Processor_leon3_funclt *leon3 = new leon3_funclt_trap::Processor_leon3_funclt(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(1/100, SC_US));
+      #else
+        leon3_funcat_trap::Processor_leon3_funcat *leon3 = new leon3_funcat_trap::Processor_leon3_funcat(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(conf_sys_clock, SC_NS));
+      #endif
+      leon3->ENTRY_POINT   = 0x0;
+      leon3->MPROC_ID      = (conf_mmu_cache_index + i) << 28;
+
+      // CREATE MMU_CACHE
+      // ================
+      // Always enabled.
+      // Needed for basic platform.
+      mmu_cache *mmu_cache_inst = new mmu_cache(
+              mmu_cache_ic_en,            //  int icen = 1 (icache enabled)
+              mmu_cache_ic_repl,       //  int irepl = 0 (icache LRU replacement)
+              mmu_cache_ic_sets,       //  int isets = 4 (4 instruction cache sets)
+              mmu_cache_ic_linesize,   //  int ilinesize = 4 (4 words per icache line)
+              mmu_cache_ic_setsize,    //  int isetsize = 16 (16kB per icache set)
+              mmu_cache_ic_setlock,    //  int isetlock = 1 (icache locking enabled)
+              mmu_cache_dc_en,            //  int dcen = 1 (dcache enabled)
+              mmu_cache_dc_repl,       //  int drepl = 2 (dcache random replacement)
+              mmu_cache_dc_sets,       //  int dsets = 2 (2 data cache sets)
+              mmu_cache_dc_linesize,   //  int dlinesize = 4 (4 word per dcache line)
+              mmu_cache_dc_setsize,    //  int dsetsize = 1 (1kB per dcache set)
+              mmu_cache_dc_setlock,    //  int dsetlock = 1 (dcache locking enabled)
+              mmu_cache_dc_snoop,      //  int dsnoop = 1 (dcache snooping enabled)
+              conf_mmu_cache_ilram,           //  int ilram = 0 (instr. localram disable)
+              conf_mmu_cache_ilram_size,      //  int ilramsize = 0 (1kB ilram size)
+              conf_mmu_cache_ilram_start,     //  int ilramstart = 8e (0x8e000000 default ilram start address)
+              conf_mmu_cache_dlram,           //  int dlram = 0 (data localram disable)
+              conf_mmu_cache_dlram_size,      //  int dlramsize = 0 (1kB dlram size)
+              conf_mmu_cache_dlram_start,     //  int dlramstart = 8f (0x8f000000 default dlram start address)
+              conf_mmu_cache_cached?0xFFFF:0, //  int cached = 0xffff (fixed cacheability mask)
+              conf_mmu_cache_mmu_en,          //  int mmu_en = 0 (mmu not present)
+              conf_mmu_cache_mmu_en_itlb_num, //  int itlb_num = 8 (8 itlbs - not present)
+              conf_mmu_cache_mmu_en_dtlb_num, //  int dtlb_num = 8 (8 dtlbs - not present)
+              conf_mmu_cache_mmu_en_tlb_type, //  int tlb_type = 0 (split tlb mode - not present)
+              conf_mmu_cache_mmu_en_tlb_rep,  //  int tlb_rep = 1 (random replacement)
+              conf_mmu_cache_mmu_en_mmupgsz,  //  int mmupgsz = 0 (4kB mmu page size)>
+              sc_core::sc_gen_unique_name("mmu_cache", false),                    // name of sysc module
+              conf_mmu_cache_index + i,           // Id of the AHB master
+              conf_sys_power,                 // Power Monitor,
+              ambaLayer                       // TLM abstraction layer
+      );
+      
+      // Connecting AHB Master
+      mmu_cache_inst->ahb(ahbctrl.ahbIN);
+      // Connecting Testbench
+
+      // Connect cpu to mmu-cache
+      leon3->instrMem.initSocket(mmu_cache_inst->icio);
+      leon3->dataMem.initSocket(mmu_cache_inst->dcio);
+     
+      connect(irqmp.irq_req, leon3->IRQ_port.irq_signal, i);
+      connect(leon3->irqAck.initSignal, irqmp.irq_ack, i);
+      connect(leon3->irqAck.run, irqmp.cpu_rst, i);
+      connect(leon3->irqAck.status, irqmp.cpu_stat, i);
+      connect(mmu_cache_inst->snoop, ahbctrl.snoop);
+
+      // Set clock
+      mmu_cache_inst->set_clk(conf_sys_clock, SC_NS);
+      
+      // * GDBStubs *******************************
+      if(gdb_en && gdb_proc == i) {
+          GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3->abiIf));
+          leon3->toolManager.addTool(*gdbStub);
+          gdbStub->initialize(gdb_port); 
+          //leon3->instrMem.setDebugger(gdbStub);
+          //leon3->dataMem.setDebugger(gdbStub);
+      }
+      // ******************************************
+
+    }
+    // CREATE MEMORY CONTROLLER
+    // ========================
+    Mctrl mctrl(
+        "mctrl", 
+        conf_memctrl_prom_asel, 
+        conf_memctrl_ram_asel, 
+        conf_memctrl_prom_addr, 
+        conf_memctrl_prom_mask, 
+        conf_memctrl_io_addr,
+        conf_memctrl_io_mask, 
+        conf_memctrl_ram_addr, 
+        conf_memctrl_ram_mask, 
+        conf_memctrl_apb_addr, 
+        conf_memctrl_apb_mask, 
+        conf_memctrl_ram_wprot, 
+        conf_memctrl_ram_sram_banks,
+        conf_memctrl_ram8,
+        conf_memctrl_ram16, 
+        conf_memctrl_sepbus, 
+        conf_memctrl_sdbits, 
+        conf_memctrl_mobile, 
+        conf_memctrl_sden, 
+        conf_memctrl_index, 
+        conf_memctrl_apb_index,
+        conf_sys_power,
+        ambaLayer
+    );
+    
+    // Connecting AHB Slave
+    ahbctrl.ahbOUT(mctrl.ahb);
+    // Connecting APB Slave
+    apbctrl.apb(mctrl.apb);
+    // Set clock
+    mctrl.set_clk(conf_sys_clock, SC_NS);
+
+    // CREATE MEMORIES
+    // ===============
+    #if conf_memctrl_prom != 0
+    ArrayMemory rom(
+        "rom", 
+        MEMDevice::ROM, 
+        conf_memctrl_prom_banks, 
+        conf_memctrl_prom_bsize * 1024 * 1024, 
+        conf_memctrl_prom_width, 
+        0
+    );
+    mctrl.mem(rom.bus);
+    #endif
+
+    #if conf_memctrl_io != 0
+    ArrayMemory io(
+        "io", 
+        MEMDevice::IO, 
+        conf_memctrl_prom_banks, 
+        conf_memctrl_prom_bsize * 1024 * 1024, 
+        conf_memctrl_prom_width, 
+        0
+    );
+    mctrl.mem(io.bus);
+    #endif
+
+    #if conf_memctrl_ram_sram != 0
+    ArrayMemory sram(
+        "sram", 
+        MEMDevice::SRAM, 
+        conf_memctrl_ram_sram_banks, 
+        conf_memctrl_ram_sram_bsize * 1024 * 1024, 
+        conf_memctrl_ram_sram_width, 
+        0
+    );
+    mctrl.mem(sram.bus);    
+    #endif
+   
+    #if conf_memctrl_ram_sdram != 0
+    ArrayMemory sdram(
+        "sdram", 
+        MEMDevice::SDRAM, 
+        conf_memctrl_ram_sdram_banks, 
+        conf_memctrl_ram_sdram_bsize * 1024 * 1024, 
+        conf_memctrl_ram_sdram_width, 
+        conf_memctrl_ram_sdram_cols
+    );
+    mctrl.mem(sdram.bus);
+    #endif
+    
+    //AHBMemem ahb_mem("AHBMEM", 0x0, 0x800);
+    //ahbctrl.ahbOUT(ahb_mem.ahb);
+    
+    // * ELF Loader ****************************
+    // ELF loader from leon (Trap-Gen)
+    // Loads the application into the memmory.
+    // Initialize memory
+    uint8_t *execData;
+    ExecLoader sdram_loader(sram_app); 
+    execData = sdram_loader.getProgData();
+    for(unsigned int i = 0; i < sdram_loader.getProgDim(); i++) {
+       sdram.write(sdram_loader.getDataStart() + i - ((conf_memctrl_ram_addr&conf_memctrl_ram_mask)<<20), execData[i]);
+    }
+    
+    //leon3.ENTRY_POINT   = sdram_loader.getProgStart();
+    //leon3.PROGRAM_LIMIT = sdram_loader.getProgDim() + sdram_loader.getDataStart();
+    //leon3.PROGRAM_START = sdram_loader.getDataStart();
+    ExecLoader prom_loader(prom_app); 
+    execData = prom_loader.getProgData();
+    
+    for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
+       rom.write(prom_loader.getDataStart() + i - ((conf_memctrl_prom_addr&conf_memctrl_prom_mask)<<20), execData[i]);
+       //ahb_mem.writeByteDBG(prom_loader.getDataStart() + i, execData[i]);
+       //v::debug << "sc_main" << "Write to PROM: Addr: " << v::uint32 << prom_loader.getDataStart() + i << " Data: " << v::uint8 << (uint32_t)execData[i] << v::endl;
+    }
+    //leon3.ENTRY_POINT   = prom_loader.getProgStart();
+    //leon3.PROGRAM_LIMIT = prom_loader.getProgDim() + prom_loader.getDataStart();
+    //leon3.PROGRAM_START = prom_loader.getDataStart();
+    //leon3.ENTRY_POINT   = 0;
+    //leon3.PROGRAM_LIMIT = 0;
+    //leon3.PROGRAM_START = 0;
+    //leon3.enableHistory("history.txt");
+
+    
+    //assert((sram_loader.getProgDim() + sram_loader.getDataStart()) < 0x1fffffff);
+    // ******************************************
+    
+    #if conf_ahbmem != 0
+    AHBMem ahbmem("ahbmem",
+        conf_ahbmem_addr,
+        conf_ahbmem_mask,
+        ambaLayer,
+        conf_ahbmem_index
+    );
+    ahbctrl.ahbOUT(ahbmem.ahb);
+    #endif
+    
+    #if conf_inputdev != 0
+    input_device sensor(
+        "sensor",
+        conf_inputdev_hindex,
+        conf_inputdev_hirq,
+        conf_inputdev_framesize,
+        conf_inputdev_frameaddr,
+        sc_core::sc_time(conf_inputdev_interval, SC_MS),
+        conf_sys_power,
+        ambaLayer
+    );
+    // Connect sensor to bus
+    sensor.ahb(ahbctrl.ahbIN);
+    sensor.set_clk(conf_sys_clock, SC_NS);
+
+    // Connect interrupt out
+    signalkit::connect(irqmp.irq_in, sensor.irq, 13);
+
+    #endif
+    
+    // * GPTimer ********************************
+    #if conf_gptimer != 0
+    // CREATE GPTimer
+    // ==============
+    GPTimer gptimer("gptimer",
+        conf_gptimer_ntimers,// ntimers
+        conf_gptimer_index,  // index
+        conf_gptimer_addr,   // paddr
+        conf_gptimer_mask,   // pmask
+        conf_gptimer_pirq,   // pirq
+        conf_gptimer_sepirq, // sepirq
+        conf_gptimer_sbits,  // sbits
+        conf_gptimer_nbits,  // nbits
+        conf_gptimer_wdog,   // wdog
+        conf_sys_power      // powmon
+    );
+    // Connecting APB Slave
+    apbctrl.apb(gptimer.bus);
+    // Connecting Interrupts
+    for(int i=0; i < 8; i++) {
+      signalkit::connect(irqmp.irq_in, gptimer.irq, conf_gptimer_pirq + i);
+    }
+    // Set clock
+    gptimer.set_clk(conf_sys_clock,SC_NS);
+    #endif
+    // CREATE APBUart
+    // ==============
+    std::string n_uart = "conf.uart";
+    gs::gs_param_array *p_uart = new gs::gs_param_array(n_uart);
+    int i = 0;
+    while(mApi->getParamList(n_uart + "." + boost::lexical_cast<std::string>(i), false).size()!=0) {
+      std::string n_inst = n_uart + "." + boost::lexical_cast<std::string>(i);
+      gs::gs_param_array *p_inst = new gs::gs_param_array(p_inst);
+      io_if *io = NULL;
+      int port = 2000, type = 0, index = 1, addr = 0x001, mask = 0xFFF, irq = 2;
+      mApi->getValue(std::string(n_inst + ".type"), type);
+      mApi->getValue(std::string(n_inst + ".index"), index);
+      mApi->getValue(std::string(n_inst + ".addr"), addr);
+      mApi->getValue(std::string(n_inst + ".mask"), mask);
+      mApi->getValue(std::string(n_inst + ".irq"), irq);
+
+      switch(type) {
+        case 1:
+          mApi->getValue(std::string(n_inst + ".port"), port);
+          io = new TcpIo(port);
+          break;
+        default:
+          mApi->getValue(std::string(n_inst + ".port"), port);
+          io = new TcpIo(port);
+          break;
+      }
+
+      APBUART *apbuart = new APBUART(sc_core::sc_gen_unique_name("apbuart", false), io,
+        index,           // index
+        addr,            // paddr
+        mask,            // pmask
+        irq,             // pirq
+        conf_sys_power   // powmon
+      );
+
+      // Connecting APB Slave
+      apbctrl.apb(apbuart->bus);
+      // Connecting Interrupts
+      signalkit::connect(irqmp.irq_in, apbuart->irq, irq);
+      // Set clock
+      apbuart->set_clk(conf_sys_clock,SC_NS);
+      // ******************************************
+
+      i++;
+    }
+
+    // * SoCWire ********************************
+    #if conf_socwire != 0
+    // CREATE AHB2Socwire bridge
+    // =========================
+    AHB2Socwire ahb2socwire("ahb2socwire",
+        conf_socwire_apb_paddr,                   // paddr
+        conf_socwire_apb_pmask,                   // pmask
+        conf_socwire_apb_pindex,                  // pindex
+        conf_socwire_apb_pirq,                    // pirq
+        conf_socwire_ahb_hindex,                   // hindex
+        ambaLayer                                 // abstraction
+    );
+    
+    // Connecting AHB Master
+    ahb2socwire.ahb(ahbctrl.ahbIN);
+    
+    // Connecting APB Slave
+    apbctrl.apb(ahb2socwire.apb);
+    
+    // Connecting Interrupts
+    connect(irqmp.irq_in, ahb2socwire.irq, conf_socwire_apb_pirq);
+    
+    // Connect socwire ports as loopback
+    ahb2socwire.socwire.master_socket(ahb2socwire.socwire.slave_socket);
+    #endif
+    // ******************************************
+    
+    // * OS Emulator ****************************
+    // OS Emulator is activating the leon traps to map basic io functions to the host system
+    // set_brk, open, read, ...
+    /*
+    OSEmulator< unsigned int> osEmu(*(leon3.abiIf));
+    v::info << "main" << "OSEmulator" << v::endl;
+    osEmu.initSysCalls(sram_app);
+    v::info << "main" << "OSEmulator" << v::endl;
+    std::vector<std::string> options;
+    options.push_back(sram_app);
+    for(int i = app_argc; i < argc; i++) {
+        options.push_back(argv[i]);
+    }
+    OSEmulatorBase::set_program_args(options);
+
+    v::info << "main" << "OSEmulator" << v::endl;
+    leon3.toolManager.addTool(osEmu);
+    v::info << "main" << "OSEmulator" << v::endl;
+    */
+    //leon3.enableHistory("cmdHistLTSys"); 
+    // ******************************************
+   
+    // * GDBStubs *******************************
+    //if(gdb_en) {
+    //    int gdb_port = atoi(getenv("GDB_PORT"));
+    //    GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3.abiIf));
+    //    leon3.toolManager.addTool(*gdbStub);
+    //    gdbStub->initialize(gdb_port); 
+    //    leon3.instrMem.setDebugger(gdbStub);
+    //    leon3.dataMem.setDebugger(gdbStub);
+    //}
+    // ******************************************
+
+    // * Param Listing **************************
+    v::info << "main" << "Param" << paramlist << v::endl;
+    if(paramlist) {
+        gs::cnf::cnf_api *CFG = gs::cnf::GCnf_Api::getApiInstance(NULL);
+        v::info << "main" << "System Values:" << v::endl;
+        std::vector<std::string> plist = CFG->getParamList();
+        for(uint32_t i = 0; i < plist.size(); i++) {
+            v::info << "main" << plist[i] << v::endl;
+        }
+    }
+    // ******************************************
+
+    signalkit::signal_out<bool, Irqmp> irqmp_rst;
+    connect(irqmp_rst, irqmp.rst);
+    irqmp_rst.write(0);
+    irqmp_rst.write(1);
+
+    // start simulation
+    cstart = clock();
+    sc_core::sc_start();
+    cend = clock();
+    // call power analyzer
+    //if(conf_sys_power) {
+    //    PM::analyze("./models/","main-power.dat","singlecore2.eslday1.stats");
+    //}
+
+    if(conf_sys_timing) {
+        v::info << "Summary" << "Start: " << dec << cstart << v::endl;
+        v::info << "Summary" << "End:   " << dec << cend << v::endl;
+        v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
+    }
+    return trap::exitValue;
+
+}
