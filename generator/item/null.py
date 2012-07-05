@@ -11,10 +11,10 @@ class NullItem(Item):
           self.widget = None
 
     def save(self):
-        return dict([[str(n.name), n.save()] for n in self.childItems])
+        return dict([[str(n.var), n.save()] for n in self.childItems])
 
     def load(self, data):
-        ownData = data.get(str(self.name), None)
+        ownData = data.get(str(self.var), None)
         if ownData:
             for child in self.childItems:
                 child.load(ownData)

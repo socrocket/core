@@ -49,6 +49,6 @@ class StringItem(Item):
         return self.value.toString()
 
     def load(self, data):
-        ownData = data.get(str(self.name), None)
+        ownData = data.get(str(self.var), None)
         if ownData and isinstance(ownData, string):
                 self.setData(QtCore.QVariant(ownData))
