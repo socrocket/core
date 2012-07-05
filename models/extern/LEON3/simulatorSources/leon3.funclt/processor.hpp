@@ -132,7 +132,7 @@ namespace leon3_funclt_trap{
         sc_time profTimeEnd;
         boost::circular_buffer< HistoryInstrType > instHistoryQueue;
         unsigned int undumpedHistElems;
-        unsigned int numInstructions;
+        unsigned long long int numInstructions;
         unsigned int ENTRY_POINT;
         unsigned int MPROC_ID;
         unsigned int PROGRAM_LIMIT;

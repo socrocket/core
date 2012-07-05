@@ -88,14 +88,15 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
     while(true){
         unsigned int numCycles = 0;
         this->instrExecuting = true;
-        v::debug << name() << "Instr" << v::endl;
         while(irqAck.stopped) {
-            if(sc_time_stamp()>sc_time(0, SC_NS)) {
-              v::info << name() << "Print me" << v::endl;
+            //if(sc_time_stamp()>sc_time(0, SC_NS)) {
               wait(irqAck.start);
+              v::info << name() << "Starting ... " << v::endl;
               resetOp();
-            }
+            //}
         }
+
+        //v::info << name() << "Instruction " << this->PC << v::endl;
         if((IRQ != -1) && (PSR[key_ET] && (IRQ == 15 || IRQ > PSR[key_PIL]))){
             this->IRQ_irqInstr->setInterruptValue(IRQ);
             try{
