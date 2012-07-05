@@ -471,8 +471,11 @@ void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_
 // callback registered on mp status register
 void Irqmp::mpstat_write() {
     uint32_t stat = r[MP_STAT] & 0xFFFF;
+    v::info << name() << "mpstat change to " << v::uint32 << stat << v::endl;
     for(int i = 0; i < g_ncpu; i++) {
-        if((stat & (1 << i)) && cpu_stat.read(i)) {
+        v::info << name() << "Test whether processor " << i << " has to be started " << (stat & (1 << i)) << "-" << (cpu_stat.read(i)) << v::endl;
+        if((stat & (1 << i)) && !cpu_stat.read(i)) {
+            v::info << name() << "Send run to processor " << i << v::endl;
             cpu_rst.write(1 << i, true);
         }
     }
@@ -481,7 +484,7 @@ void Irqmp::mpstat_write() {
 void Irqmp::mpstat_read() {
     uint32_t reg = (g_ncpu << 28) | (g_eirq << 16);
     for(int i = 0; i < g_ncpu; i++) {
-        reg |= (cpu_stat.read(i) << i);
+        reg |= ((!cpu_stat.read(i)) << i);
     }
     r[MP_STAT] = reg;
 }
