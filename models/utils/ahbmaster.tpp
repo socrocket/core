@@ -110,6 +110,12 @@ void AHBMaster<BASE>::ahbread(uint32_t addr, unsigned char * data, uint32_t leng
   trans->set_data_ptr(data);
   trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
+  if (is_lock) {
+
+    ahb.template validate_extension<amba::amba_lock>(*trans);
+
+  }
+
   if (m_ambaLayer == amba::amba_LT) {
 
     // Forward arrow for msc
