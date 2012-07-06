@@ -842,6 +842,8 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 /// TLM blocking forward transport function for icio socket
 void mmu_cache::icio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
+  v::debug << name() << "icio_b_transport received trans " << hex << &trans << " with delay " << delay << v::endl;
+
   // Call the functional part of the model
   // ---------------------------
   exec_instr(trans, delay, false);
@@ -857,6 +859,8 @@ void mmu_cache::icio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_ti
 
 /// TLM forward blocking transport function for dcio socket
 void mmu_cache::dcio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
+
+  v::debug << name() << "dcio_b_transport received trans " << hex << &trans << " with delay " << delay << v::endl;
 
   // Call the functional part of the model
   // -----------------------
@@ -1238,11 +1242,15 @@ void mmu_cache::snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& d
 
     // If dcache and snooping enabled
     if (m_dcen && m_dsnoop) {
-  if(snoop.address == 0x40000040) {
-    v::info << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.master_id << " ADDR: "
-	          << v::uint32 << snoop.address << " LENGTH: " << snoop.length << ")" << v::endl;
-  }
 
+      // #### TEMPORARY FOR DEBUGGING ####
+
+      if(snoop.address == 0x40000040) {
+        v::info << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.master_id << " ADDR: "
+	          << v::uint32 << snoop.address << " LENGTH: " << snoop.length << ")" << v::endl;
+      }
+
+      // #################################
       dcache->snoop_invalidate(snoop, delay);
 
     }

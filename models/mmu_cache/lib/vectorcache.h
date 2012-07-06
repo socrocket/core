@@ -188,7 +188,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
         // helpers for cache handling
         t_cache_line m_default_cacheline;
         std::vector<t_cache_line*> m_current_cacheline;
-	      std::vector<t_cache_line*> m_snoop_cacheline;
+        t_cache_line* m_snoop_cacheline;
 
         /// indicates whether the cache can be put in burst mode or not
         unsigned int m_burst_en;

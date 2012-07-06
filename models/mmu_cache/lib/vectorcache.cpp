@@ -1110,18 +1110,19 @@ void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time&
       offset = ((address << (32 - m_offset_bits)) >> (32 - m_offset_bits));
 
       // Lookup all cachesets
-      for (uint32_t set = 0; set <= m_sets; set++) {
+      for (unsigned int i = 0; i <= m_sets; i++) {
 
-	        m_snoop_cacheline[set] = lookup(set, idx);
+        m_snoop_cacheline = lookup(i, idx);
 
-	        // Check the cache tag
-	        if (((*m_snoop_cacheline[set]).tag.atag) == tag) {
+        // Check the cache tag
+        if (((*m_snoop_cacheline).tag.atag) == tag) {
 
-	            // Delete the valid bit
-	            ((*m_snoop_cacheline[set]).tag.valid &= (~offset2valid(offset)));
-              v::info << name() << "Snooping delete: Set=" << i << " Tag=" << tag << " at address=" << v::uint32 << address << v::endl;
+          // Delete the valid bit
+          ((*m_snoop_cacheline).tag.valid &= (~offset2valid(offset)));
+          
+          v::info << name() << "Snooping delete: Set=" << i << " Tag=" << tag << " at address=" << v::uint32 << address << v::endl;
 
-	        }
+        }
       }
     }
   }
