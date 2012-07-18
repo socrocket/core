@@ -313,4 +313,13 @@ def build(bld):
      install_path = None,
   )
   
-
+  # ambalist.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     cflags       = '-static -g -O1 -lm -mno-fpu -lleonbare -Wl,--verbose',
+     linkflags    = '-static -g -O1 -lm -mno-fpu -lleonbare -Wl,--verbose',
+     target       = 'mphello.sparc',
+     source       = ['mp-hello.c'],
+     install_path = None,
+  )
+   
