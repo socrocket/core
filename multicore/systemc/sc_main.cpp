@@ -64,11 +64,13 @@
 #include "irqmp.h"
 #include "ahbctrl.h"
 #include "AHB2Socwire.h"
+#include "ahbprof.h"
 
 #include <iostream>
 #include <vector>
 #include <sys/time.h>
 #include <time.h>
+#include <string.h>
 #include <amba.h>
 #include <cstring>
 #include "verbose.h"
@@ -192,7 +194,9 @@ namespace trap {
 int sc_main(int argc, char** argv) {
 
     clock_t cstart, cend;
-    char *sram_app, *prom_app;
+    char *sram_app;
+    std::string prom_app;
+
     int app_argc = 0;
     bool gdb_en = false;
     bool paramlist = false;
@@ -216,6 +220,7 @@ int sc_main(int argc, char** argv) {
     }
     
     // Sort out arguments
+    /*
     if(argc >= 3) {
        prom_app = argv[1];
        sram_app = argv[2];
@@ -225,7 +230,7 @@ int sc_main(int argc, char** argv) {
        v::error << "Please use: '" << argv[0] << " prom.elf sram.elf [gdb] [...]" << "' to define an application." << endl;
        return -1;
     }
-    
+    */
     // Decide whether LT or AT
     amba::amba_layer_ids ambaLayer;
     if(conf_sys_lt_at) {
@@ -314,6 +319,7 @@ int sc_main(int argc, char** argv) {
     int mmu_cache_dc_setsize = 1;
     int mmu_cache_dc_setlock = 1;
     int mmu_cache_dc_snoop = 1;
+    gs::gs_param<std::string> proc_history("conf.proc.history", "");
 
     mApi->getValue("conf.ic.en", mmu_cache_ic_en);
     mApi->getValue("conf.ic.repl", mmu_cache_ic_repl);
@@ -328,7 +334,6 @@ int sc_main(int argc, char** argv) {
     mApi->getValue("conf.dc.setsize", mmu_cache_dc_setsize);
     mApi->getValue("conf.dc.setlock", mmu_cache_dc_setlock);
     mApi->getValue("conf.dc.snoop", mmu_cache_dc_snoop);
-
 
     int gdb_port = 1500;
     int gdb_proc = 0;
@@ -389,6 +394,13 @@ int sc_main(int argc, char** argv) {
       // Connect cpu to mmu-cache
       leon3->instrMem.initSocket(mmu_cache_inst->icio);
       leon3->dataMem.initSocket(mmu_cache_inst->dcio);
+      std::string history = proc_history;
+      if(!history.empty()) {
+          std::cout << "History tracking of CPU" << i << " goes to " << history + boost::lexical_cast<std::string>(i) << std::endl;
+          leon3->enableHistory(history + boost::lexical_cast<std::string>(i));
+      } else {
+          std::cout << "History is not tracked of CPU" << i << " goes to " << history + boost::lexical_cast<std::string>(i) << std::endl;
+      }
      
       connect(irqmp.irq_req, leon3->IRQ_port.irq_signal, i);
       connect(leon3->irqAck.initSignal, irqmp.irq_ack, i);
@@ -502,17 +514,20 @@ int sc_main(int argc, char** argv) {
     // ELF loader from leon (Trap-Gen)
     // Loads the application into the memmory.
     // Initialize memory
+    gs::gs_param<std::string> prom_elf("conf.prom.elf", "./rtems-ccsds123.prom");
+    //mApi->getValue("conf.prom.elf", prom_app);
+    v::info << "main" << "Loading Prom with " << prom_elf << v::endl;
     uint8_t *execData;
-    ExecLoader sdram_loader(sram_app); 
-    execData = sdram_loader.getProgData();
-    for(unsigned int i = 0; i < sdram_loader.getProgDim(); i++) {
-       sdram.write(sdram_loader.getDataStart() + i - ((conf_memctrl_ram_addr&conf_memctrl_ram_mask)<<20), execData[i]);
-    }
+    //ExecLoader sdram_loader(sram_app); 
+    //execData = sdram_loader.getProgData();
+    //for(unsigned int i = 0; i < sdram_loader.getProgDim(); i++) {
+    //   sdram.write(sdram_loader.getDataStart() + i - ((conf_memctrl_ram_addr&conf_memctrl_ram_mask)<<20), execData[i]);
+    //}
     
     //leon3.ENTRY_POINT   = sdram_loader.getProgStart();
     //leon3.PROGRAM_LIMIT = sdram_loader.getProgDim() + sdram_loader.getDataStart();
     //leon3.PROGRAM_START = sdram_loader.getDataStart();
-    ExecLoader prom_loader(prom_app); 
+    ExecLoader prom_loader(prom_elf); 
     execData = prom_loader.getProgData();
     
     for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
@@ -526,7 +541,6 @@ int sc_main(int argc, char** argv) {
     //leon3.ENTRY_POINT   = 0;
     //leon3.PROGRAM_LIMIT = 0;
     //leon3.PROGRAM_START = 0;
-    //leon3.enableHistory("history.txt");
 
     
     //assert((sram_loader.getProgDim() + sram_loader.getDataStart()) < 0x1fffffff);
@@ -632,7 +646,18 @@ int sc_main(int argc, char** argv) {
 
       i++;
     }
+    
+    AHBProf *ahbprof = new AHBProf("ahbprof",
+        6,                // index
+        0x900,            // paddr
+        0xFFF,            // pmask
+        ambaLayer
+    );
 
+    // Connecting APB Slave
+    ahbctrl.ahbOUT(ahbprof->ahb);
+    ahbprof->set_clk(conf_sys_clock,SC_NS);
+ 
     // * SoCWire ********************************
     #if conf_socwire != 0
     // CREATE AHB2Socwire bridge

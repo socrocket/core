@@ -88,7 +88,6 @@
 #define conf_irqmp_addr 0x002
 #define conf_irqmp_mask 0xFFF
 #define conf_irqmp_index 2
-#define conf_irqmp_ncpu 1
 #define conf_irqmp_eirq 4
 #define conf_uart_addr 0x001
 #define conf_uart_mask 0xFFF
