@@ -300,6 +300,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 // TLM blocking transport function (multi-sock)
 void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
+  static uint32_t old_lock = 0;
   // master-address pair for dcache snooping
   t_snoop snoopy;
 
@@ -321,8 +322,9 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
   }
 
   busy = true;
-  
+  old_lock = is_lock;
   is_lock = ahbIN.get_extension<amba::amba_lock>(lock, trans);
+  
   lock_master = id;
 
   // Collect transport statistics
