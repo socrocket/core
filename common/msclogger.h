@@ -103,8 +103,10 @@ class msclogger {
       socket_t *socket_to = ahb->get_other_side(0, a);
       sc_core::sc_object * to = socket_to->get_parent();
   
+      size_t addr = reinterpret_cast<size_t>(trans);
+      uint32_t id = addr & 0xFFFFFF;
       msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
-          << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+          << "/" << delay << ")\", linecolour = \"#" << hex << id << "\", textcolour = \"#" << hex << id << "\"];\n";
 
     }
   }
@@ -116,8 +118,10 @@ class msclogger {
       socket_t *socket_to = ahb->get_other_side(binding, a);
       sc_core::sc_object * to = socket_to->get_parent();
   
+      size_t addr = reinterpret_cast<size_t>(trans);
+      uint32_t id = addr & 0xFFFFFF;
       msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/"  << sc_time_stamp() \
-          << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+          << "/" << delay << ")\", linecolour = \"#" << hex << id << "\", textcolour = \"#" << hex << id << "\"];\n";
 
     }
   }
@@ -129,9 +133,11 @@ class msclogger {
       uint32_t a = 0;
       socket_t *socket_to = ahb->get_other_side(0, a);
       sc_core::sc_object * to = socket_to->get_parent();
+      size_t addr = reinterpret_cast<size_t>(trans);
+      uint32_t id = addr & 0xFFFFFF;
     
       msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
-          << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+          << "/" << delay << ")\", linecolour = \"#" << hex << id << "\", textcolour = \"#" << hex << id << "\"];\n";
 
     }
   }
@@ -143,9 +149,11 @@ class msclogger {
       uint32_t a = 0;
       socket_t *socket_to = ahb->get_other_side(binding, a);
       sc_core::sc_object * to = socket_to->get_parent();
+      size_t addr = reinterpret_cast<size_t>(trans);
+      uint32_t id = addr & 0xFFFFFF;
     
       msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
-          << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+          << "/" << delay << ")\", linecolour = \"#" << hex << id << "\", textcolour = \"#" << hex << id << "\"];\n";
     }
   }
 
@@ -156,6 +164,8 @@ class msclogger {
       uint32_t a = 0;
       socket_t *socket_to = ahb->get_other_side(0, a);
       sc_core::sc_object * to = socket_to->get_parent();
+      size_t addr = reinterpret_cast<size_t>(trans);
+      uint32_t id = addr & 0xFFFFFF;
 
       msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
         
@@ -174,7 +184,7 @@ class msclogger {
         msc << "TLM_COMPLETED";
       }
 
-      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << id << "\", textcolour = \"#" << hex << id << "\"];\n";
 
     }
   }
@@ -186,6 +196,8 @@ class msclogger {
       uint32_t a = 0;
       socket_t *socket_to = ahb->get_other_side(binding, a);
       sc_core::sc_object * to = socket_to->get_parent();
+      size_t addr = reinterpret_cast<size_t>(trans);
+      uint32_t id = addr & 0xFFFFFF;
 
       msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
       
@@ -204,7 +216,7 @@ class msclogger {
         msc << "TLM_COMPLETED";
       }
 
-      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << id << "\", textcolour = \"#" << hex << id << "\"];\n";
     }
   }
 
@@ -215,6 +227,8 @@ class msclogger {
       uint32_t a = 0;
       socket_t *socket_to = ahb->get_other_side(0, a);
       sc_core::sc_object * to = socket_to->get_parent();
+      size_t addr = reinterpret_cast<size_t>(trans);
+      uint32_t id = addr & 0xFFFFFF;
 
       msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
       
@@ -233,7 +247,7 @@ class msclogger {
         msc << "TLM_COMPLETED";
       }
 
-      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << id << "\", textcolour = \"#" << hex << id << "\"];\n";
     }
   }
 
@@ -244,6 +258,8 @@ class msclogger {
       uint32_t a = 0;
       socket_t *socket_to = ahb->get_other_side(binding, a);
       sc_core::sc_object * to = socket_to->get_parent();
+      size_t addr = reinterpret_cast<size_t>(trans);
+      uint32_t id = addr & 0xFFFFFF;
 
       msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
       
@@ -262,7 +278,7 @@ class msclogger {
         msc << "TLM_COMPLETED";
       }
 
-      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << reinterpret_cast<uint32_t>(trans) << "\", textcolour = \"#" << hex << (uint32_t)trans << "\"];\n";
+      msc << "(" << trans << "/" << sc_time_stamp() << "/" << delay << ")\", linecolour = \"#" << hex << id << "\", textcolour = \"#" << hex << id << "\"];\n";
     }
   }
 };
