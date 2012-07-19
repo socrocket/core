@@ -1243,16 +1243,7 @@ void mmu_cache::snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& d
     // If dcache and snooping enabled
     if (m_dcen && m_dsnoop) {
 
-      // #### TEMPORARY FOR DEBUGGING ####
-
-      if(snoop.address == 0x40000040) {
-        v::info << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.master_id << " ADDR: "
-	          << v::uint32 << snoop.address << " LENGTH: " << snoop.length << ")" << v::endl;
-      }
-
-      // #################################
       dcache->snoop_invalidate(snoop, delay);
-
     }
   }
 }

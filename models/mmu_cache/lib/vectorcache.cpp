@@ -1119,9 +1119,6 @@ void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time&
 
           // Delete the valid bit
           ((*m_snoop_cacheline).tag.valid &= (~offset2valid(offset)));
-          
-          v::info << name() << "Snooping delete: Set=" << i << " Tag=" << tag << " at address=" << v::uint32 << address << v::endl;
-
         }
       }
     }
