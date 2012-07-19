@@ -289,6 +289,7 @@ void Irqmp::incomming_irq(const bool &value, const uint32_t &irq, const sc_time 
     }
     // Performance counter increase
     m_irq_counter[irq] = m_irq_counter[irq] + 1;
+    v::debug << name() << "Interrupt line " << irq << " triggered" << v::endl;
     
     // If the incomming interrupt is not listed in the broadcast register 
     // it goes in the pending register
@@ -429,10 +430,13 @@ void Irqmp::force_write() {
     for(int cpu = 0; cpu < g_ncpu; cpu++) {
         uint32_t reg = r[PROC_IR_FORCE(cpu)];
         for(int i = 15; i > 0; --i) {
+            // Set irqs to zero for all cleard once
             if((1<<i)&(reg>>16)) {
                 irq_req.write(~0, std::pair<uint32_t, bool>(i, false));
             }
         }
+
+        v::debug << name() << "Force " << cpu << "  write " << v::uint32 << forcereg[cpu] << " old "<< v::endl;
         forcereg[cpu] |= reg;
         
         //write mask clears IFC bits:
@@ -440,6 +444,7 @@ void Irqmp::force_write() {
         forcereg[cpu] &= (~(forcereg[cpu] >> 16) & PROC_IR_FORCE_IF);
         
         r[PROC_IR_FORCE(cpu)] = forcereg[cpu];
+        v::debug << name() << "Force " << cpu << "  write " << v::uint32 << forcereg[cpu] << v::endl;
         if(g_eirq != 0 && r[PROC_EXTIR_ID(cpu)]!=0) {
             r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
         }
@@ -450,15 +455,16 @@ void Irqmp::force_write() {
 // process sensitive to ack_irq
 void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_core::sc_time &time) {
     bool f = false;
+    v::debug << name() << "Acknowledgeing IRQ " << irq << " from CPU " << cpu << v::endl;
     if(g_eirq != 0 && r[PROC_EXTIR_ID(cpu)]!=0) {
         r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
     }
     
     //clear interrupt from pending and force register
-    if(r[BROADCAST].bit_get(irq)) {
+    //if(r[BROADCAST].bit_get(irq)) {
             r[PROC_IR_FORCE(cpu)].bit_set(irq, f);
             forcereg[cpu] &= ~(1 << irq) & 0xFFFE;
-    }
+    //}
     
     irq_req.write(~0, std::pair<uint32_t, bool>(irq, false));
     r[IR_PENDING].bit_set(irq, f);
@@ -471,11 +477,8 @@ void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_
 // callback registered on mp status register
 void Irqmp::mpstat_write() {
     uint32_t stat = r[MP_STAT] & 0xFFFF;
-    v::info << name() << "mpstat change to " << v::uint32 << stat << v::endl;
     for(int i = 0; i < g_ncpu; i++) {
-        v::info << name() << "Test whether processor " << i << " has to be started " << (stat & (1 << i)) << "-" << (cpu_stat.read(i)) << v::endl;
         if((stat & (1 << i)) && !cpu_stat.read(i)) {
-            v::info << name() << "Send run to processor " << i << v::endl;
             cpu_rst.write(1 << i, true);
         }
     }
@@ -490,7 +493,7 @@ void Irqmp::mpstat_read() {
 }
 
 void Irqmp::pending_write() {
-    v::debug << name() << "Pending/Force write" << v::endl;
+    v::debug << name() << "Pending write" << v::endl;
     e_signal.notify(1 * clock_cycle);
 }
 
