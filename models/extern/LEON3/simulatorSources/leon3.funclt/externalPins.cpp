@@ -49,7 +49,7 @@ void leon3_funclt_trap::PinTLM_out_32::on_run(const bool &run, const sc_time &de
       start.notify();
       status = true;
   }
-  v::info << name() << "Receiving run event " << run << ", stopped=" << stopped << ", status=" << status << v::endl;
+  v::debug << name() << "Receiving run event " << run << ", stopped=" << stopped << ", status=" << status << v::endl;
 }
 
 
