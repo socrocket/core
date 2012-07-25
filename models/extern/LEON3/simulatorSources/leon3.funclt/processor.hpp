@@ -35,8 +35,8 @@
 \***************************************************************************/
 
 
-#ifndef PROCESSOR_HPP
-#define PROCESSOR_HPP
+#ifndef LT_PROCESSOR_HPP
+#define LT_PROCESSOR_HPP
 
 #include <customExceptions.hpp>
 #include <leon3.funclt/instructions.hpp>
@@ -148,5 +148,5 @@ namespace leon3_funclt_trap{
 };
 
 
-
+#undef LT_IF
 #endif

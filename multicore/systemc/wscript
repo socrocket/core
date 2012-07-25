@@ -52,10 +52,8 @@ def build(bld):
     else:
         use       = 'SOCROCKET TRAP BOOST ELF_LIB LUA SYSTEMC AMBA TLM GREENSOCS '
 
-    if ambaLayer == 'true':
-        use  += 'leon3.funclt'
-    else:
-        use  += 'leon3.funcat'
+    use  += 'leon3.funclt '
+    use  += 'leon3.funcat'
       
     bld(
         target       = 'multicore.lt.platform',

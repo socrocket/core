@@ -131,6 +131,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         hint = node.getAttribute("hint")
         if type == "int":
             item = IntegerItem(self, name, var, value, type, range, default, hint, parent)
+        elif type == "str":
+            item = StringItem(self, name, var, value, type, range, default, hint, parent)
         elif type == "bool":
             item = BooleanItem(self, name, var, value, type, range, default, hint, parent)
         else:

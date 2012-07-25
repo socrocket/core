@@ -35,8 +35,8 @@
 \***************************************************************************/
 
 
-#ifndef IRQPORTS_HPP
-#define IRQPORTS_HPP
+#ifndef LT_IRQPORTS_HPP
+#define LT_IRQPORTS_HPP
 
 #include <systemc.h>
 

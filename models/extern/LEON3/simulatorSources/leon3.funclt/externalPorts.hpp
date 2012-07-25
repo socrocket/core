@@ -35,8 +35,8 @@
 \***************************************************************************/
 
 
-#ifndef EXTERNALPORTS_HPP
-#define EXTERNALPORTS_HPP
+#ifndef LT_EXTERNALPORTS_HPP
+#define LT_EXTERNALPORTS_HPP
 
 #include <leon3.funclt/memory.hpp>
 #include <systemc.h>

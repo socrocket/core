@@ -35,8 +35,8 @@
 \***************************************************************************/
 
 
-#ifndef ALIAS_HPP
-#define ALIAS_HPP
+#ifndef LT_ALIAS_HPP
+#define LT_ALIAS_HPP
 
 #include <leon3.funclt/registers.hpp>
 #include <ostream>

@@ -35,8 +35,8 @@
 \***************************************************************************/
 
 
-#ifndef MEMORY_HPP
-#define MEMORY_HPP
+#ifndef AT_MEMORY_HPP
+#define AT_MEMORY_HPP
 
 #include <ToolsIf.hpp>
 #include <trap_utils.hpp>

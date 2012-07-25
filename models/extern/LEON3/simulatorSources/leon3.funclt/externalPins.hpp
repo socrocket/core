@@ -35,8 +35,8 @@
 \***************************************************************************/
 
 
-#ifndef EXTERNALPINS_HPP
-#define EXTERNALPINS_HPP
+#ifndef LT_EXTERNALPINS_HPP
+#define LT_EXTERNALPINS_HPP
 
 #include <trap_utils.hpp>
 #include <systemc.h>

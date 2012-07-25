@@ -40,8 +40,8 @@
  *
 \***************************************************************************/
 
-#ifndef IRQGENERATOR_HPP
-#define IRQGENERATOR_HPP
+#ifndef LT_IRQGENERATOR_HPP
+#define LT_IRQGENERATOR_HPP
 
 #include <iostream>
 

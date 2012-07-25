@@ -35,8 +35,8 @@
 \***************************************************************************/
 
 
-#ifndef INSTRUCTIONS_HPP
-#define INSTRUCTIONS_HPP
+#ifndef LT_INSTRUCTIONS_HPP
+#define LT_INSTRUCTIONS_HPP
 
 #include <instructionBase.hpp>
 #include <string>

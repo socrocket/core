@@ -80,112 +80,12 @@
 #include <systemc.h>
 #include <tlm.h>
 
-#include "config.h"
-
-#if conf_sys_lt_at
 #include "leon3.funclt.h"
-#else
 #include "leon3.funcat.h"
-#endif
 
 using namespace std;
 using namespace sc_core;
 using namespace socw;
-
-#if conf_mmu_cache_icen == false
-#  define conf_mmu_cache_icen_repl 0
-#  define conf_mmu_cache_icen_sets 0
-#  define conf_mmu_cache_icen_linesize 0
-#  define conf_mmu_cache_icen_setsize 0
-#  define conf_mmu_cache_icen_setlock 0
-#endif
-
-#if conf_mmu_cache_dcen == false
-#  define conf_mmu_cache_dcen_repl 0
-#  define conf_mmu_cache_dcen_sets 0
-#  define conf_mmu_cache_dcen_linesize 0
-#  define conf_mmu_cache_dcen_setsize 0
-#  define conf_mmu_cache_dcen_setlock 0
-#  define conf_mmu_cache_dcen_snoop 1
-#endif
-
-#if conf_mmu_cache_ilram == false
-#  define conf_mmu_cache_ilram_size 0
-#  define conf_mmu_cache_ilram_start 0
-#endif
-
-#if conf_mmu_cache_dlram == false
-#  define conf_mmu_cache_dlram_size 0
-#  define conf_mmu_cache_dlram_start 0
-#endif
-
-#if conf_mmu_cache_mmu_en == false
-#  define conf_mmu_cache_mmu_en_itlb_num 8
-#  define conf_mmu_cache_mmu_en_dtlb_num 8
-#  define conf_mmu_cache_mmu_en_tlb_type 0
-#  define conf_mmu_cache_mmu_en_tlb_rep 1
-#  define conf_mmu_cache_mmu_en_mmupgsz 0
-#endif
-
-#if conf_ahbmem == false
-#  define conf_ahbmem_index 0
-#  define conf_ahbmem_addr 0
-#  define conf_ahbmem_mask 0
-#endif
-
-#if conf_gptimer == false
-#  define conf_gptimer_addr 0
-#  define conf_gptimer_mask 0
-#  define conf_gptimer_index 0
-#  define conf_gptimer_pirq 0
-#  define conf_gptimer_sepirq 0
-#  define conf_gptimer_ntimers 0
-#  define conf_gptimer_sbits 0
-#  define conf_gptimer_nbits 0
-#  define conf_gptimer_wdog 0
-#endif
-
-#if conf_memctrl_prom == false
-#  define conf_memctrl_prom_addr  0
-#  define conf_memctrl_prom_mask  0
-#  define conf_memctrl_prom_asel  0
-#  define conf_memctrl_prom_banks 0
-#  define conf_memctrl_prom_bsize 0
-#  define conf_memctrl_prom_width 0
-#endif
-
-#if conf_memctrl_io == false
-#  define conf_memctrl_io_addr 0x200
-#  define conf_memctrl_io_mask 0xE00
-#  define conf_memctrl_io_banks 0
-#  define conf_memctrl_io_bsize 0
-#  define conf_memctrl_io_width 0
-#endif
-
-#if conf_memctrl_ram_sram == false
-#  define conf_memctrl_ram_sram_banks 0
-#  define conf_memctrl_ram_sram_bsize 0
-#  define conf_memctrl_ram_sram_width 0
-#endif
-
-#if conf_memctrl_ram_sdram == false
-#  define conf_memctrl_sdram_banks 0
-#  define conf_memctrl_sdram_bsize 0
-#  define conf_memctrl_sdram_width 0
-#  define conf_memctrl_sdram_cols 0
-#endif
-
-#if conf_inputdev == false
-#  define conf_inputdev_hindex    = 0
-#  define conf_inputdev_hirq      = 0
-#  define conf_inputdev_framesize = 0
-#  define conf_inputdev_frameaddr = 0
-#  define conf_inputdev_interval  = 0
-#endif
-
-#ifndef conf_paramlist
-#define conf_paramlist false
-#endif
 
 namespace trap {
   extern int exitValue;
@@ -194,23 +94,20 @@ namespace trap {
 int sc_main(int argc, char** argv) {
 
     clock_t cstart, cend;
-    char *sram_app;
     std::string prom_app;
 
-    int app_argc = 0;
-    bool gdb_en = false;
     bool paramlist = false;
 
-  gs::ctr::GC_Core       core;
+    gs::ctr::GC_Core       core;
+    gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
+    gs::cnf::ConfigPlugin configPlugin(&cnfdatabase);
 
-  gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
-  gs::cnf::ConfigPlugin configPlugin(&cnfdatabase);
+    gs::cnf::LuaFile_Tool luareader("luareader");
+    luareader.parseCommandLine(argc, argv);
+    //luareader.config("config.lua");
+    luareader.config("json.lua");
 
-  gs::cnf::LuaFile_Tool luareader("luareader");
-  //luareader.config("config.lua");
-  luareader.config("json.lua");
-
-  gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
+    gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
 
     for(int i = 1; i < argc; i++) {
         if(std::strcmp("listparams", argv[i])==0) {
@@ -219,21 +116,22 @@ int sc_main(int argc, char** argv) {
         }
     }
     
-    // Sort out arguments
-    /*
-    if(argc >= 3) {
-       prom_app = argv[1];
-       sram_app = argv[2];
-       app_argc += 3;
-       //v::logApplication(sram_app);
-    } else {
-       v::error << "Please use: '" << argv[0] << " prom.elf sram.elf [gdb] [...]" << "' to define an application." << endl;
-       return -1;
-    }
-    */
+    // Build GreenControl Configuration Namespace
+    // ==========================================
+    gs::gs_param_array p_conf("conf");
+    gs::gs_param_array p_system("system", p_conf);
+
     // Decide whether LT or AT
+    gs::gs_param<bool> p_system_at("at", false, p_system);
+    gs::gs_param<unsigned int> p_system_clock("clk", 10, p_system);
+    gs::gs_param<std::string> p_system_osemu("osemu", "", p_system);
+
+    gs::gs_param_array p_report("report", p_conf);
+    gs::gs_param<bool> p_report_timing("timing", true, p_report);
+    gs::gs_param<bool> p_report_power("power", true, p_report);
+
     amba::amba_layer_ids ambaLayer;
-    if(conf_sys_lt_at) {
+    if(p_system_at) {
         ambaLayer = amba::amba_LT;
     } else {
         ambaLayer = amba::amba_AT;
@@ -241,212 +139,149 @@ int sc_main(int argc, char** argv) {
     
     // *** CREATE MODULES
 
-    // CREATE AHBCTRL unit
-    // ===================
+    // AHBCtrl
+    // =======
     // Always enabled.
     // Needed for basic platform
+    gs::gs_param_array p_ahbctrl("ahbctrl", p_conf);
+    gs::gs_param<unsigned int> p_ahbctrl_ioaddr("ioaddr", 0xFFF, p_ahbctrl);
+    gs::gs_param<unsigned int> p_ahbctrl_iomask("iomask", 0xFFF, p_ahbctrl);
+    gs::gs_param<unsigned int> p_ahbctrl_cfgaddr("cfgaddr", 0xFF0, p_ahbctrl);
+    gs::gs_param<unsigned int> p_ahbctrl_cfgmask("cfgmask", 0xFF0, p_ahbctrl);
+    gs::gs_param<bool> p_ahbctrl_rrobin("rrobin", false, p_ahbctrl);
+    gs::gs_param<unsigned int> p_ahbctrl_defmast("defmast", 0u, p_ahbctrl);
+    gs::gs_param<bool> p_ahbctrl_ioen("ioen", true, p_ahbctrl);
+    gs::gs_param<bool> p_ahbctrl_fixbrst("fixbrst", false, p_ahbctrl);
+    gs::gs_param<bool> p_ahbctrl_split("split", false, p_ahbctrl);
+    gs::gs_param<bool> p_ahbctrl_fpnpen("fpnpen", true, p_ahbctrl);
+    gs::gs_param<bool> p_ahbctrl_mcheck("mcheck", true, p_ahbctrl);
+
     AHBCtrl ahbctrl("ahbctrl",
-		    conf_ahbctrl_ioaddr,                // The MSB address of the I/O area
-		    conf_ahbctrl_iomask,                // The I/O area address mask
-		    conf_ahbctrl_cfgaddr,               // The MSB address of the configuration area
-		    conf_ahbctrl_cfgmask,               // The address mask for the configuration area
-		    conf_ahbctrl_rrobin,                // 1 - round robin, 0 - fixed priority arbitration (only AT)
-		    conf_ahbctrl_split,                 // Enable support for AHB SPLIT response (only AT)
-		    conf_ahbctrl_defmast,               // Default AHB master
-		    conf_ahbctrl_ioen,                  // AHB I/O area enable
-		    conf_ahbctrl_fixbrst,               // Enable support for fixed-length bursts (disabled)
-		    conf_ahbctrl_fpnpen,                // Enable full decoding of PnP configuration records
-		    conf_ahbctrl_mcheck,                // Check if there are any intersections between core memory regions
-                    conf_sys_power,                     // Enable/disable power monitoring
+		    p_ahbctrl_ioaddr,                // The MSB address of the I/O area
+		    p_ahbctrl_iomask,                // The I/O area address mask
+		    p_ahbctrl_cfgaddr,               // The MSB address of the configuration area
+		    p_ahbctrl_cfgmask,               // The address mask for the configuration area
+		    p_ahbctrl_rrobin,                // 1 - round robin, 0 - fixed priority arbitration (only AT)
+		    p_ahbctrl_split,                 // Enable support for AHB SPLIT response (only AT)
+		    p_ahbctrl_defmast,               // Default AHB master
+		    p_ahbctrl_ioen,                  // AHB I/O area enable
+		    p_ahbctrl_fixbrst,               // Enable support for fixed-length bursts (disabled)
+		    p_ahbctrl_fpnpen,                // Enable full decoding of PnP configuration records
+		    p_ahbctrl_mcheck,                // Check if there are any intersections between core memory regions
+        p_report_power,                  // Enable/disable power monitoring
 		    ambaLayer
     );
 
     // Set clock
-    ahbctrl.set_clk(conf_sys_clock, SC_NS);
-    //
-    // CREATE AHB APB BRIDGE
-    // =====================
+    ahbctrl.set_clk(p_system_clock, SC_NS);
+
+    // AHBSlave - APBCtrl
+    // ==================
+    gs::gs_param_array p_apbctrl("apbctrl", p_conf);
+    gs::gs_param<unsigned int> p_apbctrl_haddr("haddr", 0x800, p_apbctrl);
+    gs::gs_param<unsigned int> p_apbctrl_hmask("hmask", 0xFFF, p_apbctrl);
+    gs::gs_param<unsigned int> p_apbctrl_index("hindex", 2u, p_apbctrl);
+    gs::gs_param<bool> p_apbctrl_check("mcheck", true, p_apbctrl);
     APBCtrl apbctrl("apbctrl", 
-		    conf_apbctrl_haddr,    // The 12 bit MSB address of the AHB area.
-		    conf_apbctrl_hmask,    // The 12 bit AHB area address mask
-		    conf_apbctrl_check,    // Check for intersections in the memory map 
-                    conf_apbctrl_index,    // AHB bus index
-                    conf_sys_power,        // Power Monitoring on/off
-		    ambaLayer              // TLM abstraction layer
+		    p_apbctrl_haddr,    // The 12 bit MSB address of the AHB area.
+		    p_apbctrl_hmask,    // The 12 bit AHB area address mask
+		    p_apbctrl_check,    // Check for intersections in the memory map 
+        p_apbctrl_index,    // AHB bus index
+        p_report_power,     // Power Monitoring on/off
+		    ambaLayer           // TLM abstraction layer
     );
     // Connecting AHB Slave
     ahbctrl.ahbOUT(apbctrl.ahb);
 
     // Set clock
-    apbctrl.set_clk(conf_sys_clock,SC_NS);
+    apbctrl.set_clk(p_system_clock, SC_NS);
 
+    gs::gs_param_array p_irqmp("irqmp", p_conf);
+    gs::gs_param<unsigned int> p_irqmp_addr("addr", 0x1F0, p_irqmp);
+    gs::gs_param<unsigned int> p_irqmp_mask("mask", 0xFFF, p_irqmp);
+    gs::gs_param<unsigned int> p_irqmp_index("index", 2, p_irqmp);
+    gs::gs_param<unsigned int> p_irqmp_eirq("eirq", 4, p_irqmp);
     int mmu_cache_num = 1;
-    mApi->getValue("conf.mmu_cache.num", mmu_cache_num);
-    // * IRQMP **********************************
-    // CREATE IRQ controller
-    // =====================
+    mApi->getValue("conf.irqmp.ncpu", mmu_cache_num);
+    // APBSlave - IRQMP
+    // ================
     // Needed for basic platform.
     // Always enabled
     Irqmp irqmp("irqmp",
-        conf_irqmp_addr,  // paddr
-        conf_irqmp_mask,  // pmask
+        p_irqmp_addr,  // paddr
+        p_irqmp_mask,  // pmask
         mmu_cache_num,  // ncpu
-        conf_irqmp_eirq,  // eirq
-        conf_irqmp_index
+        p_irqmp_eirq,  // eirq
+        p_irqmp_index
     );
     // Connecting APB Slave
     apbctrl.apb(irqmp.apb_slv);
     // Set clock
-    irqmp.set_clk(conf_sys_clock,SC_NS);
+    irqmp.set_clk(p_system_clock,SC_NS);
 
-    // ******************************************
-
-    
-    // CREATE LEON3 Processor
-    // ===================================================
-    // Always enabled.
-    // Needed for basic platform.
-    bool mmu_cache_ic_en = false;
-    int mmu_cache_ic_repl = 0;
-    int mmu_cache_ic_sets = 4;
-    int mmu_cache_ic_linesize = 4;
-    int mmu_cache_ic_setsize = 16;
-    int mmu_cache_ic_setlock = 1;
-    bool mmu_cache_dc_en = false;
-    int mmu_cache_dc_repl = 2;
-    int mmu_cache_dc_sets = 2;
-    int mmu_cache_dc_linesize = 4;
-    int mmu_cache_dc_setsize = 1;
-    int mmu_cache_dc_setlock = 1;
-    int mmu_cache_dc_snoop = 1;
-    gs::gs_param<std::string> proc_history("conf.proc.history", "");
-
-    mApi->getValue("conf.ic.en", mmu_cache_ic_en);
-    mApi->getValue("conf.ic.repl", mmu_cache_ic_repl);
-    mApi->getValue("conf.ic.sets", mmu_cache_ic_sets);
-    mApi->getValue("conf.ic.linesize", mmu_cache_ic_linesize);
-    mApi->getValue("conf.ic.setsize", mmu_cache_ic_setsize);
-    mApi->getValue("conf.ic.setlock", mmu_cache_ic_setlock);
-    mApi->getValue("conf.dc.en", mmu_cache_dc_en);
-    mApi->getValue("conf.dc.repl", mmu_cache_dc_repl);
-    mApi->getValue("conf.dc.sets", mmu_cache_dc_sets);
-    mApi->getValue("conf.dc.linesize", mmu_cache_dc_linesize);
-    mApi->getValue("conf.dc.setsize", mmu_cache_dc_setsize);
-    mApi->getValue("conf.dc.setlock", mmu_cache_dc_setlock);
-    mApi->getValue("conf.dc.snoop", mmu_cache_dc_snoop);
-
-    int gdb_port = 1500;
-    int gdb_proc = 0;
-    mApi->getValue("conf.gdb.en", gdb_en);
-    mApi->getValue("conf.gdb.port", gdb_port);
-    mApi->getValue("conf.gdb.proc", gdb_proc);
-    for(int i=0; i< mmu_cache_num; i++) {
-    // For each Abstraction is another model needed
-      #if conf_sys_lt_at
-        leon3_funclt_trap::Processor_leon3_funclt *leon3 = new leon3_funclt_trap::Processor_leon3_funclt(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(1/100, SC_US));
-      #else
-        leon3_funcat_trap::Processor_leon3_funcat *leon3 = new leon3_funcat_trap::Processor_leon3_funcat(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(conf_sys_clock, SC_NS));
-      #endif
-      leon3->ENTRY_POINT   = 0x0;
-      leon3->MPROC_ID      = (conf_mmu_cache_index + i) << 28;
-
-      // CREATE MMU_CACHE
-      // ================
-      // Always enabled.
-      // Needed for basic platform.
-      mmu_cache *mmu_cache_inst = new mmu_cache(
-              mmu_cache_ic_en,            //  int icen = 1 (icache enabled)
-              mmu_cache_ic_repl,       //  int irepl = 0 (icache LRU replacement)
-              mmu_cache_ic_sets,       //  int isets = 4 (4 instruction cache sets)
-              mmu_cache_ic_linesize,   //  int ilinesize = 4 (4 words per icache line)
-              mmu_cache_ic_setsize,    //  int isetsize = 16 (16kB per icache set)
-              mmu_cache_ic_setlock,    //  int isetlock = 1 (icache locking enabled)
-              mmu_cache_dc_en,            //  int dcen = 1 (dcache enabled)
-              mmu_cache_dc_repl,       //  int drepl = 2 (dcache random replacement)
-              mmu_cache_dc_sets,       //  int dsets = 2 (2 data cache sets)
-              mmu_cache_dc_linesize,   //  int dlinesize = 4 (4 word per dcache line)
-              mmu_cache_dc_setsize,    //  int dsetsize = 1 (1kB per dcache set)
-              mmu_cache_dc_setlock,    //  int dsetlock = 1 (dcache locking enabled)
-              mmu_cache_dc_snoop,      //  int dsnoop = 1 (dcache snooping enabled)
-              conf_mmu_cache_ilram,           //  int ilram = 0 (instr. localram disable)
-              conf_mmu_cache_ilram_size,      //  int ilramsize = 0 (1kB ilram size)
-              conf_mmu_cache_ilram_start,     //  int ilramstart = 8e (0x8e000000 default ilram start address)
-              conf_mmu_cache_dlram,           //  int dlram = 0 (data localram disable)
-              conf_mmu_cache_dlram_size,      //  int dlramsize = 0 (1kB dlram size)
-              conf_mmu_cache_dlram_start,     //  int dlramstart = 8f (0x8f000000 default dlram start address)
-              conf_mmu_cache_cached?0xFFFF:0, //  int cached = 0xffff (fixed cacheability mask)
-              conf_mmu_cache_mmu_en,          //  int mmu_en = 0 (mmu not present)
-              conf_mmu_cache_mmu_en_itlb_num, //  int itlb_num = 8 (8 itlbs - not present)
-              conf_mmu_cache_mmu_en_dtlb_num, //  int dtlb_num = 8 (8 dtlbs - not present)
-              conf_mmu_cache_mmu_en_tlb_type, //  int tlb_type = 0 (split tlb mode - not present)
-              conf_mmu_cache_mmu_en_tlb_rep,  //  int tlb_rep = 1 (random replacement)
-              conf_mmu_cache_mmu_en_mmupgsz,  //  int mmupgsz = 0 (4kB mmu page size)>
-              sc_core::sc_gen_unique_name("mmu_cache", false),                    // name of sysc module
-              conf_mmu_cache_index + i,           // Id of the AHB master
-              conf_sys_power,                 // Power Monitor,
-              ambaLayer                       // TLM abstraction layer
-      );
-      
-      // Connecting AHB Master
-      mmu_cache_inst->ahb(ahbctrl.ahbIN);
-      // Connecting Testbench
-
-      // Connect cpu to mmu-cache
-      leon3->instrMem.initSocket(mmu_cache_inst->icio);
-      leon3->dataMem.initSocket(mmu_cache_inst->dcio);
-      std::string history = proc_history;
-      if(!history.empty()) {
-          std::cout << "History tracking of CPU" << i << " goes to " << history + boost::lexical_cast<std::string>(i) << std::endl;
-          leon3->enableHistory(history + boost::lexical_cast<std::string>(i));
-      } else {
-          std::cout << "History is not tracked of CPU" << i << " goes to " << history + boost::lexical_cast<std::string>(i) << std::endl;
-      }
-     
-      connect(irqmp.irq_req, leon3->IRQ_port.irq_signal, i);
-      connect(leon3->irqAck.initSignal, irqmp.irq_ack, i);
-      connect(leon3->irqAck.run, irqmp.cpu_rst, i);
-      connect(leon3->irqAck.status, irqmp.cpu_stat, i);
-      connect(mmu_cache_inst->snoop, ahbctrl.snoop);
-
-      // Set clock
-      mmu_cache_inst->set_clk(conf_sys_clock, SC_NS);
-      
-      // * GDBStubs *******************************
-      if(gdb_en && gdb_proc == i) {
-          GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3->abiIf));
-          leon3->toolManager.addTool(*gdbStub);
-          gdbStub->initialize(gdb_port); 
-          //leon3->instrMem.setDebugger(gdbStub);
-          //leon3->dataMem.setDebugger(gdbStub);
-      }
-      // ******************************************
-
-    }
-    // CREATE MEMORY CONTROLLER
-    // ========================
-    Mctrl mctrl(
-        "mctrl", 
-        conf_memctrl_prom_asel, 
-        conf_memctrl_ram_asel, 
-        conf_memctrl_prom_addr, 
-        conf_memctrl_prom_mask, 
-        conf_memctrl_io_addr,
-        conf_memctrl_io_mask, 
-        conf_memctrl_ram_addr, 
-        conf_memctrl_ram_mask, 
-        conf_memctrl_apb_addr, 
-        conf_memctrl_apb_mask, 
-        conf_memctrl_ram_wprot, 
-        conf_memctrl_ram_sram_banks,
-        conf_memctrl_ram8,
-        conf_memctrl_ram16, 
-        conf_memctrl_sepbus, 
-        conf_memctrl_sdbits, 
-        conf_memctrl_mobile, 
-        conf_memctrl_sden, 
-        conf_memctrl_index, 
-        conf_memctrl_apb_index,
-        conf_sys_power,
+    // AHBSlave - MCtrl, ArrayMemory
+    // =============================
+    gs::gs_param_array p_mctrl("mctrl", p_conf);
+    gs::gs_param_array p_mctrl_apb("apb", p_mctrl);
+    gs::gs_param_array p_mctrl_prom("prom", p_mctrl);
+    gs::gs_param_array p_mctrl_io("io", p_mctrl);
+    gs::gs_param_array p_mctrl_ram("ram", p_mctrl);
+    gs::gs_param_array p_mctrl_ram_sram("sram", p_mctrl_ram);
+    gs::gs_param_array p_mctrl_ram_sdram("sdram", p_mctrl_ram);
+    gs::gs_param<unsigned int> p_mctrl_apb_addr("addr", 0x000u, p_mctrl_apb);
+    gs::gs_param<unsigned int> p_mctrl_apb_mask("mask", 0xFFF, p_mctrl_apb);
+    gs::gs_param<unsigned int> p_mctrl_apb_index("index", 0u, p_mctrl_apb);
+    gs::gs_param<unsigned int> p_mctrl_prom_addr("addr", 0x000u, p_mctrl_prom);
+    gs::gs_param<unsigned int> p_mctrl_prom_mask("mask", 0xE00, p_mctrl_prom);
+    gs::gs_param<unsigned int> p_mctrl_prom_asel("asel", 28, p_mctrl_prom);
+    gs::gs_param<unsigned int> p_mctrl_prom_banks("banks", 2, p_mctrl_prom);
+    gs::gs_param<unsigned int> p_mctrl_prom_bsize("bsize", 256, p_mctrl_prom);
+    gs::gs_param<unsigned int> p_mctrl_prom_width("width", 32, p_mctrl_prom);
+    gs::gs_param<unsigned int> p_mctrl_io_addr("addr", 0x200, p_mctrl_io);
+    gs::gs_param<unsigned int> p_mctrl_io_mask("mask", 0xE00, p_mctrl_io);
+    gs::gs_param<unsigned int> p_mctrl_io_banks("banks", 1, p_mctrl_io);
+    gs::gs_param<unsigned int> p_mctrl_io_bsize("bsize", 512, p_mctrl_io);
+    gs::gs_param<unsigned int> p_mctrl_io_width("width", 32, p_mctrl_io);
+    gs::gs_param<unsigned int> p_mctrl_ram_addr("addr", 0x400, p_mctrl_ram);
+    gs::gs_param<unsigned int> p_mctrl_ram_mask("mask", 0xC00, p_mctrl_ram);
+    gs::gs_param<bool> p_mctrl_ram_wprot("wprot", false, p_mctrl_ram);
+    gs::gs_param<unsigned int> p_mctrl_ram_asel("asel", 29, p_mctrl_ram);
+    gs::gs_param<unsigned int> p_mctrl_ram_sram_banks("banks", 4, p_mctrl_ram_sram);
+    gs::gs_param<unsigned int> p_mctrl_ram_sram_bsize("bsize", 128, p_mctrl_ram_sram);
+    gs::gs_param<unsigned int> p_mctrl_ram_sram_width("width", 32, p_mctrl_ram_sram);
+    gs::gs_param<unsigned int> p_mctrl_ram_sdram_banks("banks", 2, p_mctrl_ram_sdram);
+    gs::gs_param<unsigned int> p_mctrl_ram_sdram_bsize("bsize", 256, p_mctrl_ram_sdram);
+    gs::gs_param<unsigned int> p_mctrl_ram_sdram_width("width", 32, p_mctrl_ram_sdram);
+    gs::gs_param<unsigned int> p_mctrl_ram_sdram_cols("width", 16, p_mctrl_ram_sdram);
+    gs::gs_param<unsigned int> p_mctrl_index("index", 0u, p_mctrl);
+    gs::gs_param<bool> p_mctrl_ram8("ram8", true, p_mctrl);
+    gs::gs_param<bool> p_mctrl_ram16("ram16", true, p_mctrl);
+    gs::gs_param<bool> p_mctrl_sden("sden", true, p_mctrl);
+    gs::gs_param<bool> p_mctrl_sepbus("sepbus", false, p_mctrl);
+    gs::gs_param<unsigned int> p_mctrl_sdbits("sdbits", 32, p_mctrl);
+    gs::gs_param<unsigned int> p_mctrl_mobile("mobile", 0u, p_mctrl);
+    Mctrl mctrl( "mctrl", 
+        p_mctrl_prom_asel, 
+        p_mctrl_ram_asel, 
+        p_mctrl_prom_addr, 
+        p_mctrl_prom_mask, 
+        p_mctrl_io_addr,
+        p_mctrl_io_mask, 
+        p_mctrl_ram_addr, 
+        p_mctrl_ram_mask, 
+        p_mctrl_apb_addr, 
+        p_mctrl_apb_mask, 
+        p_mctrl_ram_wprot, 
+        p_mctrl_ram_sram_banks,
+        p_mctrl_ram8,
+        p_mctrl_ram16, 
+        p_mctrl_sepbus, 
+        p_mctrl_sdbits, 
+        p_mctrl_mobile, 
+        p_mctrl_sden, 
+        p_mctrl_index, 
+        p_mctrl_apb_index,
+        p_report_power,
         ambaLayer
     );
     
@@ -455,154 +290,384 @@ int sc_main(int argc, char** argv) {
     // Connecting APB Slave
     apbctrl.apb(mctrl.apb);
     // Set clock
-    mctrl.set_clk(conf_sys_clock, SC_NS);
+    mctrl.set_clk(p_system_clock, SC_NS);
 
     // CREATE MEMORIES
     // ===============
-    #if conf_memctrl_prom != 0
-    ArrayMemory rom(
-        "rom", 
+    ArrayMemory rom( "rom", 
         MEMDevice::ROM, 
-        conf_memctrl_prom_banks, 
-        conf_memctrl_prom_bsize * 1024 * 1024, 
-        conf_memctrl_prom_width, 
-        0
+        p_mctrl_prom_banks, 
+        p_mctrl_prom_bsize * 1024 * 1024, 
+        p_mctrl_prom_width
     );
     mctrl.mem(rom.bus);
-    #endif
+    // ELF loader from leon (Trap-Gen)
+    gs::gs_param<std::string> p_mctrl_prom_elf("elf", "", p_mctrl_prom);
+    
+    if(!((std::string)p_mctrl_prom_elf).empty()) {
+      uint8_t *execData;
+      v::info << "main" << "Loading Prom with " << p_mctrl_prom_elf << v::endl;
+      ExecLoader prom_loader(p_mctrl_prom_elf); 
+      execData = prom_loader.getProgData();
+    
+      for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
+        rom.write(prom_loader.getDataStart() + i - ((((unsigned int)p_mctrl_prom_addr)&((unsigned int)p_mctrl_prom_mask))<<20), execData[i]);
+      }
+    }
 
-    #if conf_memctrl_io != 0
-    ArrayMemory io(
-        "io", 
+    ArrayMemory io( "io", 
         MEMDevice::IO, 
-        conf_memctrl_prom_banks, 
-        conf_memctrl_prom_bsize * 1024 * 1024, 
-        conf_memctrl_prom_width, 
-        0
+        p_mctrl_prom_banks, 
+        p_mctrl_prom_bsize * 1024 * 1024, 
+        p_mctrl_prom_width
     );
     mctrl.mem(io.bus);
-    #endif
+    // ELF loader from leon (Trap-Gen)
+    gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);
+    
+    if(!((std::string)p_mctrl_io_elf).empty()) {
+      uint8_t *execData;
+      v::info << "main" << "Loading IO with " << p_mctrl_io_elf << v::endl;
+      ExecLoader loader(p_mctrl_io_elf); 
+      execData = loader.getProgData();
+    
+      for(unsigned int i = 0; i < loader.getProgDim(); i++) {
+        io.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_io_addr)&((unsigned int)p_mctrl_io_mask))<<20), execData[i]);
+      }
+    }
 
-    #if conf_memctrl_ram_sram != 0
-    ArrayMemory sram(
-        "sram", 
+    ArrayMemory sram( "sram", 
         MEMDevice::SRAM, 
-        conf_memctrl_ram_sram_banks, 
-        conf_memctrl_ram_sram_bsize * 1024 * 1024, 
-        conf_memctrl_ram_sram_width, 
-        0
+        p_mctrl_ram_sram_banks, 
+        p_mctrl_ram_sram_bsize * 1024 * 1024, 
+        p_mctrl_ram_sram_width 
     );
     mctrl.mem(sram.bus);    
-    #endif
+    // ELF loader from leon (Trap-Gen)
+    gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
+    
+    if(!((std::string)p_mctrl_ram_sram_elf).empty()) {
+      uint8_t *execData;
+      v::info << "main" << "Loading SRam with " << p_mctrl_ram_sram_elf << v::endl;
+      ExecLoader loader(p_mctrl_ram_sram_elf); 
+      execData = loader.getProgData();
+    
+      for(unsigned int i = 0; i < loader.getProgDim(); i++) {
+        sram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
+      }
+    }
+
    
-    #if conf_memctrl_ram_sdram != 0
-    ArrayMemory sdram(
-        "sdram", 
+    ArrayMemory sdram( "sdram", 
         MEMDevice::SDRAM, 
-        conf_memctrl_ram_sdram_banks, 
-        conf_memctrl_ram_sdram_bsize * 1024 * 1024, 
-        conf_memctrl_ram_sdram_width, 
-        conf_memctrl_ram_sdram_cols
+        p_mctrl_ram_sdram_banks, 
+        p_mctrl_ram_sdram_bsize * 1024 * 1024, 
+        p_mctrl_ram_sdram_width, 
+        p_mctrl_ram_sdram_cols
     );
     mctrl.mem(sdram.bus);
-    #endif
-    
-    //AHBMemem ahb_mem("AHBMEM", 0x0, 0x800);
-    //ahbctrl.ahbOUT(ahb_mem.ahb);
-    
-    // * ELF Loader ****************************
     // ELF loader from leon (Trap-Gen)
-    // Loads the application into the memmory.
-    // Initialize memory
-    gs::gs_param<std::string> prom_elf("conf.prom.elf", "./rtems-ccsds123.prom");
-    //mApi->getValue("conf.prom.elf", prom_app);
-    v::info << "main" << "Loading Prom with " << prom_elf << v::endl;
-    uint8_t *execData;
-    //ExecLoader sdram_loader(sram_app); 
-    //execData = sdram_loader.getProgData();
-    //for(unsigned int i = 0; i < sdram_loader.getProgDim(); i++) {
-    //   sdram.write(sdram_loader.getDataStart() + i - ((conf_memctrl_ram_addr&conf_memctrl_ram_mask)<<20), execData[i]);
-    //}
+    gs::gs_param<std::string> p_mctrl_sdram_elf("elf", "", p_mctrl_ram_sdram);
     
-    //leon3.ENTRY_POINT   = sdram_loader.getProgStart();
-    //leon3.PROGRAM_LIMIT = sdram_loader.getProgDim() + sdram_loader.getDataStart();
-    //leon3.PROGRAM_START = sdram_loader.getDataStart();
-    ExecLoader prom_loader(prom_elf); 
-    execData = prom_loader.getProgData();
+    if(!((std::string)p_mctrl_sdram_elf).empty()) {
+      uint8_t *execData;
+      v::info << "main" << "Loading SDRam with " << p_mctrl_sdram_elf << v::endl;
+      ExecLoader loader(p_mctrl_sdram_elf); 
+      execData = loader.getProgData();
     
-    for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
-       rom.write(prom_loader.getDataStart() + i - ((conf_memctrl_prom_addr&conf_memctrl_prom_mask)<<20), execData[i]);
-       //ahb_mem.writeByteDBG(prom_loader.getDataStart() + i, execData[i]);
-       //v::debug << "sc_main" << "Write to PROM: Addr: " << v::uint32 << prom_loader.getDataStart() + i << " Data: " << v::uint8 << (uint32_t)execData[i] << v::endl;
+      for(unsigned int i = 0; i < loader.getProgDim(); i++) {
+        sdram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
+      }
     }
-    //leon3.ENTRY_POINT   = prom_loader.getProgStart();
-    //leon3.PROGRAM_LIMIT = prom_loader.getProgDim() + prom_loader.getDataStart();
-    //leon3.PROGRAM_START = prom_loader.getDataStart();
+
+    
     //leon3.ENTRY_POINT   = 0;
     //leon3.PROGRAM_LIMIT = 0;
     //leon3.PROGRAM_START = 0;
 
-    
-    //assert((sram_loader.getProgDim() + sram_loader.getDataStart()) < 0x1fffffff);
-    // ******************************************
-    
-    #if conf_ahbmem != 0
-    AHBMem ahbmem("ahbmem",
-        conf_ahbmem_addr,
-        conf_ahbmem_mask,
+    // AHBSlave - AHBMem
+    // =================
+    gs::gs_param_array p_ahbmem("ahbmem", p_conf);
+    gs::gs_param<bool> p_ahbmem_en("en", true, p_ahbmem);
+    gs::gs_param<unsigned int> p_ahbmem_addr("addr", 0xA00, p_ahbmem);
+    gs::gs_param<unsigned int> p_ahbmem_mask("mask", 0xFFF, p_ahbmem);
+    gs::gs_param<unsigned int> p_ahbmem_index("index", 1, p_ahbmem);
+    gs::gs_param<std::string> p_ahbmem_elf("elf", "", p_ahbmem);
+    if(p_ahbmem_en) {
+      AHBMem *ahbmem = new AHBMem("ahbmem",
+        p_ahbmem_addr,
+        p_ahbmem_mask,
         ambaLayer,
-        conf_ahbmem_index
-    );
-    ahbctrl.ahbOUT(ahbmem.ahb);
-    #endif
+        p_ahbmem_index
+      );
+      ahbctrl.ahbOUT(ahbmem->ahb);
+      // ELF loader from leon (Trap-Gen)
+      if(!((std::string)p_ahbmem_elf).empty()) {
+        uint8_t *execData;
+        v::info << "main" << "Loading AHBMem with " << p_ahbmem_elf << v::endl;
+        ExecLoader prom_loader(p_ahbmem_elf); 
+        execData = prom_loader.getProgData();
     
-    #if conf_inputdev != 0
-    input_device sensor(
-        "sensor",
-        conf_inputdev_hindex,
-        conf_inputdev_hirq,
-        conf_inputdev_framesize,
-        conf_inputdev_frameaddr,
-        sc_core::sc_time(conf_inputdev_interval, SC_MS),
-        conf_sys_power,
-        ambaLayer
-    );
-    // Connect sensor to bus
-    sensor.ahb(ahbctrl.ahbIN);
-    sensor.set_clk(conf_sys_clock, SC_NS);
-
-    // Connect interrupt out
-    signalkit::connect(irqmp.irq_in, sensor.irq, 13);
-
-    #endif
-    
-    // * GPTimer ********************************
-    #if conf_gptimer != 0
-    // CREATE GPTimer
-    // ==============
-    GPTimer gptimer("gptimer",
-        conf_gptimer_ntimers,// ntimers
-        conf_gptimer_index,  // index
-        conf_gptimer_addr,   // paddr
-        conf_gptimer_mask,   // pmask
-        conf_gptimer_pirq,   // pirq
-        conf_gptimer_sepirq, // sepirq
-        conf_gptimer_sbits,  // sbits
-        conf_gptimer_nbits,  // nbits
-        conf_gptimer_wdog,   // wdog
-        conf_sys_power      // powmon
-    );
-    // Connecting APB Slave
-    apbctrl.apb(gptimer.bus);
-    // Connecting Interrupts
-    for(int i=0; i < 8; i++) {
-      signalkit::connect(irqmp.irq_in, gptimer.irq, conf_gptimer_pirq + i);
+        for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
+          ahbmem->writeByteDBG(prom_loader.getDataStart() + i - ((((unsigned int)p_ahbmem_addr)&((unsigned int)p_ahbmem_mask))<<20), execData[i]);
+        }
+      }
     }
-    // Set clock
-    gptimer.set_clk(conf_sys_clock,SC_NS);
-    #endif
-    // CREATE APBUart
-    // ==============
+
+    
+    // AHBMaster - input_device
+    // ========================
+    gs::gs_param_array p_indev("indev", p_conf);
+    gs::gs_param<bool> p_indev_en("en", true, p_indev);
+    gs::gs_param<unsigned int> p_indev_index("index", 1, p_indev);
+    gs::gs_param<unsigned int> p_indev_irq("irq", 5, p_indev);
+    gs::gs_param<unsigned int> p_indev_framesize("framesize", 128, p_indev);
+    gs::gs_param<unsigned int> p_indev_frameaddr("frameaddr", 0xA00, p_indev);
+    gs::gs_param<unsigned int> p_indev_interval("interval", 1, p_indev);
+    if(p_indev_en) {
+      /*input_device *sensor = new input_device("sensor",
+        p_indev_index,
+        p_indev_irq,
+        p_indev_framesize,
+        p_indev_frameaddr,
+        sc_core::sc_time(p_indev_interval, SC_MS),
+        p_report_power,
+        ambaLayer
+      );
+
+      // Connect sensor to bus
+      sensor->ahb(ahbctrl.ahbIN);
+      sensor->set_clk(p_system_clock, SC_NS);
+
+      // Connect interrupt out
+      signalkit::connect(irqmp.irq_in, sensor.irq, p_indev_irq);
+      */
+    }
+
+    // CREATE LEON3 Processor
+    // ===================================================
+    // Always enabled.
+    // Needed for basic platform.
+    gs::gs_param_array p_mmu_cache("mmu_cache", p_conf);
+    gs::gs_param_array p_mmu_cache_ic("ic", p_mmu_cache);
+    gs::gs_param<bool> p_mmu_cache_ic_en("en", true, p_mmu_cache_ic);
+    gs::gs_param<int> p_mmu_cache_ic_repl("repl", 0, p_mmu_cache_ic);
+    gs::gs_param<int> p_mmu_cache_ic_sets("sets", 4, p_mmu_cache_ic);
+    gs::gs_param<int> p_mmu_cache_ic_linesize("linesize", 4, p_mmu_cache_ic);
+    gs::gs_param<int> p_mmu_cache_ic_setsize("setsize", 16, p_mmu_cache_ic);
+    gs::gs_param<int> p_mmu_cache_ic_setlock("setlock", 1, p_mmu_cache_ic);
+    gs::gs_param_array p_mmu_cache_dc("dc", p_mmu_cache);
+    gs::gs_param<bool> p_mmu_cache_dc_en("en", true, p_mmu_cache_dc);
+    gs::gs_param<int> p_mmu_cache_dc_repl("repl", 2, p_mmu_cache_dc);
+    gs::gs_param<int> p_mmu_cache_dc_sets("sets", 2, p_mmu_cache_dc);
+    gs::gs_param<int> p_mmu_cache_dc_linesize("linesize", 4, p_mmu_cache_dc);
+    gs::gs_param<int> p_mmu_cache_dc_setsize("setsize", 1, p_mmu_cache_dc);
+    gs::gs_param<int> p_mmu_cache_dc_setlock("setlock", 1, p_mmu_cache_dc);
+    gs::gs_param<int> p_mmu_cache_dc_snoop("snoop", 1, p_mmu_cache_dc);
+    gs::gs_param_array p_mmu_cache_ilram("ilram", p_mmu_cache);
+    gs::gs_param<bool> p_mmu_cache_ilram_en("en", false, p_mmu_cache_ilram);
+    gs::gs_param<unsigned int> p_mmu_cache_ilram_size("size", 0u, p_mmu_cache_ilram);
+    gs::gs_param<unsigned int> p_mmu_cache_ilram_start("start", 0u, p_mmu_cache_ilram);
+    gs::gs_param_array p_mmu_cache_dlram("dlram", p_mmu_cache);
+    gs::gs_param<bool> p_mmu_cache_dlram_en("en", false, p_mmu_cache_dlram);
+    gs::gs_param<unsigned int> p_mmu_cache_dlram_size("size", 0u, p_mmu_cache_dlram);
+    gs::gs_param<unsigned int> p_mmu_cache_dlram_start("start", 0u, p_mmu_cache_dlram);
+    gs::gs_param<unsigned int> p_mmu_cache_cached("cached", 0xFFFF, p_mmu_cache);
+    gs::gs_param<unsigned int> p_mmu_cache_index("index", 0u, p_mmu_cache);
+    gs::gs_param_array p_mmu_cache_mmu("mmu", p_mmu_cache);
+    gs::gs_param<bool> p_mmu_cache_mmu_en("en", false, p_mmu_cache);
+    gs::gs_param<unsigned int> p_mmu_cache_mmu_itlb_num("itlb_num", 8, p_mmu_cache_mmu);
+    gs::gs_param<unsigned int> p_mmu_cache_mmu_dtlb_num("dtlb_num", 8, p_mmu_cache_mmu);
+    gs::gs_param<unsigned int> p_mmu_cache_mmu_tlb_type("tlb_type", 0u, p_mmu_cache_mmu);
+    gs::gs_param<unsigned int> p_mmu_cache_mmu_tlb_rep("tlb_rep", 1, p_mmu_cache_mmu);
+    gs::gs_param<unsigned int> p_mmu_cache_mmu_mmupgsz("mmupgsz", 0u, p_mmu_cache_mmu);
+
+    gs::gs_param<std::string> p_proc_history("conf.proc.history", "");
+
+    gs::gs_param_array p_gdb("gdb", p_conf);
+    gs::gs_param<bool> p_gdb_en("en", false, p_gdb);
+    gs::gs_param<int> p_gdb_port("port", 1500, p_gdb);
+    gs::gs_param<int> p_gdb_proc("proc", 0, p_gdb);
+    for(int i=0; i< mmu_cache_num; i++) {
+      // AHBMaster - MMU_CACHE
+      // =====================
+      // Always enabled.
+      // Needed for basic platform.
+      mmu_cache *mmu_cache_inst = new mmu_cache(
+              p_mmu_cache_ic_en,         //  int icen = 1 (icache enabled)
+              p_mmu_cache_ic_repl,       //  int irepl = 0 (icache LRU replacement)
+              p_mmu_cache_ic_sets,       //  int isets = 4 (4 instruction cache sets)
+              p_mmu_cache_ic_linesize,   //  int ilinesize = 4 (4 words per icache line)
+              p_mmu_cache_ic_setsize,    //  int isetsize = 16 (16kB per icache set)
+              p_mmu_cache_ic_setlock,    //  int isetlock = 1 (icache locking enabled)
+              p_mmu_cache_dc_en,         //  int dcen = 1 (dcache enabled)
+              p_mmu_cache_dc_repl,       //  int drepl = 2 (dcache random replacement)
+              p_mmu_cache_dc_sets,       //  int dsets = 2 (2 data cache sets)
+              p_mmu_cache_dc_linesize,   //  int dlinesize = 4 (4 word per dcache line)
+              p_mmu_cache_dc_setsize,    //  int dsetsize = 1 (1kB per dcache set)
+              p_mmu_cache_dc_setlock,    //  int dsetlock = 1 (dcache locking enabled)
+              p_mmu_cache_dc_snoop,      //  int dsnoop = 1 (dcache snooping enabled)
+              p_mmu_cache_ilram_en,      //  int ilram = 0 (instr. localram disable)
+              p_mmu_cache_ilram_size,    //  int ilramsize = 0 (1kB ilram size)
+              p_mmu_cache_ilram_start,   //  int ilramstart = 8e (0x8e000000 default ilram start address)
+              p_mmu_cache_dlram_en,      //  int dlram = 0 (data localram disable)
+              p_mmu_cache_dlram_size,    //  int dlramsize = 0 (1kB dlram size)
+              p_mmu_cache_dlram_start,   //  int dlramstart = 8f (0x8f000000 default dlram start address)
+              p_mmu_cache_cached,        //  int cached = 0xffff (fixed cacheability mask)
+              p_mmu_cache_mmu_en,        //  int mmu_en = 0 (mmu not present)
+              p_mmu_cache_mmu_itlb_num,  //  int itlb_num = 8 (8 itlbs - not present)
+              p_mmu_cache_mmu_dtlb_num,  //  int dtlb_num = 8 (8 dtlbs - not present)
+              p_mmu_cache_mmu_tlb_type,  //  int tlb_type = 0 (split tlb mode - not present)
+              p_mmu_cache_mmu_tlb_rep,   //  int tlb_rep = 1 (random replacement)
+              p_mmu_cache_mmu_mmupgsz,   //  int mmupgsz = 0 (4kB mmu page size)>
+              sc_core::sc_gen_unique_name("mmu_cache", false), // name of sysc module
+              p_mmu_cache_index + i,     // Id of the AHB master
+              p_report_power,            // Power Monitor,
+              ambaLayer                  // TLM abstraction layer
+      );
+      
+      // Connecting AHB Master
+      mmu_cache_inst->ahb(ahbctrl.ahbIN);
+      
+      // Set clock
+      mmu_cache_inst->set_clk(p_system_clock, SC_NS);
+      connect(mmu_cache_inst->snoop, ahbctrl.snoop);
+      
+      // For each Abstraction is another model needed
+      if(p_system_at) {
+        // LEON3 AT Processor
+        // ==================
+        leon3_funcat_trap::Processor_leon3_funcat *leon3 = new leon3_funcat_trap::Processor_leon3_funcat(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS));
+        leon3->ENTRY_POINT   = 0x0;
+        leon3->MPROC_ID      = (p_mmu_cache_index + i) << 28;
+
+        // Connect cpu to mmu-cache
+        leon3->instrMem.initSocket(mmu_cache_inst->icio);
+        leon3->dataMem.initSocket(mmu_cache_inst->dcio);
+
+        // History logging
+        std::string history = p_proc_history;
+        if(!history.empty()) {
+          leon3->enableHistory(history + boost::lexical_cast<std::string>(i));
+        }
+
+        connect(irqmp.irq_req, leon3->IRQ_port.irq_signal, i);
+        connect(leon3->irqAck.initSignal, irqmp.irq_ack, i);
+        connect(leon3->irqAck.run, irqmp.cpu_rst, i);
+        connect(leon3->irqAck.status, irqmp.cpu_stat, i);
+
+        // GDBStubs
+        if(p_gdb_en && p_gdb_proc == i) {
+          GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3->abiIf));
+          leon3->toolManager.addTool(*gdbStub);
+          gdbStub->initialize(p_gdb_port); 
+          //leon3->instrMem.setDebugger(gdbStub);
+          //leon3->dataMem.setDebugger(gdbStub);
+        }
+        // OS Emulator
+        // ===========
+        // is activating the leon traps to map basic io functions to the host system
+        // set_brk, open, read, ...
+        if(!((std::string)p_system_osemu).empty()) {
+          OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
+          osEmu->initSysCalls(p_system_osemu);
+          std::vector<std::string> options;
+          options.push_back(p_system_osemu);
+          for(int i = 1; i < argc; i++) {
+            options.push_back(argv[i]);
+          }
+          OSEmulatorBase::set_program_args(options);
+          leon3->toolManager.addTool(*osEmu);
+        }
+      } else {
+        // LEON3 LT Processor
+        // ==================
+        leon3_funclt_trap::Processor_leon3_funclt *leon3 = new leon3_funclt_trap::Processor_leon3_funclt(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS));
+        leon3->ENTRY_POINT   = 0x0;
+        leon3->MPROC_ID      = (p_mmu_cache_index + i) << 28;
+
+        // Connect cpu to mmu-cache
+        leon3->instrMem.initSocket(mmu_cache_inst->icio);
+        leon3->dataMem.initSocket(mmu_cache_inst->dcio);
+
+        // History logging
+        std::string history = p_proc_history;
+        if(!history.empty()) {
+          leon3->enableHistory(history + boost::lexical_cast<std::string>(i));
+        }
+
+        connect(irqmp.irq_req, leon3->IRQ_port.irq_signal, i);
+        connect(leon3->irqAck.initSignal, irqmp.irq_ack, i);
+        connect(leon3->irqAck.run, irqmp.cpu_rst, i);
+        connect(leon3->irqAck.status, irqmp.cpu_stat, i);
+
+        // GDBStubs
+        if(p_gdb_en && p_gdb_proc == i) {
+          GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3->abiIf));
+          leon3->toolManager.addTool(*gdbStub);
+          gdbStub->initialize(p_gdb_port); 
+          //leon3->instrMem.setDebugger(gdbStub);
+          //leon3->dataMem.setDebugger(gdbStub);
+        }
+        // OS Emulator
+        // ===========
+        // is activating the leon traps to map basic io functions to the host system
+        // set_brk, open, read, ...
+        if(!((std::string)p_system_osemu).empty()) {
+          OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
+          osEmu->initSysCalls(p_system_osemu);
+          std::vector<std::string> options;
+          options.push_back(p_system_osemu);
+          for(int i = 1; i < argc; i++) {
+            options.push_back(argv[i]);
+          }
+          OSEmulatorBase::set_program_args(options);
+          leon3->toolManager.addTool(*osEmu);
+        }
+      }
+    }
+
+    // APBSlave - GPTimer
+    // ==================
+    gs::gs_param_array p_gptimer("gptimer", p_conf);
+    gs::gs_param<bool> p_gptimer_en("en", true, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_addr("addr", 0x0F0, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_mask("mask", 0xFFF, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_index("index", 3, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_irq("irq", 8, p_gptimer);
+    gs::gs_param<bool> p_gptimer_sepirq("sepirq", true, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_ntimers("ntimers", 7, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_sbits("sbit", 16, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_nbits("nbits", 32, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_wdog("wdog", 0u, p_gptimer);
+    if(p_gptimer_en) {
+      GPTimer *gptimer = new GPTimer("gptimer",
+        p_gptimer_ntimers,// ntimers
+        p_gptimer_index,  // index
+        p_gptimer_addr,   // paddr
+        p_gptimer_mask,   // pmask
+        p_gptimer_irq,    // pirq
+        p_gptimer_sepirq, // sepirq
+        p_gptimer_sbits,  // sbits
+        p_gptimer_nbits,  // nbits
+        p_gptimer_wdog,   // wdog
+        p_report_power    // powmon
+      );
+
+      // Connecting APB Slave
+      apbctrl.apb(gptimer->bus);
+
+      // Connecting Interrupts
+      for(int i=0; i < 8; i++) {
+        signalkit::connect(irqmp.irq_in, gptimer->irq, p_gptimer_irq + i);
+      }
+
+      // Set clock
+      gptimer->set_clk(p_system_clock,SC_NS);
+    }
+
+    // APBSlave - APBUart
+    // ==================
     std::string n_uart = "conf.uart";
     gs::gs_param_array *p_uart = new gs::gs_param_array(n_uart);
     int i = 0;
@@ -633,7 +698,7 @@ int sc_main(int argc, char** argv) {
         addr,            // paddr
         mask,            // pmask
         irq,             // pirq
-        conf_sys_power   // powmon
+        p_report_power   // powmon
       );
 
       // Connecting APB Slave
@@ -641,85 +706,68 @@ int sc_main(int argc, char** argv) {
       // Connecting Interrupts
       signalkit::connect(irqmp.irq_in, apbuart->irq, irq);
       // Set clock
-      apbuart->set_clk(conf_sys_clock,SC_NS);
+      apbuart->set_clk(p_system_clock,SC_NS);
       // ******************************************
 
       i++;
     }
     
-    AHBProf *ahbprof = new AHBProf("ahbprof",
-        6,                // index
-        0x900,            // paddr
-        0xFFF,            // pmask
+    // AHBSlave - AHBProf
+    // ==================
+    gs::gs_param_array p_ahbprof("ahbprof", p_conf);
+    gs::gs_param<bool> p_ahbprof_en("en", true, p_ahbprof);
+    gs::gs_param<unsigned int> p_ahbprof_addr("addr", 0x900, p_ahbprof);
+    gs::gs_param<unsigned int> p_ahbprof_mask("mask", 0xFFF, p_ahbprof);
+    gs::gs_param<unsigned int> p_ahbprof_index("index", 6, p_ahbprof);
+    if(p_ahbprof_en) {
+      AHBProf *ahbprof = new AHBProf("ahbprof",
+        p_ahbprof_index,  // index
+        p_ahbprof_addr,   // paddr
+        p_ahbprof_mask,   // pmask
         ambaLayer
-    );
+      );
 
-    // Connecting APB Slave
-    ahbctrl.ahbOUT(ahbprof->ahb);
-    ahbprof->set_clk(conf_sys_clock,SC_NS);
+      // Connecting APB Slave
+      ahbctrl.ahbOUT(ahbprof->ahb);
+      ahbprof->set_clk(p_system_clock,SC_NS);
+    }
  
-    // * SoCWire ********************************
-    #if conf_socwire != 0
     // CREATE AHB2Socwire bridge
     // =========================
-    AHB2Socwire ahb2socwire("ahb2socwire",
-        conf_socwire_apb_paddr,                   // paddr
-        conf_socwire_apb_pmask,                   // pmask
-        conf_socwire_apb_pindex,                  // pindex
-        conf_socwire_apb_pirq,                    // pirq
-        conf_socwire_ahb_hindex,                   // hindex
-        ambaLayer                                 // abstraction
-    );
+    gs::gs_param_array p_socwire("socwire", p_conf);
+    gs::gs_param<bool> p_socwire_en("en", true, p_socwire);
+    gs::gs_param_array p_socwire_apb("apb", p_socwire);
+    gs::gs_param<unsigned int> p_socwire_apb_addr("addr", 0x010, p_socwire_apb);
+    gs::gs_param<unsigned int> p_socwire_apb_mask("mask", 0xFFF, p_socwire_apb);
+    gs::gs_param<unsigned int> p_socwire_apb_index("index", 3, p_socwire_apb);
+    gs::gs_param<unsigned int> p_socwire_apb_irq("irq", 10, p_socwire_apb);
+    gs::gs_param_array p_socwire_ahb("ahb", p_socwire);
+    gs::gs_param<unsigned int> p_socwire_ahb_index("index", 1, p_socwire_ahb);
+    if(p_socwire_en) {
+      AHB2Socwire *ahb2socwire = new AHB2Socwire("ahb2socwire",
+        p_socwire_apb_addr,  // paddr
+        p_socwire_apb_mask,  // pmask
+        p_socwire_apb_index, // pindex
+        p_socwire_apb_irq,   // pirq
+        p_socwire_ahb_index, // hindex
+        ambaLayer            // abstraction
+      );
     
-    // Connecting AHB Master
-    ahb2socwire.ahb(ahbctrl.ahbIN);
+      // Connecting AHB Master
+      ahb2socwire->ahb(ahbctrl.ahbIN);
     
-    // Connecting APB Slave
-    apbctrl.apb(ahb2socwire.apb);
+      // Connecting APB Slave
+      apbctrl.apb(ahb2socwire->apb);
     
-    // Connecting Interrupts
-    connect(irqmp.irq_in, ahb2socwire.irq, conf_socwire_apb_pirq);
+      // Connecting Interrupts
+      connect(irqmp.irq_in, ahb2socwire->irq, p_socwire_apb_irq);
     
-    // Connect socwire ports as loopback
-    ahb2socwire.socwire.master_socket(ahb2socwire.socwire.slave_socket);
-    #endif
-    // ******************************************
-    
-    // * OS Emulator ****************************
-    // OS Emulator is activating the leon traps to map basic io functions to the host system
-    // set_brk, open, read, ...
-    /*
-    OSEmulator< unsigned int> osEmu(*(leon3.abiIf));
-    v::info << "main" << "OSEmulator" << v::endl;
-    osEmu.initSysCalls(sram_app);
-    v::info << "main" << "OSEmulator" << v::endl;
-    std::vector<std::string> options;
-    options.push_back(sram_app);
-    for(int i = app_argc; i < argc; i++) {
-        options.push_back(argv[i]);
+      // Connect socwire ports as loopback
+      ahb2socwire->socwire.master_socket(ahb2socwire->socwire.slave_socket);
     }
-    OSEmulatorBase::set_program_args(options);
-
-    v::info << "main" << "OSEmulator" << v::endl;
-    leon3.toolManager.addTool(osEmu);
-    v::info << "main" << "OSEmulator" << v::endl;
-    */
-    //leon3.enableHistory("cmdHistLTSys"); 
-    // ******************************************
+    
    
-    // * GDBStubs *******************************
-    //if(gdb_en) {
-    //    int gdb_port = atoi(getenv("GDB_PORT"));
-    //    GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3.abiIf));
-    //    leon3.toolManager.addTool(*gdbStub);
-    //    gdbStub->initialize(gdb_port); 
-    //    leon3.instrMem.setDebugger(gdbStub);
-    //    leon3.dataMem.setDebugger(gdbStub);
-    //}
-    // ******************************************
-
     // * Param Listing **************************
-    v::info << "main" << "Param" << paramlist << v::endl;
     if(paramlist) {
         gs::cnf::cnf_api *CFG = gs::cnf::GCnf_Api::getApiInstance(NULL);
         v::info << "main" << "System Values:" << v::endl;
@@ -739,12 +787,12 @@ int sc_main(int argc, char** argv) {
     cstart = clock();
     sc_core::sc_start();
     cend = clock();
-    // call power analyzer
-    //if(conf_sys_power) {
-    //    PM::analyze("./models/","main-power.dat","singlecore2.eslday1.stats");
-    //}
 
-    if(conf_sys_timing) {
+    // call power analyzer
+    if(p_report_power) {
+    }
+
+    if(p_report_timing) {
         v::info << "Summary" << "Start: " << dec << cstart << v::endl;
         v::info << "Summary" << "End:   " << dec << cend << v::endl;
         v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;

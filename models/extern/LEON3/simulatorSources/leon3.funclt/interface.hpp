@@ -35,8 +35,8 @@
 \***************************************************************************/
 
 
-#ifndef INTERFACE_HPP
-#define INTERFACE_HPP
+#ifndef LT_INTERFACE_HPP
+#define LT_INTERFACE_HPP
 
 #include <ABIIf.hpp>
 #include <leon3.funclt/memory.hpp>
