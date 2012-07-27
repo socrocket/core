@@ -272,10 +272,6 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   /// amba master id
   unsigned int m_master_id;
 
-  /// GreenControl API container
-  gs::cnf::cnf_api *m_api;
-        
-  gs::gs_param_array m_performance_counters;
   /// Total number of successful transactions for execution statistics 
   gs::gs_param<unsigned long long> m_right_transactions;
   

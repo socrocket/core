@@ -73,16 +73,12 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
       mTransactionPEQ("TransactionPEQ"),
       mambaLayer(ambaLayer),
       m_pnpbase(0xFF000),
-      m_performance_counters("performance_counters"),
       m_total_transactions("total_transactions", 0ull, m_performance_counters),
       m_right_transactions("successful_transactions", 0ull, m_performance_counters) {
 
     // Assert generics are withing allowed ranges
     assert(haddr_ <= 0xfff);
     assert(hmask_ <= 0xfff);
-
-    // API Instance for GreenControl
-    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
     // Register power monitor
     PM::registerIP(this, "apbctrl", m_pow_mon);

@@ -78,6 +78,7 @@ class AHBSlave : public BASE, public AHBDevice {
   bool busy;
  //sc_core::sc_time clockcycle;
  //
+  protected:
         /// GreenControl API container
         gs::cnf::cnf_api *m_api;
         

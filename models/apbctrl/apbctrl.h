@@ -160,12 +160,6 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
   /// Array of slave device information (PNP)
   const uint32_t *mSlaves[16];
   
-  /// GreenControle api instance
-  gs::cnf::cnf_api *m_api;
-
-  /// Open a namespace for performance counting in the greencontrol realm
-  gs::gs_param_array m_performance_counters;
-
   /// Total number of transactions
   gs::gs_param<unsigned long long> m_total_transactions;
 

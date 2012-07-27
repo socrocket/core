@@ -20,8 +20,9 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
 
     // Increment reference counter
     trans.acquire();
+    transport_statistics(trans);
 
-    v::debug << name() << "Acquire " << hex << &trans << " Ref-Count = " << trans.get_ref_count() << v::endl;
+    v::debug << this->name() << "Acquire " << hex << &trans << " Ref-Count = " << trans.get_ref_count() << v::endl;
 
     uint32_t address_cycle_base;
 
@@ -30,7 +31,7 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
 
     request_delay = (trans.get_data_length() <= 4) ? get_clock() - sc_core::sc_time(1, SC_PS) : delay - sc_core::sc_time(1, SC_PS);
 
-    v::debug << name() << "Request Delay: " << request_delay << v::endl;
+    v::debug << this->name() << "Request Delay: " << request_delay << v::endl;
 
     m_RequestPEQ.notify(trans, request_delay);
 
@@ -39,7 +40,7 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
     address_cycle_base = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
     response_delay = (delay - (get_clock()*(address_cycle_base-1)) - sc_core::sc_time(1, SC_PS));
 
-    v::debug << name() << "Response Delay: " << response_delay << v::endl;
+    v::debug << this->name() << "Response Delay: " << response_delay << v::endl;
 
     m_ResponsePEQ.notify(trans, response_delay);
 
@@ -53,7 +54,7 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
 
     msclogger::return_backward(this, &ahb, &trans, tlm::TLM_COMPLETED, delay);
 
-    v::debug << name() << "Release " << &trans << " Ref-Count before calling release " << trans.get_ref_count() << v::endl;
+    v::debug << this->name() << "Release " << &trans << " Ref-Count before calling release " << trans.get_ref_count() << v::endl;
 
     // END_RESP corresponds to the end of the AHB data phase.
     trans.release();
@@ -142,6 +143,7 @@ void AHBSlave<BASE>::b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_ti
 
   // Call the functional part of the model
   // -------------------------------------
+  transport_statistics(trans);
   exec_func(trans, delay);
 
   msclogger::return_backward(this, &ahb, &trans, tlm::TLM_ACCEPTED, delay);
