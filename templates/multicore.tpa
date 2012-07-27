@@ -15,7 +15,7 @@
   </description>
   <option name="Basic Configuration" var="conf">
     <option name="System Options" var="system">
-      <option var="lt_at" name="LT or AT simulation" type="bool" default="false" hint="True - LT abstraction, False - AT abstraction."/>
+      <option var="at" name="Execute the simulation in AT mode" type="bool" default="false" hint="True - LT abstraction, False - AT abstraction."/>
       <option var="clock" name="Clock period in NS" type="int" default="10" hit="Assumes a single clock domain for all components"/>
     </option>
     <option name="Reports" var="report" >
@@ -23,7 +23,7 @@
       <option var="power" name="Enable power monitoring" type="bool" default="false" hint="If this switch is set to true the simulation models will iagregate power data for all components. This is very slow and eats up a lot of RAM and HDD space. (Not recomended)"/>
     </option>
     <option name="Debugging" var="gdb">
-      <option var="en" name="Enable GDB support" type="bool" default="true" hint="If this switch is set to true the simulation models will include GDB support. Just add ' gdb' to the end of the comandline to wait for GDB connection."/>
+      <option var="en" name="Enable GDB support" type="bool" default="false" hint="If this switch is set to true the simulation models will include GDB support. Just add ' gdb' to the end of the comandline to wait for GDB connection."/>
       <option var="port" name="Port to use for GDB connection" type="int" default="1500"/>
       <option var="proc" name="Processor to connect to" type="int" default="0"/>
     </option>
@@ -91,7 +91,7 @@
         <option var="linesize" name="Indicates size of cache line in words" type="int" default="4" hint="(line size = 2^linesize, linesize &lt;= 3 )"/>
         <option var="setsize" name="Indicates size (kBytes) of cache set" type="int" default="1" hint="(set size = 2^setsize, setsize &lt;= 6 (max. 64 kbytes))"/>
         <option var="setlock" name="Enable cache locking" type="bool" default="false"/>
-        <option var="snoop" name="Enable cache snooping" type="bool" default="false"/>
+        <option var="snoop" name="Enable cache snooping" type="bool" default="true"/>
       </option>
       <option var="ilram" name="Instruction scratchpad">
         <option var="en" name="Enable instruction scratchpad" type="bool" default="false"/>
@@ -128,11 +128,12 @@
       <option var="mask" name="AHB Mask" type="int" default="0xFFF" range="0..0xFFF"/>
       <option var="irq" name="IRQ Line" type="int" default="2" range="1..31"/>
       <option var="type" name="AHB Interface Type" type="int" default="0" range="0..1"/>
+      <option var="port" name="Port to use for GDB connection" type="int" default="1500"/>
     </option>
     
     <option var="gptimer" name="GPTimer">
       <option var="en" name="Enable" type="bool" default="true"/>
-      <option var="addr" name="APB Base Address" type="int" default="0xF0" range="0..4095"/>
+      <option var="addr" name="APB Base Address" type="int" default="0x002" range="0..4095"/>
       <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..4095"/>
       <option var="index" name="Bus Index" type="int" default="3" range="0..15"/>
       <option var="irq" name="IRQ Line" type="int" default="8" range="0..15"/>
@@ -213,7 +214,7 @@
     </option>
     
     <option var="irqmp" name="IRQ Controller">
-      <option var="addr" name="APB Base Address" type="int" default="0x1F0" range="0..4095"/>
+      <option var="addr" name="APB Base Address" type="int" default="0x002" range="0..4095"/>
       <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..4095"/>
       <option var="index" name="Bus Index" type="int" default="2" range="0..15"/>
       <option var="ncpu" name="Number of processor in multicore system" type="int" default="1" range="1..16"/>

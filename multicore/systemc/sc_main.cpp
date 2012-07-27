@@ -132,9 +132,9 @@ int sc_main(int argc, char** argv) {
 
     amba::amba_layer_ids ambaLayer;
     if(p_system_at) {
-        ambaLayer = amba::amba_LT;
-    } else {
         ambaLayer = amba::amba_AT;
+    } else {
+        ambaLayer = amba::amba_LT;
     }
     
     // *** CREATE MODULES
@@ -201,8 +201,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_irqmp_mask("mask", 0xFFF, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_index("index", 2, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_eirq("eirq", 4, p_irqmp);
-    int mmu_cache_num = 1;
-    mApi->getValue("conf.irqmp.ncpu", mmu_cache_num);
+    gs::gs_param<unsigned int> p_irqmp_ncpu("ncpu", 2, p_irqmp);
     // APBSlave - IRQMP
     // ================
     // Needed for basic platform.
@@ -210,7 +209,7 @@ int sc_main(int argc, char** argv) {
     Irqmp irqmp("irqmp",
         p_irqmp_addr,  // paddr
         p_irqmp_mask,  // pmask
-        mmu_cache_num,  // ncpu
+        p_irqmp_ncpu,  // ncpu
         p_irqmp_eirq,  // eirq
         p_irqmp_index
     );
@@ -252,7 +251,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_mctrl_ram_sdram_banks("banks", 2, p_mctrl_ram_sdram);
     gs::gs_param<unsigned int> p_mctrl_ram_sdram_bsize("bsize", 256, p_mctrl_ram_sdram);
     gs::gs_param<unsigned int> p_mctrl_ram_sdram_width("width", 32, p_mctrl_ram_sdram);
-    gs::gs_param<unsigned int> p_mctrl_ram_sdram_cols("width", 16, p_mctrl_ram_sdram);
+    gs::gs_param<unsigned int> p_mctrl_ram_sdram_cols("cols", 16, p_mctrl_ram_sdram);
     gs::gs_param<unsigned int> p_mctrl_index("index", 0u, p_mctrl);
     gs::gs_param<bool> p_mctrl_ram8("ram8", true, p_mctrl);
     gs::gs_param<bool> p_mctrl_ram16("ram16", true, p_mctrl);
@@ -417,6 +416,7 @@ int sc_main(int argc, char** argv) {
     
     // AHBMaster - input_device
     // ========================
+#if 0
     gs::gs_param_array p_indev("indev", p_conf);
     gs::gs_param<bool> p_indev_en("en", true, p_indev);
     gs::gs_param<unsigned int> p_indev_index("index", 1, p_indev);
@@ -425,7 +425,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_indev_frameaddr("frameaddr", 0xA00, p_indev);
     gs::gs_param<unsigned int> p_indev_interval("interval", 1, p_indev);
     if(p_indev_en) {
-      /*input_device *sensor = new input_device("sensor",
+      input_device *sensor = new input_device("sensor",
         p_indev_index,
         p_indev_irq,
         p_indev_framesize,
@@ -443,6 +443,7 @@ int sc_main(int argc, char** argv) {
       signalkit::connect(irqmp.irq_in, sensor.irq, p_indev_irq);
       */
     }
+#endif
 
     // CREATE LEON3 Processor
     // ===================================================
@@ -455,15 +456,15 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<int> p_mmu_cache_ic_sets("sets", 4, p_mmu_cache_ic);
     gs::gs_param<int> p_mmu_cache_ic_linesize("linesize", 4, p_mmu_cache_ic);
     gs::gs_param<int> p_mmu_cache_ic_setsize("setsize", 16, p_mmu_cache_ic);
-    gs::gs_param<int> p_mmu_cache_ic_setlock("setlock", 1, p_mmu_cache_ic);
+    gs::gs_param<bool> p_mmu_cache_ic_setlock("setlock", 1, p_mmu_cache_ic);
     gs::gs_param_array p_mmu_cache_dc("dc", p_mmu_cache);
     gs::gs_param<bool> p_mmu_cache_dc_en("en", true, p_mmu_cache_dc);
     gs::gs_param<int> p_mmu_cache_dc_repl("repl", 2, p_mmu_cache_dc);
     gs::gs_param<int> p_mmu_cache_dc_sets("sets", 2, p_mmu_cache_dc);
     gs::gs_param<int> p_mmu_cache_dc_linesize("linesize", 4, p_mmu_cache_dc);
     gs::gs_param<int> p_mmu_cache_dc_setsize("setsize", 1, p_mmu_cache_dc);
-    gs::gs_param<int> p_mmu_cache_dc_setlock("setlock", 1, p_mmu_cache_dc);
-    gs::gs_param<int> p_mmu_cache_dc_snoop("snoop", 1, p_mmu_cache_dc);
+    gs::gs_param<bool> p_mmu_cache_dc_setlock("setlock", 1, p_mmu_cache_dc);
+    gs::gs_param<bool> p_mmu_cache_dc_snoop("snoop", 1, p_mmu_cache_dc);
     gs::gs_param_array p_mmu_cache_ilram("ilram", p_mmu_cache);
     gs::gs_param<bool> p_mmu_cache_ilram_en("en", false, p_mmu_cache_ilram);
     gs::gs_param<unsigned int> p_mmu_cache_ilram_size("size", 0u, p_mmu_cache_ilram);
@@ -482,13 +483,13 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_mmu_cache_mmu_tlb_rep("tlb_rep", 1, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_mmupgsz("mmupgsz", 0u, p_mmu_cache_mmu);
 
-    gs::gs_param<std::string> p_proc_history("conf.proc.history", "");
+    gs::gs_param<std::string> p_proc_history("history", "", p_system);
 
     gs::gs_param_array p_gdb("gdb", p_conf);
     gs::gs_param<bool> p_gdb_en("en", false, p_gdb);
     gs::gs_param<int> p_gdb_port("port", 1500, p_gdb);
     gs::gs_param<int> p_gdb_proc("proc", 0, p_gdb);
-    for(int i=0; i< mmu_cache_num; i++) {
+    for(int i=0; i< p_irqmp_ncpu; i++) {
       // AHBMaster - MMU_CACHE
       // =====================
       // Always enabled.
@@ -537,6 +538,7 @@ int sc_main(int argc, char** argv) {
       if(p_system_at) {
         // LEON3 AT Processor
         // ==================
+        v::info << "main" << "Instantiating AT Processor" << i << v::endl;
         leon3_funcat_trap::Processor_leon3_funcat *leon3 = new leon3_funcat_trap::Processor_leon3_funcat(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS));
         leon3->ENTRY_POINT   = 0x0;
         leon3->MPROC_ID      = (p_mmu_cache_index + i) << 28;
@@ -582,6 +584,7 @@ int sc_main(int argc, char** argv) {
       } else {
         // LEON3 LT Processor
         // ==================
+        v::info << "main" << "Instantiating LT Processor" << i << v::endl;
         leon3_funclt_trap::Processor_leon3_funclt *leon3 = new leon3_funclt_trap::Processor_leon3_funclt(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS));
         leon3->ENTRY_POINT   = 0x0;
         leon3->MPROC_ID      = (p_mmu_cache_index + i) << 28;
@@ -735,7 +738,7 @@ int sc_main(int argc, char** argv) {
     // CREATE AHB2Socwire bridge
     // =========================
     gs::gs_param_array p_socwire("socwire", p_conf);
-    gs::gs_param<bool> p_socwire_en("en", true, p_socwire);
+    gs::gs_param<bool> p_socwire_en("en", false, p_socwire);
     gs::gs_param_array p_socwire_apb("apb", p_socwire);
     gs::gs_param<unsigned int> p_socwire_apb_addr("addr", 0x010, p_socwire_apb);
     gs::gs_param<unsigned int> p_socwire_apb_mask("mask", 0xFFF, p_socwire_apb);
