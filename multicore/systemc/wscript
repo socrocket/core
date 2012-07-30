@@ -48,12 +48,11 @@ top = '..'
 def build(bld):
     ambaLayer = 'true'
     if not bld.env["LIB_SOCROCKET"]:
-        use       = 'ahbctrl ahbmem irqmp gptimer apbctrl apbuart socwire socw_socket mmu_cache mctrl input_device ahbprof utils signalkit common TRAP BOOST ELF_LIB LUA SYSTEMC AMBA TLM GREENSOCS '
+        use       = 'ahbctrl ahbmem irqmp gptimer apbctrl apbuart socwire socw_socket mmu_cache mctrl input_device ahbprof utils signalkit common'
     else:
-        use       = 'SOCROCKET TRAP BOOST ELF_LIB LUA SYSTEMC AMBA TLM GREENSOCS '
+        use       = 'SOCROCKET'
 
-    use  += 'leon3.funclt '
-    use  += 'leon3.funcat'
+    use  += ' leon3.funclt leon3.funcat TRAP BOOST ELF_LIB LUA SYSTEMC AMBA TLM GREENSOCS'
       
     bld(
         target       = 'multicore.lt.platform',
@@ -63,13 +62,13 @@ def build(bld):
         use          = use,
         #ut_param     = ['singlecore.lt.prom', 'irqmp.sparc'],
     )
-    ldscript = bld.path.find_resource('prom.ld')
-    bld(
-        target       = 'multicore.lt.prom',
-        features     = 'c cprogram sparc',
-        cflags       = '-g',
-        linkflags    = '-g -Ttext=0 -nostartfiles -nostdlib -T%s -N' % (ldscript.abspath()),
-        source       = [ 'prom.S' ],
-        includes     = '.',
-        install_path = '${PREFIX}/prom/',
-    )
+    #ldscript = bld.path.find_resource('prom.ld')
+    #bld(
+    #    target       = 'multicore.lt.prom',
+    #    features     = 'c cprogram sparc',
+    #    cflags       = '-g',
+    #    linkflags    = '-g -Ttext=0 -nostartfiles -nostdlib -T%s -N' % (ldscript.abspath()),
+    #    source       = [ 'prom.S' ],
+    #    includes     = '.',
+    #    install_path = '${PREFIX}/prom/',
+    #)
