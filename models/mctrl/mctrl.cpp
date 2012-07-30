@@ -83,7 +83,7 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                     false //socket is not used for arbitration
             ),
             mem("mem", gs::socket::GS_TXN_ONLY),
-	    busy(false), m_performance_counters("performance_counters"),
+            busy(false), 
             m_total_transactions("total_transactions", 0ull, m_performance_counters), 
             m_right_transactions("successful_transactions", 0ull, m_performance_counters), 
             m_power_down_time("total_power_down", sc_core::SC_ZERO_TIME, m_performance_counters), 
@@ -103,9 +103,6 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             << " size: " << v::uint32 << apb.get_size() << " byte" << v::endl;
     v::info << this->name() << "(" << hex << _paddr << ":" << hex << _pmask << ")" << hex << ::APBDevice::get_device_info()[1] << v::endl;
     
-    // Register greenconfig instance
-    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
-
     // Prepare the device for power monitoring
     PM::registerIP(this, "mctrl", powermon);
     PM::send_idle(this, "idle", sc_time_stamp(), true);
@@ -594,7 +591,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
             memgp.set_byte_enable_ptr(gp.get_byte_enable_ptr());
             memgp.set_data_ptr(data);
             mem[port.id]->b_transport(memgp, mem_delay);
-            transport_statistics(gp);
+            //transport_statistics(gp);
             gp.set_response_status(memgp.get_response_status());
             m_right_transactions++;
 
@@ -647,13 +644,13 @@ void Mctrl::launch_sdram_command() {
         // --> The previous transaction will always have finished 
         // before the Sim Kernel takes note of this callback.
         case 2:
-            callback_delay += clock_cycle *(3 + MCFG2_SDRAM_TRFC_DEFAULT >> 30);
+            callback_delay += clock_cycle *(3 + (MCFG2_SDRAM_TRFC_DEFAULT >> 30));
             break;
 
         // Precharge: Terminate current burst transaction 
         // (no effect in LT) --> wait for tRP
         case 1:
-            callback_delay += clock_cycle * (2 + MCFG2_TRP_DEFAULT >> 29);
+            callback_delay += clock_cycle * (2 + (MCFG2_TRP_DEFAULT >> 29));
             break;
         default:
             break;

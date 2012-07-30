@@ -85,17 +85,25 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
     bool startMet = false;
     template_map< unsigned int, CacheElem >::iterator instrCacheEnd = this->instrCache.end();
 
+    unsigned int firstPC = this->PC + 0;
+    unsigned int firstbitString = this->instrMem.read_instr(firstPC,0);
+    int firstinstrId = this->decoder.decode(firstbitString);
+    Instruction *firstinstr = this->INSTRUCTIONS[firstinstrId];
     while(true){
         unsigned int numCycles = 0;
         this->instrExecuting = true;
-        v::debug << name() << "Instr" << v::endl;
-        while(irqAck.stopped) {
-            if(sc_time_stamp()>sc_time(0, SC_NS)) {
-              v::info << name() << "Print me" << v::endl;
-              wait(irqAck.start);
-              resetOp();
-            }
+        if(irqAck.stopped) {
+          while(irqAck.stopped) {
+            //if(sc_time_stamp()>sc_time(0, SC_NS)) {
+              //wait(irqAck.start);
+              this->toolManager.newIssue(firstPC, firstinstr);
+              wait(100, SC_NS);
+            //}
+          }
+          v::info << name() << "Starting ... " << v::endl;
+          resetOp();
         }
+
         if((IRQ != -1) && (PSR[key_ET] && (IRQ == 15 || IRQ > PSR[key_PIL]))){
             this->IRQ_irqInstr->setInterruptValue(IRQ);
             try{

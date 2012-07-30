@@ -46,26 +46,4 @@
 top = '..'
 
 def build(bld):
-    ambaLayer = '${conf_sys_lt_at}'
-    use       = 'ahbctrl ahbmem irqmp gptimer apbctrl socwire mmu_cache mctrl utils signalkit common TRAP BOOST ELF SYSTEMC AMBA TLM GREENSOCS '
-    if ambaLayer == 'true':
-        use  += 'leon3.funclt'
-    else:
-        use  += 'leon3.funcat'
-      
-    bld(
-        target       = '$template.$configuration.platform',
-        features     = 'cxx cprogram',
-        source       = [ 'sc_main.cpp' ],
-        includes     = '.',
-        use          = use,
-        #ut_param     = ['$template.$configuration.prom', 'irqmp.sparc'],
-    )
-    ldscript = bld.path.find_resource('prom.ld')
-    bld(
-        target       = '$template.$configuration.prom',
-        features     = 'c cprogram sparc',
-        linkflags    = '-Ttext=0 -nostartfiles -nostdlib -T%s -N' % (ldscript.abspath()),
-        source       = [ 'prom.S' ],
-        includes     = '.',
-    )
+    bld.recurse('systemc')

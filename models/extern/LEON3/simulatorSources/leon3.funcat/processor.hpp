@@ -35,8 +35,8 @@
 \***************************************************************************/
 
 
-#ifndef PROCESSOR_HPP
-#define PROCESSOR_HPP
+#ifndef AT_PROCESSOR_HPP
+#define AT_PROCESSOR_HPP
 
 #include <customExceptions.hpp>
 #include <leon3.funcat/instructions.hpp>
@@ -146,5 +146,5 @@ namespace leon3_funcat_trap{
 };
 
 
-
+#undef AT_IF
 #endif

@@ -98,6 +98,8 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       m_right_transactions("successful_transactions", 0ull, m_performance_counters),
       m_writes("bytes_written", 0ull, m_performance_counters),
       m_reads("bytes_read", 0ull, m_performance_counters),
+      is_lock(false),
+      lock_master(0),
       m_ambaLayer(ambaLayer) 
 
 {
@@ -298,6 +300,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 // TLM blocking transport function (multi-sock)
 void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
+  static uint32_t old_lock = 0;
   // master-address pair for dcache snooping
   t_snoop snoopy;
 
@@ -311,13 +314,18 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     mstobj = other_socket->get_parent();
   }
 
-  while(busy) {
+  // Bus occupied or locked by other master
+  while(busy || (is_lock && (id != lock_master))) {
 
     wait(clock_cycle);
 
   }
 
   busy = true;
+  old_lock = is_lock;
+  is_lock = ahbIN.get_extension<amba::amba_lock>(lock, trans);
+  
+  lock_master = id;
 
   // Collect transport statistics
   transport_statistics(trans);
@@ -425,6 +433,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     
     other_socket = ahbIN.get_other_side(id, a);
     mstobj = other_socket->get_parent();
+    
     v::error << name() << "AHB Request 0x" << hex << v::setfill('0')
                << v::setw(8) << trans.get_address() << ", from master:"
                << mstobj->name() << ": Unmapped address space." << endl;
@@ -566,10 +575,6 @@ void AHBCtrl::arbitrate() {
   sc_core::sc_time waiting_time;
   sc_core::sc_time request_delay;
   sc_core::sc_time response_delay;
-
-  amba::amba_lock *lock;
-  bool is_lock = false;
-  uint32_t lock_master;
 
   wait(1, SC_PS);
 
@@ -1252,6 +1257,7 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
 
     } else {
 
+    
        v::warn << name() << "AHB Request@0x" << hex << v::setfill('0')
                << v::setw(8) << trans.get_address() << ", from master:"
                << mstobj->name() << ": Unmapped address space." << endl;

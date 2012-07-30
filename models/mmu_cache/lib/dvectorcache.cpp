@@ -54,7 +54,7 @@ unsigned int dvectorcache::check_mode() {
 
   tmp = m_mmu_cache->read_ccr(true);
 
-  return (tmp & 0x3);
+  return ((tmp >> 2) & 0x3);
 
 }
 

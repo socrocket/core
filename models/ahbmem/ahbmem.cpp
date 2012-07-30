@@ -71,9 +71,6 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
                        0,
                        ambaLayer,
                        BAR(AHBDevice::AHBMEM, hmask_, cacheable, 0, haddr_)),
-            m_performance_counters("performance_counters"),
-            m_bytes_read("bytes_read", 0ull, m_performance_counters),
-            m_bytes_written("bytes_written", 0ull, m_performance_counters),
             ahbBaseAddress(static_cast<uint32_t> (hmask_ & haddr_) << 20),
             ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1), 
             mhaddr(haddr_),
@@ -129,9 +126,6 @@ uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &de
         mem[trans.get_address() + i] = *(trans.get_data_ptr() + i);
       }
 
-      // Update statistics
-      m_bytes_written += trans.get_data_length();
-
       // Base delay is one clock cycle per word
       words_transferred = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
 
@@ -147,9 +141,6 @@ uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &de
         // read simulation memory
         *(trans.get_data_ptr() + i) = mem[trans.get_address() + i];
       }
-
-      // Update statistics
-      m_bytes_read += trans.get_data_length();
 
       // Base delay is one clock cycle per word
       words_transferred = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
@@ -196,8 +187,7 @@ void AHBMem::end_of_simulation() {
   v::report << name() << " **************************************************** " << v::endl;
   v::report << name() << " * AHBMem Statistics: " << v::endl;
   v::report << name() << " * ------------------ " << v::endl;
-  v::report << name() << " * Bytes read: " << m_bytes_read << v::endl;
-  v::report << name() << " * Bytes written: " << m_bytes_written << v::endl;
+  print_transport_statistics(name());
   v::report << name() << " * ************************************************** " << v::endl;
 
 }

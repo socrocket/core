@@ -78,7 +78,7 @@ class ArrayMemory : public MEMDevice,
 		      uint32_t banks, 
 		      uint32_t bsize, 
 		      uint32_t bits, 
-		      uint32_t cols,
+		      uint32_t cols = 0,
 		      bool pow_mon = false);
 
         /// Destructor

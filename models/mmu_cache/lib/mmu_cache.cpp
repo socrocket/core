@@ -92,7 +92,6 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     m_cached(cached),
     m_mmu_en(mmu_en),
     m_master_id(hindex), 
-    m_performance_counters("performance_counters"),
     m_right_transactions("successful_transactions", 0ull, m_performance_counters),
     m_total_transactions("total_transactions", 0ull, m_performance_counters),
     m_pow_mon(pow_mon),
@@ -103,9 +102,6 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 
     // check range of cacheability mask (0x0 - 0xffff)
     assert((m_cached>=0)&&(m_cached<=0xffff));
-
-    // Register GreenConfig api instance
-    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
     // create mmu (if required)
     m_mmu = (mmu_en == 1)? new mmu("mmu", 
@@ -195,6 +191,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     v::info << this->name() << " * instruction scratchpad enable (ilram): " << ilram << v::endl;
     v::info << this->name() << " * data scratchpad enable (dlram): " << dlram << v::endl;
     v::info << this->name() << " * abstraction Layer (LT = 8 / AT = 4): " << abstractionLayer << v::endl;
+    v::info << this->name() << " * data cache snooping (0 = off / 1 = on): " << dsnoop << v::endl;
     v::info << this->name() << " ************************************************** " << v::endl;   
 }
 
@@ -841,6 +838,8 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 /// TLM blocking forward transport function for icio socket
 void mmu_cache::icio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
+  v::debug << name() << "icio_b_transport received trans " << hex << &trans << " with delay " << delay << v::endl;
+
   // Call the functional part of the model
   // ---------------------------
   exec_instr(trans, delay, false);
@@ -856,6 +855,8 @@ void mmu_cache::icio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_ti
 
 /// TLM forward blocking transport function for dcio socket
 void mmu_cache::dcio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
+
+  v::debug << name() << "dcio_b_transport received trans " << hex << &trans << " with delay " << delay << v::endl;
 
   // Call the functional part of the model
   // -----------------------
@@ -1230,9 +1231,8 @@ unsigned int mmu_cache::read_ccr(bool internal) {
 // Snooping function
 void mmu_cache::snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& delay) {
 
-  v::debug << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.master_id << " ADDR: " \
-	   << hex << snoop.address << " LENGTH: " << snoop.length << ")" << v::endl;
-
+  v::debug << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.master_id << " ADDR: "
+	   << v::uint32 << snoop.address << " LENGTH: " << snoop.length << ")" << v::endl;
   // Make sure we are not snooping ourself ;)
   if (snoop.master_id != m_master_id) {
 
@@ -1240,7 +1240,6 @@ void mmu_cache::snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& d
     if (m_dcen && m_dsnoop) {
 
       dcache->snoop_invalidate(snoop, delay);
-
     }
   }
 }

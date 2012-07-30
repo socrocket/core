@@ -1100,7 +1100,7 @@ void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time&
   unsigned int offset;
 
   // Is the cache enabled
-  if ((check_mode() & 0x11) == 0x11) {
+  if ((check_mode() & 0x3) == 0x3) {
 
     for (address = snoop.address; address < snoop.address + snoop.length; address+=4) {
 
@@ -1112,15 +1112,14 @@ void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time&
       // Lookup all cachesets
       for (unsigned int i = 0; i <= m_sets; i++) {
 
-	m_snoop_cacheline[i] = lookup(i, idx);
+        m_snoop_cacheline = lookup(i, idx);
 
-	// Check the cache tag
-	if (((*m_snoop_cacheline[i]).tag.atag) == tag) {
+        // Check the cache tag
+        if (((*m_snoop_cacheline).tag.atag) == tag) {
 
-	  // Delete the valid bit
-	  ((*m_snoop_cacheline[i]).tag.valid & (~offset2valid(offset)));
-
-	}
+          // Delete the valid bit
+          ((*m_snoop_cacheline).tag.valid &= (~offset2valid(offset)));
+        }
       }
     }
   }

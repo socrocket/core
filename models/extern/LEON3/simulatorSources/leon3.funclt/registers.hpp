@@ -35,8 +35,8 @@
 \***************************************************************************/
 
 
-#ifndef REGISTERS_HPP
-#define REGISTERS_HPP
+#ifndef LT_REGISTERS_HPP
+#define LT_REGISTERS_HPP
 
 #include <ostream>
 #include <trap_utils.hpp>

@@ -35,8 +35,8 @@
 \***************************************************************************/
 
 
-#ifndef DECODER_HPP
-#define DECODER_HPP
+#ifndef LT_DECODER_HPP
+#define LT_DECODER_HPP
 
 #include <leon3.funclt/instructions.hpp>
 

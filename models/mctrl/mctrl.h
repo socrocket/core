@@ -228,12 +228,6 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         /// Capture current state of power mode
         uint8_t m_pmode; 
 
-        /// GreenControl API container
-        gs::cnf::cnf_api *m_api;
-        
-        /// Open a namespace for performance counting in the greencontrol realm
-        gs::gs_param_array m_performance_counters;
-        
         /// The number of total transactions handled by the mctrl
         gs::gs_param<unsigned long long> m_total_transactions;
         

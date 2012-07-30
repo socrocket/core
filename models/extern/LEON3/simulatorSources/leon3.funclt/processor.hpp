@@ -35,8 +35,8 @@
 \***************************************************************************/
 
 
-#ifndef PROCESSOR_HPP
-#define PROCESSOR_HPP
+#ifndef LT_PROCESSOR_HPP
+#define LT_PROCESSOR_HPP
 
 #include <customExceptions.hpp>
 #include <leon3.funclt/instructions.hpp>
@@ -132,7 +132,7 @@ namespace leon3_funclt_trap{
         sc_time profTimeEnd;
         boost::circular_buffer< HistoryInstrType > instHistoryQueue;
         unsigned int undumpedHistElems;
-        unsigned int numInstructions;
+        unsigned long long int numInstructions;
         unsigned int ENTRY_POINT;
         unsigned int MPROC_ID;
         unsigned int PROGRAM_LIMIT;
@@ -148,5 +148,5 @@ namespace leon3_funclt_trap{
 };
 
 
-
+#undef LT_IF
 #endif

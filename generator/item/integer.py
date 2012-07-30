@@ -133,7 +133,7 @@ class IntegerItem(Item):
             return long(str(self.value.toString()), 0)
 
     def load(self, data):
-        ownData = data.get(str(self.name), None)
+        ownData = data.get(str(self.var), None)
         if ownData!=None:
             if isinstance(ownData, long) or isinstance(ownData, int):
                 self.setData(QtCore.QVariant(ownData))

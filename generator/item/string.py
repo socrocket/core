@@ -4,7 +4,7 @@ from item import Item
 
 class StringItem(Item):
     def __init__(self, model, name = None, var = None, value = None, type = None, range = None, default = None, description = None, parent=None, data=None):
-        super(BooleanItem, self).__init__(model, name, var, value, type, range, default, description, parent, data)
+        super(StringItem, self).__init__(model, name, var, value, type, range, default, description, parent, data)
         
         if model.widget:
           self.widget = QtGui.QWidget(model.widget)
@@ -12,7 +12,7 @@ class StringItem(Item):
           self.name_label = QtGui.QLabel("Name: ", self.widget)
           self.name_obj = QtGui.QLabel(self.name, self.widget)
           self.value_label = QtGui.QLabel("Value: ", self.widget)
-          self.value_obj = QtGui.QLineExit(self.value.toString(), self.widget)
+          self.value_obj = QtGui.QLineEdit(self.value.toString(), self.widget)
           self.type_label = QtGui.QLabel("Type: ", self.widget)
           self.type_obj = QtGui.QLabel("String", self.widget)
           self.default_label = QtGui.QLabel("Default: ", self.widget)
@@ -49,6 +49,6 @@ class StringItem(Item):
         return self.value.toString()
 
     def load(self, data):
-        ownData = data.get(str(self.name), None)
+        ownData = data.get(str(self.var), None)
         if ownData and isinstance(ownData, string):
                 self.setData(QtCore.QVariant(ownData))

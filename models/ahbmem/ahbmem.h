@@ -99,16 +99,6 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
   /// Generates execution statistic at end of simulation
   void end_of_simulation();
 
-  /// GreenControl API container
-  gs::cnf::cnf_api *m_api;
-        
-  /// Open a namespace for performance counting in the greencontrol realm
-  gs::gs_param_array m_performance_counters;
-
-  // Performance counters
-  gs::gs_param<unsigned long long> m_bytes_read;
-  gs::gs_param<unsigned long long> m_bytes_written;
-
  private:
   /// The actual memory
   std::map<uint32_t, uint8_t> mem;
