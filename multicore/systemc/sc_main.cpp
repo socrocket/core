@@ -79,6 +79,7 @@
 #include <GDBStub.hpp>
 #include <systemc.h>
 #include <tlm.h>
+#include <boost/filesystem.hpp>
 
 #include "leon3.funclt.h"
 #include "leon3.funcat.h"
@@ -105,7 +106,16 @@ int sc_main(int argc, char** argv) {
     gs::cnf::LuaFile_Tool luareader("luareader");
     luareader.parseCommandLine(argc, argv);
     //luareader.config("config.lua");
-    luareader.config("json.lua");
+    if(!boost::filesystem::exists(boost::filesystem::path("json.lua"))) {
+      char *jsonlua = std::getenv("JSONLUA");
+      if(jsonlua && boost::filesystem::exists(boost::filesystem::path(jsonlua))) {
+        luareader.config(jsonlua);
+      } else {
+        v::info << "main" << "please copy the json.lua in your current working folder" << v::endl;
+      }
+    } else {
+      luareader.config("json.lua");
+    }
 
     gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
 
@@ -302,15 +312,18 @@ int sc_main(int argc, char** argv) {
     mctrl.mem(rom.bus);
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_prom_elf("elf", "", p_mctrl_prom);
-    
     if(!((std::string)p_mctrl_prom_elf).empty()) {
-      uint8_t *execData;
-      v::info << "main" << "Loading Prom with " << p_mctrl_prom_elf << v::endl;
-      ExecLoader prom_loader(p_mctrl_prom_elf); 
-      execData = prom_loader.getProgData();
+      if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_prom_elf))) {
+        uint8_t *execData;
+        v::info << "main" << "Loading Prom with " << p_mctrl_prom_elf << v::endl;
+        ExecLoader prom_loader(p_mctrl_prom_elf); 
+        execData = prom_loader.getProgData();
     
-      for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
-        rom.write(prom_loader.getDataStart() + i - ((((unsigned int)p_mctrl_prom_addr)&((unsigned int)p_mctrl_prom_mask))<<20), execData[i]);
+        for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
+          rom.write(prom_loader.getDataStart() + i - ((((unsigned int)p_mctrl_prom_addr)&((unsigned int)p_mctrl_prom_mask))<<20), execData[i]);
+        }
+      } else {
+        v::warn << "main" << "File " << p_mctrl_prom_elf << " does not exist!" << v::endl;
       }
     }
 
@@ -325,13 +338,17 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);
     
     if(!((std::string)p_mctrl_io_elf).empty()) {
-      uint8_t *execData;
-      v::info << "main" << "Loading IO with " << p_mctrl_io_elf << v::endl;
-      ExecLoader loader(p_mctrl_io_elf); 
-      execData = loader.getProgData();
+      if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_io_elf))) {
+        uint8_t *execData;
+        v::info << "main" << "Loading IO with " << p_mctrl_io_elf << v::endl;
+        ExecLoader loader(p_mctrl_io_elf); 
+        execData = loader.getProgData();
     
-      for(unsigned int i = 0; i < loader.getProgDim(); i++) {
-        io.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_io_addr)&((unsigned int)p_mctrl_io_mask))<<20), execData[i]);
+        for(unsigned int i = 0; i < loader.getProgDim(); i++) {
+          io.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_io_addr)&((unsigned int)p_mctrl_io_mask))<<20), execData[i]);
+        }
+      } else {
+        v::warn << "main" << "File " << p_mctrl_io_elf << " does not exist!" << v::endl;
       }
     }
 
@@ -346,13 +363,17 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
     
     if(!((std::string)p_mctrl_ram_sram_elf).empty()) {
-      uint8_t *execData;
-      v::info << "main" << "Loading SRam with " << p_mctrl_ram_sram_elf << v::endl;
-      ExecLoader loader(p_mctrl_ram_sram_elf); 
-      execData = loader.getProgData();
+      if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sram_elf))) {
+        uint8_t *execData;
+        v::info << "main" << "Loading SRam with " << p_mctrl_ram_sram_elf << v::endl;
+        ExecLoader loader(p_mctrl_ram_sram_elf); 
+        execData = loader.getProgData();
     
-      for(unsigned int i = 0; i < loader.getProgDim(); i++) {
-        sram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
+        for(unsigned int i = 0; i < loader.getProgDim(); i++) {
+          sram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
+        }
+      } else {
+        v::warn << "main" << "File " << p_mctrl_ram_sram_elf << " does not exist!" << v::endl;
       }
     }
 
@@ -366,16 +387,20 @@ int sc_main(int argc, char** argv) {
     );
     mctrl.mem(sdram.bus);
     // ELF loader from leon (Trap-Gen)
-    gs::gs_param<std::string> p_mctrl_sdram_elf("elf", "", p_mctrl_ram_sdram);
+    gs::gs_param<std::string> p_mctrl_ram_sdram_elf("elf", "", p_mctrl_ram_sdram);
     
-    if(!((std::string)p_mctrl_sdram_elf).empty()) {
-      uint8_t *execData;
-      v::info << "main" << "Loading SDRam with " << p_mctrl_sdram_elf << v::endl;
-      ExecLoader loader(p_mctrl_sdram_elf); 
-      execData = loader.getProgData();
+    if(!((std::string)p_mctrl_ram_sdram_elf).empty()) {
+      if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sdram_elf))) {
+        uint8_t *execData;
+        v::info << "main" << "Loading SDRam with " << p_mctrl_ram_sdram_elf << v::endl;
+        ExecLoader loader(p_mctrl_ram_sdram_elf); 
+        execData = loader.getProgData();
     
-      for(unsigned int i = 0; i < loader.getProgDim(); i++) {
-        sdram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
+        for(unsigned int i = 0; i < loader.getProgDim(); i++) {
+          sdram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
+        }
+      } else {
+        v::warn << "main" << "File " << p_mctrl_ram_sdram_elf << " does not exist!" << v::endl;
       }
     }
 
@@ -402,13 +427,17 @@ int sc_main(int argc, char** argv) {
       ahbctrl.ahbOUT(ahbmem->ahb);
       // ELF loader from leon (Trap-Gen)
       if(!((std::string)p_ahbmem_elf).empty()) {
-        uint8_t *execData;
-        v::info << "main" << "Loading AHBMem with " << p_ahbmem_elf << v::endl;
-        ExecLoader prom_loader(p_ahbmem_elf); 
-        execData = prom_loader.getProgData();
+        if(boost::filesystem::exists(boost::filesystem::path((std::string)p_ahbmem_elf))) {
+          uint8_t *execData;
+          v::info << "main" << "Loading AHBMem with " << p_ahbmem_elf << v::endl;
+          ExecLoader prom_loader(p_ahbmem_elf); 
+          execData = prom_loader.getProgData();
     
-        for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
-          ahbmem->writeByteDBG(prom_loader.getDataStart() + i - ((((unsigned int)p_ahbmem_addr)&((unsigned int)p_ahbmem_mask))<<20), execData[i]);
+          for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
+            ahbmem->writeByteDBG(prom_loader.getDataStart() + i - ((((unsigned int)p_ahbmem_addr)&((unsigned int)p_ahbmem_mask))<<20), execData[i]);
+          }
+        } else {
+          v::warn << "main" << "File " << p_ahbmem_elf << " does not exist!" << v::endl;
         }
       }
     }
@@ -571,15 +600,19 @@ int sc_main(int argc, char** argv) {
         // is activating the leon traps to map basic io functions to the host system
         // set_brk, open, read, ...
         if(!((std::string)p_system_osemu).empty()) {
-          OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
-          osEmu->initSysCalls(p_system_osemu);
-          std::vector<std::string> options;
-          options.push_back(p_system_osemu);
-          for(int i = 1; i < argc; i++) {
-            options.push_back(argv[i]);
+          if(boost::filesystem::exists(boost::filesystem::path((std::string)p_system_osemu))) {
+            OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
+            osEmu->initSysCalls(p_system_osemu);
+            std::vector<std::string> options;
+            options.push_back(p_system_osemu);
+            for(int i = 1; i < argc; i++) {
+              options.push_back(argv[i]);
+            }
+            OSEmulatorBase::set_program_args(options);
+            leon3->toolManager.addTool(*osEmu);
+          } else {
+            v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;
           }
-          OSEmulatorBase::set_program_args(options);
-          leon3->toolManager.addTool(*osEmu);
         }
       } else {
         // LEON3 LT Processor
@@ -617,15 +650,19 @@ int sc_main(int argc, char** argv) {
         // is activating the leon traps to map basic io functions to the host system
         // set_brk, open, read, ...
         if(!((std::string)p_system_osemu).empty()) {
-          OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
-          osEmu->initSysCalls(p_system_osemu);
-          std::vector<std::string> options;
-          options.push_back(p_system_osemu);
-          for(int i = 1; i < argc; i++) {
-            options.push_back(argv[i]);
+          if(boost::filesystem::exists(boost::filesystem::path((std::string)p_system_osemu))) {
+            OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
+            osEmu->initSysCalls(p_system_osemu);
+            std::vector<std::string> options;
+            options.push_back(p_system_osemu);
+            for(int i = 1; i < argc; i++) {
+              options.push_back(argv[i]);
+            }
+            OSEmulatorBase::set_program_args(options);
+            leon3->toolManager.addTool(*osEmu);
+          } else {
+            v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;
           }
-          OSEmulatorBase::set_program_args(options);
-          leon3->toolManager.addTool(*osEmu);
         }
       }
     }
