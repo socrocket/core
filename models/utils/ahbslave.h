@@ -76,20 +76,22 @@ class AHBSlave : public BASE, public AHBDevice {
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_ResponsePEQ;
 
   bool busy;
- //sc_core::sc_time clockcycle;
- //
-  protected:
-        /// GreenControl API container
-        gs::cnf::cnf_api *m_api;
+  //sc_core::sc_time clockcycle;
+  //
+  
+ protected:
+  /// GreenControl API container
+  gs::cnf::cnf_api *m_api;
         
-        /// Open a namespace for performance counting in the greencontrol realm
-        gs::gs_param_array m_performance_counters;
+  /// Open a namespace for performance counting in the greencontrol realm
+  gs::gs_param_array m_performance_counters;
 
-        /// Stores the number of Bytes read from the device
-        gs::gs_param<unsigned long long> m_reads;
+  /// Stores the number of Bytes read from the device
+  gs::gs_param<unsigned long long> m_reads;
+ 
+  /// Stores the number of Bytes written from the device
+  gs::gs_param<unsigned long long> m_writes;
 
-        /// Stores the number of Bytes written from the device
-        gs::gs_param<unsigned long long> m_writes;
 };
 
 #include "ahbslave.tpp"

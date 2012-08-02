@@ -32,7 +32,8 @@ AHBSlave<sc_module>::AHBSlave(sc_module_name nm,
   m_ResponsePEQ("ResponsePEQ"), 
   busy(false),
   m_performance_counters("performance_counters"),
-  m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters) 
+  m_reads("bytes_read", 0llu, m_performance_counters), 
+  m_writes("bytes_written", 0llu, m_performance_counters) 
   {
   
   // Register transport functions to sockets
