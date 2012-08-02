@@ -299,6 +299,42 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   /// The abstraction layer of the model
   amba::amba_layer_ids m_ambaLayer;
 
+  // *****************************************************
+  // Power Modeling Parameters
+
+  /// Normalized static power input
+  gs::gs_param<double> sta_power_norm;
+
+  /// Normalized dynamic power input (activation independent)
+  gs::gs_param<double> dyn_power_norm;
+
+  /// Normalized read access energy
+  gs::gs_param<double> dyn_read_energy_norm;
+
+  /// Normalized write access energy
+  gs::gs_param<double> dyn_write_energy_norm;  
+
+  /// Parameter array for power data output
+  gs::gs_param_array power;
+
+  /// Static power of module
+  gs::gs_param<double> sta_power;
+
+  /// Dynamic power of module (activation independent)
+  gs::gs_param<double> dyn_power;
+
+  /// Dynamic energy per read access
+  gs::gs_param<double> dyn_read_energy;
+
+  /// Dynamic energy per write access
+  gs::gs_param<double> dyn_write_energy;
+
+  /// Number of reads from memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_reads;
+
+  /// Number of writes to memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_writes;
+
   // Private functions
   // -----------------
   

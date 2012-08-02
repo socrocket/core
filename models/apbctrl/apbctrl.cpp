@@ -28,7 +28,7 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Implements an LT/AT AHB APB Bridge
+// Purpose:    Implementation of the AHB APB Bridge
 //
 // Method:
 //
@@ -64,17 +64,31 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
              ambaLayer,
              BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr_)),
        
-      apb("apb", amba::amba_APB, amba::amba_LT, false),
-      mhaddr(haddr_),
-      mhmask(hmask_),
-      mmcheck(mcheck),
-      m_pow_mon(pow_mon),
-      mAcceptPEQ("AcceptPEQ"),
-      mTransactionPEQ("TransactionPEQ"),
-      mambaLayer(ambaLayer),
-      m_pnpbase(0xFF000),
-      m_total_transactions("total_transactions", 0ull, m_performance_counters),
-      m_right_transactions("successful_transactions", 0ull, m_performance_counters) {
+  apb("apb", amba::amba_APB, amba::amba_LT, false),
+ 
+  m_AcceptPEQ("AcceptPEQ"),
+  m_TransactionPEQ("TransactionPEQ"),
+  m_pnpbase(0xFF000), 
+  m_haddr(haddr_),
+  m_hmask(hmask_),
+  m_mcheck(mcheck),
+  m_pow_mon(pow_mon),
+  m_ambaLayer(ambaLayer),
+  m_total_transactions("total_transactions", 0ull, m_performance_counters),
+  m_right_transactions("successful_transactions", 0ull, m_performance_counters),
+  sta_power_norm("power.apbctrl.sta_power_norm", 0.0, true), // Normalized static power input
+  dyn_power_norm("power.apbctrl.dyn_power_norm", 0.0, true), // Normalized dyn power input (activation indep.)
+  dyn_read_energy_norm("power.apbctrl.dyn_read_energy_norm", 0.0, true), // Normalized read energy input
+  dyn_write_energy_norm("power.apbctrl.dyn_write_energy_norm", 0.0, true), // Normalized write energy input
+  power("power"),
+  sta_power("sta_power", 0.0, power), // Static power output
+  dyn_power("dyn_power", 0.0, power), // Dynamic power output
+  dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
+  dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
+  dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
+  dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation
+
+ {
 
     // Assert generics are withing allowed ranges
     assert(haddr_ <= 0xfff);
@@ -342,7 +356,7 @@ void APBCtrl::start_of_simulation() {
   v::info << name() << "******************************************************************************* " << v::endl;
 
   // Check memory map for overlaps
-  if(mmcheck) {
+  if(m_mcheck) {
       checkMemMap();
   }
 }

@@ -66,7 +66,14 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
     g_sbits(sbits),
     g_nbits(nbits),
     g_wdog_length(wdog),
-    powermon(powmon) {
+    powermon(powmon),
+    sta_power_norm("power.gptimer.sta_power_norm", 0.0, true), // Normalized static power input
+    dyn_power_norm("power.gptimer.dyn_power_norm", 0.0, true), // Normalized dynamic power input
+    power("power"),
+    sta_power("sta_power", 0.0, power), // Static power output
+    dyn_power("dyn_power", 0.0, power)  // Dynamic power output (activation independent)
+
+ {
     assert("gsbits has to be between 1 and 32" && sbits > 0 && sbits < 33);
     assert("nbits has to be between 1 and 32" && nbits > 0 && nbits < 33);
     assert("ntimers has to be between 1 and 7" && ntimers > 0 && ntimers < 8);
@@ -76,9 +83,6 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
             << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex
             << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
             << endl;
-
-    PM::registerIP(this, "gptimer", powermon);
-    PM::send_idle(this, "idle", sc_time_stamp(), true);
 
     /* create register */
     r.create_register("scaler", "Scaler Value",

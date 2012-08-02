@@ -77,15 +77,17 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
             mhmask(hmask_),
 	    mcacheable(cacheable),
             mwait_states(wait_states),
-            sta_power_norm("power.ahbmem.sta_power_norm", 0.0, true),  // Normalized static power input
+            sta_power_norm("power.ahbmem.sta_power_norm", 0.0, true), // Normalized static power input
+            dyn_power_norm("power.ahbmem.dyn_power_norm", 0.0, true), // Normalized dynamic power input (activ. independent)
             dyn_read_energy_norm("power.ahbmem.dyn_read_energy_norm", 0.0, true), // Normalized read energy input
             dyn_write_energy_norm("power.ahbmem.dyn_write_energy_norm", 0.0, true), // Normalized write energy iput
-            p_power("power"),
-            sta_power("sta_power", 0.0, p_power), // Static power output
-            dyn_read_energy("dyn_read_energy", 0.0, p_power), // Energy per read access
-            dyn_write_energy("dyn_write_energy", 0.0, p_power), // Energy per write access
-            dyn_reads("dyn_reads", 0ull, p_power), // Read access counter for power computation
-            dyn_writes("dyn_writes", 0ull, p_power) // Write access counter for power computation
+            power("power"),
+            sta_power("sta_power", 0.0, power), // Static power output
+            dyn_power("dyn_power", 0.0, power), // Dynamic power (activation independent)
+            dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
+            dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
+            dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
+            dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation
             
 {
 

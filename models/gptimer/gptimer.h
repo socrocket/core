@@ -28,10 +28,7 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    header file containing the definition of the gptimer
-//             model. Due to the fact that the gptimer class is a
-//             template class it includes its implementation from
-//             gptimer.tpp
+// Purpose:    Class definition of the General-Purpose Timer (GP_TIMER)
 //
 // Modified on $Date$
 //          at $Revision$
@@ -158,7 +155,7 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
         /// @param time A possible delay. Which means the reset might be performed in the future (Not used for resets!).
         virtual void dorst();
 
-      // Functions
+        // Functions
         /// The time to value function of the prescaler or the counters.
         ///
         ///  This is the fundamental function which defines the connection between a given time and the value.
@@ -186,7 +183,29 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
         const uint32_t g_nbits;
         const uint32_t g_wdog_length;
         const uint32_t powermon;
-      // Register Value Offsets, Masks and Bits
+
+        // *****************************************************
+        // Power Modeling Parameters
+
+        /// Normalized static power input
+        gs::gs_param<double> sta_power_norm;
+
+        /// Normalized dynamic power input (activation independent)
+        gs::gs_param<double> dyn_power_norm;
+
+        /// Parameter array for power data output
+        gs::gs_param_array power;
+
+        /// Static power of module
+        gs::gs_param<double> sta_power;
+
+        /// Dynamic power of module (activation independent)
+        gs::gs_param<double> dyn_power;
+
+        // *****************************************************
+        // Constant and mask definitions
+
+        // Register Value Offsets, Masks and Bits
         /// Scaler Value Register Address
         static const uint32_t SCALER = 0x00;
         

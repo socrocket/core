@@ -60,10 +60,12 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
   m_reads("bytes_read", 0ull, m_performance_counters), 
   m_writes("bytes_writen", 0ull, m_performance_counters),
   sta_power_norm("power." + get_type_name() + ".sta_power_norm", 0.0, true), // Normalized static power input
+  dyn_power_norm("power." + get_type_name() + ".dyn_power_norm", 0.0, true), // Normalized dyn power input (act. independent)
   dyn_read_energy_norm("power." + get_type_name() + ".dyn_read_energy_norm", 0.0, true), // Normalized read energy input
   dyn_write_energy_norm("power." + get_type_name() + ".dyn_write_energy_norm", 0.0, true), // Normalized write energy input
   power("power"),
   sta_power("sta_power", 0.0, power),  // Static power output
+  dyn_power("dyn_power", 0.0, power),  // Dynamic power output
   dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
   dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
   dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
@@ -80,23 +82,6 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
     // gs_param class identifier
     m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
-    char *type_name;
-    switch(type) {
-      case MEMDevice::IO:
-          type_name = "io";
-          break;
-      case MEMDevice::SRAM:
-          type_name = "sram";
-          break;
-      case MEMDevice::SDRAM:
-          type_name = "sdram";
-          break;
-      default:
-        type_name = "rom";
-    }
-    PM::registerIP(this, type_name, powmon);
-    PM::send_idle(this, "idle", sc_time_stamp(), true);
-    
     bus.register_b_transport(this, &ArrayMemory::b_transport);
     bus.register_transport_dbg(this, &ArrayMemory::transport_dbg);
 
@@ -104,7 +89,7 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
     v::info << this->name() << " ******************************************************************************* " << v::endl;
     v::info << this->name() << " * Created ArrayMemory with following parameters: " << v::endl;
     v::info << this->name() << " * ------------------------------------------------ " << v::endl;
-    v::info << this->name() << " * device_type (0-ROM, 1-IO, 2-SRAM, 3-SDRAM): " << type << v::endl;
+    v::info << this->name() << " * device_type (ROM, IO, SRAM, SDRAM): " << get_type_name() << v::endl;
     v::info << this->name() << " * banks: " << banks << v::endl;
     v::info << this->name() << " * bsize (bytes): " << hex << bsize << v::endl;
     v::info << this->name() << " * bit width: " << bits << v::endl;
@@ -125,23 +110,9 @@ ArrayMemory::~ArrayMemory() {
 
 // Print execution statistic at end of simulation
 void ArrayMemory::end_of_simulation() {
-    char *type_name;
-    switch(get_type()) {
-      case MEMDevice::IO:
-          type_name = "IO";
-          break;
-      case MEMDevice::SRAM:
-          type_name = "SRAM";
-          break;
-      case MEMDevice::SDRAM:
-          type_name = "SDRAM";
-          break;
-      default:
-        type_name = "ROM";
-    }
-    
+     
     v::report << name() << " ********************************************" << v::endl;
-    v::report << name() << " * "<< type_name <<" Memory Statistic:" << v::endl;
+    v::report << name() << " * "<< get_type_name() << " Memory Statistic:" << v::endl;
     v::report << name() << " * -----------------------------------------" << v::endl;
     v::report << name() << " * Bytes read:    " << m_reads << v::endl;
     v::report << name() << " * Bytes written: " << m_writes << v::endl;

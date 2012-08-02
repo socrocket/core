@@ -28,7 +28,7 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Implements an LT/AT AHB APB Bridge
+// Purpose:    Class definition of the AHB2APB bridge
 //
 // Modified on $Date$
 //          at $Revision$
@@ -111,36 +111,20 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
   /// Desctructor
   ~APBCtrl();
 
+  /// Set up slave map and collect plug & play information
+  void start_of_simulation();
+        
+  /// SystemC end of simulation hook
+  void end_of_simulation();
+
+
  private:
   
-  /// The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
-  unsigned int mhaddr;
-  /// The 12bit AHB area address mask
-  unsigned int mhmask;
-  /// Check if there are any intersections between APB slave memory regions
-  bool mmcheck;
-  /// Enable power monitoring (Only TLM)
-  bool m_pow_mon;
-
-  // Event queue for AT mode
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> mAcceptPEQ;
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> mTransactionPEQ;	
-
-  /// Abstraction Layer
-  amba::amba_layer_ids mambaLayer;
-  
-  // Ready to accept new transaction (send END_REQ)
-  sc_event unlock_event;
-
-  // false - ready to accept new transaction
-  bool busy;
-
-  /// The base address of the PNP APB device records
-  /// 0xFF000
-  const uint32_t m_pnpbase;
-
   typedef tlm::tlm_generic_payload payload_t;
   typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;
+
+  /// Array of slave device information (PNP)
+  const uint32_t *mSlaves[16];
 
   typedef struct {
 
@@ -157,21 +141,80 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
   /// iterator for slave map
   typedef vmap<uint32_t, slave_info_t>::iterator slave_iter;
 
-  /// Array of slave device information (PNP)
-  const uint32_t *mSlaves[16];
-  
+  // Event queue for AT mode
+  tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_AcceptPEQ;
+  tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_TransactionPEQ;	
+
+  // Ready to accept new transaction (send END_REQ)
+  sc_event unlock_event;
+
+  // false - ready to accept new transaction
+  bool busy;
+
+  /// The base address of the PNP APB device records
+  /// 0xFF000
+  const uint32_t m_pnpbase;
+
+  /// The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
+  unsigned int m_haddr;
+
+  /// The 12bit AHB area address mask
+  unsigned int m_hmask;
+
+  /// Check if there are any intersections between APB slave memory regions
+  bool m_mcheck;
+
+  /// Enable power monitoring (Only TLM)
+  bool m_pow_mon;
+
+   /// Abstraction Layer
+  amba::amba_layer_ids m_ambaLayer;
+
+  // *****************************************************
+  // Performance Counters
+
   /// Total number of transactions
   gs::gs_param<unsigned long long> m_total_transactions;
 
   /// Successful number of transactions
   gs::gs_param<unsigned long long> m_right_transactions;
 
-  /// Set up slave map and collect plug & play information
-  void start_of_simulation();
-        
-  /// SystemC end of simulation hook
-  void end_of_simulation();
+  // *****************************************************
+  // Power Modeling Parameters
 
+  /// Normalized static power input
+  gs::gs_param<double> sta_power_norm;
+
+  /// Normalized dynamic power input (activation independent)
+  gs::gs_param<double> dyn_power_norm;
+
+  /// Normalized read access energy
+  gs::gs_param<double> dyn_read_energy_norm;
+
+  /// Normalized write access energy
+  gs::gs_param<double> dyn_write_energy_norm;  
+
+  /// Parameter array for power data output
+  gs::gs_param_array power;
+
+  /// Static power of module
+  gs::gs_param<double> sta_power;
+
+  /// Dynamic power of module (activation independent)
+  gs::gs_param<double> dyn_power;  
+
+  /// Dynamic energy per read access
+  gs::gs_param<double> dyn_read_energy;
+
+  /// Dynamic energy per write access
+  gs::gs_param<double> dyn_write_energy;
+
+  /// Number of reads from memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_reads;
+
+  /// Number of writes to memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_writes;
+ 
 };
 
 /// @}

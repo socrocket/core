@@ -129,6 +129,9 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
   /// Normalized static power input
   gs::gs_param<double> sta_power_norm;
 
+  /// Normalized dynamic power input (activation independent)
+  gs::gs_param<double> dyn_power_norm;
+
   /// Normalized read access energy
   gs::gs_param<double> dyn_read_energy_norm;
 
@@ -136,10 +139,13 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
   gs::gs_param<double> dyn_write_energy_norm;
 
   /// Parameter array for power data output
-  gs::gs_param_array p_power;
+  gs::gs_param_array power;
 
   /// Static power of module
   gs::gs_param<double> sta_power;
+
+  /// Dynamic power of module (activation independent)
+  gs::gs_param<double> dyn_power;
 
   /// Dynamic energy per read access
   gs::gs_param<double> dyn_read_energy;

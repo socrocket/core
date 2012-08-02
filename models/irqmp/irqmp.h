@@ -28,8 +28,8 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    header file defining the irqmp module template
-//             includes implementation file irqmp.tpp at the bottom
+// Purpose:    Class definition of multi-processor interrupt controller.
+//             (IRQMP).
 //
 // Modified on $Date$
 //          at $Revision$
@@ -208,6 +208,28 @@ class Irqmp : public gs::reg::gr_device,
         /// power monitoring enabled or not
         const uint32_t powermon;
     public:
+
+        // *****************************************************
+        // Power Modeling Parameters
+
+        /// Normalized static power of controller
+        gs::gs_param<double> sta_power_norm;
+
+        /// Normalized dynamic power of controller
+        gs::gs_param<double> dyn_power_norm;
+
+        /// Parameter array for power data output
+        gs::gs_param_array power;
+
+        /// Controller static power
+        gs::gs_param<double> sta_power;
+
+        /// Controller dynamic power
+        gs::gs_param<double> dyn_power;
+
+        // ******************************************************
+        // Constant and mask definitions
+
         //---register address offset
         static const uint32_t IR_LEVEL           = 0x00;
         static const uint32_t IR_PENDING         = 0x04;

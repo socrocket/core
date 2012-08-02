@@ -28,8 +28,8 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    implementation of irqmp module
-//             is included by irqmp.h template header file
+// Purpose:    Implementation of multi-processor interrupt controller
+//             (IRQMP).
 //
 // Method:
 //
@@ -84,7 +84,14 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
             m_performance_counters("performance_counters"), 
             m_irq_counter("irq_line_activity", 32, m_performance_counters),
             m_cpu_counter("cpu_line_activity", ncpu, m_performance_counters),
-	          powermon(powmon) {
+            powermon(powmon),
+            sta_power_norm("power.irqmp.sta_power_norm", 0.0, true), // Normalized static power of controller
+            dyn_power_norm("power.irqmp.dyn_power_norm", 0.0, true), // Normalized static power of controller
+            power("power"),
+            sta_power("sta_power", 0.0, power), // Static power of controller
+            dyn_power("dyn_power", 0.0, power)  // Dynamic power of controller
+
+ {
 
     m_api = gs::cnf::GCnf_Api::getApiInstance(this);
     forcereg = new uint32_t[g_ncpu];

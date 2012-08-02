@@ -130,6 +130,9 @@ class MapMemory : public MEMDevice,
         /// Normalized static power input
         gs::gs_param<double> sta_power_norm;
 
+        /// Normalized dynamic power input (activation independent)
+        gs::gs_param<double> dyn_power_norm;
+
         /// Normalized read access energy
         gs::gs_param<double> dyn_read_energy_norm;
 
@@ -141,6 +144,9 @@ class MapMemory : public MEMDevice,
 
         /// Static power of module
         gs::gs_param<double> sta_power;
+
+        /// Dynamic power of module
+        gs::gs_param<double> dyn_power;
 
         /// Dynamic energy per read access
         gs::gs_param<double> dyn_read_energy;

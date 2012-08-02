@@ -252,8 +252,8 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         /// Last time switched to auto self refresh mode
         gs::gs_param<sc_time> m_self_refresh_start;
 
-        /// *****************************************************
-        /// Power Modeling Parameters
+        // *****************************************************
+        // Power Modeling Parameters
 
         /// Normalized static power of controller
         gs::gs_param<double> sta_power_norm;
@@ -262,7 +262,7 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         gs::gs_param<double> dyn_power_norm;
 
         /// Parameter array for power data output
-        gs::gs_param<double> power;
+        gs::gs_param_array power;
 
         /// Controller static power
         gs::gs_param<double> sta_power;

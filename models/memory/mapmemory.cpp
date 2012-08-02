@@ -61,11 +61,13 @@ MapMemory::MapMemory(sc_core::sc_module_name name, MEMDevice::device_type type, 
   m_performance_counters("performance_counters"),
   m_reads("bytes_read", 0ull, m_performance_counters), 
   m_writes("bytes_writen", 0ull, m_performance_counters),
-  sta_power_norm("power." + get_type_name() + ".sta_power_norm", 0.0, true),// Normalized static power input 
+  sta_power_norm("power." + get_type_name() + ".sta_power_norm", 0.0, true), // Normalized static power input 
+  dyn_power_norm("power." + get_type_name() + ".dyn_power_norm", 0.0, true), // Normalized dynamic power input (act. independ)
   dyn_read_energy_norm("power." + get_type_name() + ".dyn_read_energy_norm", 0.0, true), // Normalized read energy input
   dyn_write_energy_norm("power.mapmemory.dyn_write_energy_norm", 0.0, true), // Normalized write energy input
   power("power"),
   sta_power("sta_power", 0.0, power),  // Static power output
+  dyn_power("dyn_power", 0.0, power),  // Dynamic power output
   dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
   dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
   dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
