@@ -294,8 +294,15 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// total width of vtag
   unsigned int m_vtag_width;
 
-  // Execution statistics
-  // --------------------
+  /// Pseudo random counter for LRU
+  uint32_t m_pseudo_rand;
+
+  /// Power Monitoring enabled?
+  bool m_pow_mon;
+
+  // *****************************************************
+  // Performance Counters
+
   /// GreenControl API container
   gs::cnf::cnf_api *m_api;
         
@@ -310,11 +317,24 @@ class mmu : public sc_core::sc_module, public mmu_if {
   gs::gs_param<unsigned long long> timisses;
   gs::gs_param<unsigned long long> tdmisses;
 
-  /// Pseudo random counter for LRU
-  uint32_t m_pseudo_rand;
 
-  /// Power Monitoring enabled?
-  bool m_pow_mon;
+  // *****************************************************
+  // Power Modeling Parameters
+
+  /// Normalized static power of mmu
+  gs::gs_param<double> sta_power_norm;
+
+  /// Normalized dynamic power of mmu
+  gs::gs_param<double> dyn_power_norm;
+
+  /// Parameter array for power data output
+  gs::gs_param_array power;
+
+  /// MMU static power
+  gs::gs_param<double> sta_power;
+
+  /// MMU dynamic power
+  gs::gs_param<double> dyn_power;
 
   /// Clock cycle time
   sc_core::sc_time clockcycle;

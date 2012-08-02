@@ -67,13 +67,18 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
 	    m_tlb_type(tlb_type), 
 	    m_tlb_rep(tlb_rep),
             m_mmupgsz(mmupgsz),
-      m_performance_counters("performance_counters"),
-      tihits("instruction_tlb_hits", 8, m_performance_counters),
-      tdhits("data_tlb_hits", 8, m_performance_counters),
-      timisses("instruction_tlb_misses", 0ull, m_performance_counters),
-      tdmisses("data_tlb_misses", 0ull, m_performance_counters),
 	    m_pseudo_rand(0),
 	    m_pow_mon(pow_mon),
+            m_performance_counters("performance_counters"),
+            tihits("instruction_tlb_hits", 8, m_performance_counters),
+            tdhits("data_tlb_hits", 8, m_performance_counters),
+            timisses("instruction_tlb_misses", 0ull, m_performance_counters),
+            tdmisses("data_tlb_misses", 0ull, m_performance_counters),
+            sta_power_norm("power.mmu_cache.mmu.sta_power_norm", 0.0, true), // Normalized static power of controller
+            dyn_power_norm("power.mmu_cache.mmu.dyn_power_norm", 0.0, true), // Normalized static power of controller
+            power("power"),
+            sta_power("sta_power", 0.0, power), // Static power of controller
+            dyn_power("dyn_power", 0.0, power),  // Dynamic power of controller
 	    clockcycle(10, sc_core::SC_NS) {
 
     // The number of instruction and data tlbs must be in the range of 2-32

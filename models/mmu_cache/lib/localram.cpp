@@ -28,12 +28,10 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Implementation of a local RAM that
-//             can be attached to the icache and dcache controllers.
-//             The LocalRAM enables fast 0-waitstate access
+// Purpose:    Implementation of scratchpad/localram.
+//             Can be attached to the icache and dcache controllers.
+//             The localram enables fast 0-waitstate access
 //             to instructions or data.
-//
-// Method:
 //
 // Modified on $Date$
 //          at $Revision$
@@ -61,7 +59,18 @@ localram::localram(sc_core::sc_module_name name,
 		   swrites("written_transactions", 0ull, m_performance_counters),
 		   sreads_byte("bytes_read", 0ull, m_performance_counters),
 		   swrites_byte("bytes_written", 0ull, m_performance_counters),
-		   m_pow_mon(pow_mon)
+		   m_pow_mon(pow_mon),
+                   sta_power_norm("power.mmu_cache.localram.sta_power_norm", 0.0, true), // Normalized static power input
+                   dyn_power_norm("power.mmu_cache.localram.dyn_power_norm", 0.0, true), // Normalized dynamic power input (activ. independent)
+                   dyn_read_energy_norm("power.mmu_cache.localram.dyn_read_energy_norm", 0.0, true), // Normalized read energy input
+                   dyn_write_energy_norm("power.mmu_cache.localram.dyn_write_energy_norm", 0.0, true), // Normalized write energy iput
+                   power("power"),
+                   sta_power("sta_power", 0.0, power), // Static power output
+                   dyn_power("dyn_power", 0.0, power), // Dynamic power (activation independent)
+                   dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
+                   dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
+                   dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
+                   dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation
 {
 
     // Parameter check
@@ -76,10 +85,6 @@ localram::localram(sc_core::sc_module_name name,
 
     // Create the actual ram
     scratchpad = new t_cache_data[m_lrsize>>2];
-
-    // Register for power monitoring
-    PM::registerIP(this,"localram",m_pow_mon);
-    PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
 
     // Configuration report
     v::info << this->name() << " ******************************************************************************* " << v::endl;
@@ -108,9 +113,6 @@ bool localram::mem_read(unsigned int addr, unsigned int asi, unsigned char *data
     v::error << name() << "Read with address " << hex << addr << " out of range!!" << v::endl;
 
   }
-
-  PM::send(this,"lram_read", 1, sc_time_stamp(), 0, m_pow_mon);
-  PM::send(this,"lram_read", 0, sc_time_stamp(), 0, m_pow_mon);
 
   // Byte offset
   unsigned int byt = addr & 0x3;
@@ -144,9 +146,6 @@ void localram::mem_write(unsigned int addr, unsigned int asi, unsigned char *dat
     v::error << name() << "Write with address " << hex << addr << " out of range!!" << v::endl;
 
   }
-
-  PM::send(this,"lram_write", 1, sc_time_stamp(), 0, m_pow_mon);
-  PM::send(this,"lram_write", 0, sc_time_stamp(), 0, m_pow_mon);
 
   // byte offset
   unsigned int byt = addr & 0x3;

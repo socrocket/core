@@ -28,12 +28,12 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Class definition of a cache-subsystem.
-//             The cache-subsystem envelopes an instruction cache,
-//             a data cache and a memory management unit.
-//             The mmu_cache class provides two TLM slave interfaces
-//             for connecting the cpu to the caches and an AHB master
-//             interface for connection to the main memory.
+// Purpose:    Class definition of LEON2/3 cache-subsystem consisting
+//             of instruction cache, data cache, i/d localrams
+//             and memory management unit.
+//             The mmu_cache class provides two TLM slave sockets
+//             for connecting the cpu and an AHB master
+//             interface for connecting the processor bus.
 //
 // Modified on $Date$
 //          at $Revision$
@@ -283,6 +283,24 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
 
   /// amba abstraction layer
   amba::amba_layer_ids m_abstractionLayer;
+  
+  // ****************************************************
+  // Power Modeling Parameters
+  
+  /// Normalized static power of controller
+  gs::gs_param<double> sta_power_norm;
+
+  /// Normalized dynamic power of controller
+  gs::gs_param<double> dyn_power_norm;
+
+  /// Parameter array for power data output
+  gs::gs_param_array power;
+
+  /// Controller static power
+  gs::gs_param<double> sta_power;
+
+  /// Controller dynamic power
+  gs::gs_param<double> dyn_power;
   
 };
 

@@ -28,12 +28,12 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Class definition of a cache-subsystem.
-//             The cache-subsystem envelopes an instruction cache,
-//             a data cache and a memory management unit.
-//             The mmu_cache class provides two TLM slave interfaces
-//             for connecting the cpu to the caches and an AHB master
-//             interface for connection to the main memory.
+// Purpose:    Implementation of LEON2/3 cache-subsystem consisting
+//             of instruction cache, data cache, i/d localrams
+//             and memory management unit.
+//             The mmu_cache class provides two TLM slave sockets
+//             for connecting the cpu and an AHB master
+//             interface for connecting the processor bus.
 //
 // Method:
 //
@@ -95,7 +95,13 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     m_right_transactions("successful_transactions", 0ull, m_performance_counters),
     m_total_transactions("total_transactions", 0ull, m_performance_counters),
     m_pow_mon(pow_mon),
-    m_abstractionLayer(abstractionLayer) {
+    m_abstractionLayer(abstractionLayer),
+    sta_power_norm("power.mmu_cache.sta_power_norm", 0.0, true), // Normalized static power of controller
+    dyn_power_norm("power.mmu_cache.dyn_power_norm", 0.0, true), // Normalized static power of controller
+    power("power"),
+    sta_power("sta_power", 0.0, power), // Static power of controller
+    dyn_power("dyn_power", 0.0, power)  // Dynamic power of controller
+{
 
     // Parameter checks
     // ----------------
@@ -173,10 +179,6 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     icio.register_transport_dbg(this, &mmu_cache::icio_transport_dbg);
     // Data debug transport
     dcio.register_transport_dbg(this, &mmu_cache::dcio_transport_dbg);
-
-    // Register power monitor
-    PM::registerIP(this,"mmu_cache",m_pow_mon);
-    PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
 
     // Initialize cache control registers
     CACHE_CONTROL_REG = 0;

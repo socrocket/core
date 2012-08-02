@@ -221,9 +221,6 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     wmisses = 0;
     bypassops = 0;
 
-    // register for power monitoring
-    PM::registerIP(this,"vectorcache",m_pow_mon);
-    PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
 }
 
 // Destructor
@@ -334,27 +331,8 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
 	if (m_pow_mon) {
 
-	  for (unsigned int i=0;i<=m_sets;i++) {
-
-	    // Power Monitor: parallel read of all cache sets (1 cycle)
-	    switch(i) {
-
-	    case 0:   PM::send(this, "set_read0", 1, sc_time_stamp(), 0, m_pow_mon);
-	              PM::send(this, "set_read0", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-		      break;
-	    case 1:   PM::send(this, "set_read1", 1, sc_time_stamp(), 0, m_pow_mon);
-	              PM::send(this, "set_read1", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-		      break;
-	    case 2:   PM::send(this, "set_read2", 1, sc_time_stamp(), 0, m_pow_mon);
-	              PM::send(this, "set_read2", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-		      break;
-	    case 3:   PM::send(this, "set_read3", 1, sc_time_stamp(), 0, m_pow_mon);
-	              PM::send(this, "set_read3", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-		      break;
-	    default:  v::warn << name() << "Set not valid in call to power monitor (0-3) - is: " << i << v::endl;
-
-	    }
-	  }
+          // Power Monitor: parallel read of all cache sets (1 cycle)
+	  
 	}
 
 
@@ -438,23 +416,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 		if (m_pow_mon) {
 
 		  // Power Monitor: Write new data to set 'set_select'
-		  switch(set_select) {
-
-		  case 0: PM::send(this,"set_write0", 1, sc_time_stamp(), 0, m_pow_mon);
-		          PM::send(this,"set_write0", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-			  break;
-		  case 1: PM::send(this,"set_write1", 1, sc_time_stamp(), 0, m_pow_mon);
-		          PM::send(this,"set_write1", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-		  	  break;
-		  case 2: PM::send(this,"set_write2", 1, sc_time_stamp(), 0, m_pow_mon);
-		          PM::send(this,"set_write2", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-			  break;
-		  case 3: PM::send(this,"set_write3", 1, sc_time_stamp(), 0, m_pow_mon);
-		          PM::send(this,"set_write3", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-			  break;
-		  default: v::warn << name() << "Set not valid in call to power monitor (0-3) - is: " << set_select << v::endl;
-		  }
-
+ 
 		}
 
                 // has the tag changed?
@@ -513,22 +475,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 		  if (m_pow_mon) {
 
 		    // Power Monitor: Write new data to set 'set_select'
-		    switch(set_select) {
 
-		    case 0: PM::send(this,"set_write0", 1, sc_time_stamp(), 0, m_pow_mon);
-		            PM::send(this,"set_write0", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-			    break;
-		    case 1: PM::send(this,"set_write1", 1, sc_time_stamp(), 0, m_pow_mon);
-		            PM::send(this,"set_write1", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-			    break;
-		    case 2: PM::send(this,"set_write2", 1, sc_time_stamp(), 0, m_pow_mon);
-		            PM::send(this,"set_write2", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-			    break;
-		    case 3: PM::send(this,"set_write3", 1, sc_time_stamp(), 0, m_pow_mon);
-		            PM::send(this,"set_write3", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-			    break;
-		    default: v::warn << name() << "Set not valid in call to power monitor (0-3) - is: " << set_select << v::endl;
-		    }
 		  }
 
                   // switch on the valid bits for the new entries
