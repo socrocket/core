@@ -1,16 +1,49 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       generic_memory.tpp                                      */
-/*             implementation of the generic_memory module             */
-/*                                                                     */
-/* Modified on $Date: 2011-08-04 16:52:17 +0200 (Thu, 04 Aug 2011) $   */
-/*          at $Revision: 481 $                                        */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Rolf Meyer                                              */
-/***********************************************************************/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      mapmemory.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Implementation of the generic memory model to be used 
+//             with the SoCRocket MCTRL. Can be configured as ROM, 
+//             IO, SRAM or SDRAM. Underlying memory is implemented 
+//             as a flexible vmap.
+//             Recommended for simulation of large, sparsely
+//             populated memories.
+//
+// Modified on $Date: 2011-05-09 20:31:53 +0200 (Mon, 09 May 2011) $
+//          at $Revision: 416 $
+//          by $Author: HWSWSIM $
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Dennis Bode
+// Reviewed:
+//*********************************************************************
 
 #include "mapmemory.h"
 
@@ -27,7 +60,18 @@ MapMemory::MapMemory(sc_core::sc_module_name name, MEMDevice::device_type type, 
   g_powmon(powmon), 
   m_performance_counters("performance_counters"),
   m_reads("bytes_read", 0ull, m_performance_counters), 
-  m_writes("bytes_writen", 0ull, m_performance_counters) {
+  m_writes("bytes_writen", 0ull, m_performance_counters),
+  sta_power_norm("power." + get_type_name() + ".sta_power_norm", 0.0, true),// Normalized static power input 
+  dyn_read_energy_norm("power." + get_type_name() + ".dyn_read_energy_norm", 0.0, true), // Normalized read energy input
+  dyn_write_energy_norm("power.mapmemory.dyn_write_energy_norm", 0.0, true), // Normalized write energy input
+  power("power"),
+  sta_power("sta_power", 0.0, power),  // Static power output
+  dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
+  dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
+  dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
+  dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation
+  
+ {
     // register transport functions to sockets
     gs::socket::config<tlm::tlm_base_protocol_types> bus_cfg;
     bus_cfg.use_mandatory_phase(BEGIN_REQ);
@@ -35,23 +79,6 @@ MapMemory::MapMemory(sc_core::sc_module_name name, MEMDevice::device_type type, 
     //mem_cfg.treat_unknown_as_ignorable();
     bus.set_config(bus_cfg);
     m_api = gs::cnf::GCnf_Api::getApiInstance(this);
-
-    char *type_name;
-    switch(type) {
-      case MEMDevice::IO:
-          type_name = "io";
-          break;
-      case MEMDevice::SRAM:
-          type_name = "sram";
-          break;
-      case MEMDevice::SDRAM:
-          type_name = "sdram";
-          break;
-      default:
-        type_name = "rom";
-    }
-    PM::registerIP(this, type_name, powmon);
-    PM::send_idle(this, "idle", sc_time_stamp(), true);
     
     bus.register_b_transport(this, &MapMemory::b_transport);
     bus.register_transport_dbg(this, &MapMemory::transport_dbg);
@@ -60,7 +87,7 @@ MapMemory::MapMemory(sc_core::sc_module_name name, MEMDevice::device_type type, 
     v::info << this->name() << " ******************************************************************************* " << v::endl;
     v::info << this->name() << " * Created MapMemory with following parameters: " << v::endl;
     v::info << this->name() << " * ------------------------------------------------ " << v::endl;
-    v::info << this->name() << " * device_type (0-ROM, 1-IO, 2-SRAM, 3-SDRAM): " << type << v::endl;
+    v::info << this->name() << " * device_type (ROM, IO, SRAM, SDRAM): " << get_type_name() << v::endl;
     v::info << this->name() << " * banks: " << banks << v::endl;
     v::info << this->name() << " * bsize (bytes): " << hex << bsize << v::endl;
     v::info << this->name() << " * bit width: " << bits << v::endl;
@@ -75,23 +102,9 @@ MapMemory::~MapMemory() {}
 
 // Print execution statistic at end of simulation
 void MapMemory::end_of_simulation() {
-    char *type_name;
-    switch(get_type()) {
-      case MEMDevice::IO:
-          type_name = "IO";
-          break;
-      case MEMDevice::SRAM:
-          type_name = "SRAM";
-          break;
-      case MEMDevice::SDRAM:
-          type_name = "SDRAM";
-          break;
-      default:
-        type_name = "ROM";
-    }
-    
+     
     v::report << name() << " ********************************************" << v::endl;
-    v::report << name() << " * "<< type_name <<" Memory Statistic:" << v::endl;
+    v::report << name() << " * "<< get_type_name() <<" Memory Statistic:" << v::endl;
     v::report << name() << " * -----------------------------------------" << v::endl;
     v::report << name() << " * Bytes read:    " << m_reads << v::endl;
     v::report << name() << " * Bytes written: " << m_writes << v::endl;
@@ -184,14 +197,14 @@ void MapMemory::erase(uint32_t start, uint32_t end) {
                        << " to " << v::uint32 << end << v::endl;
 
     // Find or insert start address
-    type::iterator start_iter = memory.find(start);
+    map_mem::iterator start_iter = memory.find(start);
     if(start_iter==memory.end()) {
         memory.insert(std::make_pair(start, 0));
         start_iter = memory.find(start);
     }
     
     // Find or insert end address
-    type::iterator end_iter = memory.find(end);
+    map_mem::iterator end_iter = memory.find(end);
     if(end_iter==memory.end()) {
         memory.insert(std::make_pair(end, 0));
         end_iter = memory.find(end);

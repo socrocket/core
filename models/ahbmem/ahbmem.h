@@ -51,6 +51,8 @@
 #include "clkdevice.h"
 #include "msclogger.h"
 
+#include <greencontrol/config.h>
+
 #if defined(MTI_SYSTEMC)
 #include "peq_with_get.h"
 #else
@@ -100,6 +102,7 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
   void end_of_simulation();
 
  private:
+
   /// The actual memory
   std::map<uint32_t, uint8_t> mem;
         
@@ -117,6 +120,38 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
 
   /// Number of wait states to be inserted for each transfer
   const uint32_t mwait_states;
+
+ public:
+
+  /// *****************************************************
+  /// Power Modeling Parameters
+
+  /// Normalized static power input
+  gs::gs_param<double> sta_power_norm;
+
+  /// Normalized read access energy
+  gs::gs_param<double> dyn_read_energy_norm;
+
+  /// Normalized write access energy
+  gs::gs_param<double> dyn_write_energy_norm;
+
+  /// Parameter array for power data output
+  gs::gs_param_array p_power;
+
+  /// Static power of module
+  gs::gs_param<double> sta_power;
+
+  /// Dynamic energy per read access
+  gs::gs_param<double> dyn_read_energy;
+
+  /// Dynamic energy per write access
+  gs::gs_param<double> dyn_write_energy;
+
+  /// Number of reads from memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_reads;
+
+  /// Number of writes to memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_writes;
 
 };
 

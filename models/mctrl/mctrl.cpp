@@ -96,7 +96,14 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr), 
             g_rammask(_rammask), g_paddr(_paddr), g_pmask(_pmask), g_wprot(_wprot),
             g_srbanks(_srbanks), g_ram8(_ram8), g_ram16(_ram16), g_sepbus(_sepbus),
-            g_sdbits(_sdbits), g_mobile(_mobile), g_sden(_sden) {
+            g_sdbits(_sdbits), g_mobile(_mobile), g_sden(_sden),
+            sta_power_norm("power.mctrl.sta_power_norm", 0.0, true), // Normalized static power of controller
+            dyn_power_norm("power.mctrl.dyn_power_norm", 0.0, true), // Normalized static power of controller
+            power("power"),
+            sta_power("sta_power", 0.0, power), // Static power of controller
+            dyn_power("dyn_power", 0.0, power)  // Dynamic power of controller
+
+ {
 
     // Display APB slave information 
     v::info << this->name() << "APB slave @" << v::uint32 << apb.get_base_addr() 

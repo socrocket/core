@@ -252,6 +252,24 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         /// Last time switched to auto self refresh mode
         gs::gs_param<sc_time> m_self_refresh_start;
 
+        /// *****************************************************
+        /// Power Modeling Parameters
+
+        /// Normalized static power of controller
+        gs::gs_param<double> sta_power_norm;
+
+        /// Normalized dynamic power of controller
+        gs::gs_param<double> dyn_power_norm;
+
+        /// Parameter array for power data output
+        gs::gs_param<double> power;
+
+        /// Controller static power
+        gs::gs_param<double> sta_power;
+
+        /// Controller dynamic power
+        gs::gs_param<double> dyn_power;
+
         // Constructor parameters (modeling VHDL generics)
         const int g_romasel;
         const int g_sdrasel;

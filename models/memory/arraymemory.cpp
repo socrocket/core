@@ -1,16 +1,48 @@
-/***********************************************************************/
-/* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     */
-/*                                                                     */
-/* File:       generic_memory.tpp                                      */
-/*             implementation of the generic_memory module             */
-/*                                                                     */
-/* Modified on $Date: 2011-08-04 16:52:17 +0200 (Thu, 04 Aug 2011) $   */
-/*          at $Revision: 481 $                                        */
-/*                                                                     */
-/* Principal:  European Space Agency                                   */
-/* Author:     VLSI working group @ IDA @ TUBS                         */
-/* Maintainer: Rolf Meyer                                              */
-/***********************************************************************/
+//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+//*********************************************************************
+// Title:      arraymemory.cpp
+//
+// ScssId:
+//
+// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+//
+// Purpose:    Implementation of the generic memory model to be used 
+//             with the SoCRocket MCTRL. Can be configured as ROM, 
+//             IO, SRAM or SDRAM. Underlying memory is implemented 
+//             as a flat array.
+//             Recommended for fast simulation of small memories.
+//
+// Modified on $Date: 2011-05-09 20:31:53 +0200 (Mon, 09 May 2011) $
+//          at $Revision: 416 $
+//          by $Author: HWSWSIM $
+//
+// Principal:  European Space Agency
+// Author:     VLSI working group @ IDA @ TUBS
+// Maintainer: Dennis Bode
+// Reviewed:
+//*********************************************************************
 
 #include "arraymemory.h"
 #include "power_monitor.h"
@@ -26,7 +58,18 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
   g_powmon(powmon), 
   m_performance_counters("performance_counters"),
   m_reads("bytes_read", 0ull, m_performance_counters), 
-  m_writes("bytes_writen", 0ull, m_performance_counters) {
+  m_writes("bytes_writen", 0ull, m_performance_counters),
+  sta_power_norm("power." + get_type_name() + ".sta_power_norm", 0.0, true), // Normalized static power input
+  dyn_read_energy_norm("power." + get_type_name() + ".dyn_read_energy_norm", 0.0, true), // Normalized read energy input
+  dyn_write_energy_norm("power." + get_type_name() + ".dyn_write_energy_norm", 0.0, true), // Normalized write energy input
+  power("power"),
+  sta_power("sta_power", 0.0, power),  // Static power output
+  dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
+  dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
+  dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
+  dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation  
+
+{
     // register transport functions to sockets
     gs::socket::config<tlm::tlm_base_protocol_types> bus_cfg;
     bus_cfg.use_mandatory_phase(BEGIN_REQ);

@@ -22,14 +22,18 @@
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
 //*********************************************************************
-// Title:      genericmemory.h
+// Title:      mapmemory.h
 //
 // ScssId:
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Generic memory model to be used with the SoCRocket
-//             MCTRL. Can be configured as ROM, IO, SRAM or SDRAM.
+// Purpose:    Class definition of the generic memory model to be used 
+//             with the SoCRocket MCTRL. Can be configured as ROM, 
+//             IO, SRAM or SDRAM. Underlying memory is implemented 
+//             as a flexible vmap.
+//             Recommended for simulation of large, sparsely
+//             populated memories.
 //
 // Modified on $Date: 2011-05-09 20:31:53 +0200 (Mon, 09 May 2011) $
 //          at $Revision: 416 $
@@ -84,8 +88,8 @@ class MapMemory : public MEMDevice,
         /// Destructor
         ~MapMemory();
         
-        typedef vmap<uint32_t, uint8_t> type;
-        type memory;
+        typedef vmap<uint32_t, uint8_t> map_mem;
+        map_mem memory;
 
         /// SystemC end of simulation
         void end_of_simulation();
@@ -119,6 +123,37 @@ class MapMemory : public MEMDevice,
 
         /// Performance counter to store the transaction byte writes
         gs::gs_param<unsigned long long> m_writes; 
+
+        /// *****************************************************
+        /// Power Modeling Parameters
+
+        /// Normalized static power input
+        gs::gs_param<double> sta_power_norm;
+
+        /// Normalized read access energy
+        gs::gs_param<double> dyn_read_energy_norm;
+
+        /// Normalized write access energy
+        gs::gs_param<double> dyn_write_energy_norm;
+
+        /// Parameter array for power data output
+        gs::gs_param_array power;
+
+        /// Static power of module
+        gs::gs_param<double> sta_power;
+
+        /// Dynamic energy per read access
+        gs::gs_param<double> dyn_read_energy;
+
+        /// Dynamic energy per write access
+        gs::gs_param<double> dyn_write_energy;
+
+        /// Number of reads from memory (read & reset by monitor)
+        gs::gs_param<unsigned long long> dyn_reads;
+
+        /// Number of writes to memory (read & reset by monitor)
+        gs::gs_param<unsigned long long> dyn_writes;
+
 };
 
 #endif
