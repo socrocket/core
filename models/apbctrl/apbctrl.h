@@ -28,7 +28,7 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Class definition of the AHB2APB bridge
+// Purpose:    Class definition of the AHB/APB bridge
 //
 // Modified on $Date$
 //          at $Revision$
@@ -51,7 +51,6 @@
 #include <amba.h>
 #include <systemc>
 
-#include "power_monitor.h"
 #include "vmap.h"
 
 /// @addtogroup apbctrl APBctrl

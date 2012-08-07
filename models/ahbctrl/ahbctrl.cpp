@@ -164,8 +164,8 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
   ahbIN.register_transport_dbg(this, &AHBCtrl::transport_dbg);
 
   // Register power monitor
-  PM::registerIP(this, "ahbctrl", m_pow_mon);
-  PM::send_idle(this, "idle", sc_time_stamp(), m_pow_mon);
+  //PM::registerIP(this, "ahbctrl", m_pow_mon);
+  //PM::send_idle(this, "idle", sc_time_stamp(), m_pow_mon);
 
   requests_pending = 0;
 
@@ -421,10 +421,10 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     }
 
     // Power event start
-    const char *event_name = "ahb_trans";
-    size_t data_int = (size_t)trans.get_data_ptr();
-    uint32_t id = data_int & 0xFFFFFFFF;
-    PM::send(this,event_name,1,sc_time_stamp(),id,m_pow_mon);
+    //const char *event_name = "ahb_trans";
+    //size_t data_int = (size_t)trans.get_data_ptr();
+    //uint32_t id = data_int & 0xFFFFFFFF;
+    //PM::send(this,event_name,1,sc_time_stamp(),id,m_pow_mon);
 
     // Forward request to the selected slave
     ahbOUT[index]->b_transport(trans, delay);
@@ -432,7 +432,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     //v::debug << name() << "Delay after return from slave: " << delay << v::endl;
 
     // Power event end
-    PM::send(this,event_name,0,sc_time_stamp()+delay,id,m_pow_mon);
+    //PM::send(this,event_name,0,sc_time_stamp()+delay,id,m_pow_mon);
     
     wait(delay);
     delay=SC_ZERO_TIME;
@@ -1185,7 +1185,7 @@ void AHBCtrl::checkMemMap() {
        obj.start = start_addr;
        obj.end = start_addr + size -1;
        obj.index = iter->first >> 2;
-       slaves.insert(make_pair(start_addr, obj));
+       slaves.insert(std::make_pair(start_addr, obj));
    }
    for(iter_t iter=slaves.begin(); iter != slaves.end(); iter++) {
       // First Slave need it in last to start 

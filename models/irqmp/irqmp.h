@@ -55,7 +55,6 @@
 #include "clkdevice.h"
 
 #include "signalkit.h"
-#include "power_monitor.h"
 
 /// @addtogroup irqmp IRQMP
 /// @{

@@ -45,7 +45,6 @@
 
 #include "mctrl.h"
 #include <tlm.h>
-#include "power_monitor.h"
 #include <algorithm>
 
 using namespace sc_core;
@@ -111,8 +110,8 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
     v::info << this->name() << "(" << hex << _paddr << ":" << hex << _pmask << ")" << hex << ::APBDevice::get_device_info()[1] << v::endl;
     
     // Prepare the device for power monitoring
-    PM::registerIP(this, "mctrl", powermon);
-    PM::send_idle(this, "idle", sc_time_stamp(), true);
+    //PM::registerIP(this, "mctrl", powermon);
+    //PM::send_idle(this, "idle", sc_time_stamp(), true);
 
     //check consistency of address space generics
     //rom space in MByte: 4GB - masked area (rommask)
@@ -701,14 +700,14 @@ void Mctrl::switch_power_mode() {
         case 0: {
             m_pmode = 0;
             v::debug << name() << "Power Mode: None" << v::endl;
-            PM::send_idle(this, "idle", sc_time_stamp(), true);
+            //PM::send_idle(this, "idle", sc_time_stamp(), true);
         }   break;
         
         // Dont do anything in PowerDown mode!
         case 1: { 
             v::debug << name() << "Power Mode: Power Down" << v::endl;
             m_pmode = 1;
-            PM::send_idle(this, "idle_powerdown", sc_time_stamp(), true);
+            //PM::send_idle(this, "idle_powerdown", sc_time_stamp(), true);
             m_power_down_start = sc_time_stamp();
         }   break;
         
@@ -726,19 +725,19 @@ void Mctrl::switch_power_mode() {
                 switch(pasr) {
                     case 1:
                         start = dsize / 2;
-                        PM::send_idle(this, "idle_partpowerdown2", sc_time_stamp(), true);
+                        //PM::send_idle(this, "idle_partpowerdown2", sc_time_stamp(), true);
                         break;
                     case 2:
                         start = dsize / 4;
-                        PM::send_idle(this, "idle_partpowerdown4", sc_time_stamp(), true);
+                        //PM::send_idle(this, "idle_partpowerdown4", sc_time_stamp(), true);
                         break;
                     case 5:
                         start = dsize / 8;
-                        PM::send_idle(this, "idle_partpowerdown8", sc_time_stamp(), true);
+                        //PM::send_idle(this, "idle_partpowerdown8", sc_time_stamp(), true);
                         break;
                     case 6:
                         start = dsize / 16;
-                        PM::send_idle(this, "idle_partpowerdown16", sc_time_stamp(), true);
+                        //PM::send_idle(this, "idle_partpowerdown16", sc_time_stamp(), true);
                         break;
                 }
                 gp.set_address(start);
@@ -746,13 +745,13 @@ void Mctrl::switch_power_mode() {
                 mem[c_sdram.id]->b_transport(gp,delay);
             } else {
                 v::debug << name() << "Power Mode: Self Refresh" << v::endl;
-                PM::send_idle(this, "idle_selfrefresh", sc_time_stamp(), true);
+                //PM::send_idle(this, "idle_selfrefresh", sc_time_stamp(), true);
             }
         }   break;
         //deep power down: erase entire SDRAM
         case 5: {
             v::debug << name() << "Power Mode: Deep-Power Down" << v::endl;
-            PM::send_idle(this, "idle_deeppowerdown", sc_time_stamp(), true);
+            //PM::send_idle(this, "idle_deeppowerdown", sc_time_stamp(), true);
             m_pmode = 5;
             uint32_t dbanks = c_sdram.dev->get_banks();
             uint32_t dbsize = c_sdram.dev->get_bsize();

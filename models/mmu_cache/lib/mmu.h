@@ -56,7 +56,6 @@
 #include "tlb_adaptor.h"
 #include "mmu_cache_if.h"
 
-#include "power_monitor.h"
 #include "vendian.h"
 #include "defines.h"
 

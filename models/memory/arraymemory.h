@@ -60,103 +60,102 @@
 
 /// @brief This class models a array memory. Depending on the configuration
 /// it can be used as ROM, IO, SRAM or SDRAM, in conjunction with the SoCRocket MCTRL.
-class ArrayMemory : public MEMDevice, 
-	              public sc_core::sc_module {
+class ArrayMemory : public MEMDevice, public sc_core::sc_module {
 
-    public:
+ public:
 
-        /// Slave socket -  for communication with Mctrl
-        gs::socket::target_socket<32> bus;
+  /// Slave socket -  for communication with Mctrl
+  gs::socket::target_socket<32> bus;
 
-        /// Creates a new Instance of ArrayMemory
-        ///
-        /// @param name The SystemC name of the component to be created
-        /// @param type The type of memory to be modeled (0-ROM, 1-IO, 2-SRAM, 3-SDRAM)
-        /// @param banks Number of parallel banks
-        /// @param bsize Size of one memory bank in bytes (all banks always considered to have equal size)
-        /// @param bits Bit width of memory
-        /// @param cols Number of SDRAM cols.
-        ArrayMemory(sc_module_name name, 
-		      MEMDevice::device_type type, 
-		      uint32_t banks, 
-		      uint32_t bsize, 
-		      uint32_t bits, 
-		      uint32_t cols = 0,
-		      bool pow_mon = false);
+  /// Creates a new Instance of ArrayMemory
+  ///
+  /// @param name The SystemC name of the component to be created
+  /// @param type The type of memory to be modeled (0-ROM, 1-IO, 2-SRAM, 3-SDRAM)
+  /// @param banks Number of parallel banks
+  /// @param bsize Size of one memory bank in bytes (all banks always considered to have equal size)
+  /// @param bits Bit width of memory
+  /// @param cols Number of SDRAM cols.
+  ArrayMemory(sc_module_name name, 
+              MEMDevice::device_type type, 
+              uint32_t banks, 
+              uint32_t bsize, 
+              uint32_t bits, 
+              uint32_t cols = 0,
+              bool pow_mon = false);
 
-        /// Destructor
-        ~ArrayMemory();
+  /// Destructor
+  ~ArrayMemory();
         
-        uint8_t *memory;
+  uint8_t *memory;
 
-        /// SystemC end of simulation
-        void end_of_simulation();
+  /// SystemC end of simulation
+  void end_of_simulation();
         
-        /// TLM 2.0 blocking transport function
-        void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
+  /// TLM 2.0 blocking transport function
+  void b_transport(tlm::tlm_generic_payload& gp, sc_time& delay);
 
-        /// TLM 2.0 debug transport function
-        unsigned int transport_dbg(tlm::tlm_generic_payload& gp);
+  /// TLM 2.0 debug transport function
+  unsigned int transport_dbg(tlm::tlm_generic_payload& gp);
         
-        /// Read byte from functional memory
-        uint8_t read(const uint32_t addr);
+  /// Read byte from functional memory
+  uint8_t read(const uint32_t addr);
 
-        /// Write byte to functional memory
-        void write(const uint32_t addr, const uint8_t byte);
+  /// Write byte to functional memory
+  void write(const uint32_t addr, const uint8_t byte);
 
-        /// Erase sdram - Required for deep power down and PASR mode
-        void erase(uint32_t start, uint32_t end);
+  /// Erase sdram - Required for deep power down and PASR mode
+  void erase(uint32_t start, uint32_t end);
 
-        /// Power monitoring
-        bool g_powmon;
+  /// Power monitoring
+  bool g_powmon;
   
-        /// GreenControl API Pointer
-        gs::cnf::cnf_api *m_api;
+  /// GreenControl API Pointer
+  gs::cnf::cnf_api *m_api;
 
-        /// Performance Counter Array
-        gs::gs_param_array m_performance_counters;
+  /// Performance Counter Array
+  gs::gs_param_array m_performance_counters;
 
-        /// Performance counter to store transaction byte reads
-        gs::gs_param<unsigned long long> m_reads;
+  /// Performance counter to store transaction byte reads
+  gs::gs_param<unsigned long long> m_reads;
 
-        /// Performance counter to store the transaction byte writes
-        gs::gs_param<unsigned long long> m_writes; 
+  /// Performance counter to store the transaction byte writes
+  gs::gs_param<unsigned long long> m_writes; 
 
-        /// *****************************************************
-        /// Power Modeling Parameters
+  /// *****************************************************
+  /// Power Modeling Parameters
 
-        /// Normalized static power input
-        gs::gs_param<double> sta_power_norm;
+  /// Normalized static power input
+  gs::gs_param<double> sta_power_norm;
+  
+  /// Normalized dynamic power input (activation independent)
+  gs::gs_param<double> dyn_power_norm;
 
-        /// Normalized dynamic power input (activation independent)
-        gs::gs_param<double> dyn_power_norm;
+  /// Normalized read access energy
+  gs::gs_param<double> dyn_read_energy_norm;
 
-        /// Normalized read access energy
-        gs::gs_param<double> dyn_read_energy_norm;
+  /// Normalized write access energy
+  gs::gs_param<double> dyn_write_energy_norm;
 
-        /// Normalized write access energy
-        gs::gs_param<double> dyn_write_energy_norm;
+  /// Parameter array for power data output
+  gs::gs_param_array power;
+  
+  /// Static power of module
+  gs::gs_param<double> sta_power;
 
-        /// Parameter array for power data output
-        gs::gs_param_array power;
+  /// Dynamic power of module
+  gs::gs_param<double> dyn_power;
 
-        /// Static power of module
-        gs::gs_param<double> sta_power;
+  /// Dynamic energy per read access
+  gs::gs_param<double> dyn_read_energy;
 
-        /// Dynamic power of module
-        gs::gs_param<double> dyn_power;
+  /// Dynamic energy per write access
+  gs::gs_param<double> dyn_write_energy;
 
-        /// Dynamic energy per read access
-        gs::gs_param<double> dyn_read_energy;
+  /// Number of reads from memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_reads;
 
-        /// Dynamic energy per write access
-        gs::gs_param<double> dyn_write_energy;
-
-        /// Number of reads from memory (read & reset by monitor)
-        gs::gs_param<unsigned long long> dyn_reads;
-
-        /// Number of writes to memory (read & reset by monitor)
-        gs::gs_param<unsigned long long> dyn_writes;
+  /// Number of writes to memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_writes;
 };
 
 #endif

@@ -45,7 +45,6 @@
 //*********************************************************************
 
 #include "arraymemory.h"
-#include "power_monitor.h"
 #include <tlm.h>
 
 using namespace sc_core;

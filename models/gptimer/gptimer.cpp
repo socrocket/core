@@ -47,7 +47,6 @@
 
 #include <string>
 #include "gptimer.h"
-#include "power_monitor.h"
 
 /// @addtogroup gptimer
 /// @{

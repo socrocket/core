@@ -180,8 +180,8 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
 
     SC_THREAD(launch_irq);
 
-    PM::registerIP(this, "irqmp", powermon);
-    PM::send_idle(this, "idle", sc_time_stamp(), true);
+    //PM::registerIP(this, "irqmp", powermon);
+    //PM::send_idle(this, "idle", sc_time_stamp(), true);
     
     // Initialize performance counter by zerooing
     // Keep in mind counter will not be reseted in reset 
@@ -378,8 +378,8 @@ void Irqmp::launch_irq() {
                     irq_req.write(1 << cpu, value);
 
                     // Depending on CPU ID emit power event
-                    PM::send(this, powerevents[high], 1, sc_time_stamp(), 0, powermon);
-                    PM::send(this, powerevents[high], 1, sc_time_stamp()+clock_cycle, 0, powermon);
+                    //PM::send(this, powerevents[high], 1, sc_time_stamp(), 0, powermon);
+                    //PM::send(this, powerevents[high], 1, sc_time_stamp()+clock_cycle, 0, powermon);
 
                     m_cpu_counter[cpu]++;
                 }

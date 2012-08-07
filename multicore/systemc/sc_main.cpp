@@ -74,7 +74,7 @@
 #include <amba.h>
 #include <cstring>
 #include "verbose.h"
-#include "power_monitor.h"
+#include "powermonitor.h"
 
 #include <GDBStub.hpp>
 #include <systemc.h>
@@ -822,6 +822,12 @@ int sc_main(int argc, char** argv) {
     connect(irqmp_rst, irqmp.rst);
     irqmp_rst.write(0);
     irqmp_rst.write(1);
+
+    // * Power Monitor **************************
+    powermonitor pow_mon("pow_mon",sc_core::sc_time(2130, SC_US));
+
+    // ******************************************
+
 
     // start simulation
     cstart = clock();

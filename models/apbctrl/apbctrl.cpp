@@ -95,8 +95,8 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
     assert(hmask_ <= 0xfff);
 
     // Register power monitor
-    PM::registerIP(this, "apbctrl", m_pow_mon);
-    PM::send_idle(this, "idle", sc_time_stamp(), m_pow_mon);
+    //PM::registerIP(this, "apbctrl", m_pow_mon);
+    //PM::send_idle(this, "idle", sc_time_stamp(), m_pow_mon);
 
     v::info << name() << " ***********************************************************************" << v::endl;
     v::info << name() << " * Created APBCTRL with following parameters: " << v::endl;
@@ -256,7 +256,7 @@ uint32_t APBCtrl::exec_func(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, b
     if (!debug) {
 
       // Power event start
-      PM::send(this,"apb_trans", 1, sc_time_stamp(), (unsigned int)apb_gp->get_data_ptr(), m_pow_mon);
+      //PM::send(this,"apb_trans", 1, sc_time_stamp(), (unsigned int)apb_gp->get_data_ptr(), m_pow_mon);
 
       // Forward request to the selected slave
       apb[index]->b_transport(*apb_gp, delay);
@@ -265,7 +265,7 @@ uint32_t APBCtrl::exec_func(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, b
       delay += clock_cycle;
 
       // Power event end
-      PM::send(this,"apb_trans", 0, sc_time_stamp()+delay, (unsigned int)apb_gp->get_data_ptr(), m_pow_mon);
+      //PM::send(this,"apb_trans", 0, sc_time_stamp()+delay, (unsigned int)apb_gp->get_data_ptr(), m_pow_mon);
 
     } else {
 

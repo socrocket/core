@@ -56,7 +56,6 @@
 #include <tlm.h>
 
 #include "msclogger.h"
-#include "power_monitor.h"
 
 /// @addtogroup ahbctrl AHBctrl
 /// @{

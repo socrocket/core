@@ -52,7 +52,6 @@
 
 #include "mem_if.h"
 #include "defines.h"
-#include "power_monitor.h"
 
 // Local scratchpad ram can optionally be attached to both instruction and data cache controllers.
 // The scratch pad ram provides fast 0-waitstates ram memories for instructions and data.

@@ -169,8 +169,8 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
     }
 
     // Register for power monitoring
-    PM::registerIP(this,"mmu",m_pow_mon);
-    PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
+    //PM::registerIP(this,"mmu",m_pow_mon);
+    //PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
 
     // Init execution statistic
     for (uint32_t i=0; i<8; i++) {
@@ -224,8 +224,8 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     // TLB lookup is full-associative. All TLBs are read at once and in parallel.
     // For performance reasons, this is modeled as one event.
-    PM::send(this, "tlb_lookup", 1, sc_time_stamp(), 0, m_pow_mon);
-    PM::send(this, "tlb_lookup", 0, sc_time_stamp(), 0, m_pow_mon);
+    //PM::send(this, "tlb_lookup", 1, sc_time_stamp(), 0, m_pow_mon);
+    //PM::send(this, "tlb_lookup", 0, sc_time_stamp(), 0, m_pow_mon);
 
     // Search virtual address tag in ipdc (associative)
     v::info << this->name() << "lookup with VPN: " << std::hex << vpn
@@ -381,8 +381,8 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         tmp.pte = data;
 	tmp.lru = 7;
 
-	PM::send(this, "tlb_write", 1, sc_time_stamp(), 0, m_pow_mon);
-	PM::send(this, "tlb_write", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+	//PM::send(this, "tlb_write", 1, sc_time_stamp(), 0, m_pow_mon);
+	//PM::send(this, "tlb_write", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
 
         (*tlb)[vpn] = tmp;
 
@@ -466,8 +466,8 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         tmp.pte = data;
 	tmp.lru = 7;
 
-	PM::send(this, "tlb_write", 1, sc_time_stamp(), 0, m_pow_mon);
-	PM::send(this, "tlb_write", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+	//PM::send(this, "tlb_write", 1, sc_time_stamp(), 0, m_pow_mon);
+	//PM::send(this, "tlb_write", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
 
         (*tlb)[vpn] = tmp;
 
@@ -551,8 +551,8 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         tmp.pte = data;
 	tmp.lru = 7;
 
-	PM::send(this, "tlb_write", 1, sc_time_stamp(), 0, m_pow_mon);
-	PM::send(this, "tlb_write", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+	//PM::send(this, "tlb_write", 1, sc_time_stamp(), 0, m_pow_mon);
+	//PM::send(this, "tlb_write", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
 
         (*tlb)[vpn] = tmp;
 

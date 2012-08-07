@@ -62,7 +62,6 @@
 #include "signalkit.h"
 #include "ahbmaster.h"
 #include "clkdevice.h"
-#include "power_monitor.h"
 
 #include "verbose.h"
 #include "cache_if.h"
