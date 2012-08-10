@@ -131,8 +131,21 @@ std::vector<std::string> powermonitor::get_IP_params(std::vector<std::string> &p
 
 void powermonitor::gen_report() {
 
-  gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
+  // Static power of model (pW)
+  double model_sta_power; 
+  // Module internal power (uW)
+  double model_int_power;
+  // Module switching power (uW)
+  double model_swi_power;
 
+  // Total static power
+  double total_sta_power = 0.0;
+  // Total internal power (dynamic)
+  double total_int_power = 0.0;
+  // Total switching power (dynamic)
+  double total_swi_power = 0.0;  
+
+  gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
   std::string n_power = "power";
 
   // Vector of all parameters
@@ -155,8 +168,7 @@ void powermonitor::gen_report() {
       if(param_fields[param_fields.size()-2] == "power") {
 
         power_list.push_back(param_list[i]);
-        //v::info << name() << param_list[i] << v::endl;
-      
+     
       }
     }
   }
@@ -170,16 +182,67 @@ void powermonitor::gen_report() {
 
     v::info << name() << " ***************************************************** " << v::endl;
     v::info << name() << " * Component: " << get_model_name(models_list[0]) << v::endl;
+    v::info << name() << " * --------------------------------------------------- " << v::endl;
 
-    for (uint32_t i = 0; i < models_list.size(); i++) {
+    // Model static power
+    if (mApi->existsParam(std::string(get_model_name(models_list[0]) + ".power.sta_power"))) {
 
-      v::info << name() << " * Parameter: " << models_list[i] << v::endl;
+      // Read models' static power
+      mApi->getValue(std::string(get_model_name(models_list[0]) + ".power.sta_power"), model_sta_power);
+      
+      v::info << name() << " * Static power (leakage): " << model_sta_power << " pW" << v::endl;
+
+      total_sta_power += model_sta_power;
+
+    } else {
+
+      v::warn << name() << " * Model provides no static power information! " << v::endl;
+
+    }
+
+    // Does the model provide switching independent dynamic power (internal power) information
+    if (mApi->existsParam(std::string(get_model_name(models_list[0]) + ".power.int_power"))) {
+
+      mApi->getValue(std::string(get_model_name(models_list[0]) + ".power.int_power"), model_int_power);
+
+      v::info << name() << " * Internal power (dynamic): " << model_int_power << " uW" << v::endl;
+
+      total_int_power += model_int_power;
+
+    } else {
+
+      v::warn << name() << " * Model provides no internal power information!" << v::endl;
+
+    }    
+
+    // Does the model induce switching dependent dynamic read power
+    if (mApi->existsParam(std::string(get_model_name(models_list[0]) + ".power.swi_power"))) {
+ 
+      mApi->getValue(std::string(get_model_name(models_list[0]) + ".power.swi_power"), model_swi_power);
+
+      v::info << name() << " * Switching power (dynamic): " << model_swi_power << " uW" << v::endl;
+
+      total_swi_power += model_swi_power;
+
+    } else {
+
+      v::warn << name() << " * Model provides no switching power information!" << v::endl;
 
     }
 
     v::info << name() << " ***************************************************** " << v::endl;
 
   }
+
+  v::info << name() << " ***************************************************** " << v::endl;
+  v::info << name() << " * Power Summary: " << v::endl;
+  v::info << name() << " * --------------------------------------------------- " << v::endl;
+  v::info << name() << " * Static power (leakage): " << total_sta_power / 10e+6 << " uW" << v::endl;
+  v::info << name() << " * Internal power (dynamic): " << total_int_power << " uW" << v::endl;
+  v::info << name() << " * Switching power (dynamic): " << total_swi_power << " uW" << v::endl;
+  v::info << name() << " * --------------------------------------------------- " << v::endl;
+  v::info << name() << " * Total power: " << total_swi_power + (total_sta_power / 10e+6) << " uW" << v::endl;
+  v::info << name() << " ***************************************************** " << v::endl;
 }
 
 // Collect power data at end of simulation

@@ -51,6 +51,8 @@
 #include "stdint.h"
 #include "verbose.h"
 
+#include <iomanip>
+
 // Power monitor demonstrator
 class powermonitor : public sc_module {
 

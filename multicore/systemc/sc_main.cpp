@@ -178,7 +178,7 @@ int sc_main(int argc, char** argv) {
 		    p_ahbctrl_fixbrst,               // Enable support for fixed-length bursts (disabled)
 		    p_ahbctrl_fpnpen,                // Enable full decoding of PnP configuration records
 		    p_ahbctrl_mcheck,                // Check if there are any intersections between core memory regions
-        p_report_power,                  // Enable/disable power monitoring
+        	    p_report_power,                  // Enable/disable power monitoring
 		    ambaLayer
     );
 

@@ -64,6 +64,7 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
  public:
  
+  GC_HAS_CALLBACKS();
   SC_HAS_PROCESS(AHBCtrl);
   SK_HAS_SIGNALS(AHBCtrl);
 
@@ -320,7 +321,13 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   gs::gs_param<double> sta_power;
 
   /// Dynamic power of module (activation independent)
-  gs::gs_param<double> dyn_power;
+  gs::gs_param<double> int_power;
+
+  /// Switching power of module
+  gs::gs_param<double> swi_power;
+
+  /// Power frame starting time
+  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
 
   /// Dynamic energy per read access
   gs::gs_param<double> dyn_read_energy;
@@ -340,6 +347,18 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   /// Set up slave map and collect plug & play information
   void start_of_simulation();
     
+  /// Calculate power/engery values from normalized input data
+  void power_model();
+
+  /// Static power callback
+  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Internal power callback
+  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Switching power callback
+  void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
   /// SystemC End of Simulation handler
   /// Prints out the Performance Counter
   void end_of_simulation();

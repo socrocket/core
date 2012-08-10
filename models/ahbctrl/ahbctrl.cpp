@@ -101,13 +101,15 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       is_lock(false),
       lock_master(0),
       m_ambaLayer(ambaLayer),
-      sta_power_norm("power.ahbctrl.sta_power_norm", 0.0, true), // Normalized static power input
+      sta_power_norm("power.ahbctrl.sta_power_norm", 10714285.71, true), // Normalized static power input
       dyn_power_norm("power.ahbctrl.dyn_power_norm", 0.0, true), // Normalized dyn power input (activation indep.)
-      dyn_read_energy_norm("power.ahbctrl.dyn_read_energy_norm", 0.0, true), // Normalized read energy input
-      dyn_write_energy_norm("power.ahbctrl.dyn_write_energy_norm", 0.0, true), // Normalized write energy input
+      dyn_read_energy_norm("power.ahbctrl.dyn_read_energy_norm", 9.10714e-10, true), // Normalized read energy input
+      dyn_write_energy_norm("power.ahbctrl.dyn_write_energy_norm", 9.10714e-10, true), // Normalized write energy input
       power("power"),
       sta_power("sta_power", 0.0, power), // Static power output
-      dyn_power("dyn_power", 0.0, power), // Dynamic power output
+      int_power("int_power", 0.0, power), // Internal power of module (dyn. switching independent)
+      swi_power("swi_power", 0.0, power), // Switching power of module
+      power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
       dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
       dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
       dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
@@ -115,6 +117,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
 
 {
 
+  // GreenControl API
   m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
   // Initialize slave and master table
@@ -163,9 +166,14 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
   // Register debug transport
   ahbIN.register_transport_dbg(this, &AHBCtrl::transport_dbg);
 
-  // Register power monitor
-  //PM::registerIP(this, "ahbctrl", m_pow_mon);
-  //PM::send_idle(this, "idle", sc_time_stamp(), m_pow_mon);
+  // Register power callback functions
+  if (m_pow_mon) {
+
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, AHBCtrl, sta_power_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, AHBCtrl, int_power_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, AHBCtrl, swi_power_cb);
+
+  }
 
   requests_pending = 0;
 
@@ -194,6 +202,8 @@ void AHBCtrl::dorst() {
 
 // Destructor
 AHBCtrl::~AHBCtrl() {
+
+  GC_UNREGISTER_CALLBACKS();
 
 }
 
@@ -558,6 +568,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(uint32_t id, tlm::tlm_generic_payloa
   return tlm::TLM_ACCEPTED;
 }
 
+// Helper function for printing requests
 void AHBCtrl::print_requests() {
 
   v::info << name() << " ---------------------------------------------------- " << v::endl;
@@ -573,6 +584,7 @@ void AHBCtrl::print_requests() {
 
 }
 
+// Arbitration thread (AT only)
 void AHBCtrl::arbitrate() {
 
   tlm::tlm_phase phase;
@@ -644,7 +656,7 @@ void AHBCtrl::arbitrate() {
 
         if (!is_lock) {
 
-          for(int i=0; i<num_of_master_bindings; i++) {
+          for(uint32_t i=0; i<num_of_master_bindings; i++) {
             
             robin=(++robin) % num_of_master_bindings;
           
@@ -707,7 +719,7 @@ void AHBCtrl::arbitrate() {
           uint8_t *data  = trans->get_data_ptr();
 
           // Get registers from config area
-          for(int i = 0; i < trans->get_data_length(); i++) {
+          for(uint32_t i = 0; i < trans->get_data_length(); i++) {
 
             uint32_t byte = (addr + i) & 0x3;
             uint32_t reg = getPNPReg(addr + i);
@@ -753,6 +765,7 @@ void AHBCtrl::arbitrate() {
   }
 }
 
+// Queue incoming master transactions
 void AHBCtrl::AcceptThread() {
 
   int slave_id = 16;
@@ -813,6 +826,7 @@ void AHBCtrl::AcceptThread() {
   }
 }
 
+// Send END_REQ to master
 void AHBCtrl::RequestThread() {
 
   payload_t *trans;
@@ -908,6 +922,7 @@ void AHBCtrl::ResponseThread() {
   }
 }
 
+// Send END_RESP to slave
 void AHBCtrl::EndResponseThread() {
 
   payload_t *trans;
@@ -1127,6 +1142,53 @@ void AHBCtrl::start_of_simulation() {
   if (mmcheck) {
     checkMemMap();
   }
+
+  // Initialize power model
+  if (m_pow_mon) {
+
+    power_model();
+
+  }
+}
+
+// Calculate power/energy values from normalized input data
+void AHBCtrl::power_model() {
+
+  // Static power calculation (pW)
+  sta_power = sta_power_norm * (num_of_slave_bindings + num_of_master_bindings);
+
+  // Dynamic power (switching independent internal power)
+  int_power = 0;
+
+  // Energy per read access (uJ)
+  dyn_read_energy = dyn_read_energy_norm * (num_of_slave_bindings + num_of_master_bindings);
+
+  // Energy per write access (uJ)
+  dyn_write_energy = dyn_write_energy_norm * (num_of_slave_bindings + num_of_master_bindings);  
+  
+}
+
+// Static power callback
+void AHBCtrl::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Static power of AHBCTRL is constant !!
+
+}
+
+// Internal power callback
+void AHBCtrl::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // RTL AHBCTRL has no internal power - constant.
+
+}
+
+// Switching power callback
+void AHBCtrl::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  swi_power = (dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
+
 }
 
 // Print execution statistic at end of simulation
@@ -1157,8 +1219,8 @@ void AHBCtrl::end_of_simulation() {
     
     }
 
-      v::report << name() << " * AHB Master interface reports: " << v::endl;
-      print_transport_statistics(name());
+    v::report << name() << " * AHB Master interface reports: " << v::endl;
+    print_transport_statistics(name());
 
     v::report << name() << " ******************************************** " << v::endl;
 }
@@ -1281,10 +1343,22 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
 
 // Collect common transport statistics
 void AHBCtrl::transport_statistics(tlm::tlm_generic_payload &gp) {
+
   if(gp.is_write()) {
+    
+    // Total number of bytes written
     m_writes += gp.get_data_length();
+
+    // Number of write transfers (clock cycles with bus busy)
+    if(m_pow_mon) dyn_writes += (gp.get_data_length() >> 2) + 1;
+
   } else if(gp.is_read()){
+
+    // Total number of bytes read
     m_reads += gp.get_data_length();
+
+    // Number of read transfers (clock cycles with bus busy)
+    if(m_pow_mon) dyn_reads += (gp.get_data_length() >> 2) + 1;
   }
 }
 
