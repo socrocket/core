@@ -75,7 +75,7 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
 
 {
 
-  // TLM 2.0 protocol initialization
+  // TLM 2.0 socket configuration
   gs::socket::config<tlm::tlm_base_protocol_types> bus_cfg;
   bus_cfg.use_mandatory_phase(BEGIN_REQ);
   bus_cfg.use_mandatory_phase(END_REQ);
@@ -85,7 +85,7 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
   // Obtain pointer to GreenControl API
   m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
-  // Register TLM 2.0 transport functions to sockets
+  // Register TLM 2.0 transport functions
   bus.register_b_transport(this, &ArrayMemory::b_transport);
   bus.register_transport_dbg(this, &ArrayMemory::transport_dbg);
 
@@ -248,7 +248,6 @@ void ArrayMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
       // Count write operations for power calculation
       dyn_writes += (end-start)>>2;
 
-      // calculating delay
       v::debug << name() << "Erase memory from " << v::uint32 << start << " to " << v::uint32 << end << "." << v::endl;
 
     }
@@ -273,7 +272,7 @@ void ArrayMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
       // Count read operations for power calculation
       dyn_reads += (len >> 2) + 1;
 
-    } else if(cmd == tlm::TLM_WRITE_COMMAND) {
+    } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
       for(uint32_t i = 0; i < len; i++) {
         write(addr + i, ptr[i]);
@@ -292,7 +291,6 @@ void ArrayMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     }
   }
 }
-
 
 // TLM 2.0 debug transport function
 unsigned int ArrayMemory::transport_dbg(tlm::tlm_generic_payload& gp) {
