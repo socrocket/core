@@ -198,6 +198,9 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
 
 // Reset handler
 void AHBCtrl::dorst() {
+
+  // nothing to do
+
 }
 
 // Destructor
@@ -989,7 +992,6 @@ void AHBCtrl::EndResponseThread() {
 // Set up slave map and collect plug & play information
 void AHBCtrl::start_of_simulation() {
 
- 
   // Get number of bindings at master socket (number of connected slaves)
   num_of_slave_bindings = ahbOUT.size();
   // Get number of bindings at slave socket (number of connected masters)

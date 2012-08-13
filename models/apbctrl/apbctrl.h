@@ -59,6 +59,9 @@
 class APBCtrl : public AHBSlave<>, public CLKDevice {
  public:
 
+  GC_HAS_CALLBACKS();
+  SC_HAS_PROCESS(APBCtrl);
+
   /// APB master multi-socket
   amba::amba_master_socket<32, 0> apb;
 
@@ -82,8 +85,6 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
 
   /// Check memory map for overlaps 
   void checkMemMap();
-
-  SC_HAS_PROCESS(APBCtrl);
 
   /// Constructor
   APBCtrl(sc_core::sc_module_name nm,    ///< SystemC name
@@ -116,6 +117,17 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
   /// SystemC end of simulation hook
   void end_of_simulation();
 
+  /// Calculate power/energy values from normalized input data
+  void power_model();
+
+  /// Static power callback
+  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Internal power callback
+  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Switching power callback
+  void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);  
 
  private:
   
@@ -169,6 +181,9 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
    /// Abstraction Layer
   amba::amba_layer_ids m_ambaLayer;
 
+  /// Number of slaves bound at the APB side
+  uint32_t num_of_bindings;
+
   // *****************************************************
   // Performance Counters
 
@@ -184,8 +199,8 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
   /// Normalized static power input
   gs::gs_param<double> sta_power_norm;
 
-  /// Normalized dynamic power input (activation independent)
-  gs::gs_param<double> dyn_power_norm;
+  /// Normalized internal power input (activation independent)
+  gs::gs_param<double> int_power_norm;
 
   /// Normalized read access energy
   gs::gs_param<double> dyn_read_energy_norm;
@@ -199,8 +214,14 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
   /// Static power of module
   gs::gs_param<double> sta_power;
 
-  /// Dynamic power of module (activation independent)
-  gs::gs_param<double> dyn_power;  
+  /// Internal power of module (activation independent)
+  gs::gs_param<double> int_power;
+
+  /// Switching power of module
+  gs::gs_param<double> swi_power;
+
+  /// Power frame starting time
+  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
 
   /// Dynamic energy per read access
   gs::gs_param<double> dyn_read_energy;
