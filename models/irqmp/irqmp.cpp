@@ -50,10 +50,6 @@
 #include "verbose.h"
 #include <string>
 
-static char *powerevents[] = {
-  "irq0", "irq1", "irq2", "irq3", "irq4", "irq5", "irq6", "irq7", "irq8", "irq9", "irq10", "irq11", "irq12", "irq13", "irq14", "irq15"
-};
-
 /// Constructor
 Irqmp::Irqmp(sc_core::sc_module_name name, 
 	     int paddr, 
@@ -84,126 +80,143 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
             m_performance_counters("performance_counters"), 
             m_irq_counter("irq_line_activity", 32, m_performance_counters),
             m_cpu_counter("cpu_line_activity", ncpu, m_performance_counters),
-            powermon(powmon),
-            sta_power_norm("power.irqmp.sta_power_norm", 0.0, true), // Normalized static power of controller
-            dyn_power_norm("power.irqmp.dyn_power_norm", 0.0, true), // Normalized static power of controller
+            m_pow_mon(powmon),
+            sta_power_norm("power.irqmp.sta_power_norm", 3.07e+8, true), // Normalized static power of controller
+            int_power_norm("power.irqmp.int_power_norm", 3.26e-4, true), // Normalized internal power of controller
             power("power"),
             sta_power("sta_power", 0.0, power), // Static power of controller
-            dyn_power("dyn_power", 0.0, power)  // Dynamic power of controller
+            int_power("int_power", 0.0, power)  // Dynamic power of controller
 
  {
 
-    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
-    forcereg = new uint32_t[g_ncpu];
+   // Obtain pointer to GreenControl API
+   m_api = gs::cnf::GCnf_Api::getApiInstance(this);
+   forcereg = new uint32_t[g_ncpu];
 
-    // Display APB slave information
-    v::info << name << "APB slave @0x" << hex << v::setw(8)
-            << v::setfill('0') << apb_slv.get_base_addr() << " size: 0x" << hex
-            << v::setw(8) << v::setfill('0') << apb_slv.get_size() << " byte"
-            << endl;
+   // Display APB slave information
+   v::info << name << "APB slave @0x" << hex << v::setw(8)
+           << v::setfill('0') << apb_slv.get_base_addr() << " size: 0x" << hex
+           << v::setw(8) << v::setfill('0') << apb_slv.get_size() << " byte"
+           << endl;
 
-    assert(ncpu < 17 && "the IRQMP can only handle up to 16 CPUs");
+   assert(ncpu < 17 && "the IRQMP can only handle up to 16 CPUs");
 
-    // create register | name + description        
-    r.create_register("level", "Interrupt Level Register",
-            // offset
-            0x00,
+   // create register | name + description        
+   r.create_register("level", "Interrupt Level Register",
+                     // offset
+                     0x00,
             
-            // config
-            gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-                    | gs::reg::FULL_WIDTH,
+                     // config
+                     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
+                     | gs::reg::FULL_WIDTH,
             
-            // init value
-            0x00000000,
+                     // init value
+                     0x00000000,
             
-            // write mask
-            Irqmp::IR_LEVEL_IL,
+                     // write mask
+                     Irqmp::IR_LEVEL_IL,
             
-            // reg width (maximum 32 bit)
-            32,
+                     // reg width (maximum 32 bit)
+                     32,
             
-            // lock mask: Not implementet, has to be zero.
-            0x00);
+                     // lock mask: Not implementet, has to be zero.
+                     0x00);
     
-    r.create_register("pending", "Interrupt Pending Register", 0x04,
-            gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | 
-            gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH, 0x00000000, 
-            IR_PENDING_EIP | IR_PENDING_IP, 32, 0x00);
-    //Following register is part of the manual, but will never be used.
-    // 1) A system with 0 cpus will never be implemented
-    // 2) If there were 0 cpus, no cpu would need an IR force register
-    // 3) The IR force register for the first CPU ('CPU 0') will always be located at address 0x80
-    //if (g_ncpu == 0) {
-    r.create_register("force", "Interrupt Force Register", 0x08,
-            gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-                    | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-            0x00000000, IR_FORCE_IF, 32, 0x00);
-    //}
-    r.create_register("clear", "Interrupt Clear Register", 0x0C,
-            gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-                    | gs::reg::FULL_WIDTH, 0x00000000, IR_CLEAR_IC, 32,
-            0x00);
-    r.create_register("mpstat", "Multiprocessor Status Register", 0x10,
-            gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-                    | gs::reg::FULL_WIDTH, 0x00000000, MP_STAT_WMASK, 32, 0x00);
-    r.create_register("broadcast", "Interrupt broadcast Register", 0x14,
-            gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-                    | gs::reg::FULL_WIDTH, 0x00000000, BROADCAST_BM, 32,
-            0x00);
-    r.create_register("asymctrl", "Asymetric Multicore Control Register", 0x20,
-            gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-                    | gs::reg::FULL_WIDTH, 0x00000000, 0x00000000, 32,
-            0x00);
+   r.create_register("pending", "Interrupt Pending Register", 0x04,
+                     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | 
+                     gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH, 0x00000000, 
+                     IR_PENDING_EIP | IR_PENDING_IP, 32, 0x00);
+   //Following register is part of the manual, but will never be used.
+   // 1) A system with 0 cpus will never be implemented
+   // 2) If there were 0 cpus, no cpu would need an IR force register
+   // 3) The IR force register for the first CPU ('CPU 0') will always be located at address 0x80
+   //if (g_ncpu == 0) {
+   r.create_register("force", "Interrupt Force Register", 0x08,
+                     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
+                     | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                     0x00000000, IR_FORCE_IF, 32, 0x00);
+   //}
+   r.create_register("clear", "Interrupt Clear Register", 0x0C,
+                     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
+                     | gs::reg::FULL_WIDTH, 0x00000000, IR_CLEAR_IC, 32,
+                     0x00);
+   r.create_register("mpstat", "Multiprocessor Status Register", 0x10,
+                     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
+                     | gs::reg::FULL_WIDTH, 0x00000000, MP_STAT_WMASK, 32, 0x00);
+   r.create_register("broadcast", "Interrupt broadcast Register", 0x14,
+                     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
+                     | gs::reg::FULL_WIDTH, 0x00000000, BROADCAST_BM, 32,
+                     0x00);
+   r.create_register("asymctrl", "Asymetric Multicore Control Register", 0x20,
+                     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
+                     | gs::reg::FULL_WIDTH, 0x00000000, 0x00000000, 32,
+                     0x00);
 
+   
+   for (int i = 0; i < g_ncpu; ++i) {
+     r.create_register(gen_unique_name("mask", false),
+                       "Interrupt Mask Register", 0x40 + 0x4 * i,
+                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
+                       | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                       0xFFFFFFFE, PROC_MASK_EIM | Irqmp::PROC_MASK_IM, 32, 0x00);
+     r.create_register(gen_unique_name("force", false),
+                       "Interrupt Force Register", 0x80 + 0x4 * i,
+                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
+                       | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                       0x00000000, PROC_IR_FORCE_IFC | PROC_IR_FORCE_IF, 32,
+                       0x00);
+     r.create_register(gen_unique_name("eir_id", false),
+                       "Extended Interrupt Identification Register", 0xC0 + 0x4 * i,
+                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
+                       | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                       0x00000000, PROC_EXTIR_ID_EID, 32, 0x00);
+     // Reset corresponding performance counter
+     m_cpu_counter[i] = 0;
+     forcereg[i] = 0;
+   }
 
-    for (int i = 0; i < g_ncpu; ++i) {
-        r.create_register(gen_unique_name("mask", false),
-                "Interrupt Mask Register", 0x40 + 0x4 * i,
-                gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-                        | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                0xFFFFFFFE, PROC_MASK_EIM | Irqmp::PROC_MASK_IM, 32, 0x00);
-        r.create_register(gen_unique_name("force", false),
-                "Interrupt Force Register", 0x80 + 0x4 * i,
-                gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-                        | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                0x00000000, PROC_IR_FORCE_IFC | PROC_IR_FORCE_IF, 32,
-                0x00);
-        r.create_register(gen_unique_name("eir_id", false),
-                "Extended Interrupt Identification Register", 0xC0 + 0x4 * i,
-                gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-                        | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                0x00000000, PROC_EXTIR_ID_EID, 32, 0x00);
-        // Reset corresponding performance counter
-        m_cpu_counter[i] = 0;
-        forcereg[i] = 0;
-    }
+   SC_THREAD(launch_irq);
+   
+   // Initialize performance counter by zerooing
+   // Keep in mind counter will not be reseted in reset 
+   for(int i = 0; i < 32; i++) {
+     m_irq_counter[i] = 0;
+   }
 
-    SC_THREAD(launch_irq);
+   if (m_pow_mon) {
 
-    //PM::registerIP(this, "irqmp", powermon);
-    //PM::send_idle(this, "idle", sc_time_stamp(), true);
-    
-    // Initialize performance counter by zerooing
-    // Keep in mind counter will not be reseted in reset 
-    for(int i = 0; i < 32; i++) {
-        m_irq_counter[i] = 0;
-    }
+     GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, Irqmp, sta_power_cb);
+     GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, Irqmp, int_power_cb);
 
-    // Configuration report
-    v::info << this->name() << " ******************************************************************************* " << v::endl;
-    v::info << this->name() << " * Created configuration report with following parameters: " << v::endl;
-    v::info << this->name() << " * ------------------------------------------------------- " << v::endl;
-    v::info << this->name() << " * paddr/pmask: " << hex << paddr << "/" << pmask << v::endl;
-    v::info << this->name() << " * ncpu: " << ncpu << v::endl;
-    v::info << this->name() << " * eirq: " << eirq << v::endl;
-    v::info << this->name() << " * pindex: " << pindex << v::endl;
-    v::info << this->name() << " ******************************************************************************* " << v::endl;
+   }
+
+   // Configuration report
+   v::info << this->name() << " ******************************************************************************* " << v::endl;
+   v::info << this->name() << " * Created irqmp with following parameters: " << v::endl;
+   v::info << this->name() << " * ------------------------------------------------------- " << v::endl;
+   v::info << this->name() << " * paddr/pmask: " << hex << paddr << "/" << pmask << v::endl;
+   v::info << this->name() << " * ncpu: " << ncpu << v::endl;
+   v::info << this->name() << " * eirq: " << eirq << v::endl;
+   v::info << this->name() << " * pindex: " << pindex << v::endl;
+   v::info << this->name() << " * pow_mon: " << m_pow_mon << v::endl;
+   v::info << this->name() << " ******************************************************************************* " << v::endl;
     
 }
 
 Irqmp::~Irqmp() {
     GC_UNREGISTER_CALLBACKS();
     delete[] forcereg;
+}
+
+// Automatically called at start of simulation
+void Irqmp::start_of_simulation() {
+
+  // Initialize power model
+  if (m_pow_mon) {
+
+    power_model();
+
+  }
 }
 
 void Irqmp::end_of_elaboration() {
@@ -256,6 +269,32 @@ void Irqmp::end_of_simulation() {
   v::report << name() << " * -------------------------------------- " << v::endl;
   v::report << name() << " * = Sum      :    " << sum << v::endl;
   v::report << name() << " ******************************************** " << v::endl;
+
+}
+
+void Irqmp::power_model() {
+
+  // Static power calculation (pW)
+  sta_power = sta_power_norm;
+
+  // Cell internal power (uW)
+  int_power = int_power_norm * 1/(clock_cycle.to_seconds()*1.0e+6);
+
+}
+
+// Static power callback
+void Irqmp::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Static power of Irqmp is constant !!
+
+}
+
+// Internal power callback
+void Irqmp::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Internal power of Irqmp is constant !!
 
 }
 
@@ -376,10 +415,6 @@ void Irqmp::launch_irq() {
                 if(value != irq_req.read(cpu)) {
                     v::debug << name() << "For CPU " << cpu << " really sent IRQ: " << high << v::endl;
                     irq_req.write(1 << cpu, value);
-
-                    // Depending on CPU ID emit power event
-                    //PM::send(this, powerevents[high], 1, sc_time_stamp(), 0, powermon);
-                    //PM::send(this, powerevents[high], 1, sc_time_stamp()+clock_cycle, 0, powermon);
 
                     m_cpu_counter[cpu]++;
                 }

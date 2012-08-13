@@ -187,24 +187,30 @@ int sc_main(int argc, char** argv) {
 
     // AHBSlave - APBCtrl
     // ==================
+
     gs::gs_param_array p_apbctrl("apbctrl", p_conf);
     gs::gs_param<unsigned int> p_apbctrl_haddr("haddr", 0x800, p_apbctrl);
     gs::gs_param<unsigned int> p_apbctrl_hmask("hmask", 0xFFF, p_apbctrl);
     gs::gs_param<unsigned int> p_apbctrl_index("hindex", 2u, p_apbctrl);
     gs::gs_param<bool> p_apbctrl_check("mcheck", true, p_apbctrl);
+
     APBCtrl apbctrl("apbctrl", 
 		    p_apbctrl_haddr,    // The 12 bit MSB address of the AHB area.
 		    p_apbctrl_hmask,    // The 12 bit AHB area address mask
 		    p_apbctrl_check,    // Check for intersections in the memory map 
-        p_apbctrl_index,    // AHB bus index
-        p_report_power,     // Power Monitoring on/off
+                    p_apbctrl_index,    // AHB bus index
+                    p_report_power,     // Power Monitoring on/off
 		    ambaLayer           // TLM abstraction layer
     );
-    // Connecting AHB Slave
-    ahbctrl.ahbOUT(apbctrl.ahb);
 
-    // Set clock
+    // Connect to AHB and clock
+    ahbctrl.ahbOUT(apbctrl.ahb);
     apbctrl.set_clk(p_system_clock, SC_NS);
+
+    // APBSlave - IRQMP
+    // ================
+    // Needed for basic platform.
+    // Always enabled
 
     gs::gs_param_array p_irqmp("irqmp", p_conf);
     gs::gs_param<unsigned int> p_irqmp_addr("addr", 0x1F0, p_irqmp);
@@ -212,20 +218,18 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_irqmp_index("index", 2, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_eirq("eirq", 4, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_ncpu("ncpu", 2, p_irqmp);
-    // APBSlave - IRQMP
-    // ================
-    // Needed for basic platform.
-    // Always enabled
+
     Irqmp irqmp("irqmp",
-        p_irqmp_addr,  // paddr
-        p_irqmp_mask,  // pmask
-        p_irqmp_ncpu,  // ncpu
-        p_irqmp_eirq,  // eirq
-        p_irqmp_index
+                p_irqmp_addr,  // paddr
+                p_irqmp_mask,  // pmask
+                p_irqmp_ncpu,  // ncpu
+                p_irqmp_eirq,  // eirq
+                p_irqmp_index, // pindex
+                p_report_power // power monitoring
     );
-    // Connecting APB Slave
+
+    // Connect to APB and clock
     apbctrl.apb(irqmp.apb_slv);
-    // Set clock
     irqmp.set_clk(p_system_clock,SC_NS);
 
     // AHBSlave - MCtrl, ArrayMemory

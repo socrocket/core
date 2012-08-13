@@ -216,7 +216,7 @@ void GPTimer::power_model() {
 void GPTimer::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
-  // Static power of ArrayMemory is constant !!
+  // Static power of GPTimer is constant !!
 
 }
 
@@ -224,7 +224,7 @@ void GPTimer::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_t
 void GPTimer::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
-  // Internal power of ArrayMemory is constant !!
+  // Internal power of GPTimer is constant !!
 
 }
 
