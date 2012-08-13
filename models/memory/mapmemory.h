@@ -50,6 +50,7 @@
 
 #include "vmap.h"
 #include "memdevice.h"
+#include "clkdevice.h"
 
 #include <greencontrol/config.h>
 #include <greensocket/target/single_socket.h>
@@ -61,7 +62,7 @@
 
 /// @brief This class models a generic memory. Depending on the configuration
 /// it can be used as ROM, IO, SRAM or SDRAM, in conjunction with the SoCRocket MCTRL.
-class MapMemory : public MEMDevice, public sc_core::sc_module {
+class MapMemory : public sc_core::sc_module, public MEMDevice, public CLKDevice {
 
  public:
   

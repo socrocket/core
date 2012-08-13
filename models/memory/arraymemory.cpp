@@ -52,8 +52,9 @@ using namespace tlm;
 using namespace std;
 
 // Constructor implementation
-ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) : 
-  MEMDevice(type, banks, bsize, bits, cols), 
+ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) :
+  sc_module(name),
+  MEMDevice(type, banks, bsize, bits, cols),
   bus("bus"), 
   m_pow_mon(powmon), 
   m_performance_counters("performance_counters"),
@@ -100,28 +101,28 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
     if (get_type_name() == "sram") {
       
       m_api->setInitValue("power.sram.sta_power_norm", "1269.53125");
-      m_api->setInitValue("power.sram.int_power_norm", "0.000161011");
+      m_api->setInitValue("power.sram.int_power_norm", "1.61011e-6");
       m_api->setInitValue("power.sram.dyn_read_energy_norm", "7.57408e-13");
       m_api->setInitValue("power.sram.dyn_write_energy_norm", "7.57408e-13");
 
     } else if (get_type_name() == "rom") {
 
       m_api->setInitValue("power.rom.sta_power_norm", "1269.53125");
-      m_api->setInitValue("power.rom.int_power_norm", "0.000161011");
+      m_api->setInitValue("power.rom.int_power_norm", "1.61011e-6");
       m_api->setInitValue("power.rom.dyn_read_energy_norm", "7.57408e-13");
       m_api->setInitValue("power.rom.dyn_write_energy_norm", "7.57408e-13");
 
     } else if (get_type_name() == "io") {
 
       m_api->setInitValue("power.io.sta_power_norm", "1269.53125");
-      m_api->setInitValue("power.io.int_power_norm", "0.000161011");
+      m_api->setInitValue("power.io.int_power_norm", "1.61011e-6");
       m_api->setInitValue("power.io.dyn_read_energy_norm", "7.57408e-13");
       m_api->setInitValue("power.io.dyn_write_energy_norm", "7.57408e-13");
 
     } else {
 
       m_api->setInitValue("power.sdram.sta_power_norm", "2539.0625");
-      m_api->setInitValue("power.sdram.int_power_norm", "0.000322022");
+      m_api->setInitValue("power.sdram.int_power_norm", "3.22021e-6");
       m_api->setInitValue("power.sdram.dyn_read_energy_norm", "15e-13");
       m_api->setInitValue("power.sdram.dyn_write_energy_norm", "15e-13");
 
@@ -184,7 +185,7 @@ void ArrayMemory::power_model() {
   sta_power = sta_power_norm * (get_bsize() << 3);
 
   // Cell internal power (uW)
-  int_power = int_power_norm * (get_bsize() << 3);
+  int_power = int_power_norm * (get_bsize() << 3) * 1/(clock_cycle.to_seconds()*1.0e+6);
 
   // Energy per read access (uJ)
   dyn_read_energy =  dyn_read_energy_norm * 32 * (get_bsize() << 3);

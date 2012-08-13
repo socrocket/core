@@ -313,7 +313,11 @@ int sc_main(int argc, char** argv) {
                      0,
                      p_report_power
     );
+
+    // Connect to memory controller and clock
     mctrl.mem(rom.bus);
+    rom.set_clk(p_system_clock, SC_NS);
+
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_prom_elf("elf", "", p_mctrl_prom);
     if(!((std::string)p_mctrl_prom_elf).empty()) {
@@ -341,7 +345,11 @@ int sc_main(int argc, char** argv) {
                     p_report_power
 
     );
+    
+    // Connect to memory controller and clock
     mctrl.mem(io.bus);
+    io.set_clk(p_system_clock, SC_NS);
+
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);
     
@@ -371,7 +379,10 @@ int sc_main(int argc, char** argv) {
 
     );
 
-    mctrl.mem(sram.bus);    
+    // Connect to memory controller and clock
+    mctrl.mem(sram.bus);
+    sram.set_clk(p_system_clock, SC_NS);
+
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
     
@@ -400,7 +411,10 @@ int sc_main(int argc, char** argv) {
                        p_report_power
     );
 
+    // Connect to memory controller and clock
     mctrl.mem(sdram.bus);
+    sdram.set_clk(p_system_clock, SC_NS);
+
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sdram_elf("elf", "", p_mctrl_ram_sdram);
     
@@ -431,12 +445,12 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_ahbmem_addr("addr", 0xA00, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_mask("mask", 0xFFF, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_index("index", 1, p_ahbmem);
-
     gs::gs_param<bool> p_ahbmem_cacheable("cacheable", 1, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_waitstates("waitstates", 0u, p_ahbmem);
-
     gs::gs_param<std::string> p_ahbmem_elf("elf", "", p_ahbmem);
+
     if(p_ahbmem_en) {
+
       AHBMem *ahbmem = new AHBMem("ahbmem",
                                   p_ahbmem_addr,
                                   p_ahbmem_mask,
@@ -447,7 +461,11 @@ int sc_main(int argc, char** argv) {
                                   p_report_power
 
       );
+      
+      // Connect to ahbctrl and clock
       ahbctrl.ahbOUT(ahbmem->ahb);
+      ahbmem->set_clk(p_system_clock, SC_NS);
+
       // ELF loader from leon (Trap-Gen)
       if(!((std::string)p_ahbmem_elf).empty()) {
         if(boost::filesystem::exists(boost::filesystem::path((std::string)p_ahbmem_elf))) {

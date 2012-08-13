@@ -48,6 +48,7 @@
 #define ARRAYMEMORY_H
 
 #include "memdevice.h"
+#include "clkdevice.h"
 #include "vmap.h"
 
 #include <greencontrol/config.h>
@@ -60,7 +61,7 @@
 
 /// @brief This class models a array memory. Depending on the configuration
 /// it can be used as ROM, IO, SRAM or SDRAM, in conjunction with the SoCRocket MCTRL.
-class ArrayMemory : public MEMDevice, public sc_core::sc_module {
+class ArrayMemory : public sc_core::sc_module, public MEMDevice, public CLKDevice {
 
  public:
 
