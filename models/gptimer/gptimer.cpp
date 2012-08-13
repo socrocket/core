@@ -56,118 +56,129 @@
 GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                    int pindex, int paddr, int pmask, int pirq, int sepirq,
                    int sbits, int nbits, int wdog, bool powmon) :
-    gr_device(name, gs::reg::ALIGNED_ADDRESS, 4 * (1 + ntimers), NULL),
-    APBDevice(pindex, 0x1, 0x11, 0, pirq, APBIO, pmask, false, false, paddr), 
-    bus("bus", r, (paddr & pmask) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false), 
-    irq("IRQ"), wdog("WDOG"), 
-    conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)), 
-    lasttime(0, sc_core::SC_NS), lastvalue(0), 
-    g_sbits(sbits),
-    g_nbits(nbits),
-    g_wdog_length(wdog),
-    powermon(powmon),
-    sta_power_norm("power.gptimer.sta_power_norm", 0.0, true), // Normalized static power input
-    dyn_power_norm("power.gptimer.dyn_power_norm", 0.0, true), // Normalized dynamic power input
-    power("power"),
-    sta_power("sta_power", 0.0, power), // Static power output
-    dyn_power("dyn_power", 0.0, power)  // Dynamic power output (activation independent)
+  m_ntimers(ntimers),
+  gr_device(name, gs::reg::ALIGNED_ADDRESS, 4 * (1 + ntimers), NULL),
+  APBDevice(pindex, 0x1, 0x11, 0, pirq, APBIO, pmask, false, false, paddr), 
+  bus("bus", r, (paddr & pmask) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false), 
+  irq("IRQ"), wdog("WDOG"), 
+  conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)), 
+  lasttime(0, sc_core::SC_NS), lastvalue(0), 
+  g_sbits(sbits),
+  g_nbits(nbits),
+  g_wdog_length(wdog),
+  powermon(powmon),
+  sta_power_norm("power.gptimer.sta_power_norm", 2.46e+6, true), // Normalized static power input
+  int_power_norm("power.gptimer.int_power_norm", 0.01093, true), // Normalized internal power input
+  power("power"),
+  sta_power("sta_power", 0.0, power), // Static power output
+  int_power("int_power", 0.0, power)  // Internal dynamic power output (activation independent)
 
  {
-    assert("gsbits has to be between 1 and 32" && sbits > 0 && sbits < 33);
-    assert("nbits has to be between 1 and 32" && nbits > 0 && nbits < 33);
-    assert("ntimers has to be between 1 and 7" && ntimers > 0 && ntimers < 8);
-    assert("wdog has to be between 0 and 2^nbits-1" && wdog >= 0 && wdog < (1LL << nbits));
-    // Display APB slave information
-    v::info << this->name() << "APB slave @0x" << hex << v::setw(8)
-            << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex
-            << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
-            << endl;
+   // Parameter checking
+   assert("gsbits has to be between 1 and 32" && sbits > 0 && sbits < 33);
+   assert("nbits has to be between 1 and 32" && nbits > 0 && nbits < 33);
+   assert("ntimers has to be between 1 and 7" && ntimers > 0 && ntimers < 8);
+   assert("wdog has to be between 0 and 2^nbits-1" && wdog >= 0 && wdog < (1LL << nbits));
 
-    /* create register */
-    r.create_register("scaler", "Scaler Value",
-                      0x00,                // offset
-                      gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
-                      gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      static_cast<unsigned int>((1ULL << g_sbits) - 1), // init value
-                      static_cast<unsigned int>((1ULL << g_sbits) - 1), // write mask
-                      // sbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s.
-                      32,                  // Register width. Maximum register with is 32bit sbit must be less than 32.
-                      0x00                 // Lock Mask: Not implementet has to be zero.
-    );
+   // Display APB slave information
+   v::info << this->name() << "APB slave @0x" << hex << v::setw(8)
+           << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex
+           << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
+           << endl;
+
+   /* create register */
+   r.create_register("scaler", "Scaler Value",
+                     0x00,                // offset
+                     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
+                     gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                     static_cast<unsigned int>((1ULL << g_sbits) - 1), // init value
+                     static_cast<unsigned int>((1ULL << g_sbits) - 1), // write mask
+                     // sbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s.
+                     32,                  // Register width. Maximum register with is 32bit sbit must be less than 32.
+                     0x00                 // Lock Mask: Not implementet has to be zero.
+                     );
     
-    r.create_register("screload", "Scaler Reload Value",
-                      0x04, // offset
-                      gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |      // config
-                      gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      static_cast<unsigned int> ((1ULL << g_sbits) - 1), // init value
-                      static_cast<unsigned int> ((1ULL << g_sbits) - 1), // write mask
-                      // sbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s.
-                      32,                                               // register width
-                      0x00                                              // lock mask
-    );
-    
-    r.create_register("conf", "Configuration Register",
-                      0x08,                                        // offset
-                      gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
-                      gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                      conf_defaults,                               // init value
-                      0x00000200,                                  // write mask
-                      32,                                          // register width
-                      0x00                                         // lock mask
-    );
+   r.create_register("screload", "Scaler Reload Value",
+                     0x04, // offset
+                     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |      // config
+                     gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                     static_cast<unsigned int> ((1ULL << g_sbits) - 1), // init value
+                     static_cast<unsigned int> ((1ULL << g_sbits) - 1), // write mask
+                     // sbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s.
+                     32,                                               // register width
+                     0x00                                              // lock mask
+                     );
+   
+   r.create_register("conf", "Configuration Register",
+                     0x08,                                        // offset
+                     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
+                     gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                     conf_defaults,                               // init value
+                     0x00000200,                                  // write mask
+                     32,                                          // register width
+                     0x00                                         // lock mask
+                     );
 
-    for (unsigned int i = 0; i < ntimers; ++i) {
-        GPCounter *c = new GPCounter(*this, i, gen_unique_name("GPCounter",
-                true));
-        counter.push_back(c);
-        r.create_register(gen_unique_name("value", false), "GPCounter Value Register",
-                          VALUE(i), // offset
-                          gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
-                          gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                          0x00000000, // init value
-                          static_cast<unsigned int> ((1ULL << g_nbits) - 1), // write mask
-                          // nbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s.
-                          32, // register width
-                          0x00 // lock mask
-        );
+   for (unsigned int i = 0; i < ntimers; ++i) {
+     GPCounter *c = new GPCounter(*this, i, gen_unique_name("GPCounter",
+                                                            true));
+     counter.push_back(c);
+     r.create_register(gen_unique_name("value", false), "GPCounter Value Register",
+                       VALUE(i), // offset
+                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
+                       gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                       0x00000000, // init value
+                       static_cast<unsigned int> ((1ULL << g_nbits) - 1), // write mask
+                       // nbits defines the width of the value. Any unused most significant bits are reserved Always read as 0s.
+                       32, // register width
+                       0x00 // lock mask
+                       );
         
-        r.create_register(gen_unique_name("reload", false), "Reload Value Register",
-                          RELOAD(i), // offset
-                          gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
-                          gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                          0x00000001, // init value
-                          static_cast<unsigned int> ((1ULL << g_nbits) - 1), // write mask
-                          // nbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s.
-                          32, // register width
-                          0x00 // lock mask
-        );
+     r.create_register(gen_unique_name("reload", false), "Reload Value Register",
+                       RELOAD(i), // offset
+                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
+                       gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                       0x00000001, // init value
+                       static_cast<unsigned int> ((1ULL << g_nbits) - 1), // write mask
+                       // nbits defines the width of the reload. Any unused most significant bits are reserved Always read as 0s.
+                       32, // register width
+                       0x00 // lock mask
+                       );
         
-        r.create_register(gen_unique_name("ctrl", false), "Controle Register",
-                          CTRL(i), // offset
-                          gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
-                          gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                          0x00000000, // init value
-                          0x0000007F, //write mask
-                          32, //register width
-                          0x00 // lock mask
-        );
-    }
+     r.create_register(gen_unique_name("ctrl", false), "Controle Register",
+                       CTRL(i), // offset
+                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
+                       gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
+                       0x00000000, // init value
+                       0x0000007F, //write mask
+                       32, //register width
+                       0x00 // lock mask
+                       );
+   }
 
-    // Configuration report
-    v::info << this->name() << " ******************************************************************************* " << v::endl;
-    v::info << this->name() << " * Created gptimer with following parameters: " << v::endl;
-    v::info << this->name() << " * ------------------------------------------ " << v::endl;
-    v::info << this->name() << " * ntimers: " << ntimers << v::endl;
-    v::info << this->name() << " * pindex: " << pindex << v::endl;
-    v::info << this->name() << " * paddr/pmask: " << hex << paddr << "/" << pmask << v::endl;
-    v::info << this->name() << " * pirq: " << pirq << v::endl;
-    v::info << this->name() << " * sepirq: " << sepirq << v::endl;
-    v::info << this->name() << " * sbits: " << sbits << v::endl;
-    v::info << this->name() << " * nbits: " << nbits << v::endl;
-    v::info << this->name() << " * wdog: " << wdog << v::endl;
-    v::info << this->name() << " * pow_mon: " << powmon << v::endl;
-    v::info << this->name() << " ******************************************************************************* " << v::endl;
-}
+   // Register power callback functions
+   if (powermon) {
+
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, GPTimer, sta_power_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, GPTimer, int_power_cb);
+ 
+   }
+
+   // Configuration report
+   v::info << this->name() << " ******************************************************************************* " << v::endl;
+   v::info << this->name() << " * Created gptimer with following parameters: " << v::endl;
+   v::info << this->name() << " * ------------------------------------------ " << v::endl;
+   v::info << this->name() << " * ntimers: " << ntimers << v::endl;
+   v::info << this->name() << " * pindex: " << pindex << v::endl;
+   v::info << this->name() << " * paddr/pmask: " << hex << paddr << "/" << pmask << v::endl;
+   v::info << this->name() << " * pirq: " << pirq << v::endl;
+   v::info << this->name() << " * sepirq: " << sepirq << v::endl;
+   v::info << this->name() << " * sbits: " << sbits << v::endl;
+   v::info << this->name() << " * nbits: " << nbits << v::endl;
+   v::info << this->name() << " * wdog: " << wdog << v::endl;
+   v::info << this->name() << " * pow_mon: " << powmon << v::endl;
+   v::info << this->name() << " ******************************************************************************* " << v::endl;
+ }
 
 // Destructor: Unregister Register Callbacks.
 // Destroy all Counter objects.
@@ -177,6 +188,44 @@ GPTimer::~GPTimer() {
         delete *iter;
     }
     GC_UNREGISTER_CALLBACKS();
+}
+
+// Automatically called at start of simulation
+void GPTimer::start_of_simulation() {
+
+  // Initialize power model
+  if (powermon) {
+
+    power_model();
+
+  }
+}
+
+// Calculate power/energy values from normalized input data
+void GPTimer::power_model() {
+
+  // Static power calculation (pW)
+  sta_power = sta_power_norm * m_ntimers;
+
+  // Cell internal power (uW)
+  int_power = int_power_norm * m_ntimers * 1/(clock_cycle.to_seconds()*1.0e+6);
+
+}
+
+// Static power callback
+void GPTimer::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Static power of ArrayMemory is constant !!
+
+}
+
+// Internal power callback
+void GPTimer::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Internal power of ArrayMemory is constant !!
+
 }
 
 // Set all register callbacks

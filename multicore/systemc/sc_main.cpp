@@ -721,6 +721,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_gptimer_sbits("sbit", 16, p_gptimer);
     gs::gs_param<unsigned int> p_gptimer_nbits("nbits", 32, p_gptimer);
     gs::gs_param<unsigned int> p_gptimer_wdog("wdog", 0u, p_gptimer);
+
     if(p_gptimer_en) {
       GPTimer *gptimer = new GPTimer("gptimer",
         p_gptimer_ntimers,// ntimers
@@ -735,16 +736,15 @@ int sc_main(int argc, char** argv) {
         p_report_power    // powmon
       );
 
-      // Connecting APB Slave
+      // Connect to apb and clock
       apbctrl.apb(gptimer->bus);
+      gptimer->set_clk(p_system_clock,SC_NS);      
 
       // Connecting Interrupts
       for(int i=0; i < 8; i++) {
         signalkit::connect(irqmp.irq_in, gptimer->irq, p_gptimer_irq + i);
       }
 
-      // Set clock
-      gptimer->set_clk(p_system_clock,SC_NS);
     }
 
     // APBSlave - APBUart
