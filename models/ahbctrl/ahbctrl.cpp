@@ -102,7 +102,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       lock_master(0),
       m_ambaLayer(ambaLayer),
       sta_power_norm("power.ahbctrl.sta_power_norm", 10714285.71, true), // Normalized static power input
-      dyn_power_norm("power.ahbctrl.dyn_power_norm", 0.0, true), // Normalized dyn power input (activation indep.)
+      int_power_norm("power.ahbctrl.int_power_norm", 0.0, true), // Normalized dyn power input (activation indep.)
       dyn_read_energy_norm("power.ahbctrl.dyn_read_energy_norm", 9.10714e-10, true), // Normalized read energy input
       dyn_write_energy_norm("power.ahbctrl.dyn_write_energy_norm", 9.10714e-10, true), // Normalized write energy input
       power("power"),
@@ -1187,7 +1187,7 @@ void AHBCtrl::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_t
 // Switching power callback
 void AHBCtrl::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
-  swi_power = (dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
+  swi_power = ((dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
 
 }
 

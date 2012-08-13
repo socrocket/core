@@ -51,60 +51,119 @@ using namespace sc_core;
 using namespace tlm;
 using namespace std;
 
+// Constructor implementation
 ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) : 
   MEMDevice(type, banks, bsize, bits, cols), 
   bus("bus"), 
-  g_powmon(powmon), 
+  m_pow_mon(powmon), 
   m_performance_counters("performance_counters"),
   m_reads("bytes_read", 0ull, m_performance_counters), 
   m_writes("bytes_writen", 0ull, m_performance_counters),
   sta_power_norm("power." + get_type_name() + ".sta_power_norm", 0.0, true), // Normalized static power input
-  dyn_power_norm("power." + get_type_name() + ".dyn_power_norm", 0.0, true), // Normalized dyn power input (act. independent)
+  int_power_norm("power." + get_type_name() + ".int_power_norm", 0.0, true), // Normalized internal power input (act. independent)
   dyn_read_energy_norm("power." + get_type_name() + ".dyn_read_energy_norm", 0.0, true), // Normalized read energy input
   dyn_write_energy_norm("power." + get_type_name() + ".dyn_write_energy_norm", 0.0, true), // Normalized write energy input
   power("power"),
   sta_power("sta_power", 0.0, power),  // Static power output
-  dyn_power("dyn_power", 0.0, power),  // Dynamic power output
+  int_power("int_power", 0.0, power),  // Internal power output
+  swi_power("swi_power", 0.0, power),  // Switching power output
+  power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
   dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
   dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
   dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
   dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation  
 
 {
-    // register transport functions to sockets
-    gs::socket::config<tlm::tlm_base_protocol_types> bus_cfg;
-    bus_cfg.use_mandatory_phase(BEGIN_REQ);
-    bus_cfg.use_mandatory_phase(END_REQ);
-    //mem_cfg.treat_unknown_as_ignorable();
-    bus.set_config(bus_cfg);
 
-    // gs_param class identifier
-    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
+  // TLM 2.0 protocol initialization
+  gs::socket::config<tlm::tlm_base_protocol_types> bus_cfg;
+  bus_cfg.use_mandatory_phase(BEGIN_REQ);
+  bus_cfg.use_mandatory_phase(END_REQ);
+  //mem_cfg.treat_unknown_as_ignorable();
+  bus.set_config(bus_cfg);
 
-    bus.register_b_transport(this, &ArrayMemory::b_transport);
-    bus.register_transport_dbg(this, &ArrayMemory::transport_dbg);
+  // Obtain pointer to GreenControl API
+  m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
-    // Module configuration report
-    v::info << this->name() << " ******************************************************************************* " << v::endl;
-    v::info << this->name() << " * Created ArrayMemory with following parameters: " << v::endl;
-    v::info << this->name() << " * ------------------------------------------------ " << v::endl;
-    v::info << this->name() << " * device_type (ROM, IO, SRAM, SDRAM): " << get_type_name() << v::endl;
-    v::info << this->name() << " * banks: " << banks << v::endl;
-    v::info << this->name() << " * bsize (bytes): " << hex << bsize << v::endl;
-    v::info << this->name() << " * bit width: " << bits << v::endl;
-    v::info << this->name() << " * cols (SD only): " << cols << v::endl;
-    v::info << this->name() << " * pow_mon: " << powmon << v::endl;
-    v::info << this->name() << " ******************************************************************************* " << v::endl;
+  // Register TLM 2.0 transport functions to sockets
+  bus.register_b_transport(this, &ArrayMemory::b_transport);
+  bus.register_transport_dbg(this, &ArrayMemory::transport_dbg);
+
+  // Register power callback functions
+  if (m_pow_mon) {
     
-    // Calculate array size
-    size_t mem_size = bsize;
-    mem_size *= (banks<5)?banks:8;
-    memory = new uint8_t[mem_size+1];
-    erase(0, mem_size);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, ArrayMemory, sta_power_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, ArrayMemory, int_power_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, ArrayMemory, swi_power_cb);
+    
+    // Set norm power - depending on type
+    if (get_type_name() == "sram") {
+      
+      m_api->setInitValue("power.sram.sta_power_norm", "1269.53125");
+      m_api->setInitValue("power.sram.int_power_norm", "0.000161011");
+      m_api->setInitValue("power.sram.dyn_read_energy_norm", "7.57408e-13");
+      m_api->setInitValue("power.sram.dyn_write_energy_norm", "7.57408e-13");
+
+    } else if (get_type_name() == "rom") {
+
+      m_api->setInitValue("power.rom.sta_power_norm", "1269.53125");
+      m_api->setInitValue("power.rom.int_power_norm", "0.000161011");
+      m_api->setInitValue("power.rom.dyn_read_energy_norm", "7.57408e-13");
+      m_api->setInitValue("power.rom.dyn_write_energy_norm", "7.57408e-13");
+
+    } else if (get_type_name() == "io") {
+
+      m_api->setInitValue("power.io.sta_power_norm", "1269.53125");
+      m_api->setInitValue("power.io.int_power_norm", "0.000161011");
+      m_api->setInitValue("power.io.dyn_read_energy_norm", "7.57408e-13");
+      m_api->setInitValue("power.io.dyn_write_energy_norm", "7.57408e-13");
+
+    } else {
+
+      m_api->setInitValue("power.sdram.sta_power_norm", "2539.0625");
+      m_api->setInitValue("power.sdram.int_power_norm", "0.000322022");
+      m_api->setInitValue("power.sdram.dyn_read_energy_norm", "15e-13");
+      m_api->setInitValue("power.sdram.dyn_write_energy_norm", "15e-13");
+
+    }
+  }
+
+  // Module configuration report
+  v::info << this->name() << " ******************************************************************************* " << v::endl;
+  v::info << this->name() << " * Created ArrayMemory with following parameters: " << v::endl;
+  v::info << this->name() << " * ------------------------------------------------ " << v::endl;
+  v::info << this->name() << " * device_type (ROM, IO, SRAM, SDRAM): " << get_type_name() << v::endl;
+  v::info << this->name() << " * banks: " << banks << v::endl;
+  v::info << this->name() << " * bsize (bytes): " << hex << bsize << v::endl;
+  v::info << this->name() << " * bit width: " << bits << v::endl;
+  v::info << this->name() << " * cols (SD only): " << cols << v::endl;
+  v::info << this->name() << " * pow_mon: " << powmon << v::endl;
+  v::info << this->name() << " ******************************************************************************* " << v::endl;
+    
+  // Calculate array size
+  size_t mem_size = bsize;
+  mem_size *= (banks<5)?banks:8;
+  memory = new uint8_t[mem_size+1];
+  erase(0, mem_size);
+
 }
 
+// Destructor
 ArrayMemory::~ArrayMemory() {
+
     delete[] memory;
+    GC_UNREGISTER_CALLBACKS();
+}
+
+// Automatically called at start of simulation
+void ArrayMemory::start_of_simulation() {
+
+  // Initialize power model
+  if (m_pow_mon) {
+
+    power_model();
+
+  }
 }
 
 // Print execution statistic at end of simulation
@@ -118,79 +177,160 @@ void ArrayMemory::end_of_simulation() {
     v::report << name() << " ******************************************** " << v::endl;
 }
 
-void ArrayMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
-    ext_erase *ers;
-    gp.get_extension(ers);
-    if(ers) {
-        // check erase extension first
-        // The start address is encoded in the TLM address field.
-        uint32_t start = gp.get_address();
-        // The end address is encoded in the TLM data field as a uint32_t.
-        uint32_t end = *reinterpret_cast<uint32_t *>(gp.get_data_ptr());
-        erase(start, end);
-        gp.set_response_status(tlm::TLM_OK_RESPONSE);
-        
-        // calculating delay
-        v::debug << name() << "Erase memory from " << v::uint32 << start << " to " << v::uint32 << end << "." << v::endl;
-    } else {
-        // Read or write transaction
-        tlm::tlm_command cmd = gp.get_command();
-        uint32_t addr        = gp.get_address();
-        uint32_t len         = gp.get_data_length();
-        uint8_t *ptr         = gp.get_data_ptr();
-        if(cmd == tlm::TLM_READ_COMMAND) {
-            for(uint32_t i = 0; i < len; i++) {
-                ptr[i] = read(addr + i);
-            }
-            v::debug << name() << "Read memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
-            gp.set_response_status(tlm::TLM_OK_RESPONSE);
-            // calculating delay
-        } else if(cmd == tlm::TLM_WRITE_COMMAND) {
-            for(uint32_t i = 0; i < len; i++) {
-                write(addr + i, ptr[i]);
-            }
-            v::debug << name() << "Write memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
-            gp.set_response_status(tlm::TLM_OK_RESPONSE);
-            // calculating delay
-        } else {
-            v::warn << name() << "Memory received TLM_IGNORE command" << v::endl;
-        }
-    }
+// Calculate power/energy values from normalized input data
+void ArrayMemory::power_model() {
+
+  // Static power calculation (pW)
+  sta_power = sta_power_norm * (get_bsize() << 3);
+
+  // Cell internal power (uW)
+  int_power = int_power_norm * (get_bsize() << 3);
+
+  // Energy per read access (uJ)
+  dyn_read_energy =  dyn_read_energy_norm * 32 * (get_bsize() << 3);
+
+  // Energy per write access (uJ)
+  dyn_write_energy = dyn_write_energy_norm * 32 * (get_bsize() << 3);
+
 }
 
-unsigned int ArrayMemory::transport_dbg(tlm::tlm_generic_payload& gp) {
+// Static power callback
+void ArrayMemory::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Static power of ArrayMemory is constant !!
+
+}
+
+// Internal power callback
+void ArrayMemory::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Internal power of ArrayMemory is constant !!
+
+}
+
+// Switching power callback
+void ArrayMemory::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  swi_power = ((dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
+
+}
+
+// TLM 2.0 blocking transport function
+void ArrayMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
+
+  // Extract erase extension
+  ext_erase *ers;
+  gp.get_extension(ers);
+
+  if(ers) {
+
+    // Check erase extension first:
+    // The start address is encoded in the TLM address field.
+    uint32_t start = gp.get_address();
+    // The end address is encoded in the TLM data field as a uint32_t.
+    uint32_t end = *reinterpret_cast<uint32_t *>(gp.get_data_ptr());
+
+    if (end < start) {
+
+      v::error << name() << "Error in erasing memory!" << v::endl;
+
+      gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+
+    } else {
+    
+      // Erase designated memory region
+      erase(start, end);
+
+      gp.set_response_status(tlm::TLM_OK_RESPONSE);
+      
+      // Count write operations for power calculation
+      dyn_writes += (end-start)>>2;
+
+      // calculating delay
+      v::debug << name() << "Erase memory from " << v::uint32 << start << " to " << v::uint32 << end << "." << v::endl;
+
+    }
+
+  } else {
+
+    // Read or write transaction
     tlm::tlm_command cmd = gp.get_command();
     uint32_t addr        = gp.get_address();
     uint32_t len         = gp.get_data_length();
     uint8_t *ptr         = gp.get_data_ptr();
 
-    switch(cmd) {
-        case tlm::TLM_READ_COMMAND:
-            for(uint32_t i=0; i<len; i++) {
-                ptr[i] = read(addr + i);
-            }
-            v::debug << name() << "Debug read memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
-            gp.set_response_status(tlm::TLM_OK_RESPONSE);
-            return len;
-            
-        case tlm::TLM_WRITE_COMMAND:
-            for(uint32_t i=0; i<len; i++) {
-                write(addr + i, ptr[i]);
-            }
-            v::debug << name() << "Debug write memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
-            gp.set_response_status(tlm::TLM_OK_RESPONSE);
-            return len;
-        default:
-            return 0;
+    if(cmd == tlm::TLM_READ_COMMAND) {
+
+      for(uint32_t i = 0; i < len; i++) {
+        ptr[i] = read(addr + i);
+      }
+      
+      v::debug << name() << "Read memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
+      gp.set_response_status(tlm::TLM_OK_RESPONSE);
+
+      // Count read operations for power calculation
+      dyn_reads += (len >> 2) + 1;
+
+    } else if(cmd == tlm::TLM_WRITE_COMMAND) {
+
+      for(uint32_t i = 0; i < len; i++) {
+        write(addr + i, ptr[i]);
+      }
+
+      v::debug << name() << "Write memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
+      gp.set_response_status(tlm::TLM_OK_RESPONSE);
+
+      // Count write operations for power calculation
+      dyn_writes += (len >> 2) + 1;
+
+    } else {
+
+      v::warn << name() << "Command not valid / or TLM_IGNORE" << v::endl;
+      
     }
+  }
 }
 
+
+// TLM 2.0 debug transport function
+unsigned int ArrayMemory::transport_dbg(tlm::tlm_generic_payload& gp) {
+
+  tlm::tlm_command cmd = gp.get_command();
+  uint32_t addr        = gp.get_address();
+  uint32_t len         = gp.get_data_length();
+  uint8_t *ptr         = gp.get_data_ptr();
+
+  switch(cmd) {
+  case tlm::TLM_READ_COMMAND:
+    for(uint32_t i=0; i<len; i++) {
+      ptr[i] = read(addr + i);
+    }
+    v::debug << name() << "Debug read memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
+    gp.set_response_status(tlm::TLM_OK_RESPONSE);
+    return len;
+            
+  case tlm::TLM_WRITE_COMMAND:
+    for(uint32_t i=0; i<len; i++) {
+      write(addr + i, ptr[i]);
+    }
+    v::debug << name() << "Debug write memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
+    gp.set_response_status(tlm::TLM_OK_RESPONSE);
+    return len;
+  default:
+    return 0;
+  }
+}
+
+// Write byte to memory
 void ArrayMemory::write(const uint32_t addr, const uint8_t byte) {
     memory[addr] = byte;
     m_writes++;
     v::debug << name() << v::uint32 << addr << ": "<< v::uint8 << (uint32_t)byte << v::endl;
 }
 
+// Read byte from memory
 uint8_t ArrayMemory::read(const uint32_t addr) {
     uint8_t byte = memory[addr];
     m_reads++;
@@ -198,10 +338,10 @@ uint8_t ArrayMemory::read(const uint32_t addr) {
     return byte;
 }
 
-//erase memory
+// Erase memory
 void ArrayMemory::erase(uint32_t start, uint32_t end) {
-    v::debug << name() << "eraising memory from " << v::uint32 << start 
-                       << " to " << v::uint32 << end << v::endl;
+    v::debug << name() << "Erase memory region from: " << v::uint32 << start 
+                       << " to: " << v::uint32 << end << v::endl;
 
     for(size_t i = start; i < end + 1; i++) {
         memory[i] = 0;

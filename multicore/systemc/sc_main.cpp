@@ -303,11 +303,15 @@ int sc_main(int argc, char** argv) {
 
     // CREATE MEMORIES
     // ===============
+
+    // ROM instantiation
     ArrayMemory rom( "rom", 
-        MEMDevice::ROM, 
-        p_mctrl_prom_banks, 
-        p_mctrl_prom_bsize * 1024 * 1024, 
-        p_mctrl_prom_width
+                     MEMDevice::ROM, 
+                     p_mctrl_prom_banks, 
+                     p_mctrl_prom_bsize * 1024 * 1024, 
+                     p_mctrl_prom_width,
+                     0,
+                     p_report_power
     );
     mctrl.mem(rom.bus);
     // ELF loader from leon (Trap-Gen)
@@ -327,11 +331,15 @@ int sc_main(int argc, char** argv) {
       }
     }
 
+    // IO memory instantiation
     ArrayMemory io( "io", 
-        MEMDevice::IO, 
-        p_mctrl_prom_banks, 
-        p_mctrl_prom_bsize * 1024 * 1024, 
-        p_mctrl_prom_width
+                    MEMDevice::IO, 
+                    p_mctrl_prom_banks, 
+                    p_mctrl_prom_bsize * 1024 * 1024, 
+                    p_mctrl_prom_width,
+                    0,
+                    p_report_power
+
     );
     mctrl.mem(io.bus);
     // ELF loader from leon (Trap-Gen)
@@ -352,12 +360,17 @@ int sc_main(int argc, char** argv) {
       }
     }
 
+    // SRAM instantiation
     ArrayMemory sram( "sram", 
-        MEMDevice::SRAM, 
-        p_mctrl_ram_sram_banks, 
-        p_mctrl_ram_sram_bsize * 1024 * 1024, 
-        p_mctrl_ram_sram_width 
+                      MEMDevice::SRAM, 
+                      p_mctrl_ram_sram_banks, 
+                      p_mctrl_ram_sram_bsize * 1024 * 1024, 
+                      p_mctrl_ram_sram_width,
+                      0,
+                      p_report_power
+
     );
+
     mctrl.mem(sram.bus);    
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
@@ -377,14 +390,16 @@ int sc_main(int argc, char** argv) {
       }
     }
 
-   
+    // SDRAM instantiation
     ArrayMemory sdram( "sdram", 
-        MEMDevice::SDRAM, 
-        p_mctrl_ram_sdram_banks, 
-        p_mctrl_ram_sdram_bsize * 1024 * 1024, 
-        p_mctrl_ram_sdram_width, 
-        p_mctrl_ram_sdram_cols
+                       MEMDevice::SDRAM, 
+                       p_mctrl_ram_sdram_banks, 
+                       p_mctrl_ram_sdram_bsize * 1024 * 1024, 
+                       p_mctrl_ram_sdram_width, 
+                       p_mctrl_ram_sdram_cols,
+                       p_report_power
     );
+
     mctrl.mem(sdram.bus);
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sdram_elf("elf", "", p_mctrl_ram_sdram);
@@ -416,13 +431,21 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_ahbmem_addr("addr", 0xA00, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_mask("mask", 0xFFF, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_index("index", 1, p_ahbmem);
+
+    gs::gs_param<bool> p_ahbmem_cacheable("cacheable", 1, p_ahbmem);
+    gs::gs_param<unsigned int> p_ahbmem_waitstates("waitstates", 0u, p_ahbmem);
+
     gs::gs_param<std::string> p_ahbmem_elf("elf", "", p_ahbmem);
     if(p_ahbmem_en) {
       AHBMem *ahbmem = new AHBMem("ahbmem",
-        p_ahbmem_addr,
-        p_ahbmem_mask,
-        ambaLayer,
-        p_ahbmem_index
+                                  p_ahbmem_addr,
+                                  p_ahbmem_mask,
+                                  ambaLayer,
+                                  p_ahbmem_index,
+                                  p_ahbmem_cacheable,
+                                  p_ahbmem_waitstates,
+                                  p_report_power
+
       );
       ahbctrl.ahbOUT(ahbmem->ahb);
       // ELF loader from leon (Trap-Gen)

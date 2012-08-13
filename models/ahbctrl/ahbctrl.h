@@ -305,8 +305,8 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   /// Normalized static power input
   gs::gs_param<double> sta_power_norm;
 
-  /// Normalized dynamic power input (activation independent)
-  gs::gs_param<double> dyn_power_norm;
+  /// Normalized internal power input (activation independent)
+  gs::gs_param<double> int_power_norm;
 
   /// Normalized read access energy
   gs::gs_param<double> dyn_read_energy_norm;
@@ -347,7 +347,7 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   /// Set up slave map and collect plug & play information
   void start_of_simulation();
     
-  /// Calculate power/engery values from normalized input data
+  /// Calculate power/energy values from normalized input data
   void power_model();
 
   /// Static power callback

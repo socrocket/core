@@ -62,7 +62,8 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
                amba::amba_layer_ids ambaLayer,   // abstraction layer
                uint32_t slave_id,
 	       bool cacheable,
-               uint32_t wait_states) :
+               uint32_t wait_states,
+               bool pow_mon) :
             AHBSlave<>(nm,
                        slave_id, 
                        0x01, // Gaisler 
@@ -77,13 +78,16 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
             mhmask(hmask_),
 	    mcacheable(cacheable),
             mwait_states(wait_states),
-            sta_power_norm("power.ahbmem.sta_power_norm", 0.0, true), // Normalized static power input
-            dyn_power_norm("power.ahbmem.dyn_power_norm", 0.0, true), // Normalized dynamic power input (activ. independent)
-            dyn_read_energy_norm("power.ahbmem.dyn_read_energy_norm", 0.0, true), // Normalized read energy input
-            dyn_write_energy_norm("power.ahbmem.dyn_write_energy_norm", 0.0, true), // Normalized write energy iput
+            m_pow_mon(pow_mon),
+            sta_power_norm("power.ahbmem.sta_power_norm", 1269.53125, true), // Normalized static power input
+            int_power_norm("power.ahbmem.int_power_norm", 0.000161011, true),       // Normalized internal power input
+            dyn_read_energy_norm("power.ahbmem.dyn_read_energy_norm", 7.57408e-13, true), // Normalized read energy input
+            dyn_write_energy_norm("power.ahbmem.dyn_write_energy_norm", 7.57408e-13, true), // Normalized write energy iput
             power("power"),
             sta_power("sta_power", 0.0, power), // Static power output
-            dyn_power("dyn_power", 0.0, power), // Dynamic power (activation independent)
+            int_power("int_power", 0.0, power), // Internal power of module (dyn. switching independent)
+            swi_power("swi_power", 0.0, power), // Switching power of modules
+            power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
             dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
             dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
             dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
@@ -93,6 +97,15 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
 
     // haddr and hmask must be 12 bit
     assert(!((mhaddr|mhmask)>>12));
+
+    // Register power callback functions
+    if (m_pow_mon) {
+
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, AHBMem, sta_power_cb);
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, AHBMem, int_power_cb);
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, AHBMem, swi_power_cb);
+
+    }
 
     // Display AHB slave information
     v::info << name() << "********************************************************************" << v::endl;
@@ -112,6 +125,7 @@ void AHBMem::dorst() {
 AHBMem::~AHBMem() {
     // Delete memory contents
     mem.clear();
+    GC_UNREGISTER_CALLBACKS();
 } 
 
 /// Encapsulated functionality
@@ -142,6 +156,12 @@ uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &de
       // Base delay is one clock cycle per word
       words_transferred = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
 
+      if (m_pow_mon) {
+
+        dyn_writes += words_transferred;
+        
+      }
+
       // Total delay is base delay + wait states
       delay += clock_cycle * (words_transferred + mwait_states);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
@@ -157,6 +177,12 @@ uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &de
 
       // Base delay is one clock cycle per word
       words_transferred = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
+
+      if (m_pow_mon) {
+
+        dyn_reads += words_transferred;
+
+      }
 
       // Total delay is base delay + wait states
       delay += clock_cycle * (words_transferred + mwait_states);
@@ -195,6 +221,59 @@ void AHBMem::writeByteDBG(const uint32_t address, const uint8_t byte) {
 
 }
 
+
+// Automatically called at the beginning of the simulation
+void AHBMem::start_of_simulation() {
+
+  // Initialize power model
+  if (m_pow_mon) {
+
+    power_model();
+
+  }
+}
+
+// Calculate power/energy values from normalized input data
+void AHBMem::power_model() {
+
+  // Static power calculation (pW)
+  sta_power = sta_power_norm * (get_size() << 3);
+
+  // Cell internal power (uW)
+  int_power = int_power_norm * (get_size() << 3);
+
+  // Energy per read access (uJ)
+  dyn_read_energy =  dyn_read_energy_norm * 32 * (get_size() << 3);
+
+  // Energy per write access (uJ)
+  dyn_write_energy = dyn_write_energy_norm * 32 * (get_size() << 3);
+
+}
+
+// Static power callback
+void AHBMem::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Static power of AHBMem is constant !!
+
+}
+
+// Internal power callback
+void AHBMem::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // AHBMem internal power is constant !!
+
+}
+
+// Switching power callback
+void AHBMem::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  swi_power = ((dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
+
+}
+
+// Automatically called at the end of the simulation
 void AHBMem::end_of_simulation() {
 
   v::report << name() << " **************************************************** " << v::endl;

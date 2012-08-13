@@ -64,6 +64,8 @@ class ArrayMemory : public MEMDevice, public sc_core::sc_module {
 
  public:
 
+  GC_HAS_CALLBACKS();
+
   /// Slave socket -  for communication with Mctrl
   gs::socket::target_socket<32> bus;
 
@@ -88,6 +90,21 @@ class ArrayMemory : public MEMDevice, public sc_core::sc_module {
         
   uint8_t *memory;
 
+  /// SystemC start of simulation callback
+  void start_of_simulation();
+
+  /// Calculate power/energy values from normalized input data
+  void power_model();
+
+  /// Static power callback
+  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Internal power callback
+  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Switching power callback
+  void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
   /// SystemC end of simulation
   void end_of_simulation();
         
@@ -107,7 +124,7 @@ class ArrayMemory : public MEMDevice, public sc_core::sc_module {
   void erase(uint32_t start, uint32_t end);
 
   /// Power monitoring
-  bool g_powmon;
+  bool m_pow_mon;
   
   /// GreenControl API Pointer
   gs::cnf::cnf_api *m_api;
@@ -127,8 +144,8 @@ class ArrayMemory : public MEMDevice, public sc_core::sc_module {
   /// Normalized static power input
   gs::gs_param<double> sta_power_norm;
   
-  /// Normalized dynamic power input (activation independent)
-  gs::gs_param<double> dyn_power_norm;
+  /// Normalized internal power input (activation independent)
+  gs::gs_param<double> int_power_norm;
 
   /// Normalized read access energy
   gs::gs_param<double> dyn_read_energy_norm;
@@ -142,8 +159,14 @@ class ArrayMemory : public MEMDevice, public sc_core::sc_module {
   /// Static power of module
   gs::gs_param<double> sta_power;
 
-  /// Dynamic power of module
-  gs::gs_param<double> dyn_power;
+  /// Internal power of module
+  gs::gs_param<double> int_power;
+
+  /// Switching power of module;
+  gs::gs_param<double> swi_power;
+
+  /// Power frame starting time
+  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
 
   /// Dynamic energy per read access
   gs::gs_param<double> dyn_read_energy;
