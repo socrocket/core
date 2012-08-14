@@ -123,6 +123,13 @@ unsigned int nocache::check_mode() {
     return 0;
 }
 
+/// this is a cache dummy
+cache_if::t_cache_type nocache::get_cache_type() {
+
+  return cache_if::nocache;
+
+}
+
 /// forbidden debug output
 void nocache::dbg_out(unsigned int line) {
 

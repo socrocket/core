@@ -58,13 +58,33 @@ class ivectorcache : public vectorcache {
 
  public:
 
-  // overwrite write function
+  GC_HAS_CALLBACKS();
+
+  // Overwrite write function
   void mem_write(unsigned int address, unsigned char * data,
                  unsigned int len, sc_core::sc_time * t,
                  unsigned int * debug, bool is_dbg);
 
-  // implement ccr check
+  // Implement ccr check
   unsigned int check_mode();
+
+  // Implement cache type function
+  t_cache_type get_cache_type();
+
+  // Automatically called at start of simulation
+  void start_of_simulation();
+
+  // Calculate power/energy values from normalized input data
+  void power_model();
+
+  /// Static power callback
+  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Internal power callback
+  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Switching power callback
+  void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// *****************************************************
   /// Power Modeling Parameters
@@ -72,8 +92,8 @@ class ivectorcache : public vectorcache {
   /// Normalized static power input for logic
   gs::gs_param<double> sta_power_norm;
 
-  /// Normalized dynamic power input for logic (activation independent)
-  gs::gs_param<double> dyn_power_norm;
+  /// Normalized internal power input for logic (activation independent)
+  gs::gs_param<double> int_power_norm;
 
    /// Normalized static power input for itag ram (dp)
   gs::gs_param<double> sta_itag_power_norm;
@@ -81,11 +101,11 @@ class ivectorcache : public vectorcache {
   /// Normalized static power input for idata ram (sp)
   gs::gs_param<double> sta_idata_power_norm;
 
-  /// Normalized dynamic power input for itag ram (dp)
-  gs::gs_param<double> dyn_itag_power_norm;
+  /// Normalized internal power input for itag ram (dp)
+  gs::gs_param<double> int_itag_power_norm;
 
-  /// Normalized dynamic power input for idata ram (sp)
-  gs::gs_param<double> dyn_idata_power_norm;
+  /// Normalized internal power input for idata ram (sp)
+  gs::gs_param<double> int_idata_power_norm;
 
   /// Normalized read access energy for itag ram (dp)
   gs::gs_param<double> dyn_itag_read_energy_norm;
@@ -105,52 +125,34 @@ class ivectorcache : public vectorcache {
   /// Static power of module
   gs::gs_param<double> sta_power;
 
-  /// Dynamic power of module (activation independent)
-  gs::gs_param<double> dyn_power;
+  /// Internal dynamic power (activation independent)
+  gs::gs_param<double> int_power;
+
+  /// Switching power
+  gs::gs_param<double> swi_power;
 
   /// Parameter array for power output of itag ram
   gs::gs_param_array itag;
 
-  /// Static power of itag RAM
-  gs::gs_param<double> sta_itag_power;
-
-  /// Dynamic power of itag RAM (activation independent)
-  gs::gs_param<double> dyn_itag_power;
-
   /// Dynamic energy per itag read access
-  gs::gs_param<double> dyn_itag_read_energy;
+  gs::gs_param<double> dyn_tag_read_energy;
 
   /// Dynamic energy per itag write access
-  gs::gs_param<double> dyn_itag_write_energy;
-
-  /// Number of itag reads (monitor read & reset)
-  gs::gs_param<uint64_t> dyn_itag_reads;
-
-  /// Number of itag writes (monitor read & reset)
-  gs::gs_param<uint64_t> dyn_itag_writes;
+  gs::gs_param<double> dyn_tag_write_energy;
 
   /// Parameter array for power output of idata ram
   gs::gs_param_array idata;
 
-  /// Static power of idata RAM
-  gs::gs_param<double> sta_idata_power;
-
-  /// Dynamic power of idata RAM
-  gs::gs_param<double> dyn_idata_power;
-
   /// Dynamic energy per idata read access
-  gs::gs_param<double> dyn_idata_read_energy;
+  gs::gs_param<double> dyn_data_read_energy;
 
   /// Dynamic energy per idata write access
-  gs::gs_param<double> dyn_idata_write_energy;
+  gs::gs_param<double> dyn_data_write_energy;
 
-  /// Number of idata reads (monitor read & reset)
-  gs::gs_param<uint64_t> dyn_idata_reads;
+  /// Power frame starting time
+  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
   
-  /// Number of idata writes (monitor read & reset)
-  gs::gs_param<uint64_t> dyn_idata_writes;
-  
-  // constructor
+  // Constructor
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
   /// @brief Constructor of data cache
   /// @param name                              SystemC module name
@@ -175,36 +177,44 @@ class ivectorcache : public vectorcache {
               1, // burst fetch allowed
               sets, setsize, setlock, linesize,
               repl, lram, lramstart, lramsize, pow_mon),
-
-    sta_power_norm("power.mmu_cache.icache.sta_power_norm", 0.0, true),
-    dyn_power_norm("power.mmu_cache.icache.dyn_power_norm", 0.0, true),
-    sta_itag_power_norm("power.mmu_cache.icache.itag.sta_power_norm", 0.0, true),
-    sta_idata_power_norm("power.mmu_cache.icache.idata.sta_power_norm", 0.0, true),
-    dyn_itag_power_norm("power.mmu_cache.icache.itag.dyn_power_norm", 0.0, true),
-    dyn_idata_power_norm("power.mmu_cache.icache.idata.dyn_power_norm", 0.0, true),
-    power("power"),
-    sta_power("sta_power", 0.0, power),
-    dyn_power("dyn_power", 0.0, power),
-    itag("itag", power),
-    sta_itag_power("sta_power", 0.0, itag),
-    dyn_itag_power("dyn_power", 0.0, itag),
-    dyn_itag_read_energy("dyn_read_energy", 0.0, itag),
-    dyn_itag_write_energy("dyn_write_energy", 0.0, itag),
-    dyn_itag_reads("dyn_reads", 0.0, itag),
-    dyn_itag_writes("dyn_writes", 0.0, itag),
-    idata("idata", power),
-    sta_idata_power("sta_power", 0.0, idata),
-    dyn_idata_power("dyn_power", 0.0, idata),
-    dyn_idata_read_energy("dyn_read_energy", 0.0, idata),
-    dyn_idata_write_energy("dyn_write_energy", 0.0, idata),
-    dyn_idata_reads("dyn_reads", 0.0, idata),
-    dyn_idata_writes("dyn_writes", 0.0, idata)
+    sta_power_norm("power.mmu_cache.icache.sta_power_norm", 1.10e+8, true), // norm. static power logic (controller)
+    int_power_norm("power.mmu_cache.icache.int_power_norm", 0.01381, true), // norm. internal power logic (controller)
+    sta_itag_power_norm("power.mmu_cache.icache.itag.sta_power_norm", 1269.53125, true), // norm. static power itag ram
+    sta_idata_power_norm("power.mmu_cache.icache.idata.sta_power_norm", 1269.53125, true), // norm. static power idata ram
+    int_itag_power_norm("power.mmu_cache.icache.itag.int_power_norm", 1.61011e-6, true), // norm. internal power itag ram
+    int_idata_power_norm("power.mmu_cache.icache.idata.int_power_norm", 1.61011e-6, true), // norm. internal power idata ram
+    dyn_itag_read_energy_norm("power.mmu_cache.icache.itag.dyn_read_energy_norm", 7.57408e-13, true), // norm. read energy itag
+    dyn_itag_write_energy_norm("power.mmu_cache.icache.itag.dyn_write_energy_norm", 7.57408e-13, true), // norm. write energy itag
+    dyn_idata_read_energy_norm("power.mmu_cache.icache.idata.dyn_read_energy_norm", 7.57408e-13, true), // norm. read energy idata
+    dyn_idata_write_energy_norm("power.mmu_cache.icache.idata.dyn_write_energy_norm", 7.57408e-13, true), // norm. write enegy idata
+    power("power"), // parameter array for controller
+    sta_power("sta_power", 0.0, power), // static power
+    int_power("int_power", 0.0, power), // internal power
+    swi_power("swi_power", 0.0, power), // switching power
+    power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
+    itag("itag", power), // parameter array for itag ram (sub-array of power)
+    dyn_tag_read_energy("dyn_read_energy", 0.0, itag), // read energy itag ram
+    dyn_tag_write_energy("dyn_write_energy", 0.0, itag), // write energy itag ram
+    idata("idata", power), // parameter array for idata ram (sub-array of power)
+    dyn_data_read_energy("dyn_read_energy", 0.0, idata), // read energy idata ram
+    dyn_data_write_energy("dyn_write_energy", 0.0, idata) // write energy idata ram
 
       {
+        // Register power callback functions
+        if (pow_mon) {
 
-        // nothing to do
-        
+          GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, ivectorcache, sta_power_cb);
+          GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, ivectorcache, int_power_cb);
+          GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, ivectorcache, swi_power_cb);
+
+        }
       }
+
+  ~ivectorcache() {
+
+    GC_UNREGISTER_CALLBACKS();
+
+  }
   
 };
 

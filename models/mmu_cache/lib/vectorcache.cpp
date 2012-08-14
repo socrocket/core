@@ -84,6 +84,10 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     wmisses("write_misses", 0ull, m_performance_counters),
     bypassops("bypass_operations", 0ull, m_performance_counters),
     m_pow_mon(pow_mon),
+    dyn_tag_reads("dyn_reads", 0ull), // number of itag reads
+    dyn_tag_writes("dyn_writes", 0ull), // number of itag writes
+    dyn_data_reads("dyn_reads", 0ull), // number of idata reads
+    dyn_data_writes("dyn_writes", 0ull), // number of idata writes
     clockcycle(10, sc_core::SC_NS)
 
 {
@@ -235,299 +239,297 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
                            unsigned int len, sc_core::sc_time *delay,
                            unsigned int * debug, bool is_dbg, bool is_lock) {
 
-    int set_select = -1;
-    int cache_hit = -1;
+  int set_select = -1;
+  int cache_hit = -1;
 
-    unsigned int burst_len;
-    unsigned int replacer_limit;
+  unsigned int burst_len;
+  unsigned int replacer_limit;
+    
+  // Is the cache enabled (0b11) or frozen (0b01) ?
+  if ((!is_dbg) && (check_mode() & 0x1)) {
 
-    // Is the cache enabled (0b11) or frozen (0b01) ?
-    if ((!is_dbg) && (check_mode() & 0x1)) {
-
-        // extract index and tag from address
-        unsigned int tag = (address >> (m_idx_bits + m_offset_bits));
-        unsigned int idx = ((address << m_tagwidth) >> (m_tagwidth + m_offset_bits));
-        unsigned int offset = ((address << (32 - m_offset_bits)) >> (32 - m_offset_bits));
-        unsigned int byt = (address & 0x3);
-
-        // space for data to refill a cache line of maximum size
-        unsigned char ahb_data[32];
+    // extract index and tag from address
+    unsigned int tag = (address >> (m_idx_bits + m_offset_bits));
+    unsigned int idx = ((address << m_tagwidth) >> (m_tagwidth + m_offset_bits));
+    unsigned int offset = ((address << (32 - m_offset_bits)) >> (32 - m_offset_bits));
+    unsigned int byt = (address & 0x3);
+    
+    // space for data to refill a cache line of maximum size
+    unsigned char ahb_data[32];
 
 
-	if ((address & 0xffffff00) == 0x40001500) {
+    if ((address & 0xffffff00) == 0x40001500) {
 
-	  v::debug << this->name() << "READ ACCESS with asi: " << asi << " idx: " << hex << idx
-		  << " tag: " << hex << tag << " offset: " << hex
-		  << offset << v::endl;
+      v::debug << this->name() << "READ ACCESS with asi: " << asi << " idx: " << hex << idx
+               << " tag: " << hex << tag << " offset: " << hex
+               << offset << v::endl;
+      
+    }
 
-	}
+    /*
+      if ((tag & 0xffff0) == 0x40000) {
 
-	/*
-	if ((tag & 0xffff0) == 0x40000) {
+      v::info << name() << "TAG ALARM - address: " << hex << address << " tag: " << tag << " idx: " << idx << v::endl;
+      
+      }
+    */
 
-	  v::info << name() << "TAG ALARM - address: " << hex << address << " tag: " << tag << " idx: " << idx << v::endl;
+    // lookup all cachesets
+    for (unsigned int i = 0; i <= m_sets; i++) {
 
-	}
-	*/
+      m_current_cacheline[i] = lookup(i, idx);
 
-        // lookup all cachesets
+      // ASIs 0-3 force cache miss
+      if (asi > 3) {
+
+        // Read access to all tag ram (parallel sets)
+        if (m_pow_mon) dyn_tag_reads++;
+               
+        // Check the cache tag
+        if ((*m_current_cacheline[i]).tag.atag == tag) {
+
+          //v::debug << this->name() <<  "Correct atag found in set " << i << v::endl;
+      
+          // Check the valid bit
+          if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset)) != 0) {
+
+            v::debug << this->name() << "Cache Hit in Set " << i << v::endl;
+			
+            // update debug information
+            CACHEREADHIT_SET(*debug,i);
+
+            // update lru history
+            if (m_repl == 1) {
+              lru_update(i);
+            }
+
+            // write data pointer
+            memcpy(data, &(*m_current_cacheline[i]).entry[offset >> 2].c[byt], len);
+
+            // Read access to data ram that produced the hit
+            if (m_pow_mon) dyn_data_reads++;
+
+            // increment time
+            *delay += ((len >> 3)+1)*clockcycle;
+
+            // valid data in set i
+            cache_hit = i;
+			
+            // increment hit counter
+            rhits[i]++;
+
+            break;
+          } else {
+            
+            v::debug << this->name() << "Tag Hit but data not valid in set " << i  << v::endl;
+
+          }
+          
+        } else {
+
+          v::debug << this->name() << "Cache miss in set " << i << v::endl;
+
+        }
+
+      } else {
+
+        v::debug << this->name() << "ASI force cache miss" << v::endl;
+
+      }
+    }
+
+    // In case no matching tag was found or data is not valid:
+    // -------------------------------------------------------
+    // read miss - On a data cache read miss to a cachable location 4 bytes of data
+    // are loaded into the cache from main memory.
+    if (cache_hit == -1) {
+
+      // Increment miss counter 
+      rmisses++;
+
+      // Increment time
+      *delay += clockcycle;
+
+      // Set length of bus transfer depending on mode:
+      // ---------------------------------------------
+      // If burst fetch is enabled, the cache line is filled starting at the missed address
+      // until the end of the line.
+      if (m_burst_en && (m_mmu_cache->read_ccr(true) & 0x10000)) {
+	      
+        burst_len = m_bytesperline - ((offset >> 2) << 2);
+        replacer_limit = m_bytesperline - 4;
+
+        v::debug << name() << "Burst fetch of length: " << burst_len << v::endl;
+
+      } else {
+
+        if (len == 8) {
+
+          // 64bit
+          burst_len = 8;
+          replacer_limit = offset+4;
+
+        } else {
+
+          // 32bit or below
+          burst_len =  4;
+          replacer_limit = offset;
+
+        }
+      }
+
+      // Access ahb interface or mmu - return true if data is cacheable
+      if (m_tlb_adaptor->mem_read(((address >> 2) << 2), asi, ahb_data, burst_len, delay, debug, is_dbg, is_lock)) {
+
+        // Check for unvalid data which can be replaced without harm
         for (unsigned int i = 0; i <= m_sets; i++) {
 
-            m_current_cacheline[i] = lookup(i, idx);
+          if ((((*m_current_cacheline[i]).tag.valid) & offset2valid(offset)) == 0) {
 
-            // ASIs 0-3 force cache miss
-            if (asi > 3) {
+            // select unvalid data for replacement
+            set_select = i;
+            v::debug << this->name() << "Set " << set_select
+                     << " has no valid data - will use for refill."
+                     << v::endl;
+            break;
+          }
+        }
 
-                // Check the cache tag
-                if ((*m_current_cacheline[i]).tag.atag == tag) {
+        // Check for cache freeze
+        if (check_mode() & 0x2) {
 
-                    //v::debug << this->name() <<  "Correct atag found in set " << i << v::endl;
+          // Cache not frozen !!
 
-                    // Check the valid bit
-                    if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset)) != 0) {
+          // in case there is no free set anymore
+          if (set_select == -1) {
 
-                        v::debug << this->name() << "Cache Hit in Set " << i << v::endl;
-			
-                        // update debug information
-                        CACHEREADHIT_SET(*debug,i);
+            // select set according to replacement strategy (todo: late binding)
+            set_select = replacement_selector(m_repl);
+            v::debug << this->name() << "Set " << set_select
+                     << " selected for refill by replacement selector."
+                     << v::endl;
 
-                        // update lru history
-                        if (m_repl == 1) {
-                            lru_update(i);
-                        }
+          }
 
-                        // write data pointer
-                        memcpy(data, &(*m_current_cacheline[i]).entry[offset >> 2].c[byt], len);
+          // fill in the new data (always the complete word)
+          memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2],
+                 ahb_data, burst_len);
 
-                        // increment time
-                        *delay += ((len >> 3)+1)*clockcycle;
+          if (m_pow_mon) {
+            // Write access to data ram
+            dyn_data_writes += (burst_len >> 2) + 1;
+            // Write to tag ram (replacement or setting valid bits)
+            dyn_tag_writes++;
+          }
 
-                        // valid data in set i
-                        cache_hit = i;
-			
-			// increment hit counter
-			rhits[i]++;
+          // has the tag changed?
+          if ((*m_current_cacheline[set_select]).tag.atag != tag) {
 
-                        break;
-                    } else {
+            // fill in the new tag
+            (*m_current_cacheline[set_select]).tag.atag = tag;
 
-                        v::debug << this->name() << "Tag Hit but data not valid in set " << i  << v::endl;
+            // switch off all the valid bits ...
+            (*m_current_cacheline[set_select]).tag.valid = 0;
 
-                    }
+            // .. and switch on the ones for the new entries
+            for (unsigned int i = offset; i <= replacer_limit; i += 4) {
 
-                } else {
+              ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
+              
+            }
 
-                    v::debug << this->name() << "Cache miss in set " << i << v::endl;
+            // reset lru
+            (*m_current_cacheline[set_select]).tag.lru = m_max_lru;
 
-                }
+            // update lrr history
+            if (m_repl == 2) {
+              lrr_update(set_select);
+            };
 
-            } else {
+          } else {
 
-                v::debug << this->name() << "ASI force cache miss" << v::endl;
+            // switch on the valid bits for the new entries
+            for (unsigned int i = offset; i <= replacer_limit; i += 4) {
+
+              ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
 
             }
-        }
+          }
 
+        } else {
 
-	if (m_pow_mon) {
+          // Cache is frozen !!
 
-          // Power Monitor: parallel read of all cache sets (1 cycle)
-	  
-	}
+          // Cache is kept in sync with main memory, but no new lines are allocated on read miss:
+          // The new data will only be filled in as long there is unvalid data in one of the sets (set_select != -1)
+          // && the new data does not change the atag, because this would invalidate all the other entries
+          // in the line (tag.atag == tag).
 
+          //v::debug << name() << "Cache is frozen" << v::endl;
 
-        // In case no matching tag was found or data is not valid:
-        // -------------------------------------------------------
-        // read miss - On a data cache read miss to a cachable location 4 bytes of data
-        // are loaded into the cache from main memory.
-        if (cache_hit == -1) {
+          if ((set_select != -1) && ((*m_current_cacheline[set_select]).tag.atag == tag)) {
 
-	    // Increment miss counter 
-	    rmisses++;
+            //v::debug << name() << "Found set for replacing: " << set_select << v::endl;
 
-            // Increment time
-            *delay += clockcycle;
+            // fill in the new data (always the complete word)
+            memcpy(&(*m_current_cacheline[set_select]).entry[offset
+                                                             >> 2], ahb_data, burst_len);
 
-            // Set length of bus transfer depending on mode:
-            // ---------------------------------------------
-            // If burst fetch is enabled, the cache line is filled starting at the missed address
-            // until the end of the line.
-            if (m_burst_en && (m_mmu_cache->read_ccr(true) & 0x10000)) {
-	      
-                burst_len = m_bytesperline - ((offset >> 2) << 2);
-                replacer_limit = m_bytesperline - 4;
+            if (m_pow_mon) {
+              // Write access to data ram
+              dyn_data_writes += (burst_len >> 2) + 1;
+              // Write to tag ram (valid bits)
+              dyn_tag_writes++;
+            }
 
-		v::debug << name() << "Burst fetch of length: " << burst_len << v::endl;
+            // switch on the valid bits for the new entries
+            for (unsigned int i = offset; i <= replacer_limit; i += 4) {
 
-            } else {
+              ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
 
-	      if (len == 8) {
+            }
 
-		// 64bit
-		burst_len = 8;
-		replacer_limit = offset+4;
-
-	      } else {
-
-		// 32bit or below
-		burst_len =  4;
-		replacer_limit = offset;
-
-	      }
-	    }
-
-	    // Access ahb interface or mmu - return true if data is cacheable
-            if (m_tlb_adaptor->mem_read(((address >> 2) << 2), asi, ahb_data, burst_len, delay, debug, is_dbg, is_lock)) {
-
-	      // Check for unvalid data which can be replaced without harm
-	      for (unsigned int i = 0; i <= m_sets; i++) {
-
-                if ((((*m_current_cacheline[i]).tag.valid) & offset2valid(offset)) == 0) {
-
-                    // select unvalid data for replacement
-                    set_select = i;
-                    v::debug << this->name() << "Set " << set_select
-                            << " has no valid data - will use for refill."
-                            << v::endl;
-                    break;
-                }
-	      }
-
-	      // Check for cache freeze
-	      if (check_mode() & 0x2) {
-
-                // Cache not frozen !!
-
-                // in case there is no free set anymore
-                if (set_select == -1) {
-
-                    // select set according to replacement strategy (todo: late binding)
-                    set_select = replacement_selector(m_repl);
-                    v::debug << this->name() << "Set " << set_select
-                            << " selected for refill by replacement selector."
-                            << v::endl;
-
-                }
-
-                // fill in the new data (always the complete word)
-                memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2],
-		       ahb_data, burst_len);
-
-		if (m_pow_mon) {
-
-		  // Power Monitor: Write new data to set 'set_select'
- 
-		}
-
-                // has the tag changed?
-                if ((*m_current_cacheline[set_select]).tag.atag != tag) {
-
-                    // fill in the new tag
-                    (*m_current_cacheline[set_select]).tag.atag = tag;
-
-                    // switch off all the valid bits ...
-                    (*m_current_cacheline[set_select]).tag.valid = 0;
-
-                    // .. and switch on the ones for the new entries
-                    for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-
-                        ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
-
-                    }
-
-                    // reset lru
-                    (*m_current_cacheline[set_select]).tag.lru = m_max_lru;
-
-                    // update lrr history
-                    if (m_repl == 2) {
-                        lrr_update(set_select);
-                    };
-
-                } else {
-
-                    // switch on the valid bits for the new entries
-                    for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-
-                        ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
-
-                    }
-                }
-
-              } else {
-
-                // Cache is frozen !!
-
-                // Cache is kept in sync with main memory, but no new lines are allocated on read miss:
-                // The new data will only be filled in as long there is unvalid data in one of the sets (set_select != -1)
-                // && the new data does not change the atag, because this would invalidate all the other entries
-                // in the line (tag.atag == tag).
-
-		//v::debug << name() << "Cache is frozen" << v::endl;
-
-                if ((set_select != -1) && ((*m_current_cacheline[set_select]).tag.atag == tag)) {
-
-		  //v::debug << name() << "Found set for replacing: " << set_select << v::endl;
-
-                  // fill in the new data (always the complete word)
-                  memcpy(&(*m_current_cacheline[set_select]).entry[offset
-                            >> 2], ahb_data, burst_len);
-
-		  if (m_pow_mon) {
-
-		    // Power Monitor: Write new data to set 'set_select'
-
-		  }
-
-                  // switch on the valid bits for the new entries
-                  for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-
-                    ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
-
-                  }
-
-                } else {
+          } else {
 		  
-		  //v::debug << name() << "All sets occupied - frozen miss" << v::endl;
-
-		  // update debug information
-                  FROZENMISS_SET(*debug);
-
-                }
-
-	      }
-
-	    }
+            //v::debug << name() << "All sets occupied - frozen miss" << v::endl;
 
             // update debug information
-            CACHEREADMISS_SET(*debug, set_select);
+            FROZENMISS_SET(*debug);
 
-            // copy the data requested by the processor
-            memcpy(data, ahb_data + byt, len);
-
+          }
         }
+      }
 
-    } else {
+      // update debug information
+      CACHEREADMISS_SET(*debug, set_select);
 
-        v::debug << this->name() << "BYPASS read from address: " << hex
-                << address << v::endl;
-
-	// Increment bypass counter
-	bypassops++;
-
-        // Cache is disabled
-        // Forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
-        m_mmu_cache->mem_read(address, asi, data, len, delay, debug, is_dbg, is_lock);
-
-        // update debug information
-        CACHEBYPASS_SET(*debug);
-
-        // increment time
-        *delay += clockcycle;
+      // copy the data requested by the processor
+      memcpy(data, ahb_data + byt, len);
 
     }
 
-    // always return true - cacheability only matters on bus mem_if
-    return true;
+  } else {
+
+    v::debug << this->name() << "BYPASS read from address: " << hex
+             << address << v::endl;
+    
+    // Increment bypass counter
+    bypassops++;
+
+    // Cache is disabled
+    // Forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
+    m_mmu_cache->mem_read(address, asi, data, len, delay, debug, is_dbg, is_lock);
+
+    // update debug information
+    CACHEBYPASS_SET(*debug);
+
+    // increment time
+    *delay += clockcycle;
+
+  }
+
+  // always return true - cacheability only matters on bus mem_if
+  return true;
 }
 
 // write to/through cache:

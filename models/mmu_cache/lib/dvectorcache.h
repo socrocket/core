@@ -58,17 +58,37 @@ class dvectorcache : public vectorcache {
 
  public:
 
-  // implement ccr check
+  GC_HAS_CALLBACKS();
+
+  // Implement ccr check
   unsigned int check_mode();
   
+  // Implement cache type function
+  t_cache_type get_cache_type();
+
+  // Automatically called at start of simulation
+  void start_of_simulation();
+
+  // Calculate power/energy values from normalized input data
+  void power_model();
+
+  /// Static power callback
+  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Internal power callback
+  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Switching power callback
+  void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
   /// *****************************************************
   /// Power Modeling Parameters
   
   /// Normalized static power input for logic
   gs::gs_param<double> sta_power_norm;
 
-  /// Normalized dynamic power input for logic (activation independent)
-  gs::gs_param<double> dyn_power_norm;
+  /// Normalized internal power input for logic (activation independent)
+  gs::gs_param<double> int_power_norm;
 
    /// Normalized static power input for dtag ram (dp)
   gs::gs_param<double> sta_dtag_power_norm;
@@ -76,11 +96,11 @@ class dvectorcache : public vectorcache {
   /// Normalized static power input for ddata ram (sp)
   gs::gs_param<double> sta_ddata_power_norm;
 
-  /// Normalized dynamic power input for dtag ram (dp)
-  gs::gs_param<double> dyn_dtag_power_norm;
+  /// Normalized internal power input for dtag ram (dp)
+  gs::gs_param<double> int_dtag_power_norm;
 
-  /// Normalized dynamic power input for ddata ram (sp)
-  gs::gs_param<double> dyn_ddata_power_norm;
+  /// Normalized internal power input for ddata ram (sp)
+  gs::gs_param<double> int_ddata_power_norm;
 
   /// Normalized read access energy for dtag ram (dp)
   gs::gs_param<double> dyn_dtag_read_energy_norm;
@@ -100,50 +120,32 @@ class dvectorcache : public vectorcache {
   /// Static power of module
   gs::gs_param<double> sta_power;
 
-  /// Dynamic power of module (activation independent)
-  gs::gs_param<double> dyn_power;
+  /// Internal dynamic power (activation independent)
+  gs::gs_param<double> int_power;
+
+  /// Switching power
+  gs::gs_param<double> swi_power;
 
   /// Parameter array for power output of dtag ram
   gs::gs_param_array dtag;
 
-  /// Static power of dtag RAM
-  gs::gs_param<double> sta_dtag_power;
-
-  /// Dynamic power of dtag RAM (activation independent)
-  gs::gs_param<double> dyn_dtag_power;
-
   /// Dynamic energy per dtag read access
-  gs::gs_param<double> dyn_dtag_read_energy;
+  gs::gs_param<double> dyn_tag_read_energy;
 
   /// Dynamic energy per dtag write access
-  gs::gs_param<double> dyn_dtag_write_energy;
-
-  /// Number of dtag reads (monitor read & reset)
-  gs::gs_param<uint64_t> dyn_dtag_reads;
-
-  /// Number of dtag writes (monitor read & reset)
-  gs::gs_param<uint64_t> dyn_dtag_writes;
+  gs::gs_param<double> dyn_tag_write_energy;
 
   /// Parameter array for power output of ddata ram
   gs::gs_param_array ddata;
 
-  /// Static power of ddata RAM
-  gs::gs_param<double> sta_ddata_power;
-
-  /// Dynamic power of ddata RAM
-  gs::gs_param<double> dyn_ddata_power;
-
   /// Dynamic energy per ddata read access
-  gs::gs_param<double> dyn_ddata_read_energy;
+  gs::gs_param<double> dyn_data_read_energy;
 
   /// Dynamic energy per ddata write access
-  gs::gs_param<double> dyn_ddata_write_energy;
+  gs::gs_param<double> dyn_data_write_energy;
 
-  /// Number of ddata reads (monitor read & reset)
-  gs::gs_param<uint64_t> dyn_ddata_reads;
-  
-  /// Number of ddata writes (monitor read & reset)
-  gs::gs_param<uint64_t> dyn_ddata_writes;
+  /// Power frame starting time
+  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
   
   // Constructor
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
@@ -174,36 +176,44 @@ class dvectorcache : public vectorcache {
               0, // burst fetch forbidden
               sets, setsize, setlock,
               linesize, repl, lram, lramstart, lramsize, pow_mon),
-    sta_power_norm("power.mmu_cache.dcache.sta_power_norm", 0.0, true),
-    dyn_power_norm("power.mmu_cache.dcache.dyn_power_norm", 0.0, true),
-    sta_dtag_power_norm("power.mmu_cache.dcache.dtag.sta_power_norm", 0.0, true),
-    sta_ddata_power_norm("power.mmu_cache.dcache.ddata.sta_power_norm", 0.0, true),
-    dyn_dtag_power_norm("power.mmu_cache.dcache.dtag.dyn_power_norm", 0.0, true),
-    dyn_ddata_power_norm("power.mmu_cache.dcache.ddata.dyn_power_norm", 0.0, true),
-    power("power"),
-    sta_power("sta_power", 0.0, power),
-    dyn_power("dyn_power", 0.0, power),
-    dtag("dtag", power),
-    sta_dtag_power("sta_power", 0.0, dtag),
-    dyn_dtag_power("dyn_power", 0.0, dtag),
-    dyn_dtag_read_energy("dyn_read_energy", 0.0, dtag),
-    dyn_dtag_write_energy("dyn_write_energy", 0.0, dtag),
-    dyn_dtag_reads("dyn_reads", 0.0, dtag),
-    dyn_dtag_writes("dyn_writes", 0.0, dtag),
-    ddata("ddata", power),
-    sta_ddata_power("sta_power", 0.0, ddata),
-    dyn_ddata_power("dyn_power", 0.0, ddata),
-    dyn_ddata_read_energy("dyn_read_energy", 0.0, ddata),
-    dyn_ddata_write_energy("dyn_write_energy", 0.0, ddata),
-    dyn_ddata_reads("dyn_reads", 0.0, ddata),
-    dyn_ddata_writes("dyn_writes", 0.0, ddata)
+    sta_power_norm("power.mmu_cache.dcache.sta_power_norm", 1.35e+8, true), // norm. static power logic (controller)
+    int_power_norm("power.mmu_cache.dcache.int_power_norm", 0.01264, true), // norm. internal power logic (controller)
+    sta_dtag_power_norm("power.mmu_cache.dcache.dtag.sta_power_norm", 1726.5625, true), // norm. static power dtag ram
+    sta_ddata_power_norm("power.mmu_cache.dcache.ddata.sta_power_norm", 1269.53125, true), // norm. static power ddata ram
+    int_dtag_power_norm("power.mmu_cache.dcache.dtag.int_power_norm", 1.69544e-6, true), // norm internal power dtag ram
+    int_ddata_power_norm("power.mmu_cache.dcache.ddata.int_power_norm", 1.61011e-6, true), // norm internal power ddata ram
+    dyn_dtag_read_energy_norm("power.mmu_cache.dcache.dtag.dyn_read_energy_norm", 1.01493e-12, true), // norm. read energy dtag
+    dyn_dtag_write_energy_norm("power.mmu_cache.dcache.dtag.dyn_write_energy_norm", 1.01493e-12, true), // norm. write energy dtag
+    dyn_ddata_read_energy_norm("power.mmu_cache.dcache.ddata.dyn_read_energy_norm", 7.57408e-13, true), // norm. read energy ddata
+    dyn_ddata_write_energy_norm("power.mmu_cache.dcache.ddata.dyn_write_energy_norm", 7.57408e-13, true), // norm. write enegy ddata
+    power("power"), // parameter array for controller
+    sta_power("sta_power", 0.0, power), // static power
+    int_power("int_power", 0.0, power), // internal power
+    swi_power("swi_power", 0.0, power), // switching power
+    power_frame_starting_time("power_fram_starting_time", SC_ZERO_TIME, power),
+    dtag("dtag", power), // parameter array for dtag ram (sub-array of power)
+    dyn_tag_read_energy("dyn_read_energy", 0.0, dtag), // read energy dtag ram
+    dyn_tag_write_energy("dyn_write_energy", 0.0, dtag), // write energy dtag ram
+    ddata("ddata", power), // parameter array for ddata ram (sub-array of power)
+    dyn_data_read_energy("dyn_read_energy", 0.0, ddata), // read energy of ddata ram
+    dyn_data_write_energy("dyn_write_energy", 0.0, ddata) // write energy of ddata ram
  
       {
-        
-        // nothing to do
+        // Register power callback functions
+        if (pow_mon) {
 
+          GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, dvectorcache, sta_power_cb);
+          GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, dvectorcache, int_power_cb);
+          GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, dvectorcache, swi_power_cb);
+
+        }
       }
 
+  ~dvectorcache() {
+
+    GC_UNREGISTER_CALLBACKS();
+
+  }
 };
 
 #endif // __DVECTORCACHE_H__

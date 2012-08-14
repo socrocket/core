@@ -84,7 +84,11 @@ class nocache : public sc_core::sc_module, public cache_if {
         /// read cache configuration register (ASI 0x2)
         virtual unsigned int read_config_reg(sc_core::sc_time *t);
 
+        /// implement ccr check (not there)
         virtual unsigned int check_mode();
+
+        /// implement cache type function
+        virtual t_cache_type get_cache_type();
 
 	/// dummy snooping function
 	virtual void snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time& delay);
