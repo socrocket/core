@@ -178,11 +178,11 @@ class ivectorcache : public vectorcache {
               sets, setsize, setlock, linesize,
               repl, lram, lramstart, lramsize, pow_mon),
     sta_power_norm("power.mmu_cache.icache.sta_power_norm", 1.10e+8, true), // norm. static power logic (controller)
-    int_power_norm("power.mmu_cache.icache.int_power_norm", 0.01381, true), // norm. internal power logic (controller)
+    int_power_norm("power.mmu_cache.icache.int_power_norm", 1.381e-8, true), // norm. internal power logic (controller)
     sta_itag_power_norm("power.mmu_cache.icache.itag.sta_power_norm", 1269.53125, true), // norm. static power itag ram
     sta_idata_power_norm("power.mmu_cache.icache.idata.sta_power_norm", 1269.53125, true), // norm. static power idata ram
-    int_itag_power_norm("power.mmu_cache.icache.itag.int_power_norm", 1.61011e-6, true), // norm. internal power itag ram
-    int_idata_power_norm("power.mmu_cache.icache.idata.int_power_norm", 1.61011e-6, true), // norm. internal power idata ram
+    int_itag_power_norm("power.mmu_cache.icache.itag.int_power_norm", 1.61011e-12, true), // norm. internal power itag ram
+    int_idata_power_norm("power.mmu_cache.icache.idata.int_power_norm", 1.61011e-12, true), // norm. internal power idata ram
     dyn_itag_read_energy_norm("power.mmu_cache.icache.itag.dyn_read_energy_norm", 7.57408e-13, true), // norm. read energy itag
     dyn_itag_write_energy_norm("power.mmu_cache.icache.itag.dyn_write_energy_norm", 7.57408e-13, true), // norm. write energy itag
     dyn_idata_read_energy_norm("power.mmu_cache.icache.idata.dyn_read_energy_norm", 7.57408e-13, true), // norm. read energy idata

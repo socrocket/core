@@ -80,7 +80,7 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
             mwait_states(wait_states),
             m_pow_mon(pow_mon),
             sta_power_norm("power.ahbmem.sta_power_norm", 1269.53125, true), // Normalized static power input
-            int_power_norm("power.ahbmem.int_power_norm", 1.61011e-6, true),       // Normalized internal power input
+            int_power_norm("power.ahbmem.int_power_norm", 1.61011e-12, true),       // Normalized internal power input
             dyn_read_energy_norm("power.ahbmem.dyn_read_energy_norm", 7.57408e-13, true), // Normalized read energy input
             dyn_write_energy_norm("power.ahbmem.dyn_write_energy_norm", 7.57408e-13, true), // Normalized write energy iput
             power("power"),

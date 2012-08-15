@@ -98,8 +98,8 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     m_abstractionLayer(abstractionLayer),
     sta_power_norm("power.mmu_cache.sta_power_norm", 1.16e+8, true), // Normalized static power of controller
     int_power_norm("power.mmu_cache.int_power_norm", 0.0, true), // Normalized internal power of controller
-    dyn_read_energy_norm("power.mmu_cache.dyn_read_energy_norm", 1.465e+8, true), // Normalized read energy
-    dyn_write_energy_norm("power.mmu_cache.dyn_write_energy_norm", 1.465e+8, true), // Normalized write energy
+    dyn_read_energy_norm("power.mmu_cache.dyn_read_energy_norm", 1.465e-8, true), // Normalized read energy
+    dyn_write_energy_norm("power.mmu_cache.dyn_write_energy_norm", 1.465e-8, true), // Normalized write energy
     power("power"),
     sta_power("sta_power", 0.0, power), // Static power
     int_power("int_power", 0.0, power), // Dynamic power

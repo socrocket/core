@@ -84,10 +84,10 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     wmisses("write_misses", 0ull, m_performance_counters),
     bypassops("bypass_operations", 0ull, m_performance_counters),
     m_pow_mon(pow_mon),
-    dyn_tag_reads("dyn_reads", 0ull), // number of itag reads
-    dyn_tag_writes("dyn_writes", 0ull), // number of itag writes
-    dyn_data_reads("dyn_reads", 0ull), // number of idata reads
-    dyn_data_writes("dyn_writes", 0ull), // number of idata writes
+    dyn_tag_reads("dyn_tag_reads", 0ull), // number of itag reads
+    dyn_tag_writes("dyn_tag_writes", 0ull), // number of itag writes
+    dyn_data_reads("dyn_data_reads", 0ull), // number of idata reads
+    dyn_data_writes("dyn_data_writes", 0ull), // number of idata writes
     clockcycle(10, sc_core::SC_NS)
 
 {

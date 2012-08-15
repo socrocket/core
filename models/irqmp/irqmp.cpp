@@ -82,7 +82,7 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
             m_cpu_counter("cpu_line_activity", ncpu, m_performance_counters),
             m_pow_mon(powmon),
             sta_power_norm("power.irqmp.sta_power_norm", 3.07e+8, true), // Normalized static power of controller
-            int_power_norm("power.irqmp.int_power_norm", 3.26e-4, true), // Normalized internal power of controller
+            int_power_norm("power.irqmp.int_power_norm", 3.26e-10, true), // Normalized internal power of controller
             power("power"),
             sta_power("sta_power", 0.0, power), // Static power of controller
             int_power("int_power", 0.0, power)  // Dynamic power of controller

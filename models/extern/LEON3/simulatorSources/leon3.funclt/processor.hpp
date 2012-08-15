@@ -38,6 +38,7 @@
 #ifndef LT_PROCESSOR_HPP
 #define LT_PROCESSOR_HPP
 
+#include <greencontrol/config.h>
 #include <customExceptions.hpp>
 #include <leon3.funclt/instructions.hpp>
 #include <leon3.funclt/decoder.hpp>
@@ -102,10 +103,16 @@ namespace leon3_funclt_trap{
         unsigned int IRQ;
 
         public:
+        GC_HAS_CALLBACKS();
         SC_HAS_PROCESS( Processor_leon3_funclt );
-        Processor_leon3_funclt( sc_module_name name, sc_time latency );
+        Processor_leon3_funclt( sc_module_name name, sc_time latency, bool pow_mon );
         void mainLoop();
         void resetOp();
+        void start_of_simulation();
+        void power_model();
+        void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+        void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+        void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
         void end_of_elaboration();
         Instruction * decode( unsigned int bitString );
         LEON3_ABIIf * abiIf;
@@ -139,10 +146,45 @@ namespace leon3_funclt_trap{
         unsigned int PROGRAM_START;
         IntrTLMPort_32 IRQ_port;
         PinTLM_out_32 irqAck;
+        bool m_pow_mon;
         void setProfilingRange( unsigned int startAddr, unsigned int endAddr );
         void enableHistory( std::string fileName = "" );
         IRQ_IRQ_Instruction * IRQ_irqInstr;
         ~Processor_leon3_funclt();
+
+      /// ******************************************************************
+      /// Power Modeling Parameters
+      
+      /// Normalized static power input
+      gs::gs_param<double> sta_power_norm;
+
+      /// Normalized internal power input (activation independent)
+      gs::gs_param<double> int_power_norm;
+
+      /// Normalized average instruction energy
+      gs::gs_param<double> dyn_instr_energy_norm;
+
+      /// Parameter array for power data output
+      gs::gs_param_array power;
+
+      /// Static power of module
+      gs::gs_param<double> sta_power;
+
+      /// Dynamic power of module (activation independent)
+      gs::gs_param<double> int_power;
+
+      /// Switching power of module
+      gs::gs_param<double> swi_power;
+
+      /// Power frame starting time
+      gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+      
+      /// Average dynamic energy per instruction
+      gs::gs_param<double> dyn_instr_energy;
+
+      /// Number of instructions processed in time frame
+      gs::gs_param<unsigned long long> dyn_instr;
+      
     };
 
 };

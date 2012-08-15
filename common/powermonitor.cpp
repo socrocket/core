@@ -196,7 +196,7 @@ void powermonitor::gen_report() {
 
     } else {
 
-      v::warn << name() << " * Model provides no static power information! " << v::endl;
+      //v::warn << name() << " * Model provides no static power information! " << v::endl;
 
     }
 
@@ -211,7 +211,7 @@ void powermonitor::gen_report() {
 
     } else {
 
-      v::warn << name() << " * Model provides no internal power information!" << v::endl;
+      //v::warn << name() << " * Model provides no internal power information!" << v::endl;
 
     }    
 
@@ -226,7 +226,7 @@ void powermonitor::gen_report() {
 
     } else {
 
-      v::warn << name() << " * Model provides no switching power information!" << v::endl;
+      //v::warn << name() << " * Model provides no switching power information!" << v::endl;
 
     }
 

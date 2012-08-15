@@ -92,6 +92,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
     while(true){
         unsigned int numCycles = 0;
         this->instrExecuting = true;
+
         if(irqAck.stopped) {
           while(irqAck.stopped) {
             //if(sc_time_stamp()>sc_time(0, SC_NS)) {
@@ -103,6 +104,9 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
           v::info << name() << "Starting ... " << v::endl;
           resetOp();
         }
+
+        // Log instruction count for power monitoring
+        if (m_pow_mon) dyn_instr++;
 
         if((IRQ != -1) && (PSR[key_ET] && (IRQ == 15 || IRQ > PSR[key_PIL]))){
             this->IRQ_irqInstr->setInterruptValue(IRQ);
@@ -304,6 +308,54 @@ void leon3_funclt_trap::Processor_leon3_funclt::resetOp(){
     this->resetCalled = true;
 }
 
+// Calculate power/energy values from normalized input data
+void leon3_funclt_trap::Processor_leon3_funclt::power_model() {
+  
+  // Static power calculation (pW)
+  sta_power = sta_power_norm;
+
+  // Cell internal power (uW)
+  int_power = int_power_norm * 1/(latency.to_seconds()*1.0e+6);
+
+  // Average energy per instruction
+  dyn_instr_energy = dyn_instr_energy_norm;
+
+}
+
+// Static power callback
+void leon3_funclt_trap::Processor_leon3_funclt::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Static power of AHBMem is constant !!
+
+}
+
+// Internal power callback
+void leon3_funclt_trap::Processor_leon3_funclt::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // AHBMem internal power is constant !!
+
+}
+
+// Switching power callback
+void leon3_funclt_trap::Processor_leon3_funclt::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  swi_power = (dyn_instr_energy * dyn_instr) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
+
+}
+
+// Automatically called at the beginning of the simulation
+void leon3_funclt_trap::Processor_leon3_funclt::start_of_simulation(){
+
+  // Initialize power model
+  if (m_pow_mon) {
+    
+    power_model();
+    
+  }
+}
+
 void leon3_funclt_trap::Processor_leon3_funclt::end_of_elaboration(){
     if(!this->resetCalled){
         this->resetOp();
@@ -339,9 +391,25 @@ void leon3_funclt_trap::Processor_leon3_funclt::enableHistory( std::string fileN
 }
 
 leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt( sc_module_name \
-    name, sc_time latency ) : sc_module(name), latency(latency), instrMem("instrMem", \
-    this->quantKeeper), dataMem("dataMem", this->quantKeeper), IRQ_port("IRQ_IRQ", IRQ), \
-    irqAck("irqAck_PIN"){
+    name, sc_time latency, bool pow_mon ) : sc_module(name), 
+                                            latency(latency), 
+                                            instrMem("instrMem", this->quantKeeper), 
+                                            dataMem("dataMem", this->quantKeeper), 
+                                            IRQ_port("IRQ_IRQ", IRQ),
+                                            irqAck("irqAck_PIN"),
+                                            m_pow_mon(pow_mon),
+                                            sta_power_norm("power.leon3.sta_power_norm", 5.27e+8, true), // norm. static power
+                                            int_power_norm("power.leon3.int_power_norm", 5.497e-8, true), // norm. dynamic power
+                                            dyn_instr_energy_norm("power.leon3.dyn_instr_energy_norm", 3.95e-7, true), // norm. average energy per instruction
+                                            power("power"),
+                                            sta_power("sta_power", 0.0, power), // Static power output
+                                            int_power("int_power", 0.0, power), // Internal power of module
+                                            swi_power("swi_power", 0.0, power), // Switching power of module
+                                            power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
+                                            dyn_instr_energy("dyn_instr_energy", 0.0, power), // average instruction energy
+                                            dyn_instr("dyn_instr", 0ull, power) // number of instructions
+                                            
+{
     this->resetCalled = false;
     Processor_leon3_funclt::numInstances++;
     // Initialization of the array holding the initial instance of the instructions
@@ -705,10 +773,23 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt( sc_module_nam
         this->FP, this->LR, this->SP, this->PCR, this->REGS, this->instrExecuting, this->instrEndEvent, \
         this->instHistoryQueue);
     SC_THREAD(mainLoop);
+
+    // Register power callback functions
+    if (m_pow_mon) {
+
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, Processor_leon3_funclt, sta_power_cb);
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, Processor_leon3_funclt, int_power_cb);
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, Processor_leon3_funclt, swi_power_cb);
+
+    }
+
     end_module();
 }
 
 leon3_funclt_trap::Processor_leon3_funclt::~Processor_leon3_funclt(){
+    
+    GC_UNREGISTER_CALLBACKS();
+
     Processor_leon3_funclt::numInstances--;
     for(int i = 0; i < 145; i++){
         delete this->INSTRUCTIONS[i];

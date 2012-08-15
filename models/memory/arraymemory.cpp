@@ -60,10 +60,10 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
   m_performance_counters("performance_counters"),
   m_reads("bytes_read", 0ull, m_performance_counters), 
   m_writes("bytes_writen", 0ull, m_performance_counters),
-  sta_power_norm("power." + get_type_name() + ".sta_power_norm", 0.0, true), // Normalized static power input
-  int_power_norm("power." + get_type_name() + ".int_power_norm", 0.0, true), // Normalized internal power input (act. independent)
-  dyn_read_energy_norm("power." + get_type_name() + ".dyn_read_energy_norm", 0.0, true), // Normalized read energy input
-  dyn_write_energy_norm("power." + get_type_name() + ".dyn_write_energy_norm", 0.0, true), // Normalized write energy input
+  sta_power_norm("power." + get_type_name() + ".sta_power_norm", 1269.53125, true), // Normalized static power input
+  int_power_norm("power." + get_type_name() + ".int_power_norm", 1.61011e-12, true), // Normalized internal power input (act. independent)
+  dyn_read_energy_norm("power." + get_type_name() + ".dyn_read_energy_norm", 7.57408e-13, true), // Normalized read energy input
+  dyn_write_energy_norm("power." + get_type_name() + ".dyn_write_energy_norm", 7.57408e-13, true), // Normalized write energy input
   power("power"),
   sta_power("sta_power", 0.0, power),  // Static power output
   int_power("int_power", 0.0, power),  // Internal power output

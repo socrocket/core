@@ -177,11 +177,11 @@ class dvectorcache : public vectorcache {
               sets, setsize, setlock,
               linesize, repl, lram, lramstart, lramsize, pow_mon),
     sta_power_norm("power.mmu_cache.dcache.sta_power_norm", 1.35e+8, true), // norm. static power logic (controller)
-    int_power_norm("power.mmu_cache.dcache.int_power_norm", 0.01264, true), // norm. internal power logic (controller)
+    int_power_norm("power.mmu_cache.dcache.int_power_norm", 1.264e-8, true), // norm. internal power logic (controller)
     sta_dtag_power_norm("power.mmu_cache.dcache.dtag.sta_power_norm", 1726.5625, true), // norm. static power dtag ram
     sta_ddata_power_norm("power.mmu_cache.dcache.ddata.sta_power_norm", 1269.53125, true), // norm. static power ddata ram
-    int_dtag_power_norm("power.mmu_cache.dcache.dtag.int_power_norm", 1.69544e-6, true), // norm internal power dtag ram
-    int_ddata_power_norm("power.mmu_cache.dcache.ddata.int_power_norm", 1.61011e-6, true), // norm internal power ddata ram
+    int_dtag_power_norm("power.mmu_cache.dcache.dtag.int_power_norm", 1.69544e-12, true), // norm internal power dtag ram
+    int_ddata_power_norm("power.mmu_cache.dcache.ddata.int_power_norm", 1.61011e-12, true), // norm internal power ddata ram
     dyn_dtag_read_energy_norm("power.mmu_cache.dcache.dtag.dyn_read_energy_norm", 1.01493e-12, true), // norm. read energy dtag
     dyn_dtag_write_energy_norm("power.mmu_cache.dcache.dtag.dyn_write_energy_norm", 1.01493e-12, true), // norm. write energy dtag
     dyn_ddata_read_energy_norm("power.mmu_cache.dcache.ddata.dyn_read_energy_norm", 7.57408e-13, true), // norm. read energy ddata

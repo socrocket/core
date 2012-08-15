@@ -68,7 +68,7 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
   g_wdog_length(wdog),
   powermon(powmon),
   sta_power_norm("power.gptimer.sta_power_norm", 2.46e+6, true), // Normalized static power input
-  int_power_norm("power.gptimer.int_power_norm", 0.01093, true), // Normalized internal power input
+  int_power_norm("power.gptimer.int_power_norm", 1.093e-8, true), // Normalized internal power input
   power("power"),
   sta_power("sta_power", 0.0, power), // Static power output
   int_power("int_power", 0.0, power)  // Internal dynamic power output (activation independent)
