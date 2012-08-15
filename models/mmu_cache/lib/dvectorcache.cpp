@@ -79,16 +79,16 @@ void dvectorcache::power_model() {
     int_ddata_power_norm * pow(2.0, (double)m_setsize) * (m_sets + 1) * 8;
 
   // Energy per dtag read access (uJ)
-  dyn_tag_read_energy = dyn_dtag_read_energy_norm * m_number_of_vectors * 32;
+  dyn_tag_read_energy = dyn_dtag_read_energy_norm * m_number_of_vectors * 32 * 32;
 
   // Energy per dtag write access (uJ)
-  dyn_tag_write_energy = dyn_dtag_write_energy_norm * m_number_of_vectors * 32;
+  dyn_tag_write_energy = dyn_dtag_write_energy_norm * m_number_of_vectors * 32 * 32;
 
   // Energy per ddata read access (uJ)
-  dyn_data_read_energy = dyn_ddata_read_energy_norm * pow(2.0, (double)m_setsize) * 8;
+  dyn_data_read_energy = dyn_ddata_read_energy_norm * pow(2.0, (double)m_setsize) * 8 * 32;
 
   // Energy per ddata write access (uJ)
-  dyn_data_write_energy = dyn_ddata_write_energy_norm * pow(2.0, (double)m_setsize) * 8;
+  dyn_data_write_energy = dyn_ddata_write_energy_norm * pow(2.0, (double)m_setsize) * 8 * 32;
 
 }
 

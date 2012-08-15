@@ -60,16 +60,16 @@ class dvectorcache : public vectorcache {
 
   GC_HAS_CALLBACKS();
 
-  // Implement ccr check
+  /// Implement ccr check
   unsigned int check_mode();
   
-  // Implement cache type function
+  /// Implement cache type function
   t_cache_type get_cache_type();
 
-  // Automatically called at start of simulation
+  /// Automatically called at start of simulation
   void start_of_simulation();
 
-  // Calculate power/energy values from normalized input data
+  /// Calculate power/energy values from normalized input data
   void power_model();
 
   /// Static power callback

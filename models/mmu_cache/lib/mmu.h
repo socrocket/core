@@ -67,6 +67,8 @@ class mmu : public sc_core::sc_module, public mmu_if {
 
  public:
 
+  GC_HAS_CALLBACKS();
+
   /// @brief Constructor of the Memory Management Unit
   /// @param name                       SystemC module name,
   /// @param itlbnum                    Number of instruction TLBs
@@ -79,6 +81,9 @@ class mmu : public sc_core::sc_module, public mmu_if {
       unsigned int dtlbnum, unsigned int tlb_type, unsigned int tlb_rep,
       unsigned int mmupgsz,
       bool pow_mon = false);
+
+  /// Destructor
+  ~mmu();
 
   // Member functions
   // ----------------
@@ -126,6 +131,21 @@ class mmu : public sc_core::sc_module, public mmu_if {
   tlb_adaptor * get_itlb_if();
   /// Return pointer to tlb data interface
   tlb_adaptor * get_dtlb_if();
+
+  /// Automatically started at beginning of simulation
+  void start_of_simulation();
+
+  /// Calculate power/energy values from normalized input data
+  void power_model();
+
+  /// Static power callback
+  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Internal power callback
+  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Switching power callback
+  void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Displays execution statistics at the end of the simulation
   void end_of_simulation();
@@ -323,8 +343,20 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// Normalized static power of mmu
   gs::gs_param<double> sta_power_norm;
 
-  /// Normalized dynamic power of mmu
-  gs::gs_param<double> dyn_power_norm;
+  /// Normalized internal power of mmu (switching independent)
+  gs::gs_param<double> int_power_norm;
+
+  /// Normalized tlb static power input
+  gs::gs_param<double> sta_tlb_power_norm;
+
+  /// Normalized internal power of tlb
+  gs::gs_param<double> int_tlb_power_norm;
+
+  /// Normalized tlb read energy
+  gs::gs_param<double> dyn_tlb_read_energy_norm;
+
+  /// Normalized tlb write energy
+  gs::gs_param<double> dyn_tlb_write_energy_norm;
 
   /// Parameter array for power data output
   gs::gs_param_array power;
@@ -332,8 +364,44 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// MMU static power
   gs::gs_param<double> sta_power;
 
-  /// MMU dynamic power
-  gs::gs_param<double> dyn_power;
+  /// MMU internal power
+  gs::gs_param<double> int_power;
+
+  /// MMU switching power
+  gs::gs_param<double> swi_power;
+
+  /// Power frame starting time
+  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+
+  /// Parameter array for power output of itlb
+  gs::gs_param_array itlbram;
+
+  /// Dynamic energy itlb read
+  gs::gs_param<double> dyn_itlb_read_energy;
+
+  /// Dynamic energy itlb write
+  gs::gs_param<double> dyn_itlb_write_energy;
+
+  /// Number of itlb reads
+  gs::gs_param<unsigned long long> dyn_itlb_reads;
+
+  /// Number of itlb writes
+  gs::gs_param<unsigned long long> dyn_itlb_writes;
+
+  /// Parameter array for power output of dtlb
+  gs::gs_param_array dtlbram;
+
+  /// Dynamic energy dtlb read
+  gs::gs_param<double> dyn_dtlb_read_energy;
+
+  /// Dynamic energy dtlb write
+  gs::gs_param<double> dyn_dtlb_write_energy;
+
+  /// Number of dtlb reads
+  gs::gs_param<unsigned long long> dyn_dtlb_reads;
+
+  /// Number of dtlb writes
+  gs::gs_param<unsigned long long> dyn_dtlb_writes;
 
   /// Clock cycle time
   sc_core::sc_time clockcycle;

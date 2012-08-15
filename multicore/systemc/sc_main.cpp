@@ -550,7 +550,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_mmu_cache_cached("cached", 0xFFFF, p_mmu_cache);
     gs::gs_param<unsigned int> p_mmu_cache_index("index", 0u, p_mmu_cache);
     gs::gs_param_array p_mmu_cache_mmu("mmu", p_mmu_cache);
-    gs::gs_param<bool> p_mmu_cache_mmu_en("en", false, p_mmu_cache);
+    gs::gs_param<bool> p_mmu_cache_mmu_en("en", false, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_itlb_num("itlb_num", 8, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_dtlb_num("dtlb_num", 8, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_tlb_type("tlb_type", 0u, p_mmu_cache_mmu);

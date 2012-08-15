@@ -125,7 +125,8 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 				   dtlb_num,
 				   tlb_type,
 				   tlb_rep,
-				   mmupgsz) : NULL;
+				   mmupgsz,
+                                   pow_mon) : NULL;
 
     // create icache
     icache = (icen == 1)? (cache_if*)new ivectorcache("ivectorcache",
