@@ -52,26 +52,25 @@ out = 'build'
 import os, sys
 
 def build(self):
-    from waftools.logger import Logger
+    from tools.waf.logger import Logger
     logger = Logger("%s/build.log" % out)
     sys.stdout = logger
     sys.stderr = logger
     
     from waflib.Tools import waf_unit_test  
-    from waftools.common import get_subdirs
+    from tools.waf.common import get_subdirs
     self.recurse(get_subdirs())
 
     self.install_files('${PREFIX}/include', self.path.ant_glob('**/*.h', excl=['**/signalkit/**', '**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']))
     self.install_files('${PREFIX}/', ['waf', 'wscript', 'platforms/wscript'], relative_trick=True)
-    self.install_files('${PREFIX}/', self.path.ant_glob('waftools/**', excl=['**/*.pyc', '**/.svn/**', '**/.git/**']), relative_trick=True)
-    self.install_files('${PREFIX}/', self.path.ant_glob('generator/**', excl=['**/*.pyc', '**/.svn/**', '**/.git/**']), relative_trick=True)
+    self.install_files('${PREFIX}/', self.path.ant_glob('tools/**', excl=['**/*.pyc', '**/.svn/**', '**/.git/**']), relative_trick=True)
     self.install_files('${PREFIX}/', self.path.ant_glob('templates/**', excl=['**/*~', '**/.svn/**', '**/.git/**']), relative_trick=True)
     self.install_files('${PREFIX}/include', self.path.ant_glob('contrib/grambasockets/*.h', excl=['**/*~', '**/.svn/**', '**/.git/**']))
     self.add_post_fun(waf_unit_test.summary)
     #self.add_post_fun(lcov_summary)
 
 def setprops(self):
-    from waftools.common import setprops
+    from tools.waf.common import setprops
     setprops();
 
 def docs(bld):
@@ -94,7 +93,7 @@ class Coverage(BuildContext):
     fun = 'coverage'
 
 def generate(bld):
-  from generator.wizard import main
+  from tools.generator.wizard import main
   main(bld.options.template, bld.options.configuration)
 
 class Generate(BuildContext):
@@ -129,7 +128,7 @@ def configure(ctx):
     # Check for doxygen
     #############################################################
     ctx.find_program('doxygen', var='DOXYGEN', mandatory=False, okmsg="ok")
-    #ctx.check_tool('doxygen', tooldir='waftools')
+    #ctx.check_tool('doxygen', tooldir='tools/waf')
  
     ctx.find_program('nm', mandatory=1, var='NM')
     #############################################################
@@ -375,8 +374,8 @@ def configure(ctx):
     ########################################
     # Load modelsim and check for dependenies
     ########################################
-    ctx.load('modelsim', tooldir='waftools')
-    ctx.load('systools', tooldir='waftools')
+    ctx.load('modelsim', tooldir='tools/waf')
+    ctx.load('systools', tooldir='tools/waf')
     
     ###########################################################
     # Check for ELF library and headers
@@ -913,9 +912,9 @@ def options(ctx):
     ctx.load('compiler_cxx', option_group=configuration_options)
     ctx.load('boost', option_group=configuration_options)
     ctx.load('waf_unit_test', option_group=configuration_options)
-    ctx.load('common', option_group=configuration_options, tooldir='waftools')
-    ctx.load('modelsim', option_group=configuration_options, tooldir='waftools')
-    ctx.load('systools', option_group=configuration_options, tooldir='waftools')
+    ctx.load('common', option_group=configuration_options, tooldir='tools/waf')
+    ctx.load('modelsim', option_group=configuration_options, tooldir='tools/waf')
+    ctx.load('systools', option_group=configuration_options, tooldir='tools/waf')
   
     #ctx.add_option('--onlytests', action='store_true', default=True, help='Exec unit tests only', dest='only_tests')
     # Specify SystemC and TLM options

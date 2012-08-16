@@ -133,19 +133,19 @@ class Template:
             lst = file.split('.')
             if len(lst) == 3:
                 tmpl, name, ext = file.split('.')
-                if tmpl == self.base and ext == 'cfg':
+                if tmpl == self.base and ext == 'json':
                   result.append(name)
         return result
    
     def loadConfiguration(self, name):
         self.configuration = name
-        file = os.path.join("templates", '.'.join((str(self.base), str(self.configuration))))+".cfg"
+        file = os.path.join("templates", '.'.join((str(self.base), str(self.configuration))))+".json"
         if self._model != None:
             self._model.loadFromJsonFile(file)
 
     def storeConfiguration(self, name):
         self.configuration = name
-        file = os.path.join("templates", '.'.join((str(self.base), str(self.configuration))))+".cfg"
+        file = os.path.join("templates", '.'.join((str(self.base), str(self.configuration))))+".json"
         if self._model != None:
             self._model.saveToJsonFile(file)
         

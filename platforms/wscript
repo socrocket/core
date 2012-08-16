@@ -46,7 +46,7 @@
 top = '..'
 
 def build(bld):
-  from waftools.common import get_subdirs
+  from tools.waf.common import get_subdirs
   import sys
   bld.recurse(get_subdirs(bld.path.abspath()))
 

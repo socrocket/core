@@ -46,6 +46,13 @@
 top = '..'
 
 def build(bld):
-    bld.recurse('systemc')
-
-
+    ldscript = bld.path.find_resource('prom.ld')
+    bld(
+        target       = 'default.prom',
+        features     = 'c cprogram sparc',
+        cflags       = '-g',
+        linkflags    = '-g -Ttext=0 -nostartfiles -nostdlib -T%s -N' % (ldscript.abspath()),
+        source       = 'prom.S',
+        includes     = '.',
+        install_path = '${PREFIX}/prom/',
+    )

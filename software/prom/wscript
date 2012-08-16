@@ -30,12 +30,13 @@
 #
 # Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 #
-# Purpose:    this file contains the build system for global tests
+# Purpose:    this file contains the build system for building
+#             all model subdirectories
 #
 # Method:     $ ./waf configure; ./waf # to build it on top level
 #
-# Modified on $Date: 2011-05-19 18:31:12 +0200 (Thu, 19 May 2011) $
-#          at $Revision: 429 $
+# Modified on $Date: 2011-06-09 15:55:31 +0200 (Thu, 09 Jun 2011) $
+#          at $Revision: 454 $
 #          by $Author: HWSWSIM $
 #
 # Principal:  European Space Agency
@@ -46,4 +47,6 @@
 top = '..'
 
 def build(bld):
-    bld.recurse('systemc')
+  from tools.waf.common import get_subdirs
+  import sys
+  bld.recurse(get_subdirs(bld.path.abspath()))

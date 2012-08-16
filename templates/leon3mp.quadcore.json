@@ -1,0 +1,165 @@
+{
+  "conf": {
+    "ahbctrl": {
+      "cfgaddr": 4080, 
+      "cfgmask": 4080, 
+      "defmast": 0, 
+      "fixbrst": false, 
+      "fpnpen": true, 
+      "ioaddr": 4095, 
+      "ioen": true, 
+      "iomask": 4095, 
+      "mcheck": true, 
+      "rrobin": false, 
+      "split": false
+    }, 
+    "ahbmem": {
+      "addr": 2560, 
+      "en": true, 
+      "index": 1, 
+      "mask": 4095
+    }, 
+    "apbctrl": {
+      "check": true, 
+      "haddr": 2048, 
+      "hmask": 4095, 
+      "index": 2
+    }, 
+    "gptimer": {
+      "addr": 3, 
+      "en": true, 
+      "index": 3, 
+      "irq": 8, 
+      "mask": 4095, 
+      "nbits": 32, 
+      "ntimers": 7, 
+      "sbits": 16, 
+      "sepirq": true, 
+      "wdog": 0
+    }, 
+    "indev": {
+      "en": false, 
+      "frameaddr": 2560, 
+      "framesize": 128, 
+      "index": 1, 
+      "interval": 1, 
+      "irq": 5
+    }, 
+    "irqmp": {
+      "addr": 2, 
+      "eirq": 4, 
+      "index": 2, 
+      "mask": 4095, 
+      "ncpu": 4
+    }, 
+    "mctrl": {
+      "apb": {
+        "addr": 0, 
+        "index": 0, 
+        "mask": 4095
+      }, 
+      "index": 0, 
+      "io": false, 
+      "mobile": 0, 
+      "prom": {
+        "addr": 0, 
+        "asel": 28, 
+        "banks": 2, 
+        "bsize": 256, 
+        "mask": 3584, 
+        "width": 32
+      }, 
+      "ram": {
+        "addr": 1024, 
+        "asel": 29, 
+        "mask": 3072, 
+        "sdram": {
+          "banks": 2, 
+          "bsize": 256, 
+          "cols": 16, 
+          "width": 32
+        }, 
+        "sram": {
+          "banks": 4, 
+          "bsize": 128, 
+          "width": 32
+        }, 
+        "wprot": false
+      }, 
+      "ram16": true, 
+      "ram8": true, 
+      "sdbits": 32, 
+      "sden": true, 
+      "sepbus": false
+    }, 
+    "mmu_cache": {
+      "cached": 65535, 
+      "dc": {
+        "en": true, 
+        "linesize": 4, 
+        "repl": 2,
+        "setlock": true, 
+        "sets": 4, 
+        "setsize": 4, 
+        "snoop": true
+      }, 
+      "dlram": {
+        "en": false, 
+        "size": 4, 
+        "start": 143
+      }, 
+      "ic": {
+        "en": true, 
+        "linesize": 4, 
+        "repl": 0, 
+        "setlock": true, 
+        "sets": 3, 
+        "setsize": 8
+      }, 
+      "ilram": {
+        "en": false, 
+        "size": 0, 
+        "start": 142
+      }, 
+      "index": 0, 
+      "mmu": {
+        "dtlb_num": 8, 
+        "en": false, 
+        "itlb_num": 8, 
+        "mmupgsz": 0, 
+        "tlb_rep": 1, 
+        "tlb_type": 0
+      }
+    }, 
+    "report": {
+      "power": false, 
+      "timing": true
+    }, 
+    "socwire": {
+      "ahb": {
+        "index": 1
+      }, 
+      "apb": {
+        "addr": 10, 
+        "index": 3, 
+        "irq": 10, 
+        "mask": 4095
+      }, 
+      "en": false
+    }, 
+    "system": {
+      "clock": 10, 
+      "at": false
+    }, 
+    "uart": {
+      "0": {
+        "addr": 1, 
+        "index": 1, 
+        "irq": 2, 
+        "mask": 4095, 
+        "type": 0,
+        "port" : 2000
+      }
+    }
+  }
+}

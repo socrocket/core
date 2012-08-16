@@ -25,11 +25,6 @@
       "hmask": 4095, 
       "index": 2
     }, 
-    "gdb": {
-      "en": false, 
-      "port": 1500, 
-      "proc": 0
-    }, 
     "gptimer": {
       "addr": 3, 
       "en": true, 
@@ -55,8 +50,13 @@
       "eirq": 4, 
       "index": 2, 
       "mask": 4095, 
-      "ncpu": 2
+      "ncpu": 8
     }, 
+    "gdb" : {
+      "en" : false,
+      "port" : 1500,
+      "proc" : 1
+    },
     "mctrl": {
       "apb": {
         "addr": 0, 
@@ -67,7 +67,6 @@
       "io": false, 
       "mobile": 0, 
       "prom": {
-        "elf" : "multicore/rtems-ccsds123.mp2.sparc"
         "addr": 0, 
         "asel": 28, 
         "banks": 2, 
@@ -164,7 +163,7 @@
         "irq": 2, 
         "mask": 4095, 
         "type": 0,
-        "port" : 2000
+        "port" : 2002
       }
     }
   }
