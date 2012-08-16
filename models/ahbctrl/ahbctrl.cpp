@@ -1160,7 +1160,7 @@ void AHBCtrl::power_model() {
   sta_power = sta_power_norm * (num_of_slave_bindings + num_of_master_bindings);
 
   // Dynamic power (switching independent internal power)
-  int_power = 0;
+  int_power = int_power_norm * (num_of_slave_bindings + num_of_master_bindings) * 1/(clock_cycle.to_seconds());
 
   // Energy per read access (uJ)
   dyn_read_energy = dyn_read_energy_norm * (num_of_slave_bindings + num_of_master_bindings);
