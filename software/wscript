@@ -47,17 +47,7 @@
 top = '..'
 
 def build(bld):
-  from waftools.common import get_subdirs
+  from tools.waf.common import get_subdirs
   import sys
 
-  bld(
-      features='systemplate',
-      target='singlecore.lt',
-  )
-  
-  bld(
-      features='systemplate',
-      target='singlecore.at',
-  )
-  
   bld.recurse(get_subdirs(bld.path.abspath()))

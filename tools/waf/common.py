@@ -1,16 +1,16 @@
 #***********************************************************************#
-#* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform     *#
-#*                                                                     *#
-#* File:       waftools.py                                             *#
-#*             python file containing filesystem search helpers        *#
-#*             to easiefy the wscript configuration routine.           *#
-#*                                                                     *#
-#* Modified on $Date$   *#
-#*          at $Revision$                                         *#
-#*                                                                     *#
-#* Principal:  European Space Agency                                   *#
-#* Author:     VLSI working group @ IDA @ TUBS                         *#
-#* Maintainer: Rolf Meyer                                              *#
+#* Project:    HW-SW SystemC Co-Simulation SoC Validation Platform
+#*                                                                    
+#* File:       common.py                                              
+#*             python file containing filesystem search helpers       
+#*             to easiefy the wscript configuration routine.           
+#*                                                                    
+#* Modified on $Date$   
+#*          at $Revision$                                         
+#*                                                                     
+#* Principal:  European Space Agency                                   
+#* Author:     VLSI working group @ IDA @ TUBS                         
+#* Maintainer: Rolf Meyer                                              
 #***********************************************************************#
 
 import os

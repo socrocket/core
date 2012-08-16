@@ -4,6 +4,6 @@
 ./waf -j1 --target=$1.$2.at.test
 ./waf -j1 --target=$1.$2.rtl.test
 
-./waftools/timingreport $1 $2
+./tools/timingreport $1 $2
 
 cat build/timingreports/$1.$2.report.csv;
