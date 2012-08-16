@@ -64,7 +64,6 @@ def build(self):
     self.install_files('${PREFIX}/include', self.path.ant_glob('**/*.h', excl=['**/signalkit/**', '**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']))
     self.install_files('${PREFIX}/', ['waf', 'wscript', 'platforms/wscript'], relative_trick=True)
     self.install_files('${PREFIX}/', self.path.ant_glob('tools/**', excl=['**/*.pyc', '**/.svn/**', '**/.git/**']), relative_trick=True)
-    self.install_files('${PREFIX}/', self.path.ant_glob('generator/**', excl=['**/*.pyc', '**/.svn/**', '**/.git/**']), relative_trick=True)
     self.install_files('${PREFIX}/', self.path.ant_glob('templates/**', excl=['**/*~', '**/.svn/**', '**/.git/**']), relative_trick=True)
     self.install_files('${PREFIX}/include', self.path.ant_glob('contrib/grambasockets/*.h', excl=['**/*~', '**/.svn/**', '**/.git/**']))
     self.add_post_fun(waf_unit_test.summary)
@@ -94,7 +93,7 @@ class Coverage(BuildContext):
     fun = 'coverage'
 
 def generate(bld):
-  from generator.wizard import main
+  from tools.generator.wizard import main
   main(bld.options.template, bld.options.configuration)
 
 class Generate(BuildContext):
