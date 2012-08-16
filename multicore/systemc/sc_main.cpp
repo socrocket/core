@@ -111,7 +111,7 @@ int sc_main(int argc, char** argv) {
       if(jsonlua && boost::filesystem::exists(boost::filesystem::path(jsonlua))) {
         luareader.config(jsonlua);
       } else {
-        v::info << "main" << "please copy the json.lua in your current working folder" << v::endl;
+        v::warn << "main" << "please copy the json.lua in your current working folder" << v::endl;
       }
     } else {
       luareader.config("json.lua");
