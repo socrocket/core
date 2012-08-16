@@ -533,7 +533,7 @@ do
 end
 
 local configfile = os.getenv("JSONCONFIG") or ""
-if configfile != "" then
+if configfile ~= "" then
   local settings = decodeFile(configfile)
   if settings and settings.conf then
     base.conf = settings.conf

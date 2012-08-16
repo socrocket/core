@@ -106,15 +106,32 @@ int sc_main(int argc, char** argv) {
     gs::cnf::LuaFile_Tool luareader("luareader");
     luareader.parseCommandLine(argc, argv);
     //luareader.config("config.lua");
-    if(!boost::filesystem::exists(boost::filesystem::path("json.lua"))) {
-      char *jsonlua = std::getenv("JSONLUA");
-      if(jsonlua && boost::filesystem::exists(boost::filesystem::path(jsonlua))) {
-        luareader.config(jsonlua);
-      } else {
-        v::warn << "main" << "please copy the json.lua in your current working folder" << v::endl;
-      }
+
+    // Find json.lua
+    // - First search on the comandline
+    // - Then search environment variable
+    // - Then search in current dir
+    // - and finaly in the application directory
+    // - searches in the source directory
+    // Print an error if it is not found!
+    //boost::filesystem::path cwd(boost::filesystem::current_path());
+    boost::filesystem::path appdir = (boost::filesystem::path(argv[0]).parent_path());
+    boost::filesystem::path srcdir = (appdir / ".." / ".." /boost::filesystem::path(__FILE__).parent_path());
+    boost::filesystem::path jsonlua("json.lua");
+    char *jsonlua_env = std::getenv("JSONLUA");
+    if(boost::filesystem::exists(jsonlua)) {
+        jsonlua = jsonlua;
+    } else if(boost::filesystem::exists(appdir / jsonlua)) {
+        jsonlua = appdir / jsonlua;
+    } else if(boost::filesystem::exists(srcdir / jsonlua)) {
+        jsonlua = srcdir / jsonlua;
+    } else if(jsonlua_env) {
+        jsonlua = boost::filesystem::path(jsonlua_env);
+    }
+    if(boost::filesystem::exists(boost::filesystem::path(jsonlua))) {
+        luareader.config(jsonlua.c_str());
     } else {
-      luareader.config("json.lua");
+        v::warn << "main" << "No json.lua found. Please put it in the current work directory, application directory or put the path to the file in the JSONLUA environment variable" << v::endl;
     }
 
     gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
