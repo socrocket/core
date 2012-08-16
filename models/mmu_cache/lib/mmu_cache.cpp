@@ -28,12 +28,12 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Class definition of a cache-subsystem.
-//             The cache-subsystem envelopes an instruction cache,
-//             a data cache and a memory management unit.
-//             The mmu_cache class provides two TLM slave interfaces
-//             for connecting the cpu to the caches and an AHB master
-//             interface for connection to the main memory.
+// Purpose:    Implementation of LEON2/3 cache-subsystem consisting
+//             of instruction cache, data cache, i/d localrams
+//             and memory management unit.
+//             The mmu_cache class provides two TLM slave sockets
+//             for connecting the cpu and an AHB master
+//             interface for connecting the processor bus.
 //
 // Method:
 //
@@ -95,7 +95,22 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     m_right_transactions("successful_transactions", 0ull, m_performance_counters),
     m_total_transactions("total_transactions", 0ull, m_performance_counters),
     m_pow_mon(pow_mon),
-    m_abstractionLayer(abstractionLayer) {
+    m_abstractionLayer(abstractionLayer),
+    sta_power_norm("power.mmu_cache.sta_power_norm", 1.16e+8, true), // Normalized static power of controller
+    int_power_norm("power.mmu_cache.int_power_norm", 0.0, true), // Normalized internal power of controller
+    dyn_read_energy_norm("power.mmu_cache.dyn_read_energy_norm", 1.465e-8, true), // Normalized read energy
+    dyn_write_energy_norm("power.mmu_cache.dyn_write_energy_norm", 1.465e-8, true), // Normalized write energy
+    power("power"),
+    sta_power("sta_power", 0.0, power), // Static power
+    int_power("int_power", 0.0, power), // Dynamic power
+    swi_power("swi_power", 0.0, power), // Switching power
+    power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
+    dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
+    dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
+    dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
+    dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation    
+    
+{
 
     // Parameter checks
     // ----------------
@@ -110,7 +125,8 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 				   dtlb_num,
 				   tlb_type,
 				   tlb_rep,
-				   mmupgsz) : NULL;
+				   mmupgsz,
+                                   pow_mon) : NULL;
 
     // create icache
     icache = (icen == 1)? (cache_if*)new ivectorcache("ivectorcache",
@@ -174,12 +190,17 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     // Data debug transport
     dcio.register_transport_dbg(this, &mmu_cache::dcio_transport_dbg);
 
-    // Register power monitor
-    PM::registerIP(this,"mmu_cache",m_pow_mon);
-    PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
-
     // Initialize cache control registers
     CACHE_CONTROL_REG = 0;
+
+    // Register power callback functions
+    if (m_pow_mon) {
+
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, mmu_cache, sta_power_cb);
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, mmu_cache, int_power_cb);
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, mmu_cache, swi_power_cb);
+
+    }    
 
     // Module Configuration Report
     v::info << this->name() << " ************************************************** " << v::endl;
@@ -195,6 +216,12 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     v::info << this->name() << " ************************************************** " << v::endl;   
 }
 
+mmu_cache::~mmu_cache() {
+
+  GC_UNREGISTER_CALLBACKS();
+
+}
+
 void mmu_cache::dorst() {
   // Reset functionality executed on 0 to 1 edge
 }
@@ -206,6 +233,9 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
   tlm::tlm_command cmd = trans.get_command();
   sc_dt::uint64 addr   = trans.get_address();
   unsigned char * ptr  = trans.get_data_ptr();
+
+  // Log instruction reads for power monitoring
+  if (m_pow_mon) dyn_reads += (trans.get_data_length() >> 2) + 1;
 
   // Extract extension
   icio_payload_extension * iext;
@@ -260,6 +290,20 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
   sc_dt::uint64 addr   = trans.get_address();
   unsigned char * ptr  = trans.get_data_ptr();
   unsigned int len     = trans.get_data_length();
+
+  // Log number of reads and writes for power monitoring
+  if (m_pow_mon) {
+
+    if (cmd == tlm::TLM_READ_COMMAND) {
+
+      dyn_reads += (len >> 2) + 1;
+
+    } else {
+
+      dyn_writes += (len >> 2) + 1;
+
+    }
+  }
 
   // Extract extension
   dcio_payload_extension * dext;
@@ -1242,6 +1286,59 @@ void mmu_cache::snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& d
       dcache->snoop_invalidate(snoop, delay);
     }
   }
+}
+
+
+// Automatically called at the beginning of the simulation
+void mmu_cache::start_of_simulation() {
+
+  // Initialize power model
+  if (m_pow_mon) {
+
+    power_model();
+
+  }
+
+}
+
+// Calculate power/energy values form normalized input data
+void mmu_cache::power_model() {
+
+  // Static power calculation (pW)
+  sta_power = sta_power_norm;
+
+  // Cell internal power (uW)
+  int_power = int_power_norm * 1/(clock_cycle.to_seconds()*1.0e+6);
+
+  // Energy per read access (uJ)
+  dyn_read_energy = dyn_read_energy_norm;
+
+  // Energy per write access (uJ)
+  dyn_write_energy = dyn_write_energy_norm;
+
+}
+
+// Static power callback
+void mmu_cache::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Static power of mmu_cache is constant !!
+
+}
+
+// Internal power callback
+void mmu_cache::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Internal power of mmu_cache is constant !!
+
+}
+
+// Switching power callback
+void mmu_cache::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  swi_power = ((dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
+
 }
 
 // Automatically called by SystemC scheduler at end of simulation

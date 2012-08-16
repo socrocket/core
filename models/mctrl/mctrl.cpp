@@ -45,7 +45,6 @@
 
 #include "mctrl.h"
 #include <tlm.h>
-#include "power_monitor.h"
 #include <algorithm>
 
 using namespace sc_core;
@@ -96,17 +95,28 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr), 
             g_rammask(_rammask), g_paddr(_paddr), g_pmask(_pmask), g_wprot(_wprot),
             g_srbanks(_srbanks), g_ram8(_ram8), g_ram16(_ram16), g_sepbus(_sepbus),
-            g_sdbits(_sdbits), g_mobile(_mobile), g_sden(_sden) {
+            g_sdbits(_sdbits), g_mobile(_mobile), g_sden(_sden), m_pow_mon(powermon),
+            sta_power_norm("power.mctrl.sta_power_norm", 1.7e+8, true), // Normalized static power of controller
+            int_power_norm("power.mctrl.int_power_norm", 1.874e-8, true), // Normalized internal power of controller
+            dyn_read_energy_norm("power.mctrl.dyn_read_energy_norm", 1.175e-8, true), // Normalized read energy
+            dyn_write_energy_norm("power.mctrl.dyn_write_energy_norm", 1.175e-8, true), // Normalized write energy
+            power("power"),
+            sta_power("sta_power", 0.0, power), // Static power
+            int_power("int_power", 0.0, power), // Internal power
+            swi_power("swi_power", 0.0, power), // Switching power
+            power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
+            dyn_read_energy("dyn_read_energy", 0.0, power), // Energy for read access
+            dyn_write_energy("dyn_write_energy", 0.0, power), // Energy for write access
+            dyn_reads("dyn_reads", 0ull, power), // Number of read accesses
+            dyn_writes("dyn_writes", 0ull, power) // Number of write accesses
+
+ {
 
     // Display APB slave information 
     v::info << this->name() << "APB slave @" << v::uint32 << apb.get_base_addr() 
             << " size: " << v::uint32 << apb.get_size() << " byte" << v::endl;
     v::info << this->name() << "(" << hex << _paddr << ":" << hex << _pmask << ")" << hex << ::APBDevice::get_device_info()[1] << v::endl;
-    
-    // Prepare the device for power monitoring
-    PM::registerIP(this, "mctrl", powermon);
-    PM::send_idle(this, "idle", sc_time_stamp(), true);
-
+ 
     //check consistency of address space generics
     //rom space in MByte: 4GB - masked area (rommask)
     //rom space in Byte: 2^(romasel + 1)
@@ -252,6 +262,45 @@ void Mctrl::end_of_elaboration() {
     dorst();
 }
 
+// Calculate power/energy values from normalized input data
+void Mctrl::power_model() {
+
+  // Static power calculation (pW)
+  sta_power = sta_power_norm;
+
+  // Cell internal power (uW)
+  int_power = int_power_norm * 1/(clock_cycle.to_seconds()*1.0e+6);
+
+  // Energy per read access (uJ)
+  dyn_read_energy = dyn_read_energy_norm;
+
+  // Energy per write access (uJ)
+  dyn_write_energy = dyn_write_energy_norm;
+
+}
+
+// Static power callback
+void Mctrl::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nominal operation mode only
+
+}
+
+// Internal power callback
+void Mctrl::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Internal power of Mctrl is constant !!
+
+}
+
+// Switching power callback
+void Mctrl::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  swi_power = ((dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
+
+}
+
+// Automatically called at the beginning of the simulation
 void Mctrl::start_of_simulation() {
     uint32_t slaves = mem.size();
     c_rom.id   = 100;
@@ -312,6 +361,13 @@ void Mctrl::start_of_simulation() {
         } else {
               v::warn << name() << "There is a device connected on the mem bus which is not inherite by MEMDevice named " << obj->name() << v::endl;
         }
+    }
+    
+    // Initialize power model
+    if (m_pow_mon) {
+
+      power_model();
+
     }
 }
 
@@ -427,6 +483,20 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
     m_total_transactions++;
     
     v::debug << name() << "Try to access memory at " << v::uint32 << addr << " of length " << length << "." << " pmode: " << (uint32_t)m_pmode << v::endl;
+
+    // Log event count for power monitoring
+    if (m_pow_mon) {
+
+      if (gp.get_command() == tlm::TLM_READ_COMMAND) {
+
+        dyn_reads += (length >> 2) + 1;
+        
+      } else {
+
+        dyn_writes += (length >> 2) + 1;
+
+      }
+    }
 
     if(port.id!=100) {
         tlm_generic_payload memgp;
@@ -694,14 +764,14 @@ void Mctrl::switch_power_mode() {
         case 0: {
             m_pmode = 0;
             v::debug << name() << "Power Mode: None" << v::endl;
-            PM::send_idle(this, "idle", sc_time_stamp(), true);
+            //PM::send_idle(this, "idle", sc_time_stamp(), true);
         }   break;
         
         // Dont do anything in PowerDown mode!
         case 1: { 
             v::debug << name() << "Power Mode: Power Down" << v::endl;
             m_pmode = 1;
-            PM::send_idle(this, "idle_powerdown", sc_time_stamp(), true);
+            //PM::send_idle(this, "idle_powerdown", sc_time_stamp(), true);
             m_power_down_start = sc_time_stamp();
         }   break;
         
@@ -719,19 +789,19 @@ void Mctrl::switch_power_mode() {
                 switch(pasr) {
                     case 1:
                         start = dsize / 2;
-                        PM::send_idle(this, "idle_partpowerdown2", sc_time_stamp(), true);
+                        //PM::send_idle(this, "idle_partpowerdown2", sc_time_stamp(), true);
                         break;
                     case 2:
                         start = dsize / 4;
-                        PM::send_idle(this, "idle_partpowerdown4", sc_time_stamp(), true);
+                        //PM::send_idle(this, "idle_partpowerdown4", sc_time_stamp(), true);
                         break;
                     case 5:
                         start = dsize / 8;
-                        PM::send_idle(this, "idle_partpowerdown8", sc_time_stamp(), true);
+                        //PM::send_idle(this, "idle_partpowerdown8", sc_time_stamp(), true);
                         break;
                     case 6:
                         start = dsize / 16;
-                        PM::send_idle(this, "idle_partpowerdown16", sc_time_stamp(), true);
+                        //PM::send_idle(this, "idle_partpowerdown16", sc_time_stamp(), true);
                         break;
                 }
                 gp.set_address(start);
@@ -739,13 +809,13 @@ void Mctrl::switch_power_mode() {
                 mem[c_sdram.id]->b_transport(gp,delay);
             } else {
                 v::debug << name() << "Power Mode: Self Refresh" << v::endl;
-                PM::send_idle(this, "idle_selfrefresh", sc_time_stamp(), true);
+                //PM::send_idle(this, "idle_selfrefresh", sc_time_stamp(), true);
             }
         }   break;
         //deep power down: erase entire SDRAM
         case 5: {
             v::debug << name() << "Power Mode: Deep-Power Down" << v::endl;
-            PM::send_idle(this, "idle_deeppowerdown", sc_time_stamp(), true);
+            //PM::send_idle(this, "idle_deeppowerdown", sc_time_stamp(), true);
             m_pmode = 5;
             uint32_t dbanks = c_sdram.dev->get_banks();
             uint32_t dbsize = c_sdram.dev->get_bsize();

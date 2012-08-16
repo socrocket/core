@@ -51,6 +51,8 @@
 #include "clkdevice.h"
 #include "msclogger.h"
 
+#include <greencontrol/config.h>
+
 #if defined(MTI_SYSTEMC)
 #include "peq_with_get.h"
 #else
@@ -58,7 +60,10 @@
 #endif
 
 class AHBMem : public AHBSlave<>, public CLKDevice {
+
  public:
+
+  GC_HAS_CALLBACKS();
   SC_HAS_PROCESS(AHBMem);
   
   /// Constructor
@@ -74,7 +79,8 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
          amba::amba_layer_ids ambaLayer = amba::amba_LT, 
          uint32_t slave_id = 0,
          bool cacheable = 1,
-         uint32_t wait_states = 0);
+         uint32_t wait_states = 0,
+         bool pow_mon = false);
 
   /// Destructor
   ~AHBMem();
@@ -96,10 +102,26 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
 
   sc_core::sc_time get_clock();
 
+  /// Called by scheduler at start of simulation
+  void start_of_simulation();
+
+  /// Calculate power/energy values from normalized input data
+  void power_model();
+
+  /// Static power callback
+  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Internal power callback
+  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Switching power callback
+  void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
   /// Generates execution statistic at end of simulation
   void end_of_simulation();
 
  private:
+
   /// The actual memory
   std::map<uint32_t, uint8_t> mem;
         
@@ -117,6 +139,53 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
 
   /// Number of wait states to be inserted for each transfer
   const uint32_t mwait_states;
+
+  /// Power monitoring on/off
+  const bool m_pow_mon;
+
+ public:
+
+  /// *****************************************************
+  /// Power Modeling Parameters
+
+  /// Normalized static power input
+  gs::gs_param<double> sta_power_norm;
+
+  /// Normalized internal power input (activation independent)
+  gs::gs_param<double> int_power_norm;
+
+  /// Normalized read access energy
+  gs::gs_param<double> dyn_read_energy_norm;
+
+  /// Normalized write access energy
+  gs::gs_param<double> dyn_write_energy_norm;
+
+  /// Parameter array for power data output
+  gs::gs_param_array power;
+
+  /// Static power of module
+  gs::gs_param<double> sta_power;
+
+  /// Dynamic power of module (activation independent)
+  gs::gs_param<double> int_power;
+
+  /// Switching power of module
+  gs::gs_param<double> swi_power;
+
+  /// Power frame starting time
+  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+
+  /// Dynamic energy per read access
+  gs::gs_param<double> dyn_read_energy;
+
+  /// Dynamic energy per write access
+  gs::gs_param<double> dyn_write_energy;
+
+  /// Number of reads from memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_reads;
+
+  /// Number of writes to memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_writes;
 
 };
 

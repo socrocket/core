@@ -28,12 +28,12 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Class definition of a cache-subsystem.
-//             The cache-subsystem envelopes an instruction cache,
-//             a data cache and a memory management unit.
-//             The mmu_cache class provides two TLM slave interfaces
-//             for connecting the cpu to the caches and an AHB master
-//             interface for connection to the main memory.
+// Purpose:    Class definition of LEON2/3 cache-subsystem consisting
+//             of instruction cache, data cache, i/d localrams
+//             and memory management unit.
+//             The mmu_cache class provides two TLM slave sockets
+//             for connecting the cpu and an AHB master
+//             interface for connecting the processor bus.
 //
 // Modified on $Date$
 //          at $Revision$
@@ -62,7 +62,6 @@
 #include "signalkit.h"
 #include "ahbmaster.h"
 #include "clkdevice.h"
-#include "power_monitor.h"
 
 #include "verbose.h"
 #include "cache_if.h"
@@ -80,6 +79,8 @@
 class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
 
  public:
+  
+  GC_HAS_CALLBACKS();
   SC_HAS_PROCESS(mmu_cache);
   SK_HAS_SIGNALS(mmu_cache);
   // TLM sockets
@@ -152,6 +153,9 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
             bool powmon,
             amba::amba_layer_ids ambaLayer);
 
+  // Destructor
+  ~mmu_cache();  
+
   // Member functions
   // ----------------
   /// Instruction interface to functional part of the model
@@ -201,6 +205,21 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   /// Snooping function (For calling dcache->snoop_invalidate)
   void snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& delay);
   
+  /// Automatically called at the beginning of the simulation
+  void start_of_simulation();
+
+  /// Calculate power/energy values from normalized input data  
+  void power_model();
+
+  /// Static power callback
+  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Internal power callback
+  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Switching power callback
+  void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
   /// Called at end of simulation to print execution statistics
   void end_of_simulation();
 
@@ -283,6 +302,49 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
 
   /// amba abstraction layer
   amba::amba_layer_ids m_abstractionLayer;
+  
+  // ****************************************************
+  // Power Modeling Parameters
+  
+  /// Normalized static power of controller
+  gs::gs_param<double> sta_power_norm;
+
+  /// Normalized internal power of controller
+  gs::gs_param<double> int_power_norm;
+
+  /// Normalized read access energy
+  gs::gs_param<double> dyn_read_energy_norm;
+
+  /// Normalized write access energy
+  gs::gs_param<double> dyn_write_energy_norm;  
+
+  /// Parameter array for power data output
+  gs::gs_param_array power;
+
+  /// Controller static power
+  gs::gs_param<double> sta_power;
+
+  /// Controller internal power
+  gs::gs_param<double> int_power;
+
+  /// Controller switching power
+  gs::gs_param<double> swi_power;
+
+  /// Dynamic energy per read access
+  gs::gs_param<double> dyn_read_energy;
+
+  /// Dynamic energy per write access
+  gs::gs_param<double> dyn_write_energy;
+
+  /// Power frame starting time
+  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+
+  /// Number of reads from memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_reads;
+
+  /// Number of writes to memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_writes;    
+  
   
 };
 

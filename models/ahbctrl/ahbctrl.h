@@ -56,7 +56,6 @@
 #include <tlm.h>
 
 #include "msclogger.h"
-#include "power_monitor.h"
 
 /// @addtogroup ahbctrl AHBctrl
 /// @{
@@ -65,6 +64,7 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
  public:
  
+  GC_HAS_CALLBACKS();
   SC_HAS_PROCESS(AHBCtrl);
   SK_HAS_SIGNALS(AHBCtrl);
 
@@ -299,12 +299,66 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   /// The abstraction layer of the model
   amba::amba_layer_ids m_ambaLayer;
 
+  // *****************************************************
+  // Power Modeling Parameters
+
+  /// Normalized static power input
+  gs::gs_param<double> sta_power_norm;
+
+  /// Normalized internal power input (activation independent)
+  gs::gs_param<double> int_power_norm;
+
+  /// Normalized read access energy
+  gs::gs_param<double> dyn_read_energy_norm;
+
+  /// Normalized write access energy
+  gs::gs_param<double> dyn_write_energy_norm;  
+
+  /// Parameter array for power data output
+  gs::gs_param_array power;
+
+  /// Static power of module
+  gs::gs_param<double> sta_power;
+
+  /// Dynamic power of module (activation independent)
+  gs::gs_param<double> int_power;
+
+  /// Switching power of module
+  gs::gs_param<double> swi_power;
+
+  /// Power frame starting time
+  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+
+  /// Dynamic energy per read access
+  gs::gs_param<double> dyn_read_energy;
+
+  /// Dynamic energy per write access
+  gs::gs_param<double> dyn_write_energy;
+
+  /// Number of reads from memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_reads;
+
+  /// Number of writes to memory (read & reset by monitor)
+  gs::gs_param<unsigned long long> dyn_writes;
+
   // Private functions
   // -----------------
   
   /// Set up slave map and collect plug & play information
   void start_of_simulation();
     
+  /// Calculate power/energy values from normalized input data
+  void power_model();
+
+  /// Static power callback
+  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Internal power callback
+  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+  /// Dynamic/Switching power callback
+  void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
   /// SystemC End of Simulation handler
   /// Prints out the Performance Counter
   void end_of_simulation();

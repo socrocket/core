@@ -28,7 +28,7 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Implements an LT/AT AHB APB Bridge
+// Purpose:    Implementation of the AHB APB Bridge
 //
 // Method:
 //
@@ -46,7 +46,6 @@
 #include "verbose.h"
 #include "vendian.h"
 
-
 /// Constructor of class APBCtrl
 APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
 		 uint32_t haddr_,            // The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
@@ -63,26 +62,44 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
              0,
              ambaLayer,
              BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr_)),
-       
-      apb("apb", amba::amba_APB, amba::amba_LT, false),
-      mhaddr(haddr_),
-      mhmask(hmask_),
-      mmcheck(mcheck),
-      m_pow_mon(pow_mon),
-      mAcceptPEQ("AcceptPEQ"),
-      mTransactionPEQ("TransactionPEQ"),
-      mambaLayer(ambaLayer),
-      m_pnpbase(0xFF000),
-      m_total_transactions("total_transactions", 0ull, m_performance_counters),
-      m_right_transactions("successful_transactions", 0ull, m_performance_counters) {
+  apb("apb", amba::amba_APB, amba::amba_LT, false),
+  m_AcceptPEQ("AcceptPEQ"),
+  m_TransactionPEQ("TransactionPEQ"),
+  m_pnpbase(0xFF000), 
+  m_haddr(haddr_),
+  m_hmask(hmask_),
+  m_mcheck(mcheck),
+  m_pow_mon(pow_mon),
+  m_ambaLayer(ambaLayer),
+  num_of_bindings(0),
+  m_total_transactions("total_transactions", 0ull, m_performance_counters),
+  m_right_transactions("successful_transactions", 0ull, m_performance_counters),
+  sta_power_norm("power.apbctrl.sta_power_norm", 2.11e+6, true), // Normalized static power input
+  int_power_norm("power.apbctrl.int_power_norm", 0.0, true), // Normalized internal power input (activation indep.)
+  dyn_read_energy_norm("power.apbctrl.dyn_read_energy_norm", 5.84e-11, true), // Normalized read energy input
+  dyn_write_energy_norm("power.apbctrl.dyn_write_energy_norm", 5.84e-11, true), // Normalized write energy input
+  power("power"),
+  sta_power("sta_power", 0.0, power), // Static power output
+  int_power("int_power", 0.0, power), // Internal power output
+  swi_power("swi_power", 0.0, power), // Switching power output
+  dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
+  dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
+  dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
+  dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation
 
+ {
     // Assert generics are withing allowed ranges
     assert(haddr_ <= 0xfff);
     assert(hmask_ <= 0xfff);
 
     // Register power monitor
-    PM::registerIP(this, "apbctrl", m_pow_mon);
-    PM::send_idle(this, "idle", sc_time_stamp(), m_pow_mon);
+    if (m_pow_mon) {
+
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, APBCtrl, sta_power_cb);
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, APBCtrl, int_power_cb);
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, APBCtrl, swi_power_cb);
+
+    }
 
     v::info << name() << " ***********************************************************************" << v::endl;
     v::info << name() << " * Created APBCTRL with following parameters: " << v::endl;
@@ -95,13 +112,17 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
     v::info << name() << " ***********************************************************************" << v::endl;
 }
 
-// Do reset
+// Reset handler
 void APBCtrl::dorst() {
+
+  // nothing to do
 
 }
 
 // Destructor
 APBCtrl::~APBCtrl() {
+
+  GC_UNREGISTER_CALLBACKS();
 
 }
 
@@ -242,7 +263,7 @@ uint32_t APBCtrl::exec_func(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, b
     if (!debug) {
 
       // Power event start
-      PM::send(this,"apb_trans", 1, sc_time_stamp(), (unsigned int)apb_gp->get_data_ptr(), m_pow_mon);
+      //PM::send(this,"apb_trans", 1, sc_time_stamp(), (unsigned int)apb_gp->get_data_ptr(), m_pow_mon);
 
       // Forward request to the selected slave
       apb[index]->b_transport(*apb_gp, delay);
@@ -250,9 +271,20 @@ uint32_t APBCtrl::exec_func(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, b
       // Add delay for APB setup cycle
       delay += clock_cycle;
 
-      // Power event end
-      PM::send(this,"apb_trans", 0, sc_time_stamp()+delay, (unsigned int)apb_gp->get_data_ptr(), m_pow_mon);
+      // Power Calculation
+      if (m_pow_mon) {
 
+        if (ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
+
+          dyn_reads += (ahb_gp.get_data_length() >> 2) + 1;
+
+        } else {
+
+          dyn_writes += (ahb_gp.get_data_length() >> 2) + 1;
+
+        }
+      }
+      
     } else {
 
       apb[index]->transport_dbg(*apb_gp);
@@ -279,7 +311,7 @@ uint32_t APBCtrl::exec_func(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, b
 void APBCtrl::start_of_simulation() {
 
   // Get number of bindings at master socket (number of connected slaves)
-  uint32_t num_of_bindings = apb.size();
+  num_of_bindings = apb.size();
 
   // max. 16 APB slaves allowed
   assert(num_of_bindings<=16);
@@ -342,9 +374,56 @@ void APBCtrl::start_of_simulation() {
   v::info << name() << "******************************************************************************* " << v::endl;
 
   // Check memory map for overlaps
-  if(mmcheck) {
+  if(m_mcheck) {
       checkMemMap();
   }
+
+  // Initialize power model
+  if (m_pow_mon) {
+
+    power_model();
+
+  }
+}
+
+// Calculate power/energy values from normalized input data
+void APBCtrl::power_model() {
+
+  // Static power calculation (pW)
+  sta_power = sta_power_norm * num_of_bindings;
+
+  // Dynamic power (switching independent internal power)
+  int_power = 0;
+
+  // Energy per read access (uJ)
+  dyn_read_energy = dyn_read_energy_norm * num_of_bindings;
+
+  // Energy per write access (uJ)
+  dyn_write_energy = dyn_write_energy_norm * num_of_bindings;  
+  
+}
+
+// Static power callback
+void APBCtrl::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Static power of APBCTRL is constant !!
+
+}
+
+// Internal power callback
+void APBCtrl::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // RTL APBCTRL has no internal power - constant.
+
+}
+
+// Switching power callback
+void APBCtrl::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  swi_power = ((dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
+
 }
 
 // Print execution statistic at end of simulation

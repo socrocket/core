@@ -74,7 +74,7 @@
 #include <amba.h>
 #include <cstring>
 #include "verbose.h"
-#include "power_monitor.h"
+#include "powermonitor.h"
 
 #include <GDBStub.hpp>
 #include <systemc.h>
@@ -178,7 +178,7 @@ int sc_main(int argc, char** argv) {
 		    p_ahbctrl_fixbrst,               // Enable support for fixed-length bursts (disabled)
 		    p_ahbctrl_fpnpen,                // Enable full decoding of PnP configuration records
 		    p_ahbctrl_mcheck,                // Check if there are any intersections between core memory regions
-        p_report_power,                  // Enable/disable power monitoring
+        	    p_report_power,                  // Enable/disable power monitoring
 		    ambaLayer
     );
 
@@ -187,24 +187,30 @@ int sc_main(int argc, char** argv) {
 
     // AHBSlave - APBCtrl
     // ==================
+
     gs::gs_param_array p_apbctrl("apbctrl", p_conf);
     gs::gs_param<unsigned int> p_apbctrl_haddr("haddr", 0x800, p_apbctrl);
     gs::gs_param<unsigned int> p_apbctrl_hmask("hmask", 0xFFF, p_apbctrl);
     gs::gs_param<unsigned int> p_apbctrl_index("hindex", 2u, p_apbctrl);
     gs::gs_param<bool> p_apbctrl_check("mcheck", true, p_apbctrl);
+
     APBCtrl apbctrl("apbctrl", 
 		    p_apbctrl_haddr,    // The 12 bit MSB address of the AHB area.
 		    p_apbctrl_hmask,    // The 12 bit AHB area address mask
 		    p_apbctrl_check,    // Check for intersections in the memory map 
-        p_apbctrl_index,    // AHB bus index
-        p_report_power,     // Power Monitoring on/off
+                    p_apbctrl_index,    // AHB bus index
+                    p_report_power,     // Power Monitoring on/off
 		    ambaLayer           // TLM abstraction layer
     );
-    // Connecting AHB Slave
-    ahbctrl.ahbOUT(apbctrl.ahb);
 
-    // Set clock
+    // Connect to AHB and clock
+    ahbctrl.ahbOUT(apbctrl.ahb);
     apbctrl.set_clk(p_system_clock, SC_NS);
+
+    // APBSlave - IRQMP
+    // ================
+    // Needed for basic platform.
+    // Always enabled
 
     gs::gs_param_array p_irqmp("irqmp", p_conf);
     gs::gs_param<unsigned int> p_irqmp_addr("addr", 0x1F0, p_irqmp);
@@ -212,20 +218,18 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_irqmp_index("index", 2, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_eirq("eirq", 4, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_ncpu("ncpu", 2, p_irqmp);
-    // APBSlave - IRQMP
-    // ================
-    // Needed for basic platform.
-    // Always enabled
+
     Irqmp irqmp("irqmp",
-        p_irqmp_addr,  // paddr
-        p_irqmp_mask,  // pmask
-        p_irqmp_ncpu,  // ncpu
-        p_irqmp_eirq,  // eirq
-        p_irqmp_index
+                p_irqmp_addr,  // paddr
+                p_irqmp_mask,  // pmask
+                p_irqmp_ncpu,  // ncpu
+                p_irqmp_eirq,  // eirq
+                p_irqmp_index, // pindex
+                p_report_power // power monitoring
     );
-    // Connecting APB Slave
+
+    // Connect to APB and clock
     apbctrl.apb(irqmp.apb_slv);
-    // Set clock
     irqmp.set_clk(p_system_clock,SC_NS);
 
     // AHBSlave - MCtrl, ArrayMemory
@@ -303,13 +307,21 @@ int sc_main(int argc, char** argv) {
 
     // CREATE MEMORIES
     // ===============
+
+    // ROM instantiation
     ArrayMemory rom( "rom", 
-        MEMDevice::ROM, 
-        p_mctrl_prom_banks, 
-        p_mctrl_prom_bsize * 1024 * 1024, 
-        p_mctrl_prom_width
+                     MEMDevice::ROM, 
+                     p_mctrl_prom_banks, 
+                     p_mctrl_prom_bsize * 1024 * 1024, 
+                     p_mctrl_prom_width,
+                     0,
+                     p_report_power
     );
+
+    // Connect to memory controller and clock
     mctrl.mem(rom.bus);
+    rom.set_clk(p_system_clock, SC_NS);
+
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_prom_elf("elf", "", p_mctrl_prom);
     if(!((std::string)p_mctrl_prom_elf).empty()) {
@@ -327,13 +339,21 @@ int sc_main(int argc, char** argv) {
       }
     }
 
+    // IO memory instantiation
     ArrayMemory io( "io", 
-        MEMDevice::IO, 
-        p_mctrl_prom_banks, 
-        p_mctrl_prom_bsize * 1024 * 1024, 
-        p_mctrl_prom_width
+                    MEMDevice::IO, 
+                    p_mctrl_prom_banks, 
+                    p_mctrl_prom_bsize * 1024 * 1024, 
+                    p_mctrl_prom_width,
+                    0,
+                    p_report_power
+
     );
+    
+    // Connect to memory controller and clock
     mctrl.mem(io.bus);
+    io.set_clk(p_system_clock, SC_NS);
+
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);
     
@@ -352,13 +372,21 @@ int sc_main(int argc, char** argv) {
       }
     }
 
+    // SRAM instantiation
     ArrayMemory sram( "sram", 
-        MEMDevice::SRAM, 
-        p_mctrl_ram_sram_banks, 
-        p_mctrl_ram_sram_bsize * 1024 * 1024, 
-        p_mctrl_ram_sram_width 
+                      MEMDevice::SRAM, 
+                      p_mctrl_ram_sram_banks, 
+                      p_mctrl_ram_sram_bsize * 1024 * 1024, 
+                      p_mctrl_ram_sram_width,
+                      0,
+                      p_report_power
+
     );
-    mctrl.mem(sram.bus);    
+
+    // Connect to memory controller and clock
+    mctrl.mem(sram.bus);
+    sram.set_clk(p_system_clock, SC_NS);
+
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
     
@@ -377,15 +405,20 @@ int sc_main(int argc, char** argv) {
       }
     }
 
-   
+    // SDRAM instantiation
     ArrayMemory sdram( "sdram", 
-        MEMDevice::SDRAM, 
-        p_mctrl_ram_sdram_banks, 
-        p_mctrl_ram_sdram_bsize * 1024 * 1024, 
-        p_mctrl_ram_sdram_width, 
-        p_mctrl_ram_sdram_cols
+                       MEMDevice::SDRAM, 
+                       p_mctrl_ram_sdram_banks, 
+                       p_mctrl_ram_sdram_bsize * 1024 * 1024, 
+                       p_mctrl_ram_sdram_width, 
+                       p_mctrl_ram_sdram_cols,
+                       p_report_power
     );
+
+    // Connect to memory controller and clock
     mctrl.mem(sdram.bus);
+    sdram.set_clk(p_system_clock, SC_NS);
+
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sdram_elf("elf", "", p_mctrl_ram_sdram);
     
@@ -416,15 +449,27 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_ahbmem_addr("addr", 0xA00, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_mask("mask", 0xFFF, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_index("index", 1, p_ahbmem);
+    gs::gs_param<bool> p_ahbmem_cacheable("cacheable", 1, p_ahbmem);
+    gs::gs_param<unsigned int> p_ahbmem_waitstates("waitstates", 0u, p_ahbmem);
     gs::gs_param<std::string> p_ahbmem_elf("elf", "", p_ahbmem);
+
     if(p_ahbmem_en) {
+
       AHBMem *ahbmem = new AHBMem("ahbmem",
-        p_ahbmem_addr,
-        p_ahbmem_mask,
-        ambaLayer,
-        p_ahbmem_index
+                                  p_ahbmem_addr,
+                                  p_ahbmem_mask,
+                                  ambaLayer,
+                                  p_ahbmem_index,
+                                  p_ahbmem_cacheable,
+                                  p_ahbmem_waitstates,
+                                  p_report_power
+
       );
+      
+      // Connect to ahbctrl and clock
       ahbctrl.ahbOUT(ahbmem->ahb);
+      ahbmem->set_clk(p_system_clock, SC_NS);
+
       // ELF loader from leon (Trap-Gen)
       if(!((std::string)p_ahbmem_elf).empty()) {
         if(boost::filesystem::exists(boost::filesystem::path((std::string)p_ahbmem_elf))) {
@@ -505,7 +550,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_mmu_cache_cached("cached", 0xFFFF, p_mmu_cache);
     gs::gs_param<unsigned int> p_mmu_cache_index("index", 0u, p_mmu_cache);
     gs::gs_param_array p_mmu_cache_mmu("mmu", p_mmu_cache);
-    gs::gs_param<bool> p_mmu_cache_mmu_en("en", false, p_mmu_cache);
+    gs::gs_param<bool> p_mmu_cache_mmu_en("en", false, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_itlb_num("itlb_num", 8, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_dtlb_num("dtlb_num", 8, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_tlb_type("tlb_type", 0u, p_mmu_cache_mmu);
@@ -618,7 +663,7 @@ int sc_main(int argc, char** argv) {
         // LEON3 LT Processor
         // ==================
         v::info << "main" << "Instantiating LT Processor" << i << v::endl;
-        leon3_funclt_trap::Processor_leon3_funclt *leon3 = new leon3_funclt_trap::Processor_leon3_funclt(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS));
+        leon3_funclt_trap::Processor_leon3_funclt *leon3 = new leon3_funclt_trap::Processor_leon3_funclt(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS), p_report_power);
         leon3->ENTRY_POINT   = 0x0;
         leon3->MPROC_ID      = (p_mmu_cache_index + i) << 28;
 
@@ -680,6 +725,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_gptimer_sbits("sbit", 16, p_gptimer);
     gs::gs_param<unsigned int> p_gptimer_nbits("nbits", 32, p_gptimer);
     gs::gs_param<unsigned int> p_gptimer_wdog("wdog", 0u, p_gptimer);
+
     if(p_gptimer_en) {
       GPTimer *gptimer = new GPTimer("gptimer",
         p_gptimer_ntimers,// ntimers
@@ -694,16 +740,15 @@ int sc_main(int argc, char** argv) {
         p_report_power    // powmon
       );
 
-      // Connecting APB Slave
+      // Connect to apb and clock
       apbctrl.apb(gptimer->bus);
+      gptimer->set_clk(p_system_clock,SC_NS);      
 
       // Connecting Interrupts
       for(int i=0; i < 8; i++) {
         signalkit::connect(irqmp.irq_in, gptimer->irq, p_gptimer_irq + i);
       }
 
-      // Set clock
-      gptimer->set_clk(p_system_clock,SC_NS);
     }
 
     // APBSlave - APBUart
@@ -822,6 +867,12 @@ int sc_main(int argc, char** argv) {
     connect(irqmp_rst, irqmp.rst);
     irqmp_rst.write(0);
     irqmp_rst.write(1);
+
+    // * Power Monitor **************************
+    powermonitor pow_mon("pow_mon",sc_core::sc_time(2130, SC_US));
+
+    // ******************************************
+
 
     // start simulation
     cstart = clock();

@@ -47,6 +47,7 @@
 #define MEM_DEVICE_H
 
 #include <stdint.h>
+#include <string>
 
 /// @addtogroup utils
 /// @{
@@ -77,6 +78,9 @@ class MEMDevice {
 
         /// Returns the device type.
         virtual const device_type get_type() const;
+
+        /// Return the device type name
+        virtual const std::string get_type_name() const;
         
         /// Returns the number of banks of the memory (sram or sdram bank if needed)
         virtual const uint32_t get_banks() const;
@@ -97,6 +101,10 @@ class MEMDevice {
         uint32_t m_bsize;
         uint32_t m_bits;
         uint32_t m_cols;
+
+        // Memory type name (rom, io, sram, sdram)
+        std::string m_type_name;
+
 };
 
 #endif

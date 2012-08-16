@@ -67,13 +67,34 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
 	    m_tlb_type(tlb_type), 
 	    m_tlb_rep(tlb_rep),
             m_mmupgsz(mmupgsz),
-      m_performance_counters("performance_counters"),
-      tihits("instruction_tlb_hits", 8, m_performance_counters),
-      tdhits("data_tlb_hits", 8, m_performance_counters),
-      timisses("instruction_tlb_misses", 0ull, m_performance_counters),
-      tdmisses("data_tlb_misses", 0ull, m_performance_counters),
 	    m_pseudo_rand(0),
 	    m_pow_mon(pow_mon),
+            m_performance_counters("performance_counters"),
+            tihits("instruction_tlb_hits", 8, m_performance_counters),
+            tdhits("data_tlb_hits", 8, m_performance_counters),
+            timisses("instruction_tlb_misses", 0ull, m_performance_counters),
+            tdmisses("data_tlb_misses", 0ull, m_performance_counters),
+            sta_power_norm("power.mmu_cache.mmu.sta_power_norm", 7.19e+7, true), // Normalized static power of controller
+            int_power_norm("power.mmu_cache.mmu.int_power_norm", 3.74e-8, true), // Normalized static power of controller
+            sta_tlb_power_norm("power.mmu_cache.mmu.tlb_power_norm", 6543750, true), // Normalized static power of tlb
+            int_tlb_power_norm("power.mmu_cache.mmu.tlb_power_norm", 2.7225e-9, true), // Normalized internal power of tlb
+            dyn_tlb_read_energy_norm("power.mmu_cache.mmu.dyn_tlb_read_energy_norm", 1.08125e-11, true), // Normalized read energy of tlb
+            dyn_tlb_write_energy_norm("power.mmu_cache.mmu.dyn_tlb_write_energy_norm", 1.08125e-11, true), // Normalized write energy of tlb
+            power("power"),
+            sta_power("sta_power", 0.0, power), // Static power of mmu
+            int_power("int_power", 0.0, power), // Internal power of mmu
+            swi_power("swi_power", 0.0, power), // Switching power of mmu
+            power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
+            itlbram("itlb", power), // Parameter array for itlb power out parameters
+            dyn_itlb_read_energy("dyn_itlb_read_energy", 0.0, itlbram), // itlb read energy
+            dyn_itlb_write_energy("dyn_itlb_write_energy", 0.0, itlbram), // itlb write energy
+            dyn_itlb_reads("dyn_itlb_reads", 0ull, itlbram), // number of itlb reads
+            dyn_itlb_writes("dyn_itlb_writes", 0ull, itlbram), // number of itlb writes
+            dtlbram("dtlb", power),
+            dyn_dtlb_read_energy("dyn_dtlb_read_energy", 0.0, dtlbram), // dtlb read energy
+            dyn_dtlb_write_energy("dyn_dtlb_write_energy", 0.0, dtlbram), // dtlb write energy
+            dyn_dtlb_reads("dyn_dtlb_reads", 0ull, dtlbram), // number of dtlb reads
+            dyn_dtlb_writes("dyn_dtlb_writes", 0ull, dtlbram), // number of dtlb writes
 	    clockcycle(10, sc_core::SC_NS) {
 
     // The number of instruction and data tlbs must be in the range of 2-32
@@ -164,8 +185,8 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
     }
 
     // Register for power monitoring
-    PM::registerIP(this,"mmu",m_pow_mon);
-    PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
+    //PM::registerIP(this,"mmu",m_pow_mon);
+    //PM::send_idle(this,"idle",sc_time_stamp(),m_pow_mon);
 
     // Init execution statistic
     for (uint32_t i=0; i<8; i++) {
@@ -176,6 +197,15 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
     timisses = 0;
     tdmisses = 0;
 
+    // Register power callback functions
+    if (m_pow_mon) {
+
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, mmu, sta_power_cb);
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, mmu, int_power_cb);
+      GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, mmu, swi_power_cb);
+
+    }
+
     // Configuration report
     v::info << this->name() << " ******************************************************************************* " << v::endl;
     v::info << this->name() << " * Created mmu with following parameters: " << v::endl;
@@ -185,7 +215,15 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
     v::info << this->name() << " * tlb_type (0 - split, 1 - shared): " << m_tlb_type << v::endl;
     v::info << this->name() << " * tlb_rep: " << tlb_rep << v::endl;
     v::info << this->name() << " * mmupgsz (0, 2 - 4kb, 3 - 8kb, 4 - 16kb, 5 - 32kb): " << mmupgsz << v::endl;
+    v::info << this->name() << " * pow_mon: " << m_pow_mon << v::endl;
     v::info << this->name() << " * ***************************************************************************** " << v::endl;
+}
+
+// Destructor
+mmu::~mmu() {
+
+  GC_UNREGISTER_CALLBACKS();
+
 }
 
 // look up a tlb (page descriptor cache)
@@ -217,15 +255,25 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     bool context_miss = false;
 
-    // TLB lookup is full-associative. All TLBs are read at once and in parallel.
-    // For performance reasons, this is modeled as one event.
-    PM::send(this, "tlb_lookup", 1, sc_time_stamp(), 0, m_pow_mon);
-    PM::send(this, "tlb_lookup", 0, sc_time_stamp(), 0, m_pow_mon);
-
     // Search virtual address tag in ipdc (associative)
     v::info << this->name() << "lookup with VPN: " << std::hex << vpn
             << " and OFFSET: " << std::hex << offset << v::endl;
     pdciter = tlb->find(vpn);
+
+    // Log tlb reads for power monitoring
+    if (m_pow_mon) {
+
+      // All tlbs are read in parallel !
+      if (tlb == itlb) {
+
+        dyn_itlb_reads += tlb_size;
+
+      } else {
+
+        dyn_dtlb_reads += tlb_size;
+
+      }
+    }
 
     // TLB hit
     if (pdciter != tlb->end()) {
@@ -363,7 +411,8 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 	    slot_no = tlb_remove(tlb, tlb_size);
 	    
 	    tmp.tlb_no = slot_no;
-	    
+
+   
         } else {
 
 	  v::info << this->name() << "Create new entry PDC entry - TLB number: " << tlb->size() << v::endl;
@@ -376,10 +425,21 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         tmp.pte = data;
 	tmp.lru = 7;
 
-	PM::send(this, "tlb_write", 1, sc_time_stamp(), 0, m_pow_mon);
-	PM::send(this, "tlb_write", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
+        // Log TLB writes for power monitoring
+        if (m_pow_mon) {
 
-        (*tlb)[vpn] = tmp;
+          if (tlb == itlb) {
+
+            dyn_itlb_writes++;
+
+          } else {
+
+            dyn_dtlb_writes++;
+
+          }
+        }
+
+	(*tlb)[vpn] = tmp;
 
         // build physical address from PTE and offset
         paddr = (((tmp.pte >> 8) << (32 - m_vtag_width)) | offset);
@@ -461,10 +521,21 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         tmp.pte = data;
 	tmp.lru = 7;
 
-	PM::send(this, "tlb_write", 1, sc_time_stamp(), 0, m_pow_mon);
-	PM::send(this, "tlb_write", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-
         (*tlb)[vpn] = tmp;
+
+        // Log TLB writes for power monitoring
+        if (m_pow_mon) {
+
+          if (tlb == itlb) {
+
+            dyn_itlb_writes++;
+
+          } else {
+
+            dyn_dtlb_writes++;
+
+          }
+        }
 
         // build physical address from PTE and offset
         paddr = (((tmp.pte >> 8) << (32 - m_vtag_width)) | offset);
@@ -546,10 +617,21 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         tmp.pte = data;
 	tmp.lru = 7;
 
-	PM::send(this, "tlb_write", 1, sc_time_stamp(), 0, m_pow_mon);
-	PM::send(this, "tlb_write", 0, sc_time_stamp()+clockcycle, 0, m_pow_mon);
-
         (*tlb)[vpn] = tmp;
+
+        // Log TLB writes for power monitoring
+        if (m_pow_mon) {
+
+          if (tlb == itlb) {
+
+            dyn_itlb_writes++;
+
+          } else {
+
+            dyn_dtlb_writes++;
+
+          }
+        }
 
         // build physical address from PTE and offset
         paddr = (((tmp.pte >> 8) << (32 - m_vtag_width)) | offset);
@@ -889,6 +971,82 @@ void mmu::diag_read_dctlb(unsigned int addr, unsigned int * data) {
   #endif
 
   *data = tmp;
+}
+
+// Start of simulation
+void mmu::start_of_simulation() {
+
+  // Initialize power model
+  if (m_pow_mon) {
+    
+    power_model();
+
+  }
+}
+
+// Calculate power/energy values from normalized input data
+void mmu::power_model() {
+
+  unsigned long total_tlbs;
+  unsigned long data_tlbs  = m_dtlbnum;
+  unsigned long instr_tlbs = m_itlbnum;
+
+  if (m_tlb_type == 0x0) {
+
+    // split tlb
+    total_tlbs = m_itlbnum + m_dtlbnum;
+
+  } else {
+
+    // shared instruction and data tlb
+    total_tlbs = m_itlbnum;
+    data_tlbs  = m_itlbnum;
+
+  }
+
+  // Static power = mmu controller + itlb + dtlb
+  sta_power = sta_power_norm +
+    sta_tlb_power_norm * total_tlbs;
+
+  // Cell internal power = mmu controller + itlb + dtlb
+  int_power = int_power_norm * 1/(clockcycle.to_seconds()*1.0e+6) +
+    int_tlb_power_norm * total_tlbs * 1/(clockcycle.to_seconds()*1.0e+6);
+
+  // itlb read energy
+  dyn_itlb_read_energy = dyn_tlb_read_energy_norm * instr_tlbs;
+
+  // itlb write energy
+  dyn_itlb_write_energy = dyn_tlb_write_energy_norm * instr_tlbs;
+
+  // dtlb read energy
+  dyn_dtlb_read_energy = dyn_tlb_read_energy_norm * data_tlbs;
+  
+  // dtlb write energy
+  dyn_dtlb_write_energy = dyn_tlb_write_energy_norm * data_tlbs;
+
+}
+
+// Static power callback
+void mmu::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // Static power of mmu is constant !!
+
+}
+
+// Internal power callback
+void mmu::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  // Nothing to do !!
+  // MMU internal power is constant !!
+
+}
+
+// Switching power callback
+void mmu::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+
+  swi_power = ((dyn_itlb_read_energy * dyn_itlb_reads) + (dyn_itlb_write_energy * dyn_itlb_writes) + (dyn_dtlb_read_energy * dyn_dtlb_reads) + (dyn_dtlb_write_energy * dyn_dtlb_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
+
 }
 
 // Print execution statistic at end of simulation

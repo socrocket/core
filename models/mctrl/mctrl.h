@@ -142,6 +142,18 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         /// Gathers information about the connected memory types when SystemC reaches the start of simulation.
         void start_of_simulation();
 
+        /// Calculate power/energy values from normalized input data
+        void power_model();
+
+        /// Static power callback
+        void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+        /// Dynamic/Internal power callback
+        void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
+        /// Dynamic/Switching power callback
+        void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+
         /// SystemC end of simulation handler.
         /// It's needed to print performance counter
         void end_of_simulation();
@@ -194,6 +206,9 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
                 uint32_t   addr;
                 uint32_t   length;
         };
+
+        /// Power monitoring on/off
+        bool m_pow_mon;
 
         /// Instanciations for each memory device, plus one for no matching memory found.
         MEMPort c_rom, c_io, c_sram, c_sdram, c_null;
@@ -251,6 +266,48 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         
         /// Last time switched to auto self refresh mode
         gs::gs_param<sc_time> m_self_refresh_start;
+
+        // *****************************************************
+        // Power Modeling Parameters
+
+        /// Normalized static power of controller
+        gs::gs_param<double> sta_power_norm;
+
+        /// Normalized internal power of controller
+        gs::gs_param<double> int_power_norm;
+
+        /// Normalized read energy
+        gs::gs_param<double> dyn_read_energy_norm;
+
+        /// Normalized write energy
+        gs::gs_param<double> dyn_write_energy_norm;
+
+        /// Parameter array for power data output
+        gs::gs_param_array power;
+
+        /// Controller static power
+        gs::gs_param<double> sta_power;
+
+        /// Controller internal power
+        gs::gs_param<double> int_power;
+
+        /// Controller switching poer
+        gs::gs_param<double> swi_power;
+
+        /// Power frame starting time
+        gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+
+        /// Dynamic energy per read access
+        gs::gs_param<double> dyn_read_energy;
+
+        /// Dynamic energy per write access
+        gs::gs_param<double> dyn_write_energy;
+
+        /// Number of reads from memory
+        gs::gs_param<unsigned long long> dyn_reads;
+
+        /// Number of writes from memory
+        gs::gs_param<unsigned long long> dyn_writes;
 
         // Constructor parameters (modeling VHDL generics)
         const int g_romasel;

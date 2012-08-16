@@ -55,7 +55,6 @@
 #include <boost/config.hpp>
 
 #include "signalkit.h"
-#include "power_monitor.h"
 #include "verbose.h"
 
 #include "io_if.h"

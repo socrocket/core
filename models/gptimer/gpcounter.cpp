@@ -61,8 +61,8 @@ GPCounter::GPCounter(GPTimer &_parent, unsigned int _nr, sc_core::sc_module_name
 
     m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
-    PM::registerIP(this, "gpcounter", p.powermon);
-    PM::send_idle(this, "idle", sc_time_stamp(), true);
+    //PM::registerIP(this, "gpcounter", p.powermon);
+    //PM::send_idle(this, "idle", sc_time_stamp(), true);
 }
 
 GPCounter::~GPCounter() {
@@ -183,7 +183,7 @@ void GPCounter::ticking() {
         m_underflows = m_underflows + 1;
 
         v::debug << name() << "GPCounter" << nr << " underflow" << v::endl;
-        PM::send(this, "underflow", 1, sc_time_stamp(),0,1);
+        //PM::send(this, "underflow", 1, sc_time_stamp(),0,1);
         // Send interupt and set outputs
         if (p.r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_IE]) {
             // p.r[GPTimer::CTRL].b[GPTimer::TIM_CTRL_SI] // seperatet interupts
@@ -201,7 +201,7 @@ void GPCounter::ticking() {
         }
         
         wait(p.clock_cycle);
-        PM::send(this, "underflow", 0, sc_time_stamp(),0,1);
+        //PM::send(this, "underflow", 0, sc_time_stamp(),0,1);
         if(m_pirq&&irqnr) {
             p.irq.write(1 << irqnr, false);
         }
@@ -310,7 +310,7 @@ void GPCounter::start() {
         lasttime = sc_core::sc_time_stamp();
         calculate();
         stopped = false;
-        PM::send(this, "active", 1, sc_time_stamp(),0,1);
+        //PM::send(this, "active", 1, sc_time_stamp(),0,1);
     }
 }
 
@@ -325,7 +325,7 @@ void GPCounter::stop() {
         lastvalue = p.r[GPTimer::VALUE(nr)];
         lasttime = sc_core::sc_time_stamp();
         stopped = true;
-        PM::send(this, "active", 0, sc_time_stamp(),0,1);
+        //PM::send(this, "active", 0, sc_time_stamp(),0,1);
     }
 }
 
