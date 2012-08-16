@@ -46,4 +46,20 @@
 top = '..'
 
 def build(bld):
-    bld.recurse('systemc')
+    ambaLayer = 'true'
+    if not bld.env["LIB_SOCROCKET"]:
+        use       = 'ahbctrl ahbmem irqmp gptimer apbctrl apbuart socwire socw_socket mmu_cache mctrl input_device ahbprof utils signalkit common'
+    else:
+        use       = 'SOCROCKET'
+
+    use  += ' leon3.funclt leon3.funcat TRAP BOOST ELF_LIB LUA SYSTEMC AMBA TLM GREENSOCS'
+      
+    bld(
+        target       = 'leon3mp.platform',
+        features     = 'cxx cprogram',
+        source       = 'sc_main.cpp',
+        includes     = '.',
+        use          = use,
+        #ut_param     = ['singlecore.lt.prom', 'irqmp.sparc'],
+    )
+
