@@ -68,11 +68,13 @@
 
 #include <iostream>
 #include <vector>
+#include <string.h>
 #include <sys/time.h>
 #include <time.h>
 #include <string.h>
 #include <amba.h>
 #include <cstring>
+#include <cstdlib>
 #include "verbose.h"
 #include "powermonitor.h"
 
@@ -80,6 +82,7 @@
 #include <systemc.h>
 #include <tlm.h>
 #include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
 
 #include "leon3.funclt.h"
 #include "leon3.funcat.h"
@@ -92,7 +95,34 @@ namespace trap {
   extern int exitValue;
 };
 
+boost::filesystem::path find_top_path(char *start) {
+    boost::filesystem::path path = boost::filesystem::absolute(boost::filesystem::path(start).parent_path());
+    boost::filesystem::path waf("waf");
+    while(!boost::filesystem::exists(path/waf)&&!path.empty()) {
+        path = path.parent_path();
+    }
+    return path;
+}
+
 int sc_main(int argc, char** argv) {
+    boost::program_options::options_description desc("Options");
+    desc.add_options()
+      ("help", "Shows this message.")
+      ("luascript,s", boost::program_options::value<std::string>()/*->default(std::getenv("JSONLUA"))*/, "The Lua configuration script. Usual the json.lua to load a JSON configuration.")
+      ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json")
+      ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options")
+      ("listoptions,l", "Show a list of all avaliable options (config, power, ...)");
+
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+    boost::program_options::notify(vm);
+
+    if(vm.count("help")) {
+        std::cout << std::endl << "SoCRocekt -- LEON3 Multi-Processor Platform" << std::endl;
+        std::cout << std::endl << "Usage: " << argv[0] << " [options]" << std::endl;
+        std::cout << std::endl << desc << std::endl;
+        return 0;
+    }
 
     clock_t cstart, cend;
     std::string prom_app;
@@ -104,26 +134,75 @@ int sc_main(int argc, char** argv) {
     gs::cnf::ConfigPlugin configPlugin(&cnfdatabase);
 
     gs::cnf::LuaFile_Tool luareader("luareader");
-    luareader.parseCommandLine(argc, argv);
-    //luareader.config("config.lua");
-    if(!boost::filesystem::exists(boost::filesystem::path("json.lua"))) {
-      char *jsonlua = std::getenv("JSONLUA");
-      if(jsonlua && boost::filesystem::exists(boost::filesystem::path(jsonlua))) {
-        luareader.config(jsonlua);
-      } else {
-        v::warn << "main" << "please copy the json.lua in your current working folder" << v::endl;
-      }
+    //luareader.parseCommandLine(argc, argv);
+
+    if(vm.count("jsonconfig")) {
+        setenv("JSONCONFIG", vm["jsonconfig"].as<std::string>().c_str(), true);
+    }
+
+    // Find json.lua
+    // - First search on the comandline
+    // - Then search environment variable
+    // - Then search in current dir
+    // - and finaly in the application directory
+    // - searches in the source directory
+    // Print an error if it is not found!
+    boost::filesystem::path topdir = find_top_path(argv[0]);
+    boost::filesystem::path appdir = (boost::filesystem::path(argv[0]).parent_path());
+    boost::filesystem::path srcdir = (topdir / boost::filesystem::path("build") / boost::filesystem::path(__FILE__).parent_path());
+    boost::filesystem::path jsonlua("json.lua");
+    char *jsonlua_env = std::getenv("LUASCRIPT");
+    if(vm.count("luaconfig")) {
+        jsonlua = boost::filesystem::path(vm["luaconfig"].as<std::string>());
+        if(!boost::filesystem::exists(jsonlua)) {
+            v::error << "main" << "The Lua configuration provided by command line does not exist: " << jsonlua << v::endl;
+            exit(1);
+        }
+    } else if(jsonlua_env) {
+        jsonlua = boost::filesystem::path(jsonlua_env);
+    } else if(boost::filesystem::exists(jsonlua)) {
+        jsonlua = jsonlua;
+    } else if(boost::filesystem::exists(appdir / jsonlua)) {
+        jsonlua = appdir / jsonlua;
+    } else if(boost::filesystem::exists(srcdir / jsonlua)) {
+        jsonlua = srcdir / jsonlua;
+    }
+    if(boost::filesystem::exists(boost::filesystem::path(jsonlua))) {
+        luareader.config(jsonlua.c_str());
     } else {
-      luareader.config("json.lua");
+        v::warn << "main" << "No json.lua found. Please put it in the current work directory, application directory or put the path to the file in the JSONLUA environment variable" << v::endl;
     }
 
     gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
+    if(vm.count("option")) {
+        const std::vector<std::string> *vec = &vm["options"].as< std::vector<std::string> >();
+        for(int i=0; i<vec->size(); i++) {
+           std::string parname;
+           std::string parvalue;
 
-    for(int i = 1; i < argc; i++) {
-        if(std::strcmp("listparams", argv[i])==0) {
-            paramlist = true;
-            break;
+           // *** Check right format (parname=value)
+           // of no space
+           if(vec->at(i).find_first_of("=") == std::string::npos) {
+               v::warn << "main" << "Option value in command line option has no '='. Type '--help' for help. " << vec->at(i);
+           }
+           // if not space before equal sign
+           if(vec->at(i).find_first_of(" ") < vec->at(i).find_first_of("=")) {
+               v::warn << "main" << "Option value in command line option may not contain a space before '='. " << vec->at(i);
+           }
+
+           // Parse parameter name
+           parname = vec->at(i).substr(0,vec->at(i).find_first_of("="));
+           // Parse parameter value
+           parvalue = vec->at(i).substr(vec->at(i).find_first_of("=")+1);
+
+           // Set parameter
+           mApi->setInitValue(parname, parvalue); 
         }
+    }
+
+
+    if(vm.count("listoptions")) {
+       paramlist = true;
     }
     
     // Build GreenControl Configuration Namespace
@@ -217,7 +296,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_irqmp_mask("mask", 0xFFF, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_index("index", 2, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_eirq("eirq", 4, p_irqmp);
-    gs::gs_param<unsigned int> p_irqmp_ncpu("ncpu", 2, p_irqmp);
+    gs::gs_param<unsigned int> p_irqmp_ncpu("ncpu", 1, p_irqmp);
 
     Irqmp irqmp("irqmp",
                 p_irqmp_addr,  // paddr
