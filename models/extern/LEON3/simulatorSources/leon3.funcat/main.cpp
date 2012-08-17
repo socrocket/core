@@ -252,7 +252,7 @@ int sc_main( int argc, char * * argv ){
         latency = 1/(vm["frequency"].as<double>());
     }
     //Now we can procede with the actual instantiation of the processor
-    Processor_leon3_funcat procInst("LEON3", sc_time(latency, SC_US));
+    Processor_leon3_funcat procInst("LEON3", sc_time(latency, SC_US), false);
     //Here we instantiate the memory and connect it
     //wtih the processor
     SparseMemoryAT<2, 32> mem("procMem", 10485760, sc_time(latency*0, SC_US));
