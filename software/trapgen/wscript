@@ -58,16 +58,17 @@ def build(bld):
 
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'aes.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'aes.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
   
   # bcnt.sparc
@@ -82,16 +83,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'bcnt.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'bcnt.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # blit.sparc
@@ -106,16 +108,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'blit.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'blit.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # crc.sparc
@@ -130,16 +133,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'crc.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'crc.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # des.sparc
@@ -154,16 +158,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'des.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'des.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # dhry.sparc
@@ -178,16 +183,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'dhry.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'dhry.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # engine.sparc
@@ -202,16 +208,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'engine.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'engine.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # fft.sparc
@@ -226,16 +233,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'fft.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'fft.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # fib.sparc
@@ -250,16 +258,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'fib.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'fib.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # fir2.sparc
@@ -274,16 +283,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'fir2.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'fir2.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # gamma.sparc
@@ -298,16 +308,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'gamma.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'gamma.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # hanoi.sparc
@@ -322,16 +333,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'hanoi.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'hanoi.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # heapsort.sparc
@@ -346,16 +358,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'heapsort.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'heapsort.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # jpeg.sparc
@@ -370,16 +383,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'jpeg.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'jpeg.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # lms.sparc
@@ -394,16 +408,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'lms.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'lms.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # matrix.sparc
@@ -418,16 +433,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'matrix.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'matrix.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # mdrall.sparc
@@ -442,16 +458,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'mdrall.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'mdrall.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # pocsag.sparc
@@ -466,16 +483,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'pocsag.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'pocsag.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # queens.sparc
@@ -490,16 +508,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'queens.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'queens.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # quicksort.sparc
@@ -514,16 +533,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'quicksort.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'quicksort.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # tolstoy.sparc
@@ -538,16 +558,17 @@ def build(bld):
   """
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'tolstoy.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'tolstoy.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
   """
   # v42.sparc
@@ -562,16 +583,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'v42.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'v42.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # wavelt.sparc
@@ -586,16 +608,17 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'wavelt.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'wavelt.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 
   # whets.sparc
@@ -610,15 +633,16 @@ def build(bld):
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.lt.platform',
-      rom         = 'singlecore.lt.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'whets.sparc',
   )
   
   bld(
       features    = 'systest',
-      system      = 'singlecore.at.platform',
-      rom         = 'singlecore.at.prom',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
       ram         = 'whets.sparc',
+      args       = ['--option', 'conf.system.at=true'],
   )
 

@@ -101,7 +101,7 @@ namespace leon3_funcat_trap{
 
         public:
         SC_HAS_PROCESS( Processor_leon3_funcat );
-        Processor_leon3_funcat( sc_module_name name, sc_time latency );
+        Processor_leon3_funcat( sc_module_name name, sc_time latency, bool pow_mon = false);
         void mainLoop();
         void resetOp();
         void end_of_elaboration();

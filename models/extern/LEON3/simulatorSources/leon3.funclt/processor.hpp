@@ -105,7 +105,7 @@ namespace leon3_funclt_trap{
         public:
         GC_HAS_CALLBACKS();
         SC_HAS_PROCESS( Processor_leon3_funclt );
-        Processor_leon3_funclt( sc_module_name name, sc_time latency, bool pow_mon );
+        Processor_leon3_funclt( sc_module_name name, sc_time latency, bool pow_mon = false);
         void mainLoop();
         void resetOp();
         void start_of_simulation();

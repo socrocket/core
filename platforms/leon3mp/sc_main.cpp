@@ -109,12 +109,16 @@ int sc_main(int argc, char** argv) {
     desc.add_options()
       ("help", "Shows this message.")
       ("luascript,s", boost::program_options::value<std::string>()/*->default(std::getenv("JSONLUA"))*/, "The Lua configuration script. Usual the json.lua to load a JSON configuration.")
-      ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json")
-      ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options")
-      ("listoptions,l", "Show a list of all avaliable options (config, power, ...)");
+      ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json.")
+      ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options.")
+      ("argument,a", boost::program_options::value<std::vector<std::string> >(), "Arguments to the software running inside the simulation.")
+      ("listoptions,l", "Show a list of all avaliable options");
+
+    boost::program_options::positional_options_description p;
+    p.add("argument", -1);
 
     boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
     boost::program_options::notify(vm);
 
     if(vm.count("help")) {
@@ -692,7 +696,7 @@ int sc_main(int argc, char** argv) {
         // LEON3 AT Processor
         // ==================
         v::info << "main" << "Instantiating AT Processor" << i << v::endl;
-        leon3_funcat_trap::Processor_leon3_funcat *leon3 = new leon3_funcat_trap::Processor_leon3_funcat(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS));
+        leon3_funcat_trap::Processor_leon3_funcat *leon3 = new leon3_funcat_trap::Processor_leon3_funcat(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS), p_report_power);
         leon3->ENTRY_POINT   = 0x0;
         leon3->MPROC_ID      = (p_mmu_cache_index + i) << 28;
 
@@ -779,8 +783,11 @@ int sc_main(int argc, char** argv) {
             osEmu->initSysCalls(p_system_osemu);
             std::vector<std::string> options;
             options.push_back(p_system_osemu);
-            for(int i = 1; i < argc; i++) {
-              options.push_back(argv[i]);
+            if(vm.count("argument")) {
+              std::vector<std::string> argvec = vm["argument"].as<std::vector<std::string> >();
+              for(std::vector<std::string>::iterator iter = argvec.begin(); iter != argvec.end(); iter++) {
+                options.push_back(*iter);
+              }
             }
             OSEmulatorBase::set_program_args(options);
             leon3->toolManager.addTool(*osEmu);
@@ -837,7 +844,6 @@ int sc_main(int argc, char** argv) {
     int i = 0;
     while(mApi->getParamList(n_uart + "." + boost::lexical_cast<std::string>(i), false).size()!=0) {
       std::string n_inst = n_uart + "." + boost::lexical_cast<std::string>(i);
-      gs::gs_param_array *p_inst = new gs::gs_param_array(p_inst);
       io_if *io = NULL;
       int port = 2000, type = 0, index = 1, addr = 0x001, mask = 0xFFF, irq = 2;
       mApi->getValue(std::string(n_inst + ".type"), type);

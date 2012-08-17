@@ -334,7 +334,7 @@ void leon3_funcat_trap::Processor_leon3_funcat::enableHistory( std::string fileN
 }
 
 leon3_funcat_trap::Processor_leon3_funcat::Processor_leon3_funcat( sc_module_name \
-    name, sc_time latency ) : sc_module(name), latency(latency), instrMem("instrMem"), \
+    name, sc_time latency, bool pow_mon) : sc_module(name), latency(latency), instrMem("instrMem"), \
     dataMem("dataMem"), IRQ_port("IRQ_IRQ", IRQ), irqAck("irqAck_PIN"){
     this->resetCalled = false;
     Processor_leon3_funcat::numInstances++;
