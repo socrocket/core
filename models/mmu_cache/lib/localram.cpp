@@ -60,10 +60,10 @@ localram::localram(sc_core::sc_module_name name,
 		   sreads_byte("bytes_read", 0ull, m_performance_counters),
 		   swrites_byte("bytes_written", 0ull, m_performance_counters),
 		   m_pow_mon(pow_mon),
-                   sta_power_norm("power.mmu_cache.localram.sta_power_norm", 0.0, true), // Normalized static power input
-                   int_power_norm("power.mmu_cache.localram.int_power_norm", 0.0, true), // Normalized dynamic internal power input (activ. independent)
-                   dyn_read_energy_norm("power.mmu_cache.localram.dyn_read_energy_norm", 0.0, true), // Normalized read energy input
-                   dyn_write_energy_norm("power.mmu_cache.localram.dyn_write_energy_norm", 0.0, true), // Normalized write energy iput
+                   sta_power_norm("power.mmu_cache.localram.sta_power_norm", 1269.53125, true), // Normalized static power input
+                   int_power_norm("power.mmu_cache.localram.int_power_norm", 1.61011e-12, true), // Normalized dynamic internal power input (activ. independent)
+                   dyn_read_energy_norm("power.mmu_cache.localram.dyn_read_energy_norm", 7.57408e-13, true), // Normalized read energy input
+                   dyn_write_energy_norm("power.mmu_cache.localram.dyn_write_energy_norm", 7.57408e-13, true), // Normalized write energy iput
                    power("power"),
                    sta_power("sta_power", 0.0, power), // Static power output
                    int_power("int_power", 0.0, power), // Internal power (activation independent)
