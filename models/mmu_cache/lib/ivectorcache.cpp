@@ -83,8 +83,8 @@ void ivectorcache::power_model() {
     sta_idata_power_norm * pow(2.0, (double)m_setsize) * (m_sets + 1) * 8;
 
   // Cell internal power = controller + itag ram + idata ram
-  int_power = int_power_norm * 1/(clockcycle.to_seconds()*1.0e+6) + 
-    int_itag_power_norm * m_number_of_vectors * 32 * 1/(clockcycle.to_seconds()*1.0e+6) + 
+  int_power = int_power_norm * 1/(clockcycle.to_seconds()) + 
+    int_itag_power_norm * m_number_of_vectors * 32 * 1/(clockcycle.to_seconds()) + 
     int_idata_power_norm * pow(2.0, (double)m_setsize) * (m_sets + 1) * 8;
 
   // Energy per itag read access (uJ)

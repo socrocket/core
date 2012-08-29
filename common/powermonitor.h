@@ -63,7 +63,7 @@ class powermonitor : public sc_module {
 
   // Triggers report generation 
   void report_trigger();
-
+  
   std::string get_model_name(std::string &param);
 
   std::vector<std::string> get_IP_params(std::vector<std::string> &params);
@@ -74,10 +74,11 @@ class powermonitor : public sc_module {
   SC_HAS_PROCESS(powermonitor);
 
   // Constructor
-  powermonitor(sc_core::sc_module_name name, sc_core::sc_time m_report_time = SC_ZERO_TIME);
+  powermonitor(sc_core::sc_module_name name, sc_core::sc_time m_report_time = SC_ZERO_TIME, bool exram=false);
 
+  // Local variables for constructor parameters
   sc_core::sc_time m_report_time;
-
+  bool m_exram;
 };
 
 #endif // POWERMONITOR_H

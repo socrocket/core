@@ -1009,8 +1009,8 @@ void mmu::power_model() {
     sta_tlb_power_norm * total_tlbs;
 
   // Cell internal power = mmu controller + itlb + dtlb
-  int_power = int_power_norm * 1/(clockcycle.to_seconds()*1.0e+6) +
-    int_tlb_power_norm * total_tlbs * 1/(clockcycle.to_seconds()*1.0e+6);
+  int_power = int_power_norm * 1/(clockcycle.to_seconds()) +
+    int_tlb_power_norm * total_tlbs * 1/(clockcycle.to_seconds());
 
   // itlb read energy
   dyn_itlb_read_energy = dyn_tlb_read_energy_norm * instr_tlbs;
