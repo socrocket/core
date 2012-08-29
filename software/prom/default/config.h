@@ -9,10 +9,10 @@
 #define conf_sys_timing true
 #define conf_sys_power false
 #define conf_ahbctrl 
-#define conf_ahbctrl_ioaddr 4095
-#define conf_ahbctrl_iomask 4095
-#define conf_ahbctrl_cfgaddr 4080
-#define conf_ahbctrl_cfgmask 4080
+#define conf_ahbctrl_ioaddr 0xFFF
+#define conf_ahbctrl_iomask 0xFFF
+#define conf_ahbctrl_cfgaddr 0xFF0
+#define conf_ahbctrl_cfgmask 0xFF0
 #define conf_ahbctrl_rrobin false
 #define conf_ahbctrl_defmast 0
 #define conf_ahbctrl_ioen true
@@ -21,8 +21,8 @@
 #define conf_ahbctrl_fpnpen true
 #define conf_ahbctrl_mcheck true
 #define conf_apbctrl 
-#define conf_apbctrl_haddr 2048
-#define conf_apbctrl_hmask 4095
+#define conf_apbctrl_haddr 0x800
+#define conf_apbctrl_hmask 0xFFF
 #define conf_apbctrl_index 2
 #define conf_apbctrl_check true
 #define conf_mmu_cache 

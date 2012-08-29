@@ -100,7 +100,7 @@ def make_systest(self):
     
     test = self.create_task('utest', [ram, rom, sys])
     test.filename = getattr(self, 'name', getattr(self, 'target', ramname))
-    test.ut_exec = [sys.abspath(), "--option", "conf.mctrl.prom.elf=%s" % (rom.abspath()), "--option", "conf.mctrl.ram.sdram=%s" % (ram.abspath())] + param
+    test.ut_exec = [sys.abspath(), "--option", "conf.mctrl.prom.elf=%s" % (rom.abspath()), "--option", "conf.mctrl.ram.sdram.elf=%s" % (ram.abspath()), "--option", "conf.system.osemu=%s" % (ram.abspath())] + param
 
 from waflib.TaskGen import feature,after_method
 feature('systest')(make_systest)

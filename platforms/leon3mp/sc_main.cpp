@@ -177,27 +177,29 @@ int sc_main(int argc, char** argv) {
         v::warn << "main" << "No json.lua found. Please put it in the current work directory, application directory or put the path to the file in the JSONLUA environment variable" << v::endl;
     }
 
+    std::cout << "options" << std::endl;
     gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
     if(vm.count("option")) {
-        const std::vector<std::string> *vec = &vm["options"].as< std::vector<std::string> >();
-        for(int i=0; i<vec->size(); i++) {
+        std::vector<std::string> vec = vm["option"].as< std::vector<std::string> >();
+        for(std::vector<std::string>::iterator iter = vec.begin(); iter!=vec.end(); iter++) {
            std::string parname;
            std::string parvalue;
+           std::cout << iter->c_str() << std::endl;
 
            // *** Check right format (parname=value)
            // of no space
-           if(vec->at(i).find_first_of("=") == std::string::npos) {
-               v::warn << "main" << "Option value in command line option has no '='. Type '--help' for help. " << vec->at(i);
+           if(iter->find_first_of("=") == std::string::npos) {
+               v::warn << "main" << "Option value in command line option has no '='. Type '--help' for help. " << *iter;
            }
            // if not space before equal sign
-           if(vec->at(i).find_first_of(" ") < vec->at(i).find_first_of("=")) {
-               v::warn << "main" << "Option value in command line option may not contain a space before '='. " << vec->at(i);
+           if(iter->find_first_of(" ") < iter->find_first_of("=")) {
+               v::warn << "main" << "Option value in command line option may not contain a space before '='. " << *iter;
            }
 
            // Parse parameter name
-           parname = vec->at(i).substr(0,vec->at(i).find_first_of("="));
+           parname = iter->substr(0,iter->find_first_of("="));
            // Parse parameter value
-           parvalue = vec->at(i).substr(vec->at(i).find_first_of("=")+1);
+           parvalue = iter->substr(iter->find_first_of("=")+1);
 
            // Set parameter
            mApi->setInitValue(parname, parvalue); 
@@ -728,7 +730,9 @@ int sc_main(int argc, char** argv) {
         // is activating the leon traps to map basic io functions to the host system
         // set_brk, open, read, ...
         if(!((std::string)p_system_osemu).empty()) {
+          v::warn << "OSEmu" << "content " << p_system_osemu << v::endl;
           if(boost::filesystem::exists(boost::filesystem::path((std::string)p_system_osemu))) {
+            v::warn << "OSEmu" << "Enabled" << v::endl;
             OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
             osEmu->initSysCalls(p_system_osemu);
             std::vector<std::string> options;
@@ -778,7 +782,9 @@ int sc_main(int argc, char** argv) {
         // is activating the leon traps to map basic io functions to the host system
         // set_brk, open, read, ...
         if(!((std::string)p_system_osemu).empty()) {
+          v::warn << "OSEmu" << "content " << p_system_osemu << v::endl;
           if(boost::filesystem::exists(boost::filesystem::path((std::string)p_system_osemu))) {
+            v::warn << "OSEmu" << "Enabled" << v::endl;
             OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
             osEmu->initSysCalls(p_system_osemu);
             std::vector<std::string> options;

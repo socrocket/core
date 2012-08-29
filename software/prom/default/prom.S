@@ -1,25 +1,12 @@
+
 /* Template boot-code for LEON3 test benches */
 
-#include "config.h"
+#include "prom.h"
 
-#ifndef conf_stacksize
-#define conf_stacksize 0x00020000
+#ifndef STACKSIZE
+#define STACKSIZE 0x00020000
 #endif
-#ifndef conf_ramsize
-#define conf_ramsize   0x00100000
-#endif
-#ifndef conf_mcfg1
-#define conf_mcfg1     0x10380033
-#endif
-#ifndef conf_mcfg2
-#define conf_mcfg2     0xe6B86e60
-#endif
-#ifndef conf_mcfg3
-#define conf_mcfg3     0x000ff000
-#endif
-#ifndef conf_sdcfg
-#define conf_sdcfg     0xe6A06e60
-#endif
+
 
 	.seg	"text"
 	.proc	0
@@ -146,35 +133,31 @@ _fsrxx:
 	srl %g3, 28, %g3
 	andcc %g3, 0x0f, %g3
 	bne 1f
-!     MEMCFG APB BASE
-	set ((conf_apbctrl_haddr&conf_apbctrl_hmask)<<20)|((conf_memctrl_apb_addr&conf_memctrl_apb_mask)<<8), %g1
-	set conf_mcfg1, %g2
+
+	set L2MCTRLIO, %g1
+	set MCFG1, %g2
 	st  %g2, [%g1]
-	set conf_mcfg2, %g2
+	set MCFG2, %g2
 	st  %g2, [%g1+4]
-	set conf_mcfg3, %g2
+	set MCFG3, %g2
 	st  %g2, [%g1+8]
-!     IRQMP APB BASE
-!	set ((conf_apbctrl_haddr&conf_apbctrl_hmask)<<20)|((conf_irqmp_addr&conf_irqmp_mask)<<8), %g1
+!	set IRQCTRL, %g1
 !	set 0x0ffff, %g2
 !	st  %g2, [%g1+0x10]
 
-! Check if vendor and device id is higher than 0x1009!
-	set (((conf_ahbctrl_ioaddr&conf_ahbctrl_iomask)<<20)|((conf_ahbctrl_cfgaddr&conf_ahbctrl_cfgmask)<<8)|(conf_memctrl_index<<5)), %g1
+	set 0xFFFFF860, %g1
 	ld  [%g1], %g2
 	srl %g2, 12, %g2
 	set 0x01009, %g1
 	subcc %g1, %g2, %g0
 	bne 1f
 
-! if newer device ASDCFG == MCFG1 set register to
-	set ((conf_apbctrl_haddr&conf_apbctrl_hmask)<<20)|((conf_memctrl_apb_addr&conf_memctrl_apb_mask)<<8), %g1
-!	set ASDCFG, %g1
-	set conf_sdcfg, %g2
+	set ASDCFG, %g1
+	set DSDCFG, %g2
 	st  %g2, [%g1]
 
 	! %g3 = cpu index
-1:	set conf_stacksize, %g2
+1:	set STACKSIZE, %g2
         mov %g0, %g1
 2:	subcc %g3, 0, %g0
 	be 3f
@@ -183,12 +166,12 @@ _fsrxx:
 	ba 2b
 	sub %g3, 1, %g3
 
-#       RAMSTART
-3:	set ((conf_memctrl_ram_addr&conf_memctrl_ram_mask)<<20)+ conf_ramsize-32, %fp
+
+3:	set RAMSTART+ RAMSIZE-32, %fp
 	sub %fp, %g1, %fp
 	sub %fp, 96, %sp
-#     RAMSTART
-	set ((conf_memctrl_ram_addr&conf_memctrl_ram_mask)<<20), %g1
+
+	set RAMSTART, %g1
 
 	jmp %g1
 	nop
