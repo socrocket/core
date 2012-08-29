@@ -51,6 +51,7 @@
 
 #include <execLoader.hpp>
 #include <osEmulator.hpp>
+
 #include "mmu_cache.h"
 #include "input_device.h"
 #include "arraymemory.h"
@@ -122,7 +123,7 @@ int sc_main(int argc, char** argv) {
     boost::program_options::notify(vm);
 
     if(vm.count("help")) {
-        std::cout << std::endl << "SoCRocekt -- LEON3 Multi-Processor Platform" << std::endl;
+        std::cout << std::endl << "SoCRocket -- LEON3 Multi-Processor Platform" << std::endl;
         std::cout << std::endl << "Usage: " << argv[0] << " [options]" << std::endl;
         std::cout << std::endl << desc << std::endl;
         return 0;
@@ -184,7 +185,6 @@ int sc_main(int argc, char** argv) {
         for(std::vector<std::string>::iterator iter = vec.begin(); iter!=vec.end(); iter++) {
            std::string parname;
            std::string parvalue;
-           std::cout << iter->c_str() << std::endl;
 
            // *** Check right format (parname=value)
            // of no space
@@ -412,7 +412,7 @@ int sc_main(int argc, char** argv) {
     if(!((std::string)p_mctrl_prom_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_prom_elf))) {
         uint8_t *execData;
-        v::info << "main" << "Loading Prom with " << p_mctrl_prom_elf << v::endl;
+        v::info << "rom" << "Loading Prom with " << p_mctrl_prom_elf << v::endl;
         ExecLoader prom_loader(p_mctrl_prom_elf); 
         execData = prom_loader.getProgData();
     
@@ -420,7 +420,7 @@ int sc_main(int argc, char** argv) {
           rom.write(prom_loader.getDataStart() + i - ((((unsigned int)p_mctrl_prom_addr)&((unsigned int)p_mctrl_prom_mask))<<20), execData[i]);
         }
       } else {
-        v::warn << "main" << "File " << p_mctrl_prom_elf << " does not exist!" << v::endl;
+        v::warn << "rom" << "File " << p_mctrl_prom_elf << " does not exist!" << v::endl;
       }
     }
 
@@ -445,7 +445,7 @@ int sc_main(int argc, char** argv) {
     if(!((std::string)p_mctrl_io_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_io_elf))) {
         uint8_t *execData;
-        v::info << "main" << "Loading IO with " << p_mctrl_io_elf << v::endl;
+        v::info << "io" << "Loading IO with " << p_mctrl_io_elf << v::endl;
         ExecLoader loader(p_mctrl_io_elf); 
         execData = loader.getProgData();
     
@@ -453,7 +453,7 @@ int sc_main(int argc, char** argv) {
           io.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_io_addr)&((unsigned int)p_mctrl_io_mask))<<20), execData[i]);
         }
       } else {
-        v::warn << "main" << "File " << p_mctrl_io_elf << " does not exist!" << v::endl;
+        v::warn << "io" << "File " << p_mctrl_io_elf << " does not exist!" << v::endl;
       }
     }
 
@@ -478,7 +478,7 @@ int sc_main(int argc, char** argv) {
     if(!((std::string)p_mctrl_ram_sram_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sram_elf))) {
         uint8_t *execData;
-        v::info << "main" << "Loading SRam with " << p_mctrl_ram_sram_elf << v::endl;
+        v::info << "sram" << "Loading SRam with " << p_mctrl_ram_sram_elf << v::endl;
         ExecLoader loader(p_mctrl_ram_sram_elf); 
         execData = loader.getProgData();
     
@@ -486,7 +486,7 @@ int sc_main(int argc, char** argv) {
           sram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
         }
       } else {
-        v::warn << "main" << "File " << p_mctrl_ram_sram_elf << " does not exist!" << v::endl;
+        v::warn << "sram" << "File " << p_mctrl_ram_sram_elf << " does not exist!" << v::endl;
       }
     }
 
@@ -510,7 +510,7 @@ int sc_main(int argc, char** argv) {
     if(!((std::string)p_mctrl_ram_sdram_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sdram_elf))) {
         uint8_t *execData;
-        v::info << "main" << "Loading SDRam with " << p_mctrl_ram_sdram_elf << v::endl;
+        v::info << "sdram" << "Loading SDRam with " << p_mctrl_ram_sdram_elf << v::endl;
         ExecLoader loader(p_mctrl_ram_sdram_elf); 
         execData = loader.getProgData();
     
@@ -518,7 +518,7 @@ int sc_main(int argc, char** argv) {
           sdram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
         }
       } else {
-        v::warn << "main" << "File " << p_mctrl_ram_sdram_elf << " does not exist!" << v::endl;
+        v::warn << "sdram" << "File " << p_mctrl_ram_sdram_elf << " does not exist!" << v::endl;
       }
     }
 
@@ -559,7 +559,7 @@ int sc_main(int argc, char** argv) {
       if(!((std::string)p_ahbmem_elf).empty()) {
         if(boost::filesystem::exists(boost::filesystem::path((std::string)p_ahbmem_elf))) {
           uint8_t *execData;
-          v::info << "main" << "Loading AHBMem with " << p_ahbmem_elf << v::endl;
+          v::info << "ahbmem" << "Loading AHBMem with " << p_ahbmem_elf << v::endl;
           ExecLoader prom_loader(p_ahbmem_elf); 
           execData = prom_loader.getProgData();
     
@@ -567,7 +567,7 @@ int sc_main(int argc, char** argv) {
             ahbmem->writeByteDBG(prom_loader.getDataStart() + i - ((((unsigned int)p_ahbmem_addr)&((unsigned int)p_ahbmem_mask))<<20), execData[i]);
           }
         } else {
-          v::warn << "main" << "File " << p_ahbmem_elf << " does not exist!" << v::endl;
+          v::warn << "ahbmem" << "File " << p_ahbmem_elf << " does not exist!" << v::endl;
         }
       }
     }
@@ -960,19 +960,15 @@ int sc_main(int argc, char** argv) {
     irqmp_rst.write(1);
 
     // * Power Monitor **************************
-    powermonitor pow_mon("pow_mon",sc_core::sc_time(2130, SC_US));
-
+    if(p_report_power) {
+        powermonitor *pow_mon =  new powermonitor("pow_mon");
+    }
     // ******************************************
-
 
     // start simulation
     cstart = clock();
     sc_core::sc_start();
     cend = clock();
-
-    // call power analyzer
-    if(p_report_power) {
-    }
 
     if(p_report_timing) {
         v::info << "Summary" << "Start: " << dec << cstart << v::endl;
