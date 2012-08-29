@@ -74,9 +74,9 @@ void dvectorcache::power_model() {
     sta_ddata_power_norm * pow(2.0, (double)m_setsize) * (m_sets + 1) * 8;
 
   // Cell internal power = controller + dtag ram + ddata ram
-  int_power = int_power_norm * 1/(clockcycle.to_seconds()*1.0e+6) + 
-    int_dtag_power_norm * m_number_of_vectors * 32 * (m_sets +1) * 1/(clockcycle.to_seconds()*1.0e+6) + 
-    int_ddata_power_norm * pow(2.0, (double)m_setsize) * (m_sets + 1) * 8 * 1/(clockcycle.to_seconds()*1.0e+6);
+  int_power = int_power_norm * 1/(clockcycle.to_seconds()) + 
+    int_dtag_power_norm * m_number_of_vectors * 32 * (m_sets +1) * 1/(clockcycle.to_seconds()) + 
+    int_ddata_power_norm * pow(2.0, (double)m_setsize) * (m_sets + 1) * 8 * 1/(clockcycle.to_seconds());
 
   // Energy per dtag read access (uJ)
   dyn_tag_read_energy = dyn_dtag_read_energy_norm * m_number_of_vectors * 32 * 32;

@@ -269,7 +269,7 @@ void Mctrl::power_model() {
   sta_power = sta_power_norm;
 
   // Cell internal power (uW)
-  int_power = int_power_norm * 1/(clock_cycle.to_seconds()*1.0e+6);
+  int_power = int_power_norm * 1/(clock_cycle.to_seconds());
 
   // Energy per read access (uJ)
   dyn_read_energy = dyn_read_energy_norm;

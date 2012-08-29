@@ -45,9 +45,11 @@
 
 // Constructor
 powermonitor::powermonitor(sc_core::sc_module_name name,
-                           sc_core::sc_time report_time) : 
+                           sc_core::sc_time report_time,
+                           bool exram) : 
   sc_module(name),
-  m_report_time(report_time)
+  m_report_time(report_time),
+  m_exram(exram)
 {
 
   if (report_time != SC_ZERO_TIME) {
@@ -180,58 +182,65 @@ void powermonitor::gen_report() {
 
     models_list = get_IP_params(power_list);
 
-    v::info << name() << " ***************************************************** " << v::endl;
-    v::info << name() << " * Component: " << get_model_name(models_list[0]) << v::endl;
-    v::info << name() << " * --------------------------------------------------- " << v::endl;
+    if (!((!m_exram)&&((get_model_name(models_list[0])=="rom")||(get_model_name(models_list[0])=="sram")||(get_model_name(models_list[0])=="sdram")||(get_model_name(models_list[0])=="io")))) {
 
-    // Model static power
-    if (mApi->existsParam(std::string(get_model_name(models_list[0]) + ".power.sta_power"))) {
+      v::info << name() << " ***************************************************** " << v::endl;
+      v::info << name() << " * Component: " << get_model_name(models_list[0]) << v::endl;
+      v::info << name() << " * --------------------------------------------------- " << v::endl;
 
-      // Read models' static power
-      mApi->getValue(std::string(get_model_name(models_list[0]) + ".power.sta_power"), model_sta_power);
+      // Model static power
+      if (mApi->existsParam(std::string(get_model_name(models_list[0]) + ".power.sta_power"))) {
+
+        // Read models' static power
+        mApi->getValue(std::string(get_model_name(models_list[0]) + ".power.sta_power"), model_sta_power);
       
-      v::info << name() << " * Static power (leakage): " << model_sta_power << " pW" << v::endl;
+        v::info << name() << " * Static power (leakage): " << model_sta_power << " pW" << v::endl;
 
-      total_sta_power += model_sta_power;
+        total_sta_power += model_sta_power;
 
-    } else {
+      } else {
 
-      //v::warn << name() << " * Model provides no static power information! " << v::endl;
+        //v::warn << name() << " * Model provides no static power information! " << v::endl;
 
-    }
+      }
 
-    // Does the model provide switching independent dynamic power (internal power) information
-    if (mApi->existsParam(std::string(get_model_name(models_list[0]) + ".power.int_power"))) {
+      // Does the model provide switching independent dynamic power (internal power) information
+      if (mApi->existsParam(std::string(get_model_name(models_list[0]) + ".power.int_power"))) {
 
-      mApi->getValue(std::string(get_model_name(models_list[0]) + ".power.int_power"), model_int_power);
+        mApi->getValue(std::string(get_model_name(models_list[0]) + ".power.int_power"), model_int_power);
 
-      v::info << name() << " * Internal power (dynamic): " << model_int_power << " uW" << v::endl;
+        v::info << name() << " * Internal power (dynamic): " << model_int_power << " uW" << v::endl;
 
-      total_int_power += model_int_power;
+        total_int_power += model_int_power;
 
-    } else {
+      } else {
 
-      //v::warn << name() << " * Model provides no internal power information!" << v::endl;
+        //v::warn << name() << " * Model provides no internal power information!" << v::endl;
 
-    }    
+      }    
 
-    // Does the model induce switching dependent dynamic read power
-    if (mApi->existsParam(std::string(get_model_name(models_list[0]) + ".power.swi_power"))) {
+      // Does the model induce switching dependent dynamic read power
+      if (mApi->existsParam(std::string(get_model_name(models_list[0]) + ".power.swi_power"))) {
  
-      mApi->getValue(std::string(get_model_name(models_list[0]) + ".power.swi_power"), model_swi_power);
+        mApi->getValue(std::string(get_model_name(models_list[0]) + ".power.swi_power"), model_swi_power);
+        
+        v::info << name() << " * Switching power (dynamic): " << model_swi_power << " uW" << v::endl;
 
-      v::info << name() << " * Switching power (dynamic): " << model_swi_power << " uW" << v::endl;
+        total_swi_power += model_swi_power;
 
-      total_swi_power += model_swi_power;
+      } else {
 
+        //v::warn << name() << " * Model provides no switching power information!" << v::endl;
+
+      }
+
+      v::info << name() << " ***************************************************** " << v::endl;
     } else {
 
-      //v::warn << name() << " * Model provides no switching power information!" << v::endl;
-
+      v::info << name() << " ***************************************************** " << v::endl;
+      v::info << name() << " * Component: " << get_model_name(models_list[0]) << " excluded!" << v::endl;
+      v::info << name() << " ***************************************************** " << v::endl;
     }
-
-    v::info << name() << " ***************************************************** " << v::endl;
-
   }
 
   v::info << name() << " ***************************************************** " << v::endl;
