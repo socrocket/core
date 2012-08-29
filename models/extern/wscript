@@ -50,7 +50,7 @@ extern = [
   #'LEON2/simulatorSources/funcLT', 
   'LEON3/simulatorSources/leon3.funcat',
   'LEON3/simulatorSources/leon3.funclt',
-  #'SpaceWire',
+  'SpaceWire',
   #'SpaceWire/tests',
 ]
 
