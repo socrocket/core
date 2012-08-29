@@ -1,54 +1,48 @@
+#!/usr/bin/env python
 import csv
+import sys
+import md5
+import os.path
+from jsontools import set_json_attr
 
-tmpl = """
-/* %d */
-{
-  "conf" : {
-    "prom" : {
-      "elf" : "./rtems-ccsds123.mp%s.sparc"
-    },
-    "uart" : {
-      "0" : {
-        "index" : 1,
-        "addr" : 1,
-        "mask" : 4095,
-        "irq" : 2,
-        "type" : 0,
-        "port" : %d
-      }
-    },
-    "mmu_cache" : {
-      "num" : %s
-    },
-    "ic" : {
-      "en" : true,
-      "repl" : 0,
-      "sets" : %s,
-      "linesize" : 4,
-      "setsize" : %s,
-      "setlock" : 1
-    },
-    "dc" : {
-      "en" : true,
-      "repl" : 2,
-      "sets" : %s,
-      "linesize" : 4,
-      "setsize" : %s,
-      "setlock" : 1,
-      "snoop" : 1,
-    }
-  }
-}
-"""
+def csv2json(csvfile, basefile, outputdir):
+  title = None
+  cols = 0
+  reader = csv.reader(open(csvfile, 'rv'), delimiter=',', quotechar='"')
+  try:
+    for row in reader:
+      if not title:
+        title = row
+        cols = len(title)
+      else:
+        attrs = []
+        name = row[0]
+        for idx in range(1, cols):
+          attrs.append("%s=%s" % (title[idx], row[idx]))
+        attrs.append("conf.uart.0.port=%d" % (2000+idx))
+        jsonoutfile = set_json_attr(basefile, attrs)
+        filename = os.path.join(outputdir, '%s.json' % (name))
+        if os.path.exists(filename):
+          md5new = md5.new(jsonoutfile).digest()
+          old = open(filename, 'rv')
+          md5old = md5.new(old.read()).digest()
+          old.close()
+          if md5new == md5old:
+            continue
+        fd = open(filename, "w")
+        fd.write(jsonoutfile)
+        fd.close()
+  except csv.Error, e:
+    sys.exit('file %s, line %d: %s' % (csvfile, reader.line_num, e))
 
-reader = csv.reader(open('configurations-mp2.csv', 'rv'), delimiter=',', quotechar='"')
-for row in reader:
-  num = int(row[0])
-  cpu = row[1]
-  isets = row[2]
-  isize = row[3]
-  dsets = row[4]
-  dsize = row[5]
-  f = open('cfg.%03d.json' % num, "w")
-  f.write(tmpl % (num, cpu, (7000+num), cpu, isets, isize, dsets, dsize))
-  f.close()
+if __name__ == "__main__":
+  if len(sys.argv) < 3:
+    sys.exit("Usage: csv2json <csvfile> <jsonbasefile> [outputdir]")
+  else:
+    csvfile = sys.argv[1]
+    jsonfile = sys.argv[2]
+    if len(sys.argv)==4:
+      outputdir = sys.argv[3]
+    else:
+      outputdir = os.getcwd()
+    csv2json(csvfile, jsonfile, outputdir)
