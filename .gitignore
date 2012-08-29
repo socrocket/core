@@ -1,4 +1,11 @@
 *.pyc
+*.o
+*.sparc
+*.log
+
+# Mac Files
+.DS_Store
+._.DS_Store
 
 # waf files
 .lock-wafbuild
