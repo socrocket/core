@@ -8,9 +8,11 @@ from jsontools import set_json_attr
 def csv2json(csvfile, basefile, outputdir):
   title = None
   cols = 0
+  num = 0
   reader = csv.reader(open(csvfile, 'rv'), delimiter=',', quotechar='"')
   try:
     for row in reader:
+      num = num + 1
       if not title:
         title = row
         cols = len(title)
@@ -19,7 +21,7 @@ def csv2json(csvfile, basefile, outputdir):
         name = row[0]
         for idx in range(1, cols):
           attrs.append("%s=%s" % (title[idx], row[idx]))
-        attrs.append("conf.uart.0.port=%d" % (2000+idx))
+        attrs.append("conf.uart.0.port=%d" % (2000+num))
         jsonoutfile = set_json_attr(basefile, attrs)
         filename = os.path.join(outputdir, '%s.json' % (name))
         if os.path.exists(filename):
