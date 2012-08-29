@@ -11,3 +11,6 @@
 .lock-wafbuild
 .waf*
 build
+
+# Mkprom2
+xdump.s
