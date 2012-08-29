@@ -390,8 +390,8 @@ leon3_funcat_trap::Processor_leon3_funcat::Processor_leon3_funcat( sc_module_nam
                                            irqAck("irqAck_PIN"),
                                            m_pow_mon(pow_mon),
                                            sta_power_norm("power.leon3.sta_power_norm", 5.27e+8, true), // norm. static power
-                                           int_power_norm("power.leon3.int_power_norm", 5.497e-8, true), // norm. dynamic power
-                                           dyn_instr_energy_norm("power.leon3.dyn_instr_energy_norm", 3.95e-7, true), // norm. average energy per instruction
+                                           int_power_norm("power.leon3.int_power_norm", 5.497e-6, true), // norm. dynamic power
+                                           dyn_instr_energy_norm("power.leon3.dyn_instr_energy_norm", 3.95e-5, true), // norm. average energy per instruction
                                            power("power"),
                                            sta_power("sta_power", 0.0, power), // Static power output
                                            int_power("int_power", 0.0, power), // Internal power of module

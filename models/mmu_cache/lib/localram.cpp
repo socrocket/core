@@ -199,7 +199,7 @@ void localram::power_model() {
   sta_power = sta_power_norm * (m_lrsize << 3);
   
   // Cell internal power (uW)
-  int_power = int_power_norm * (m_lrsize << 3) * 1/(clockcycle.to_seconds()*1.0e+6);
+  int_power = int_power_norm * (m_lrsize << 3) * 1/(clockcycle.to_seconds());
 
   // Energy per read access (uJ)
   dyn_read_energy = dyn_read_energy_norm * 32 * (m_lrsize << 3);
