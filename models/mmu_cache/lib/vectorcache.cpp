@@ -310,7 +310,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             if (m_pow_mon) dyn_data_reads++;
 
             // increment time
-            *delay += ((len >> 3)+1)*clockcycle;
+            *delay += ((len - 1) >> 2)*clockcycle;
 
             // valid data in set i
             cache_hit = i;

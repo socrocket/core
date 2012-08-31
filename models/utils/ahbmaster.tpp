@@ -101,7 +101,7 @@ void AHBMaster<BASE>::ahbread(uint32_t addr, unsigned char * data, uint32_t leng
   // Allocate new transactin (reference counter = 1
   tlm::tlm_generic_payload *trans = ahb.get_transaction();
 
-  v::debug << this->name() << "Allocate new transaction: " << hex << trans << "Acquire / Ref-Count = " << trans->get_ref_count() << v::endl;
+  v::debug << this->name() << "Allocate new transaction: " << hex << trans << " Acquire / Ref-Count = " << trans->get_ref_count() << v::endl;
 
   // Initialize transaction
   trans->set_command(tlm::TLM_READ_COMMAND);

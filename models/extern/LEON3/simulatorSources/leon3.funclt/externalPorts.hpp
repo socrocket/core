@@ -179,11 +179,11 @@ namespace leon3_funclt_trap{
             } else {
 	              //sc_time delay = this->quantKeeper.get_local_time();
                 unsigned int debug = 0;
-	              sc_time delay = SC_ZERO_TIME;
+                sc_time delay = SC_ZERO_TIME;
                 icio_payload_extension *icioExt = new icio_payload_extension();
-	              tlm::tlm_generic_payload trans;
+                tlm::tlm_generic_payload trans;
 		
-		            // Create & init instruction payload extension
+                // Create & init instruction payload extension
                 icioExt->flush  = flush;
                 icioExt->debug = &debug;
 
@@ -208,7 +208,7 @@ namespace leon3_funclt_trap{
                     this->dmi_data.init();
                     this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
                 }
-
+                
                 wait(delay);
                 //Now lets keep track of time
                 //this->quantKeeper.set(delay);
