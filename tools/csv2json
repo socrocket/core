@@ -18,9 +18,9 @@ def csv2json(csvfile, basefile, outputdir):
         cols = len(title)
       else:
         attrs = []
-        name = row[0]
+        name = row[0].strip()
         for idx in range(1, cols):
-          attrs.append("%s=%s" % (title[idx], row[idx]))
+          attrs.append("%s=%s" % (title[idx].strip(), row[idx].strip()))
         attrs.append("conf.uart.0.port=%d" % (2000+num))
         jsonoutfile = set_json_attr(basefile, attrs)
         filename = os.path.join(outputdir, '%s.json' % (name))
