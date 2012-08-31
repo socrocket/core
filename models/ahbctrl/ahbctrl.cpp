@@ -834,6 +834,9 @@ void AHBCtrl::AcceptThread() {
 // Send END_REQ to master
 void AHBCtrl::RequestThread() {
 
+  // master-address pair for dcache snooping
+  t_snoop snoopy;
+
   payload_t *trans;
   connection_t connection;
 
@@ -852,6 +855,18 @@ void AHBCtrl::RequestThread() {
       ahbIN.get_extension<amba::amba_id>(master_id, *trans);
 
       connection = request_map[master_id->value];
+     
+      // Broadcast master_id and address for dcache snooping
+      if (trans->get_command() == tlm::TLM_WRITE_COMMAND) {
+
+        snoopy.master_id  = master_id->value;
+        snoopy.address = trans->get_address();
+        snoopy.length = trans->get_data_length();
+
+        // Send to signal socket
+        snoop.write(snoopy);
+
+      }
 
       // We don't need the address bus anymore
       address_bus_owner = -1;
