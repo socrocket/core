@@ -613,6 +613,9 @@ void AHBCtrl::arbitrate() {
 
     // Last address of current transfer must have been sampled.
     // Last data sample is on the way.
+    //v::debug << name() << " address_bus_owner: " << address_bus_owner << " data_bus_state: " << data_bus_state << v::endl;
+    //if (sc_time_stamp() > sc_core::sc_time(83880, SC_NS)) sc_stop();
+
     if ((address_bus_owner == -1) && ((data_bus_state == RESPONSE) || (data_bus_state == IDLE))) {
 
       // Priority arbitration

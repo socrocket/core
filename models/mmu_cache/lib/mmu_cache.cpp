@@ -890,7 +890,7 @@ void mmu_cache::icio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_ti
   // ---------------------------
 
   // Consume component delay
-  //wait(delay);
+  delay+=clock_cycle;
 
   // Reset delay
   //delay = SC_ZERO_TIME;
@@ -906,9 +906,6 @@ void mmu_cache::dcio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_ti
   // -----------------------
   exec_data(trans, delay, false);
   // -----------------------
-
-  // Consume component delay
-  //wait(delay);
 
   // Reset delay
   //delay = SC_ZERO_TIME;
