@@ -101,7 +101,7 @@ void AHBMaster<BASE>::ahbread(uint32_t addr, unsigned char * data, uint32_t leng
   // Allocate new transactin (reference counter = 1
   tlm::tlm_generic_payload *trans = ahb.get_transaction();
 
-  v::debug << this->name() << "Allocate new transaction: " << hex << trans << "Acquire / Ref-Count = " << trans->get_ref_count() << v::endl;
+  v::debug << this->name() << "Allocate new transaction: " << hex << trans << " Acquire / Ref-Count = " << trans->get_ref_count() << v::endl;
 
   // Initialize transaction
   trans->set_command(tlm::TLM_READ_COMMAND);
@@ -367,6 +367,16 @@ void AHBMaster<BASE>::ResponseThread() {
     // Get transaction from PEQ
     trans = m_ResponsePEQ.get_next_transaction();
 
+    if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
+
+       v::error << this->name() << "Error in Response for transaction: " << trans << v::endl;
+
+       // This variable is visible within response_callback.
+       // Needs to be externally resetted.
+       response_error = true;    
+
+    }
+    
     // Check result
     response_callback(trans);
 

@@ -533,12 +533,12 @@ do
 end
 
 local configfile = os.getenv("JSONCONFIG") or ""
+base.print("Loading configuration: "..configfile)
 if configfile ~= "" then
   local settings = decodeFile(configfile)
   if settings and settings.conf then
     base.conf = settings.conf
   end
 end
---base.print(base.conf)
 --for k,v in base.pairs(base.conf) do base.print(k,v) end
 --for k,v in base.pairs(base.conf.group1) do base.print(k,v) end

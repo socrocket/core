@@ -97,18 +97,22 @@ class AHBMaster : public BASE, public AHBDevice {
 
   /// The abstraction layer of the instance (LT or AT)
   amba::amba_layer_ids m_ambaLayer;
-
-        /// GreenControl API container
-        gs::cnf::cnf_api *m_api;
+ 
+  /// GreenControl API container
+  gs::cnf::cnf_api *m_api;
         
-        /// Open a namespace for performance counting in the greencontrol realm
-        gs::gs_param_array m_performance_counters;
+  /// Open a namespace for performance counting in the greencontrol realm
+  gs::gs_param_array m_performance_counters;
 
-        /// Stores the number of Bytes read from the device
-        gs::gs_param<unsigned long long> m_reads;
+  /// Stores the number of Bytes read from the device
+  gs::gs_param<unsigned long long> m_reads;
 
-        /// Stores the number of Bytes written from the device
-        gs::gs_param<unsigned long long> m_writes;
+  /// Stores the number of Bytes written from the device
+  gs::gs_param<unsigned long long> m_writes;
+
+  // Indicates a TLM response error
+  bool response_error;
+
 };
 
 #include "ahbmaster.tpp"

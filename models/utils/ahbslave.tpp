@@ -29,15 +29,20 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
     // Call the functional part of the model
     exec_func(trans, delay);
 
-    request_delay = (trans.get_data_length() <= 4) ? get_clock() - sc_core::sc_time(1, SC_PS) : delay - sc_core::sc_time(1, SC_PS);
+    //v::debug << this->name() << "Total delay: " << delay << v::endl;
 
+    //request_delay = (trans.get_data_length() <= 4) ? get_clock() - sc_core::sc_time(1, SC_PS) : delay - sc_core::sc_time(1, SC_PS);
+    request_delay = delay - sc_core::sc_time(1, SC_PS);
+    
     v::debug << this->name() << "Request Delay: " << request_delay << v::endl;
 
     m_RequestPEQ.notify(trans, request_delay);
 
     // The delay returned by the function model relates to the time for delivering
     // the data + wait states.
-    address_cycle_base = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
+    //address_cycle_base = (trans.get_data_length() <= 4) ? 1 : (((trans.get_data_length()-1) >> 2) +1);
+    address_cycle_base = (((trans.get_data_length()-1) >> 2) +1);
+    //address_cycle_base = ((trans.get_data_length() / 4) + 1);
     response_delay = (delay - (get_clock()*(address_cycle_base-1)) - sc_core::sc_time(1, SC_PS));
 
     v::debug << this->name() << "Response Delay: " << response_delay << v::endl;

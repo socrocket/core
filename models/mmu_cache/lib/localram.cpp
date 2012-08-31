@@ -144,7 +144,7 @@ bool localram::mem_read(unsigned int addr, unsigned int asi, unsigned char *data
   // Update debug information
   SCRATCHPAD_SET(*debug);
 
-  *delay = clockcycle;
+  *delay = ((len-1)>>2)*clockcycle;
 
   return true;
 
@@ -177,7 +177,7 @@ void localram::mem_write(unsigned int addr, unsigned int asi, unsigned char *dat
   // update debug information
   SCRATCHPAD_SET(*debug);
   
-  *delay = clockcycle;
+  *delay = ((len-1)>>2)*clockcycle;
 
 }
 
