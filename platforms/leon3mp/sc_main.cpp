@@ -178,7 +178,6 @@ int sc_main(int argc, char** argv) {
         v::warn << "main" << "No json.lua found. Please put it in the current work directory, application directory or put the path to the file in the JSONLUA environment variable" << v::endl;
     }
 
-    std::cout << "options" << std::endl;
     gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
     if(vm.count("option")) {
         std::vector<std::string> vec = vm["option"].as< std::vector<std::string> >();
