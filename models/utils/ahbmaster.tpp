@@ -367,6 +367,16 @@ void AHBMaster<BASE>::ResponseThread() {
     // Get transaction from PEQ
     trans = m_ResponsePEQ.get_next_transaction();
 
+    if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
+
+       v::error << this->name() << "Error in Response for transaction: " << trans << v::endl;
+
+       // This variable is visible within response_callback.
+       // Needs to be externally resetted.
+       response_error = true;    
+
+    }
+    
     // Check result
     response_callback(trans);
 

@@ -31,7 +31,10 @@ AHBMaster<sc_module>::AHBMaster(sc_module_name nm,
   m_ResponsePEQ("ResponsePEQ"),
   m_ambaLayer(ambaLayer),
   m_performance_counters("performance_counters"),
-  m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters) { 
+  m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters),
+  response_error(false)
+
+  { 
     
 
   if (ambaLayer == amba::amba_AT) {
