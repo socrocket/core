@@ -68,7 +68,7 @@ def build(bld):
   #    system      = 'leon3mp.platform',
   #    rom         = 'default.prom',
   #    ram         = 'hello.sparc',
-  #    args       = ['--option', 'conf.system.at=true'],
+  #    at          = True,
   #)
   
   # cache.sparc
@@ -144,7 +144,7 @@ def build(bld):
   #    system      = 'leon3mp.platform',
   #    rom         = 'default.prom',
   #    ram         = 'irqmp.sparc',
-  #    args       = ['--option', 'conf.system.at=true'],
+  #    at          = True,
   #)
 
   # ram.sparc
@@ -206,7 +206,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'reg.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
   """
   # mmu.sparc
@@ -238,7 +238,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'mmu.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
   """
   # readpnp.sparc
@@ -270,7 +270,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'readpnp.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
   """
   # argstests.sparc
@@ -296,7 +296,8 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'argstest.sparc',
-      args       = ['--option', 'conf.system.at=true', 'one', 'two', 'three', 'four']
+      at          = True,
+      args        = ['one', 'two', 'three', 'four']
   )
   
   # amba.sparc

@@ -55,20 +55,20 @@ def build(bld):
      source       = ['AES.c'],
      install_path = None,
   )
-
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'aes.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'aes.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at       = True,
   )
   
   # bcnt.sparc
@@ -93,7 +93,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'bcnt.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # blit.sparc
@@ -118,7 +118,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'blit.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # crc.sparc
@@ -143,7 +143,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'crc.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # des.sparc
@@ -168,7 +168,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'des.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # dhry.sparc
@@ -193,7 +193,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'dhry.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # engine.sparc
@@ -218,7 +218,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'engine.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # fft.sparc
@@ -243,7 +243,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'fft.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # fib.sparc
@@ -268,7 +268,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'fib.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # fir2.sparc
@@ -293,7 +293,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'fir2.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # gamma.sparc
@@ -318,7 +318,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'gamma.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # hanoi.sparc
@@ -343,7 +343,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'hanoi.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # heapsort.sparc
@@ -368,7 +368,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'heapsort.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # jpeg.sparc
@@ -393,7 +393,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'jpeg.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # lms.sparc
@@ -418,7 +418,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'lms.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # matrix.sparc
@@ -443,7 +443,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'matrix.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # mdrall.sparc
@@ -468,7 +468,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'mdrall.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # pocsag.sparc
@@ -493,7 +493,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'pocsag.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # queens.sparc
@@ -518,7 +518,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'queens.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # quicksort.sparc
@@ -543,7 +543,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'quicksort.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # tolstoy.sparc
@@ -568,7 +568,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'tolstoy.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
   """
   # v42.sparc
@@ -593,7 +593,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'v42.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # wavelt.sparc
@@ -618,7 +618,7 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'wavelt.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
   # whets.sparc
@@ -643,6 +643,6 @@ def build(bld):
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'whets.sparc',
-      args       = ['--option', 'conf.system.at=true'],
+      at          = True,
   )
 
