@@ -28,7 +28,7 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Class definition for input device.
+// Purpose:    Class definition for ahbin.
 //             Provides frames of data samples in regual intervals.
 //             CPU is notifed about new data via IRQ.
 //
@@ -47,7 +47,7 @@
 #include "ahbin.h"
 
 /// Constructor
-ahbin::input_device(sc_core::sc_module_name name,     // The SystemC name of the component
+ahbin::ahbin(sc_core::sc_module_name name,     // The SystemC name of the component
                            unsigned int hindex,              // The master index for registering with the AHB
                            unsigned int hirq,                // The number of the IRQ raised for available data
                            unsigned int framesize,           // The size of the data frame to be generated

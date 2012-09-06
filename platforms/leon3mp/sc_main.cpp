@@ -53,7 +53,7 @@
 #include <osEmulator.hpp>
 
 #include "mmu_cache.h"
-#include "input_device.h"
+#include "ahbin.h"
 #include "arraymemory.h"
 #include "apbctrl.h"
 #include "ahbmem.h"
@@ -577,8 +577,8 @@ int sc_main(int argc, char** argv) {
     }
 
     
-    // AHBMaster - input_device
-    // ========================
+    // AHBMaster - ahbin (input_device)
+    // ================================
 #if 0
     gs::gs_param_array p_indev("indev", p_conf);
     gs::gs_param<bool> p_indev_en("en", true, p_indev);
@@ -588,7 +588,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_indev_frameaddr("frameaddr", 0xA00, p_indev);
     gs::gs_param<unsigned int> p_indev_interval("interval", 1, p_indev);
     if(p_indev_en) {
-      input_device *sensor = new input_device("sensor",
+        ahb_in *sensor = new ahbin("sensor",
         p_indev_index,
         p_indev_irq,
         p_indev_framesize,
