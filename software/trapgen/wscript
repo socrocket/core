@@ -55,14 +55,14 @@ def build(bld):
      source       = ['AES.c'],
      install_path = None,
   )
-  """
+  
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'aes.sparc',
   )
-  """
+  
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
