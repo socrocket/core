@@ -49,6 +49,8 @@ from waflib import Options
 from waflib.Configure import conf
 from waflib import Context
 import Utils
+from waflib import Utils,Task,Logs,Options
+testlock=Utils.threading.Lock()
 import os, io, sys, stat
 import datetime, time
 
@@ -59,26 +61,54 @@ def options(opt):
 def configure(ctx):
   ctx.env["SYSTESTS"] = Options.options.systests
 
-@TaskGen.feature('systemplate')
-def make_systemplate(self):
-  # Put the execution of the generate task directly in here if any problems happen
-  # Be careful only to execute the test if the platform is not jet generated
-  
-  l = self.target.split('.')
-  template = l[0]
-  load = l[1] or None
-
-  src = self.bld.srcnode.find_resource(os.path.join("templates", template + ".tpa"))
-  dstpath = os.path.join(self.bld.srcnode.abspath(),("platforms/%s-%s" % (template, load)))
-  if os.path.exists(src.abspath()):
-    if not os.path.isdir(dstpath) or (os.stat(src.abspath()).st_ctime > os.stat(dstpath)):
-      import subprocess
-      print "Generate Platform"
-      cmd = """from generator.wizard import main; main("%s", "%s")""" % (template, load)
-      subprocess.call(["python", "-c", cmd ], cwd=self.bld.srcnode.abspath())
-      self.bld.recurse(dstpath)
+def systest_task_str(self):
+  if hasattr(self,'rom'):
+    return "utest: %s (%s, %s) on %s\n" % (self.ram, self.rom, self.atstr, self.sys)
   else:
-    print "Platform is not found!"
+    return self.__oldstr__()
+def systest_task_run(self):
+  status=0
+  if hasattr(self, 'rom'):
+    filename="%s (%s, %s) on %s" % (self.filename, self.rom, self.atstr, self.sys)
+  else:
+    filename=self.inputs[0].abspath()
+  self.ut_exec=getattr(self,'ut_exec',[filename])
+  if getattr(self.generator,'ut_fun',None):
+    self.generator.ut_fun(self)
+  try:
+    fu=getattr(self.generator.bld,'all_test_paths')
+  except AttributeError:
+    fu=os.environ.copy()
+    self.generator.bld.all_test_paths=fu
+    lst=[]
+    for g in self.generator.bld.groups:
+      for tg in g:
+        if getattr(tg,'link_task',None):
+          lst.append(tg.link_task.outputs[0].parent.abspath())
+    def add_path(dct,path,var):
+      dct[var]=os.pathsep.join(Utils.to_list(path)+[os.environ.get(var,'')])
+    if sys.platform=='win32':
+      add_path(fu,lst,'PATH')
+    elif sys.platform=='darwin':
+      add_path(fu,lst,'DYLD_LIBRARY_PATH')
+      add_path(fu,lst,'LD_LIBRARY_PATH')
+    else:
+      add_path(fu,lst,'LD_LIBRARY_PATH')
+  cwd=getattr(self.generator,'ut_cwd','')or self.inputs[0].parent.abspath()
+  proc=Utils.subprocess.Popen(self.ut_exec,cwd=cwd,env=fu,stderr=Utils.subprocess.PIPE,stdout=Utils.subprocess.PIPE)
+  (stdout,stderr)=proc.communicate()
+  tup=(filename,proc.returncode,stdout,stderr)
+  self.generator.utest_result=tup
+  testlock.acquire()
+  try:
+    bld=self.generator.bld
+    Logs.debug("ut: %r",tup)
+    try:
+      bld.utest_results.append(tup)
+    except AttributeError:
+      bld.utest_results=[tup]
+  finally:
+    testlock.release()
 
 # Extended Testing support
 def make_systest(self):
@@ -87,20 +117,74 @@ def make_systest(self):
 
   sysname = getattr(self, 'system', None)
   romname = getattr(self, 'prom', getattr(self, 'rom', None)) 
-  ramname = getattr(self, 'ram', getattr(self, 'sram', getattr(self, 'sdram', None)))
+  sdramname = getattr(self, 'ram', getattr(self, 'sdram', None))
+  sramname = getattr(self, 'sram', None)
+  at = getattr(self, 'at', False)
+  atstr="lt"
+  atbool="false"
   param = Utils.to_list(getattr(self, 'args', getattr(self, 'param', getattr(self, 'ut_param', []))))
   
-  if sysname and romname and ramname:
+  if at:
+    atstr="at"
+    atbool="true"
+
+  if sysname and romname and (sdramname or sramname):
+    
     systgen = self.bld.get_tgen_by_name(sysname)
     sys = systgen.path.find_or_declare(sysname)
+
     romtgen = self.bld.get_tgen_by_name(romname)
     rom = romtgen.path.find_or_declare(romname)
-    ramtgen = self.bld.get_tgen_by_name(ramname)
-    ram = ramtgen.path.find_or_declare(ramname)
-    
-    test = self.create_task('utest', [ram, rom, sys])
-    test.filename = getattr(self, 'name', getattr(self, 'target', ramname))
-    test.ut_exec = [sys.abspath(), "--option", "conf.mctrl.prom.elf=%s" % (rom.abspath()), "--option", "conf.mctrl.ram.sdram.elf=%s" % (ram.abspath()), "--option", "conf.system.osemu=%s" % (ram.abspath())] + param
+
+    exec_list = [sys.abspath(), "--option", "conf.mctrl.prom.elf=%s" % (rom.abspath())]
+    deps_list = [sys, rom]
+    filename = ""
+
+    if sdramname:
+      ramtgen = self.bld.get_tgen_by_name(sdramname)
+      ram = ramtgen.path.find_or_declare(sdramname)
+
+      exec_list.append("--option")
+      exec_list.append("conf.mctrl.ram.sdram.elf=%s" % (ram.abspath()))
+      exec_list.append("--option")
+      exec_list.append("conf.system.osemu=%s" % (ram.abspath()))
+      exec_list.append("--option")
+      exec_list.append("conf.system.log=%s-%s" % (ram.abspath(), atstr))
+
+      deps_list.append(ram)
+
+      filename = ram.abspath()
+
+    else:
+      ramtgen = self.bld.get_tgen_by_name(sramname)
+      ram = ramtgen.path.find_or_declare(sramname)
+
+      exec_list.append("--option")
+      exec_list.append("conf.mctrl.ram.sram.elf=%s" % (ram.abspath()))
+      exec_list.append("--option")
+      exec_list.append("conf.system.osemu=%s" % (ram.abspath()))
+      exec_list.append("--option")
+      exec_list.append("conf.system.log=%s-%s" % (ram.abspath(), atstr))
+
+      deps_list.append(ram)
+
+      filename = ram.abspath()
+
+    exec_list.append("--option")
+    exec_list.append("conf.system.at=%s" % (atbool))
+
+    test = self.create_task('utest', deps_list)
+    if not hasattr(test.__class__, '__oldstr__'):
+      test.__class__.__oldstr__ = test.__class__.__str__
+      test.__class__.__str__ = systest_task_str
+      test.__class__.run = systest_task_run
+    test.__unicode__ = systest_task_str
+    test.sys = sysname
+    test.ram = sdramname or sramname
+    test.rom = romname
+    test.atstr = atstr
+    test.filename = filename
+    test.ut_exec = exec_list + param
 
 from waflib.TaskGen import feature,after_method
 feature('systest')(make_systest)

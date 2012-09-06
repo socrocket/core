@@ -22,7 +22,7 @@
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
 //*********************************************************************
-// Title:      input_device.h
+// Title:      ahbin.h
 //
 // ScssId:
 //
@@ -43,8 +43,8 @@
 // Reviewed:
 //*********************************************************************
 
-#ifndef __INPUT_DEVICE_H__
-#define __INPUT_DEVICE_H__
+#ifndef __ahbin_H__
+#define __ahbin_H__
 
 // The TLM header (to be included in each TL model)
 #include <tlm.h>
@@ -63,21 +63,21 @@
 // Provides methods for generating random data
 #include <math.h>
 
-/// @addtogroup input_device Input_Device
+/// @addtogroup ahbin Input_Device
 /// @{
 
-/// Definition of class input_device
-class input_device : public AHBMaster<>, public CLKDevice {
+/// Definition of class ahbin
+class ahbin : public AHBMaster<>, public CLKDevice {
 
  public:
-  SC_HAS_PROCESS(input_device);
-  SK_HAS_SIGNALS(input_device);
+  SC_HAS_PROCESS(ahbin);
+  SK_HAS_SIGNALS(ahbin);
 
   /// SignalKit interrupt output
   signal<bool>::out irq;
 
   /// Constructor
-  input_device(sc_core::sc_module_name name,    // The SystemC name of the component
+  ahbin(sc_core::sc_module_name name,    // The SystemC name of the component
                unsigned int hindex,         // The master index for registering with the AHB 
                unsigned int hirq,               // The number of the IRQ raised for available data
                unsigned int framesize,          // The size of the data frame to be generated
@@ -136,4 +136,4 @@ class input_device : public AHBMaster<>, public CLKDevice {
 
 /// @}
 
-#endif //__INPUT_DEVICE_H__
+#endif //__ahbin_H__

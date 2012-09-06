@@ -219,10 +219,15 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_system_at("at", false, p_system);
     gs::gs_param<unsigned int> p_system_clock("clk", 10, p_system);
     gs::gs_param<std::string> p_system_osemu("osemu", "", p_system);
+    gs::gs_param<std::string> p_system_log("log", "", p_system);
 
     gs::gs_param_array p_report("report", p_conf);
     gs::gs_param<bool> p_report_timing("timing", true, p_report);
     gs::gs_param<bool> p_report_power("power", true, p_report);
+
+    if(!((std::string)p_system_log).empty()) {
+        v::logApplication(((std::string)p_system_log).c_str());
+    }
 
     amba::amba_layer_ids ambaLayer;
     if(p_system_at) {

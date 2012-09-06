@@ -190,6 +190,7 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
 
 	/// Encapsulation function for functional part of the model
 	uint32_t exec_func(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay, bool debug = false);
+  uint32_t transport_dbg(tlm_generic_payload& gp);
 
     private:
 
