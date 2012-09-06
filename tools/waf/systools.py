@@ -49,6 +49,8 @@ from waflib import Options
 from waflib.Configure import conf
 from waflib import Context
 import Utils
+from waflib import Utils,Task,Logs,Options
+testlock=Utils.threading.Lock()
 import os, io, sys, stat
 import datetime, time
 
@@ -58,6 +60,55 @@ def options(opt):
 
 def configure(ctx):
   ctx.env["SYSTESTS"] = Options.options.systests
+
+def systest_task_str(self):
+  if hasattr(self,'rom'):
+    return "utest: %s (%s, %s) on %s\n" % (self.ram, self.rom, self.atstr, self.sys)
+  else:
+    return self.__oldstr__()
+def systest_task_run(self):
+  status=0
+  if hasattr(self, 'rom'):
+    filename="%s (%s, %s) on %s" % (self.filename, self.rom, self.atstr, self.sys)
+  else:
+    filename=self.inputs[0].abspath()
+  self.ut_exec=getattr(self,'ut_exec',[filename])
+  if getattr(self.generator,'ut_fun',None):
+    self.generator.ut_fun(self)
+  try:
+    fu=getattr(self.generator.bld,'all_test_paths')
+  except AttributeError:
+    fu=os.environ.copy()
+    self.generator.bld.all_test_paths=fu
+    lst=[]
+    for g in self.generator.bld.groups:
+      for tg in g:
+        if getattr(tg,'link_task',None):
+          lst.append(tg.link_task.outputs[0].parent.abspath())
+    def add_path(dct,path,var):
+      dct[var]=os.pathsep.join(Utils.to_list(path)+[os.environ.get(var,'')])
+    if sys.platform=='win32':
+      add_path(fu,lst,'PATH')
+    elif sys.platform=='darwin':
+      add_path(fu,lst,'DYLD_LIBRARY_PATH')
+      add_path(fu,lst,'LD_LIBRARY_PATH')
+    else:
+      add_path(fu,lst,'LD_LIBRARY_PATH')
+  cwd=getattr(self.generator,'ut_cwd','')or self.inputs[0].parent.abspath()
+  proc=Utils.subprocess.Popen(self.ut_exec,cwd=cwd,env=fu,stderr=Utils.subprocess.PIPE,stdout=Utils.subprocess.PIPE)
+  (stdout,stderr)=proc.communicate()
+  tup=(filename,proc.returncode,stdout,stderr)
+  self.generator.utest_result=tup
+  testlock.acquire()
+  try:
+    bld=self.generator.bld
+    Logs.debug("ut: %r",tup)
+    try:
+      bld.utest_results.append(tup)
+    except AttributeError:
+      bld.utest_results=[tup]
+  finally:
+    testlock.release()
 
 # Extended Testing support
 def make_systest(self):
@@ -102,7 +153,7 @@ def make_systest(self):
 
       deps_list.append(ram)
 
-      filename = getattr(self, 'name', getattr(self, 'target', "%s-%s" % (sdramname, atstr)))
+      filename = ram.abspath()
 
     else:
       ramtgen = self.bld.get_tgen_by_name(sramname)
@@ -117,12 +168,21 @@ def make_systest(self):
 
       deps_list.append(ram)
 
-      filename = getattr(self, 'name', getattr(self, 'target', "%s-%s" % (sramname, atstr)))
+      filename = ram.abspath()
 
     exec_list.append("--option")
     exec_list.append("conf.system.at=%s" % (atbool))
 
     test = self.create_task('utest', deps_list)
+    if not hasattr(test.__class__, '__oldstr__'):
+      test.__class__.__oldstr__ = test.__class__.__str__
+      test.__class__.__str__ = systest_task_str
+      test.__class__.run = systest_task_run
+    test.__unicode__ = systest_task_str
+    test.sys = sysname
+    test.ram = sdramname or sramname
+    test.rom = romname
+    test.atstr = atstr
     test.filename = filename
     test.ut_exec = exec_list + param
 
