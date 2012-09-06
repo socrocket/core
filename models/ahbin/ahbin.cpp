@@ -22,7 +22,7 @@
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
 //*********************************************************************
-// Title:      input_device.cpp
+// Title:      ahbin.cpp
 //
 // ScssId:
 //
@@ -44,10 +44,10 @@
 // Reviewed:
 //*********************************************************************
 
-#include "input_device.h"
+#include "ahbin.h"
 
 /// Constructor
-input_device::input_device(sc_core::sc_module_name name,     // The SystemC name of the component
+ahbin::input_device(sc_core::sc_module_name name,     // The SystemC name of the component
                            unsigned int hindex,              // The master index for registering with the AHB
                            unsigned int hirq,                // The number of the IRQ raised for available data
                            unsigned int framesize,           // The size of the data frame to be generated
@@ -89,21 +89,21 @@ input_device::input_device(sc_core::sc_module_name name,     // The SystemC name
 
   // Module Configuration Report
   v::info << this->name() << " ************************************************** " << v::endl;
-  v::info << this->name() << " * Created INPUT_DEVICE in following configuration: " << v::endl;
+  v::info << this->name() << " * Created ahbin in following configuration: " << v::endl;
   v::info << this->name() << " * --------------------------------------------- " << v::endl;
   v::info << this->name() << " * abstraction Layer (LT = 8 / AT = 4): " << m_abstractionLayer << v::endl;
   v::info << this->name() << " ************************************************** " << v::endl;   
 }
 
 // Rest handler
-void input_device::dorst() {
+void ahbin::dorst() {
 
   // Nothing to do
 
 }
 
 // This thread generates a "new_frame" event at intervals "m_interval"
-void input_device::frame_trigger() {
+void ahbin::frame_trigger() {
 
   while(1) {
 
@@ -118,7 +118,7 @@ void input_device::frame_trigger() {
 }
 
 // Generates a thread of frame_length
-void input_device::gen_frame() {
+void ahbin::gen_frame() {
 
   // Locals
   uint32_t tmp;
@@ -160,7 +160,7 @@ void input_device::gen_frame() {
 }
 
 // Helper for setting clock cycle latency using a value-time_unit pair
-void input_device::clkcng() {
+void ahbin::clkcng() {
 
   // nothing to do
 

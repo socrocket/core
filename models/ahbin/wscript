@@ -48,12 +48,12 @@ top = '../..'
 def build(bld):
 
   bld(
-    target         = 'input_device',
-    features       = 'cxx cxxstlib',
-    source         = [ 'input_device.cpp' ],
+    target          = 'ahbin',
+    features        = 'cxx cxxstlib',
+    source          = 'ahbin.cpp',
     export_includes = '.',
-    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = 'common utils',
-    install_path   = '${PREFIX}/lib',
+    uselib          = 'SYSTEMC TLM AMBA GREENSOCS',
+    use             = 'common utils',
+    install_path    = '${PREFIX}/lib',
   )
 
