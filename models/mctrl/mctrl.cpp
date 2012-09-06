@@ -951,6 +951,40 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
     return c_null;
 }
 
+//debug transport function
+uint32_t Mctrl::transport_dbg(tlm_generic_payload& gp) {
+    //access to ROM adress space
+    uint32_t addr   = gp.get_address();
+    uint32_t length = gp.get_data_length();
+    MEMPort port  = get_port(addr);
+    if(port.id!=100) {
+        tlm_generic_payload memgp;
+        memgp.set_command(gp.get_command());
+        memgp.set_address(port.addr);
+        if(length<=port.length) {
+            memgp.set_data_length(gp.get_data_length());
+            memgp.set_streaming_width(gp.get_streaming_width());
+            memgp.set_byte_enable_ptr(gp.get_byte_enable_ptr());
+            memgp.set_data_ptr(gp.get_data_ptr());
+            uint32_t result = mem[port.id]->transport_dbg(memgp);
+            gp.set_response_status(memgp.get_response_status());
+            return result;
+        } else {
+            // Length bigger than ram type area.
+          v::error << name() << "Memory transaction excedes memory area bounderies!" << v::endl;
+          return 0;
+        }
+    } else {
+    //no memory device at given address
+        v::error << name() << "Invalid memory access: No device at address"
+                 << v::uint32 << addr << "." << v::endl;
+        gp.set_response_status(TLM_ADDRESS_ERROR_RESPONSE);
+        return 0;
+    }
+    
+    return length;
+}
+
 sc_core::sc_time Mctrl::get_clock() {
 
   return clock_cycle;
