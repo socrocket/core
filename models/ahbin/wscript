@@ -30,7 +30,7 @@
 #
 # Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 #
-# Purpose:    Build the input_device model
+# Purpose:    Build the ahbin model
 #
 # Method:     $ ./waf configure; ./waf # to build it on top level
 #

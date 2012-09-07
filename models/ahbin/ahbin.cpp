@@ -28,7 +28,7 @@
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Class definition for input device.
+// Purpose:    Class definition for ahbin.
 //             Provides frames of data samples in regual intervals.
 //             CPU is notifed about new data via IRQ.
 //
