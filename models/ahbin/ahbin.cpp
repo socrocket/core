@@ -47,14 +47,14 @@
 #include "ahbin.h"
 
 /// Constructor
-ahbin::input_device(sc_core::sc_module_name name,     // The SystemC name of the component
-                           unsigned int hindex,              // The master index for registering with the AHB
-                           unsigned int hirq,                // The number of the IRQ raised for available data
-                           unsigned int framesize,           // The size of the data frame to be generated
-                           unsigned int frameaddr,           // The address the data is supposed to be copied to
-                           sc_core::sc_time interval,        // The interval between data frames
-                           bool pow_mon,                     // Enable power monitoring
-                           amba::amba_layer_ids ambaLayer) : // TLM abstraction layer
+ahbin::ahbin(sc_core::sc_module_name name,     // The SystemC name of the component
+             unsigned int hindex,              // The master index for registering with the AHB
+             unsigned int hirq,                // The number of the IRQ raised for available data
+             unsigned int framesize,           // The size of the data frame to be generated
+             unsigned int frameaddr,           // The address the data is supposed to be copied to
+             sc_core::sc_time interval,        // The interval between data frames
+             bool pow_mon,                     // Enable power monitoring
+             amba::amba_layer_ids ambaLayer) : // TLM abstraction layer
 
   AHBMaster<>(name,    // SystemC name
 	      hindex,  // Bus master index

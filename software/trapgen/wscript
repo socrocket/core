@@ -555,7 +555,7 @@ def build(bld):
      source       = ['tolstoy.c'],
      install_path = None,
   )
-  """
+
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -570,7 +570,7 @@ def build(bld):
       ram         = 'tolstoy.sparc',
       at          = True,
   )
-  """
+
   # v42.sparc
   bld(
      features     = 'c cprogram sparc',

@@ -63,13 +63,13 @@ def build(bld):
       ram         = 'hello.sparc',
   )
   
-  #bld(
-  #    features    = 'systest',
-  #    system      = 'leon3mp.platform',
-  #    rom         = 'default.prom',
-  #    ram         = 'hello.sparc',
-  #    at          = True,
-  #)
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
+      ram         = 'hello.sparc',
+      at          = True,
+  )
   
   # cache.sparc
   bld(
@@ -131,14 +131,14 @@ def build(bld):
                      'cache.c'],
      install_path = None,
   )
-  
+  """ 
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'irqmp.sparc',
   )
-  
+  """
   #bld(
   #    features    = 'systest',
   #    system      = 'leon3mp.platform',
