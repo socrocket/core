@@ -14,7 +14,7 @@ class Wizard(QtGui.QWizard):
     #self.setStyleSheet("QWizard { background: blue }; QWizardPage { background: yellow;}")
     self.templates = templates
     self.addPage(IntroPage())
-    self.addPage(LicensePage())
+    #self.addPage(LicensePage())
     tmpl = TemplatePage(self.templates)
     self.addPage(tmpl)
     load = LoadPage(self.templates)
