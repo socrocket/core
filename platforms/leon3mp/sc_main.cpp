@@ -588,13 +588,13 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_ahbin_interval("interval", 1, p_ahbin);
     if(p_ahbin_en) {
         AHBIn *ahbin = new AHBIn("ahbin",
-        p_ahbin_index,
-        p_ahbin_irq,
-        p_ahbin_framesize,
-        p_ahbin_frameaddr,
-        sc_core::sc_time(p_ahbin_interval, SC_MS),
-        p_report_power,
-        ambaLayer
+          p_ahbin_index,
+          p_ahbin_irq,
+          p_ahbin_framesize,
+          p_ahbin_frameaddr,
+          sc_core::sc_time(p_ahbin_interval, SC_MS),
+          p_report_power,
+          ambaLayer
       );
 
       // Connect sensor to bus

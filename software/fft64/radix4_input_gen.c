@@ -74,8 +74,8 @@ volatile int socwire_irq = 0;
 
 void irqhandler_f(int irq) {
 
-  irqtbl[irqtbl[0]] = irq + 0x10;
-  irqtbl[0]++;
+  //irqtbl[irqtbl[0]] = irq + 0x10;
+  //irqtbl[0]++;
 
   if (irq == 13) {
 

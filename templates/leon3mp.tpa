@@ -204,7 +204,7 @@
       </option>
     </option>
 
-    <option var="indev" name="Input device (sensor)">
+    <option var="ahbin" name="Input device (sensor)">
       <option var="en" name="Enable" type="bool" default="false"/>
       <option var="index" name="AHB master index" type="int" default="1" range="0..15"/>
       <option var="irq" name="Interrupt number" type="int" default="5" range="0..0xFFFF"/>

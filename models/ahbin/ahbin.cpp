@@ -60,8 +60,9 @@ AHBIn::AHBIn(sc_core::sc_module_name name,     // The SystemC name of the compon
 	      hindex,  // Bus master index
 	      0x04,    // Vender ID (4 = ESA)
 	      0x00,    // Device ID (undefined)
-              0,       // Version
+        0,       // Version
 	      hirq,    // IRQ of device
+        ambaLayer, // AmbaLayer
 	      0,       // BAR0
 	      0,       // BAR1
 	      0,       // BAR2
