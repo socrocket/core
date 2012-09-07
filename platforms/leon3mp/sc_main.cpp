@@ -579,34 +579,31 @@ int sc_main(int argc, char** argv) {
     
     // AHBMaster - ahbin (input_device)
     // ================================
-#if 0
-    gs::gs_param_array p_indev("indev", p_conf);
-    gs::gs_param<bool> p_indev_en("en", true, p_indev);
-    gs::gs_param<unsigned int> p_indev_index("index", 1, p_indev);
-    gs::gs_param<unsigned int> p_indev_irq("irq", 5, p_indev);
-    gs::gs_param<unsigned int> p_indev_framesize("framesize", 128, p_indev);
-    gs::gs_param<unsigned int> p_indev_frameaddr("frameaddr", 0xA00, p_indev);
-    gs::gs_param<unsigned int> p_indev_interval("interval", 1, p_indev);
-    if(p_indev_en) {
-        ahb_in *sensor = new ahbin("sensor",
-        p_indev_index,
-        p_indev_irq,
-        p_indev_framesize,
-        p_indev_frameaddr,
-        sc_core::sc_time(p_indev_interval, SC_MS),
+    gs::gs_param_array p_ahbin("ahbin", p_conf);
+    gs::gs_param<bool> p_ahbin_en("en", false, p_ahbin);
+    gs::gs_param<unsigned int> p_ahbin_index("index", 1, p_ahbin);
+    gs::gs_param<unsigned int> p_ahbin_irq("irq", 5, p_ahbin);
+    gs::gs_param<unsigned int> p_ahbin_framesize("framesize", 128, p_ahbin);
+    gs::gs_param<unsigned int> p_ahbin_frameaddr("frameaddr", 0xA00, p_ahbin);
+    gs::gs_param<unsigned int> p_ahbin_interval("interval", 1, p_ahbin);
+    if(p_ahbin_en) {
+        AHBIn *ahbin = new AHBIn("ahbin",
+        p_ahbin_index,
+        p_ahbin_irq,
+        p_ahbin_framesize,
+        p_ahbin_frameaddr,
+        sc_core::sc_time(p_ahbin_interval, SC_MS),
         p_report_power,
         ambaLayer
       );
 
       // Connect sensor to bus
-      sensor->ahb(ahbctrl.ahbIN);
-      sensor->set_clk(p_system_clock, SC_NS);
+      ahbin->ahb(ahbctrl.ahbIN);
+      ahbin->set_clk(p_system_clock, SC_NS);
 
       // Connect interrupt out
-      signalkit::connect(irqmp.irq_in, sensor.irq, p_indev_irq);
-      */
+      signalkit::connect(irqmp.irq_in, ahbin->irq, p_ahbin_irq);
     }
-#endif
 
     // CREATE LEON3 Processor
     // ===================================================

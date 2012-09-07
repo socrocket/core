@@ -545,7 +545,7 @@ def build(bld):
       ram         = 'quicksort.sparc',
       at          = True,
   )
-
+  """
   # tolstoy.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -570,7 +570,7 @@ def build(bld):
       ram         = 'tolstoy.sparc',
       at          = True,
   )
-
+  """
   # v42.sparc
   bld(
      features     = 'c cprogram sparc',

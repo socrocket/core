@@ -43,8 +43,8 @@
 // Reviewed:
 //*********************************************************************
 
-#ifndef __ahbin_H__
-#define __ahbin_H__
+#ifndef __AHBIN_H__
+#define __AHBIN_H__
 
 // The TLM header (to be included in each TL model)
 #include <tlm.h>
@@ -63,21 +63,21 @@
 // Provides methods for generating random data
 #include <math.h>
 
-/// @addtogroup ahbin Input_Device
+/// @addtogroup AHBIn Input_Device
 /// @{
 
-/// Definition of class ahbin
-class ahbin : public AHBMaster<>, public CLKDevice {
+/// Definition of class AHBIn
+class AHBIn : public AHBMaster<>, public CLKDevice {
 
  public:
-  SC_HAS_PROCESS(ahbin);
-  SK_HAS_SIGNALS(ahbin);
+  SC_HAS_PROCESS(AHBIn);
+  SK_HAS_SIGNALS(AHBIn);
 
   /// SignalKit interrupt output
   signal<bool>::out irq;
 
   /// Constructor
-  ahbin(sc_core::sc_module_name name,    // The SystemC name of the component
+  AHBIn(sc_core::sc_module_name name,    // The SystemC name of the component
                unsigned int hindex,         // The master index for registering with the AHB 
                unsigned int hirq,               // The number of the IRQ raised for available data
                unsigned int framesize,          // The size of the data frame to be generated
@@ -99,6 +99,8 @@ class ahbin : public AHBMaster<>, public CLKDevice {
   
   /// Deal with clock changes
   void clkcng();
+
+  sc_core::sc_time get_clock();
 
   // data members
   // ------------
@@ -136,4 +138,4 @@ class ahbin : public AHBMaster<>, public CLKDevice {
 
 /// @}
 
-#endif //__ahbin_H__
+#endif //__AHBIN_H__

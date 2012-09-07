@@ -22,13 +22,13 @@
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
 //*********************************************************************
-// Title:      ahbin.cpp
+// Title:      AHBIn.cpp
 //
 // ScssId:
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    Class definition for ahbin.
+// Purpose:    Class definition for AHBIn.
 //             Provides frames of data samples in regual intervals.
 //             CPU is notifed about new data via IRQ.
 //
@@ -47,7 +47,7 @@
 #include "ahbin.h"
 
 /// Constructor
-ahbin::ahbin(sc_core::sc_module_name name,     // The SystemC name of the component
+AHBIn::AHBIn(sc_core::sc_module_name name,     // The SystemC name of the component
              unsigned int hindex,              // The master index for registering with the AHB
              unsigned int hirq,                // The number of the IRQ raised for available data
              unsigned int framesize,           // The size of the data frame to be generated
@@ -89,21 +89,21 @@ ahbin::ahbin(sc_core::sc_module_name name,     // The SystemC name of the compon
 
   // Module Configuration Report
   v::info << this->name() << " ************************************************** " << v::endl;
-  v::info << this->name() << " * Created ahbin in following configuration: " << v::endl;
+  v::info << this->name() << " * Created AHBIn in following configuration: " << v::endl;
   v::info << this->name() << " * --------------------------------------------- " << v::endl;
   v::info << this->name() << " * abstraction Layer (LT = 8 / AT = 4): " << m_abstractionLayer << v::endl;
   v::info << this->name() << " ************************************************** " << v::endl;   
 }
 
 // Rest handler
-void ahbin::dorst() {
+void AHBIn::dorst() {
 
   // Nothing to do
 
 }
 
 // This thread generates a "new_frame" event at intervals "m_interval"
-void ahbin::frame_trigger() {
+void AHBIn::frame_trigger() {
 
   while(1) {
 
@@ -118,7 +118,7 @@ void ahbin::frame_trigger() {
 }
 
 // Generates a thread of frame_length
-void ahbin::gen_frame() {
+void AHBIn::gen_frame() {
 
   // Locals
   uint32_t tmp;
@@ -160,8 +160,11 @@ void ahbin::gen_frame() {
 }
 
 // Helper for setting clock cycle latency using a value-time_unit pair
-void ahbin::clkcng() {
-
+void AHBIn::clkcng() {
   // nothing to do
-
 }
+
+sc_core::sc_time AHBIn::get_clock() {
+  return clock_cycle;
+}
+
