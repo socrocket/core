@@ -82,7 +82,7 @@ def coverage(self):
     from subprocess import call, STDOUT
     if self.env["gcov"] and self.env["gcov"] != "" and self.env["lcov"] and self.env["lcov"] != "":
         print call([self.env['lcov'], '-b', '.', '-t', 'SoCRocket', '-o', 'lcov_all.info', '-d', 'models', '-c'], shell=False, cwd=out, stderr=STDOUT)
-        print call(["%s -r lcov_all.info 'amba*' 'c++*' 'green*' 'boost*' 'TLM*' 'sysc*' 'test*' 'extern*' 'tools*' 'utils*' > lcov.info" % self.env['lcov']], shell=True, cwd=out, stderr=STDOUT)
+        print call(["%s -r lcov_all.info 'amba*' 'c++*' 'green*' 'boost*' 'TLM*' 'sysc*' 'test*' 'extern*' 'tools*' 'utils*' 'usr*' > lcov.info" % self.env['lcov']], shell=True, cwd=out, stderr=STDOUT)
         if self.env['genhtml'] and self.env['genhtml'] != "":
             print call([self.env['genhtml'], '-s', '--demangle-cpp', '-o', 'coverage', 'lcov.info'], shell=False, cwd=out, stderr=STDOUT)
             print "Code coverage report generated: %s/build/coverage/index.html" % (self.path.abspath())
