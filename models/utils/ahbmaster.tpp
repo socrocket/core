@@ -126,6 +126,13 @@ void AHBMaster<BASE>::ahbread(uint32_t addr, unsigned char * data, uint32_t leng
     // Blocking transport
     ahb->b_transport(*trans, delay);
 
+    if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
+
+       // Needs to be reset by testbench
+       response_error = true;
+
+    }
+
     // Check the data
     response_callback(trans);
 
@@ -233,7 +240,12 @@ void AHBMaster<BASE>::ahbwrite(uint32_t addr, unsigned char * data, uint32_t len
     wait(delay);
     delay = SC_ZERO_TIME;
 
-    response = trans->get_response_status();
+    if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
+
+       // Needs to be reset by testbench
+       response_error = true;
+
+    }
 
     // Decrement reference counter
     trans->release();
