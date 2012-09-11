@@ -28,17 +28,9 @@ tlm::tlm_sync_enum AHBMaster<BASE>::nb_transport_bw(tlm::tlm_generic_payload &tr
     uint32_t data_phase_base;
 
     // Calculate length of data phase
-    if (trans.get_data_length() < 4) {
+    data_phase_base = (((trans.get_data_length()-1) >> 2) +1);    
 
-      data_phase_base = 1;
-
-    } else {
-
-      data_phase_base = (trans.get_data_length() >> 2);    
-
-    }
-
-    delay += data_phase_base * get_clock();
+    delay = data_phase_base * get_clock();
     m_ResponsePEQ.notify(trans, delay);
     delay=SC_ZERO_TIME;
 
@@ -126,7 +118,9 @@ void AHBMaster<BASE>::ahbread(uint32_t addr, unsigned char * data, uint32_t leng
     // Blocking transport
     ahb->b_transport(*trans, delay);
 
-    if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
+    response = trans->get_response_status();
+
+    if (response != tlm::TLM_OK_RESPONSE) {
 
        // Needs to be reset by testbench
        response_error = true;
@@ -141,8 +135,6 @@ void AHBMaster<BASE>::ahbread(uint32_t addr, unsigned char * data, uint32_t leng
     delay = SC_ZERO_TIME;
 
     cacheable = (ahb.get_extension<amba::amba_cacheable>(*trans)) ? true : false;
-
-    response = trans->get_response_status();
 
     // Decrement reference counter
     trans->release();
@@ -236,16 +228,18 @@ void AHBMaster<BASE>::ahbwrite(uint32_t addr, unsigned char * data, uint32_t len
     msclogger::forward(this, &ahb, trans, tlm::BEGIN_REQ);
     ahb->b_transport(*trans, delay);
 
-    // Consume transfer delay
-    wait(delay);
-    delay = SC_ZERO_TIME;
+    response = trans->get_response_status();
 
-    if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
+    if (response != tlm::TLM_OK_RESPONSE) {
 
        // Needs to be reset by testbench
        response_error = true;
 
     }
+
+    // Consume transfer delay
+    wait(delay);
+    delay = SC_ZERO_TIME;
 
     // Decrement reference counter
     trans->release();
@@ -377,41 +371,44 @@ void AHBMaster<BASE>::ResponseThread() {
     wait(m_ResponsePEQ.get_event());
 
     // Get transaction from PEQ
-    trans = m_ResponsePEQ.get_next_transaction();
+    while(trans = m_ResponsePEQ.get_next_transaction()) {
 
-    if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
+      v::debug << name() << "Response Thread running for transaction: " << trans << v::endl;
 
-       v::error << this->name() << "Error in Response for transaction: " << trans << v::endl;
+      if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
 
-       // This variable is visible within response_callback.
-       // Needs to be externally resetted.
-       response_error = true;    
+        v::error << this->name() << "Error in Response for transaction: " << trans << v::endl;
+
+        // This variable is visible within response_callback.
+        // Needs to be externally resetted.
+        response_error = true;    
+
+      }
+    
+      // Check result
+      response_callback(trans);
+
+      // END_RESP marks the end of the data phase
+      phase = tlm::END_RESP;
+      delay = sc_core::SC_ZERO_TIME;
+
+      v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+
+      // Forward arrow for msc
+      msclogger::forward(this, &ahb, trans, phase, delay);
+
+      // Call to nb_transport_fw
+      status = ahb->nb_transport_fw(*trans, phase, delay);
+
+      // Return value must be TLM_COMPLETED or TLM_ACCEPTED
+      assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
+
+      v::debug << name() << "Release " << trans << " Ref-Count before calling release " << trans->get_ref_count() << v::endl; 
+
+      // Decrement reference count
+      trans->release();
 
     }
-    
-    // Check result
-    response_callback(trans);
-
-    // END_RESP marks the end of the data phase
-    phase = tlm::END_RESP;
-    delay = sc_core::SC_ZERO_TIME;
-
-    v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
-
-    // Forward arrow for msc
-    msclogger::forward(this, &ahb, trans, phase, delay);
-
-    // Call to nb_transport_fw
-    status = ahb->nb_transport_fw(*trans, phase, delay);
-
-    // Return value must be TLM_COMPLETED or TLM_ACCEPTED
-    assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
-
-    v::debug << name() << "Release " << trans << " Ref-Count before calling release " << trans->get_ref_count() << v::endl; 
-
-    // Decrement reference count
-    trans->release();
-
   }
 }
 

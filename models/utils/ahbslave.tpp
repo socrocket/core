@@ -26,27 +26,46 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
 
     uint32_t address_cycle_base;
 
+    //v::debug << this->name() << "Delay before calling exec_func: " << delay << v::endl;
+
     // Call the functional part of the model
     exec_func(trans, delay);
 
+    if (trans.get_response_status() != tlm::TLM_OK_RESPONSE) {
+
+       v::warn << name() << "Target did not return tlm::TLM_OK_RESPONSE" << v::endl; 
+
+    }
+
+    // The delay returned by the function model relates to the time for delivering
+    // the data + wait states.
+    address_cycle_base = (((trans.get_data_length()-1) >> 2) +1);
+
+    // In case unvalid access (TLM_ERROR_RESPONSE)
+    // some models might return an unvalid delay.
+    // Set delay to sane default for safe reponse processing
+    if (delay==SC_ZERO_TIME) {
+
+      delay = address_cycle_base * get_clock() + sc_core::sc_time(1, SC_PS);
+    
+    }
+
     //v::debug << this->name() << "Total delay: " << delay << v::endl;
 
-    //request_delay = (trans.get_data_length() <= 4) ? get_clock() - sc_core::sc_time(1, SC_PS) : delay - sc_core::sc_time(1, SC_PS);
+    // Calculating delay for sending END_REQ
     request_delay = delay - sc_core::sc_time(1, SC_PS);
     
     v::debug << this->name() << "Request Delay: " << request_delay << v::endl;
 
+    // Consume request_delay and forward to request thread
     m_RequestPEQ.notify(trans, request_delay);
 
-    // The delay returned by the function model relates to the time for delivering
-    // the data + wait states.
-    //address_cycle_base = (trans.get_data_length() <= 4) ? 1 : (((trans.get_data_length()-1) >> 2) +1);
-    address_cycle_base = (((trans.get_data_length()-1) >> 2) +1);
-    //address_cycle_base = ((trans.get_data_length() / 4) + 1);
+    // Calculating delay for sending BEGIN_REQ
     response_delay = (delay - (get_clock()*(address_cycle_base-1)) - sc_core::sc_time(1, SC_PS));
 
     v::debug << this->name() << "Response Delay: " << response_delay << v::endl;
 
+    // Consume response_delay and forward to response thread
     m_ResponsePEQ.notify(trans, response_delay);
 
     delay = SC_ZERO_TIME;
