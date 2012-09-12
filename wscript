@@ -100,7 +100,14 @@ class Generate(BuildContext):
     cmd = 'generate'
     fun = 'generate'
 
-  
+def macclean(self):
+  from subprocess import call, STDOUT
+  print call(['find', '.', '(', '-name', '*.DS_Store', '-o', '-name', '*~', '-o', '-name', '.*~', ')', '-print', '-delete'], shell=False, stderr=STDOUT)
+
+class Macclean(BuildContext):
+    cmd = 'macclean'
+    fun = 'macclean'
+
 def check_trap_linking(ctx, libName, libPaths, symbol):
     for libpath in libPaths:
         libFile = os.path.join(libpath, ctx.env['cxxshlib_PATTERN'].split('%s')[0] + libName + ctx.env['cxxshlib_PATTERN'].split('%s')[1])
