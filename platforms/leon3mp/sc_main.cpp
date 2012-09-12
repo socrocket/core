@@ -738,8 +738,11 @@ int sc_main(int argc, char** argv) {
             osEmu->initSysCalls(p_system_osemu);
             std::vector<std::string> options;
             options.push_back(p_system_osemu);
-            for(int i = 1; i < argc; i++) {
-              options.push_back(argv[i]);
+            if(vm.count("argument")) {
+              std::vector<std::string> argvec = vm["argument"].as<std::vector<std::string> >();
+              for(std::vector<std::string>::iterator iter = argvec.begin(); iter != argvec.end(); iter++) {
+                options.push_back(*iter);
+              }
             }
             OSEmulatorBase::set_program_args(options);
             leon3->toolManager.addTool(*osEmu);

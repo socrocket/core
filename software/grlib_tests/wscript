@@ -297,7 +297,7 @@ def build(bld):
       rom         = 'default.prom',
       ram         = 'argstest.sparc',
       at          = True,
-      args        = ['one', 'two', 'three', 'four']
+      args        = 'one two three four'
   )
   
   # amba.sparc
