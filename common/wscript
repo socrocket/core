@@ -54,7 +54,7 @@ def build(bld):
                        'timingmonitor.cpp',
 	               'msclogger.cpp'],
     export_includes = '.',
-    uselib          = 'SYSTEMC TLM',
+    uselib          = 'GREENSOCS SYSTEMC TLM',
     install_path    = '${PREFIX}/lib',
   )
 

@@ -70,15 +70,26 @@ def build(self):
     #self.add_post_fun(lcov_summary)
 
 def setprops(self):
+    """Set SVN Properties on all source files"""
     from tools.waf.common import setprops
     setprops();
 
+from waflib.Build import BuildContext
 def docs(bld):
-  """build source code documentation"""
-  import subprocess
-  subprocess.call(["doxygen", "Doxyfile"]) 
+  """build source code documentation in 'build/docs' if doxygen is installed"""
+  if bld.env.DOXYGEN and bld.env.DOXYGEN != "":
+    import subprocess
+    subprocess.call(["doxygen", "Doxyfile"]) 
+  else:
+    print "To use the ./waf docs comand please install doxygen"
+    sys.exit(0)
+
+class Docs(BuildContext):
+    cmd = 'docs'
+    fun = 'docs'
 
 def coverage(self):
+    """If configured with -G and lcov and gcof are installed it generates a code coverage report"""
     from subprocess import call, STDOUT
     if self.env["gcov"] and self.env["gcov"] != "" and self.env["lcov"] and self.env["lcov"] != "":
         print call([self.env['lcov'], '-b', '.', '-t', 'SoCRocket', '-o', 'lcov_all.info', '-d', 'models', '-d', '../models', '-c'], shell=False, cwd=out, stderr=STDOUT)
@@ -86,13 +97,17 @@ def coverage(self):
         if self.env['genhtml'] and self.env['genhtml'] != "":
             print call([self.env['genhtml'], '-s', '--demangle-cpp', '-o', 'coverage', 'lcov.info'], shell=False, cwd=out, stderr=STDOUT)
             print "Code coverage report generated: %s/build/coverage/index.html" % (self.path.abspath())
+    else:
+      print "To use the coverage pleas install gcov and lcov and configure the library with -G"
+      sys.exit(0)
 
-from waflib.Build import BuildContext
+
 class Coverage(BuildContext):
     cmd = 'coverage'
     fun = 'coverage'
 
 def generate(bld):
+  """If PyQt4 is installed opens a Wizard to configure a platform"""
   from tools.generator.wizard import main
   main(bld.options.template, bld.options.configuration)
 
@@ -101,6 +116,7 @@ class Generate(BuildContext):
     fun = 'generate'
 
 def macclean(self):
+  """Clean garbage files from the source tree"""
   from subprocess import call, STDOUT
   print call(['find', '.', '(', '-name', '*.DS_Store', '-o', '-name', '*~', '-o', '-name', '.*~', ')', '-print', '-delete'], shell=False, stderr=STDOUT)
 
