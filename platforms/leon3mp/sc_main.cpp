@@ -425,6 +425,7 @@ int sc_main(int argc, char** argv) {
         }
       } else {
         v::warn << "rom" << "File " << p_mctrl_prom_elf << " does not exist!" << v::endl;
+        exit(1);
       }
     }
 
@@ -458,6 +459,7 @@ int sc_main(int argc, char** argv) {
         }
       } else {
         v::warn << "io" << "File " << p_mctrl_io_elf << " does not exist!" << v::endl;
+        exit(1);
       }
     }
 
@@ -491,6 +493,7 @@ int sc_main(int argc, char** argv) {
         }
       } else {
         v::warn << "sram" << "File " << p_mctrl_ram_sram_elf << " does not exist!" << v::endl;
+        exit(1);
       }
     }
 
@@ -523,6 +526,7 @@ int sc_main(int argc, char** argv) {
         }
       } else {
         v::warn << "sdram" << "File " << p_mctrl_ram_sdram_elf << " does not exist!" << v::endl;
+        exit(1);
       }
     }
 
@@ -572,6 +576,7 @@ int sc_main(int argc, char** argv) {
           }
         } else {
           v::warn << "ahbmem" << "File " << p_ahbmem_elf << " does not exist!" << v::endl;
+        exit(1);
         }
       }
     }
@@ -748,6 +753,7 @@ int sc_main(int argc, char** argv) {
             leon3->toolManager.addTool(*osEmu);
           } else {
             v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;
+            exit(1);
           }
         }
       } else {
@@ -803,6 +809,7 @@ int sc_main(int argc, char** argv) {
             leon3->toolManager.addTool(*osEmu);
           } else {
             v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;
+            exit(1);
           }
         }
       }
