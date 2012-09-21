@@ -363,7 +363,7 @@ void AHBMaster<BASE>::ResponseThread() {
   sc_core::sc_time delay;
   tlm::tlm_sync_enum status;
 
-  uint32_t data_phase_base;
+  //uint32_t data_phase_base;
 
   while(1) {
 
@@ -371,18 +371,15 @@ void AHBMaster<BASE>::ResponseThread() {
     wait(m_ResponsePEQ.get_event());
 
     // Get transaction from PEQ
-    while(trans = m_ResponsePEQ.get_next_transaction()) {
-
+    while((trans = m_ResponsePEQ.get_next_transaction())) {
       v::debug << name() << "Response Thread running for transaction: " << trans << v::endl;
 
       if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
-
         v::error << this->name() << "Error in Response for transaction: " << trans << v::endl;
 
         // This variable is visible within response_callback.
         // Needs to be externally resetted.
         response_error = true;    
-
       }
     
       // Check result

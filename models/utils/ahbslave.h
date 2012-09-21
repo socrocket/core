@@ -20,6 +20,8 @@ template<class BASE=sc_module>
 class AHBSlave : public BASE, public AHBDevice {
  public:
   SC_HAS_PROCESS(AHBSlave);
+
+  using BASE::name;
         
   AHBSlave(sc_core::sc_module_name mn, 
            uint8_t hindex, 

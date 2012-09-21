@@ -22,6 +22,8 @@ class AHBMaster : public BASE, public AHBDevice {
  public:
   SC_HAS_PROCESS(AHBMaster);
 
+  using BASE::name;
+
   /// Constructor
   AHBMaster(sc_core::sc_module_name nm, 
             uint8_t hindex, 
