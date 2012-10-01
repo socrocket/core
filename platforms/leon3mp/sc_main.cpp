@@ -724,10 +724,11 @@ int sc_main(int argc, char** argv) {
         connect(leon3->irqAck.status, irqmp.cpu_stat, i);
 
         // GDBStubs
-        if(p_gdb_en && p_gdb_proc == i) {
+        //if(p_gdb_en && p_gdb_proc == i) {
+        if(p_gdb_en) {
           GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3->abiIf));
           leon3->toolManager.addTool(*gdbStub);
-          gdbStub->initialize(p_gdb_port); 
+          gdbStub->initialize(p_gdb_port + i); 
           //leon3->instrMem.setDebugger(gdbStub);
           //leon3->dataMem.setDebugger(gdbStub);
         }
@@ -780,10 +781,11 @@ int sc_main(int argc, char** argv) {
         connect(leon3->irqAck.status, irqmp.cpu_stat, i);
 
         // GDBStubs
-        if(p_gdb_en && p_gdb_proc == i) {
+        //if(p_gdb_en && p_gdb_proc == i) {
+        if(p_gdb_en) {
           GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3->abiIf));
           leon3->toolManager.addTool(*gdbStub);
-          gdbStub->initialize(p_gdb_port); 
+          gdbStub->initialize(p_gdb_port + i); 
           //leon3->instrMem.setDebugger(gdbStub);
           //leon3->dataMem.setDebugger(gdbStub);
         }

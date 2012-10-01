@@ -260,6 +260,8 @@ def modelsim(self):
   self.apply_incpaths()
   if not (Options.options.modelsim and self.env["MODELSIM"]):
     return
+  os.environ["GRLIB_TECH"] = self.env["GRLIB_TECH"]
+  os.environ["GRLIB_HOME"] = self.env["GRLIB_HOME"]
   self.env = self.env.derive()
   self.env["_VCOMFLAGS"]     = list(self.env["VCOMFLAGS"])
   self.env["_VLOGFLAGS"]     = list(self.env["VLOGFLAGS"])
