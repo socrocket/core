@@ -135,7 +135,7 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
   v::info << this->name() << " * ------------------------------------------------ " << v::endl;
   v::info << this->name() << " * device_type (ROM, IO, SRAM, SDRAM): " << get_type_name() << v::endl;
   v::info << this->name() << " * banks: " << banks << v::endl;
-  v::info << this->name() << " * bsize (bytes): " << hex << bsize << v::endl;
+  v::info << this->name() << " * bsize (bytes): " << bsize << v::endl;
   v::info << this->name() << " * bit width: " << bits << v::endl;
   v::info << this->name() << " * cols (SD only): " << cols << v::endl;
   v::info << this->name() << " * pow_mon: " << powmon << v::endl;

@@ -84,6 +84,7 @@
 #include <tlm.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+#include <boost/program_options/errors.hpp>
 
 #include "leon3.funclt.h"
 #include "leon3.funcat.h"
@@ -119,8 +120,13 @@ int sc_main(int argc, char** argv) {
     p.add("argument", -1);
 
     boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
-    boost::program_options::notify(vm);
+    try {
+      boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+      boost::program_options::notify(vm);
+    } catch(boost::program_options::unknown_option o) {
+      std::cout << "Comand line argument '" << o.get_option_name() << "' unknown. Please use -a,[argument] to add it to the software arguments or correct it." << std::endl;
+      exit(1);
+    }
 
     if(vm.count("help")) {
         std::cout << std::endl << "SoCRocket -- LEON3 Multi-Processor Platform" << std::endl;
@@ -959,11 +965,12 @@ int sc_main(int argc, char** argv) {
     // * Param Listing **************************
     if(paramlist) {
         gs::cnf::cnf_api *CFG = gs::cnf::GCnf_Api::getApiInstance(NULL);
-        v::info << "main" << "System Values:" << v::endl;
+        std::cout << "Available System Options:" << std::endl;
         std::vector<std::string> plist = CFG->getParamList();
         for(uint32_t i = 0; i < plist.size(); i++) {
-            v::info << "main" << plist[i] << v::endl;
+            std::cout << " " << plist[i] << std::endl;
         }
+        exit(0);
     }
     // ******************************************
 

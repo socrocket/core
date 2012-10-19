@@ -115,7 +115,7 @@
         <description>
           The AHB slave index of the device.<br/>
         </description>
-      <option var="check" name="Memory check" type="bool" default="true">
+      <option var="check" name="Intersection check" type="bool" default="true">
        <description>
           Checks the APB address map for overlaps.<br/>
           Stops the simulation on errors (assert level failure).

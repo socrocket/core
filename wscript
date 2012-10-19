@@ -618,7 +618,7 @@ def configure(ctx):
       uselib_store = 'LUA',
       mandatory    = True,
       libpath      = lualib,
-      errmsg       = "LUA Library not found. Use --lua option or set $LUA_HOME.",
+      errmsg       = "LUA Library not found. Use --lua option or set $LUA.",
       okmsg        = "ok"
     ) 
     ctx.check_cxx(
@@ -907,6 +907,7 @@ def configure(ctx):
     #ctx.set_env_name('sparc', sparc_env)
     sparcFlags = ['-Wall', '-static', '-O3']
     ctx.env.append_unique('LINKFLAGS', sparcFlags)
+    ctx.env['SHLIB_MARKER'] = ""
     if  '-Wl,-Bdynamic' in ctx.env['LINKFLAGS']:
       ctx.env['LINKFLAGS'].remove('-Wl,-Bdynamic')
     ctx.env.append_unique('CFLAGS', sparcFlags)
