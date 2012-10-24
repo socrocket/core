@@ -5,8 +5,6 @@
 #include <systemc.h>
 
 #include <greencontrol/config.h>
-#include <greensocket/initiator/multi_socket.h>
-#include <greenreg_ambasockets.h>
 
 #include <amba.h>
 

@@ -1,5 +1,10 @@
 #include "ahbslave.h"
 
+#ifndef MTI_SYSTEMC
+//#include <greensocket/initiator/multi_socket.h>
+#include <greenreg_ambasockets.h>
+#endif
+
 using namespace std;
 using namespace sc_core;
 using namespace tlm;
@@ -61,6 +66,8 @@ AHBSlave<sc_module>::AHBSlave(sc_module_name nm,
   }
 }
 
+#ifndef MTI_SYSTEMC
+
 template<>
 AHBSlave<gs::reg::gr_device>::AHBSlave(sc_module_name nm, 
                          uint8_t hindex, 
@@ -115,3 +122,5 @@ AHBSlave<gs::reg::gr_device>::AHBSlave(sc_module_name nm,
                             << "To ensure the performance counter will work correctly" << v::endl;
   }
 }
+
+#endif
