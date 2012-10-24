@@ -126,12 +126,13 @@
     <option var="mmu_cache" name="MMU Cache">
       <option var="ic" name="Instruction cache">
         <option var="en" name="Enable instruction cache" type="bool" default="true" hint="true - instruction cache enabled"/>
-        <option var="repl" name="Cache replacement strategy" type="int" default="2" range="0..3">
+        <option var="repl" name="Cache replacement strategy" type="int" default="3" range="0..3">
           <description>
             Instruction cache replacement policy:<br/>
-            0 - least recently used (LRU)<br/>
-            1 - least recently replaced (LRR)<br/>
-            2 - random<br/>
+	    0 - direct mapped<br/>
+            1 - least recently used (LRU)<br/>
+            2 - least recently replaced (LRR)<br/>
+            3 - random<br/>
           </description>
         </option>
         <option var="sets" name="Number of icache sets" type="int" default="1" range="1..4" hint="Number of instruction cache sets"/>
@@ -144,9 +145,10 @@
         <option var="repl" name="Cache replacement strategy" type="int" default="2" range="0..3">
           <description>
             Data cache replacement policy:<br/>
-            0 - least recently used (LRU)<br/>
-            1 - least recently replaced (LRR)<br/>
-            2 - random<br/>
+	    0 - direct mapped<br/>
+            1 - least recently used (LRU)<br/>
+            2 - least recently replaced (LRR)<br/>
+            3 - random<br/>
           </description>
         </option> 
         <option var="sets" name="Number of dcache sets" type="int" default="1" range="1..4" hint="Number of data cache sets"/>
