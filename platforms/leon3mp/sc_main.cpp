@@ -756,7 +756,7 @@ int sc_main(int argc, char** argv) {
                 options.push_back(*iter);
               }
             }
-            OSEmulatorBase::set_program_args(options);
+            osEmu->set_program_args(options);
             leon3->toolManager.addTool(*osEmu);
           } else {
             v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;
@@ -813,7 +813,7 @@ int sc_main(int argc, char** argv) {
                 options.push_back(*iter);
               }
             }
-            OSEmulatorBase::set_program_args(options);
+            osEmu->set_program_args(options);
             leon3->toolManager.addTool(*osEmu);
           } else {
             v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;

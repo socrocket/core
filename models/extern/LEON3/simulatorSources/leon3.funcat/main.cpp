@@ -348,7 +348,7 @@ int sc_main( int argc, char * * argv ){
             }
         }
     }
-    OSEmulatorBase::set_program_args(options);
+    osEmu.set_program_args(options);
     if(vm.count("environment") > 0){
         //Here we have to parse the environment; they are
         //in the form option=value,option=value .....
@@ -371,7 +371,7 @@ int sc_main( int argc, char * * argv ){
                 "'=' not found in option " << curEnv << std::endl;
                 return -1;
             }
-            OSEmulatorBase::set_environ(curEnv.substr(0, equalPos), curEnv.substr(equalPos + 1));
+            osEmu.set_environ(curEnv.substr(0, equalPos), curEnv.substr(equalPos + 1));
         }
     }
     if(vm.count("sysconf") > 0){
@@ -397,7 +397,7 @@ int sc_main( int argc, char * * argv ){
                 return -1;
             }
             try{
-                OSEmulatorBase::set_sysconf(curEnv.substr(0, equalPos), boost::lexical_cast<int>(curEnv.substr(equalPos \
+                osEmu.set_sysconf(curEnv.substr(0, equalPos), boost::lexical_cast<int>(curEnv.substr(equalPos \
                     + 1)));
             }
             catch(...){
