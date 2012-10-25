@@ -49,8 +49,7 @@
       "addr": 2, 
       "eirq": 4, 
       "index": 2, 
-      "mask": 4095, 
-      "ncpu": 7
+      "mask": 4095
     }, 
     "gdb" : {
       "en" : false,
@@ -153,6 +152,7 @@
       "en": false
     }, 
     "system": {
+      "ncpu": 7,
       "clock": 10, 
       "at": false
     }, 

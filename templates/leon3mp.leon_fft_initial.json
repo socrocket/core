@@ -54,8 +54,7 @@
       "addr": 2, 
       "eirq": 4, 
       "index": 2, 
-      "mask": 4095, 
-      "ncpu": 1
+      "mask": 4095 
     }, 
     "mctrl": {
       "apb": {
@@ -154,7 +153,8 @@
     }, 
     "system": {
       "at": false, 
-      "clock": 10
-    }, 
+      "clock": 10,
+      "ncpu": 1
+    } 
   }
 }

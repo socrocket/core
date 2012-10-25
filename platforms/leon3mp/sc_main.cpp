@@ -223,6 +223,7 @@ int sc_main(int argc, char** argv) {
 
     // Decide whether LT or AT
     gs::gs_param<bool> p_system_at("at", false, p_system);
+    gs::gs_param<unsigned int> p_system_ncpu("ncpu", 1, p_system);
     gs::gs_param<unsigned int> p_system_clock("clk", 10, p_system);
     gs::gs_param<std::string> p_system_osemu("osemu", "", p_system);
     gs::gs_param<std::string> p_system_log("log", "", p_system);
@@ -312,12 +313,11 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_irqmp_mask("mask", 0xFFF, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_index("index", 2, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_eirq("eirq", 4, p_irqmp);
-    gs::gs_param<unsigned int> p_irqmp_ncpu("ncpu", 1, p_irqmp);
 
     Irqmp irqmp("irqmp",
                 p_irqmp_addr,  // paddr
                 p_irqmp_mask,  // pmask
-                p_irqmp_ncpu,  // ncpu
+                p_system_ncpu,  // ncpu
                 p_irqmp_eirq,  // eirq
                 p_irqmp_index, // pindex
                 p_report_power // power monitoring
@@ -660,7 +660,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_gdb_en("en", false, p_gdb);
     gs::gs_param<int> p_gdb_port("port", 1500, p_gdb);
     gs::gs_param<int> p_gdb_proc("proc", 0, p_gdb);
-    for(int i=0; i< p_irqmp_ncpu; i++) {
+    for(int i=0; i< p_system_ncpu; i++) {
       // AHBMaster - MMU_CACHE
       // =====================
       // Always enabled.

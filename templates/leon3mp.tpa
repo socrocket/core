@@ -17,6 +17,7 @@
     <option name="System Options" var="system">
       <option var="at" name="Execute the simulation in AT mode" type="bool" default="false" hint="True - AT abstraction, False - LT abstraction."/>
       <option var="clock" name="Clock period in NS" type="int" default="10" hint="Clock period for delay annotation. Assumes a single clock domain for all components"/>
+      <option var="ncpu" name="Number of processor system" type="int" default="1" range="1..16" hint="Defines the number of processors to be served by this controller."/>
     </option>
     <option name="Reports" var="report" >
       <option var="timing" name="Enable timing report" type="bool" default="true" hint="true - The simulation models will print a timing report at the end of simulation."/>
@@ -303,7 +304,6 @@
       <option var="addr" name="APB Base Address" type="int" default="0x002" range="0..4095" hint="The 12bit MSB address at the APB bus"/>
       <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..4095" hint="The 12bit APB address mask"/>
       <option var="index" name="Bus Index" type="int" default="2" range="0..15" hint="The slave index at the APB bus"/>
-      <option var="ncpu" name="Number of processor system" type="int" default="1" range="1..16" hint="Defines the number of processors to be served by this controller."/>
       <option var="eirq" name="The cascade line of EIRs" type="int" default="4" range="0..15" hint="Specifies the interrupt line that is used for signalling external interrupts."/>
     </option>
 
