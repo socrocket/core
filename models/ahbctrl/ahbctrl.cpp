@@ -92,7 +92,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       m_total_wait("total_wait", SC_ZERO_TIME, m_performance_counters),
       m_arbitrated("arbitrated", 0ull, m_performance_counters),
       m_max_wait("maximum_waiting_time", SC_ZERO_TIME, m_performance_counters),
-      m_max_wait_master("maximum_wating_master_id", defmast, m_performance_counters),
+      m_max_wait_master("maximum_waiting_master_id", defmast, m_performance_counters),
       m_idle_count("idle_cycles", 0ull, m_performance_counters),
       m_total_transactions("total_transactions", 0ull, m_performance_counters), 
       m_right_transactions("successful_transactions", 0ull, m_performance_counters),

@@ -72,7 +72,7 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     m_number_of_vectors(setsize*256/linesize), 
     m_idx_bits(m_setsize + 8 - m_linesize), 
     m_tagwidth(32 - m_idx_bits - m_offset_bits), 
-    m_repl(repl+1), 
+    m_repl(repl), 
     m_mmu_en(mmu_en), 
     m_lram(lram), 
     m_lramstart(lramstart), 
@@ -125,6 +125,14 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     if ((m_repl==2)&(m_sets!=1)) {
 
       v::error << this->name() << "LRR replacement may only be selected for two-way associative caches!" << v::endl;
+      assert(0);
+
+    }
+
+    // Direct mapped cache (replacement) only allowed for one-way caches 
+    if ((m_sets > 0) && (m_repl == 0)) {
+
+      v::error << this->name() << "Replacement policy not valid. Direct mapped only allowed for one-way caches!" << v::endl;
       assert(0);
 
     }

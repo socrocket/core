@@ -1,5 +1,10 @@
 #include "ahbmaster.h"
 
+#ifndef MTI_SYSTEMC
+//#include <greensocket/initiator/multi_socket.h>
+#include <greenreg_ambasockets.h>
+#endif
+
 using namespace std;
 using namespace sc_core;
 using namespace tlm;
@@ -34,6 +39,8 @@ AHBMaster<sc_module>::AHBMaster(sc_module_name nm, uint8_t hindex, uint8_t vendo
     }
 }
 
+#ifndef MTI_SYSTEMC
+
 // Constructor (gr_device version)
 template<>
 AHBMaster<gs::reg::gr_device>::AHBMaster(sc_module_name nm, uint8_t hindex, uint8_t vendor, uint8_t device, uint8_t version, uint8_t irq, 
@@ -63,3 +70,5 @@ AHBMaster<gs::reg::gr_device>::AHBMaster(sc_module_name nm, uint8_t hindex, uint
                              << "To ensure the performance counter will work correctly" << v::endl;
       }
 }
+
+#endif
