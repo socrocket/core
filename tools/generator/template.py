@@ -55,12 +55,15 @@ class Template:
             self.name = self.root.getAttribute("name")
             self.hint = self.root.getAttribute("hint")
             self.description = ""
+            self.instructions = ""
             self.options = None
             self._generators = []
             self._files = []
             for node in self.root.childNodes:
                 if node.nodeName == "description":
                   self.description += node.toxml()[14:-15]
+                if node.nodeName == "instructions":
+                  self.instructions += node.toxml()[14:-15]
                 elif node.nodeName == "option":
                     self.options = node
                 elif node.nodeName == "generator":
@@ -127,6 +130,9 @@ class Template:
     def getConfiguration(self):
         return self.configuration
       
+    def getConfigurationFile(self):
+        return os.path.join("templates", '.'.join((str(self.base), str(self.configuration))))+".json"
+
     def listConfigurations(self):
         result = []
         for file in os.listdir('templates'):
@@ -139,13 +145,13 @@ class Template:
    
     def loadConfiguration(self, name):
         self.configuration = name
-        file = os.path.join("templates", '.'.join((str(self.base), str(self.configuration))))+".json"
+        file = self.getConfigurationFile()
         if self._model != None:
             self._model.loadFromJsonFile(file)
 
     def storeConfiguration(self, name):
         self.configuration = name
-        file = os.path.join("templates", '.'.join((str(self.base), str(self.configuration))))+".json"
+        file = self.getConfigurationFile()
         if self._model != None:
             self._model.saveToJsonFile(file)
         
@@ -163,7 +169,8 @@ class Template:
         path = os.path.join("platforms", '-'.join((str(self.base), str(self.configuration)))) 
         if os.path.isdir(path):
             shutil.rmtree(path)
-        os.makedirs(path)
+        if any(files + gen):
+            os.makedirs(path)
         progress(2 * 100 / steps)
         # writing files
         num = 2
