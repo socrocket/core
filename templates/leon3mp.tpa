@@ -15,43 +15,32 @@
   </description>
   <instructions>
     <h1>Further Instructions</h1>
-    <p>If you not allready done it, please build the platform itself and the coresponding rom if needed.</p>
-    <ol>
-      <li>
-        <p>For generating the platform simulator:</p>
-        <pre>./waf --target=leon3mp.platform</pre>
-      </li>
-      <li>
-        <p>For generating the boot-code:</p>
-        <pre>./waf --target=default.prom</pre>
-      </li>
-      <li>
-        <p>Compile your software or select one out of the software directory</p>
-        <p>
-          Our example software is build with the main system. All software targets end with <pre>.sparc</pre>.
-          They are all compatible to this platforms default configuration. To use them you will also need the prom image from step 2.
-        </p>
-        <p>
-           This excludes the rtems targets which need further instructions. They have to be build properly. See Gaisler Documentation for further instructions.
-        </p>
-      </li>
-    </ol>
-    <h2> Executing a target</h2>
-    <p>First you need to konw whether your aplication need to go into RAM or ROM</p>
-    <p>To load an application into ROM you will add the following option to the platform comandline:<br/>
+    <p>The system has been successfully generated.</p>
+    <h2>How to compile simulator, boot-code and software</h2>
+    <p>To compile the simulator enter:</p>
+    <pre>./waf --target=leon3mp.platform</pre>
+    <p>For generating the boot-code enter:</p>
+    <pre>./waf --target=default.prom</pre>
+    <p>Compile your software or select an example from the software directory</p>
+    The example software is compiled together with the library. The names of all software targets end with ".sparc". 
+    All targets are compatible to this platform in its default configuration (bare-metal).
+    If desired, manually compile as follows:
+    <pre>e.g. ./waf --target=hello.sparc</pre>
+    <p>Remark: For building RTEMS applications or compressed ROM images (mkprom) see the Gaisler Documentation (RCC).</p>
+    <h2> Executing a simulation</h2>
+    <p>Decide if the application should be loaded into RAM or ROM</p>
+    <p>To load an application into ROM add the following option to the simulator command line:
       <pre>--option conf.mctrl.rom.elf="&lt;rom executable&gt;"</pre>
     </p>
-    <p>To load an application into RAM you will add an alterd option:<br/>
+    <p>To load an application into RAM add the following option:
       <pre>--option conf.mctrl.ram.sdram.elf="&lt;ram executable&gt;"</pre>
     </p>
-    <p>This pattern applies for any other memory as well.</p>
     <p>
-      Now ypou have to decide whether or not you want to use the build in OS emulation.<br/>
-      If you desire please add the option:
+      To enable OS emulation add:
       <pre>--option conf.system.osemu="&lt;elf with OS functions&gt;"</pre>
     </p>
     <p>
-      For example to execute the hello.sparc example from the software grlib_tests folder, with OS emulation in the generated cofiguration execute the following command: <br/>
+      Example: To execute the "hello.sparc" test from the grlib_tests directory with OS emulation enabled run:
       <pre>$ ./build/leon3mp/leon3mp.platform -jsonconfig %s --option conf.mctrl.prom.elf="./build/software/prom/default/default.prom" --option conf.mctrl.ram.sdram.elf="./build/software/grlib_tests/hello.sparc" --option conf.system.osemu="./build/software/grlib_tests/hello.sparc" </pre>
     </p>
     <p>Have fun ...</p>
