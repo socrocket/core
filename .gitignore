@@ -12,6 +12,7 @@ gmon.out
 .lock-wafbuild
 .waf*
 build
+deps
 
 # Mkprom2
 xdump.s
