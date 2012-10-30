@@ -623,14 +623,14 @@ int sc_main(int argc, char** argv) {
     gs::gs_param_array p_mmu_cache("mmu_cache", p_conf);
     gs::gs_param_array p_mmu_cache_ic("ic", p_mmu_cache);
     gs::gs_param<bool> p_mmu_cache_ic_en("en", true, p_mmu_cache_ic);
-    gs::gs_param<int> p_mmu_cache_ic_repl("repl", 0, p_mmu_cache_ic);
+    gs::gs_param<int> p_mmu_cache_ic_repl("repl", 3, p_mmu_cache_ic);
     gs::gs_param<int> p_mmu_cache_ic_sets("sets", 4, p_mmu_cache_ic);
     gs::gs_param<int> p_mmu_cache_ic_linesize("linesize", 4, p_mmu_cache_ic);
     gs::gs_param<int> p_mmu_cache_ic_setsize("setsize", 16, p_mmu_cache_ic);
     gs::gs_param<bool> p_mmu_cache_ic_setlock("setlock", 1, p_mmu_cache_ic);
     gs::gs_param_array p_mmu_cache_dc("dc", p_mmu_cache);
     gs::gs_param<bool> p_mmu_cache_dc_en("en", true, p_mmu_cache_dc);
-    gs::gs_param<int> p_mmu_cache_dc_repl("repl", 2, p_mmu_cache_dc);
+    gs::gs_param<int> p_mmu_cache_dc_repl("repl", 3, p_mmu_cache_dc);
     gs::gs_param<int> p_mmu_cache_dc_sets("sets", 2, p_mmu_cache_dc);
     gs::gs_param<int> p_mmu_cache_dc_linesize("linesize", 4, p_mmu_cache_dc);
     gs::gs_param<int> p_mmu_cache_dc_setsize("setsize", 1, p_mmu_cache_dc);
