@@ -242,20 +242,38 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
   trans.get_extension(iext);
  
   unsigned int *debug;
+  unsigned int flush;
 
   // Check/extract instruction payload extension
   if (iext!=NULL) {
 
     debug = iext->debug;
+    flush = iext->flush;
 
   } else {
 
     // No iext
     debug = NULL;
+    flush = 0;
   
     v::error << name() << "IEXT Payload extension missing" << v::endl;
   }
 
+  // Flush instruction
+  if (flush) {
+
+    v::debug << name() << "Received flush instruction - flushing both caches" << v::endl;
+
+    // Simultaneous flush of both caches
+    icache->flush(&delay, debug, is_dbg);
+    dcache->flush(&delay, debug, is_dbg);
+
+    trans.set_response_status(tlm::TLM_OK_RESPONSE);
+
+    return;
+
+  }
+  
   if (cmd == tlm::TLM_READ_COMMAND) {
 
     // Instruction scratchpad enabled && address points into selected 16MB region
