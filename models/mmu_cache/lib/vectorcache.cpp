@@ -274,14 +274,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       
     }
 
-    /*
-      if ((tag & 0xffff0) == 0x40000) {
-
-      v::info << name() << "TAG ALARM - address: " << hex << address << " tag: " << tag << " idx: " << idx << v::endl;
-      
-      }
-    */
-
     // lookup all cachesets
     for (unsigned int i = 0; i <= m_sets; i++) {
 
@@ -595,7 +587,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
                     // write data to cache
                     for (unsigned int j = 0; j < len; j++) {
-                        (*m_current_cacheline[i]).entry[offset >> 2].c[byt + j] = *(data + j);
+                      (*m_current_cacheline[i]).entry[(offset+j) >> 2].c[byt + j] = *(data + j);
                     }
 
 		    // Increment hit counter
