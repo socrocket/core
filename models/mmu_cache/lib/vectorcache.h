@@ -111,7 +111,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
   void clkcng(sc_core::sc_time &clk);
 
   /// Transforms a cache-line offset into a valid mask
-  inline unsigned int offset2valid(unsigned int offset);
+  inline unsigned int offset2valid(unsigned int offset, unsigned int len = 4);
 
   void end_of_simulation();
 

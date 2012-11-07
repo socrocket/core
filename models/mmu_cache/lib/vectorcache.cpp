@@ -299,7 +299,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
           //v::debug << this->name() <<  "Correct atag found in set " << i << v::endl;
       
           // Check the valid bit
-          if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset)) != 0) {
+          if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) != 0) {
 
             v::debug << this->name() << "Cache Hit in Set " << i << v::endl;
 			
@@ -392,7 +392,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
         // Check for unvalid data which can be replaced without harm
         for (unsigned int i = 0; i <= m_sets; i++) {
 
-          if ((((*m_current_cacheline[i]).tag.valid) & offset2valid(offset)) == 0) {
+          if ((((*m_current_cacheline[i]).tag.valid) & offset2valid(offset, len)) == 0) {
 
             // select unvalid data for replacement
             set_select = i;
@@ -580,7 +580,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
                 //v::debug << this->name() << "Correct atag found in set " << i << v::endl;
 
                 // Check the valid bit
-                if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset)) != 0) {
+                if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) != 0) {
 
                     v::debug << this->name() << "Cache Hit in Set " << i << v::endl;
 
@@ -1126,20 +1126,36 @@ void vectorcache::dbg_out(unsigned int line) {
 }
 
 // Transforms a cache-line offset into a valid mask
-inline unsigned int vectorcache::offset2valid(unsigned int offset) {
+inline unsigned int vectorcache::offset2valid(unsigned int offset, unsigned int len) {
 
-  switch(offset>>2) {
+  if (len != 8) {
 
-  case 0x0: return 0x01;
-  case 0x1: return 0x02;
-  case 0x2: return 0x04;
-  case 0x3: return 0x08;
-  case 0x4: return 0x10;
-  case 0x5: return 0x20;
-  case 0x6: return 0x40;
-  case 0x7: return 0x80;
-  default: v::warn << name() << "Odd offset for calculation of valid mask!" << v::endl;
-    return 0x00;
+    switch(offset>>2) {
+
+    case 0x0: return 0x01;
+    case 0x1: return 0x02;
+    case 0x2: return 0x04;
+    case 0x3: return 0x08;
+    case 0x4: return 0x10;
+    case 0x5: return 0x20;
+    case 0x6: return 0x40;
+    case 0x7: return 0x80;
+    default: v::warn << name() << "Odd offset for calculation of valid mask!" << v::endl;
+      return 0x00;
+
+    }
+
+  } else {
+
+    switch(offset>>2) {
+
+    case 0x0: return 0x03;
+    case 0x2: return 0x0c;
+    case 0x4: return 0x30;
+    case 0x6: return 0xc0;
+    default: v::warn << name() << "Odd offset for calculation of valid mask (dword)!" << v::endl;
+      return 0x00;
+    }
   }
 }
 
