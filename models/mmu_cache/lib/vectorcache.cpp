@@ -266,13 +266,9 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
     unsigned char ahb_data[32];
 
 
-    if ((address & 0xffffff00) == 0x40001500) {
-
-      v::debug << this->name() << "READ ACCESS with asi: " << asi << " idx: " << hex << idx
-               << " tag: " << hex << tag << " offset: " << hex
-               << offset << v::endl;
-      
-    }
+    v::debug << this->name() << "READ ACCESS with idx: " << hex << idx
+             << " tag: " << hex << tag << " offset: " << hex
+             << offset << v::endl;
 
     // lookup all cachesets
     for (unsigned int i = 0; i <= m_sets; i++) {
@@ -293,7 +289,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
           // Check the valid bit
           if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) != 0) {
 
-            v::debug << this->name() << "Cache Hit in Set " << i << v::endl;
+            v::debug << this->name() << "Cache Hit in Set " << i << "(valid: " << hex << (*m_current_cacheline[i]).tag.valid << " check mask: " << hex << offset2valid(offset, len) << ")" << v::endl;
 			
             // update debug information
             CACHEREADHIT_SET(*debug,i);
@@ -574,7 +570,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
                 // Check the valid bits
                 if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) != 0) {
 
-                  v::debug << this->name() << "Cache Hit in Set " << i << "(valid: " << hex << (*m_current_cacheline[i]).tag.valid << " check mask: " << hex << offset2valid(offset, len) << ")" << v::endl;
+                  v::debug << this->name() << "Cache Hit in Set " << i << " (valid: " << hex << (*m_current_cacheline[i]).tag.valid << " check mask: " << hex << offset2valid(offset, len) << ")" << v::endl;
 
                     // update lru history
                     if (m_repl == 1) {
