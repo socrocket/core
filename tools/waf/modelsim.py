@@ -176,7 +176,7 @@ class vini_task(Task.Task):
       return 0
 
 # Task to create a modelsim work library
-vlib_task  = Task.simple_task_type('vlib', 'vlib ${TGT}', color='BLUE', before=['vcom', 'vlog', 'sccom', 'sclink'], shell=True)
+vlib_task  = Task.simple_task_type('vlib', '${VLIB} ${TGT}', color='BLUE', before=['vcom', 'vlog', 'sccom', 'sclink'], vars=["VLIB"], shell=True)
 vlib_task.quiet = True
 
 def vlib_task_str(self):
