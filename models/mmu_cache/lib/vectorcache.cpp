@@ -571,16 +571,16 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
                 //v::debug << this->name() << "Correct atag found in set " << i << v::endl;
 
-                // Check the valid bit
+                // Check the valid bits
                 if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) != 0) {
 
-                    v::debug << this->name() << "Cache Hit in Set " << i << v::endl;
+                  v::debug << this->name() << "Cache Hit in Set " << i << "(valid: " << hex << (*m_current_cacheline[i]).tag.valid << " check mask: " << hex << offset2valid(offset, len) << ")" << v::endl;
 
                     // update lru history
                     if (m_repl == 1) {
                         lru_update(i);
                     }
-
+                    
                     // update debug information
                     CACHEWRITEHIT_SET(*debug, i);
                     is_hit = true;
@@ -603,11 +603,23 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
                     }
 
                     break;
+
                 } else {
 
                     v::debug << this->name()
                             << "Tag Hit but data not valid in set " << i
                             << v::endl;
+
+                    // For 64bit access invalidate the upper word
+                    if (len == 8) {
+
+                      if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset+4)) != 0) {
+                    
+                        v::debug << this->name() << "64bit invalidate" << v::endl;
+                        (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset+4);
+
+                      }
+                    }
                 }
 
             } else {
@@ -622,7 +634,6 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
             CACHEWRITEMISS_SET(*debug);
 	    v::debug << name() << "ACCESS IS WRITEMISS " << hex << *debug << v::endl;
 	    wmisses++;
-
 	}
 	    
         // write data to main memory
