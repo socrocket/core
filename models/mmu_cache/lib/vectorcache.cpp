@@ -287,7 +287,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
           //v::debug << this->name() <<  "Correct atag found in set " << i << v::endl;
       
           // Check the valid bit
-          if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) != 0) {
+          if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) {
 
             v::debug << this->name() << "Cache Hit in Set " << i << "(valid: " << hex << (*m_current_cacheline[i]).tag.valid << " check mask: " << hex << offset2valid(offset, len) << ")" << v::endl;
 			
@@ -568,7 +568,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
                 //v::debug << this->name() << "Correct atag found in set " << i << v::endl;
 
                 // Check the valid bits
-                if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) != 0) {
+                if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) {
 
                   v::debug << this->name() << "Cache Hit in Set " << i << " (valid: " << hex << (*m_current_cacheline[i]).tag.valid << " check mask: " << hex << offset2valid(offset, len) << ")" << v::endl;
 
