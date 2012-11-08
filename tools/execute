@@ -1,19 +1,24 @@
 #!/usr/bin/env bash
 
+if [ $# -lt 3 ] ; then
+  echo "Usage: $0 <platform-name> <rom-name> <sdram-elf-name> [platform-arguments ...]"
+  exit 1
+fi
+
 template=$1
-level=$2
+prom=$2
 app=$3
 shift
 shift
 shift
 
-ppath="build/platforms/$template-$level/systemc"
-platform="$ppath/$template.$level.platform"
-prom="$ppath/$template.$level.prom"
-ram=$(find build/software -name $app.sparc)
+ppath="build/platforms/$template/"
+platform="$ppath/$template.platform"
+prom="build/software/prom/$prom/$prom.prom"
+ram=$(find build/software -name "$app.sparc")
 
-$platform $prom $ram $@
-if [ "$?" == "0" ] ; then
+$platform --option conf.mctrl.prom.elf=$prom --option conf.mctrl.ram.sdram.elf=$ram --option conf.system.osemu=$ram $@
+if [ $? -ne 0 ] ; then
   echo "!!! Successfull"
 else
   echo "!!! Failed"
