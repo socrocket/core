@@ -125,18 +125,10 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   /// @tlb_type      split or shared instruction and data TLBs
   /// @tlb_rep       TLB replacement strategy
   /// @mmupgsz       MMU page size
-  /// @name                               SystemC module name
-  /// @id                                 ID of the AHB master
-  /// @abstractionLayer                   Select LT or AT abstraction
-  /// @icache_hit_read_response_delay     Delay on an instruction cache hit
-  /// @icache_miss_read_response_delay    Delay on an instruction cache miss
-  /// @dcache_hit_read_response_delay     Delay on a data cache read hit
-  /// @dcache_miss_read_response_delay    Delay on a data cache read miss
-  /// @dcache_write_response_delay        Delay on a data cache write (hit/miss)
-  /// @itlb_hit_response_delay            Delay on an instruction TLB hit
-  /// @itlb_miss_response_delay           Delay on an instruction TLB miss
-  /// @dtlb_hit_response_delay            Delay on a data TLB hit
-  /// @dtlb_miss_response_delay           Delay on a data TLB miss
+  /// @name          SystemC module name
+  /// @id            ID of the bus master
+  /// @powmon        Enable power monitoring
+  /// @ambaLayer     Select LT or AT abstraction
   mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
             unsigned int ilinesize, unsigned int isetsize,
             unsigned int isetlock, unsigned int dcen, unsigned int drepl,
@@ -184,6 +176,9 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
 
   /// Data service thread for AT
   void dcio_service_thread();
+
+  /// Called from AHB master to signal begin response
+  virtual void response_callback(tlm::tlm_generic_payload * trans);
 
   /// MemIF implementation - writes data to AHB master
   virtual void mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
@@ -303,6 +298,9 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   /// amba abstraction layer
   amba::amba_layer_ids m_abstractionLayer;
   
+  /// begin response signal for AT
+  sc_event ahb_response_event;
+
   // ****************************************************
   // Power Modeling Parameters
   

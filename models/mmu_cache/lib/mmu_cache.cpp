@@ -66,49 +66,50 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
                      unsigned int tlb_type, unsigned int tlb_rep,
                      unsigned int mmupgsz, sc_core::sc_module_name name,
                      unsigned int hindex,
-		     bool pow_mon,
-		     amba::amba_layer_ids abstractionLayer) :
+     bool pow_mon,
+     amba::amba_layer_ids abstractionLayer) :
 
-    AHBMaster<>(name,
-                hindex,
-                0x01,   // vendor
-                0x003,  // device
-                0,      // version
-                0,      // irq
+  AHBMaster<>(name,
+              hindex,
+              0x01,   // vendor
+              0x003,  // device
+              0,      // version
+              0,      // irq
                 abstractionLayer), // LT or AT
-    icio("icio"), 
-    dcio("dcio"), 
-    snoop(&mmu_cache::snoopingCallBack,"SNOOP"),
-    irq("irq"),
-    icio_PEQ("icio_PEQ"), 
-    dcio_PEQ("dcio_PEQ"),
-    m_icen(icen), 
-    m_dcen(dcen),
-    m_dsnoop(dsnoop),
-    m_ilram(ilram), 
-    m_ilramstart(ilramstart),
-    m_dlram(dlram),
-    m_dlramstart(dlramstart),
-    m_cached(cached),
-    m_mmu_en(mmu_en),
-    m_master_id(hindex), 
-    m_right_transactions("successful_transactions", 0ull, m_performance_counters),
-    m_total_transactions("total_transactions", 0ull, m_performance_counters),
-    m_pow_mon(pow_mon),
-    m_abstractionLayer(abstractionLayer),
-    sta_power_norm("power.mmu_cache.sta_power_norm", 1.16e+8, true), // Normalized static power of controller
-    int_power_norm("power.mmu_cache.int_power_norm", 0.0, true), // Normalized internal power of controller
-    dyn_read_energy_norm("power.mmu_cache.dyn_read_energy_norm", 1.465e-8, true), // Normalized read energy
-    dyn_write_energy_norm("power.mmu_cache.dyn_write_energy_norm", 1.465e-8, true), // Normalized write energy
-    power("power"),
-    sta_power("sta_power", 0.0, power), // Static power
-    int_power("int_power", 0.0, power), // Dynamic power
-    swi_power("swi_power", 0.0, power), // Switching power
-    power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
-    dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
-    dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
-    dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
-    dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation    
+  icio("icio"), 
+  dcio("dcio"), 
+  snoop(&mmu_cache::snoopingCallBack,"SNOOP"),
+  irq("irq"),
+  icio_PEQ("icio_PEQ"), 
+  dcio_PEQ("dcio_PEQ"),
+  m_icen(icen), 
+  m_dcen(dcen),
+  m_dsnoop(dsnoop),
+  m_ilram(ilram), 
+  m_ilramstart(ilramstart),
+  m_dlram(dlram),
+  m_dlramstart(dlramstart),
+  m_cached(cached),
+  m_mmu_en(mmu_en),
+  m_master_id(hindex), 
+  m_right_transactions("successful_transactions", 0ull, m_performance_counters),
+  m_total_transactions("total_transactions", 0ull, m_performance_counters),
+  m_pow_mon(pow_mon),
+  m_abstractionLayer(abstractionLayer),
+  ahb_response_event(),
+  sta_power_norm("power.mmu_cache.sta_power_norm", 1.16e+8, true), // Normalized static power of controller
+  int_power_norm("power.mmu_cache.int_power_norm", 0.0, true), // Normalized internal power of controller
+  dyn_read_energy_norm("power.mmu_cache.dyn_read_energy_norm", 1.465e-8, true), // Normalized read energy
+  dyn_write_energy_norm("power.mmu_cache.dyn_write_energy_norm", 1.465e-8, true), // Normalized write energy
+  power("power"),
+  sta_power("sta_power", 0.0, power), // Static power
+  int_power("int_power", 0.0, power), // Dynamic power
+  swi_power("swi_power", 0.0, power), // Switching power
+  power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
+  dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
+  dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
+  dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
+  dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation    
     
 {
 
@@ -120,12 +121,12 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 
     // create mmu (if required)
     m_mmu = (mmu_en == 1)? new mmu("mmu", 
-				   (mmu_cache_if *)this,
-				   itlb_num,
-				   dtlb_num,
-				   tlb_type,
-				   tlb_rep,
-				   mmupgsz,
+                                   (mmu_cache_if *)this,
+                                   itlb_num,
+                                   dtlb_num,
+                                   tlb_type,
+                                   tlb_rep,
+                                   mmupgsz,
                                    pow_mon) : NULL;
 
     // create icache
@@ -141,8 +142,8 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
             (mmu_cache_if *)this, (mmu_en)? (mem_if *)m_mmu->get_dtlb_if()
                                            : (mem_if *)this, mmu_en,
             dsets, dsetsize, dsetlock, dlinesize, drepl, dlram, dlramstart, 
-	    dlramsize, m_pow_mon) : (cache_if*)new nocache("no_dcache", 
-	    (mmu_en)? (mem_if *)m_mmu->get_dtlb_if() : (mem_if *)this);
+            dlramsize, m_pow_mon) : (cache_if*)new nocache("no_dcache", 
+            (mmu_en)? (mem_if *)m_mmu->get_dtlb_if() : (mem_if *)this);
 
     // Create instruction scratchpad
     // (! only allowed with mmu disabled !)
@@ -387,10 +388,10 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       // Address decoder for system registers
       if (addr == 0) {
 
-	// Cache Control Register
+        // Cache Control Register
         *(unsigned int *)ptr = read_ccr(false);
-	// Setting response status
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        // Setting response status
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       } else if (addr == 8) {
 
@@ -403,14 +404,14 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
         // Data Cache Configuration Register
         *(unsigned int *)ptr = dcache->read_config_reg(&delay);
-	// Setting response status
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        // Setting response status
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       } else {
 
         v::error << name() << "Address (" << v::uint32 << addr << ")  not valid for read with ASI 0x2" << v::endl;
-	// Set TLM response
-	trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+        // Set TLM response
+        trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
       }
 
       // Reading system registers has a delay of one clock cycle
@@ -426,12 +427,12 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       if (m_mmu_en) {
 
         m_mmu->diag_read_itlb(addr, (unsigned int *)ptr);
-	// Set TLM response
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        // Set TLM response
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       } else {
 
-	v::error << name() << "MMU not present" << v::endl;
+        v::error << name() << "MMU not present" << v::endl;
         // Set TLM response
         trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
 
@@ -450,15 +451,15 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       if (m_mmu_en) {
 
         m_mmu->diag_read_dctlb(addr, (unsigned int *)ptr);
-	// Set TLM response
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        // Set TLM response
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       } else {
 
-	v::error << name() << "MMU not present" << v::endl;
+        v::error << name() << "MMU not present" << v::endl;
 
-	// Set TLM response
-	trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+        // Set TLM response
+        trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
 
       }
 
@@ -595,23 +596,23 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       // Instruction scratchpad enabled && address points into selected 16 MB region
       if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-	ilocalram->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
-	// Set TLM response
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        ilocalram->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
+        // Set TLM response
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // Data scratchpad enabled && address points into selected 16MB region
       } else if (m_dlram && (((addr >> 24) & 0xff) == m_dlramstart)) {
 
-	dlocalram->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
-	// Set TLM response
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        dlocalram->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
+        // Set TLM response
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // Cache access || bypass || direct mmu
       } else {
 
         dcache->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, lock);
-	// Set TLM response
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        // Set TLM response
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       }
 
@@ -643,32 +644,32 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       if (addr == 0) {
 
         // Cache Control Register
-	write_ccr(ptr, len, &delay, debug, is_dbg);
-	// Setting response status
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        write_ccr(ptr, len, &delay, debug, is_dbg);
+        // Setting response status
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // TRIGGER ICACHE DEBUG OUTPUT / NOT A SPARC SYSTEM REGISTER
       } else if (addr == 0xfe) {
 
         // icache debug output (arg: line)
         icache->dbg_out(*(unsigned int*)ptr);
-	// Setting response status
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        // Setting response status
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // TRIGGER DCACHE DEBUG OUTPUT / NOT A SPARC SYSTEM REGISTER
       } else if (addr == 0xff) {
 
         // dcache debug output (arg: line)
         dcache->dbg_out(*(unsigned int*)ptr);
-	// Setting response status
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        // Setting response status
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       } else {
 
         v::error << name() << "Address not valid for write with ASI 0x2 (or read only)" << v::endl;
 
-	// Set TLM response
-	trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+        // Set TLM response
+        trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
 
       }
 
@@ -709,12 +710,12 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       if (m_mmu_en) {
 
         m_mmu->diag_write_dctlb(addr, (unsigned int *)ptr);
-	// Set TLM response
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        // Set TLM response
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       } else {
 
-	v::error << name() << "MMU not present" << v::endl;
+        v::error << name() << "MMU not present" << v::endl;
         // Set TLM response
         trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
 
@@ -795,15 +796,15 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
         v::debug << name() << "MMU register write with ASI 0x19 - addr: " << hex << addr << v::endl;
 
-	// Address decoder for MMU register access
+        // Address decoder for MMU register access
         if (addr == 0x000) {
-
-	  // MMU Control Register
+          
+          // MMU Control Register
           v::debug << name() << "ASI write MMU Control Register" << v::endl;
 
           m_mmu->write_mcr((unsigned int *)ptr);
-	  // Set TLM response
-	  trans.set_response_status(tlm::TLM_OK_RESPONSE);
+          // Set TLM response
+          trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
         } else if (addr == 0x100) {
 
@@ -811,24 +812,24 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
           v::debug << name() << "ASI write MMU Context Table Pointer Register" << v::endl;
 
           m_mmu->write_mctpr((unsigned int*)ptr);
-	  // Set TLM response
-	  trans.set_response_status(tlm::TLM_OK_RESPONSE);
+          // Set TLM response
+          trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
         } else if (addr == 0x200) {
 
-	  // Context Register
+          // Context Register
           v::debug << name() << "ASI write MMU Context Register" << v::endl;
-
-	  m_mmu->write_mctxr((unsigned int*)ptr);
-	  // Set TLM response
-	  trans.set_response_status(tlm::TLM_OK_RESPONSE);
+          
+          m_mmu->write_mctxr((unsigned int*)ptr);
+          // Set TLM response
+          trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
         } else {
                     
-	  v::error << name() << "Address not valid for write with ASI 0x19 (or read-only)" << v::endl;
+          v::error << name() << "Address not valid for write with ASI 0x19 (or read-only)" << v::endl;
 
-	  // Setting TLM response
-	  trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+          // Setting TLM response
+          trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
         }
 
       } else {
@@ -857,23 +858,23 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       // Instruction scratchpad enabled && address points into selected 16 MB region
       if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-	ilocalram->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
-	// set TLM response
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        ilocalram->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
+        // set TLM response
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // Data scratchpad enabled && address points into selected 16MB region
       } else if (m_dlram && (((addr >> 24) & 0xff) == m_dlramstart)) {
 
         dlocalram->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
-	// Set TLM response
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        // Set TLM response
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       // Cache access (write through) || bypass || direct mmu
       } else {
 
         dcache->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, lock);
-	// Set TLM response
-	trans.set_response_status(tlm::TLM_OK_RESPONSE);
+        // Set TLM response
+        trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       }
 
@@ -1006,22 +1007,22 @@ void mmu_cache::icio_service_thread() {
       // Check return status
       switch (status) {
 
-	case tlm::TLM_COMPLETED:
+      case tlm::TLM_COMPLETED:
 
-	  wait(delay);
-          delay = SC_ZERO_TIME;
-	  break;
+        wait(delay);
+        delay = SC_ZERO_TIME;
+        break;
 
-	case tlm::TLM_ACCEPTED:
+      case tlm::TLM_ACCEPTED:
 
-	  wait(delay);
-          delay = SC_ZERO_TIME;
-	  break;
+        wait(delay);
+        delay = SC_ZERO_TIME;
+        break;
 
-	default:
-
-	  v::error << name() << "TLM return status undefined or not valid!! " << v::endl;
-	  assert(0);
+      default:
+        
+        v::error << name() << "TLM return status undefined or not valid!! " << v::endl;
+        assert(0);
 
       } // switch
 
@@ -1109,20 +1110,20 @@ void mmu_cache::dcio_service_thread() {
 
         case tlm::TLM_COMPLETED:
 
-	  wait(delay);
+          wait(delay);
           delay = SC_ZERO_TIME;
-	  break;
+          break;
 
         case tlm::TLM_ACCEPTED:
 
-	  wait(delay);
+          wait(delay);
           delay = SC_ZERO_TIME;
-	  break;
+          break;
 
         default:
 
-	  v::error << name() << "TLM return status undefined or not valid!! " << v::endl;
-	  break;
+          v::error << name() << "TLM return status undefined or not valid!! " << v::endl;
+          break;
  
       } // switch
     
@@ -1161,6 +1162,17 @@ unsigned int mmu_cache::dcio_transport_dbg(tlm::tlm_generic_payload &trans) {
 
 } 
 
+/// Called from AHB master to signal begin response
+void mmu_cache::response_callback(tlm::tlm_generic_payload * trans) {
+
+  // Check response status
+  assert(trans->get_response_status()==tlm::TLM_OK_RESPONSE);
+
+  // Let mem_read/mem_write function know that we received a response
+  ahb_response_event.notify();
+  
+}
+
 /// Function for write access to AHB master socket
 void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
                           unsigned int length, sc_core::sc_time * delay,
@@ -1172,6 +1184,9 @@ void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * d
   if (!is_dbg) {
 
     ahbwrite(addr, data, length, *delay, is_lock, response);
+    // @AT wait for response from bus
+    if (m_abstractionLayer == amba::amba_AT) wait(ahb_response_event);
+
  
   } else {
 
@@ -1193,6 +1208,8 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * da
 
     // Regular read
     ahbread(addr, data, length, *delay, cacheable, is_lock, response);
+    // @AT wait for response from bus
+    if (m_abstractionLayer == amba::amba_AT) wait(ahb_response_event);
 
   } else {
 
@@ -1213,7 +1230,7 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * da
   }
 
   return cacheable;
-	
+
 }
 
 // Send an interrupt over the central IRQ interface
@@ -1291,7 +1308,7 @@ unsigned int mmu_cache::read_ccr(bool internal) {
 void mmu_cache::snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& delay) {
 
   v::debug << name() << "Snooping write operation on AHB interface (MASTER: " << snoop.master_id << " ADDR: "
-	   << v::uint32 << snoop.address << " LENGTH: " << snoop.length << ")" << v::endl;
+   << v::uint32 << snoop.address << " LENGTH: " << snoop.length << ")" << v::endl;
   // Make sure we are not snooping ourself ;)
   if (snoop.master_id != m_master_id) {
 
@@ -1313,7 +1330,6 @@ void mmu_cache::start_of_simulation() {
     power_model();
 
   }
-
 }
 
 // Calculate power/energy values form normalized input data
