@@ -583,7 +583,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
                     // write data to cache
                     for (unsigned int j = 0; j < len; j++) {
-                      (*m_current_cacheline[i]).entry[(offset+j) >> 2].c[byt + j] = *(data + j);
+                      (*m_current_cacheline[i]).entry[(offset+j) >> 2].c[(byt + j) % 4] = *(data + j);
                     }
 
 		    // Increment hit counter
