@@ -111,6 +111,8 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword( const unsigned int & add
         //if(this->quantKeeper.need_sync()){
         //    this->quantKeeper.sync();
         //}
+
+        trans.free_all_extensions();
     }
     #ifdef LITTLE_ENDIAN_BO
     unsigned int datum1 = (unsigned int)(datum);
@@ -184,6 +186,9 @@ unsigned short int leon3_funclt_trap::TLMMemory::read_half( const unsigned int &
         //if(this->quantKeeper.need_sync()){
         //    this->quantKeeper.sync();
         //}
+
+        trans.free_all_extensions();
+
     }
     //Now the code for endianess conversion: the processor is always modeled
     //with the host endianess; in case they are different, the endianess
@@ -256,6 +261,8 @@ unsigned char leon3_funclt_trap::TLMMemory::read_byte( const unsigned int & addr
         //if(this->quantKeeper.need_sync()){
         //    this->quantKeeper.sync();
         //}
+
+        trans.free_all_extensions();
     }
 
     return datum;
@@ -331,6 +338,8 @@ void leon3_funclt_trap::TLMMemory::write_dword( const unsigned int & address,
         //if(this->quantKeeper.need_sync()){
         //    this->quantKeeper.sync();
         //}
+
+        trans.free_all_extensions();
     }
 }
 
@@ -406,6 +415,9 @@ void leon3_funclt_trap::TLMMemory::write_half( const unsigned int & address,
         //if(this->quantKeeper.need_sync()){
         //    this->quantKeeper.sync();
         //}
+
+        trans.free_all_extensions();
+
     }
 }
 
@@ -476,6 +488,8 @@ void leon3_funclt_trap::TLMMemory::write_byte( const unsigned int & address,
         //if(this->quantKeeper.need_sync()){
         //    this->quantKeeper.sync();
         //}
+
+        trans.free_all_extensions();
     }
 }
 
@@ -510,6 +524,9 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword_dbg( const unsigned int &
     this->swapEndianess(datum2);
     datum = datum1 | (((sc_dt::uint64)datum2) << 32);
     #endif
+    
+    trans.free_all_extensions();
+
     return datum;
 }
 
@@ -542,6 +559,9 @@ unsigned int leon3_funclt_trap::TLMMemory::read_word_dbg( const unsigned int & a
     #ifdef LITTLE_ENDIAN_BO
     this->swapEndianess(datum);
     #endif
+
+    trans.free_all_extensions();
+
     return datum;
 }
 
@@ -600,6 +620,9 @@ unsigned char leon3_funclt_trap::TLMMemory::read_byte_dbg( const unsigned int & 
     trans.set_extension(dcioExt);
 
     this->initSocket->transport_dbg(trans);
+
+    trans.free_all_extensions();
+
     return datum;
 }
 
@@ -632,6 +655,8 @@ void leon3_funclt_trap::TLMMemory::write_dword_dbg( const unsigned int & address
     trans.set_extension(dcioExt);
 
     this->initSocket->transport_dbg(trans);
+
+    trans.free_all_extensions();
 }
 
 void leon3_funclt_trap::TLMMemory::write_word_dbg( const unsigned int & address, \
@@ -662,6 +687,8 @@ void leon3_funclt_trap::TLMMemory::write_word_dbg( const unsigned int & address,
     trans.set_extension(dcioExt);
 
     this->initSocket->transport_dbg(trans);
+
+    trans.free_all_extensions();
 }
 
 void leon3_funclt_trap::TLMMemory::write_half_dbg( const unsigned int & address, \
@@ -694,6 +721,8 @@ void leon3_funclt_trap::TLMMemory::write_half_dbg( const unsigned int & address,
     trans.set_extension(dcioExt);
 
     this->initSocket->transport_dbg(trans);
+
+    trans.free_all_extensions();
 }
 
 void leon3_funclt_trap::TLMMemory::write_byte_dbg( const unsigned int & address, \
@@ -721,6 +750,8 @@ void leon3_funclt_trap::TLMMemory::write_byte_dbg( const unsigned int & address,
     trans.set_extension(dcioExt);
 
     this->initSocket->transport_dbg(trans);
+
+    trans.free_all_extensions();
 }
 
 void leon3_funclt_trap::TLMMemory::lock(){
