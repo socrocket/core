@@ -53,6 +53,21 @@ using namespace sc_core;
 using namespace tlm;
 using namespace std;
 
+static const char *power_params[4][4] = {
+  // ROM
+  // sta_norm,   int_norm,     dyn_read_e,     dyn_write_e
+  {"1269.53125", "1.61011e-6", "7.57408e-13",  "7.57408e-13"},
+  // IO
+  // sta_norm,   int_norm,     dyn_read_e,     dyn_write_e
+  {"1269.53125", "1.61011e-6", "7.57408e-13", "7.57408e-13"},
+  // SRAM
+  // sta_norm,   int_norm,     dyn_read_e,     dyn_write_e
+  {"1269.53125", "1.61011e-6", "7.57408e-13", "7.57408e-13"},
+  // SDRAM
+  // sta_norm,   int_norm,     dyn_read_e,     dyn_write_e
+  {"2539.0625", "3.22021e-6", "15e-13", "15e-13"}
+};
+
 // Constructor implementation
 MapMemory::MapMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) :
   sc_module(name),
@@ -99,35 +114,10 @@ MapMemory::MapMemory(sc_core::sc_module_name name, MEMDevice::device_type type, 
      GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, MapMemory, swi_power_cb);
     
      // Set norm power - depending on type
-     if (get_type_name() == "sram") {
-      
-       m_api->setInitValue("power.sram.sta_power_norm", "1269.53125");
-       m_api->setInitValue("power.sram.int_power_norm", "0.000161011");
-       m_api->setInitValue("power.sram.dyn_read_energy_norm", "7.57408e-13");
-       m_api->setInitValue("power.sram.dyn_write_energy_norm", "7.57408e-13");
-
-     } else if (get_type_name() == "rom") {
-
-       m_api->setInitValue("power.rom.sta_power_norm", "1269.53125");
-       m_api->setInitValue("power.rom.int_power_norm", "0.000161011");
-       m_api->setInitValue("power.rom.dyn_read_energy_norm", "7.57408e-13");
-       m_api->setInitValue("power.rom.dyn_write_energy_norm", "7.57408e-13");
-
-     } else if (get_type_name() == "io") {
-
-       m_api->setInitValue("power.io.sta_power_norm", "1269.53125");
-       m_api->setInitValue("power.io.int_power_norm", "0.000161011");
-       m_api->setInitValue("power.io.dyn_read_energy_norm", "7.57408e-13");
-       m_api->setInitValue("power.io.dyn_write_energy_norm", "7.57408e-13");
-
-     } else {
-
-       m_api->setInitValue("power.sdram.sta_power_norm", "2539.0625");
-       m_api->setInitValue("power.sdram.int_power_norm", "0.000322022");
-       m_api->setInitValue("power.sdram.dyn_read_energy_norm", "15e-13");
-       m_api->setInitValue("power.sdram.dyn_write_energy_norm", "15e-13");
-
-     }
+     m_api->setInitValue("power.sram.sta_power_norm", power_params[type][0]);
+     m_api->setInitValue("power.sram.int_power_norm", power_params[type][1]);
+     m_api->setInitValue("power.sram.dyn_read_energy_norm", power_params[type][1]);
+     m_api->setInitValue("power.sram.dyn_write_energy_norm", power_params[type][1]);
    }
 
    // Module configuration report
