@@ -319,6 +319,11 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             
             v::debug << this->name() << "Tag Hit but data not valid in set " << i  << v::endl;
 
+            if (len == 8) {
+              // dword - make sure to disable both words
+              (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset, len);               
+            }
+
           }
           
         } else {
