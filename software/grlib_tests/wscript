@@ -313,8 +313,8 @@ def build(bld):
   # ambalist.sparc
   bld(
      features     = 'c cprogram sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu -lleonbare -Wl,--verbose',
-     linkflags    = '-static -g -O1 -lm -mno-fpu -lleonbare -Wl,--verbose',
+     cflags       = '-static -g -O1 -lm -mno-fpu -lleonbare',
+     linkflags    = '-static -g -O1 -lm -mno-fpu -lleonbare',
      target       = 'ambalist.sparc',
      source       = ['ambalist.c'],
      install_path = None,
@@ -323,8 +323,8 @@ def build(bld):
   # mphello.sparc
   bld(
      features     = 'c cprogram sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu -lleonbare -Wl,--verbose',
-     linkflags    = '-static -g -O1 -lm -mno-fpu -lleonbare -Wl,--verbose',
+     cflags       = '-static -g -O1 -lm -mno-fpu -lleonbare',
+     linkflags    = '-static -g -O1 -lm -mno-fpu -lleonbare',
      target       = 'mphello.sparc',
      source       = ['mp-hello.c'],
      install_path = None,

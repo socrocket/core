@@ -48,7 +48,7 @@
 
 // constructor
 icio_payload_extension::icio_payload_extension(void) :
-    flush(0), flushl(0), fline(0) {
+    flush(0), flushl(0), fline(0), debug(NULL), fail(0) {
 }
 
 // destructor

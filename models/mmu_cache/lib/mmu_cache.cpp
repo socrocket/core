@@ -925,7 +925,27 @@ void mmu_cache::dcio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_ti
   // -----------------------
   exec_data(trans, delay, false);
   // -----------------------
-
+#if 0
+  switch(trans.get_data_length()) {
+    case 1:
+      std::cout << "##" << (trans.is_write()?"W":"R") << " " << v::uint32 << trans.get_address() << " " << trans.get_data_length() << v::uint8 << (uint32_t) *(uint8_t *)trans.get_data_ptr() << v::endl;
+      break;
+    case 2:
+      std::cout << "##" << (trans.is_write()?"W":"R") << " " << v::uint32 << trans.get_address() << " " << trans.get_data_length() << v::uint16 << (uint32_t) *(uint16_t *)trans.get_data_ptr() << v::endl;
+      break;
+    case 8:
+      std::cout << "##" << (trans.is_write()?"W":"R") << " " << v::uint32 << trans.get_address() << " " << trans.get_data_length() << v::uint64 << (uint64_t) *(uint64_t *)trans.get_data_ptr() << v::endl;
+      break;
+    default:
+      std::cout << "##" << (trans.is_write()?"W":"R") << " " << v::uint32 << trans.get_address() << " " << trans.get_data_length() << v::uint32 << (uint32_t) *(uint32_t *)trans.get_data_ptr() << v::endl;
+  }
+  static int counter = 0;
+  counter++;
+  if(counter==17660) {
+      std::cout << "####" << (trans.is_write()?"W":"R") << " " << v::uint32 << trans.get_address() << " " << trans.get_data_length() << v::uint64 << (uint64_t) *(uint64_t *)trans.get_data_ptr() << v::endl;
+      std::cout << "HERE!!!!" << v::endl;
+  }
+#endif
   // Reset delay
   //delay = SC_ZERO_TIME;
    
@@ -1166,7 +1186,9 @@ unsigned int mmu_cache::dcio_transport_dbg(tlm::tlm_generic_payload &trans) {
 void mmu_cache::response_callback(tlm::tlm_generic_payload * trans) {
 
   // Check response status
-  assert(trans->get_response_status()==tlm::TLM_OK_RESPONSE);
+  if(trans->get_response_status()!=tlm::TLM_OK_RESPONSE) {
+    v::warn << name() << "Transaction response state of Transaction to address " << v::uint32 << trans->get_address() << " is not TLM_OK_RESPONSE" << v::endl;
+  }
 
   // Let mem_read/mem_write function know that we received a response
   ahb_response_event.notify();

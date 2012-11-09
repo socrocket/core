@@ -12,13 +12,14 @@ shift
 shift
 shift
 
-ppath="build/platforms/$template/"
+ppath="build/platforms/$template"
 platform="$ppath/$template.platform"
 prom="build/software/prom/$prom/$prom.prom"
 ram=$(find build/software -name "$app.sparc")
 
+echo $platform --option conf.mctrl.prom.elf=$prom --option conf.mctrl.ram.sdram.elf=$ram --option conf.system.osemu=$ram $@
 $platform --option conf.mctrl.prom.elf=$prom --option conf.mctrl.ram.sdram.elf=$ram --option conf.system.osemu=$ram $@
-if [ $? -ne 0 ] ; then
+if [ $? -eq 0 ] ; then
   echo "!!! Successfull"
 else
   echo "!!! Failed"

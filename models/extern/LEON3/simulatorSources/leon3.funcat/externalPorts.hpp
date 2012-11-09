@@ -323,6 +323,7 @@ namespace leon3_funcat_trap{
                 std::string errorStr("Error from nb_transport_fw, response status = " + trans.get_response_string());
                 SC_REPORT_ERROR("TLM-2", errorStr.c_str());
             }
+            delete debug;
 
         }
       
