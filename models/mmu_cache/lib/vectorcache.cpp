@@ -581,9 +581,21 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
                     CACHEWRITEHIT_SET(*debug, i);
                     is_hit = true;
 
-                    // write data to cache
-                    for (unsigned int j = 0; j < len; j++) {
-                      (*m_current_cacheline[i]).entry[(offset+j) >> 2].c[(byt + j) % 4] = *(data + j);
+                    if (len != 8) {
+
+                      // write data to cache
+                      for (unsigned int j = 0; j < len; j++) {
+                        (*m_current_cacheline[i]).entry[offset >> 2].c[byt + j] = *(data + j);
+                      }
+
+                    } else {
+                      // is 64 bit
+
+                      // write data to cache
+                      for (unsigned int j = 0; j < 8; j++) {
+                        (*m_current_cacheline[i]).entry[(offset+j) >> 2].c[(j % 4)] = *(data + j);
+                      }
+ 
                     }
 
 		    // Increment hit counter
