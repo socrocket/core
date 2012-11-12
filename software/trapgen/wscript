@@ -56,11 +56,14 @@ def build(bld):
      install_path = None,
   )
   
+  ahbmemtgen = bld.get_tgen_by_name("aes.sparc")
+  ahbmem     = ahbmemtgen.path.find_or_declare("aes.sparc")
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
       rom         = 'default.prom',
       ram         = 'aes.sparc',
+      args        = '--option conf.ahbmem.elf=%s' % (ahbmem.abspath())
   )
   
   bld(
@@ -513,6 +516,86 @@ def build(bld):
       ram         = 'queens.sparc',
   )
   
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
+      ram         = 'queens.sparc',
+      args        = ['--option', 'conf.mmu_cache.ic.en=false', 
+                     '--option', 'conf.mmu_cache.dc.en=false',
+                    ],
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
+      ram         = 'queens.sparc',
+      args        = ['--option', 'conf.mmu_cache.ic.en=true', 
+                     '--option', 'conf.mmu_cache.ic.sets=1',
+                     '--option', 'conf.mmu_cache.ic.repl=0',
+                     '--option', 'conf.mmu_cache.dc.en=true',
+                     '--option', 'conf.mmu_cache.dc.sets=1',
+                     '--option', 'conf.mmu_cache.dc.repl=0',
+                    ],
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
+      ram         = 'queens.sparc',
+      args        = ['--option', 'conf.mmu_cache.ic.en=true', 
+                     '--option', 'conf.mmu_cache.ic.sets=1',
+                     '--option', 'conf.mmu_cache.ic.repl=1',
+                     '--option', 'conf.mmu_cache.dc.en=true',
+                     '--option', 'conf.mmu_cache.dc.sets=1',
+                     '--option', 'conf.mmu_cache.dc.repl=1',
+                    ],
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
+      ram         = 'queens.sparc',
+      args        = ['--option', 'conf.mmu_cache.ic.en=true', 
+                     '--option', 'conf.mmu_cache.ic.sets=2',
+                     '--option', 'conf.mmu_cache.ic.repl=1',
+                     '--option', 'conf.mmu_cache.dc.en=true',
+                     '--option', 'conf.mmu_cache.dc.sets=2',
+                     '--option', 'conf.mmu_cache.dc.repl=1',
+                    ],
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
+      ram         = 'queens.sparc',
+      args        = ['--option', 'conf.mmu_cache.ic.en=true', 
+                     '--option', 'conf.mmu_cache.ic.sets=2',
+                     '--option', 'conf.mmu_cache.ic.repl=2',
+                     '--option', 'conf.mmu_cache.dc.en=true',
+                     '--option', 'conf.mmu_cache.dc.sets=2',
+                     '--option', 'conf.mmu_cache.dc.repl=2',
+                    ],
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'default.prom',
+      ram         = 'queens.sparc',
+      args        = ['--option', 'conf.mmu_cache.ic.en=true', 
+                     '--option', 'conf.mmu_cache.ic.sets=3',
+                     '--option', 'conf.mmu_cache.ic.linesize=4',
+                     '--option', 'conf.mmu_cache.dc.en=true',
+                     '--option', 'conf.mmu_cache.dc.sets=3',
+                     '--option', 'conf.mmu_cache.dc.linesize=4',
+                    ],
+  )
+   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
