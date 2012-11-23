@@ -149,6 +149,10 @@ namespace leon3_funcat_trap{
             this->swapEndianess(datum);
             #endif
 
+            // Free extension and debug pointer
+            trans.free_all_extensions();
+            delete debug;
+
             return datum;
         }
 
@@ -231,6 +235,10 @@ namespace leon3_funcat_trap{
             #ifdef LITTLE_ENDIAN_BO
             this->swapEndianess(datum);
             #endif
+
+            // Clear extension and debug buffer
+            trans.free_all_extensions();
+            delete debug;
 
             return datum;
 
@@ -315,6 +323,7 @@ namespace leon3_funcat_trap{
                 std::string errorStr("Error from nb_transport_fw, response status = " + trans.get_response_string());
                 SC_REPORT_ERROR("TLM-2", errorStr.c_str());
             }
+            delete debug;
 
         }
       

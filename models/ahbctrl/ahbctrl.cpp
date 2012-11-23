@@ -732,6 +732,9 @@ void AHBCtrl::arbitrate() {
           
           }
 
+          // Set TLM response
+          trans->set_response_status(tlm::TLM_OK_RESPONSE);
+
           // Calculate delay for sending END_REQ
           request_delay = (trans->get_data_length() > 3) ? (trans->get_data_length() >> 2)*clock_cycle - sc_core::sc_time(1, SC_PS) : clock_cycle - sc_core::sc_time(1, SC_PS);
           m_RequestPEQ.notify(*trans, request_delay);

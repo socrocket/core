@@ -144,6 +144,10 @@ sc_dt::uint64 leon3_funcat_trap::TLMMemory::read_dword( const unsigned int & add
     datum = datum1 | (((sc_dt::uint64)datum2) << 32);
     #endif
 
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
+
     return datum;
 }
 
@@ -216,6 +220,10 @@ unsigned short int leon3_funcat_trap::TLMMemory::read_half( const unsigned int &
     this->swapEndianess(datum);
     #endif
 
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
+
     return datum;
 }
 
@@ -279,6 +287,10 @@ unsigned char leon3_funcat_trap::TLMMemory::read_byte( const unsigned int & addr
         std::string errorStr("Error from nb_transport_fw, response status = " + trans.get_response_string());
         SC_REPORT_ERROR("TLM-2", errorStr.c_str());
     }
+
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
 
     return datum;
 }
@@ -353,6 +365,10 @@ void leon3_funcat_trap::TLMMemory::write_dword( const unsigned int & address,
         std::string errorStr("Error from nb_transport_fw, response status = " + trans.get_response_string());
         SC_REPORT_ERROR("TLM-2", errorStr.c_str());
     }
+
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
 
 }
 
@@ -430,6 +446,10 @@ void leon3_funcat_trap::TLMMemory::write_half( const unsigned int & address,
         SC_REPORT_ERROR("TLM-2", errorStr.c_str());
     }
 
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
+
 }
 
 void leon3_funcat_trap::TLMMemory::write_byte( const unsigned int & address, 
@@ -498,6 +518,10 @@ void leon3_funcat_trap::TLMMemory::write_byte( const unsigned int & address,
         std::string errorStr("Error from nb_transport_fw, response status = " + trans.get_response_string());
         SC_REPORT_ERROR("TLM-2", errorStr.c_str());
     }
+
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
 }
 
 sc_dt::uint64 leon3_funcat_trap::TLMMemory::read_dword_dbg( const unsigned int & \
@@ -530,6 +554,11 @@ sc_dt::uint64 leon3_funcat_trap::TLMMemory::read_dword_dbg( const unsigned int &
     this->swapEndianess(datum2);
     datum = datum1 | (((sc_dt::uint64)datum2) << 32);
     #endif
+
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
+
     return datum;
 }
 
@@ -562,6 +591,11 @@ unsigned int leon3_funcat_trap::TLMMemory::read_word_dbg( const unsigned int & a
     #ifdef LITTLE_ENDIAN_BO
     this->swapEndianess(datum);
     #endif
+
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
+
     return datum;
 }
 
@@ -594,6 +628,11 @@ unsigned short int leon3_funcat_trap::TLMMemory::read_half_dbg( const unsigned i
     #ifdef LITTLE_ENDIAN_BO
     this->swapEndianess(datum);
     #endif
+
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
+
     return datum;
 }
 
@@ -620,6 +659,11 @@ unsigned char leon3_funcat_trap::TLMMemory::read_byte_dbg( const unsigned int & 
     trans.set_extension(dcioExt);
 
     this->initSocket->transport_dbg(trans);
+
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
+
     return datum;
 }
 
@@ -652,6 +696,11 @@ void leon3_funcat_trap::TLMMemory::write_dword_dbg( const unsigned int & address
     trans.set_extension(dcioExt);
 
     this->initSocket->transport_dbg(trans);
+
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
+
 }
 
 void leon3_funcat_trap::TLMMemory::write_word_dbg( const unsigned int & address, \
@@ -682,6 +731,10 @@ void leon3_funcat_trap::TLMMemory::write_word_dbg( const unsigned int & address,
     trans.set_extension(dcioExt);
 
     this->initSocket->transport_dbg(trans);
+
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
 }
 
 void leon3_funcat_trap::TLMMemory::write_half_dbg( const unsigned int & address, \
@@ -715,6 +768,10 @@ void leon3_funcat_trap::TLMMemory::write_half_dbg( const unsigned int & address,
     trans.set_extension(dcioExt);
 
     this->initSocket->transport_dbg(trans);
+
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
 }
 
 void leon3_funcat_trap::TLMMemory::write_byte_dbg( const unsigned int & address, \
@@ -742,6 +799,10 @@ void leon3_funcat_trap::TLMMemory::write_byte_dbg( const unsigned int & address,
     trans.set_extension(dcioExt);
 
     this->initSocket->transport_dbg(trans);
+
+    // Remove extension and debug buffer
+    trans.free_all_extensions();
+    delete debug;
 }
 
 void leon3_funcat_trap::TLMMemory::lock(){

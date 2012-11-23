@@ -145,6 +145,7 @@ void APBUART::data_read() {
     m_backend->getReceivedChar(&c);
     reg = (uint32_t)c;
     r[DATA] = reg;
+    v::debug << name() << "Received chars: " << reg << v::endl;
     if(r[STATUS].bit_get(2)) {
       e_irq.notify(clock_cycle * 100);
     }
@@ -169,6 +170,7 @@ void APBUART::status_read() {
   if (received >= 0xEF) received = 0xEF;
   uint32_t reg = (received)? 0x7 : 0x6;
   reg |= (received << 26);
+  v::debug << name() << "Status Read, Received chars: " << received << v::endl;
   r[STATUS] = reg;
 }
 

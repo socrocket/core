@@ -299,7 +299,7 @@ uint32_t APBCtrl::exec_func(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, b
 
   } else {
 
-    v::error << name() << "Access to unmapped APB address space at address " << v::uint32 << addr << endl;
+    v::warn << name() << "Access to unmapped APB address space at address " << v::uint32 << addr << endl;
     ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
   }
 

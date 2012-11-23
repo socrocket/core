@@ -137,7 +137,7 @@ void AHBMaster<BASE>::ahbread(uint32_t addr, unsigned char * data, uint32_t leng
     cacheable = (ahb.get_extension<amba::amba_cacheable>(*trans)) ? true : false;
 
     // Decrement reference counter
-    trans->release();
+    ahb.release_transaction(trans);
 
   } else {
 
@@ -242,7 +242,7 @@ void AHBMaster<BASE>::ahbwrite(uint32_t addr, unsigned char * data, uint32_t len
     delay = SC_ZERO_TIME;
 
     // Decrement reference counter
-    trans->release();
+    ahb.release_transaction(trans);
 
   } else {
 
@@ -320,7 +320,7 @@ uint32_t AHBMaster<BASE>::ahbread_dbg(uint32_t addr, unsigned char * data, unsig
   length_dbg = ahb->transport_dbg(*trans);
   
   // Decrement reference count
-  trans->release();
+  ahb.release_transaction(trans);
 
   return length_dbg;
 
@@ -348,7 +348,7 @@ uint32_t AHBMaster<BASE>::ahbwrite_dbg(uint32_t addr, unsigned char * data, unsi
   length_dbg = ahb->transport_dbg(*trans);
   
   // Decrement reference count
-  trans->release();
+  ahb.release_transaction(trans);
 
   return length_dbg;
 
@@ -403,7 +403,7 @@ void AHBMaster<BASE>::ResponseThread() {
       v::debug << name() << "Release " << trans << " Ref-Count before calling release " << trans->get_ref_count() << v::endl; 
 
       // Decrement reference count
-      trans->release();
+      ahb.release_transaction(trans);
 
     }
   }

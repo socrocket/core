@@ -55,6 +55,7 @@
 #include "mmu_cache.h"
 #include "ahbin.h"
 #include "arraymemory.h"
+#include "mapmemory.h"
 #include "apbctrl.h"
 #include "ahbmem.h"
 #include "mctrl.h"
@@ -274,7 +275,7 @@ int sc_main(int argc, char** argv) {
 		    p_ahbctrl_fixbrst,               // Enable support for fixed-length bursts (disabled)
 		    p_ahbctrl_fpnpen,                // Enable full decoding of PnP configuration records
 		    p_ahbctrl_mcheck,                // Check if there are any intersections between core memory regions
-        	    p_report_power,                  // Enable/disable power monitoring
+        p_report_power,                  // Enable/disable power monitoring
 		    ambaLayer
     );
 
@@ -291,11 +292,11 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_apbctrl_check("mcheck", true, p_apbctrl);
 
     APBCtrl apbctrl("apbctrl", 
-		    p_apbctrl_haddr,    // The 12 bit MSB address of the AHB area.
-		    p_apbctrl_hmask,    // The 12 bit AHB area address mask
-		    p_apbctrl_check,    // Check for intersections in the memory map 
-                    p_apbctrl_index,    // AHB bus index
-                    p_report_power,     // Power Monitoring on/off
+        p_apbctrl_haddr,    // The 12 bit MSB address of the AHB area.
+        p_apbctrl_hmask,    // The 12 bit AHB area address mask
+        p_apbctrl_check,    // Check for intersections in the memory map 
+        p_apbctrl_index,    // AHB bus index
+        p_report_power,     // Power Monitoring on/off
 		    ambaLayer           // TLM abstraction layer
     );
 
@@ -404,7 +405,8 @@ int sc_main(int argc, char** argv) {
     // ===============
 
     // ROM instantiation
-    ArrayMemory rom( "rom", 
+    MapMemory rom( "rom", 
+    //ArrayMemory rom( "rom", 
                      MEMDevice::ROM, 
                      p_mctrl_prom_banks, 
                      p_mctrl_prom_bsize * 1024 * 1024, 
@@ -436,7 +438,8 @@ int sc_main(int argc, char** argv) {
     }
 
     // IO memory instantiation
-    ArrayMemory io( "io", 
+    MapMemory io( "io", 
+    //ArrayMemory io( "io", 
                     MEMDevice::IO, 
                     p_mctrl_prom_banks, 
                     p_mctrl_prom_bsize * 1024 * 1024, 
@@ -470,7 +473,8 @@ int sc_main(int argc, char** argv) {
     }
 
     // SRAM instantiation
-    ArrayMemory sram( "sram", 
+    MapMemory sram( "sram", 
+    //ArrayMemory sram( "sram", 
                       MEMDevice::SRAM, 
                       p_mctrl_ram_sram_banks, 
                       p_mctrl_ram_sram_bsize * 1024 * 1024, 
@@ -644,7 +648,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_mmu_cache_dlram_en("en", false, p_mmu_cache_dlram);
     gs::gs_param<unsigned int> p_mmu_cache_dlram_size("size", 0u, p_mmu_cache_dlram);
     gs::gs_param<unsigned int> p_mmu_cache_dlram_start("start", 0u, p_mmu_cache_dlram);
-    gs::gs_param<unsigned int> p_mmu_cache_cached("cached", 0xFFFF, p_mmu_cache);
+    gs::gs_param<unsigned int> p_mmu_cache_cached("cached", 0u, p_mmu_cache);
     gs::gs_param<unsigned int> p_mmu_cache_index("index", 0u, p_mmu_cache);
     gs::gs_param_array p_mmu_cache_mmu("mmu", p_mmu_cache);
     gs::gs_param<bool> p_mmu_cache_mmu_en("en", false, p_mmu_cache_mmu);
