@@ -648,7 +648,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_mmu_cache_dlram_en("en", false, p_mmu_cache_dlram);
     gs::gs_param<unsigned int> p_mmu_cache_dlram_size("size", 0u, p_mmu_cache_dlram);
     gs::gs_param<unsigned int> p_mmu_cache_dlram_start("start", 0u, p_mmu_cache_dlram);
-    gs::gs_param<unsigned int> p_mmu_cache_cached("cached", 0xFFFF, p_mmu_cache);
+    gs::gs_param<unsigned int> p_mmu_cache_cached("cached", 0u, p_mmu_cache);
     gs::gs_param<unsigned int> p_mmu_cache_index("index", 0u, p_mmu_cache);
     gs::gs_param_array p_mmu_cache_mmu("mmu", p_mmu_cache);
     gs::gs_param<bool> p_mmu_cache_mmu_en("en", false, p_mmu_cache_mmu);
