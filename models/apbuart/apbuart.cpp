@@ -22,22 +22,13 @@
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
 //*********************************************************************
-// Title:      gptimer.cpp
+// Title:      ahbuart.cpp
 //
 // ScssId:
 //
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
-// Purpose:    source file defining the implementation of the gptimer
-//             model. Due to the fact that the gptimer class is a
-//             template class it gets included by its definition in
-//             gptimer.h
-//
 // Method:
-//
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS

@@ -33,10 +33,6 @@
 //             of testbenches.
 //             
 //
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Thomas Schuster

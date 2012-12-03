@@ -31,9 +31,6 @@
 // Purpose:    header file defining the mctrl module template
 //             includes implementation file mctrl.tpp at the bottom
 //
-// Modified on $Date: 2011-06-09 08:49:53 +0200 (Thu, 09 Jun 2011) $
-//          at $Revision: 452 $
-//          by $Author: HWSWSIM $
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS

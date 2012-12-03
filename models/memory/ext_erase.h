@@ -30,10 +30,6 @@
 //
 // Purpose:    generic payload extension indicating memory to be erased
 //
-// Modified on $Date: 2010-11-08 11:23:32 +0100 (Mon, 08 Nov 2010) $
-//          at $Revision: 264 $
-//          by $Author: HWSWSIM $
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Dennis Bode

@@ -40,10 +40,6 @@
 //             the memory region due to their length are reported as warning
 //             and executed anyhow.
 //
-// Modified on $Date: 2011-08-18 15:18:53 +0200 (Thu, 18 Aug 2011) $
-//          at $Revision: 492 $
-//          by $Author: HWSWSIM $
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Rolf Meyer

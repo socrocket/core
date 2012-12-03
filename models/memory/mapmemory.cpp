@@ -35,10 +35,6 @@
 //             Recommended for simulation of large, sparsely
 //             populated memories.
 //
-// Modified on $Date: 2011-05-09 20:31:53 +0200 (Mon, 09 May 2011) $
-//          at $Revision: 416 $
-//          by $Author: HWSWSIM $
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Dennis Bode

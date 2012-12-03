@@ -33,10 +33,6 @@
 //
 // Method:
 //
-// Modified on $Date: 2011-08-04 16:52:17 +0200 (Thu, 04 Aug 2011) $
-//          at $Revision: 481 $
-//          by $Author: HWSWSIM $
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Dennis Bode

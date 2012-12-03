@@ -31,10 +31,6 @@
 // Purpose:    To be implemented by classes which
 //             provide a memory interface for public use.
 //
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Thomas Schuster

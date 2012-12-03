@@ -22,7 +22,7 @@
 // contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
 //*********************************************************************
-// Title:      apbdevice.cpp
+// Title:      memdevice.cpp
 //
 // ScssId:
 //
@@ -34,10 +34,6 @@
 //             interface.
 //
 // Method:
-//
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS

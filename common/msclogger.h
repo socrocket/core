@@ -31,11 +31,6 @@
 // Purpose:    Utility class for timing verification.
 //             Keeps track of TLM communication by
 //             writing a MSCGEN control file. 
-//             
-//
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS

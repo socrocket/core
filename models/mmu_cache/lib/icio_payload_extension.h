@@ -32,10 +32,6 @@
 //             extension class for communication with icio socket of
 //             mmu_cache.
 //
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Thomas Schuster

@@ -31,10 +31,6 @@
 // Purpose:    header file defining the clkdevice base class
 //             The clkdevice is the base for all devices using an internal clk.
 //
-// Modified on $Date: 2011-09-06 18:39:06 +0200 (Tue, 06 Sep 2011) $
-//          at $Revision: 500 $
-//          by $Author: HWSWSIM $
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Rolf Meyer

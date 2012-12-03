@@ -30,10 +30,6 @@
 //
 // Purpose:    Class definition of the General-Purpose Timer (GP_TIMER)
 //
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Rolf Meyer

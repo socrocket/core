@@ -32,10 +32,6 @@
 //             pointers to the mmu interface functions to the
 //             components of mmu_cache (ivectorcache, dvectorcache).   */
 //
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Thomas Schuster

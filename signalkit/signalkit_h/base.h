@@ -29,9 +29,6 @@
 // Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
 //
 // Purpose:    This file contains the base class for all signalkit signals
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS

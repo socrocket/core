@@ -32,10 +32,6 @@
 //             signal behaviour in the signal kit.
 //             The archivement of the interfaces is to deal with abstract 
 //             template types as payload.
-//             
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS

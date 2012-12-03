@@ -31,9 +31,6 @@
 // Purpose:    This file implements a base class for all tlm module which 
 //             need to use signalkit signals.
 //             It provides all neccessary classes to work with signals.
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS

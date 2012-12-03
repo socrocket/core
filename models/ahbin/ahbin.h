@@ -33,10 +33,6 @@
 //             CPU is notifed about new data via IRQ.
 //             
 //
-// Modified on $Date: 2012-02-28 11:45:20 +0100 (Tue, 28 Feb 2012) $
-//          at $Revision: 785 $
-//          by $Author: HWSWSIM $
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Thomas Schuster

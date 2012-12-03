@@ -33,10 +33,6 @@
 //             set associative. Set-size, line-size and replacement
 //             strategy can be defined through constructor arguments.
 //
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Thomas Schuster

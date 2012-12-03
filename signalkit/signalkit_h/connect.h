@@ -31,9 +31,6 @@
 // Purpose:    This file contains connect methods of all kind of 
 //             signalkit connections: in<->out, kit<->sysc
 //
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS

@@ -34,11 +34,6 @@
 //             configured as well. The memory page size is currently
 //             currently fixed to 4kB.
 //
-//
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Thomas Schuster

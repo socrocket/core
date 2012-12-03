@@ -32,10 +32,6 @@
 //
 // Method:
 //
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
-//
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TU Braunschweig
 // Maintainer: Rolf Meyer

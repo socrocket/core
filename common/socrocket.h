@@ -30,11 +30,6 @@
 //
 // Purpose:    Central header file for global constants and 
 //             interface typ definitions.
-//             
-//
-// Modified on $Date$
-//          at $Revision$
-//          by $Author$
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
