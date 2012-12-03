@@ -97,11 +97,11 @@
       "sepbus": false
     }, 
     "mmu_cache": {
-      "cached": 65535, 
+      "cached": 0, 
       "dc": {
         "en": true, 
         "linesize": 4, 
-        "repl": 2, 
+        "repl": 3, 
         "setlock": false, 
         "sets": 1, 
         "setsize": 1, 
@@ -115,7 +115,7 @@
       "ic": {
         "en": true, 
         "linesize": 4, 
-        "repl": 2, 
+        "repl": 3, 
         "setlock": false, 
         "sets": 1, 
         "setsize": 1

@@ -57,6 +57,9 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
     // Increment reference counter
     trans.acquire();
     transport_statistics(trans);
+    if(get_bar_cachable(0)) {
+      ahb.validate_extension<amba::amba_cacheable>(trans);
+    }
 
     v::debug << this->name() << "Acquire " << hex << &trans << " Ref-Count = " << trans.get_ref_count() << v::endl;
 
@@ -204,6 +207,10 @@ void AHBSlave<BASE>::b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_ti
   // Call the functional part of the model
   // -------------------------------------
   transport_statistics(trans);
+  if (get_bar_cachable(0)) {
+	ahb.validate_extension<amba::amba_cacheable>(trans);
+
+  }
   exec_func(trans, delay);
 
   msclogger::return_backward(this, &ahb, &trans, tlm::TLM_ACCEPTED, delay);

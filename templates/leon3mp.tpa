@@ -41,7 +41,7 @@
     </p>
     <p>
       Example: To execute the "hello.sparc" test from the grlib_tests directory with OS emulation enabled run:
-      <pre>$ ./build/leon3mp/leon3mp.platform -jsonconfig %s --option conf.mctrl.prom.elf="./build/software/prom/default/default.prom" --option conf.mctrl.ram.sdram.elf="./build/software/grlib_tests/hello.sparc" --option conf.system.osemu="./build/software/grlib_tests/hello.sparc" </pre>
+      <pre>$ ./build/platforms/leon3mp/leon3mp.platform -jsonconfig %s --option conf.mctrl.prom.elf="./build/software/prom/default/default.prom" --option conf.mctrl.ram.sdram.elf="./build/software/grlib_tests/hello.sparc" --option conf.system.osemu="./build/software/grlib_tests/hello.sparc" </pre>
     </p>
     <p>Have fun ...</p>
   </instructions>
