@@ -22,7 +22,7 @@
     <p>The system has been successfully generated.</p>
     <h2>How to compile simulator, boot-code and software</h2>
     <p>To compile the simulator enter:</p>
-    <pre>./waf --target=leon3mp.platform</pre>
+    <pre>./waf --target=yuvstream.platform</pre>
     <p>For generating the boot-code enter:</p>
     <pre>./waf --target=default.prom</pre>
     <p>Compile your software or select an example from the software directory</p>
@@ -45,7 +45,7 @@
     </p>
     <p>
       Example: To execute the "hello.sparc" test from the grlib_tests directory with OS emulation enabled run:
-      <pre>$ ./build/yuvstream/yuvstream.platform -jsonconfig %s --option conf.mctrl.prom.elf="./build/software/prom/default/default.prom" --option conf.mctrl.ram.sdram.elf="./build/software/grlib_tests/hello.sparc" --option conf.system.osemu="./build/software/grlib_tests/hello.sparc" </pre>
+      <pre>$ ./build/platforms/yuvstream/yuvstream.platform -jsonconfig %s --option conf.mctrl.prom.elf="./build/software/prom/default/default.prom" --option conf.mctrl.ram.sdram.elf="./build/software/grlib_tests/hello.sparc" --option conf.system.osemu="./build/software/grlib_tests/hello.sparc" </pre>
     </p>
     <p>Have fun ...</p>
   </instructions>
@@ -166,7 +166,7 @@
         <option var="repl" name="Cache replacement strategy" type="int" default="3" range="0..3">
           <description>
             Instruction cache replacement policy:<br/>
-	    0 - direct mapped<br/>
+            0 - direct mapped<br/>
             1 - least recently used (LRU)<br/>
             2 - least recently replaced (LRR)<br/>
             3 - random<br/>
@@ -179,10 +179,10 @@
       </option>
       <option var="dc" name="Data cache">
         <option var="en" name="Enable data cache" type="bool" default="true" hint="true - data cache enabled"/>
-        <option var="repl" name="Cache replacement strategy" type="int" default="2" range="0..3">
+        <option var="repl" name="Cache replacement strategy" type="int" default="3" range="0..3">
           <description>
             Data cache replacement policy:<br/>
-	    0 - direct mapped<br/>
+            0 - direct mapped<br/>
             1 - least recently used (LRU)<br/>
             2 - least recently replaced (LRR)<br/>
             3 - random<br/>
@@ -253,7 +253,7 @@
       <option var="pmask" name="APB Mask" type="int" default="0xFFF" range="0..0xFFF" hint="The 12bit APB address mask"/>
     </option>
 
-    <option var="uart" name="APB UART Interface">
+    <option var="apbuart" name="APB UART Interface">
       <option var="en" name="Enable" type="bool" default="false" hint="true - APB UART enabled"/>
       <option var="index" name="Bus Index" type="int" default="1" range="0..15" hint="Slave index at the APB bus"/>
       <option var="addr" name="APB Address" type="int" default="0x001" range="0..0xFFF" hint="The 12 bit MSB address at the APB bus"/>
@@ -265,7 +265,7 @@
     
     <option var="gptimer" name="GPTimer">
       <option var="en" name="Enable" type="bool" default="true" hint="true - GPTimer enabled"/>
-      <option var="addr" name="APB Base Address" type="int" default="0x002" range="0..4095" hint="The 12bit MSB address at the APB bus"/>
+      <option var="addr" name="APB Base Address" type="int" default="0x003" range="0..4095" hint="The 12bit MSB address at the APB bus"/>
       <option var="mask" name="APB Base Mask" type="int" default="0xFFF" range="0..4095" hint="The 12bit APB address mask"/>
       <option var="index" name="Bus Index" type="int" default="3" range="0..15" hint="The slave index at the APB bus"/>
       <option var="irq" name="IRQ Line" type="int" default="8" range="0..15" hint="Interrupt id of the device"/>
