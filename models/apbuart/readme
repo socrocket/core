@@ -12,10 +12,13 @@ apbuart.h
 uart class header file
 
 io_if.h
+abstract interface for the UART Implementation
 
 tcpio.cpp
+implements a tcp in/out transceiver
 
 tcpio.h
+class header file
 
 wscript
 waf config file

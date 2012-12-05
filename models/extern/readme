@@ -1,2 +1,18 @@
-SpaceWire - from 27.12.10
+=This folder contains all extern IP Models=
+
+
+=Overview=
+The AHBSPACEWIRE TLM model can be used to simulate behavior and timing of the GRLIB SPACEWIRE VHDL IP connected to the SoCRocket AHB Bus via AHB Slave Interface. 
+Due to the lack ofspecification how to connect the SPACEWIRE TLM IP provided by the esa this component demonstrates how to connect it as AHB Slave. 
+Therefore the model abstraction is only LT. The component basically adapts from proper TLM to the spacewire connection Socket. 
+For more information see the Spacewire TLM Model Manuals.
+
+
+
+=Data structure=
+
+SpaceWire/ - from 27.12.10
+contains all data needed for the SpaceWire IP
+
 LEON2/LEON3/trap - processor simulators + generator
+contains all data for the LEON3 and trap IP
