@@ -644,6 +644,74 @@ def configure(ctx):
       okmsg        = "ok",
     )
 
+    ##################################################
+    # Check for SDL Library and Headers
+    ##################################################
+    if ctx.options.sdldir:
+      sdllib = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.sdldir, "lib")))))
+      sdldir = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.sdldir, "include")))))
+    else:
+      sdllib = "/usr/lib"
+      sdldir = "/usr/include"
+
+    ctx.check_cxx(
+      lib          = 'SDL',
+      uselib_store = 'SDL',
+      mandatory    = False,
+      libpath      = sdllib,
+      errmsg       = "SDL Library not found. Use --sdl option or set $SDL.",
+      okmsg        = "ok"
+    ) 
+    ctx.check_cxx(
+      header_name  = 'SDL/SDL.h',
+      uselib_store = 'SDL',
+      mandatory    = False,
+      includes     = sdldir,
+      uselib       = 'SDL',
+      okmsg        = "ok"
+    ) 
+    
+    ctx.check_cxx(
+      msg          = "Checking for SDL 1.2 or higher",
+      mandatory    = False,
+      execute      = True,
+      fragment     = """
+                     #include <SDL/SDL_version.h>
+                     int main(int argc, char *argv[]) {
+                       return SDL_VERSION_ATLEAST(1, 2, 0);
+                     }
+                   """,
+      uselib       = 'SDL',
+      okmsg        = "ok",
+    )
+
+    ##################################################
+    # Check for mpeg3 Library and Headers
+    ##################################################
+    if ctx.options.sdldir:
+      mpeg3lib = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.mpeg3dir, "lib")))))
+      mpeg3dir = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.mpeg3dir, "include")))))
+    else:
+      mpeg3lib = "/usr/lib"
+      mpeg3dir = "/usr/include"
+
+    ctx.check_cxx(
+      lib          = 'mpeg3',
+      uselib_store = 'MPEG3',
+      mandatory    = False,
+      libpath      = mpeg3lib,
+      errmsg       = "mpeg3 Library not found. Use --mpeg3 option or set $MPEG3.",
+      okmsg        = "ok"
+    ) 
+    ctx.check_cxx(
+      header_name  = 'libmpeg3.h',
+      uselib_store = 'MPEG3',
+      mandatory    = False,
+      includes     = mpeg3dir,
+      uselib       = 'MPEG3',
+      okmsg        = "ok"
+    ) 
+    
     '''
     ##################################################
     # Check for SystemC Verification Library
@@ -950,6 +1018,8 @@ def options(ctx):
     gso = ctx.add_option_group("GreenSoCs Configuration Options")
     gso.add_option("--greensocs", dest="greensocsdir", help="Basedir of your GreenSoCs instalation", default=environ.get("GREENSOCS"))
     gso.add_option("--lua", type='string', dest="luadir", help="Basedir of your Lua installation", default=environ.get("LUA"))
+    gso.add_option("--sdl", type='string', dest="sdldir", help="Basedir of your SDL installation", default=environ.get("SDL"))
+    gso.add_option("--mpeg3", type='string', dest="mpeg3dir", help="Basedir of your mpeg3 installation", default=environ.get("mpeg3"))
     gso.add_option("--amba", type='string', dest="ambadir", help="Basedir of your AMBAKit distribution", default=environ.get("AMBA"))
     gso.add_option("--grlib", type='string', dest="grlibdir", help="Basedir of your grlib distribution", default=environ.get("GRLIB_HOME"))
     gso.add_option("--grlib_tech", type='string', dest="grlibtech", help="Basedir of your modelsim grlib work libraries", default=environ.get("GRLIB_TECH"))

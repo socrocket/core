@@ -1,4 +1,5 @@
-/** @mainpage User Manual
+User Manual {#mainpage}
+===========
 
 @section Introduction
 @subsection purpose Purpose and Scope
@@ -9,27 +10,23 @@ In compliance with the SoW, the „UM describes the IP interface and functions a
 @subsection referencedocuments Reference Documents
 The following table will be updated during the development of the UM.
 
-@table Referenced Documents
-| Reference | Document Number    | Document Title, Author                                                    |
---------------------------------------------------------------------------------------------------------------
-| RD01      | TEC-EDM/2008.27/BG | Statement of Work to ITT- AO/1-6025/09/NL/JK, ESA                         |
-| RD02      | IDA-PPS-0309-2     | HW-SW Co-Simulation SystemC SoC Validation Platform – Technical Proposal  |
-| RD03      | IDA-PPS 0309-3     | HW-SW Co-Simulation SystemC SoC Validation Platform – Management Proposal |
-| RD04      |                    | GRLIB IP Core User’s Manual                                               |
-| RD05      |                    | GRLIB IP Library User’s Manual                                            |
-| RD06      |                    | GreenSocs AMBA LT/AT concepts                                             |
-| RD07      |                    | GreenSocs AMBA TLM 2.0 Extensions                                         |
-| RD08      |                    | SPARC V8 Reference Manual                                                 |
-@endtable
+Reference | Document Number    | Document Title, Author                                                   
+--------- | ------------------ | -------------------------------------------------------------------------
+RD01      | TEC-EDM/2008.27/BG | Statement of Work to ITT- AO/1-6025/09/NL/JK, ESA                        
+RD02      | IDA-PPS-0309-2     | HW-SW Co-Simulation SystemC SoC Validation Platform – Technical Proposal 
+RD03      | IDA-PPS 0309-3     | HW-SW Co-Simulation SystemC SoC Validation Platform – Management Proposal
+RD04      |                    | GRLIB IP Core User’s Manual                                              
+RD05      |                    | GRLIB IP Library User’s Manual                                           
+RD06      |                    | GreenSocs AMBA LT/AT concepts                                            
+RD07      |                    | GreenSocs AMBA TLM 2.0 Extensions                                        
+RD08      |                    | SPARC V8 Reference Manual                                                
 
 @subsubsection revisions Revisions
-@table Revisions of this document
-| Version | Date     | Description                      |
----------------------------------------------------------
-| 1.0     | 01/09/10 | Initial submission               |
-| 1.1     | 17/09/10 | Version prior to the MDR meeting |
-| 1.2     | 03/05/11 |                                  |
-@endtable
+Version | Date     | Description                    
+------- | -------- | --------------------------------
+1.0     | 01/09/10 | Initial submission             
+1.1     | 17/09/10 | Version prior to the MDR meeting
+1.2     | 03/05/11 |                                
 
 @subsection install "Installation and Dependencies"
 @subsubsection required "Required Software Packages"
@@ -42,7 +39,7 @@ To compile and simulate the models following external dependencies are needed (T
 
 @table Software Dependencies
 | Tool / Lib | Version    | Vendor         | Installation Path Variables                         |
---------------------------------------------------------------------------------------------------
+| ---------- | ---------- | -------------- | --------------------------------------------------- |
 | Python     | >2.3       | Python team    | On $PATH                                            |
 | GCC (x86)  | 4.1.0      | GCC team       | On $PATH                                            |
 | GMP        | 5.0.0      | GCC team       | On $PATH                                            |
@@ -64,17 +61,17 @@ Please make sure that all the software packages mentioned above are properly ins
 
 The GreenSocs Library can be downloaded from the following location:
 
-<tt>http://www.greensocs.com/files/greensocs-4.0.0.tar.gz</tt>
+http://www.greensocs.com/files/greensocs-4.2.0.tar.gz
 
 Extract the tarball to a folder on your build system:
 
-@code
+~~~{.sh}
 $ tar -xvzf greensocs-4.0.0.tar.gz
-@endcode
+~~~
 
 Make sure the following shell variables hold paths to the corresponding libraries:
 
-@code
+~~~{.sh}
 $ export SYSTEMC_HOME=<THE ROOT OF YOUR SYSTEMC INSTALLATION>
 $ export TLM_HOME=<THE ROOT OF YOUR TLM2.0 INSTALLATION>
 $ export BOOST_DIR=<THE INCLUDE DIR OF YOUR BOOST INSTALLATION>
@@ -83,45 +80,45 @@ $ export GSGPSOCKET_DIR=$GREENSOCS_HOME/gsgpsocket
 $ export GREENSOCKET_DIR=$GREENSOCS_HOME/greensocket
 $ export GREENREG_DIR=$GREENSOCS_HOME/greenreg
 $ export GREENCONTROL_DIR=$GREENSOCS_HOME
-@endcode
+~~~
 
 Change to the greensocs-4.0.0/greenreg folder and make a small change in the Makefile.conf:
 Comment out the 2nd to 4th lines with #:
 
-@code
+~~~{Makefile}
  2 TOP := $(dir $(lastword $(MAKEFILE_LIST)))
  3 
  4 GREENREG_DIR=$(TOP)
-@endcode
+~~~
 
 to:
 
-@code
+~~~{Makefile}
  2 #TOP := $(dir $(lastword $(MAKEFILE_LIST)))
  3 #
  4 #GREENREG_DIR=$(TOP)
-@endcode
+~~~
 
 Compile the GreenReg library:
 
-@code
+~~~{.sh}
 $ make
-@endcode
+~~~
 
 A static library is build in the GreenReg directory. This is needed by the model library for the APB modules.
 
 Now the GreenSocs library is ready to use with our model library.
 Simply export the GreenSocs root directory as GREENSOCS_HOME:
 
-@code
+~~~{.sh}
 $ export GREENSOCS_HOME=<THE FOLDER YOU EXTRACTED GREENSOCS>
-@endcode
+~~~
 
 Or use the waf configuration parameter –greensocs with the greensocs root directory of the model library:
 
-@code
+~~~{.sh}
 $ ./waf configure –greensocs=<THE FOLDER YOU EXTRACTED GREENSOCS>
-@endcode
+~~~
 
 It is recommended to apply the AMBAKit Sockets patch to the GreenSocs library. This enables you to build your own models with GreenReg and AMBA Sockets outside the model library. Anyway the model library arrives with a workaround.
 
@@ -130,15 +127,15 @@ It is recommended to apply the AMBAKit Sockets patch to the GreenSocs library. T
 The GreenSocs/Carbon AMBA Sockets are available from the Website of Carbon Design Systems …
 Extract the tarball to a folder on your build system:
 
-@code
+~~~{.sh}
 $ tar -xvzf AMBAKit-trunk.tar.gz
-@endcode
+~~~
 
 The AMBAKit is like the TLM Library only a collection of headers. Just export the location to the build system of de model library:
 
-@code
+~~~{.sh}
 $ export AMBA_HOME=<THE FOLDER YOU EXTRACTED THE AMBAKIT>
-@endcode
+~~~
 
 Or use the waf configuration parameter –amba with the greensocs root directory of the model library:
 
@@ -159,53 +156,53 @@ waf [command] [options]
 Building the project requires following steps:
 
 1.  Execute “<tt>./waf configure</tt>” – to configure the build environment:
-The configuration step succeeds in case all the required software packages are available. Otherwise, it fails and shows the broken dependency. If so, the install path variable must be corrected. It is also possible to specify the location of a missing package by one of the following options:
+    The configuration step succeeds in case all the required software packages are available. Otherwise, it fails and shows the broken dependency. If so, the install path variable must be corrected. It is also possible to specify the location of a missing package by one of the following options:
 
-@code
-  Common Configuration Options:
-    -b BLDDIR, --blddir=BLDDIR
-                        build dir for the project (configuration)
-    -s SRCDIR, --srcdir=SRCDIR
-                        src dir for the project (configuration)
-    --prefix=PREFIX     installation prefix (configuration) [default: '/usr/local/']
-    --download          try to download the tools if missing
-    --cxxflags=CXXFLAGS
-                        C++ compiler flags
+    ~~~
+      Common Configuration Options:
+        -b BLDDIR, --blddir=BLDDIR
+                            build dir for the project (configuration)
+        -s SRCDIR, --srcdir=SRCDIR
+                            src dir for the project (configuration)
+        --prefix=PREFIX     installation prefix (configuration) [default: '/usr/local/']
+        --download          try to download the tools if missing
+        --cxxflags=CXXFLAGS
+                            C++ compiler flags
 
-  C++ Compiler Configuration Options:
-    --check-cxx-compiler=CHECK_CXX_COMPILER
-                        On this platform (linux) the following C++ Compiler will be checked by default: "g++ icpc sunc++"
+      C++ Compiler Configuration Options:
+        --check-cxx-compiler=CHECK_CXX_COMPILER
+                            On this platform (linux) the following C++ Compiler will be checked by default: "g++ icpc sunc++"
 
-  Boost Configuration Options:
-    --boost=BOOST_HOME  Basedir of your Boost installation
-    --boost_inc=BOOST_INC
-                        Include dir of your Boost installation
-    --boost_lib=BOOST_LIB
-                        Library dir of your Boost installation
+      Boost Configuration Options:
+        --boost=BOOST_HOME  Basedir of your Boost installation
+        --boost_inc=BOOST_INC
+                            Include dir of your Boost installation
+        --boost_lib=BOOST_LIB
+                            Library dir of your Boost installation
 
-  SystemC configuration Options:
-    --systemc=SYSTEMC_HOME
-                        Basedir of your SystemC installation
-    --tlm2=TLM2_HOME    Basedir of your TLM-2.0 distribution
-    --tlm2tests=TLM2_TESTS
-                        Example of your TLM-2.0 distribution
-    --scv=SCV_HOME      Basedir of your SCV distribution
+      SystemC configuration Options:
+        --systemc=SYSTEMC_HOME
+                            Basedir of your SystemC installation
+        --tlm2=TLM2_HOME    Basedir of your TLM-2.0 distribution
+        --tlm2tests=TLM2_TESTS
+                            Example of your TLM-2.0 distribution
+        --scv=SCV_HOME      Basedir of your SCV distribution
 
-  GreenSoCs Configuration Options:
-    --greensocs=GREENSOCS_HOME
-                        Basedir of your GreenSoCs instalation
-    --amba=AMBA_HOME    Basedir of your AMBAKit distribution
-    --grlib=GRLIB_HOME  Basedir of your grlib distribution
-    --ambaexamples=AMBA_EXAMPLES
-                        Basedir of your AMBAKit Examples
-@endcode
+      GreenSoCs Configuration Options:
+        --greensocs=GREENSOCS_HOME
+                            Basedir of your GreenSoCs instalation
+        --amba=AMBA_HOME    Basedir of your AMBAKit distribution
+        --grlib=GRLIB_HOME  Basedir of your grlib distribution
+        --ambaexamples=AMBA_EXAMPLES
+                            Basedir of your AMBAKit Examples
+   ~~~
 
 2.  Execute “<tt>./waf</tt>” – to build all models and tests.
 
-As an alternative you may select a specific target (test or library) using 
-“./waf --targets=”list,of,targets””. 
+  As an alternative you may select a specific target (test or library) using 
+  “./waf --targets=”list,of,targets””. 
 
-A list of targets can be generated with “./waf list”.
+  A list of targets can be generated with “./waf list”.
 
 3.  Execute “./waf docs” – to generate the source doxygen documentation. 
 
@@ -213,4 +210,3 @@ A list of targets can be generated with “./waf list”.
 
 5.  Execute "./waf" again to compile the created platforms.
 
-*/
