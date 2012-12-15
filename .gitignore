@@ -1,6 +1,7 @@
 *.pyc
 *.o
 *.sparc
+*.prom
 *.log
 gmon.out
 
@@ -13,6 +14,7 @@ gmon.out
 .waf*
 build
 deps
+bigbuckbunny_small.m2v
 
 # Mkprom2
 xdump.s
