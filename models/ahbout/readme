@@ -11,3 +11,6 @@ implements the the AHB slave writer
 
 ahbout.h
 class header file
+
+wscript
+waf build script

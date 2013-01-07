@@ -13,6 +13,7 @@ apbctrl.h
 class header file
 
 wscript
+waf build script
 
 tests/
 contains test files

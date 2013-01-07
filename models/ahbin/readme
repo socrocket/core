@@ -14,7 +14,10 @@ ahbin.h
 class header
 
 ahbin_pruned.cpp
+implements a cache-subsystem
 
 ahbin_pruned.h
+class header
 
 wscript
+waf build script

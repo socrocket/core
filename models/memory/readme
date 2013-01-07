@@ -1,0 +1,16 @@
+=This folder contains the files for the implementation of the memory.=
+
+=Data structure=
+
+arraymemory.cpp/h
+implementation of the memory as array/class header
+
+mapmemory.cpp/h
+implementation of the memory as map/class header
+
+ext_erase.h
+generic payload extension indicating memory to be erased
+
+wscript
+waf build script
+
