@@ -45,7 +45,6 @@
 #include <greencontrol/config.h>
 
 #include <greencontrol/config_api_lua_file_parser.h>
-#include "../common/json_parser.h"
 
 #include <execLoader.hpp>
 #include <osEmulator.hpp>
@@ -143,15 +142,14 @@ int sc_main(int argc, char** argv) {
     gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
     gs::cnf::ConfigPlugin configPlugin(&cnfdatabase);
 
-    //gs::cnf::LuaFile_Tool luareader("luareader");
-    json_parser* jsonreader = new json_parser();
+    gs::cnf::LuaFile_Tool luareader("luareader");
     //luareader.parseCommandLine(argc, argv);
 
     if(vm.count("jsonconfig")) {
         setenv("JSONCONFIG", vm["jsonconfig"].as<std::string>().c_str(), true);
     }
 
-    // Find *.json
+    // Find json.lua
     // - First search on the comandline
     // - Then search environment variable
     // - Then search in current dir
@@ -161,28 +159,27 @@ int sc_main(int argc, char** argv) {
     boost::filesystem::path topdir = find_top_path(argv[0]);
     boost::filesystem::path appdir = (boost::filesystem::path(argv[0]).parent_path());
     boost::filesystem::path srcdir = (topdir / boost::filesystem::path("build") / boost::filesystem::path(__FILE__).parent_path());
-    boost::filesystem::path json("leon3mp.singlecore.json");
-    char *json_env = std::getenv("JSONCONFIG");
-    /*if(vm.count("luaconfig")) {
+    boost::filesystem::path jsonlua("json.lua");
+    char *jsonlua_env = std::getenv("LUASCRIPT");
+    if(vm.count("luaconfig")) {
         jsonlua = boost::filesystem::path(vm["luaconfig"].as<std::string>());
         if(!boost::filesystem::exists(jsonlua)) {
             v::error << "main" << "The Lua configuration provided by command line does not exist: " << jsonlua << v::endl;
             exit(1);
         }
-    } else*/
-    if(json_env) {
-        json = boost::filesystem::path(json_env);
-    } else if(boost::filesystem::exists(json)) {
-        json = json;
-    } else if(boost::filesystem::exists(appdir / json)) {
-        json = appdir / json;
-    } else if(boost::filesystem::exists(srcdir / json)) {
-        json = srcdir / json;
+    } else if(jsonlua_env) {
+        jsonlua = boost::filesystem::path(jsonlua_env);
+    } else if(boost::filesystem::exists(jsonlua)) {
+        jsonlua = jsonlua;
+    } else if(boost::filesystem::exists(appdir / jsonlua)) {
+        jsonlua = appdir / jsonlua;
+    } else if(boost::filesystem::exists(srcdir / jsonlua)) {
+        jsonlua = srcdir / jsonlua;
     }
-    if(boost::filesystem::exists(boost::filesystem::path(json))) {
-        jsonreader->config(json.c_str());
+    if(boost::filesystem::exists(boost::filesystem::path(jsonlua))) {
+        luareader.config(jsonlua.c_str());
     } else {
-        v::warn << "main" << "No *.json found. Please put it in the current work directory, application directory or put the path to the file in the JSONCONFIG environment variable" << v::endl;
+        v::warn << "main" << "No json.lua found. Please put it in the current work directory, application directory or put the path to the file in the JSONLUA environment variable" << v::endl;
     }
 
     gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
