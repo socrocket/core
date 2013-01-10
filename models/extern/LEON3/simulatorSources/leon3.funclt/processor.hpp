@@ -109,6 +109,7 @@ namespace leon3_funclt_trap{
         void mainLoop();
         void resetOp();
         void start_of_simulation();
+        void end_of_simulation();
         void power_model();
         void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
         void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
@@ -139,7 +140,6 @@ namespace leon3_funclt_trap{
         sc_time profTimeEnd;
         boost::circular_buffer< HistoryInstrType > instHistoryQueue;
         unsigned int undumpedHistElems;
-        unsigned long long int numInstructions;
         unsigned int ENTRY_POINT;
         unsigned int MPROC_ID;
         unsigned int PROGRAM_LIMIT;
@@ -185,6 +185,8 @@ namespace leon3_funclt_trap{
       /// Number of instructions processed in time frame
       gs::gs_param<unsigned long long> dyn_instr;
       
+      /// Number of instructions processed
+      gs::gs_param<unsigned long long> numInstructions;
     };
 
 };

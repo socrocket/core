@@ -118,7 +118,8 @@ void leon3_funcat_trap::Instruction::RaiseException( unsigned int pcounter, unsi
         if(exceptionId < IRQ_LEV_15){
             // I print a core dump and then I signal an error: an exception happened while
             // exceptions were disabled in the processor core
-            THROW_EXCEPTION("Exception " << exceptionId << " happened while the PSR[ET] = 0; \
+            THROW_EXCEPTION("@"<<sc_core::sc_time_stamp()<<" /"<<(unsigned)sc_core::sc_delta_count()
+                            << " Exception " << exceptionId << " happened while the PSR[ET] = 0; \
                 PC = " << std::hex << std::showbase << PC << std::endl << "Instruction " << getMnemonic());
         }
     }

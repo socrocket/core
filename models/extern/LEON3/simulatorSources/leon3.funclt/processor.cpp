@@ -346,7 +346,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::swi_power_cb(gs::gs_param_base& 
 }
 
 // Automatically called at the beginning of the simulation
-void leon3_funclt_trap::Processor_leon3_funclt::start_of_simulation(){
+void leon3_funclt_trap::Processor_leon3_funclt::start_of_simulation() {
 
   // Initialize power model
   if (m_pow_mon) {
@@ -354,6 +354,14 @@ void leon3_funclt_trap::Processor_leon3_funclt::start_of_simulation(){
     power_model();
     
   }
+}
+
+void leon3_funclt_trap::Processor_leon3_funclt::end_of_simulation() {
+    v::report << name() << " ********************************************" << v::endl;
+    v::report << name() << " * LEON3 Statistic:" << v::endl;
+    v::report << name() << " * ------------------" << v::endl;
+    v::report << name() << " * Total number of processed instructions: " << numInstructions << v::endl;
+    v::report << name() << " ******************************************** " << v::endl;
 }
 
 void leon3_funclt_trap::Processor_leon3_funclt::end_of_elaboration(){
