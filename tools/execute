@@ -18,7 +18,7 @@ prom="build/software/prom/$prom/$prom.prom"
 ram=$(find build/software -name "$app.sparc")
 
 echo $platform --option conf.mctrl.prom.elf=$prom --option conf.mctrl.ram.sdram.elf=$ram --option conf.system.osemu=$ram $@
-$platform --option conf.mctrl.prom.elf=$prom --option conf.mctrl.ram.sdram.elf=$ram --option conf.system.osemu=$ram $@
+time $platform --option conf.mctrl.prom.elf=$prom --option conf.mctrl.ram.sdram.elf=$ram --option conf.system.osemu=$ram $@
 if [ $? -eq 0 ] ; then
   echo "!!! Successfull"
 else

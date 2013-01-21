@@ -47,5 +47,3 @@ def main():
 if __name__ == "__main__":
 	main()
 
-# vim:encoding=utf-8
-

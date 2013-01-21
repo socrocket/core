@@ -109,7 +109,6 @@ int sc_main(int argc, char** argv) {
     boost::program_options::options_description desc("Options");
     desc.add_options()
       ("help", "Shows this message.")
-      ("luascript,s", boost::program_options::value<std::string>()/*->default(std::getenv("JSONLUA"))*/, "The Lua configuration script. Usual the json.lua to load a JSON configuration.")
       ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json.")
       ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options.")
       ("argument,a", boost::program_options::value<std::vector<std::string> >(), "Arguments to the software running inside the simulation.")

@@ -164,8 +164,11 @@ def SplitLine(Line, LineNumber, CommentBlocks):
 def BlockHandler(lineArray, options, StartDelimiter, EndDelimiter, Processor):
 	ProcessedLines = []
 
-	# Get the full comment blocks
-	CommentBlocks = ExtractCommentBlocks(lineArray, options)
+	if lineArray[1].find('=') == 0 or lineArray[0].startswith('#'):
+		CommentBlocks = [{"Location": {"Start": {"LineIndex": 0}, "End": {"LineIndex": len(lineArray)}}, "Contents": lineArray}]
+	else:
+		# Get the full comment blocks
+		CommentBlocks = ExtractCommentBlocks(lineArray, options)
 
 	# Find statemachine lines
 	Blocks = []
@@ -219,6 +222,4 @@ if __name__ == "__main__":
 			sys.stdout.write(line + "\n")
 		sys.stdout.write("</BLOCK>\n")
 
-
-# vim:encoding=utf-8
 

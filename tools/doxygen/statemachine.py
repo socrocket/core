@@ -493,5 +493,3 @@ if __name__ == "__main__":
 	from filterprocessor import FilterFiles
 	FilterFiles([StateMachineHandler,], options, remainder)
 
-# vim:encoding=utf-8
-
