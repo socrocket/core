@@ -210,3 +210,5 @@ Building the project requires following steps:
 
 5.  Execute "./waf" again to compile the created platforms.
 
+@subpage models_p "A list of all models"
+@subpage utils_p "Utils"

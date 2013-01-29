@@ -43,7 +43,7 @@ def ProcessTable(lineArray, TablePositions, CommentBlocks):
 
 		index = ThisLine.find('@table')
 		if index != -1:
-			TableParts = [ThisLine[:index] + '<table id="DoxyEmbeddedTable">']
+			TableParts = [ThisLine[:index] + '<table class="doxtable">']
 			index = index + len('@table')
 			if index+len("@table") != len(ThisLine.strip()):
 				TableParts.append('<caption>' + ThisLine[index:] + '</caption>')
@@ -154,6 +154,4 @@ if __name__ == "__main__":
 
 	from filterprocessor import FilterFiles
 	FilterFiles([EnhancedTableHandler,], options, remainder)
-
-# vim:encoding=utf-8
 

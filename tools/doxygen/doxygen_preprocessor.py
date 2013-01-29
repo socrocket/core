@@ -23,6 +23,9 @@ ProcessOrder.append(EnhancedTableHandler)
 from statemachine import StateMachineHandler
 ProcessOrder.append(StateMachineHandler)
 
+from register import RegisterHandler
+ProcessOrder.append(RegisterHandler)
+
 def CommandLineHandler():
 	"""Option parser interface."""
 
@@ -69,6 +72,4 @@ def main():
 
 if __name__ == "__main__":
 	main()
-
-# vim:encoding=utf-8
 
