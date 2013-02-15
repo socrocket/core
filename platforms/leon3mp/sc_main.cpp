@@ -75,6 +75,7 @@
 #include <amba.h>
 #include <cstring>
 #include <cstdlib>
+#include <stdexcept>
 #include "verbose.h"
 #include "powermonitor.h"
 
@@ -989,9 +990,14 @@ int sc_main(int argc, char** argv) {
     // ******************************************
 
     // start simulation
-    cstart = clock();
-    sc_core::sc_start();
-    cend = clock();
+    try {
+        cstart = clock();
+        sc_core::sc_start();
+        cend = clock();
+    } catch(std::runtime_error &error) {
+        v::error << "main" << "Execution is stoped caused by a runtime_error. Maybe you forgot to select an executable?" << v::endl;
+        v::error << "main" << error.what();
+    }
 
     if(p_report_timing) {
         v::info << "Summary" << "Start: " << dec << cstart << v::endl;
