@@ -48,7 +48,7 @@ using namespace tlm;
 // Constructor (sc_module version)
 template<>
 AHBMaster<sc_module>::AHBMaster(sc_module_name nm, uint8_t hindex, uint8_t vendor, uint8_t device, uint8_t version, uint8_t irq, 
-                                amba::amba_layer_ids ambaLayer, uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3) :
+                                amba::amba_layer_ids ambaLayer, uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_t register_count) :
   sc_module(nm),
   AHBDevice(hindex, vendor, device, version, irq, bar0, bar1, bar2, bar3),
   ahb("ahb", ::amba::amba_AHB, ambaLayer, false),
@@ -80,8 +80,8 @@ AHBMaster<sc_module>::AHBMaster(sc_module_name nm, uint8_t hindex, uint8_t vendo
 // Constructor (gr_device version)
 template<>
 AHBMaster<gs::reg::gr_device>::AHBMaster(sc_module_name nm, uint8_t hindex, uint8_t vendor, uint8_t device, uint8_t version, uint8_t irq, 
-                                         amba::amba_layer_ids ambaLayer, uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3) :
-  gr_device(nm, gs::reg::ALIGNED_ADDRESS, 16, NULL),
+                                         amba::amba_layer_ids ambaLayer, uint32_t bar0, uint32_t bar1, uint32_t bar2, uint32_t bar3, uint32_t register_count) :
+  gr_device(nm, gs::reg::ALIGNED_ADDRESS, register_count, NULL),
   AHBDevice(hindex, vendor, device, version, irq, bar0, bar1, bar2, bar3),
   ahb("ahb", ::amba::amba_AHB, ambaLayer, false),
   m_ResponsePEQ("ResponsePEQ"),
