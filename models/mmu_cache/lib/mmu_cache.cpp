@@ -1433,12 +1433,12 @@ void mmu_cache::clkcng() {
     }
 
     // Set dlocalram clock
-    if(m_dlram) {
+    if(dlocalram) {
       dlocalram->clkcng(clock_cycle);
     }
 
     // Set ilocalram clcok
-    if(m_ilram) {
+    if(ilocalram) {
       ilocalram->clkcng(clock_cycle);
     }
 }

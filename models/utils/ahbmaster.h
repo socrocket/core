@@ -68,7 +68,8 @@ class AHBMaster : public BASE, public AHBDevice {
             uint32_t bar0 = 0,
             uint32_t bar1 = 0,
             uint32_t bar2 = 0,
-            uint32_t bar3 = 0
+            uint32_t bar3 = 0,
+	    uint32_t register_count = 16
             );
 
   /// Destructor

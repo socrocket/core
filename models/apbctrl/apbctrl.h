@@ -49,7 +49,7 @@
 
 #include "vmap.h"
 
-/// @addtogroup apbctrl APBctrl
+/// @addtogroup apbctrl APBCtrl
 /// @{
 
 class APBCtrl : public AHBSlave<>, public CLKDevice {

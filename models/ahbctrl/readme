@@ -1,3 +1,10 @@
+This folder contains the model for the ahbctrl.Tests can be found in the folder 'tests'
+
+Overview
+The AHBCTRL TLM model can be used to simulate behavior and timing of the GRLIB AHB Controller VHDL IP. The model is available at two levels of abstractions (LT and AT).
+For modeling the AHBCTRL we mostly follow the recommendations given in RD06.
+All details regarding AHB protocol modeling at transaction level (payload structure, TLM phase mapping) can be found in the SoCRocket Interconnect Methodology RD9.
+
 ./adapters 		- The RTL co-simulation adapters for the bus
 
 ahbctrl.h/cpp		- The implementation of the AHBCTRL

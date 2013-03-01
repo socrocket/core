@@ -1,12 +1,13 @@
-/**
-@page gptimer_p GPTimer - General Purpose Timer SystemC Model
+GPTimer - General Purpose Timer SystemC Model {#gptimer_p}
+==========================================================
+
 @section gptimer_p1 Functionality and Features
+
 The GPTimer unit acts as a slave at the APB bus. Its basic functionality is a countdown mechanism that asserts an interrupt on underflow. The GPTimer unit consists of a prescaler unit that is generating ticks and up to seven counter units that are decrementing on prescaler ticks. In the VHDL model, the counter units are named ‘timers’ just like the entire IP model. As this is a potential source of confusion, the name has been changed to ‘counters’ in the TLM implementation.
 The GPTimer unit can be configured and operated through its registers addressed through the APB interface. All registers have a width of 32 bits and are summarized in Table 18. 
 
-@table GPTimer Registers
 | APB Address Offset | Register                         |
----------------------------------------------------------
+|--------------------|----------------------------------|
 | 0x00               | Scaler Value                     |
 | 0x04               | Scaler Reload Value              |
 | 0x08               | Configuration Register           |
@@ -15,13 +16,28 @@ The GPTimer unit can be configured and operated through its registers addressed 
 | 0cn4               | Counter n Reload Register        |
 | 0xn8               | Counter n Configuration Register |
 | 0xnC               | Unused                           |
-@endtable
 
-@table Scaler Value Register
-|31 | sbits |              | 0|
--------------------------------
-|   |       | Scaler Value |  |
-@endtable
+@register gpcounter_reload GPCounter Reload Value Register
+  [31:0](COUNTER_RELOAD_VALUE) Timer Reload value. 
+        This value is loaded into the timer counter value register when '1' is written to load bit 
+        in the timers control register or when the RS bit is set in the control register and the 
+        timer underflows.
+        Any unused most significant bits are reserved. Always reads as '000...0'.
+@endregister
+
+@register gpcounter_conf GPCounter Configuration Register
+  [6](DH) Debug Halt: Value of GPTI.DHALT signal which is used to freeze counters
+                      (e.g. when a system is in debug mode). Read-only.
+  [5](CH) Chain: Chain with preceding timer. If set for timer n, 
+                 decrementing timer n begins when timer (n-1) underflows.
+  [4](IP) Interrupt Pending: The core sets this bit to '1' when an interrupt is signalled. 
+          This bit remains '1' until cleared by writing '1' to this bit, writes of '0' have no effect.
+  [3](IE) Interrupt Enable: If set the timer signals interrupt when it underflows.
+  [2](LD) Load: Load value from the timer reload register to the timer counter value register.
+  [1](RS) Restart: If set, the timer counter value register is reloaded with the value of the reload register when the timer underflows
+  [0](EN) Enable: Enable the timer.
+@endregister
+
 
 The prescaler and all the timers are equipped with a value register and a reload value register. The value register is decremented on each trigger and can be reset to the reload value on underflow or on reset command. In the VHDL model, the trigger for decrementing the prescaler is the bus clock input of the GPTimer unit. In the SystemC model the prescaler ticks are calculated by multiplying the clock period with the prescaler reload register. The clock period is stored to the ‘clock_cycle’ variable, which can be set using one of the overloaded ‘clk’ functions. The triggers for decrementing the counters are ticks issued by prescaler underflow. The prescaler is automatically reset on underflow and cannot be halted. Due to a specific characteristic of the VHDL implementation of the GPTimer unit, the prescaler reload value must be greater than or equal to the number of counters implemented in the GPTimer instance.
 
@@ -121,4 +137,3 @@ Bind SignalKit ports:
   tb.irq(dut.irq);
 @endcode
 
-*/

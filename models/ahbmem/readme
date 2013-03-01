@@ -1,0 +1,15 @@
+This folder contains all data for the ahbmem module.
+
+=Overview=
+The AHBMEM model provides a simple flat memory implementation bound to an AHB slave interface. The class inherits from the AHBSlave and CLKDevice classes.
+
+=File structure=
+
+ahbmem.cpp
+implements the AHB memory
+
+ahbmem.h
+class header file
+
+wscript
+waf build script

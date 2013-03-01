@@ -1,0 +1,24 @@
+=This folder contains all data regarding the APBUART module.=
+
+=Overview=
+The APBUART model creates an UART device, which is mapped to a TCP port on the host system. The class inherits from the classes gs::reg::gr_device, APBDevice and CLKDevice. This model can be used as a serial console for exchanging data or printing debug information. The model has several registers which are listed in table 45. Further information can be found in RD04  (chapter 16.)
+
+=File structure=
+
+apbuart.cpp
+implements the UART
+
+apbuart.h
+uart class header file
+
+io_if.h
+abstract interface for the UART Implementation
+
+tcpio.cpp
+implements a tcp in/out transceiver
+
+tcpio.h
+class header file
+
+wscript
+waf config file

@@ -1,0 +1,19 @@
+=This folder contains all data of the APBCTRL systemC model. Tests can be found in the folder 'tests'.=
+
+=Overview=
+The APBCTRL TLM model can be used to simulate behavior and timing of the GRLIB APBCTRL AHB-to-APB Bridge VHDL IP. The model is available at two levels of abstractions (LT and AT). For modeling the APBCTRL we mostly follow the recommendations given in RD06.
+All details regarding APB protocol modeling at transaction level (payload structure, TLM phase mapping) can be found in the SoCRocket Interconnect Methodology [RD9].
+
+=File structure=
+
+apbctrl.cpp
+implements the model
+
+apbctrl.h 
+class header file
+
+wscript
+waf build script
+
+tests/
+contains test files

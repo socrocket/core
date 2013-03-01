@@ -53,7 +53,7 @@
 
 #include "msclogger.h"
 
-/// @addtogroup ahbctrl AHBctrl
+/// @addtogroup ahbctrl AHBCtrl
 /// @{
 
 class AHBCtrl : public sc_core::sc_module, public CLKDevice {
