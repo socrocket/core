@@ -53,5 +53,6 @@ def build(bld):
     source          = 'apbuart.cpp tcpio.cpp', 
     export_includes = '.',
     uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
-    use             = 'common signalkit utils'
+    use             = 'common signalkit utils',
+    install_path    = '${PREFIX}/lib',
   )
