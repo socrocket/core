@@ -43,6 +43,7 @@
 #include "apbdevice.h"
 #include "clkdevice.h"
 
+#include "gs_config/propertyconfig.h"
 #include <greencontrol/all.h>
 #include <greenreg_ambasockets.h>
 #include <systemc>
@@ -185,29 +186,38 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   ///
   int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime);
        
-  const uint32_t m_ntimers;
-  const uint32_t g_sbits;
-  const uint32_t g_nbits;
-  const uint32_t g_wdog_length;
-  const uint32_t powermon;
+  gs::cnf::gs_config<uint32_t> m_ntimers;
+  gs::cnf::gs_config<uint32_t> g_sbits;
+  gs::cnf::gs_config<uint32_t> g_nbits;
+  gs::cnf::gs_config<uint32_t> g_wdog_length;
+  gs::cnf::gs_config<uint32_t> powermon;
 
   // *****************************************************
   // Power Modeling Parameters
 
   /// Normalized static power input
-  gs::gs_param<double> sta_power_norm;
+  gs::cnf::gs_config<double> sta_power_norm;
 
   /// Normalized internal power input (activation independent)
-  gs::gs_param<double> int_power_norm;
+  gs::cnf::gs_config<double> int_power_norm;
 
   /// Parameter array for power data output
   gs::gs_param_array power;
 
   /// Static power of module
-  gs::gs_param<double> sta_power;
+  gs::cnf::gs_config<double> sta_power;
 
   /// Internal power of module (activation independent)
-  gs::gs_param<double> int_power;
+  gs::cnf::gs_config<double> int_power;
+
+  // *****************************************************
+  // gs_config for index, addr, mask, sepirq
+
+  gs::cnf::gs_config<uint32_t> m_pindex;
+  gs::cnf::gs_config<uint32_t> m_paddr;
+  gs::cnf::gs_config<uint32_t> m_pmask;
+  gs::cnf::gs_config<bool> m_sepirq;
+
 
   // *****************************************************
   // Constant and mask definitions

@@ -829,6 +829,7 @@ int sc_main(int argc, char** argv) {
 
     // APBSlave - GPTimer
     // ==================
+/*********
     gs::gs_param_array p_gptimer("gptimer", p_conf);
     gs::gs_param<bool> p_gptimer_en("en", true, p_gptimer);
     gs::gs_param<unsigned int> p_gptimer_addr("addr", 0x0F0, p_gptimer);
@@ -853,6 +854,32 @@ int sc_main(int argc, char** argv) {
         p_gptimer_nbits,  // nbits
         p_gptimer_wdog,   // wdog
         p_report_power    // powmon
+      );
+***************/
+    gs::gs_param_array p_gptimer("gptimer", p_conf);
+    gs::gs_param<bool> p_gptimer_en("en", true, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_addr("addr", 0x0F0, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_mask("mask", 0xFFF, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_index("index", 3, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_irq("irq", 8, p_gptimer);
+    gs::gs_param<bool> p_gptimer_sepirq("sepirq", true, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_ntimers("ntimers", 7, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_sbits("sbit", 16, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_nbits("nbits", 32, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_wdog("wdog", 0u, p_gptimer);
+
+    if(p_gptimer_en) {
+      GPTimer *gptimer = new GPTimer("gptimer",
+        7,  // ntimers
+        3,  // index
+        0x0F0,   // paddr
+        0xFFF,   // pmask
+        8,    // pirq
+        true, // sepirq
+        16,  // sbits
+        32,  // nbits
+        0u,   // wdog
+        p_report_power  // powmon
       );
 
       // Connect to apb and clock
