@@ -69,4 +69,14 @@ def build(bld):
     use             = 'common',
     install_path    = None,
   )
+
+  bld(
+    target          = 'gs_config_test',
+    features        = 'cxx cprogram test',
+    source          = 'tests/gs_config_test.cpp',
+    includes        = 'GREENSOCS',
+    uselib          = 'GREENSOCS SYSTEMC',
+    use             = 'common',
+    install_path    = None,
+  )
  
