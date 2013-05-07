@@ -107,10 +107,10 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
 	m_paddr.setProperty("hint", "The 12bit MSB address at the APB bus");
 
 	m_pmask.setProperty("name", "APB Base Mask");
-	m_paddr.setProperty("type", "int");
-	m_paddr.setProperty("default", "0xFFF");
-	m_paddr.setProperty("range", "0..4095");
-	m_paddr.setProperty("hint", "The 12bit APB address mask");
+	m_pmask.setProperty("type", "int");
+	m_pmask.setProperty("default", "0xFFF");
+	m_pmask.setProperty("range", "0..4095");
+	m_pmask.setProperty("hint", "The 12bit APB address mask");
 
 	m_pindex.setProperty("name", "Bus Index");
 	m_pindex.setProperty("type", "int");
