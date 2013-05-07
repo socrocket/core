@@ -185,7 +185,7 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   /// @brief TODO
   ///
   int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime);
-       
+  gs::cnf::gs_param_array p_conf;
   gs::cnf::gs_config<uint32_t> m_ntimers;
   gs::cnf::gs_config<uint32_t> g_sbits;
   gs::cnf::gs_config<uint32_t> g_nbits;
