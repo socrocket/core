@@ -107,13 +107,17 @@ boost::filesystem::path find_top_path(char *start) {
 }
 
 int sc_main(int argc, char** argv) {
-    boost::program_options::options_description desc("Options");
+    boost::program_options::options_description desc("Options");      
     desc.add_options()
       ("help", "Shows this message.")
       ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json.")
       ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options.")
       ("argument,a", boost::program_options::value<std::vector<std::string> >(), "Arguments to the software running inside the simulation.")
-      ("listoptions,l", "Show a list of all avaliable options");
+      ("listoptions,l", "Show a list of all avaliable options")
+      ("listoptionsfiltered,f", boost::program_options::value<std::string>(), "Show a list of avaliable options containing a keyword")
+      ("listgsconfig,c", "Show a list of all avaliable gs_config options")
+      ("listgsconfigfiltered,g", boost::program_options::value<std::string>(), "Show a list of avaliable options containing a keyword")
+      ("saveoptions,s", boost::program_options::value<std::string>(), "Save options to json file. Default: saved_config.json");
 
     boost::program_options::positional_options_description p;
     p.add("argument", -1);
@@ -137,7 +141,7 @@ int sc_main(int argc, char** argv) {
     clock_t cstart, cend;
     std::string prom_app;
 
-    bool paramlist = false;
+    bool paramlist = false, paramlistfiltered = false, configlist = false, configlistfiltered = false, saveoptions = false;
 
     gs::ctr::GC_Core       core;
     gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
@@ -180,6 +184,7 @@ int sc_main(int argc, char** argv) {
         json = srcdir / json;
     }
     if(boost::filesystem::exists(boost::filesystem::path(json))) {
+        v::info << "main" << "Open Configuration " << json << v::endl;
         jsonreader->config(json.c_str());
     } else {
         v::warn << "main" << "No *.json found. Please put it in the current work directory, application directory or put the path to the file in the JSONCONFIG environment variable" << v::endl;
@@ -215,6 +220,22 @@ int sc_main(int argc, char** argv) {
 
     if(vm.count("listoptions")) {
        paramlist = true;
+    }
+    
+    if(vm.count("listoptionsfiltered")) {
+       paramlistfiltered = true;
+    }
+    
+    if(vm.count("listgsconfig")) {
+       configlist = true;
+    }
+    
+    if(vm.count("listgsconfigfiltered")) {
+       configlistfiltered = true;
+    }
+    
+    if(vm.count("saveoptions")) {
+       saveoptions = true;
     }
     
     // Build GreenControl Configuration Namespace
@@ -1001,8 +1022,29 @@ int sc_main(int argc, char** argv) {
         for(uint32_t i = 0; i < plist.size(); i++) {
             std::cout << " " << plist[i] << std::endl;
         }
-        exit(0);
+    exit(0);
     }
+
+    if(configlist){
+        gs::cnf::cnf_api *CFG = gs::cnf::GCnf_Api::getApiInstance(NULL);
+	      std::cout << "gs_configs:" << std::endl;
+        std::vector<gs::gs_param_base*> paramList = CFG->getParams();
+	      for(uint32_t i = 0; i < paramList.size(); i++) 
+        {
+           if(dynamic_cast<gs::cnf::gs_config_base*>(paramList[i]) != 0) 
+	         {
+		          std::cout << " " << paramList[i]->getName() << std::endl;
+		          gs::cnf::gs_config_base* config = dynamic_cast<gs::cnf::gs_config_base*>(paramList[i]);
+		          vmap<std::string, std::string> descriptionMap = config->getProperties();
+          		for(vmap<std::string, std::string>::iterator it = descriptionMap.begin(); it != descriptionMap.end(); ++it)
+		          {
+		            std::cout << "\t" << it->first << ": \t" << it->second << std::endl;
+		          }
+	         }
+        }
+    exit(0);
+    }
+
     // ******************************************
 
     signalkit::signal_out<bool, Irqmp> irqmp_rst;
@@ -1014,9 +1056,6 @@ int sc_main(int argc, char** argv) {
     if(p_report_power) {
         powermonitor *pow_mon =  new powermonitor("pow_mon");
     }
-    // ******************************************
-
-    // start simulation
     try {
         cstart = clock();
         sc_core::sc_start();
