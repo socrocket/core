@@ -46,6 +46,7 @@
 
 #include <greencontrol/config_api_lua_file_parser.h>
 #include "../common/json_parser.h"
+#include "../common/paramprinter.h"
 
 #include <execLoader.hpp>
 #include <osEmulator.hpp>
@@ -147,9 +148,7 @@ int sc_main(int argc, char** argv) {
     gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
     gs::cnf::ConfigPlugin configPlugin(&cnfdatabase);
 
-    //gs::cnf::LuaFile_Tool luareader("luareader");
     json_parser* jsonreader = new json_parser();
-    //luareader.parseCommandLine(argc, argv);
 
     if(vm.count("jsonconfig")) {
         setenv("JSONCONFIG", vm["jsonconfig"].as<std::string>().c_str(), true);
@@ -222,22 +221,26 @@ int sc_main(int argc, char** argv) {
        paramlist = true;
     }
     
-    if(vm.count("listoptionsfiltered")) {
-       paramlistfiltered = true;
-    }
-    
     if(vm.count("listgsconfig")) {
        configlist = true;
-    }
-    
-    if(vm.count("listgsconfigfiltered")) {
-       configlistfiltered = true;
     }
     
     if(vm.count("saveoptions")) {
        saveoptions = true;
     }
     
+		std::string optionssearchkey = "";
+		if(vm.count("listoptionsfiltered")) {
+        optionssearchkey = vm["listoptionsfiltered"].as<std::string>();
+				paramlistfiltered = true;
+    }
+
+		std::string configssearchkey = "";
+		if(vm.count("listgsconfigfiltered")) {
+        configssearchkey = vm["listgsconfigfiltered"].as<std::string>();
+				configlistfiltered= true;
+    }
+
     // Build GreenControl Configuration Namespace
     // ==========================================
     gs::gs_param_array p_conf("conf");
@@ -1015,34 +1018,25 @@ int sc_main(int argc, char** argv) {
     
    
     // * Param Listing **************************
+		paramprinter printer;
     if(paramlist) {
-        gs::cnf::cnf_api *CFG = gs::cnf::GCnf_Api::getApiInstance(NULL);
-        std::cout << "Available System Options:" << std::endl;
-        std::vector<std::string> plist = CFG->getParamList();
-        for(uint32_t i = 0; i < plist.size(); i++) {
-            std::cout << " " << plist[i] << std::endl;
-        }
-    exit(0);
+    	printer.printParams();
+    	exit(0);
     }
 
     if(configlist){
-        gs::cnf::cnf_api *CFG = gs::cnf::GCnf_Api::getApiInstance(NULL);
-	      std::cout << "gs_configs:" << std::endl;
-        std::vector<gs::gs_param_base*> paramList = CFG->getParams();
-	      for(uint32_t i = 0; i < paramList.size(); i++) 
-        {
-           if(dynamic_cast<gs::cnf::gs_config_base*>(paramList[i]) != 0) 
-	         {
-		          std::cout << " " << paramList[i]->getName() << std::endl;
-		          gs::cnf::gs_config_base* config = dynamic_cast<gs::cnf::gs_config_base*>(paramList[i]);
-		          vmap<std::string, std::string> descriptionMap = config->getProperties();
-          		for(vmap<std::string, std::string>::iterator it = descriptionMap.begin(); it != descriptionMap.end(); ++it)
-		          {
-		            std::cout << "\t" << it->first << ": \t" << it->second << std::endl;
-		          }
-	         }
-        }
-    exit(0);
+      printer.printConfigs();
+    	exit(0);
+    }
+
+    if(paramlistfiltered ){
+      printer.printParams(optionssearchkey);
+    	exit(0);
+    }
+
+    if(configlistfiltered ){
+      printer.printConfigs(configssearchkey);
+    	exit(0);
     }
 
     // ******************************************
