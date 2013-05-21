@@ -50,7 +50,7 @@ def build(bld):
   bld(
     target          = 'apbuart',
     features        = 'cxx cxxstlib',
-    source          = 'apbuart.cpp tcpio.cpp', 
+    source          = 'apbuart.cpp tcpio.cpp nullio.cpp', 
     export_includes = '.',
     uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     use             = 'common signalkit utils',

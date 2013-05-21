@@ -62,6 +62,7 @@
 #include "gptimer.h"
 #include "apbuart.h"
 #include "tcpio.h"
+#include "nullio.h"
 #include "irqmp.h"
 #include "ahbctrl.h"
 #include "AHB2Socwire.h"
@@ -938,8 +939,7 @@ int sc_main(int argc, char** argv) {
           io = new TcpIo(port);
           break;
         default:
-          mApi->getValue(std::string(n_inst + ".port"), port);
-          io = new TcpIo(port);
+          io = new NullIO();
           break;
       }
 

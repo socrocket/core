@@ -53,7 +53,7 @@ import os, sys
 
 def build(self):
     from tools.waf.logger import Logger
-    logger = Logger("%s/build.log" % out)
+    logger = Logger("%s/build.log" % self.out_dir)
     sys.stdout = logger
     sys.stderr = logger
     
