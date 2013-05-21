@@ -45,8 +45,8 @@
 #include <greencontrol/config.h>
 
 #include <greencontrol/config_api_lua_file_parser.h>
-#include "../common/json_parser.h"
-#include "../common/paramprinter.h"
+#include "json_parser.h"
+#include "paramprinter.h"
 
 #include <execLoader.hpp>
 #include <osEmulator.hpp>
