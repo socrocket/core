@@ -73,6 +73,7 @@ class json_parser {
     json_parser();
     ~json_parser();
     void config(const char *filename);
+	 void save(std::string path, gs::cnf::cnf_api* api);
 
   private:
     std::vector<char> m_buffer;

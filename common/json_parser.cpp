@@ -468,11 +468,9 @@ void json_parser::parse(char *source) {
                 mApi->setInitValue(it->first, it->second->string_value);
                 break;
             case JSON_INT:
-                sprintf(value, "%d" , it->second->int_value);
                 mApi->setInitValue(it->first, value);
                 break;
             case JSON_FLOAT:
-                sprintf(value, "%f" , it->second->float_value);
                 mApi->setInitValue(it->first, value);
                 break;
             case JSON_BOOL:
@@ -484,4 +482,28 @@ void json_parser::parse(char *source) {
                 break;
         }
     }
+}
+
+void json_parser::save(std::string path, gs::cnf::cnf_api* api)
+{
+	std::vector<std::string> paramList = api->getParamList();
+	json_value* object = 0;
+	std::string parent = "";
+	std::string childs = "";
+	for(unsigned int i = 0; i < paramList.size(); i++) 
+	{
+		std::size_t pos = paramList[i].find(".");
+		if(pos != std::string::npos)
+		{
+			/*parent = paramList[i].substring(0, pos);
+			childs = paramList[i].substring(pos);
+			if(object->parent == NULL && object->parent == NULL)
+			{
+				object->name = parent;
+			}
+			for()
+			{
+			}*/
+		}
+  }
 }
