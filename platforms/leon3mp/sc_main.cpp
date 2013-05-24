@@ -45,7 +45,8 @@
 #include <greencontrol/config.h>
 
 #include <greencontrol/config_api_lua_file_parser.h>
-#include "../common/json_parser.h"
+#include "json_parser.h"
+#include "paramprinter.h"
 
 #include <execLoader.hpp>
 #include <osEmulator.hpp>
@@ -108,13 +109,17 @@ boost::filesystem::path find_top_path(char *start) {
 }
 
 int sc_main(int argc, char** argv) {
-    boost::program_options::options_description desc("Options");
+    boost::program_options::options_description desc("Options");      
     desc.add_options()
       ("help", "Shows this message.")
       ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json.")
       ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options.")
       ("argument,a", boost::program_options::value<std::vector<std::string> >(), "Arguments to the software running inside the simulation.")
-      ("listoptions,l", "Show a list of all avaliable options");
+      ("listoptions,l", "Show a list of all avaliable options")
+      ("listoptionsfiltered,f", boost::program_options::value<std::string>(), "Show a list of avaliable options containing a keyword")
+      ("listgsconfig,c", "Show a list of all avaliable gs_config options")
+      ("listgsconfigfiltered,g", boost::program_options::value<std::string>(), "Show a list of avaliable options containing a keyword")
+      ("saveoptions,s", boost::program_options::value<std::string>(), "Save options to json file. Default: saved_config.json");
 
     boost::program_options::positional_options_description p;
     p.add("argument", -1);
@@ -138,15 +143,13 @@ int sc_main(int argc, char** argv) {
     clock_t cstart, cend;
     std::string prom_app;
 
-    bool paramlist = false;
+    bool paramlist = false, paramlistfiltered = false, configlist = false, configlistfiltered = false, saveoptions = false;
 
     gs::ctr::GC_Core       core;
     gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
     gs::cnf::ConfigPlugin configPlugin(&cnfdatabase);
 
-    //gs::cnf::LuaFile_Tool luareader("luareader");
     json_parser* jsonreader = new json_parser();
-    //luareader.parseCommandLine(argc, argv);
 
     if(vm.count("jsonconfig")) {
         setenv("JSONCONFIG", vm["jsonconfig"].as<std::string>().c_str(), true);
@@ -181,6 +184,7 @@ int sc_main(int argc, char** argv) {
         json = srcdir / json;
     }
     if(boost::filesystem::exists(boost::filesystem::path(json))) {
+        v::info << "main" << "Open Configuration " << json << v::endl;
         jsonreader->config(json.c_str());
     } else {
         v::warn << "main" << "No *.json found. Please put it in the current work directory, application directory or put the path to the file in the JSONCONFIG environment variable" << v::endl;
@@ -218,6 +222,26 @@ int sc_main(int argc, char** argv) {
        paramlist = true;
     }
     
+    if(vm.count("listgsconfig")) {
+       configlist = true;
+    }
+    
+    if(vm.count("saveoptions")) {
+       saveoptions = true;
+    }
+    
+		std::string optionssearchkey = "";
+		if(vm.count("listoptionsfiltered")) {
+        optionssearchkey = vm["listoptionsfiltered"].as<std::string>();
+				paramlistfiltered = true;
+    }
+
+		std::string configssearchkey = "";
+		if(vm.count("listgsconfigfiltered")) {
+        configssearchkey = vm["listgsconfigfiltered"].as<std::string>();
+				configlistfiltered= true;
+    }
+
     // Build GreenControl Configuration Namespace
     // ==========================================
     gs::gs_param_array p_conf("conf");
@@ -830,6 +854,7 @@ int sc_main(int argc, char** argv) {
 
     // APBSlave - GPTimer
     // ==================
+/*********
     gs::gs_param_array p_gptimer("gptimer", p_conf);
     gs::gs_param<bool> p_gptimer_en("en", true, p_gptimer);
     gs::gs_param<unsigned int> p_gptimer_addr("addr", 0x0F0, p_gptimer);
@@ -854,6 +879,32 @@ int sc_main(int argc, char** argv) {
         p_gptimer_nbits,  // nbits
         p_gptimer_wdog,   // wdog
         p_report_power    // powmon
+      );
+***************/
+    gs::gs_param_array p_gptimer("gptimer", p_conf);
+    gs::gs_param<bool> p_gptimer_en("en", true, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_addr("addr", 0x0F0, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_mask("mask", 0xFFF, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_index("index", 3, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_irq("irq", 8, p_gptimer);
+    gs::gs_param<bool> p_gptimer_sepirq("sepirq", true, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_ntimers("ntimers", 7, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_sbits("sbit", 16, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_nbits("nbits", 32, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_wdog("wdog", 0u, p_gptimer);
+
+    if(p_gptimer_en) {
+      GPTimer *gptimer = new GPTimer("gptimer",
+        7,  // ntimers
+        3,  // index
+        0x0F0,   // paddr
+        0xFFF,   // pmask
+        8,    // pirq
+        true, // sepirq
+        16,  // sbits
+        32,  // nbits
+        0u,   // wdog
+        p_report_power  // powmon
       );
 
       // Connect to apb and clock
@@ -967,15 +1018,27 @@ int sc_main(int argc, char** argv) {
     
    
     // * Param Listing **************************
+		paramprinter printer;
     if(paramlist) {
-        gs::cnf::cnf_api *CFG = gs::cnf::GCnf_Api::getApiInstance(NULL);
-        std::cout << "Available System Options:" << std::endl;
-        std::vector<std::string> plist = CFG->getParamList();
-        for(uint32_t i = 0; i < plist.size(); i++) {
-            std::cout << " " << plist[i] << std::endl;
-        }
-        exit(0);
+    	printer.printParams();
+    	exit(0);
     }
+
+    if(configlist){
+      printer.printConfigs();
+    	exit(0);
+    }
+
+    if(paramlistfiltered ){
+      printer.printParams(optionssearchkey);
+    	exit(0);
+    }
+
+    if(configlistfiltered ){
+      printer.printConfigs(configssearchkey);
+    	exit(0);
+    }
+
     // ******************************************
 
     signalkit::signal_out<bool, Irqmp> irqmp_rst;
@@ -987,9 +1050,6 @@ int sc_main(int argc, char** argv) {
     if(p_report_power) {
         powermonitor *pow_mon =  new powermonitor("pow_mon");
     }
-    // ******************************************
-
-    // start simulation
     try {
         cstart = clock();
         sc_core::sc_start();

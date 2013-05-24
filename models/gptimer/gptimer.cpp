@@ -49,6 +49,7 @@
 
 // Constructor: create all members, registers and Counter objects.
 // Store configuration default value in conf_defaults.
+/******
 GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                    int pindex, int paddr, int pmask, int pirq, int sepirq,
                    int sbits, int nbits, int wdog, bool powmon) :
@@ -69,7 +70,78 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
   sta_power("sta_power", 0.0, power), // Static power output
   int_power("int_power", 0.0, power)  // Internal dynamic power output (activation independent)
 
+***/
+GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
+                   int pindex, int paddr, int pmask, int pirq, int sepirq,
+                   int sbits, int nbits, int wdog, bool powmon) :
+  p_conf("conf"),
+  m_ntimers("ntimers", ntimers, p_conf),
+  m_pindex("index", pindex, p_conf),
+  m_paddr("addr", paddr, p_conf),
+  m_pmask("mask", pmask, p_conf),
+  gr_device(name, gs::reg::ALIGNED_ADDRESS, 4 * (1 + ntimers), NULL),
+  APBDevice(pindex, 0x1, 0x11, 0, pirq, APBIO, pmask, false, false, paddr), 
+  bus("bus", r, (paddr & pmask) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false), 
+  irq("IRQ"), wdog("WDOG"), 
+//irq and wdog signals
+//  irq("irq", pirq), wdog("wdog", wdog),
+  m_sepirq("sepirq", sepirq, p_conf),
+  conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)), 
+  lasttime(0, sc_core::SC_NS), lastvalue(0), 
+  g_sbits("sbit", sbits, p_conf),
+  g_nbits("nbits", nbits, p_conf),
+  g_wdog_length("wdog", wdog, p_conf),
+  powermon("powermon", powmon, p_conf),
+  sta_power_norm("power.gptimer.sta_power_norm", 2.46e+6, true), // Normalized static power input
+  int_power_norm("power.gptimer.int_power_norm", 1.093e-8, true), // Normalized internal power input
+  power("power"),
+  sta_power("sta_power", 0.0, power), // Static power output
+  int_power("int_power", 0.0, power)  // Internal dynamic power output (activation independent)
+
  {
+	//set name, type, default, range, hint and description for gs_configs
+	m_paddr.setProperty("name", "APB Base Address"); 
+	m_paddr.setProperty("type", "int");
+	m_paddr.setProperty("default", "0x002");
+	m_paddr.setProperty("range", "0..4095");
+	m_paddr.setProperty("hint", "The 12bit MSB address at the APB bus");
+
+	m_pmask.setProperty("name", "APB Base Mask");
+	m_pmask.setProperty("type", "int");
+	m_pmask.setProperty("default", "0xFFF");
+	m_pmask.setProperty("range", "0..4095");
+	m_pmask.setProperty("hint", "The 12bit APB address mask");
+
+	m_pindex.setProperty("name", "Bus Index");
+	m_pindex.setProperty("type", "int");
+	m_pindex.setProperty("default", "3");
+	m_pindex.setProperty("range", "0..15");
+	m_pindex.setProperty("hint", "The slave index at the APB bus");
+
+	m_sepirq.setProperty("name", "Separated IRQs");
+	m_sepirq.setProperty("type", "bool");
+	m_sepirq.setProperty("default", "true");
+	m_sepirq.setProperty("description", "1 - each timer will drive an individual interrupt line, starting with interrupt irq. \n \
+				         0 - all timers will drive the same interrupt line (irq).");
+
+	m_ntimers.setProperty("name", "Number of Counters");
+	m_ntimers.setProperty("type", "int");
+	m_ntimers.setProperty("default", "7");
+	m_ntimers.setProperty("range", "1..7");
+	m_ntimers.setProperty("hint", "Defines the number of timers in the unit.");
+	
+	g_sbits.setProperty("name", "Scaler Bits");
+	g_sbits.setProperty("type", "int");
+	g_sbits.setProperty("default", "16");
+	g_sbits.setProperty("range", "1..32");
+	g_sbits.setProperty("hint", "Defines the number of bits in the scaler");
+
+	g_nbits.setProperty("name", "Counter Bits");
+	g_nbits.setProperty("type", "int");
+	g_nbits.setProperty("default", "32");
+	g_nbits.setProperty("range", "1..32");
+	g_nbits.setProperty("hint", "Defines the number of bits in the counters");
+
    // Parameter checking
    assert("gsbits has to be between 1 and 32" && sbits > 0 && sbits < 33);
    assert("nbits has to be between 1 and 32" && nbits > 0 && nbits < 33);
