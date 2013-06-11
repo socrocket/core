@@ -31,7 +31,7 @@ public:
 
     }
 
-    easy_init& easy_init::operator()(char* key, char* val)
+    easy_init& easy_init::operator()(std::string key, std::string val)
     {
         m_owner->setProperty(key, val);
         return *this;
