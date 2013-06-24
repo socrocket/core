@@ -187,6 +187,7 @@ int sc_main(int argc, char** argv) {
         json = srcdir / json;
     }
     if(boost::filesystem::exists(boost::filesystem::path(json))) {
+        CULT_LOG_MESSAGE(CULT_INFO, "Open Configuration ");
         v::info << "main" << "Open Configuration " << json << v::endl;
         jsonreader->config(json.c_str());
     } else {
