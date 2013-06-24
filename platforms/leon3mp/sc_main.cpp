@@ -40,7 +40,9 @@
 // Maintainer: Thomas Schuster
 // Reviewed:
 //*********************************************************************
-
+#define CULT_ENABLE
+#define CULT_WITH_SYSTEMC
+#define CULT_WITH_TLM
 
 #include <greencontrol/config.h>
 
@@ -80,6 +82,7 @@
 #include <stdexcept>
 #include "verbose.h"
 #include "powermonitor.h"
+#include "cult.h"
 
 #include <GDBStub.hpp>
 #include <systemc.h>
