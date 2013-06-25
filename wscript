@@ -319,12 +319,12 @@ def configure(ctx):
     if not ctx.options.boost_libs or ctx.options.boost_libs == "":
       ctx.options.boost_libs = os.environ.get("BOOST_LIB",None)
 
-    boostLibs = 'thread regex date_time program_options filesystem unit_test_framework system'
+    boostLibs = 'thread regex date_time program_options filesystem unit_test_framework system serialization'
     boostErrorMessage = 'Unable to find ' + boostLibs + ' boost libraries of at least version 1.35, please install them and/or specify their location with the --boost-includes and --boost-libs configuration options. It can also happen that you have more than one boost version installed in a system-wide location: in this case remove the unnecessary versions.'
     
-    boostLibs = 'thread regex date_time program_options filesystem system'
+    boostLibs = 'thread regex date_time program_options filesystem system serialization'
 
-    ctx.check_boost(lib=boostLibs, static=ctx.options.static_build, mandatory=True, errmsg = boostErrorMessage)
+    ctx.check_boost(lib=boostLibs, static=True, mandatory=True, errmsg = boostErrorMessage)
     if int(ctx.env.BOOST_VERSION.split('_')[1]) < 35:
         ctx.fatal(boostErrorMessage)
     if not ctx.options.static_build:
@@ -418,14 +418,14 @@ def configure(ctx):
                 break
         if not elfHeaderFound:
             ctx.fatal('Unable to find libelf.h and/or gelf.h headers in specified path ' + str(elfIncPath))
-        if ctx.check_cxx(lib='elf', uselib_store='ELF_LIB', mandatory=False, libpath = elfLibPath):
+        if ctx.check_cxx(stlib='elf', uselib_store='ELF_LIB', mandatory=False, libpath = elfLibPath):
             ctx.check(header_name='libelf.h', uselib='ELF_LIB', uselib_store='ELF_LIB', features='cxx cprogram', mandatory=True, includes = elfIncPath)
             ctx.check(header_name='gelf.h', uselib='ELF_LIB', uselib_store='ELF_LIB', features='cxx cprogram', mandatory=True, includes = elfIncPath)
         foundShared = glob.glob(os.path.join(elfLibPath, ctx.env['cxxshlib_PATTERN'] % 'elf'))
         if foundShared:
             ctx.env.append_unique('RPATH', elfLibPath)
     else:
-        if ctx.check_cxx(lib='elf', uselib_store='ELF_LIB', mandatory = True):
+        if ctx.check_cxx(stlib='elf', uselib_store='ELF_LIB', mandatory = True):
             ctx.check(header_name='libelf.h', uselib='ELF_LIB', uselib_store='ELF_LIB', features='cxx cprogram', mandatory=True)
             ctx.check(header_name='gelf.h', uselib='ELF_LIB', uselib_store='ELF_LIB', features='cxx cprogram', mandatory=True)
     if 'elf' in ctx.env['LIB_ELF_LIB']:
@@ -442,7 +442,7 @@ def configure(ctx):
 
     #########################################################
     # Check for the winsock library
-    #########################################################
+    #######################################################c##
     if sys.platform == 'cygwin':
         ctx.check_cxx(lib='ws2_32', uselib_store='WINSOCK', mandatory=True)
 
@@ -473,7 +473,7 @@ def configure(ctx):
     sysclib = ''
     if syscpath:
         sysclib = glob.glob(os.path.join(os.path.abspath(os.path.join(syscpath[0], '..')), 'lib-*'))
-    ctx.check_cxx(lib='systemc', uselib_store='SYSTEMC', mandatory=True, libpath=sysclib, errmsg='not found, use --systemc option')
+    ctx.check_cxx(stlib='systemc', uselib_store='SYSTEMC', mandatory=True, libpath=sysclib, errmsg='not found, use --systemc option')
 
     ######################################################
     # Check if systemc is compiled with quick threads or not
@@ -557,7 +557,7 @@ def configure(ctx):
     if ctx.options.trapdir:
         trapDirLib = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'lib'))))
         trapDirInc = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'include'))))
-        ctx.check_cxx(lib='trap', use='ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True, libpath=trapDirLib, errmsg=trapLibErrmsg)
+        ctx.check_cxx(stlib='trap', use='ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True, libpath=trapDirLib, errmsg=trapLibErrmsg)
         foundShared = glob.glob(os.path.join(trapDirLib, ctx.env['cxxshlib_PATTERN'] % 'trap'))
         if foundShared:
             ctx.env.append_unique('RPATH', ctx.env['LIBPATH_TRAP'])
@@ -581,7 +581,7 @@ def configure(ctx):
             int main(int argc, char * argv[]){return 0;}
 ''', msg='Check for TRAP version', use='TRAP ELF_LIB BOOST SYSTEMC', mandatory=True, includes=trapDirInc, errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required')
     else:
-        ctx.check_cxx(lib='trap', use='ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True, errmsg=trapLibErrmsg)
+        ctx.check_cxx(stlib='trap', use='ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True, errmsg=trapLibErrmsg)
 
 
         if not check_trap_linking(ctx, 'trap', ctx.env['LIBPATH_TRAP'], 'elf_begin') and 'bfd' not in ctx.env['LIB_ELF_LIB']:
@@ -614,7 +614,7 @@ def configure(ctx):
       luadir = "/usr/include/lua5.1"
 
     ctx.check_cxx(
-      lib          = 'lua5.1',
+      stlib          = 'lua5.1',
       uselib_store = 'LUA',
       mandatory    = True,
       libpath      = lualib,
@@ -660,7 +660,7 @@ def configure(ctx):
         os.path.join(out_dir, "..", "contrib", "cult", "src", "sysc"),
         os.path.join(out_dir, "..", "contrib", "cult", "src", "tlm"),
         os.path.join(out_dir, "..", "contrib", "cult", "src")]
-
+    '''
     ctx.check_cxx(
       lib          = 'cult',
       uselib_store = 'CULT',
@@ -677,9 +677,10 @@ def configure(ctx):
       errmsg       = "CULT_SYSC Library not found. Use --cult option or set $CULT.",
       okmsg        = "ok"
     )
+    '''
     ctx.check_cxx(
-      lib          = 'cult_tlm',
-      uselib_store = 'CULT_TLM',
+      stlib          = 'cult_tlm',
+      uselib_store = 'CULT',
       mandatory    = True,
       libpath      = cultlib,
       errmsg       = "CULT_TLM Library not found. Use --cult option or set $CULT.",
@@ -857,7 +858,7 @@ def configure(ctx):
       grreg_inc      = []
 
     ctx.check_cxx(
-      lib          = 'greenreg',
+      stlib          = 'greenreg',
       uselib_store = 'GREENSOCS',
       mandatory    = True,
       libpath      = grreg_inc,
@@ -1003,7 +1004,6 @@ def configure(ctx):
             includes     = sr_incdir,
             uselib       = 'SOCROCKET SYSTEMC TLM AMBA BOOST GREENSOCS',
         ) 
-    
     ##################################################
     # SPARC compiler search
     ##################################################
