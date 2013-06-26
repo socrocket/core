@@ -85,7 +85,7 @@ def configure(ctx):
       ctx.env['SCCOMFLAGS'] = ['-nologo']
       ctx.env['SCLINKFLAGS'] = ['-nologo']
       
-      ctx.find_program('scgenmod', var='SCGENMOD', okmsg="ok")
+      ctx.find_program('scgenmod', var='SCGENMOD', okmsg="ok", mandatory=False)
       ctx.env['SCGENMODFLAGS'] = []
       ctx.env['SCGENMODMAP'] = ['-bool', '-map', "std_logic_vector=sc_uint", '-createtemplate']
       

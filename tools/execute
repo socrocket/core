@@ -5,6 +5,17 @@ if [ $# -lt 3 ] ; then
   exit 1
 fi
 
+toolsdir=$(dirname $0)
+topdir=$(dirname ${toolsdir})
+
+lockfile=${topdir}/.lock-wafbuild
+if [ ! -f ${lockfile} ] ; then
+    echo "Please run './waf configure && ./waf build' bevore you try to execute a platform!"
+    exit 1
+fi
+
+builddir=$(${toolsdir}/get_python_attr ${topdir}/.lock-wafbuild out_dir)
+
 template=$1
 prom=$2
 app=$3
@@ -12,10 +23,10 @@ shift
 shift
 shift
 
-ppath="build/platforms/$template"
+ppath="${builddir}/platforms/$template"
 platform="$ppath/$template.platform"
-prom="build/software/prom/$prom/$prom.prom"
-ram=$(find build/software -name "$app.sparc")
+prom="${builddir}/software/prom/$prom/$prom.prom"
+ram=$(find ${builddir}/software -name "$app.sparc")
 
 echo $platform --option conf.mctrl.prom.elf=$prom --option conf.mctrl.ram.sdram.elf=$ram --option conf.system.osemu=$ram $@
 time $platform --option conf.mctrl.prom.elf=$prom --option conf.mctrl.ram.sdram.elf=$ram --option conf.system.osemu=$ram $@

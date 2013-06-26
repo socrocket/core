@@ -206,6 +206,7 @@ uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &de
   return(trans.get_data_length());
 }
 
+// Returns clock cycle time for e.g. use in AHBSlave parent
 sc_core::sc_time AHBMem::get_clock() {
 
   return clock_cycle;
