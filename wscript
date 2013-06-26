@@ -602,7 +602,7 @@ def configure(ctx):
             int main(int argc, char * argv[]){return 0;}
 ''', msg='Check for TRAP version', use='TRAP ELF_LIB BOOST SYSTEMC', mandatory=1, errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required')
 
-    
+    '''
     ##################################################
     # Check for Lua Library and Headers
     ##################################################
@@ -643,6 +643,8 @@ def configure(ctx):
       uselib       = 'LUA',
       okmsg        = "ok",
     )
+
+    '''
 
     ##################################################
     # Check for SDL Library and Headers

@@ -44,7 +44,7 @@
 
 #include <greencontrol/config.h>
 
-#include <greencontrol/config_api_lua_file_parser.h>
+//#include <greencontrol/config_api_lua_file_parser.h>
 #include "json_parser.h"
 #include "paramprinter.h"
 
@@ -100,12 +100,19 @@ namespace trap {
 };
 
 boost::filesystem::path find_top_path(char *start) {
-    boost::filesystem::path path = boost::filesystem::absolute(boost::filesystem::path(start).parent_path());
-    boost::filesystem::path waf("waf");
-    while(!boost::filesystem::exists(path/waf)&&!path.empty()) {
-        path = path.parent_path();
-    }
-    return path;
+
+  #if (BOOST_VERSION < 104600)
+    boost::filesystem::path path = boost::filesystem::path(start).parent_path();
+  #else
+    boost::filesystem::path path = boost::filesystem::absolute(boost::filesystem::path(start).parent_path());   
+  #endif
+
+  boost::filesystem::path waf("waf");
+  while(!boost::filesystem::exists(path/waf)&&!path.empty()) {
+    path = path.parent_path();
+  }
+  return path;
+
 }
 
 int sc_main(int argc, char** argv) {
@@ -129,7 +136,7 @@ int sc_main(int argc, char** argv) {
       boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
       boost::program_options::notify(vm);
     } catch(boost::program_options::unknown_option o) {
-      std::cout << "Comand line argument '" << o.get_option_name() << "' unknown. Please use -a,[argument] to add it to the software arguments or correct it." << std::endl;
+      //std::cout << "Comand line argument '" << o.get_option_name() << "' unknown. Please use -a,[argument] to add it to the software arguments or correct it." << std::endl;
       exit(1);
     }
 
@@ -185,7 +192,7 @@ int sc_main(int argc, char** argv) {
     }
     if(boost::filesystem::exists(boost::filesystem::path(json))) {
         v::info << "main" << "Open Configuration " << json << v::endl;
-        jsonreader->config(json.c_str());
+        jsonreader->config(json.string().c_str());
     } else {
         v::warn << "main" << "No *.json found. Please put it in the current work directory, application directory or put the path to the file in the JSONCONFIG environment variable" << v::endl;
     }

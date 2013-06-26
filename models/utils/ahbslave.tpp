@@ -68,6 +68,8 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
     //v::debug << this->name() << "Delay before calling exec_func: " << delay << v::endl;
 
     // Call the functional part of the model
+    // ! The functional part may not call wait !
+    // ! Overload this function (nb_transport_fw) if necessary !
     exec_func(trans, delay);
 
     if (trans.get_response_status() != tlm::TLM_OK_RESPONSE) {
@@ -116,10 +118,10 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
   } else if (phase == tlm::END_RESP) {
 
     msclogger::return_backward(this, &ahb, &trans, tlm::TLM_COMPLETED, delay);
-
     v::debug << this->name() << "Release " << &trans << " Ref-Count before calling release " << trans.get_ref_count() << v::endl;
 
     // END_RESP corresponds to the end of the AHB data phase.
+    // ! For this to work master must send END_RESP via forward path !
     trans.release();
 
     return(tlm::TLM_COMPLETED);
@@ -130,6 +132,7 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
   }
+
   return(tlm::TLM_ACCEPTED);
 }
 

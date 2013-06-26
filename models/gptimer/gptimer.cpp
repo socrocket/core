@@ -100,47 +100,14 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
 
  {
 	//set name, type, default, range, hint and description for gs_configs
-	m_paddr.setProperty("name", "APB Base Address"); 
-	m_paddr.setProperty("type", "int");
-	m_paddr.setProperty("default", "0x002");
-	m_paddr.setProperty("range", "0..4095");
-	m_paddr.setProperty("hint", "The 12bit MSB address at the APB bus");
-
-	m_pmask.setProperty("name", "APB Base Mask");
-	m_pmask.setProperty("type", "int");
-	m_pmask.setProperty("default", "0xFFF");
-	m_pmask.setProperty("range", "0..4095");
-	m_pmask.setProperty("hint", "The 12bit APB address mask");
-
-	m_pindex.setProperty("name", "Bus Index");
-	m_pindex.setProperty("type", "int");
-	m_pindex.setProperty("default", "3");
-	m_pindex.setProperty("range", "0..15");
-	m_pindex.setProperty("hint", "The slave index at the APB bus");
-
-	m_sepirq.setProperty("name", "Separated IRQs");
-	m_sepirq.setProperty("type", "bool");
-	m_sepirq.setProperty("default", "true");
-	m_sepirq.setProperty("description", "1 - each timer will drive an individual interrupt line, starting with interrupt irq. \n \
+	m_paddr.addProperties()("name", "APB Base Address")("type", m_paddr.getTypeString())("default", "0x0F0")("range", "0..4095")("hint", "The 12bit MSB address at the APB bus");
+	m_pmask.addProperties()("name", "APB Base Mask")("type", m_pmask.getTypeString())("default", "0xFFF")("range", "0..4095")("hint", "The 12bit APB address mask");
+	m_pindex.addProperties()("name", "Bus Index")("type", m_pindex.getTypeString())("default", "3")("range", "0..15")("hint", "The slave index at the APB bus");
+	m_sepirq.addProperties()("name", "Separated IRQs")("type", m_sepirq.getTypeString())("default", "true")("description", "1 - each timer will drive an individual interrupt line, starting with interrupt irq. \n \
 				         0 - all timers will drive the same interrupt line (irq).");
-
-	m_ntimers.setProperty("name", "Number of Counters");
-	m_ntimers.setProperty("type", "int");
-	m_ntimers.setProperty("default", "7");
-	m_ntimers.setProperty("range", "1..7");
-	m_ntimers.setProperty("hint", "Defines the number of timers in the unit.");
-	
-	g_sbits.setProperty("name", "Scaler Bits");
-	g_sbits.setProperty("type", "int");
-	g_sbits.setProperty("default", "16");
-	g_sbits.setProperty("range", "1..32");
-	g_sbits.setProperty("hint", "Defines the number of bits in the scaler");
-
-	g_nbits.setProperty("name", "Counter Bits");
-	g_nbits.setProperty("type", "int");
-	g_nbits.setProperty("default", "32");
-	g_nbits.setProperty("range", "1..32");
-	g_nbits.setProperty("hint", "Defines the number of bits in the counters");
+	m_ntimers.addProperties()("name", "Number of Counters")("type", m_ntimers.getTypeString())("default", "7")("range", "1..7")("hint", "Defines the number of timers in the unit.");
+		g_sbits.addProperties()("name", "Scaler Bits")("type", g_sbits.getTypeString())("default", "16")("range", "1..32")("hint", "Defines the number of bits in the scaler");
+	g_nbits.addProperties()("name", "Counter Bits")("type", g_nbits.getTypeString())("default", "32")("range", "1..32")("hint", "Defines the number of bits in the counters");
 
    // Parameter checking
    assert("gsbits has to be between 1 and 32" && sbits > 0 && sbits < 33);

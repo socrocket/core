@@ -96,24 +96,23 @@ class AHBSlave : public BASE, public AHBDevice {
   /// Thread for interfacing functional part of the model in AT mode
   void responseThread();
 
-        /// Collect common transport statistics.
-        virtual void transport_statistics(tlm::tlm_generic_payload &gp) throw();
+  /// Collect common transport statistics.
+  virtual void transport_statistics(tlm::tlm_generic_payload &gp) throw();
 
-        /// Print common transport statistics.
-        virtual void print_transport_statistics(const char *name) const throw();
-
- private: 
-  /// Ready to accept new transaction (send END_REQ)
-  sc_event unlock_event;
+  /// Print common transport statistics.
+  virtual void print_transport_statistics(const char *name) const throw();
 
   /// Event queues for AT mode
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_RequestPEQ;
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_ResponsePEQ;
 
+ private: 
+  /// Ready to accept new transaction (send END_REQ)
+  sc_event unlock_event;
+
   bool busy;
   //sc_core::sc_time clockcycle;
-  //
-  
+ 
  protected:
   /// GreenControl API container
   gs::cnf::cnf_api *m_api;
