@@ -3,7 +3,7 @@
 //                 TU-Braunschweig
 // All rights reserved
 // Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
+// without the express, prior written consent of the authors is
 // strictly prohibited.
 //
 // University of Technology Braunschweig
@@ -19,7 +19,7 @@
 // The program is provided "as is", there is no warranty that
 // the program is correct or suitable for any purpose,
 // neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
+// contained do not necessarily reflect the policy of the
 // European Space Agency or of TU-Braunschweig.
 //*********************************************************************
 // Title:      sc_main.cpp
@@ -90,6 +90,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/errors.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "leon3.funclt.h"
 #include "leon3.funcat.h"
@@ -112,7 +113,7 @@ boost::filesystem::path find_top_path(char *start) {
 }
 
 int sc_main(int argc, char** argv) {
-    boost::program_options::options_description desc("Options");      
+    boost::program_options::options_description desc("Options");
     desc.add_options()
       ("help", "Shows this message.")
       ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json.")
@@ -174,6 +175,7 @@ int sc_main(int argc, char** argv) {
         jsonlua = boost::filesystem::path(vm["luaconfig"].as<std::string>());
         if(!boost::filesystem::exists(jsonlua)) {
             v::error << "main" << "The Lua configuration provided by command line does not exist: " << jsonlua << v::endl;
+            CULT_LOG_MESSAGE_SC("main", CULT_ERROR, "The Lua configuration provided by command line does not exist: ");
             exit(1);
         }
     } else*/
@@ -187,11 +189,12 @@ int sc_main(int argc, char** argv) {
         json = srcdir / json;
     }
     if(boost::filesystem::exists(boost::filesystem::path(json))) {
-        CULT_LOG_MESSAGE(CULT_INFO, "Open Configuration ");
         v::info << "main" << "Open Configuration " << json << v::endl;
+        CULT_LOG_MESSAGE_SC("main", CULT_INFO, "Open Configuration " + boost::lexical_cast<std::string>(json));
         jsonreader->config(json.c_str());
     } else {
         v::warn << "main" << "No *.json found. Please put it in the current work directory, application directory or put the path to the file in the JSONCONFIG environment variable" << v::endl;
+        CULT_LOG_MESSAGE_SC("main", CULT_WARNING, "No *.json found. Please put it in the current work directory, application directory or put the path to the file in the JSONCONFIG environment variable");
     }
 
     gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
@@ -205,10 +208,12 @@ int sc_main(int argc, char** argv) {
            // of no space
            if(iter->find_first_of("=") == std::string::npos) {
                v::warn << "main" << "Option value in command line option has no '='. Type '--help' for help. " << *iter;
+               CULT_LOG_MESSAGE_SC("main", CULT_WARNING, "Option value in command line option has no '='. Type '--help' for help. " + *iter);
            }
            // if not space before equal sign
            if(iter->find_first_of(" ") < iter->find_first_of("=")) {
                v::warn << "main" << "Option value in command line option may not contain a space before '='. " << *iter;
+               CULT_LOG_MESSAGE_SC("main", CULT_WARNING, "Option value in command line option may not contain a space before '='. " + *iter);
            }
 
            // Parse parameter name
@@ -217,7 +222,7 @@ int sc_main(int argc, char** argv) {
            parvalue = iter->substr(iter->find_first_of("=")+1);
 
            // Set parameter
-           mApi->setInitValue(parname, parvalue); 
+           mApi->setInitValue(parname, parvalue);
         }
     }
 
@@ -225,15 +230,15 @@ int sc_main(int argc, char** argv) {
     if(vm.count("listoptions")) {
        paramlist = true;
     }
-    
+
     if(vm.count("listgsconfig")) {
        configlist = true;
     }
-    
+
     if(vm.count("saveoptions")) {
        saveoptions = true;
     }
-    
+
 		std::string optionssearchkey = "";
 		if(vm.count("listoptionsfiltered")) {
         optionssearchkey = vm["listoptionsfiltered"].as<std::string>();
@@ -272,7 +277,7 @@ int sc_main(int argc, char** argv) {
     } else {
         ambaLayer = amba::amba_LT;
     }
-    
+
     // *** CREATE MODULES
 
     // AHBCtrl
@@ -320,10 +325,10 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_apbctrl_index("hindex", 2u, p_apbctrl);
     gs::gs_param<bool> p_apbctrl_check("mcheck", true, p_apbctrl);
 
-    APBCtrl apbctrl("apbctrl", 
+    APBCtrl apbctrl("apbctrl",
         p_apbctrl_haddr,    // The 12 bit MSB address of the AHB area.
         p_apbctrl_hmask,    // The 12 bit AHB area address mask
-        p_apbctrl_check,    // Check for intersections in the memory map 
+        p_apbctrl_check,    // Check for intersections in the memory map
         p_apbctrl_index,    // AHB bus index
         p_report_power,     // Power Monitoring on/off
 		    ambaLayer           // TLM abstraction layer
@@ -398,31 +403,31 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_mctrl_sepbus("sepbus", false, p_mctrl);
     gs::gs_param<unsigned int> p_mctrl_sdbits("sdbits", 32, p_mctrl);
     gs::gs_param<unsigned int> p_mctrl_mobile("mobile", 0u, p_mctrl);
-    Mctrl mctrl( "mctrl", 
-        p_mctrl_prom_asel, 
-        p_mctrl_ram_asel, 
-        p_mctrl_prom_addr, 
-        p_mctrl_prom_mask, 
+    Mctrl mctrl( "mctrl",
+        p_mctrl_prom_asel,
+        p_mctrl_ram_asel,
+        p_mctrl_prom_addr,
+        p_mctrl_prom_mask,
         p_mctrl_io_addr,
-        p_mctrl_io_mask, 
-        p_mctrl_ram_addr, 
-        p_mctrl_ram_mask, 
-        p_mctrl_apb_addr, 
-        p_mctrl_apb_mask, 
-        p_mctrl_ram_wprot, 
+        p_mctrl_io_mask,
+        p_mctrl_ram_addr,
+        p_mctrl_ram_mask,
+        p_mctrl_apb_addr,
+        p_mctrl_apb_mask,
+        p_mctrl_ram_wprot,
         p_mctrl_ram_sram_banks,
         p_mctrl_ram8,
-        p_mctrl_ram16, 
-        p_mctrl_sepbus, 
-        p_mctrl_sdbits, 
-        p_mctrl_mobile, 
-        p_mctrl_sden, 
-        p_mctrl_index, 
+        p_mctrl_ram16,
+        p_mctrl_sepbus,
+        p_mctrl_sdbits,
+        p_mctrl_mobile,
+        p_mctrl_sden,
+        p_mctrl_index,
         p_mctrl_apb_index,
         p_report_power,
         ambaLayer
     );
-    
+
     // Connecting AHB Slave
     ahbctrl.ahbOUT(mctrl.ahb);
     // Connecting APB Slave
@@ -434,11 +439,11 @@ int sc_main(int argc, char** argv) {
     // ===============
 
     // ROM instantiation
-    MapMemory rom( "rom", 
-    //ArrayMemory rom( "rom", 
-                     MEMDevice::ROM, 
-                     p_mctrl_prom_banks, 
-                     p_mctrl_prom_bsize * 1024 * 1024, 
+    MapMemory rom( "rom",
+    //ArrayMemory rom( "rom",
+                     MEMDevice::ROM,
+                     p_mctrl_prom_banks,
+                     p_mctrl_prom_bsize * 1024 * 1024,
                      p_mctrl_prom_width,
                      0,
                      p_report_power
@@ -454,59 +459,63 @@ int sc_main(int argc, char** argv) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_prom_elf))) {
         uint8_t *execData;
         v::info << "rom" << "Loading Prom with " << p_mctrl_prom_elf << v::endl;
-        ExecLoader prom_loader(p_mctrl_prom_elf); 
+        CULT_LOG_MESSAGE_SC("rom", CULT_INFO, "Loading Prom with " + p_mctrl_prom_elf);
+        ExecLoader prom_loader(p_mctrl_prom_elf);
         execData = prom_loader.getProgData();
-    
+
         for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
           rom.write(prom_loader.getDataStart() + i - ((((unsigned int)p_mctrl_prom_addr)&((unsigned int)p_mctrl_prom_mask))<<20), execData[i]);
         }
       } else {
         v::warn << "rom" << "File " << p_mctrl_prom_elf << " does not exist!" << v::endl;
+        CULT_LOG_MESSAGE_SC("rom", CULT_WARNING, "File " + p_mctrl_prom_elf + " does not exist!");
         exit(1);
       }
     }
 
     // IO memory instantiation
-    MapMemory io( "io", 
-    //ArrayMemory io( "io", 
-                    MEMDevice::IO, 
-                    p_mctrl_prom_banks, 
-                    p_mctrl_prom_bsize * 1024 * 1024, 
+    MapMemory io( "io",
+    //ArrayMemory io( "io",
+                    MEMDevice::IO,
+                    p_mctrl_prom_banks,
+                    p_mctrl_prom_bsize * 1024 * 1024,
                     p_mctrl_prom_width,
                     0,
                     p_report_power
 
     );
-    
+
     // Connect to memory controller and clock
     mctrl.mem(io.bus);
     io.set_clk(p_system_clock, SC_NS);
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);
-    
+
     if(!((std::string)p_mctrl_io_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_io_elf))) {
         uint8_t *execData;
         v::info << "io" << "Loading IO with " << p_mctrl_io_elf << v::endl;
-        ExecLoader loader(p_mctrl_io_elf); 
+        CULT_LOG_MESSAGE_SC("io", CULT_INFO, "Loading IO with " + p_mctrl_io_elf);
+        ExecLoader loader(p_mctrl_io_elf);
         execData = loader.getProgData();
-    
+
         for(unsigned int i = 0; i < loader.getProgDim(); i++) {
           io.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_io_addr)&((unsigned int)p_mctrl_io_mask))<<20), execData[i]);
         }
       } else {
         v::warn << "io" << "File " << p_mctrl_io_elf << " does not exist!" << v::endl;
+        CULT_LOG_MESSAGE_SC("io", CULT_WARNING, "File " + p_mctrl_io_elf + " does not exist!");
         exit(1);
       }
     }
 
     // SRAM instantiation
-    MapMemory sram( "sram", 
-    //ArrayMemory sram( "sram", 
-                      MEMDevice::SRAM, 
-                      p_mctrl_ram_sram_banks, 
-                      p_mctrl_ram_sram_bsize * 1024 * 1024, 
+    MapMemory sram( "sram",
+    //ArrayMemory sram( "sram",
+                      MEMDevice::SRAM,
+                      p_mctrl_ram_sram_banks,
+                      p_mctrl_ram_sram_bsize * 1024 * 1024,
                       p_mctrl_ram_sram_width,
                       0,
                       p_report_power
@@ -519,29 +528,31 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
-    
+
     if(!((std::string)p_mctrl_ram_sram_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sram_elf))) {
         uint8_t *execData;
         v::info << "sram" << "Loading SRam with " << p_mctrl_ram_sram_elf << v::endl;
-        ExecLoader loader(p_mctrl_ram_sram_elf); 
+        CULT_LOG_MESSAGE_SC("sram", CULT_INFO, "Loading SRam with " + p_mctrl_ram_sram_elf);
+        ExecLoader loader(p_mctrl_ram_sram_elf);
         execData = loader.getProgData();
-    
+
         for(unsigned int i = 0; i < loader.getProgDim(); i++) {
           sram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
         }
       } else {
         v::warn << "sram" << "File " << p_mctrl_ram_sram_elf << " does not exist!" << v::endl;
+        CULT_LOG_MESSAGE_SC("sram", CULT_WARNING, "File " + p_mctrl_ram_sram_elf + " does not exist!");
         exit(1);
       }
     }
 
     // SDRAM instantiation
-    ArrayMemory sdram( "sdram", 
-                       MEMDevice::SDRAM, 
-                       p_mctrl_ram_sdram_banks, 
-                       p_mctrl_ram_sdram_bsize * 1024 * 1024, 
-                       p_mctrl_ram_sdram_width, 
+    ArrayMemory sdram( "sdram",
+                       MEMDevice::SDRAM,
+                       p_mctrl_ram_sdram_banks,
+                       p_mctrl_ram_sdram_bsize * 1024 * 1024,
+                       p_mctrl_ram_sdram_width,
                        p_mctrl_ram_sdram_cols,
                        p_report_power
     );
@@ -552,24 +563,26 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sdram_elf("elf", "", p_mctrl_ram_sdram);
-    
+
     if(!((std::string)p_mctrl_ram_sdram_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sdram_elf))) {
         uint8_t *execData;
         v::info << "sdram" << "Loading SDRam with " << p_mctrl_ram_sdram_elf << v::endl;
-        ExecLoader loader(p_mctrl_ram_sdram_elf); 
+        CULT_LOG_MESSAGE_SC("sdram", CULT_INFO, "Loading SDRam with " + p_mctrl_ram_sdram_elf);
+        ExecLoader loader(p_mctrl_ram_sdram_elf);
         execData = loader.getProgData();
-    
+
         for(unsigned int i = 0; i < loader.getProgDim(); i++) {
           sdram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
         }
       } else {
         v::warn << "sdram" << "File " << p_mctrl_ram_sdram_elf << " does not exist!" << v::endl;
+        CULT_LOG_MESSAGE_SC("sdram", CULT_WARNING, "File " + p_mctrl_ram_sdram_elf + " does not exist!");
         exit(1);
       }
     }
 
-    
+
     //leon3.ENTRY_POINT   = 0;
     //leon3.PROGRAM_LIMIT = 0;
     //leon3.PROGRAM_START = 0;
@@ -597,7 +610,7 @@ int sc_main(int argc, char** argv) {
                                   p_report_power
 
       );
-      
+
       // Connect to ahbctrl and clock
       ahbctrl.ahbOUT(ahbmem->ahb);
       ahbmem->set_clk(p_system_clock, SC_NS);
@@ -607,20 +620,22 @@ int sc_main(int argc, char** argv) {
         if(boost::filesystem::exists(boost::filesystem::path((std::string)p_ahbmem_elf))) {
           uint8_t *execData;
           v::info << "ahbmem" << "Loading AHBMem with " << p_ahbmem_elf << v::endl;
-          ExecLoader prom_loader(p_ahbmem_elf); 
+          CULT_LOG_MESSAGE_SC("ahbmem", CULT_INFO, "Loading AHBMem with " + p_ahbmem_elf);
+          ExecLoader prom_loader(p_ahbmem_elf);
           execData = prom_loader.getProgData();
-    
+
           for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
             ahbmem->writeByteDBG(prom_loader.getDataStart() + i - ((((unsigned int)p_ahbmem_addr)&((unsigned int)p_ahbmem_mask))<<20), execData[i]);
           }
         } else {
           v::warn << "ahbmem" << "File " << p_ahbmem_elf << " does not exist!" << v::endl;
-        exit(1);
+          CULT_LOG_MESSAGE_SC("ahbmem", CULT_WARNING, "File " + p_ahbmem_elf + " does not exist!");
+          exit(1);
         }
       }
     }
 
-    
+
     // AHBMaster - ahbin (input_device)
     // ================================
     gs::gs_param_array p_ahbin("ahbin", p_conf);
@@ -730,19 +745,20 @@ int sc_main(int argc, char** argv) {
               p_report_power,            // Power Monitor,
               ambaLayer                  // TLM abstraction layer
       );
-      
+
       // Connecting AHB Master
       mmu_cache_inst->ahb(ahbctrl.ahbIN);
-      
+
       // Set clock
       mmu_cache_inst->set_clk(p_system_clock, SC_NS);
       connect(mmu_cache_inst->snoop, ahbctrl.snoop);
-      
+
       // For each Abstraction is another model needed
       if(p_system_at) {
         // LEON3 AT Processor
         // ==================
         v::info << "main" << "Instantiating AT Processor" << i << v::endl;
+        CULT_LOG_MESSAGE_SC("main", CULT_INFO, "Instantiating AT Processor" + i);
         leon3_funcat_trap::Processor_leon3_funcat *leon3 = new leon3_funcat_trap::Processor_leon3_funcat(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS), p_report_power);
         leon3->ENTRY_POINT   = 0x0;
         leon3->MPROC_ID      = (p_mmu_cache_index + i) << 28;
@@ -767,7 +783,7 @@ int sc_main(int argc, char** argv) {
         if(p_gdb_en) {
           GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3->abiIf));
           leon3->toolManager.addTool(*gdbStub);
-          gdbStub->initialize(p_gdb_port + i); 
+          gdbStub->initialize(p_gdb_port + i);
           //leon3->instrMem.setDebugger(gdbStub);
           //leon3->dataMem.setDebugger(gdbStub);
         }
@@ -777,8 +793,11 @@ int sc_main(int argc, char** argv) {
         // set_brk, open, read, ...
         if(!((std::string)p_system_osemu).empty()) {
           v::warn << "OSEmu" << "content " << p_system_osemu << v::endl;
+          CULT_LOG_MESSAGE_SC("OSEmu", CULT_WARNING, "content " + p_system_osemu);
+
           if(boost::filesystem::exists(boost::filesystem::path((std::string)p_system_osemu))) {
             v::warn << "OSEmu" << "Enabled" << v::endl;
+            CULT_LOG_MESSAGE_SC("OSEmu", CULT_WARNING, "Enabled");
             OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
             osEmu->initSysCalls(p_system_osemu);
             std::vector<std::string> options;
@@ -793,6 +812,7 @@ int sc_main(int argc, char** argv) {
             leon3->toolManager.addTool(*osEmu);
           } else {
             v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;
+            CULT_LOG_MESSAGE_SC("ahbmem", CULT_WARNING, "File " + p_system_osemu + " does not exist!");
             exit(1);
           }
         }
@@ -800,6 +820,7 @@ int sc_main(int argc, char** argv) {
         // LEON3 LT Processor
         // ==================
         v::info << "main" << "Instantiating LT Processor" << i << v::endl;
+        CULT_LOG_MESSAGE_SC("main", CULT_INFO, "Instantiating LT Processor" + i);
         leon3_funclt_trap::Processor_leon3_funclt *leon3 = new leon3_funclt_trap::Processor_leon3_funclt(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS), p_report_power);
         leon3->ENTRY_POINT   = 0x0;
         leon3->MPROC_ID      = (p_mmu_cache_index + i) << 28;
@@ -824,7 +845,7 @@ int sc_main(int argc, char** argv) {
         if(p_gdb_en) {
           GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3->abiIf));
           leon3->toolManager.addTool(*gdbStub);
-          gdbStub->initialize(p_gdb_port + i); 
+          gdbStub->initialize(p_gdb_port + i);
           //leon3->instrMem.setDebugger(gdbStub);
           //leon3->dataMem.setDebugger(gdbStub);
         }
@@ -834,8 +855,10 @@ int sc_main(int argc, char** argv) {
         // set_brk, open, read, ...
         if(!((std::string)p_system_osemu).empty()) {
           v::warn << "OSEmu" << "content " << p_system_osemu << v::endl;
+          CULT_LOG_MESSAGE_SC("OSEmu", CULT_WARNING, "content " + p_system_osemu);
           if(boost::filesystem::exists(boost::filesystem::path((std::string)p_system_osemu))) {
             v::warn << "OSEmu" << "Enabled" << v::endl;
+            CULT_LOG_MESSAGE_SC("OSEmu", CULT_WARNING, "Enabled");
             OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
             osEmu->initSysCalls(p_system_osemu);
             std::vector<std::string> options;
@@ -850,6 +873,7 @@ int sc_main(int argc, char** argv) {
             leon3->toolManager.addTool(*osEmu);
           } else {
             v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;
+            CULT_LOG_MESSAGE_SC("main", CULT_WARNING, "File " + p_system_osemu + " not found!");
             exit(1);
           }
         }
@@ -913,7 +937,7 @@ int sc_main(int argc, char** argv) {
 
       // Connect to apb and clock
       apbctrl.apb(gptimer->bus);
-      gptimer->set_clk(p_system_clock,SC_NS);      
+      gptimer->set_clk(p_system_clock,SC_NS);
 
       // Connecting Interrupts
       for(int i=0; i < 8; i++) {
@@ -965,7 +989,7 @@ int sc_main(int argc, char** argv) {
 
       i++;
     }
-    
+
     // AHBSlave - AHBProf
     // ==================
     gs::gs_param_array p_ahbprof("ahbprof", p_conf);
@@ -985,7 +1009,7 @@ int sc_main(int argc, char** argv) {
       ahbctrl.ahbOUT(ahbprof->ahb);
       ahbprof->set_clk(p_system_clock,SC_NS);
     }
- 
+
     // CREATE AHB2Socwire bridge
     // =========================
     gs::gs_param_array p_socwire("socwire", p_conf);
@@ -1006,21 +1030,21 @@ int sc_main(int argc, char** argv) {
         p_socwire_ahb_index, // hindex
         ambaLayer            // abstraction
       );
-    
+
       // Connecting AHB Master
       ahb2socwire->ahb(ahbctrl.ahbIN);
-    
+
       // Connecting APB Slave
       apbctrl.apb(ahb2socwire->apb);
-    
+
       // Connecting Interrupts
       connect(irqmp.irq_in, ahb2socwire->irq, p_socwire_apb_irq);
-    
+
       // Connect socwire ports as loopback
       ahb2socwire->socwire.master_socket(ahb2socwire->socwire.slave_socket);
     }
-    
-   
+
+
     // * Param Listing **************************
 		paramprinter printer;
     if(paramlist) {
@@ -1060,14 +1084,18 @@ int sc_main(int argc, char** argv) {
         cend = clock();
     } catch(std::runtime_error &error) {
         v::error << "main" << "Execution is stoped caused by a runtime_error. Maybe you forgot to select an executable?" << v::endl;
+	CULT_LOG_MESSAGE_SC("main", CULT_ERROR, "Execution is stoped caused by a runtime_error. Maybe you forgot to select an executable?");
         v::error << "main" << error.what();
+	CULT_LOG_MESSAGE_SC("main", CULT_ERROR, error.what());
     }
 
     if(p_report_timing) {
         v::info << "Summary" << "Start: " << dec << cstart << v::endl;
+	CULT_LOG_MESSAGE_SC("Summary", CULT_INFO, "Start: " + boost::lexical_cast<std::string>(cstart));
         v::info << "Summary" << "End:   " << dec << cend << v::endl;
+	CULT_LOG_MESSAGE_SC("Summary", CULT_INFO, "End:   " + boost::lexical_cast<std::string>(cend));
         v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
+	CULT_LOG_MESSAGE_SC("Summary", CULT_INFO, "Delta: " + boost::lexical_cast<std::string>((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) + "ms");
     }
     return trap::exitValue;
-
 }
