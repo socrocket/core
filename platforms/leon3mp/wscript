@@ -52,7 +52,7 @@ def build(bld):
     else:
         use       = 'SOCROCKET'
 
-    use  += ' leon3.funclt leon3.funcat TRAP BOOST ELF_LIB LUA SYSTEMC AMBA TLM GREENSOCS'
+    use  += ' leon3.funclt leon3.funcat TRAP BOOST ELF_LIB SYSTEMC AMBA TLM GREENSOCS'
       
     bld(
         target       = 'leon3mp.platform',
