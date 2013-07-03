@@ -58,7 +58,7 @@ def build(bld):
 			'paramprinter.cpp',
 			'gs_config/gs_config.cpp'],
     export_includes = '.',
-    uselib          = 'GREENSOCS SYSTEMC TLM',
+    uselib          = 'GREENSOCS SYSTEMC TLM BOOST',
     install_path    = '${PREFIX}/lib',
   )
 

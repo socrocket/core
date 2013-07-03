@@ -45,7 +45,13 @@
 #include <iomanip>
 #include <cstdio>
 #include <cstring>
+#include <string>
 #include <systemc.h>
+#include <boost/lexical_cast.hpp>
+
+#define CULT_ENABLE
+#define CULT_WITH_SYSTEMC
+#define CULT_WITH_TLM
 
 /// @addtogroup utils
 /// @{
@@ -94,7 +100,7 @@ class Number {
         char fill;
         int width;
         bool hex;
-        
+
         friend ostream &operator <<(ostream &os, const Number &n);
 };
 
@@ -153,7 +159,10 @@ class msgstream {
         msgstream(std::streambuf *sb) :
             m_stream(sb) {
         }
-        
+
+        std::string module;
+        std::string message;
+
         template<class T>
         inline msgstream& operator<<(const T &in) {
             if (level < VERBOSITY) {
@@ -163,6 +172,11 @@ class msgstream {
         }
 
         inline msgstream& operator<<(std::ostream& (*in)(std::ostream&)) {
+            if ( in == v::endl ) {
+                message = boost::lexical_cast<std::string>(m_stream);
+                std::cout << " " << module << " " << message << std::endl;
+//                CULT_LOG_MESSAGE_SC(module, cultloglevel, message);
+            }
             if (level < VERBOSITY) {
                 m_stream << in;
             }
@@ -184,6 +198,7 @@ class logstream {
 
         template<class T>
         inline msgstream<level>& operator<<(const T &in) {
+            m_stream.module = in;
             if (level < VERBOSITY) {
                 m_stream << "@" << sc_core::sc_time_stamp().to_string().c_str()
                         << " /" << std::dec
