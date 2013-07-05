@@ -1,4 +1,4 @@
-//*********************************************************************
+// *********************************************************************
 // Copyright 2010, Institute of Computer and Network Engineering,
 //                 TU-Braunschweig
 // All rights reserved
@@ -21,7 +21,7 @@
 // neither implicit nor explicit. The program and the information in it
 // contained do not necessarily reflect the policy of the
 // European Space Agency or of TU-Braunschweig.
-//*********************************************************************
+// *********************************************************************
 // Title:      sc_main.cpp
 //
 // ScssId:
@@ -39,11 +39,7 @@
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Thomas Schuster
 // Reviewed:
-//*********************************************************************
-#define CULT_ENABLE
-#define CULT_WITH_SYSTEMC
-#define CULT_WITH_TLM
-
+// *********************************************************************
 #include <greencontrol/config.h>
 
 #include <greencontrol/config_api_lua_file_parser.h>
@@ -82,7 +78,6 @@
 #include <stdexcept>
 #include "verbose.h"
 #include "powermonitor.h"
-#include "cult.h"
 
 #include <GDBStub.hpp>
 #include <systemc.h>
@@ -90,7 +85,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/errors.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include "leon3.funclt.h"
 #include "leon3.funcat.h"
@@ -175,7 +169,6 @@ int sc_main(int argc, char** argv) {
         jsonlua = boost::filesystem::path(vm["luaconfig"].as<std::string>());
         if(!boost::filesystem::exists(jsonlua)) {
             v::error << "main" << "The Lua configuration provided by command line does not exist: " << jsonlua << v::endl;
-            CULT_LOG_MESSAGE_SC("main", CULT_ERROR, "The Lua configuration provided by command line does not exist: ");
             exit(1);
         }
     } else*/
@@ -190,11 +183,9 @@ int sc_main(int argc, char** argv) {
     }
     if(boost::filesystem::exists(boost::filesystem::path(json))) {
         v::info << "main" << "Open Configuration " << json << v::endl;
-        CULT_LOG_MESSAGE_SC("main", CULT_INFO, "Open Configuration " + boost::lexical_cast<std::string>(json));
         jsonreader->config(json.c_str());
     } else {
         v::warn << "main" << "No *.json found. Please put it in the current work directory, application directory or put the path to the file in the JSONCONFIG environment variable" << v::endl;
-        CULT_LOG_MESSAGE_SC("main", CULT_WARNING, "No *.json found. Please put it in the current work directory, application directory or put the path to the file in the JSONCONFIG environment variable");
     }
 
     gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
@@ -208,12 +199,10 @@ int sc_main(int argc, char** argv) {
            // of no space
            if(iter->find_first_of("=") == std::string::npos) {
                v::warn << "main" << "Option value in command line option has no '='. Type '--help' for help. " << *iter;
-               CULT_LOG_MESSAGE_SC("main", CULT_WARNING, "Option value in command line option has no '='. Type '--help' for help. " + *iter);
            }
            // if not space before equal sign
            if(iter->find_first_of(" ") < iter->find_first_of("=")) {
                v::warn << "main" << "Option value in command line option may not contain a space before '='. " << *iter;
-               CULT_LOG_MESSAGE_SC("main", CULT_WARNING, "Option value in command line option may not contain a space before '='. " + *iter);
            }
 
            // Parse parameter name
@@ -459,7 +448,6 @@ int sc_main(int argc, char** argv) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_prom_elf))) {
         uint8_t *execData;
         v::info << "rom" << "Loading Prom with " << p_mctrl_prom_elf << v::endl;
-        CULT_LOG_MESSAGE_SC("rom", CULT_INFO, "Loading Prom with " + p_mctrl_prom_elf);
         ExecLoader prom_loader(p_mctrl_prom_elf);
         execData = prom_loader.getProgData();
 
@@ -468,7 +456,6 @@ int sc_main(int argc, char** argv) {
         }
       } else {
         v::warn << "rom" << "File " << p_mctrl_prom_elf << " does not exist!" << v::endl;
-        CULT_LOG_MESSAGE_SC("rom", CULT_WARNING, "File " + p_mctrl_prom_elf + " does not exist!");
         exit(1);
       }
     }
@@ -496,7 +483,6 @@ int sc_main(int argc, char** argv) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_io_elf))) {
         uint8_t *execData;
         v::info << "io" << "Loading IO with " << p_mctrl_io_elf << v::endl;
-        CULT_LOG_MESSAGE_SC("io", CULT_INFO, "Loading IO with " + p_mctrl_io_elf);
         ExecLoader loader(p_mctrl_io_elf);
         execData = loader.getProgData();
 
@@ -505,7 +491,6 @@ int sc_main(int argc, char** argv) {
         }
       } else {
         v::warn << "io" << "File " << p_mctrl_io_elf << " does not exist!" << v::endl;
-        CULT_LOG_MESSAGE_SC("io", CULT_WARNING, "File " + p_mctrl_io_elf + " does not exist!");
         exit(1);
       }
     }
@@ -533,7 +518,6 @@ int sc_main(int argc, char** argv) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sram_elf))) {
         uint8_t *execData;
         v::info << "sram" << "Loading SRam with " << p_mctrl_ram_sram_elf << v::endl;
-        CULT_LOG_MESSAGE_SC("sram", CULT_INFO, "Loading SRam with " + p_mctrl_ram_sram_elf);
         ExecLoader loader(p_mctrl_ram_sram_elf);
         execData = loader.getProgData();
 
@@ -542,7 +526,6 @@ int sc_main(int argc, char** argv) {
         }
       } else {
         v::warn << "sram" << "File " << p_mctrl_ram_sram_elf << " does not exist!" << v::endl;
-        CULT_LOG_MESSAGE_SC("sram", CULT_WARNING, "File " + p_mctrl_ram_sram_elf + " does not exist!");
         exit(1);
       }
     }
@@ -568,7 +551,6 @@ int sc_main(int argc, char** argv) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sdram_elf))) {
         uint8_t *execData;
         v::info << "sdram" << "Loading SDRam with " << p_mctrl_ram_sdram_elf << v::endl;
-        CULT_LOG_MESSAGE_SC("sdram", CULT_INFO, "Loading SDRam with " + p_mctrl_ram_sdram_elf);
         ExecLoader loader(p_mctrl_ram_sdram_elf);
         execData = loader.getProgData();
 
@@ -577,7 +559,6 @@ int sc_main(int argc, char** argv) {
         }
       } else {
         v::warn << "sdram" << "File " << p_mctrl_ram_sdram_elf << " does not exist!" << v::endl;
-        CULT_LOG_MESSAGE_SC("sdram", CULT_WARNING, "File " + p_mctrl_ram_sdram_elf + " does not exist!");
         exit(1);
       }
     }
@@ -620,7 +601,6 @@ int sc_main(int argc, char** argv) {
         if(boost::filesystem::exists(boost::filesystem::path((std::string)p_ahbmem_elf))) {
           uint8_t *execData;
           v::info << "ahbmem" << "Loading AHBMem with " << p_ahbmem_elf << v::endl;
-          CULT_LOG_MESSAGE_SC("ahbmem", CULT_INFO, "Loading AHBMem with " + p_ahbmem_elf);
           ExecLoader prom_loader(p_ahbmem_elf);
           execData = prom_loader.getProgData();
 
@@ -629,7 +609,6 @@ int sc_main(int argc, char** argv) {
           }
         } else {
           v::warn << "ahbmem" << "File " << p_ahbmem_elf << " does not exist!" << v::endl;
-          CULT_LOG_MESSAGE_SC("ahbmem", CULT_WARNING, "File " + p_ahbmem_elf + " does not exist!");
           exit(1);
         }
       }
@@ -758,7 +737,6 @@ int sc_main(int argc, char** argv) {
         // LEON3 AT Processor
         // ==================
         v::info << "main" << "Instantiating AT Processor" << i << v::endl;
-        CULT_LOG_MESSAGE_SC("main", CULT_INFO, "Instantiating AT Processor" + i);
         leon3_funcat_trap::Processor_leon3_funcat *leon3 = new leon3_funcat_trap::Processor_leon3_funcat(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS), p_report_power);
         leon3->ENTRY_POINT   = 0x0;
         leon3->MPROC_ID      = (p_mmu_cache_index + i) << 28;
@@ -793,11 +771,9 @@ int sc_main(int argc, char** argv) {
         // set_brk, open, read, ...
         if(!((std::string)p_system_osemu).empty()) {
           v::warn << "OSEmu" << "content " << p_system_osemu << v::endl;
-          CULT_LOG_MESSAGE_SC("OSEmu", CULT_WARNING, "content " + p_system_osemu);
 
           if(boost::filesystem::exists(boost::filesystem::path((std::string)p_system_osemu))) {
             v::warn << "OSEmu" << "Enabled" << v::endl;
-            CULT_LOG_MESSAGE_SC("OSEmu", CULT_WARNING, "Enabled");
             OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
             osEmu->initSysCalls(p_system_osemu);
             std::vector<std::string> options;
@@ -812,7 +788,6 @@ int sc_main(int argc, char** argv) {
             leon3->toolManager.addTool(*osEmu);
           } else {
             v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;
-            CULT_LOG_MESSAGE_SC("ahbmem", CULT_WARNING, "File " + p_system_osemu + " does not exist!");
             exit(1);
           }
         }
@@ -820,7 +795,6 @@ int sc_main(int argc, char** argv) {
         // LEON3 LT Processor
         // ==================
         v::info << "main" << "Instantiating LT Processor" << i << v::endl;
-        CULT_LOG_MESSAGE_SC("main", CULT_INFO, "Instantiating LT Processor" + i);
         leon3_funclt_trap::Processor_leon3_funclt *leon3 = new leon3_funclt_trap::Processor_leon3_funclt(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS), p_report_power);
         leon3->ENTRY_POINT   = 0x0;
         leon3->MPROC_ID      = (p_mmu_cache_index + i) << 28;
@@ -855,10 +829,8 @@ int sc_main(int argc, char** argv) {
         // set_brk, open, read, ...
         if(!((std::string)p_system_osemu).empty()) {
           v::warn << "OSEmu" << "content " << p_system_osemu << v::endl;
-          CULT_LOG_MESSAGE_SC("OSEmu", CULT_WARNING, "content " + p_system_osemu);
           if(boost::filesystem::exists(boost::filesystem::path((std::string)p_system_osemu))) {
             v::warn << "OSEmu" << "Enabled" << v::endl;
-            CULT_LOG_MESSAGE_SC("OSEmu", CULT_WARNING, "Enabled");
             OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
             osEmu->initSysCalls(p_system_osemu);
             std::vector<std::string> options;
@@ -873,7 +845,6 @@ int sc_main(int argc, char** argv) {
             leon3->toolManager.addTool(*osEmu);
           } else {
             v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;
-            CULT_LOG_MESSAGE_SC("main", CULT_WARNING, "File " + p_system_osemu + " not found!");
             exit(1);
           }
         }
@@ -1084,18 +1055,13 @@ int sc_main(int argc, char** argv) {
         cend = clock();
     } catch(std::runtime_error &error) {
         v::error << "main" << "Execution is stoped caused by a runtime_error. Maybe you forgot to select an executable?" << v::endl;
-	CULT_LOG_MESSAGE_SC("main", CULT_ERROR, "Execution is stoped caused by a runtime_error. Maybe you forgot to select an executable?");
         v::error << "main" << error.what();
-	CULT_LOG_MESSAGE_SC("main", CULT_ERROR, error.what());
     }
 
     if(p_report_timing) {
         v::info << "Summary" << "Start: " << dec << cstart << v::endl;
-	CULT_LOG_MESSAGE_SC("Summary", CULT_INFO, "Start: " + boost::lexical_cast<std::string>(cstart));
         v::info << "Summary" << "End:   " << dec << cend << v::endl;
-	CULT_LOG_MESSAGE_SC("Summary", CULT_INFO, "End:   " + boost::lexical_cast<std::string>(cend));
         v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
-	CULT_LOG_MESSAGE_SC("Summary", CULT_INFO, "Delta: " + boost::lexical_cast<std::string>((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) + "ms");
     }
     return trap::exitValue;
 }
