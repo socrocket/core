@@ -149,7 +149,7 @@ extern Number noint;
 #  ifdef GLOBALVERBOSITY
 #    define VERBOSITY GLOBALVERBOSITY
 #  else
-#    define VERBOSITY 4
+#    define VERBOSITY 3
 #  endif
 #endif
 
@@ -159,9 +159,7 @@ template<int level>
 class msgstream {
     public:
         msgstream(std::streambuf *sb) :
-            m_stream(sb), message() {
-//		message.tie( &m_stream);
-//                message << m_stream.rdbuf();
+            m_stream(sb), messagestream() {
 #ifdef CULT_ENABLE
             switch (level) {
                 case 0:
@@ -182,35 +180,39 @@ class msgstream {
 #endif
         }
 
-        std::string module;
-//        std::stringstream message;
-        std::string message;
-
         template<class T>
         inline msgstream& operator<<(const T &in) {
-//            message += static_cast<std::string>(in);
+#ifdef CULT_ENABLE
+            messagestream << in;
+#else
             if (level < VERBOSITY) {
                 m_stream << in;
             }
+#endif
             return *this;
         }
 
         inline msgstream& operator<<(std::ostream& (*in)(std::ostream&)) {
-//            message += static_cast<std::string>(in);
-//            message.append(static_cast<std::string>(in));
-//            message.append(in);
+#ifdef CULT_ENABLE
             if ( in == v::endl ) {
-                std::cout << " " << module << " " << boost::lexical_cast<std::string>(m_stream) << std::endl;
-//                std::cout << " " << module << " " << message.str() << std::endl;
-                CULT_LOG_MESSAGE_SC(module, cultloglevel, "message : " + boost::lexical_cast<std::string>(m_stream));
-//                CULT_LOG_MESSAGE_SC(module, cultloglevel, message);
-		message = "";
+                std::string msg = messagestream.str();
+//                std::cout << " (" << module << ") " << localmsg << std::endl;
+                CULT_LOG_MESSAGE_SC(module, cultloglevel, msg);
+                // Empty messagestream
+                messagestream.str("");
+//            } else {
+//              messagestream << in;
             }
+#else
             if (level < VERBOSITY) {
                 m_stream << in;
             }
+#endif
             return *this;
         }
+
+        std::string module;
+        std::stringstream messagestream;
 
     private:
         std::ostream m_stream;
@@ -232,7 +234,7 @@ class logstream {
         inline msgstream<level>& operator<<(const T &in) {
 #ifdef CULT_ENABLE
             m_stream.module = in;
-#endif
+#else
             if (level < VERBOSITY) {
                 m_stream << "@" << sc_core::sc_time_stamp().to_string().c_str()
                         << " /" << std::dec
@@ -255,6 +257,7 @@ class logstream {
                         m_stream << v::Magenta << "Debug: " << v::Normal;
                 }
             }
+#endif
             return m_stream;
         }
 
