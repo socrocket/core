@@ -1,9 +1,9 @@
-//*********************************************************************
+// *********************************************************************
 // Copyright 2010, Institute of Computer and Network Engineering,
 //                 TU-Braunschweig
 // All rights reserved
 // Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
+// without the express, prior written consent of the authors is
 // strictly prohibited.
 //
 // University of Technology Braunschweig
@@ -19,9 +19,9 @@
 // The program is provided "as is", there is no warranty that
 // the program is correct or suitable for any purpose,
 // neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
+// contained do not necessarily reflect the policy of the
 // European Space Agency or of TU-Braunschweig.
-//*********************************************************************
+// *********************************************************************
 // Title:      verbose.h
 //
 // ScssId:
@@ -35,7 +35,7 @@
 // Author:     VLSI working group @ IDA @ TU Braunschweig
 // Maintainer: Rolf Meyer
 // Reviewed:
-//*********************************************************************
+// *********************************************************************
 
 #ifndef VERBOSE_H
 #define VERBOSE_H
@@ -51,8 +51,10 @@
 
 #define CULT_ENABLE
 #define CULT_WITH_SYSTEMC
-#define CULT_WITH_TLM
+//#define CULT_WITH_TLM
+#define CULT_SUBLEVELS 10
 
+#include "cult.h"
 /// @addtogroup utils
 /// @{
 
@@ -157,14 +159,36 @@ template<int level>
 class msgstream {
     public:
         msgstream(std::streambuf *sb) :
-            m_stream(sb) {
+            m_stream(sb), message() {
+//		message.tie( &m_stream);
+//                message << m_stream.rdbuf();
+#ifdef CULT_ENABLE
+            switch (level) {
+                case 0:
+                    cultloglevel = CULT_ERROR;
+                    break;
+                case 1:
+                    cultloglevel = CULT_WARNING;
+                    break;
+                case 2:
+                    cultloglevel = CULT_INFO_(2);
+                    break;
+                case 3:
+                    cultloglevel = CULT_INFO;
+                    break;
+                default:
+                    cultloglevel = CULT_DEBUG;
+            }
+#endif
         }
 
         std::string module;
+//        std::stringstream message;
         std::string message;
 
         template<class T>
         inline msgstream& operator<<(const T &in) {
+//            message += static_cast<std::string>(in);
             if (level < VERBOSITY) {
                 m_stream << in;
             }
@@ -172,10 +196,15 @@ class msgstream {
         }
 
         inline msgstream& operator<<(std::ostream& (*in)(std::ostream&)) {
+//            message += static_cast<std::string>(in);
+//            message.append(static_cast<std::string>(in));
+//            message.append(in);
             if ( in == v::endl ) {
-                message = boost::lexical_cast<std::string>(m_stream);
-                std::cout << " " << module << " " << message << std::endl;
+                std::cout << " " << module << " " << boost::lexical_cast<std::string>(m_stream) << std::endl;
+//                std::cout << " " << module << " " << message.str() << std::endl;
+                CULT_LOG_MESSAGE_SC(module, cultloglevel, "message : " + boost::lexical_cast<std::string>(m_stream));
 //                CULT_LOG_MESSAGE_SC(module, cultloglevel, message);
+		message = "";
             }
             if (level < VERBOSITY) {
                 m_stream << in;
@@ -185,6 +214,9 @@ class msgstream {
 
     private:
         std::ostream m_stream;
+#ifdef CULT_ENABLE
+        cult::LogLevel cultloglevel;
+#endif
 };
 
 /// This stream is used for an output line.
@@ -198,7 +230,9 @@ class logstream {
 
         template<class T>
         inline msgstream<level>& operator<<(const T &in) {
+#ifdef CULT_ENABLE
             m_stream.module = in;
+#endif
             if (level < VERBOSITY) {
                 m_stream << "@" << sc_core::sc_time_stamp().to_string().c_str()
                         << " /" << std::dec
