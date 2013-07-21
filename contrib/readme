@@ -2,6 +2,8 @@ Contrib
 -------
 
 cult                              - Logging and tracing framework CULT.
+cult.patch                        - Fix CULT Version 1.0.
 grambasockets                     - A newly developed TLM Sockets that enables GreenReg registers to be bound to Carbon AHB sockets.
 greenreg-4.0.0-writemask.patch    - Fixes a bug in GreenReg. Write masks for access to bits were not set correctly.
 greensocs-4.0.0.patch             - Integrates the new GreenReg-AMBA Socket within GreenSocs
+otf                               - Open Trace Format library.
