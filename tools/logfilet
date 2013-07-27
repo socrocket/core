@@ -41,12 +41,13 @@ parser.add_argument("-sep", "--seperator",
 )
 parser.add_argument("--version",
 	action='version',
-	version='%(prog)s 0.1',
+	version='%(prog)s 0.2',
 	help="print %(prog)s version and exit"
 )
 args = parser.parse_args()
 
 postlines = args.postlines
+printpostlines = True
 endtime = (args.starttime if (args.endtime is None) else args.endtime)
 
 prelinebuffer = collections.deque(maxlen=(args.prelines if args.prelines > 0 else 0))
@@ -58,15 +59,17 @@ with open(args.logfile, "r") as logfile:
 
 		if (logtime < args.starttime):
 			prelinebuffer.append(line)
+			printpostlines = (True if (postlines > 0) else False)
 			continue
 		else:
-			if (prelinebuffer.maxlen > 0):
+			if (len(prelinebuffer) > 0):
 				for preline in prelinebuffer:
 					print(preline)
-				prelinebuffer = collections.deque(maxlen=0)
-			if (logtime <= endtime or postlines > 0):
+				prelinebuffer.clear()
+			if (logtime <= endtime or printpostlines):
 				print(line)
-			if (logtime > endtime):
+			if (logtime > endtime and printpostlines):
 				postlines -= 1
 				if (postlines <= 0):
-					break
+					printpostlines = False
+					postlines = args.postlines
