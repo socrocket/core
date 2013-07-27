@@ -36,18 +36,24 @@ parser.add_argument("-post", "--postlines",
 )
 parser.add_argument("-sep", "--seperator",
 	dest="sep",
-	default=" ",
+	default=",",
 	help="seperator",
+)
+parser.add_argument("-pos", "--position",
+	dest="pos",
+	type=int,
+	default=0,
+	help="position",
 )
 parser.add_argument("--version",
 	action='version',
-	version='%(prog)s 0.2',
+	version='%(prog)s 0.3',
 	help="print %(prog)s version and exit"
 )
 args = parser.parse_args()
 
 postlines = args.postlines
-printpostlines = True
+printpostlines = (postlines > 0)
 endtime = (args.starttime if (args.endtime is None) else args.endtime)
 
 prelinebuffer = collections.deque(maxlen=(args.prelines if args.prelines > 0 else 0))
@@ -55,11 +61,26 @@ prelinebuffer = collections.deque(maxlen=(args.prelines if args.prelines > 0 els
 with open(args.logfile, "r") as logfile:
 	for rawline in logfile:
 		line = rawline.replace('\n', '')
-		logtime = int(line.split(args.sep)[0])
+		logtimecell = line.split(args.sep)[args.pos].split(" ")
+
+		logtime = int(logtimecell[0])
+
+		if (logtime > 0):
+			if logtimecell[1] == "ns":
+				pass
+			elif logtimecell[1] == "us":
+				logtime *= 1000
+			elif logtimecell[1] == "ms":
+				logtime *= 1000000
+			elif logtimecell[1] == "s":
+				logtime *= 1000000000
+
+		if (logtime <= args.starttime):
+			postlines = args.postlines
+			printpostlines = (postlines > 0)
 
 		if (logtime < args.starttime):
 			prelinebuffer.append(line)
-			printpostlines = (True if (postlines > 0) else False)
 			continue
 		else:
 			if (len(prelinebuffer) > 0):
@@ -72,4 +93,3 @@ with open(args.logfile, "r") as logfile:
 				postlines -= 1
 				if (postlines <= 0):
 					printpostlines = False
-					postlines = args.postlines
