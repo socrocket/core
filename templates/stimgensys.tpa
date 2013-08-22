@@ -1,0 +1,157 @@
+<template name="StimGen System">
+  <description>
+    Experimental System for Fault-Injektion/Error correction.
+    Consisting of stimulus generator (replaces cpu), mmu_cache, ahbctrl and ahbmem.
+    <br/>
+    <h2>Features:</h2>
+    <ul>
+      <li>Power Estimation</li>
+      <li>Timing Report</li>
+    </ul>
+  </description>
+  <instructions>
+  </instructions>
+  <option name="Basic Configuration" var="conf">
+    <option name="System Options" var="system">
+      <option var="at" name="Execute the simulation in AT mode" type="bool" default="false" hint="True - AT abstraction, False - LT abstraction."/>
+      <option var="clock" name="Clock period in NS" type="int" default="10" hint="Clock period for delay annotation. Assumes a single clock domain for all components"/>
+      <option var="ncpu" name="Number of processor system" type="int" default="1" range="1..16" hint="Defines the number of processors to be served by this controller."/>
+    </option>
+    <option name="Reports" var="report" >
+      <option var="timing" name="Enable timing report" type="bool" default="true" hint="true - The simulation models will print a timing report at the end of simulation."/>
+      <option var="power" name="Enable power monitoring" type="bool" default="false" hint="true - Enable default power monitor (report will be generated at the end of the simulation."/>
+    </option>
+ 
+    <option var="ahbctrl" name="AHB Controller">
+      <option var="ioaddr" name="AHB IO Area Address" type="int" default="0xFFF" range="0..0xFFF">
+        <description>
+          The MSB address of the I/O area. Sets the 12 most significant bits in the 32-bit AHB address (e.g. 31 downto 20).<br/>
+        </description>
+      </option>
+      <option var="iomask" name="AHB IO Area Mask" type="int" default="0xFFF" range="0..0xFFF">
+        <description>
+          The I/O area address mask. Sets the size of the I/O area and the start address together with ioaddr.<br/>
+        </description>
+      </option>
+      <option var="cfgaddr" name="AHB CFG Area Address" type="int" default="0xFF0" range="0..0xFF0">
+        <description>
+          The MSB address of the confgiuration area. Sets 12 bits in the 32-bit AHB address (19 downto 8)<br/>
+        </description>
+      </option>
+      <option var="cfgmask" name="AHB CFG Area Mask" type="int" default="0xFF0" range="0..0xFF0">
+        <description>
+          The address mask of the configuration area. Sets the size of the configuration area and 
+          the start address together with cfgaddr.<br/>
+        </description>
+      </option>
+      <option var="rrobin" name="Round robin arbitration." type="bool" default="false">
+        <description>
+          True  - round-robin arbitration<br/>
+          False - priority arbitration (highest master id has highest priority)<br/>
+          Arbitration is only supported in AT mode!! (no effect on LT simulation)
+        </description> 
+      </option>
+      <option var="defmast" name="Default AHB Master" type="int" default="0" range="0..16">
+        <description>
+          The default AHB master index (bus parking). This feature is not modeled at transaction level.
+          Parameter is only used for reporting.<br/>
+        </description>
+      </option>
+      <option var="ioen" name="AHB IO area enable" type="bool" default="true">
+        <description>
+          AHB I/O area enable. Set to 0 to disable the I/O area.<br/>
+        </description>
+      </option>
+      <option var="fixbrst" name="Enable support for fixed burst length." type="bool" default="false">
+        <description> 
+           Enable support for fixed-length bursts at RTL-Level. This feature is not supported at transaction-level.<br/>
+        </description>
+      </option>
+      <option var="split" name="Enable support for split transactions in AT models" type="bool" default="false">
+        <description>
+           Enables support for AHB SPLIT response at RTL-Level. This feature is not supported at transaction-level.<br/>
+        </description>
+      </option>
+      <option var="fpnpen" name="Enable full decoding of the PnP configuration records" type="bool" default="true">
+        <description>
+          When disabled the user-defined register in the PnP configuration records are not mapped in the configuration area.<br/>
+        </description>
+      </option>
+      <option var="mcheck" name="Intersection checking" type="bool" default="true">
+        <description>
+          Check if there are any intersections between core memory areas. If two areas intersect an assert with level failure will be generated.<br/>
+        </description>
+      </option>
+    </option>
+    
+    <option var="mmu_cache" name="MMU Cache">
+      <option var="ic" name="Instruction cache">
+        <option var="en" name="Enable instruction cache" type="bool" default="true" hint="true - instruction cache enabled"/>
+        <option var="repl" name="Cache replacement strategy" type="int" default="3" range="0..3">
+          <description>
+            Instruction cache replacement policy:<br/>
+	    0 - direct mapped<br/>
+            1 - least recently used (LRU)<br/>
+            2 - least recently replaced (LRR)<br/>
+            3 - random<br/>
+          </description>
+        </option>
+        <option var="sets" name="Number of icache sets" type="int" default="1" range="1..4" hint="Number of instruction cache sets"/>
+        <option var="linesize" name="Size of a icache line (in words)" type="int" default="4" hint="An instruction cache line can consist of 4 or 8 words."/>
+        <option var="setsize" name="Size of a icache set (in kB)" type="int" default="1" hint="The size of an instruction cache set can be configured in powers of two in the range from 1kB to 64kB"/>
+        <option var="setlock" name="Enable cache locking" type="bool" default="false" hint="true - instruction cache line locking enabled"/>
+      </option>
+      <option var="dc" name="Data cache">
+        <option var="en" name="Enable data cache" type="bool" default="true" hint="true - data cache enabled"/>
+        <option var="repl" name="Cache replacement strategy" type="int" default="2" range="0..3">
+          <description>
+            Data cache replacement policy:<br/>
+	    0 - direct mapped<br/>
+            1 - least recently used (LRU)<br/>
+            2 - least recently replaced (LRR)<br/>
+            3 - random<br/>
+          </description>
+        </option> 
+        <option var="sets" name="Number of dcache sets" type="int" default="1" range="1..4" hint="Number of data cache sets"/>
+        <option var="linesize" name="Size of a dcache line (in words)" type="int" default="4" hint="A data cache line can consist of 4 or 8 words."/>
+        <option var="setsize" name="Size of a dcache set (in kB)" type="int" default="1" hint="The size of a instruction cache set can be configured in powers of two in the range from 1kB to 64kB"/>
+        <option var="setlock" name="Enable cache locking" type="bool" default="false" hint="true - data cache line locking enabled"/>
+        <option var="snoop" name="Enable cache snooping" type="bool" default="true" hint="true - dbus snooping enabled"/>
+      </option>
+      <option var="ilram" name="Instruction scratchpad">
+        <option var="en" name="Enable instruction scratchpad" type="bool" default="false" hint="true - instruction scratchpad enabled"/>
+        <option var="size" name="Instruction scratchpad size (in kB)" type="int" default="0" hint="The instruction scratchpad size can be configured in powers of two in the range from 1kB to 512kB"/>
+        <option var="start" name="Instruction scratchpad start address (8bit MSB address)" type="int" default="0x8e" range="0..0xF" hint="The 8bit MSB address of the memory segment to be mapped to instruction localram."/>
+      </option>
+      <option var="dlram" name="Data scratchpad">
+        <option var="en" name="Enable data scratchpad" type="bool" default="false" hint="true - data scratchpad enabled"/>
+        <option var="size" name="Data scratchpad size (in kB)" type="int" default="4" hint="The data scratchpad size can be configured in powers of two in the range from 1kB to 512kB" />
+        <option var="start" name="Data scratchpad start address (8bit MSB address)" type="int" default="0x8f" range="0..0xF" hint="The 8bit MSB address of the memory segment to be mapped to data localram."/>
+      </option>
+      <option var="cached" name="Fixed cacheability mask" type="int" default="0xffff" hint="Overrides AHB (Plug and Play) cacheability settings."/>
+      <option var="index" name="AHB master bus index" type="int" default="0" range="0..15" hint="Index of the AHB bus master"/>
+      <option var="mmu" name="MMU">
+        <option var="en" name="Enable MMU" type="bool" default="false" hint="true - Memory Management Unit enabled"/>
+        <option var="itlb_num" name="Number of instruction TLBs" type="int" default="8" range="2..64" hint="Also specifies the number of shared instruction and data TLBs in shared-TLB mode (see TLB implementation type)."/>
+        <option var="dtlb_num" name="Number of data TLBs" type="int" default="8" range="2..64" hint="This setting has no effect in shared-TLB mode."/>
+        <option var="tlb_type" name="TLB implementation type" type="int" default="0" range="0..1">
+          <description>
+            TLB implementation type:<br/>
+            0 - separate TLBs for instruction and data<br/>
+            1 - shared TLBs<br/>
+          </description>
+        </option>
+        <option var="tlb_rep" name="TLB replacement policy" type="int" default="1" range="0..1" hint="0 - LRU, 1 - random"/>
+        <option var="mmupgsz" name="MMU page size" type="int" default="0" range="0..5" hint="0, 2 - 4kbytes, 3 - 8kbytes, 4 - 16kbytes, 5 - 32kbytes"/>
+      </option>
+    </option>
+    
+    <option var="ahbmem" name="AHB Memory">
+      <option var="en" name="Enable" type="bool" default="true" hint="true - AHB Memory enabled"/>
+      <option var="index" name="Bus Index" type="int" default="1" range="0..15" hint="Slave index at the AHB bus"/>
+      <option var="addr" name="AHB Address" type="int" default="0xA00" range="0..0xFFF" hint="The 12bit MSB address at the AHB bus"/>
+      <option var="mask" name="AHB Mask" type="int" default="0xFFF" range="0..0xFFF" hint="The 12bit AHB address mask"/>
+    </option>
+
+  </option>
+</template>

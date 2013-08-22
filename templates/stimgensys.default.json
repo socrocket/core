@@ -1,0 +1,71 @@
+{
+  "conf": {
+    "ahbctrl": {
+      "cfgaddr": 4080, 
+      "cfgmask": 4080, 
+      "defmast": 0, 
+      "fixbrst": false, 
+      "fpnpen": true, 
+      "ioaddr": 4095, 
+      "ioen": true, 
+      "iomask": 4095, 
+      "mcheck": true, 
+      "rrobin": false, 
+      "split": false
+    }, 
+    "ahbmem": {
+      "addr": 2560, 
+      "en": true, 
+      "index": 1, 
+      "mask": 4095
+    }, 
+    "mmu_cache": {
+      "cached": 65535, 
+      "dc": {
+        "en": true, 
+        "linesize": 4, 
+        "repl": 2, 
+        "setlock": false, 
+        "sets": 1, 
+        "setsize": 1, 
+        "snoop": true
+      }, 
+      "dlram": {
+        "en": false, 
+        "size": 4, 
+        "start": 143
+      }, 
+      "ic": {
+        "en": true, 
+        "linesize": 4, 
+        "repl": 3, 
+        "setlock": false, 
+        "sets": 1, 
+        "setsize": 1
+      }, 
+      "ilram": {
+        "en": false, 
+        "size": 0, 
+        "start": 142
+      }, 
+      "index": 0, 
+      "mmu": {
+        "dtlb_num": 8, 
+        "en": false, 
+        "itlb_num": 8, 
+        "mmupgsz": 0, 
+        "tlb_rep": 1, 
+        "tlb_type": 0
+      }
+    }, 
+    "report": {
+      "power": false, 
+      "timing": true
+    }, 
+    "system": {
+      "at": false, 
+      "clock": 10, 
+      "ncpu": 1
+    }
+  }
+}
