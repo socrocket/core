@@ -989,6 +989,7 @@ public:
         my_value.cancel();
     }
 
+#if SYSTEMC_API == 210 || SYSTEMC_API == 220
     sc_event_or_list& operator | (const sc_event& e) const {
         return my_value.operator | (e);
     }
@@ -996,6 +997,7 @@ public:
     sc_event_and_list& operator & (const sc_event& e) const {
         return my_value.operator & (e);
     }
+#endif
 
     /// Overloads gs_config_base::getTypeString
     const std::string getTypeString() const {

@@ -130,11 +130,11 @@ std::vector<std::string> powermonitor::get_IP_params(std::vector<std::string> &p
 void powermonitor::gen_report() {
 
   // Static power of model (pW)
-  double model_sta_power; 
+  double model_sta_power = 0.0; 
   // Module internal power (uW)
-  double model_int_power;
+  double model_int_power = 0.0;
   // Module switching power (uW)
-  double model_swi_power;
+  double model_swi_power = 0.0;
 
   // Total static power
   double total_sta_power = 0.0;

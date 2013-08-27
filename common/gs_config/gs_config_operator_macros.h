@@ -95,7 +95,7 @@ return *this; \
 // Operator -=
 // Operator /=
 // Operator *=
-#define GC_SPECIALISATIONS_ARITHMETIC_OPERATORS                         \
+#define GC_SPECIALISATIONS_ARITHMETIC_OPERATORS_                         \
     inline my_type& operator += (val_type val)                            \
   {                                                                     \
   val_type tmp = getValue();                                          \

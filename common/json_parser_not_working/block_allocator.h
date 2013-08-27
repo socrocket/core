@@ -37,7 +37,7 @@
 #ifndef BLOCK_ALLOCATOR_H
 #define BLOCK_ALLOCATOR_H
 
-
+#include <string>
 class block_allocator
 {
 private:

@@ -412,13 +412,15 @@ void json_parser::read_source(const char *filename) {
     m_buffer.clear();
     FILE *fp = fopen(filename, "rb");
     if(fp) {
-         fseek(fp, 0, SEEK_END);
+          fseek(fp, 0, SEEK_END);
           int size = ftell(fp);
           fseek(fp, 0, SEEK_SET);
           std::vector<char> temp(size + 1);
-          fread(&temp[0], 1, size, fp);
-          fclose(fp);
-          m_buffer = temp;
+          size_t size_result = fread(&temp[0], 1, size, fp);
+          if(size_result!=0) {
+              fclose(fp);
+              m_buffer = temp;
+          }
     }
 }
 
@@ -461,7 +463,7 @@ void json_parser::parse(char *source) {
     }
 
     for(std::vector<std::pair<std::string, json_value*> >::iterator it = m_jsonValues.begin(); it != m_jsonValues.end(); ++it) {
-        char *pvalue = NULL;
+        //char *pvalue = NULL;
         char value[100];
         switch(it->second->type) {
             case JSON_STRING:
@@ -480,6 +482,8 @@ void json_parser::parse(char *source) {
                     mApi->setInitValue(it->first, "false");
                 }
                 break;
+            default:
+                break;
         }
     }
 }
@@ -487,9 +491,9 @@ void json_parser::parse(char *source) {
 void json_parser::save(std::string path, gs::cnf::cnf_api* api)
 {
 	std::vector<std::string> paramList = api->getParamList();
-	json_value* object = 0;
-	std::string parent = "";
-	std::string childs = "";
+	//json_value* object = 0;
+	//std::string parent = "";
+	//std::string childs = "";
 	for(unsigned int i = 0; i < paramList.size(); i++) 
 	{
 		std::size_t pos = paramList[i].find(".");

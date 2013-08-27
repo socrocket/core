@@ -40,6 +40,8 @@
 #ifndef VERBOSE_H
 #define VERBOSE_H
 
+#include "common.h"
+
 #include <iostream>
 #include <streambuf>
 #include <iomanip>

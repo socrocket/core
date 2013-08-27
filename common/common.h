@@ -42,14 +42,25 @@
 
 #include <systemc.h>
 
-inline vwait(sc_core::sc_time &delay) {
+inline void vwait(sc_core::sc_time &delay) {
     if(delay!=sc_core::SC_ZERO_TIME) {
         sc_core::wait(delay);
     }
 }
 
-inline await(sc_core::sc_time time) {
+inline void await(sc_core::sc_time time) {
     sc_core::wait(time - sc_time_stamp());
 }
+
+#if SYSTEMC_API == 210 || SYSTEMC_API == 220
+namespace gs {
+    namespace cnf {
+        typedef void callback_return_type;
+    }
+}
+#define GC_RETURN_OK
+#else
+#define GC_RETURN_OK gs::cnf::return_nothing 
+#endif
 
 #endif // VCOMMON_H

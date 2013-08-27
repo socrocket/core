@@ -2,13 +2,13 @@
   "conf": {
     "ahbctrl": {
       "cfgaddr": 4080,
-    "ahbmem": {
-      "addr": 2560, 
-      "en": true, 
-      "index": 1, 
-      "mask": 4095
+      "ahbmem": {
+        "addr": 2560, 
+        "en": true, 
+        "index": 1, 
+        "mask": 4095
+      }
     }
-}
-}
+  }
 }
  

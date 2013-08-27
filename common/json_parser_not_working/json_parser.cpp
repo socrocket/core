@@ -3,6 +3,8 @@
 #include <string>
 #include <iostream>
 
+using namespace std;
+
 
 // true if character represent a digit
 #define IS_DIGIT(c) (c >= '0' && c <= '9')
@@ -451,11 +453,9 @@ void json_parser::parse(char *source) {
     }
 }
 
-std::string json_parser::print(json_value* value)
-{
+std::string json_parser::print(json_value* value) {
     std::string strValues = "";
-    for(json_value* it = value; it; it = it->next_sibling)
-    {
+    for(json_value* it = value; it; it = it->next_sibling) {
         strValues += it->name;
         if (it->first_child) strValues += "\t" + print(it->first_child) + "\n";
         if (!it->next_sibling || (!it->first_child || !it->last_child || strcmp(it->first_child->name, it->last_child->name) == 0)) return strValues;
@@ -463,51 +463,47 @@ std::string json_parser::print(json_value* value)
 
     return strValues;
 }
-json_value* json_parser::createJsonTree(json_value* root, std::string jsonPath)
-{
+
+json_value* json_parser::createJsonTree(json_value* root, std::string jsonPath) {
     json_value* tmpRoot = new json_value();
-    if (jsonPath.find(".") != std::string::npos)
-    {
+    if (jsonPath.find(".") != std::string::npos) {
         tmpRoot->name = strdup(jsonPath.substr(0, jsonPath.find(".")).c_str());
         jsonPath = jsonPath.substr(jsonPath.find(".")+1);
         //json_append(root, createJsonTree(jsonPath));
         if(root->last_child)//&& root->last_child->name == tmpRoot->name)
         {
-            if(strcmp(root->last_child->name, tmpRoot->name) == 0)
-            {
+            if(strcmp(root->last_child->name, tmpRoot->name) == 0) {
                 root = root->last_child;
                 json_append(root, createJsonTree(root, jsonPath));
+                cout << "last_child+eq" << jsonPath << endl;
                 return root;
-            } else
-            {
+            } else {
                 json_append(tmpRoot, createJsonTree(tmpRoot, jsonPath));
+                cout << "last_child+!eq" << jsonPath << endl;
                 return tmpRoot;
             }
-        } else
-        {
+        } else {
             json_append(tmpRoot, createJsonTree(tmpRoot, jsonPath));
+            cout << "!last_child" << jsonPath << endl;
             return tmpRoot;
         }
-    } else
-    {
+    } else {
         json_value* tail = new json_value();
         tail->name = strdup(jsonPath.c_str());
+        cout << "eq" << jsonPath << endl;
         return tail;
     }
 }
 
-void json_parser::save()
-{
+void json_parser::save() {
     json_value* jsonRoot = new json_value();
     std::vector<std::string> paramList;
-    for(std::vector<std::pair<std::string, json_value*> >::iterator it = m_jsonValues.begin(); it != m_jsonValues.end(); ++it) 
-    {
+    for(std::vector<std::pair<std::string, json_value*> >::iterator it = m_jsonValues.begin(); it != m_jsonValues.end(); ++it) {
         paramList.push_back(it->first);
     }
-    for(std::vector<std::string>::iterator it = paramList.begin(); it != paramList.end(); ++it)
-    {
+    for(std::vector<std::string>::iterator it = paramList.begin(); it != paramList.end(); ++it) {
         jsonRoot->name = strdup(it->substr(0, it->find(".")).c_str());
         json_append(jsonRoot, createJsonTree(jsonRoot, it->substr(it->find(".")+1)));
     }
-    //std::cout << print(jsonRoot) << std::endl;    
+    cout << print(jsonRoot) << endl;
 }
