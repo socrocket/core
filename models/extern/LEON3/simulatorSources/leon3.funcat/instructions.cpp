@@ -5079,8 +5079,8 @@ unsigned int leon3_funcat_trap::TRAP_imm::behavior(){
     bool icc_c = PSR_execute[key_ICC_c];
     #endif
 
-    //While TRAP normally stops simulation when the _exit routine is encountered, TSIM \
-        stops simulation
+    //While TRAP normally stops simulation when the _exit routine is encountered, TSIM
+    //    stops simulation
     //when a TA instruction is encountered (no matter what the argument of TA is)
     #ifdef TSIM_COMPATIBILITY
     if(cond == 0x8){
@@ -9972,8 +9972,8 @@ unsigned int leon3_funcat_trap::TRAP_reg::behavior(){
     bool icc_c = PSR_execute[key_ICC_c];
     #endif
 
-    //While TRAP normally stops simulation when the _exit routine is encountered, TSIM \
-        stops simulation
+    //While TRAP normally stops simulation when the _exit routine is encountered, TSIM
+    //stops simulation
     //when a TA instruction is encountered (no matter what the argument of TA is)
     #ifdef TSIM_COMPATIBILITY
     if(cond == 0x8){

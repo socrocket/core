@@ -89,26 +89,26 @@ void dvectorcache::power_model() {
 }
 
 // Static power callback
-void dvectorcache::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type dvectorcache::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Static power of dcache is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Internal power callback
-void dvectorcache::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type dvectorcache::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Dcache internal power is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Switching power callback
-void dvectorcache::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type dvectorcache::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   swi_power = ((dyn_tag_read_energy * dyn_tag_reads) + (dyn_tag_write_energy * dyn_tag_writes) + (dyn_data_read_energy * dyn_data_reads) + (dyn_data_write_energy * dyn_data_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
-
+  return GC_RETURN_OK;
 }
 
 // Automatically called at start of simulation

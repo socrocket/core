@@ -102,7 +102,7 @@ void leon3_funcat_trap::Processor_leon3_funcat::mainLoop(){
           resetOp();
         }
 
-        if((IRQ != -1) && (PSR[key_ET] && (IRQ == 15 || IRQ > PSR[key_PIL]))){
+        if((IRQ != 0xFFFFFFFF) && (PSR[key_ET] && (IRQ == 15 || IRQ > PSR[key_PIL]))){
             this->IRQ_irqInstr->setInterruptValue(IRQ);
             try{
                 numCycles = this->IRQ_irqInstr->behavior();
@@ -216,8 +216,8 @@ void leon3_funcat_trap::Processor_leon3_funcat::mainLoop(){
             if(this->historyEnabled){
                 // First I add the new element to the queue
                 this->instHistoryQueue.push_back(instrQueueElem);
-                //Now, in case the queue dump file has been specified, I have to check if I need \
-                    to save it
+                //Now, in case the queue dump file has been specified, I have to check if I need
+                //to save it
                 if(this->histFile){
                     this->undumpedHistElems++;
                     if(undumpedHistElems == this->instHistoryQueue.capacity()){
@@ -314,26 +314,26 @@ void leon3_funcat_trap::Processor_leon3_funcat::power_model() {
 }
 
 // Static power callback
-void leon3_funcat_trap::Processor_leon3_funcat::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type leon3_funcat_trap::Processor_leon3_funcat::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Static power of AHBMem is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Internal power callback
-void leon3_funcat_trap::Processor_leon3_funcat::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type leon3_funcat_trap::Processor_leon3_funcat::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // AHBMem internal power is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Switching power callback
-void leon3_funcat_trap::Processor_leon3_funcat::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type leon3_funcat_trap::Processor_leon3_funcat::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   swi_power = (dyn_instr_energy * dyn_instr) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
-
+  return GC_RETURN_OK;
 }
 
 // Automatically called at the beginning of the simulation
@@ -383,9 +383,9 @@ void leon3_funcat_trap::Processor_leon3_funcat::enableHistory( std::string fileN
 
 leon3_funcat_trap::Processor_leon3_funcat::Processor_leon3_funcat( sc_module_name \
     name, sc_time latency, bool pow_mon) : sc_module(name), 
-                                           latency(latency), 
                                            instrMem("instrMem"),        \
                                            dataMem("dataMem"), 
+                                           latency(latency), 
                                            IRQ_port("IRQ_IRQ", IRQ), 
                                            irqAck("irqAck_PIN"),
                                            m_pow_mon(pow_mon),
@@ -779,8 +779,8 @@ leon3_funcat_trap::Processor_leon3_funcat::~Processor_leon3_funcat(){
     delete this->IRQ_irqInstr;
     #ifdef ENABLE_HISTORY
     if(this->historyEnabled){
-        //Now, in case the queue dump file has been specified, I have to check if I need \
-            to save the yet undumped elements
+        //Now, in case the queue dump file has been specified, I have to check if I need
+        //to save the yet undumped elements
         if(this->histFile){
             if(this->undumpedHistElems > 0){
                 std::vector<std::string> histVec;

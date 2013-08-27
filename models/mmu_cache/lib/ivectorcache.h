@@ -74,13 +74,13 @@ class ivectorcache : public vectorcache {
   void power_model();
 
   /// Static power callback
-  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Dynamic/Internal power callback
-  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Dynamic/Switching power callback
-  void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// *****************************************************
   /// Power Modeling Parameters
@@ -127,6 +127,9 @@ class ivectorcache : public vectorcache {
   /// Switching power
   gs::gs_param<double> swi_power;
 
+  /// Power frame starting time
+  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+  
   /// Parameter array for power output of itag ram
   gs::gs_param_array itag;
 
@@ -145,9 +148,6 @@ class ivectorcache : public vectorcache {
   /// Dynamic energy per idata write access
   gs::gs_param<double> dyn_data_write_energy;
 
-  /// Power frame starting time
-  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
-  
   // Constructor
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
   /// @brief Constructor of data cache

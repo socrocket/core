@@ -65,6 +65,7 @@ AHBIn::AHBIn(sc_core::sc_module_name name,     // The SystemC name of the compon
 	      0),      // BAR3
 
   irq("irq"),                      // Initialize interrupt output
+  m_irq(0),
   m_framesize(framesize),          // Initialize framesize
   m_frameaddr(frameaddr),          // Initialize frameaddr
   m_interval(interval),            // Initialize frame interval
@@ -119,8 +120,8 @@ void AHBIn::gen_frame() {
 
   // Locals
   uint32_t tmp;
-  uint32_t debug;
-  sc_core::sc_time delay = SC_ZERO_TIME;
+  //uint32_t debug;
+  //sc_core::sc_time delay = SC_ZERO_TIME;
 
   // Wait for system becoming ready
   wait(1, SC_MS);

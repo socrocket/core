@@ -52,7 +52,7 @@ NullIO::NullIO() {
 ///false in case the character is not valid (such as if we are communicating
 ///on a socket and there are no available characters)
 uint32_t NullIO::receivedChars() {
-   return NULL;
+   return 0;
 }
 
 ///Receives a character; returns true if read the character is valid,

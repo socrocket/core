@@ -176,25 +176,26 @@ void MapMemory::power_model() {
 }
 
 // Static power callback
-void MapMemory::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type MapMemory::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Static power of MapMemory is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Internal power callback
-void MapMemory::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type MapMemory::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Internal power of MapMemory is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Switching power callback
-void MapMemory::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type MapMemory::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   swi_power = ((dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
+  return GC_RETURN_OK;
 
 }
 

@@ -328,7 +328,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
   unsigned int *debug;
   unsigned int flush;
   unsigned int lock;
-  unsigned int flushl;
+  //unsigned int flushl;
 
   // Check/extract data payload extension
   if(dext!=NULL) {
@@ -336,7 +336,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       asi    = dext->asi;
       debug  = dext->debug;
       flush  = dext->flush;
-      flushl = dext->flushl;
+      //flushl = dext->flushl;
       lock   = dext->lock;
       
   } else {
@@ -345,7 +345,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       asi    = 0x8;
       debug  = NULL;
       flush  = 0;
-      flushl = 0;
+      //flushl = 0;
       lock   = 0;
 
       v::error << name() << "DEXT Payload extension missing - assume ASI 0x8" << v::endl;
@@ -1370,26 +1370,26 @@ void mmu_cache::power_model() {
 }
 
 // Static power callback
-void mmu_cache::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type mmu_cache::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Static power of mmu_cache is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Internal power callback
-void mmu_cache::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type mmu_cache::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Internal power of mmu_cache is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Switching power callback
-void mmu_cache::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type mmu_cache::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   swi_power = ((dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
-
+  return GC_RETURN_OK;
 }
 
 // Automatically called by SystemC scheduler at end of simulation

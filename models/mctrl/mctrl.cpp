@@ -87,11 +87,6 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             m_deep_power_down_start("last_deep_power_down", sc_core::SC_ZERO_TIME, m_performance_counters),
             m_self_refresh_time("total_self_refresh", sc_core::SC_ZERO_TIME, m_performance_counters), 
             m_self_refresh_start("last_self_refresh", sc_core::SC_ZERO_TIME, m_performance_counters),
-            g_romasel(_romasel), g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask), 
-            g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr), 
-            g_rammask(_rammask), g_paddr(_paddr), g_pmask(_pmask), g_wprot(_wprot),
-            g_srbanks(_srbanks), g_ram8(_ram8), g_ram16(_ram16), g_sepbus(_sepbus),
-            g_sdbits(_sdbits), g_mobile(_mobile), g_sden(_sden), m_pow_mon(powermon),
             sta_power_norm("power.mctrl.sta_power_norm", 1.7e+8, true), // Normalized static power of controller
             int_power_norm("power.mctrl.int_power_norm", 1.874e-8, true), // Normalized internal power of controller
             dyn_read_energy_norm("power.mctrl.dyn_read_energy_norm", 1.175e-8, true), // Normalized read energy
@@ -104,7 +99,12 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             dyn_read_energy("dyn_read_energy", 0.0, power), // Energy for read access
             dyn_write_energy("dyn_write_energy", 0.0, power), // Energy for write access
             dyn_reads("dyn_reads", 0ull, power), // Number of read accesses
-            dyn_writes("dyn_writes", 0ull, power) // Number of write accesses
+            dyn_writes("dyn_writes", 0ull, power), // Number of write accesses
+            g_romasel(_romasel), g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask), 
+            g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr), 
+            g_rammask(_rammask), g_paddr(_paddr), g_pmask(_pmask), g_wprot(_wprot),
+            g_srbanks(_srbanks), g_ram8(_ram8), g_ram16(_ram16), g_sepbus(_sepbus),
+            g_sdbits(_sdbits), g_mobile(_mobile), g_sden(_sden), m_pow_mon(powermon)
 
  {
 
@@ -276,24 +276,24 @@ void Mctrl::power_model() {
 }
 
 // Static power callback
-void Mctrl::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type Mctrl::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nominal operation mode only
-
+  return GC_RETURN_OK;
 }
 
 // Internal power callback
-void Mctrl::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type Mctrl::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Internal power of Mctrl is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Switching power callback
-void Mctrl::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type Mctrl::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   swi_power = ((dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
-
+  return GC_RETURN_OK;
 }
 
 // Automatically called at the beginning of the simulation

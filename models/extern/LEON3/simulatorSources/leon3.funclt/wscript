@@ -17,7 +17,7 @@ def build(bld):
         externalPins.cpp
     """
 
-    uselib = 'TRAP ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
+    uselib = 'GREENSOCS TRAP ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
     use = 'mmu_cache utils signalkit common'
 
     bld.install_files('${PREFIX}/include/', bld.path.parent.ant_glob(['leon3.funclt.h','leon3.funclt/*.hpp']), cwd=bld.path.parent, relative_trick=True)

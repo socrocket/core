@@ -134,10 +134,10 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   void power_model();
 
   /// Static power callback
-  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Dynamic/Internal power callback
-  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Execute the callback registering when systemc reaches the end of elaboration.
   void end_of_elaboration();
@@ -185,12 +185,21 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   /// @brief TODO
   ///
   int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime);
+
   gs::cnf::gs_param_array p_conf;
   gs::cnf::gs_config<uint32_t> m_ntimers;
   gs::cnf::gs_config<uint32_t> g_sbits;
   gs::cnf::gs_config<uint32_t> g_nbits;
   gs::cnf::gs_config<uint32_t> g_wdog_length;
   gs::cnf::gs_config<uint32_t> powermon;
+
+  // *****************************************************
+  // gs_config for index, addr, mask, sepirq
+
+  gs::cnf::gs_config<uint32_t> m_pindex;
+  gs::cnf::gs_config<uint32_t> m_paddr;
+  gs::cnf::gs_config<uint32_t> m_pmask;
+  gs::cnf::gs_config<bool> m_sepirq;
 
   // *****************************************************
   // Power Modeling Parameters
@@ -209,14 +218,6 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
 
   /// Internal power of module (activation independent)
   gs::cnf::gs_config<double> int_power;
-
-  // *****************************************************
-  // gs_config for index, addr, mask, sepirq
-
-  gs::cnf::gs_config<uint32_t> m_pindex;
-  gs::cnf::gs_config<uint32_t> m_paddr;
-  gs::cnf::gs_config<uint32_t> m_pmask;
-  gs::cnf::gs_config<bool> m_sepirq;
 
 
   // *****************************************************

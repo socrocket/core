@@ -320,7 +320,6 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 // TLM blocking transport function (multi-sock)
 void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
-  static uint32_t old_lock = 0;
   // master-address pair for dcache snooping
   t_snoop snoopy;
 
@@ -342,7 +341,6 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
   }
 
   busy = true;
-  old_lock = is_lock;
   is_lock = ahbIN.get_extension<amba::amba_lock>(lock, trans);
   
   lock_master = id;
@@ -659,7 +657,7 @@ void AHBCtrl::arbitrate() {
 
           for(uint32_t i=0; i<num_of_master_bindings; i++) {
             
-            robin=(++robin) % num_of_master_bindings;
+            robin = (robin+1) % num_of_master_bindings;
           
             v::debug << name() << "Robin: " << robin << v::endl;
 
@@ -1049,6 +1047,7 @@ void AHBCtrl::start_of_simulation() {
       // Get bus id (hindex oder master id)
       const uint32_t sbusid = slave->get_busid();
       assert(sbusid < 16);
+      v::info << name() << "* SLAVE id: " << sbusid << v::endl;
 
       // Map device information into PNP region
       if (mfpnpen) {
@@ -1117,6 +1116,7 @@ void AHBCtrl::start_of_simulation() {
       // Get id of the master
       const uint32_t mbusid = master->get_busid();
       assert(mbusid < 16);
+      v::info << name() << "* Master id: " << mbusid << v::endl;
 
       // Map device information into PNP region
       if (mfpnpen) {
@@ -1187,25 +1187,26 @@ void AHBCtrl::power_model() {
 }
 
 // Static power callback
-void AHBCtrl::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type AHBCtrl::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Static power of AHBCTRL is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Internal power callback
-void AHBCtrl::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type AHBCtrl::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // RTL AHBCTRL has no internal power - constant.
-
+  return GC_RETURN_OK;
 }
 
 // Switching power callback
-void AHBCtrl::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type AHBCtrl::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   swi_power = ((dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
+  return GC_RETURN_OK;
 
 }
 

@@ -44,7 +44,6 @@
 
 #include <greencontrol/config.h>
 
-//#include <greencontrol/config_api_lua_file_parser.h>
 #include "json_parser.h"
 #include "paramprinter.h"
 
@@ -99,6 +98,12 @@ namespace trap {
   extern int exitValue;
 };
 
+void stopSimFunction( int sig ){
+  v::warn << "main" << "Simulation interrupted by user" << std::endl;
+  sc_stop();
+  wait(SC_ZERO_TIME);
+}
+
 boost::filesystem::path find_top_path(char *start) {
 
   #if (BOOST_VERSION < 104600)
@@ -136,7 +141,9 @@ int sc_main(int argc, char** argv) {
       boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
       boost::program_options::notify(vm);
     } catch(boost::program_options::unknown_option o) {
-      //std::cout << "Comand line argument '" << o.get_option_name() << "' unknown. Please use -a,[argument] to add it to the software arguments or correct it." << std::endl;
+      #if (BOOST_VERSION > 104600)
+      std::cout << "Comand line argument '" << o.get_option_name() << "' unknown. Please use -a,[argument] to add it to the software arguments or correct it." << std::endl;
+      #endif
       exit(1);
     }
 
@@ -150,7 +157,7 @@ int sc_main(int argc, char** argv) {
     clock_t cstart, cend;
     std::string prom_app;
 
-    bool paramlist = false, paramlistfiltered = false, configlist = false, configlistfiltered = false, saveoptions = false;
+    bool paramlist = false, paramlistfiltered = false, configlist = false, configlistfiltered = false;//, saveoptions = false;
 
     gs::ctr::GC_Core       core;
     gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
@@ -172,15 +179,8 @@ int sc_main(int argc, char** argv) {
     boost::filesystem::path topdir = find_top_path(argv[0]);
     boost::filesystem::path appdir = (boost::filesystem::path(argv[0]).parent_path());
     boost::filesystem::path srcdir = (topdir / boost::filesystem::path("build") / boost::filesystem::path(__FILE__).parent_path());
-    boost::filesystem::path json("leon3mp.singlecore.json");
+    boost::filesystem::path json("leon3mp.json");
     char *json_env = std::getenv("JSONCONFIG");
-    /*if(vm.count("luaconfig")) {
-        jsonlua = boost::filesystem::path(vm["luaconfig"].as<std::string>());
-        if(!boost::filesystem::exists(jsonlua)) {
-            v::error << "main" << "The Lua configuration provided by command line does not exist: " << jsonlua << v::endl;
-            exit(1);
-        }
-    } else*/
     if(json_env) {
         json = boost::filesystem::path(json_env);
     } else if(boost::filesystem::exists(json)) {
@@ -233,9 +233,9 @@ int sc_main(int argc, char** argv) {
        configlist = true;
     }
     
-    if(vm.count("saveoptions")) {
-       saveoptions = true;
-    }
+    //if(vm.count("saveoptions")) {
+    //   saveoptions = true;
+    //}
     
 		std::string optionssearchkey = "";
 		if(vm.count("listoptionsfiltered")) {
@@ -266,7 +266,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_report_power("power", true, p_report);
 
     if(!((std::string)p_system_log).empty()) {
-        v::logApplication(((std::string)p_system_log).c_str());
+        v::logApplication((char *)((std::string)p_system_log).c_str());
     }
 
     amba::amba_layer_ids ambaLayer;
@@ -696,7 +696,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_gdb_en("en", false, p_gdb);
     gs::gs_param<int> p_gdb_port("port", 1500, p_gdb);
     gs::gs_param<int> p_gdb_proc("proc", 0, p_gdb);
-    for(int i=0; i< p_system_ncpu; i++) {
+    for(uint32_t i=0; i< p_system_ncpu; i++) {
       // AHBMaster - MMU_CACHE
       // =====================
       // Always enabled.
@@ -793,6 +793,7 @@ int sc_main(int argc, char** argv) {
               }
             }
             osEmu->set_program_args(options);
+            //OSEmulator<unsigned int>::set_program_args(options);
             leon3->toolManager.addTool(*osEmu);
           } else {
             v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;
@@ -849,6 +850,7 @@ int sc_main(int argc, char** argv) {
                 options.push_back(*iter);
               }
             }
+            //OSEmulator<unsigned int>::set_program_args(options);
             osEmu->set_program_args(options);
             leon3->toolManager.addTool(*osEmu);
           } else {
@@ -890,15 +892,7 @@ int sc_main(int argc, char** argv) {
 ***************/
     gs::gs_param_array p_gptimer("gptimer", p_conf);
     gs::gs_param<bool> p_gptimer_en("en", true, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_addr("addr", 0x0F0, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_mask("mask", 0xFFF, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_index("index", 3, p_gptimer);
     gs::gs_param<unsigned int> p_gptimer_irq("irq", 8, p_gptimer);
-    gs::gs_param<bool> p_gptimer_sepirq("sepirq", true, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_ntimers("ntimers", 7, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_sbits("sbit", 16, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_nbits("nbits", 32, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_wdog("wdog", 0u, p_gptimer);
 
     if(p_gptimer_en) {
       GPTimer *gptimer = new GPTimer("gptimer",
@@ -928,7 +922,7 @@ int sc_main(int argc, char** argv) {
     // APBSlave - APBUart
     // ==================
     std::string n_uart = "conf.uart";
-    gs::gs_param_array *p_uart = new gs::gs_param_array(n_uart);
+    /*gs::gs_param_array *p_uart = */new gs::gs_param_array(n_uart);
     int i = 0;
     while(mApi->getParamList(n_uart + "." + boost::lexical_cast<std::string>(i), false).size()!=0) {
       std::string n_inst = n_uart + "." + boost::lexical_cast<std::string>(i);
@@ -1025,7 +1019,7 @@ int sc_main(int argc, char** argv) {
     
    
     // * Param Listing **************************
-		paramprinter printer;
+    paramprinter printer;
     if(paramlist) {
     	printer.printParams();
     	exit(0);
@@ -1055,8 +1049,13 @@ int sc_main(int argc, char** argv) {
 
     // * Power Monitor **************************
     if(p_report_power) {
-        powermonitor *pow_mon =  new powermonitor("pow_mon");
+        new powermonitor("pow_mon");
     }
+
+    (void) signal(SIGINT, stopSimFunction);
+    (void) signal(SIGTERM, stopSimFunction);
+    (void) signal(10, stopSimFunction);
+
     try {
         cstart = clock();
         sc_core::sc_start();

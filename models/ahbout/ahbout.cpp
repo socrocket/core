@@ -79,7 +79,7 @@ AHBOut::~AHBOut() {
 /// Encapsulated functionality
 uint32_t AHBOut::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay, bool debug) {
 
-  uint32_t words_transferred;
+  //uint32_t words_transferred;
 
   // Is the address for me
   if(!((mhaddr ^ (trans.get_address() >> 20)) & mhmask)) {

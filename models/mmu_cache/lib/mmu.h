@@ -134,13 +134,13 @@ class mmu : public sc_core::sc_module, public mmu_if {
   void power_model();
 
   /// Static power callback
-  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Dynamic/Internal power callback
-  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Dynamic/Switching power callback
-  void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Displays execution statistics at the end of the simulation
   void end_of_simulation();

@@ -143,13 +143,13 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         void power_model();
 
         /// Static power callback
-        void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+        gs::cnf::callback_return_type sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
         /// Dynamic/Internal power callback
-        void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+        gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
         /// Dynamic/Switching power callback
-        void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+        gs::cnf::callback_return_type swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
         /// SystemC end of simulation handler.
         /// It's needed to print performance counter
@@ -204,9 +204,6 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
                 uint32_t   addr;
                 uint32_t   length;
         };
-
-        /// Power monitoring on/off
-        bool m_pow_mon;
 
         /// Instanciations for each memory device, plus one for no matching memory found.
         MEMPort c_rom, c_io, c_sram, c_sdram, c_null;
@@ -326,6 +323,9 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         const int g_sdbits;
         const int g_mobile;
         const int g_sden;
+
+        /// Power monitoring on/off
+        bool m_pow_mon;
 
     public:
 

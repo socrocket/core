@@ -203,13 +203,13 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   void power_model();
 
   /// Static power callback
-  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Dynamic/Internal power callback
-  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Dynamic/Switching power callback
-  void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Called at end of simulation to print execution statistics
   void end_of_simulation();
@@ -324,14 +324,14 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   /// Controller switching power
   gs::gs_param<double> swi_power;
 
+  /// Power frame starting time
+  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+
   /// Dynamic energy per read access
   gs::gs_param<double> dyn_read_energy;
 
   /// Dynamic energy per write access
   gs::gs_param<double> dyn_write_energy;
-
-  /// Power frame starting time
-  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
 
   /// Number of reads from memory (read & reset by monitor)
   gs::gs_param<unsigned long long> dyn_reads;

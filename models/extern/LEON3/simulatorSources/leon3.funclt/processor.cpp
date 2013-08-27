@@ -90,7 +90,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
     int firstinstrId = this->decoder.decode(firstbitString);
     Instruction *firstinstr = this->INSTRUCTIONS[firstinstrId];
     while(true){
-        unsigned int numCycles = 0;
+        //unsigned int numCycles = 0;
         this->instrExecuting = true;
 
         if(irqAck.stopped) {
@@ -108,17 +108,17 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
         // Log instruction count for power monitoring
         if (m_pow_mon) dyn_instr++;
 
-        if((IRQ != -1) && (PSR[key_ET] && (IRQ == 15 || IRQ > PSR[key_PIL]))){
+        if((IRQ != 0xFFFFFFFF) && (PSR[key_ET] && (IRQ == 15 || IRQ > PSR[key_PIL]))){
             this->IRQ_irqInstr->setInterruptValue(IRQ);
             try{
-                numCycles = this->IRQ_irqInstr->behavior();
+                //numCycles = this->IRQ_irqInstr->behavior();
+                this->IRQ_irqInstr->behavior(); // Replacement for ^^
             }
             catch(annull_exception &etc){
-                numCycles = 0;
+                //numCycles = 0;
             }
 
-        }
-        else{
+        } else{
             unsigned int curPC = this->PC + 0;
             if(!startMet && curPC == this->profStartAddr){
                 this->profTimeStart = sc_time_stamp();
@@ -149,13 +149,14 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
                         #ifndef DISABLE_TOOLS
                         if(!(this->toolManager.newIssue(curPC, curInstrPtr))){
                             #endif
-                            numCycles = curInstrPtr->behavior();
+                            //numCycles = curInstrPtr->behavior();
+                            curInstrPtr->behavior(); // Replacement for ^^
                             #ifndef DISABLE_TOOLS
                         }
                         #endif
                     }
                     catch(annull_exception &etc){
-                        numCycles = 0;
+                        //numCycles = 0;
                     }
                 }
                 else{
@@ -173,13 +174,14 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
                         #ifndef DISABLE_TOOLS
                         if(!(this->toolManager.newIssue(curPC, instr))){
                             #endif
-                            numCycles = instr->behavior();
+                            //numCycles = instr->behavior();
+                            instr->behavior(); // Replacement for ^^
                             #ifndef DISABLE_TOOLS
                         }
                         #endif
                     }
                     catch(annull_exception &etc){
-                        numCycles = 0;
+                        //numCycles = 0;
                     }
                     if(curCount < 256){
                         curCount++;
@@ -190,8 +192,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
                         this->INSTRUCTIONS[instrId] = instr->replicate();
                     }
                 }
-            }
-            else{
+            } else{
                 // The current instruction is not present in the cache:
                 // I have to perform the normal decoding phase ...
                 int instrId = this->decoder.decode(bitString);
@@ -207,13 +208,14 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
                     #ifndef DISABLE_TOOLS
                     if(!(this->toolManager.newIssue(curPC, instr))){
                         #endif
-                        numCycles = instr->behavior();
+                        //numCycles = instr->behavior();
+                        instr->behavior(); // Replacement for ^^
                         #ifndef DISABLE_TOOLS
                     }
                     #endif
                 }
                 catch(annull_exception &etc){
-                    numCycles = 0;
+                    //numCycles = 0;
                 }
                 this->instrCache.insert(std::pair< unsigned int, CacheElem >(bitString, CacheElem()));
                 instrCacheEnd = this->instrCache.end();
@@ -222,8 +224,8 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
             if(this->historyEnabled){
                 // First I add the new element to the queue
                 this->instHistoryQueue.push_back(instrQueueElem);
-                //Now, in case the queue dump file has been specified, I have to check if I need \
-                    to save it
+                //Now, in case the queue dump file has been specified, I have to check if I need
+                //to save it
                 if(this->histFile){
                     this->undumpedHistElems++;
                     if(undumpedHistElems == this->instHistoryQueue.capacity()){
@@ -323,26 +325,26 @@ void leon3_funclt_trap::Processor_leon3_funclt::power_model() {
 }
 
 // Static power callback
-void leon3_funclt_trap::Processor_leon3_funclt::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type leon3_funclt_trap::Processor_leon3_funclt::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Static power of AHBMem is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Internal power callback
-void leon3_funclt_trap::Processor_leon3_funclt::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type leon3_funclt_trap::Processor_leon3_funclt::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // AHBMem internal power is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Switching power callback
-void leon3_funclt_trap::Processor_leon3_funclt::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type leon3_funclt_trap::Processor_leon3_funclt::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   swi_power = (dyn_instr_energy * dyn_instr) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
-
+  return GC_RETURN_OK;
 }
 
 // Automatically called at the beginning of the simulation
@@ -400,9 +402,9 @@ void leon3_funclt_trap::Processor_leon3_funclt::enableHistory( std::string fileN
 
 leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt( sc_module_name \
     name, sc_time latency, bool pow_mon ) : sc_module(name), 
-                                            latency(latency), 
                                             instrMem("instrMem", this->quantKeeper), 
                                             dataMem("dataMem", this->quantKeeper), 
+                                            latency(latency), 
                                             IRQ_port("IRQ_IRQ", IRQ),
                                             irqAck("irqAck_PIN"),
                                             m_pow_mon(pow_mon),
@@ -812,8 +814,8 @@ leon3_funclt_trap::Processor_leon3_funclt::~Processor_leon3_funclt(){
     delete this->IRQ_irqInstr;
     #ifdef ENABLE_HISTORY
     if(this->historyEnabled){
-        //Now, in case the queue dump file has been specified, I have to check if I need \
-            to save the yet undumped elements
+        //Now, in case the queue dump file has been specified, I have to check if I need
+        //to save the yet undumped elements
         if(this->histFile){
             if(this->undumpedHistElems > 0){
                 std::vector<std::string> histVec;

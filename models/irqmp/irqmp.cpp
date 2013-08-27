@@ -279,19 +279,19 @@ void Irqmp::power_model() {
 }
 
 // Static power callback
-void Irqmp::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type Irqmp::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Static power of Irqmp is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Internal power callback
-void Irqmp::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type Irqmp::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Internal power of Irqmp is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Reset registers to default values

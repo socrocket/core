@@ -813,8 +813,10 @@ void leon3_funcat_trap::TLMMemory::unlock(){
 
 }
 
-leon3_funcat_trap::TLMMemory::TLMMemory( sc_module_name portName ) : sc_module(portName), \
-    m_peq(this, &TLMMemory::peq_cb), request_in_progress(NULL){
+leon3_funcat_trap::TLMMemory::TLMMemory( sc_module_name portName ) : 
+    sc_module(portName),
+    request_in_progress(NULL),
+    m_peq(this, &TLMMemory::peq_cb) {
     this->debugger = NULL;
     // Register callbacks for incoming interface method calls
     this->initSocket.register_nb_transport_bw(this, &TLMMemory::nb_transport_bw);

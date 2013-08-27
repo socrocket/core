@@ -1023,25 +1023,26 @@ void mmu::power_model() {
 }
 
 // Static power callback
-void mmu::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type mmu::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Static power of mmu is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Internal power callback
-void mmu::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type mmu::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // MMU internal power is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Switching power callback
-void mmu::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type mmu::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   swi_power = ((dyn_itlb_read_energy * dyn_itlb_reads) + (dyn_itlb_write_energy * dyn_itlb_writes) + (dyn_dtlb_read_energy * dyn_dtlb_reads) + (dyn_dtlb_write_energy * dyn_dtlb_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
+  return GC_RETURN_OK;
 
 }
 

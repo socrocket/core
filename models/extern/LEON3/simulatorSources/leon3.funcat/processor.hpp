@@ -108,9 +108,9 @@ namespace leon3_funcat_trap{
         void resetOp();
         void start_of_simulation();
         void power_model();
-        void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
-        void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
-        void swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+        gs::cnf::callback_return_type sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+        gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+        gs::cnf::callback_return_type swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
         void end_of_elaboration();
         Instruction * decode( unsigned int bitString );
         LEON3_ABIIf * abiIf;

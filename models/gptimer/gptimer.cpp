@@ -74,31 +74,30 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
 GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                    int pindex, int paddr, int pmask, int pirq, int sepirq,
                    int sbits, int nbits, int wdog, bool powmon) :
-  p_conf("conf"),
-  m_ntimers("ntimers", ntimers, p_conf),
-  m_pindex("index", pindex, p_conf),
-  m_paddr("addr", paddr, p_conf),
-  m_pmask("mask", pmask, p_conf),
   gr_device(name, gs::reg::ALIGNED_ADDRESS, 4 * (1 + ntimers), NULL),
   APBDevice(pindex, 0x1, 0x11, 0, pirq, APBIO, pmask, false, false, paddr), 
   bus("bus", r, (paddr & pmask) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false), 
   irq("IRQ"), wdog("WDOG"), 
 //irq and wdog signals
 //  irq("irq", pirq), wdog("wdog", wdog),
-  m_sepirq("sepirq", sepirq, p_conf),
   conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)), 
   lasttime(0, sc_core::SC_NS), lastvalue(0), 
+  p_conf("conf"),
+  m_ntimers("ntimers", ntimers, p_conf),
   g_sbits("sbit", sbits, p_conf),
   g_nbits("nbits", nbits, p_conf),
   g_wdog_length("wdog", wdog, p_conf),
   powermon("powermon", powmon, p_conf),
+  m_pindex("index", pindex, p_conf),
+  m_paddr("addr", paddr, p_conf),
+  m_pmask("mask", pmask, p_conf),
+  m_sepirq("sepirq", sepirq, p_conf),
   sta_power_norm("power.gptimer.sta_power_norm", 2.46e+6, true), // Normalized static power input
   int_power_norm("power.gptimer.int_power_norm", 1.093e-8, true), // Normalized internal power input
   power("power"),
   sta_power("sta_power", 0.0, power), // Static power output
   int_power("int_power", 0.0, power)  // Internal dynamic power output (activation independent)
-
- {
+  {
 	//set name, type, default, range, hint and description for gs_configs
 	m_paddr.addProperties()("name", "APB Base Address")("range", "0..4095")("hint", "The 12bit MSB address at the APB bus");
 	m_pmask.addProperties()("name", "APB Base Mask")("range", "0..4095")("hint", "The 12bit APB address mask");
@@ -248,19 +247,20 @@ void GPTimer::power_model() {
 }
 
 // Static power callback
-void GPTimer::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type GPTimer::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Static power of GPTimer is constant !!
+  return GC_RETURN_OK;
 
 }
 
 // Internal power callback
-void GPTimer::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type GPTimer::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Internal power of GPTimer is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Set all register callbacks
@@ -357,4 +357,5 @@ int GPTimer::numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b,
 }
 
 /// @}
+
 

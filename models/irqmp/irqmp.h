@@ -116,10 +116,10 @@ class Irqmp : public gs::reg::gr_device,
   void power_model();
 
   /// Static power callback
-  void sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Dynamic/Internal power callback
-  void int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Recalculates the output for the CPUs.
   ///

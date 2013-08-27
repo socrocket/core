@@ -50,12 +50,12 @@ localram::localram(sc_core::sc_module_name name,
                    sc_module(name), 
 		   m_lrsize(lrsize<<10), 
 		   m_lrstart(lrstart << 24),
+		   m_pow_mon(pow_mon),
 		   m_performance_counters("performance_counters"),
 		   sreads("read_transactions", 0ull, m_performance_counters),
 		   swrites("written_transactions", 0ull, m_performance_counters),
 		   sreads_byte("bytes_read", 0ull, m_performance_counters),
 		   swrites_byte("bytes_written", 0ull, m_performance_counters),
-		   m_pow_mon(pow_mon),
                    sta_power_norm("power.mmu_cache.localram.sta_power_norm", 1269.53125, true), // Normalized static power input
                    int_power_norm("power.mmu_cache.localram.int_power_norm", 1.61011e-12, true), // Normalized dynamic internal power input (activ. independent)
                    dyn_read_energy_norm("power.mmu_cache.localram.dyn_read_energy_norm", 7.57408e-13, true), // Normalized read energy input
@@ -206,26 +206,26 @@ void localram::power_model() {
 }
 
 // Static power callback
-void localram::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type localram::sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Static power of localram is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Internal power callback
-void localram::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type localram::int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   // Nothing to do !!
   // Internal power of localram is constant !!
-
+  return GC_RETURN_OK;
 }
 
 // Switching power callback
-void localram::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type localram::swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
 
   swi_power = ((dyn_read_energy * dyn_reads) + (dyn_write_energy * dyn_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
-
+  return GC_RETURN_OK;
 }
 
 // Print execution statistic at end of simulation
