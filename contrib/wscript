@@ -1,0 +1,87 @@
+from waflib import Options, Context, Logs
+import os
+def init_output(self):
+    """
+    Initialize the project directory and the build directory
+    """
+
+    top = None
+    if not top:
+            top = Options.options.top
+    if not top:
+            top = getattr(Context.g_module, Context.TOP, None)
+    if not top:
+            top = self.path.abspath()
+    top = os.path.abspath(top)
+
+    self.srcnode = (os.path.isabs(top) and self.root or self.path).find_dir(top)
+    assert(self.srcnode)
+
+    out = None
+    if not out:
+            out = Options.options.out
+    if not out:
+            out = getattr(Context.g_module, Context.OUT, None)
+    if not out:
+            out = Options.lockfile.replace('.lock-waf_%s_' % sys.platform, '').replace('.lock-waf', '')
+
+    self.bldnode = (os.path.isabs(out) and self.root or self.path).make_node(out)
+    self.bldnode.mkdir()
+
+    if not os.path.isdir(self.bldnode.abspath()):
+            conf.fatal('Could not create the build directory %s' % self.bldnode.abspath())
+
+    path = os.path.join(self.bldnode.abspath(), "contrib.log")
+    self.logger = Logs.make_logger(path, 'cfg')
+
+def contrib(ctx):
+    init_output(ctx)
+
+    ### System C + TLM ###
+    sysc_path = os.path.join(ctx.srcnode.abspath(), "contrib", "systemc-2.3.0")
+    os.chdir(sysc_path)
+    ctx.start_msg("Configure SystemC 2.3")
+    ctx.cmd_and_log(["./configure"], output=Context.BOTH)
+    ctx.end_msg("Ok")
+
+    ctx.start_msg("Compile SystemC 2.3")
+    ctx.cmd_and_log(["make"], output=Context.BOTH)
+    ctx.end_msg("Ok")
+
+    ### GreenLib ###
+    greenlib_path = os.path.join(ctx.srcnode.abspath(), "contrib", "greenlib")
+    greenlib_build = os.path.join(greenlib_path, "build")
+    if not os.path.isdir(greenlib_build):
+        os.mkdir(greenlib_build)
+    os.chdir(greenlib_build)
+    ctx.start_msg("Compiling GreenLib")
+    ctx.cmd_and_log(["cmake", "..", "-DSYSTEMC_PREFIX=%s" % (sysc_path)], output=Context.BOTH)
+    ctx.cmd_and_log(["make"], output=Context.BOTH)
+    ctx.end_msg("Ok")
+
+    ctx.start_msg("Symlinking GreenLib")
+    greenlib_inc = os.path.join(greenlib_path, "include")
+    if not os.path.isdir(greenlib_inc):
+        os.mkdir(greenlib_inc)
+    for sublib in ["greencontrol", "greenreg", "greenrouter", "greensignalbus", "greensignalsocket", "greensocket", "gsgpsocket"]:
+        sublib_inc = os.path.join(greenlib_inc, sublib)
+        sublib_src = os.path.join(greenlib_path, sublib, "include", sublib)
+        if not os.path.exists(sublib_inc):
+            os.symlink(sublib_src, sublib_inc)
+    greenreg_lib = os.path.join(greenlib_path, "build", "greenreg", "lib", "libgreenreg.a")
+    greenreg_inclib = os.path.join(greenlib_inc, "greenreg", "libgreenreg.a")
+    if os.path.isfile(greenreg_lib) and not os.path.islink(greenreg_inclib):
+        os.symlink(greenreg_lib, greenreg_inclib)
+    ctx.end_msg("Ok")
+
+    ctx.start_msg("Compiling Trapgen")
+    trap_path = os.path.join(ctx.srcnode.abspath(), "contrib", "trap-gen-2012.07")
+    trap_dist = os.path.join(ctx.srcnode.abspath(), "contrib", "trap-gen-2012.07-dist")
+    os.chdir(trap_path)
+    ctx.cmd_and_log(["./waf", "configure", "--with-systemc=%s" % (sysc_path), "--prefix=%s" % (trap_dist)], output=Context.BOTH)
+    ctx.cmd_and_log(["./waf"], output=Context.BOTH)
+    ctx.cmd_and_log(["./waf", "install"], output=Context.BOTH)
+    ctx.end_msg("Ok")
+
+def build(sself):
+    pass

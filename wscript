@@ -106,6 +106,9 @@ class Coverage(BuildContext):
     cmd = 'coverage'
     fun = 'coverage'
 
+def contrib(ctx):
+    ctx.recurse('contrib')
+
 def generate(bld):
   """If PyQt4 is installed opens a Wizard to configure a platform"""
   from tools.generator.wizard import main
@@ -154,6 +157,9 @@ def configure(ctx):
     #ctx.check_tool('doxygen', tooldir='tools/waf')
  
     ctx.find_program('nm', mandatory=1, var='NM')
+    contrib_path = os.path.join(ctx.srcnode.abspath(), "contrib")
+    use_contrib = os.path.isdir(os.path.join(contrib_path, "trap-gen-2012.07-dist/"))
+    ctx.msg("Use contrib dependencies", use_contrib)
     #############################################################
     # Small hack to adjust common usage of CPPFLAGS
     #############################################################
@@ -467,13 +473,18 @@ def configure(ctx):
     ctx.env.append_unique('DEFINES', 'USE_STATIC_CASTS')
     ctx.env.append_unique('DEFINES', 'SC_INCLUDE_DYNAMIC_PROCESSES')
     syscpath = None
-    if ctx.options.systemcdir:
-        syscpath = ([os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.systemcdir, 'include'))))])
+    if not use_contrib:
+        if ctx.options.systemcdir:
+            syscpath = ([os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.systemcdir, 'include'))))])
 
-    sysclib = ''
-    if syscpath:
-        sysclib = glob.glob(os.path.join(os.path.abspath(os.path.join(syscpath[0], '..')), 'lib-*'))
-    ctx.check_cxx(lib='systemc', uselib_store='SYSTEMC', mandatory=True, libpath=sysclib, errmsg='not found, use --systemc option')
+        sysclib = ''
+        if syscpath:
+            sysclib = glob.glob(os.path.join(os.path.abspath(os.path.join(syscpath[0], '..')), 'lib-*'))
+    else:
+        sysclib = glob.glob(os.path.join(contrib_path, "systemc-2.3.0", "lib-*"))
+        syscpath = os.path.join(contrib_path, "systemc-2.3.0", "include")
+
+    ctx.check_cxx(stlib='systemc', uselib_store='SYSTEMC', mandatory=True, libpath=sysclib, errmsg='not found, use --systemc option')
 
     ######################################################
     # Check if systemc is compiled with quick threads or not
@@ -490,7 +501,15 @@ def configure(ctx):
         systemCerrmsg='Error, at least version 2.2.0 required'
     else:
         systemCerrmsg='Error, at least version 2.2.0 required.\nSystemC also needs patching under cygwin:\nplease controll that lines 175 and 177 of header systemc.h are commented;\nfor more details refer to http://www.ht-lab.com/howto/sccygwin/sccygwin.html\nhttp://www.dti.dk/_root/media/27325_SystemC_Getting_Started_artikel.pdf'
-    ctx.check_cxx(header_name='systemc.h', use='SYSTEMC', uselib_store='SYSTEMC', mandatory=True, includes=syscpath)
+    ctx.check_cxx(fragment='''
+        #include <systemc.h>
+
+        extern "C" {
+            int sc_main(int argc, char** argv) {
+                return 0;
+            };
+        }
+''', header_name='systemc.h', use='SYSTEMC', uselib_store='SYSTEMC', mandatory=True, includes=syscpath)
     ctx.check_cxx(fragment='''
         #include <systemc.h>
 
@@ -515,13 +534,25 @@ def configure(ctx):
     # Check for TLM header
     ##################################################
     tlmPath = ''
-    if ctx.options.tlmdir:
-        tlmPath = os.path.normpath(os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.tlmdir))))
-    if not tlmPath.endswith('include'):
-        tlmPath = os.path.join(tlmPath, 'include')
-    tlmPath = [os.path.join(tlmPath, 'tlm')]
+    if not use_contrib:
+        if ctx.options.tlmdir:
+            tlmPath = os.path.normpath(os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.tlmdir))))
+        if not tlmPath.endswith('include'):
+            tlmPath = os.path.join(tlmPath, 'include')
+        #tlmPath = [os.path.join(tlmPath, 'tlm')]
+    else:
+        tlmPath = os.path.join(contrib_path, "systemc-2.3.0", "include")
 
-    ctx.check_cxx(header_name='tlm.h', use='SYSTEMC', uselib_store='TLM', mandatory=True, includes=tlmPath, errmsg='not found, use --tlm option')
+    ctx.check_cxx(fragment='''
+        #include <systemc.h>
+        #include <tlm.h>
+
+        extern "C" {
+            int sc_main(int argc, char** argv) {
+                return 0;
+            };
+        }
+''', header_name='tlm.h', use='SYSTEMC', uselib_store='TLM', mandatory=True, includes=tlmPath, errmsg='not found, use --tlm option')
     ctx.check_cxx(fragment='''
         #include <systemc.h>
         #include <tlm.h>
@@ -554,9 +585,14 @@ def configure(ctx):
     trapLibErrmsg = 'not found, use --trapgen option. It might also be that the trap library is compiled '
     trapLibErrmsg += 'against libraries (bfd/libelf, boost, etc.) different from the ones being used now; in case '
     trapLibErrmsg += 'try recompiling trap library.'
-    if ctx.options.trapdir:
-        trapDirLib = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'lib'))))
-        trapDirInc = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'include'))))
+    if ctx.options.trapdir or use_contrib:
+        if not use_contrib:
+            trapDirLib = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'lib'))))
+            trapDirInc = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'include'))))
+        else:
+            trapDirLib = os.path.join(contrib_path, "trap-gen-2012.07-dist", 'lib')
+            trapDirInc = os.path.join(contrib_path, "trap-gen-2012.07-dist", 'include')
+
         ctx.check_cxx(lib='trap', use='ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True, libpath=trapDirLib, errmsg=trapLibErrmsg)
         foundShared = glob.glob(os.path.join(trapDirLib, ctx.env['cxxshlib_PATTERN'] % 'trap'))
         if foundShared:
@@ -566,85 +602,65 @@ def configure(ctx):
         if not check_trap_linking(ctx, 'trap', ctx.env['LIBPATH_TRAP'], 'elf_begin') and 'bfd' not in ctx.env['LIB_ELF_LIB']:
             ctx.fatal('TRAP library not linked with libelf library: BFD library needed (you might need to re-create the processor specifying a GPL license) or compile TRAP using its LGPL flavour ')
 
-        ctx.check_cxx(header_name='trap.hpp', use='TRAP ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True, includes=trapDirInc)
-        ctx.check_cxx(fragment='''
-            #include "trap.hpp"
+        ctx.check_cxx(
+            header_name='trap.hpp', 
+            use='TRAP ELF_LIB BOOST SYSTEMC', 
+            uselib_store='TRAP', 
+            mandatory=True, 
+            includes=trapDirInc
+        )
+        ctx.check_cxx(
+            fragment='''
+              #include "trap.hpp"
 
-            #ifndef TRAP_REVISION
-            #error TRAP_REVISION not defined in file trap.hpp
-            #endif
+              #ifndef TRAP_REVISION
+              #error TRAP_REVISION not defined in file trap.hpp
+              #endif
 
-            #if TRAP_REVISION < ''' + str(trapRevisionNum) + '''
-            #error Wrong version of the TRAP runtime: too old
-            #endif
+              #if TRAP_REVISION < ''' + str(trapRevisionNum) + '''
+              #error Wrong version of the TRAP runtime: too old
+              #endif
 
-            int main(int argc, char * argv[]){return 0;}
-''', msg='Check for TRAP version', use='TRAP ELF_LIB BOOST SYSTEMC', mandatory=True, includes=trapDirInc, errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required')
+              int main(int argc, char * argv[]){return 0;}
+            ''', 
+            msg='Check for TRAP version', 
+            use='TRAP ELF_LIB BOOST SYSTEMC', 
+            mandatory=True, 
+            includes=trapDirInc, 
+            errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required'
+        )
     else:
-        ctx.check_cxx(lib='trap', use='ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True, errmsg=trapLibErrmsg)
-
+        ctx.check_cxx(
+            stlib='trap', 
+            use='ELF_LIB BOOST SYSTEMC', 
+            uselib_store='TRAP', 
+            mandatory=True, 
+            errmsg=trapLibErrmsg
+        )
 
         if not check_trap_linking(ctx, 'trap', ctx.env['LIBPATH_TRAP'], 'elf_begin') and 'bfd' not in ctx.env['LIB_ELF_LIB']:
             ctx.fatal('TRAP library not linked with libelf library: BFD library needed (you might need to re-create the processor specifying a GPL license) or compile TRAP using its LGPL flavour ')
 
         ctx.check_cxx(header_name='trap.hpp', use='TRAP ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True)
-        ctx.check_cxx(fragment='''
-            #include "trap.hpp"
+        ctx.check_cxx(
+            fragment='''
+                #include "trap.hpp"
 
-            #ifndef TRAP_REVISION
-            #error TRAP_REVISION not defined in file trap.hpp
-            #endif
+                #ifndef TRAP_REVISION
+                #error TRAP_REVISION not defined in file trap.hpp
+                #endif
 
-            #if TRAP_REVISION < ''' + str(trapRevisionNum) + '''
-            #error Wrong version of the TRAP runtime: too old
-            #endif
+                #if TRAP_REVISION < ''' + str(trapRevisionNum) + '''
+                #error Wrong version of the TRAP runtime: too old
+                #endif
 
-            int main(int argc, char * argv[]){return 0;}
-''', msg='Check for TRAP version', use='TRAP ELF_LIB BOOST SYSTEMC', mandatory=1, errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required')
-
-    '''
-    ##################################################
-    # Check for Lua Library and Headers
-    ##################################################
-    if ctx.options.luadir:
-      lualib = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.luadir, "lib")))))
-      luadir = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.luadir, "include")))))
-    else:
-      lualib = "/usr/lib"
-      luadir = "/usr/include/lua5.1"
-
-    ctx.check_cxx(
-      lib          = 'lua5.1',
-      uselib_store = 'LUA',
-      mandatory    = True,
-      libpath      = lualib,
-      errmsg       = "LUA Library not found. Use --lua option or set $LUA.",
-      okmsg        = "ok"
-    ) 
-    ctx.check_cxx(
-      header_name  = 'lua.h',
-      uselib_store = 'LUA',
-      mandatory    = True,
-      includes     = luadir,
-      uselib       = 'LUA',
-      okmsg        = "ok"
-    ) 
-    
-    ctx.check_cxx(
-      msg          = "Checking for Lua 5.1.4 or higher",
-      mandatory    = True,
-      execute      = True,
-      fragment     = """
-                     #include <lua.h>
-                     int main(int argc, char *argv[]) {
-                       return !(LUA_VERSION_NUM > 500);
-                     }
-                   """,
-      uselib       = 'LUA',
-      okmsg        = "ok",
-    )
-
-    '''
+                int main(int argc, char * argv[]){return 0;}
+            ''', 
+            msg='Check for TRAP version', 
+            use='TRAP ELF_LIB BOOST SYSTEMC', 
+            mandatory=1, 
+            errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required'
+        )
 
     ##################################################
     # Check for SDL Library and Headers
@@ -714,43 +730,12 @@ def configure(ctx):
       okmsg        = "ok"
     ) 
     
-    '''
-    ##################################################
-    # Check for SystemC Verification Library
-    ##################################################
-    # TODO: It has to be checked if we realy need them
-    ctx.check_cxx(
-      lib          = 'scv',
-      uselib_store = 'SCV',
-      mandatory    = True,
-      libpath      = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.scvdir, "lib-*"))))),
-      errmsg     = "SystemC Verification Library not found. Use --scv option or set $SCV."
-    ) 
-    ctx.check_cxx(
-      header_name  = 'scv.h',
-      uselib_store = 'SCV',
-      mandatory    = True,
-      includes     = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(options.scvdir, "include")))),
-      uselib       = 'SYSTEMC SCV'
-    ) 
-    ctx.check_cxx(
-      msg          = "Checking for SCV Library 2.2 or higher",
-      mandatory    = True,
-      execute      = True,
-      fragment     = """
-                   #include <scv.h>
-                   int main(int argc, char *argv[]) {
-                     return !(SC_VERSION > 2001999);
-                   }
-      """,
-      uselib       = 'SYSTEMC SCV',
-    )
-    '''
-
     ##################################################
     # Check for GreenSocs GreenSockets Header
     ##################################################
-    if ctx.options.greensocsdir:
+    if use_contrib:
+      gs_inc      = [os.path.join(contrib_path, "greenlib", "include")]
+    elif ctx.options.greensocsdir:
       gs_inc      = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.greensocsdir))))]
     else:
       gs_inc      = []
@@ -763,6 +748,17 @@ def configure(ctx):
 #                       ctx.env['INCLUDES_BOOST']],
       uselib        = 'BOOST SYSTEMC TLM',
       okmsg        = "ok",
+      fragment='''
+           #include <systemc.h>
+           #include <tlm.h>
+           #include <greensocket/initiator/single_socket.h>
+
+           extern "C" {
+               int sc_main(int argc, char** argv) {
+                   return 0;
+               };
+           }
+      '''
     )
     ctx.check_cxx(
       header_name   = "greensocket/target/single_socket.h",
@@ -771,6 +767,17 @@ def configure(ctx):
       includes      = gs_inc,
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
       okmsg        = "ok",
+      fragment='''
+           #include <systemc.h>
+           #include <tlm.h>
+           #include <greensocket/target/single_socket.h>
+
+           extern "C" {
+               int sc_main(int argc, char** argv) {
+                   return 0;
+               };
+           }
+      '''
     )
 
     ##################################################
@@ -783,18 +790,31 @@ def configure(ctx):
       includes      = gs_inc,
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
       okmsg        = "ok",
+      fragment='''
+           #include <systemc.h>
+           #include <tlm.h>
+           #include <greencontrol/config.h>
+
+           extern "C" {
+               int sc_main(int argc, char** argv) {
+                   return 0;
+               };
+           }
+      '''
     )
 
     ##################################################
     # Check for GreenSocs GreenReg Library
     ##################################################
-    if ctx.options.greensocsdir:
+    if use_contrib:
+      grreg_inc      = [os.path.join(contrib_path, "greenlib", "include", "greenreg")]
+    elif ctx.options.greensocsdir:
       grreg_inc      = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.greensocsdir, "greenreg"))))]
     else:
       grreg_inc      = []
 
     ctx.check_cxx(
-      lib          = 'greenreg',
+      stlib        = 'greenreg',
       uselib_store = 'GREENSOCS',
       mandatory    = True,
       libpath      = grreg_inc,
@@ -811,12 +831,26 @@ def configure(ctx):
       includes      = grreg_inc,
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
       okmsg        = "ok",
+      fragment='''
+           #include <systemc.h>
+           #include <tlm.h>
+           #include <greenreg.h>
+
+           extern "C" {
+               int sc_main(int argc, char** argv) {
+                   return 0;
+               };
+           }
+      '''
     )
 
     ##################################################
     # Check for AMBAKit
     ##################################################
-    if ctx.options.ambadir:
+    if use_contrib:
+      amba_inc = [os.path.join(contrib_path, "amba_socket-1.0.15"),
+                  os.path.join(contrib_path, "amba_socket-1.0.15", "dependencies", "AMBA-PV", "include")]
+    elif ctx.options.ambadir:
       amba_inc = [os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.ambadir))),
                   os.path.join(os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.ambadir))), "dependencies", "AMBA-PV", "include")]
     else:
@@ -830,6 +864,17 @@ def configure(ctx):
       uselib        = 'BOOST SYSTEMC TLM GREENSOCS',
       okmsg        = "ok",
       errmsg        = 'AMBAKit not found please give the location with --amba=',
+      fragment='''
+           #include <systemc.h>
+           #include <tlm.h>
+           #include <amba.h>
+
+           extern "C" {
+               int sc_main(int argc, char** argv) {
+                   return 0;
+               };
+           }
+      '''
     )
 
     ##################################################
@@ -841,7 +886,7 @@ def configure(ctx):
       execute      = True,
       fragment     = """
                      #include <amba.h>
-                     int main(int argc, char *argv[]) {
+                     int sc_main(int argc, char *argv[]) {
                        return !((AMBA_TLM_VERSION_MAJOR >= 1) && (AMBA_TLM_VERSION_MINOR >= 0) && (AMBA_TLM_VERSION_REVISION >= 6));
                      }
                      """,
@@ -867,31 +912,6 @@ def configure(ctx):
     if not os.path.isdir("adapters"):
       ctx.env["MODELSIM"] = False
     
-    ##################################################
-    # Extend GreenSocs with TLM extensionPool.h
-    ##################################################
-    """
-    if ctx.options.tlmdir:
-        tlmPath = os.path.normpath(os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.tlmdir))))
-    if tlmPath.endswith('include'):
-        tlmPath = os.path.join(tlmPath, '..')
-    tlmPath = os.path.join(tlmPath, "unit_test", "tlm", "multi_sockets", "include")
-    ctx.check_cxx(
-      header_name   = [ "tlm.h",
-                        "tlm_utils/multi_passthrough_initiator_socket.h",
-                        "tlm_utils/multi_passthrough_target_socket.h",
-                        "simpleAddressMap.h",
-                        "extensionPool.h"
-                      ],
-      uselib_store  = 'GREENSOCS',
-      msg           = "Checking for extensionPool.h from TLM",
-      mandatory     = True,
-      includes      = [tlmPath],
-      uselib        = 'SYSTEMC TLM GREENSOCS',
-      okmsg        = "ok",
-    )
-    """
-
     sr_libdir = os.path.join(ctx.path.abspath(), 'lib')
     sr_incdir = os.path.join(ctx.path.abspath(), 'include')
     if os.path.isdir(sr_libdir) and os.path.isdir(sr_incdir):
