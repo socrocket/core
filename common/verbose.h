@@ -40,21 +40,22 @@
 #ifndef VERBOSE_H
 #define VERBOSE_H
 
-#include <iostream>
-#include <streambuf>
-#include <iomanip>
-#include <cstdio>
-#include <cstring>
-#include <string>
-#include <systemc.h>
-#include <boost/lexical_cast.hpp>
-
 #define CULT_ENABLE
 #define CULT_WITH_SYSTEMC
 //#define CULT_WITH_TLM
 #define CULT_SUBLEVELS 10
 
 #include "cult.h"
+
+#include <iostream>
+//#include <streambuf>
+//#include <iomanip>
+//#include <cstdio>
+//#include <cstring>
+#include <string>
+#include <systemc.h>
+//#include <tlm.h>
+
 /// @addtogroup utils
 /// @{
 
@@ -158,9 +159,8 @@ extern Number noint;
 template<int level>
 class msgstream {
     public:
-        msgstream(std::streambuf *sb) :
-            m_stream(sb), messagestream() {
-#ifdef CULT_ENABLE
+        msgstream() :
+            messagestream() {
             switch (level) {
                 case 0:
                     cultloglevel = CULT_ERROR;
@@ -177,37 +177,21 @@ class msgstream {
                 default:
                     cultloglevel = CULT_DEBUG;
             }
-#endif
         }
 
         template<class T>
-        inline msgstream& operator<<(const T &in) {
-#ifdef CULT_ENABLE
+        inline msgstream<level>& operator<<(const T &in) {
             messagestream << in;
-#else
-            if (level < VERBOSITY) {
-                m_stream << in;
-            }
-#endif
             return *this;
         }
 
-        inline msgstream& operator<<(std::ostream& (*in)(std::ostream&)) {
-#ifdef CULT_ENABLE
+        inline msgstream<level>& operator<<(std::ostream& (*in)(std::ostream&)) {
             if ( in == v::endl ) {
                 std::string msg = messagestream.str();
-//                std::cout << " (" << module << ") " << localmsg << std::endl;
                 CULT_LOG_MESSAGE_SC(module, cultloglevel, msg);
                 // Empty messagestream
                 messagestream.str("");
-//            } else {
-//              messagestream << in;
             }
-#else
-            if (level < VERBOSITY) {
-                m_stream << in;
-            }
-#endif
             return *this;
         }
 
@@ -215,10 +199,7 @@ class msgstream {
         std::stringstream messagestream;
 
     private:
-        std::ostream m_stream;
-#ifdef CULT_ENABLE
         cult::LogLevel cultloglevel;
-#endif
 };
 
 /// This stream is used for an output line.
@@ -226,48 +207,12 @@ class msgstream {
 template<int level>
 class logstream {
     public:
-        logstream(std::streambuf *sb) :
-            m_stream(sb) {
-        }
 
         template<class T>
         inline msgstream<level>& operator<<(const T &in) {
-#ifdef CULT_ENABLE
             m_stream.module = in;
-#else
-            if (level < VERBOSITY) {
-                m_stream << "@" << sc_core::sc_time_stamp().to_string().c_str()
-                        << " /" << std::dec
-                        << (unsigned)sc_core::sc_delta_count() << " ("
-                        << ::v::Blue << in << ::v::Normal << "): ";
-                switch (level) {
-                    case 0:
-                        m_stream << v::Red << "Error: " << v::Normal;
-                        break;
-                    case 1:
-                        m_stream << v::Yellow << "Warning: " << v::Normal;
-                        break;
-                    case 2:
-                        m_stream << v::Green << "Report: " << v::Normal;
-                        break;
-                    case 3:
-                        m_stream << v::Cyan << "Info: " << v::Normal;
-                        break;
-                    default:
-                        m_stream << v::Magenta << "Debug: " << v::Normal;
-                }
-            }
-#endif
             return m_stream;
         }
-
-        /*inline
-         msgstream<level>& operator<<(std::ostream& (*in)(std::ostream&)) {
-         if(level<VERBOSITY) {
-         m_stream << in;
-         }
-         return *this;
-         }*/
 
         operator bool() const {
             return level < VERBOSITY;
@@ -282,18 +227,6 @@ extern logstream<2> report;
 extern logstream<3> info;
 extern logstream<4> debug;
 
-/// This function can be used if you wish to log all verbose output in a file.
-/// The logfile gets filled with data in parallel to the screen output.
-/// If you want to end the logging to a file simply call the function with NULL as parameter.
-///
-/// @param filename The file name of the logfile.
-void logFile(char *filename);
-
-/// This function is intended to create a logfile next to the executable simply callit like:
-/// > v::logApplication(argv[0])
-/// If argv[0] is "./build/test1/mytest" the logfile will be "./build/test1/mytest.log"
-///
-/// @param name Application name
 void logApplication(char *name);
 
 } // namespace

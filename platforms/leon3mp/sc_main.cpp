@@ -255,11 +255,11 @@ int sc_main(int argc, char** argv) {
     gs::gs_param_array p_report("report", p_conf);
     gs::gs_param<bool> p_report_timing("timing", true, p_report);
     gs::gs_param<bool> p_report_power("power", true, p_report);
-
+/*
     if(!((std::string)p_system_log).empty()) {
         v::logApplication(((std::string)p_system_log).c_str());
     }
-
+*/
     amba::amba_layer_ids ambaLayer;
     if(p_system_at) {
         ambaLayer = amba::amba_AT;
@@ -1049,19 +1049,22 @@ int sc_main(int argc, char** argv) {
     if(p_report_power) {
         powermonitor *pow_mon =  new powermonitor("pow_mon");
     }
-    try {
-        cstart = clock();
-        sc_core::sc_start();
-        cend = clock();
-    } catch(std::runtime_error &error) {
-        v::error << "main" << "Execution is stoped caused by a runtime_error. Maybe you forgot to select an executable?" << v::endl;
-        v::error << "main" << error.what();
-    }
-
     if(p_report_timing) {
-        v::info << "Summary" << "Start: " << dec << cstart << v::endl;
-        v::info << "Summary" << "End:   " << dec << cend << v::endl;
-        v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
+
+        try {
+            cstart = clock();
+            sc_core::sc_start();
+            cend = clock();
+
+            v::info << "Summary" << "Start: " << dec << cstart << v::endl;
+            v::info << "Summary" << "End:   " << dec << cend << v::endl;
+            v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
+
+        } catch(std::runtime_error &error) {
+            v::error << "main" << "Execution is stoped caused by a runtime_error. Maybe you forgot to select an executable?" << v::endl;
+            v::error << "main" << error.what();
+        }
+
     }
     return trap::exitValue;
 }
