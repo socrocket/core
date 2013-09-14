@@ -181,16 +181,20 @@ class msgstream {
 
         template<class T>
         inline msgstream<level>& operator<<(const T &in) {
-            messagestream << in;
+			if ( level < VERBOSITY) {
+			  messagestream << in;
+			}
             return *this;
         }
 
         inline msgstream<level>& operator<<(std::ostream& (*in)(std::ostream&)) {
-            if ( in == v::endl ) {
+			if ( level < VERBOSITY ) {
+			  if ( in == v::endl ) {
                 std::string msg = messagestream.str();
                 CULT_LOG_MESSAGE_SC(module, cultloglevel, msg);
                 // Empty messagestream
                 messagestream.str("");
+			  }
             }
             return *this;
         }
@@ -210,7 +214,9 @@ class logstream {
 
         template<class T>
         inline msgstream<level>& operator<<(const T &in) {
-            m_stream.module = in;
+			if ( level < VERBOSITY ) {
+			  m_stream.module = in;
+			}
             return m_stream;
         }
 

@@ -645,45 +645,65 @@ def configure(ctx):
     )
 
     ##################################################
+    # Check for Otf Library and Headers
+    ##################################################
+    if ctx.options.otfdir:
+      otflib = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.otfdir, "lib")))))
+      otfdir = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.otfdir, "include", "open-trace-format")))))
+    else:
+      out_dir = os.path.abspath(ctx.out_dir or out)
+      otflib = os.path.join(out_dir, "contrib", "otf", "lib")
+      otfdir = os.path.join(out_dir, "contrib", "otf", "include", "open-trace-format")
+
+    ctx.check_cxx(
+      stlib        = 'open-trace-format',
+      uselib_store = 'OTF',
+      mandatory    = True,
+      libpath      = otflib,
+      errmsg       = "OTF Library not found. Use --otf option or set $OTF.",
+      okmsg        = "ok"
+    ) 
+    ctx.check_cxx(
+      stlib        = 'otfaux',
+      uselib_store = 'OTF',
+      mandatory    = True,
+      libpath      = otflib,
+      errmsg       = "OTF Library not found. Use --otf option or set $OTF.",
+      okmsg        = "ok"
+    ) 
+    ctx.check_cxx(
+      header_name  = 'otf.h',
+      uselib_store = 'OTF',
+      mandatory    = True,
+      includes     = otfdir,
+      uselib       = 'OTF',
+      okmsg        = "ok"
+    ) 
+    
+
+    ##################################################
     # Check for Cult Library and Headers
     ##################################################
     if ctx.options.cultdir:
       cultlib = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.cultdir, "lib")))))
       cultdir = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.cultdir, "include")))))
     else:
-      out_dir = os.path.abspath(ctx.out_dir or out)
+      out_dir = os.path.abspath(ctx.out_dir or top)
 #      print (out_dir)
-      cultlib = os.path.join(out_dir, "..", "contrib", "cult", "build", "src")
-      cultdir = [os.path.join(out_dir, "..", "contrib", "cult", "include"),
-        os.path.join(out_dir, "..", "contrib", "cult", "src", "core"),
-        os.path.join(out_dir, "..", "contrib", "cult", "src", "cpp"),
-        os.path.join(out_dir, "..", "contrib", "cult", "src", "sysc"),
-        os.path.join(out_dir, "..", "contrib", "cult", "src", "tlm"),
-        os.path.join(out_dir, "..", "contrib", "cult", "src")]
-    '''
+      cultlib = os.path.join(out_dir, "contrib", "cult", "build", "src")
+      cultdir = [os.path.join(out_dir,  "contrib", "cult", "include"),
+        os.path.join(out_dir, "contrib", "cult", "src", "core"),
+        os.path.join(out_dir, "contrib", "cult", "src", "cpp"),
+        os.path.join(out_dir, "contrib", "cult", "src", "sysc"),
+        os.path.join(out_dir, "contrib", "cult", "src", "tlm"),
+        os.path.join(out_dir, "contrib", "cult", "src")]
     ctx.check_cxx(
-      lib          = 'cult',
-      uselib_store = 'CULT',
-      mandatory    = True,
-      libpath      = cultlib,
-      errmsg       = "CULT Library not found. Use --cult option or set $CULT.",
-      okmsg        = "ok"
-    )
-    ctx.check_cxx(
-      lib          = 'cult_sysc',
-      uselib_store = 'CULT_SYSC',
-      mandatory    = True,
-      libpath      = cultlib,
-      errmsg       = "CULT_SYSC Library not found. Use --cult option or set $CULT.",
-      okmsg        = "ok"
-    )
-    '''
-    ctx.check_cxx(
-      stlib          = 'cult_tlm',
+      stlib        = 'cult_tlm',
       uselib_store = 'CULT',
       mandatory    = True,
       libpath      = cultlib,
       errmsg       = "CULT_TLM Library not found. Use --cult option or set $CULT.",
+      uselib       = 'OTF',
       okmsg        = "ok"
     )
     ctx.check_cxx(
@@ -691,25 +711,10 @@ def configure(ctx):
       uselib_store = 'CULT',
       mandatory    = True,
       includes     = cultdir,
-      uselib       = 'CULT',
+      uselib       = 'CULT OTF',
       okmsg        = "ok"
     )
     
-    '''
-    ctx.check_cxx(
-      msg          = "Checking for CULT 1.0.0 or higher",
-      mandatory    = True,
-      execute      = True,
-      fragment     = """
-                     #include <cult.h>
-                     int main(int argc, char *argv[]) {
-                       return !(LUA_VERSION_NUM > 500);
-                     }
-                   """,
-      uselib       = 'LUA',
-      okmsg        = "ok",
-    )
-    '''
     ##################################################
     # Check for SDL Library and Headers
     ##################################################
@@ -1083,6 +1088,7 @@ def options(ctx):
     gso = ctx.add_option_group("GreenSoCs Configuration Options")
     gso.add_option("--greensocs", dest="greensocsdir", help="Basedir of your GreenSoCs instalation", default=environ.get("GREENSOCS"))
     gso.add_option("--lua", type='string', dest="luadir", help="Basedir of your Lua installation", default=environ.get("LUA"))
+    gso.add_option("--otf", type='string', dest="otfdir", help="Basedir of your Otf installation", default=environ.get("OTF"))
     gso.add_option("--cult", type='string', dest="cultdir", help="Basedir of your Cult installation", default=environ.get("CULT"))
     gso.add_option("--sdl", type='string', dest="sdldir", help="Basedir of your SDL installation", default=environ.get("SDL"))
     gso.add_option("--mpeg3", type='string', dest="mpeg3dir", help="Basedir of your mpeg3 installation", default=environ.get("mpeg3"))

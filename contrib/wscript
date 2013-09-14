@@ -2,9 +2,11 @@
 # encoding: utf-8
 
 top = '..'
+out = 'build'
+
+import os
 
 def build(bld):
+	bld.exec_command('cd contrib/OTF && ./configure --without-zlib --prefix=' + os.path.abspath(out) + '/contrib/otf && make && make install')
+
 	bld.exec_command('cd contrib/cult/build && cmake .. -DTARGET_ARCH=linux64 -DCULT_SUBLEVELS=10 -DSYSTEMC_VERSION=2.2 -DSYSTEMC_HOME=/opt/tools/systemc/ -DTLM_HOME=/opt/tools/systemc/include/tlm/ -DSYSTEMC_LIBRARY=/opt/tools/systemc/lib-linux64/libsystemc.a -DSYSTEMC_INCLUDE_DIR=/opt/tools/systemc/include/ -DSYSTEMCTLM2_INCLUDE_DIR=/opt/tools/systemc/include/tlm/ && make cult_tlm')
-	
-
-
