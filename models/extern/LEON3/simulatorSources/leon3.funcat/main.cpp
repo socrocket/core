@@ -262,7 +262,7 @@ int sc_main( int argc, char * * argv ){
     std::cout << std::endl << "Loading the application and initializing the tools ..." \
         << std::endl;
     //And with the loading of the executable code
-    boost::filesystem::path applicationPath = boost::filesystem::system_complete(boost::filesystem::path(vm["application"].as<std::string>(), \
+    boost::filesystem::path applicationPath = boost::filesystem::system_complete(boost::filesystem::path(vm["application"].as<std::string>(),
         boost::filesystem::native));
     if ( !boost::filesystem::exists( applicationPath ) ){
         std::cerr << "ERROR: specified application " << vm["application"].as<std::string>() \
@@ -278,7 +278,7 @@ int sc_main( int argc, char * * argv ){
         mem.write_byte_dbg(progDataStart + i, programData[i]);
     }
     if(vm.count("disassembler") != 0){
-        std:cout << "Entry Point: " << std::hex << std::showbase << loader.getProgStart() \
+        std::cout << "Entry Point: " << std::hex << std::showbase << loader.getProgStart() \
             << std::endl << std::endl;
         for(unsigned int i = 0; i < programDim; i+= 4){
             Instruction * curInstr = procInst.decode(procInst.instrMem.read_word_dbg(loader.getDataStart() \
@@ -296,12 +296,12 @@ int sc_main( int argc, char * * argv ){
     procInst.ENTRY_POINT = loader.getProgStart();
     procInst.PROGRAM_LIMIT = programDim + progDataStart;
     procInst.PROGRAM_START = progDataStart;
-    // Now I check if the count of the cycles among two locations (addresses or symbols) \
-        is required
+    // Now I check if the count of the cycles among two locations (addresses or symbols)
+    // is required
     std::pair<unsigned int, unsigned int> decodedRange((unsigned int)-1, (unsigned int)-1);
     if(vm.count("cycles_range") != 0){
-        // Now, the range is in the form start-end, where start and end can be both integer \
-            numbers
+        // Now, the range is in the form start-end, where start and end can be both integer
+        // numbers
         // (both normal and hex) or symbols of the binary file
         std::string cycles_range = vm["cycles_range"].as<std::string>();
         decodedRange = getCycleRange(cycles_range, vm["application"].as<std::string>());
@@ -309,9 +309,9 @@ int sc_main( int argc, char * * argv ){
         procInst.setProfilingRange(decodedRange.first, decodedRange.second);
     }
 
-    //Initialization of the instruction history management; note that I need to enable \
-        both if the debugger is being used
-    //and/or if history needs to be dumped on an output file
+    // Initialization of the instruction history management; note that I need to enable
+    // both if the debugger is being used
+    // and/or if history needs to be dumped on an output file
     if(vm.count("debugger") > 0){
         procInst.enableHistory();
     }
@@ -424,8 +424,8 @@ int sc_main( int argc, char * * argv ){
         if(vm.count("prof_range") != 0){
             std::pair<unsigned int, unsigned int> decodedProfRange = getCycleRange(vm["prof_range"].as<std::string>(), \
                 vm["application"].as<std::string>());
-            // Now, the range is in the form start-end, where start and end can be both integer \
-                numbers
+            // Now, the range is in the form start-end, where start and end can be both integer
+            // numbers
             // (both normal and hex) or symbols of the binary file
             profiler.setProfilingRange(decodedProfRange.first, decodedProfRange.second);
         }

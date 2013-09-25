@@ -1056,6 +1056,7 @@ int sc_main(int argc, char** argv) {
     (void) signal(SIGTERM, stopSimFunction);
     (void) signal(10, stopSimFunction);
 
+    cstart = cend = clock();
     try {
         cstart = clock();
         sc_core::sc_start();
