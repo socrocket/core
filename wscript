@@ -74,6 +74,7 @@ def setprops(self):
     from tools.waf.common import setprops
     setprops();
 
+from waflib.Configure import ConfigurationContext
 from waflib.Build import BuildContext
 def docs(bld):
   """build source code documentation in 'build/docs' if doxygen is installed"""
@@ -105,6 +106,10 @@ def coverage(self):
 class Coverage(BuildContext):
     cmd = 'coverage'
     fun = 'coverage'
+
+class Contrib(ConfigurationContext):
+    cmd = 'contrib'
+    fun = 'contrib'
 
 def contrib(ctx):
     ctx.recurse('contrib')
@@ -158,7 +163,8 @@ def configure(ctx):
  
     ctx.find_program('nm', mandatory=1, var='NM')
     contrib_path = os.path.join(ctx.srcnode.abspath(), "contrib")
-    use_contrib = os.path.isdir(os.path.join(contrib_path, "trap-gen-2012.07-dist/"))
+    contrib_build = os.path.join(ctx.bldnode.abspath(), "contrib")
+    use_contrib = os.path.isdir(os.path.join(contrib_build, "trap-gen-2012.07"))
     ctx.msg("Use contrib dependencies", use_contrib)
     #############################################################
     # Small hack to adjust common usage of CPPFLAGS
@@ -481,8 +487,8 @@ def configure(ctx):
         if syscpath:
             sysclib = glob.glob(os.path.join(os.path.abspath(os.path.join(syscpath[0], '..')), 'lib-*'))
     else:
-        sysclib = glob.glob(os.path.join(contrib_path, "systemc-2.3.0", "lib-*"))
-        syscpath = os.path.join(contrib_path, "systemc-2.3.0", "include")
+        sysclib = glob.glob(os.path.join(contrib_build, "systemc-2.3.0", "lib-*"))
+        syscpath = os.path.join(contrib_build, "systemc-2.3.0", "include")
 
     ctx.check_cxx(stlib='systemc', uselib_store='SYSTEMC', mandatory=True, libpath=sysclib, errmsg='not found, use --systemc option')
 
@@ -541,7 +547,7 @@ def configure(ctx):
             tlmPath = os.path.join(tlmPath, 'include')
         #tlmPath = [os.path.join(tlmPath, 'tlm')]
     else:
-        tlmPath = os.path.join(contrib_path, "systemc-2.3.0", "include")
+        tlmPath = os.path.join(contrib_build, "systemc-2.3.0", "include")
 
     ctx.check_cxx(fragment='''
         #include <systemc.h>
@@ -590,8 +596,8 @@ def configure(ctx):
             trapDirLib = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'lib'))))
             trapDirInc = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'include'))))
         else:
-            trapDirLib = os.path.join(contrib_path, "trap-gen-2012.07-dist", 'lib')
-            trapDirInc = os.path.join(contrib_path, "trap-gen-2012.07-dist", 'include')
+            trapDirLib = os.path.join(contrib_build, "trap-gen-2012.07", 'lib')
+            trapDirInc = os.path.join(contrib_build, "trap-gen-2012.07", 'include')
 
         ctx.check_cxx(lib='trap', use='ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True, libpath=trapDirLib, errmsg=trapLibErrmsg)
         foundShared = glob.glob(os.path.join(trapDirLib, ctx.env['cxxshlib_PATTERN'] % 'trap'))
@@ -734,7 +740,7 @@ def configure(ctx):
     # Check for GreenSocs GreenSockets Header
     ##################################################
     if use_contrib:
-      gs_inc      = [os.path.join(contrib_path, "greenlib", "include")]
+      gs_inc      = [os.path.join(contrib_build, "greenlib", "include")]
     elif ctx.options.greensocsdir:
       gs_inc      = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.greensocsdir))))]
     else:
@@ -807,7 +813,7 @@ def configure(ctx):
     # Check for GreenSocs GreenReg Library
     ##################################################
     if use_contrib:
-      grreg_inc      = [os.path.join(contrib_path, "greenlib", "include", "greenreg")]
+      grreg_inc      = [os.path.join(contrib_build, "greenlib", "include", "greenreg")]
     elif ctx.options.greensocsdir:
       grreg_inc      = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.greensocsdir, "greenreg"))))]
     else:
