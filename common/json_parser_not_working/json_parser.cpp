@@ -453,57 +453,86 @@ void json_parser::parse(char *source) {
     }
 }
 
-std::string json_parser::print(json_value* value) {
-    std::string strValues = "";
-    for(json_value* it = value; it; it = it->next_sibling) {
-        strValues += it->name;
-        if (it->first_child) strValues += "\t" + print(it->first_child) + "\n";
-        if (!it->next_sibling || (!it->first_child || !it->last_child || strcmp(it->first_child->name, it->last_child->name) == 0)) return strValues;
+std::string json_parser::print(json_value* node) {
+    std::string str = "";
+    switch(node->type) {
+        case JSON_OBJECT:
+            str += "{";
+            if(node->first_child) {
+                for(json_value* item = node->first_child; item; item = item->next_sibling) {
+                    str += "\"" + string(item->name) + "\"";
+                    str += ":";
+                    str += print(item);
+                    if(item->next_sibling) {
+                        str += ",";
+                    }
+                }
+            }
+            str += "}";
+            break;
+        case JSON_ARRAY:
+            str += "[";
+            if(node->first_child) {
+                for(json_value* item = node->first_child; item; item = item->next_sibling) {
+                    str += print(item);
+                    if(item->next_sibling) {
+                        str += ",";
+                    }
+                }
+            }
+            str += "]";
+            break;
+        case JSON_NULL:
+        case JSON_STRING:
+        case JSON_INT:
+        case JSON_FLOAT:
+        case JSON_BOOL:
+        default:
+            str += "0";//node->string_value;
     }
-
-    return strValues;
+    return str;
 }
 
-json_value* json_parser::createJsonTree(json_value* root, std::string jsonPath) {
-    json_value* tmpRoot = new json_value();
-    if (jsonPath.find(".") != std::string::npos) {
-        tmpRoot->name = strdup(jsonPath.substr(0, jsonPath.find(".")).c_str());
-        jsonPath = jsonPath.substr(jsonPath.find(".")+1);
-        //json_append(root, createJsonTree(jsonPath));
-        if(root->last_child)//&& root->last_child->name == tmpRoot->name)
-        {
-            if(strcmp(root->last_child->name, tmpRoot->name) == 0) {
-                root = root->last_child;
-                json_append(root, createJsonTree(root, jsonPath));
-                cout << "last_child+eq" << jsonPath << endl;
-                return root;
-            } else {
-                json_append(tmpRoot, createJsonTree(tmpRoot, jsonPath));
-                cout << "last_child+!eq" << jsonPath << endl;
-                return tmpRoot;
-            }
+json_value* json_parser::createJsonTree(json_value* root, string path, string value) {
+    if(path.find(".") != std::string::npos) {
+        string key = strdup(path.substr(0, path.find(".")).c_str());
+        string rest = path.substr(path.find(".")+1);
+
+        if(root->last_child && (strcmp(root->last_child->name, key.c_str()) == 0)) {
+            createJsonTree(root->last_child, rest, value);
         } else {
-            json_append(tmpRoot, createJsonTree(tmpRoot, jsonPath));
-            cout << "!last_child" << jsonPath << endl;
-            return tmpRoot;
+            json_value *item = new json_value();
+            item->type = JSON_OBJECT;
+            item->name = new char[key.size()];
+            strcpy(item->name, key.c_str());
+            json_append(root, item);
+            createJsonTree(item, rest, value);
         }
     } else {
-        json_value* tail = new json_value();
-        tail->name = strdup(jsonPath.c_str());
-        cout << "eq" << jsonPath << endl;
-        return tail;
+        if(!root->last_child || (strcmp(root->last_child->name, path.c_str())!=0)) {
+            json_value *item = new json_value();
+            item->name = new char[path.size()];
+            strcpy(item->name, path.c_str());
+            json_append(root, item);
+        }
+        root->last_child->type = JSON_STRING;
+        root->last_child->string_value = new char[value.size()];
+        strcpy(root->last_child->string_value, value.c_str());
+            
     }
+
+    return root;
 }
 
 void json_parser::save() {
-    json_value* jsonRoot = new json_value();
+    json_value* root = new json_value();
+    root->type = JSON_OBJECT;
     std::vector<std::string> paramList;
     for(std::vector<std::pair<std::string, json_value*> >::iterator it = m_jsonValues.begin(); it != m_jsonValues.end(); ++it) {
         paramList.push_back(it->first);
     }
     for(std::vector<std::string>::iterator it = paramList.begin(); it != paramList.end(); ++it) {
-        jsonRoot->name = strdup(it->substr(0, it->find(".")).c_str());
-        json_append(jsonRoot, createJsonTree(jsonRoot, it->substr(it->find(".")+1)));
+        createJsonTree(root, *it, "0");
     }
-    cout << print(jsonRoot) << endl;
+    cout << print(root) << endl << endl;
 }

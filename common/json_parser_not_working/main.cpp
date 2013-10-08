@@ -6,6 +6,6 @@ int main(int argc, char **argv)
 	json_parser1->config("leon3mp.singlecore.json");
     std::vector<std::string> list;
     json_parser1->save();
-	getchar();
+	//getchar();
     return 0;
 }

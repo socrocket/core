@@ -19,28 +19,25 @@ enum json_type
         JSON_FLOAT,
         JSON_BOOL,
 };
-struct json_value
-{
-			json_value *parent;
-			json_value *next_sibling;
-			json_value *first_child;
-			json_value *last_child;
 
+struct json_value {
+  json_value() : parent(NULL), next_sibling(NULL), first_child(NULL), last_child(NULL) {}
+  json_value *parent;
+  json_value *next_sibling;
+  json_value *first_child;
+  json_value *last_child;
 
-			char *name;
-			union
-			{
-					char *string_value;
-					int int_value;
-					float float_value;
-			};
+  char *name;
+  union {
+    char *string_value;
+    int int_value;
+    float float_value;
+  };
 
-
-			json_type type;
+  json_type type;
 };
 
-class json_parser
-{
+class json_parser {
 public:
 	json_parser();
 	~json_parser();
@@ -59,6 +56,6 @@ private:
 	std::vector<std::pair<std::string, json_value*> > m_jsonValues;
 	void read_source(const char *filename);
 	void parse(char *source);
-    json_value* createJsonTree(json_value* root, std::string jsonPath);
+    json_value* createJsonTree(json_value* root, std::string jsonPath, std::string value = "0");
 };
 #endif

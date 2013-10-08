@@ -1002,24 +1002,30 @@ def configure(ctx):
     ctx.env['AR'] = crossar
     #ctx.set_env_name('sparc', sparc_env)
     sparcFlags = ['-Wall', '-static', '-O3']
-    ctx.env.append_unique('LINKFLAGS', sparcFlags)
     ctx.env['SHLIB_MARKER'] = ""
+
+    ctx.env.append_unique('LINKFLAGS', sparcFlags)
     if  '-Wl,-Bdynamic' in ctx.env['LINKFLAGS']:
       ctx.env['LINKFLAGS'].remove('-Wl,-Bdynamic')
+
     ctx.env.append_unique('CFLAGS', sparcFlags)
     if  '-Wl,-Bdynamic' in ctx.env['CFLAGS']:
       ctx.env['CFLAGS'].remove('-Wl,-Bdynamic')
+
     ctx.env.append_unique('CCFLAGS', sparcFlags)
     if  '-Wl,-Bdynamic' in ctx.env['CCFLAGS']:
       ctx.env['CCFLAGS'].remove('-Wl,-Bdynamic')
-    #ctx.env.append_unique('CXXFLAGS', sparcFlags)
+
+    ctx.env.append_unique('CXXFLAGS', sparcFlags)
+    if  '-Wl,-Bdynamic' in ctx.env['CXXFLAGS']:
+      ctx.env['CXXFLAGS'].remove('-Wl,-Bdynamic')
     
     if ctx.env['CFLAGS']:
         ctx.check_cc(cflags=ctx.env['CFLAGS'], mandatory=True, msg='Checking for C compilation flags')
     if ctx.env['CCFLAGS'] and ctx.env['CCFLAGS'] != ctx.env['CFLAGS']:
         ctx.check_cc(cflags=ctx.env['CCFLAGS'], mandatory=True, msg='Checking for C compilation flags')
-    #if ctx.env['CXXFLAGS']:
-    #    ctx.check_cxx(cxxflags=ctx.env['CXXFLAGS'], mandatory=True, msg='Checking for C++ compilation flags')
+    if ctx.env['CXXFLAGS']:
+        ctx.check_cxx(cxxflags=ctx.env['CXXFLAGS'], mandatory=True, msg='Checking for C++ compilation flags')
     if ctx.env['LINKFLAGS']:
         ctx.check_cc(linkflags=ctx.env['LINKFLAGS'], mandatory=True, msg='Checking for link flags')
     

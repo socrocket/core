@@ -170,7 +170,7 @@ def make_systest(self):
 
         if sdramname:
             sdramtgen = self.bld.get_tgen_by_name(sdramname)
-            sdram = ramtgen.path.find_or_declare(sdramname)
+            sdram = sdramtgen.path.find_or_declare(sdramname)
 
             exec_list.append("--option")
             exec_list.append("conf.mctrl.ram.sdram.elf=%s" % (sdram.abspath()))
@@ -185,7 +185,7 @@ def make_systest(self):
 
         if sramname:
             sramtgen = self.bld.get_tgen_by_name(sramname)
-            sram = ramtgen.path.find_or_declare(sramname)
+            sram = sramtgen.path.find_or_declare(sramname)
 
             exec_list.append("--option")
             exec_list.append("conf.mctrl.ram.sram.elf=%s" % (sram.abspath()))
