@@ -164,7 +164,7 @@ def configure(ctx):
     ctx.find_program('nm', mandatory=1, var='NM')
     contrib_path = os.path.join(ctx.srcnode.abspath(), "contrib")
     contrib_build = os.path.join(ctx.bldnode.abspath(), "contrib")
-    use_contrib = os.path.isdir(os.path.join(contrib_build, "trap-gen-2012.07"))
+    use_contrib = os.path.isdir(os.path.join(contrib_build, "trap-gen"))
     ctx.msg("Use contrib dependencies", use_contrib)
     #############################################################
     # Small hack to adjust common usage of CPPFLAGS
@@ -487,8 +487,8 @@ def configure(ctx):
         if syscpath:
             sysclib = glob.glob(os.path.join(os.path.abspath(os.path.join(syscpath[0], '..')), 'lib-*'))
     else:
-        sysclib = glob.glob(os.path.join(contrib_build, "systemc-2.3.0", "lib-*"))
-        syscpath = os.path.join(contrib_build, "systemc-2.3.0", "include")
+        sysclib = glob.glob(os.path.join(contrib_build, "systemc", "lib-*"))
+        syscpath = os.path.join(contrib_build, "systemc", "include")
 
     ctx.check_cxx(stlib='systemc', uselib_store='SYSTEMC', mandatory=True, libpath=sysclib, errmsg='not found, use --systemc option')
 
@@ -547,7 +547,7 @@ def configure(ctx):
             tlmPath = os.path.join(tlmPath, 'include')
         #tlmPath = [os.path.join(tlmPath, 'tlm')]
     else:
-        tlmPath = os.path.join(contrib_build, "systemc-2.3.0", "include")
+        tlmPath = os.path.join(contrib_build, "systemc", "include")
 
     ctx.check_cxx(fragment='''
         #include <systemc.h>
@@ -596,8 +596,8 @@ def configure(ctx):
             trapDirLib = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'lib'))))
             trapDirInc = os.path.abspath(os.path.expandvars(os.path.expanduser(os.path.join(ctx.options.trapdir, 'include'))))
         else:
-            trapDirLib = os.path.join(contrib_build, "trap-gen-2012.07", 'lib')
-            trapDirInc = os.path.join(contrib_build, "trap-gen-2012.07", 'include')
+            trapDirLib = os.path.join(contrib_build, "trap-gen", 'lib')
+            trapDirInc = os.path.join(contrib_build, "trap-gen", 'include')
 
         ctx.check_cxx(lib='trap', use='ELF_LIB BOOST SYSTEMC', uselib_store='TRAP', mandatory=True, libpath=trapDirLib, errmsg=trapLibErrmsg)
         foundShared = glob.glob(os.path.join(trapDirLib, ctx.env['cxxshlib_PATTERN'] % 'trap'))
@@ -854,8 +854,8 @@ def configure(ctx):
     # Check for AMBAKit
     ##################################################
     if use_contrib:
-      amba_inc = [os.path.join(contrib_path, "amba_socket-1.0.15"),
-                  os.path.join(contrib_path, "amba_socket-1.0.15", "dependencies", "AMBA-PV", "include")]
+      amba_inc = [os.path.join(contrib_path, "amba_socket-repo"),
+                  os.path.join(contrib_path, "amba_socket-repo", "dependencies", "AMBA-PV", "include")]
     elif ctx.options.ambadir:
       amba_inc = [os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.ambadir))),
                   os.path.join(os.path.abspath(os.path.expanduser(os.path.expandvars(ctx.options.ambadir))), "dependencies", "AMBA-PV", "include")]
@@ -1024,8 +1024,8 @@ def configure(ctx):
         ctx.check_cc(cflags=ctx.env['CFLAGS'], mandatory=True, msg='Checking for C compilation flags')
     if ctx.env['CCFLAGS'] and ctx.env['CCFLAGS'] != ctx.env['CFLAGS']:
         ctx.check_cc(cflags=ctx.env['CCFLAGS'], mandatory=True, msg='Checking for C compilation flags')
-    if ctx.env['CXXFLAGS']:
-        ctx.check_cxx(cxxflags=ctx.env['CXXFLAGS'], mandatory=True, msg='Checking for C++ compilation flags')
+    #if ctx.env['CXXFLAGS']:
+    #    ctx.check_cxx(cxxflags=ctx.env['CXXFLAGS'], mandatory=True, msg='Checking for C++ compilation flags')
     if ctx.env['LINKFLAGS']:
         ctx.check_cc(linkflags=ctx.env['LINKFLAGS'], mandatory=True, msg='Checking for link flags')
     

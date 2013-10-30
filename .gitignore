@@ -15,6 +15,6 @@ gmon.out
 build
 deps
 bigbuckbunny_small.m2v
-
+contrib/*-repo
 # Mkprom2
 xdump.s

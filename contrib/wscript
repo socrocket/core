@@ -8,38 +8,50 @@ def contrib(ctx):
     path = os.path.join(ctx.bldnode.abspath(), "contrib.log")
     ctx.logger = Logs.make_logger(path, 'cfg')
 
-    ### System C + TLM ###
+    ctx.find_program('git', var='GIT', mandatory=True, okmsg="ok")
+    ctx.find_program('patch', var='PATCH', mandatory=True, okmsg="ok")
+    ctx.find_program('cmake', var='CMAKE', mandatory=True, okmsg="ok")
     ctx.find_program('make', var='MAKE', mandatory=True, okmsg="ok")
-    sysc_path = os.path.join(ctx.srcnode.abspath(), "contrib", "systemc-2.3.0")
-    sysc_build = os.path.join(ctx.bldnode.abspath(), "contrib", "systemc-2.3.0")
-    sysc_dist = os.path.join(ctx.bldnode.abspath(), "contrib", "systemc-2.3.0")
+
+    ### System C + TLM ###
+
+    sysc_repo = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/systemc.git"
+    sysc_path = os.path.join(ctx.srcnode.abspath(), "contrib", "systemc-repo")
+    sysc_build = os.path.join(ctx.bldnode.abspath(), "contrib", "systemc")
+    sysc_dist = os.path.join(ctx.bldnode.abspath(), "contrib", "systemc")
+
+    if not os.path.isdir(sysc_path):
+        ctx.start_msg("Fetching SystemC")
+        ctx.cmd_and_log([ctx.env.GIT, "clone", sysc_repo, sysc_path], output=Context.BOTH)
+        ctx.end_msg("Ok")
+    else:
+        ctx.msg("SystemC", "Already fetched")
+
     if not os.path.isdir(sysc_build):
         os.makedirs(sysc_build)
-    os.chdir(sysc_build)
-    ctx.start_msg("Configure SystemC 2.3")
-    ctx.cmd_and_log([os.path.join(sysc_path, "configure"), "--prefix=%s" % (sysc_dist)], output=Context.BOTH)
-    ctx.end_msg("Ok")
+        os.chdir(sysc_build)
+        ctx.start_msg("Configure SystemC 2.3")
+        ctx.cmd_and_log([os.path.join(sysc_path, "configure"), "--prefix=%s" % (sysc_dist)], output=Context.BOTH)
+        ctx.end_msg("Ok")
 
-    ctx.start_msg("Compile SystemC 2.3")
-    ctx.cmd_and_log([ctx.env.MAKE], output=Context.BOTH)
-    ctx.end_msg("Ok")
+        ctx.start_msg("Compile SystemC 2.3")
+        ctx.cmd_and_log([ctx.env.MAKE], output=Context.BOTH)
+        ctx.end_msg("Ok")
 
-    ctx.start_msg("Install SystemC 2.3")
-    ctx.cmd_and_log([ctx.env.MAKE, "install"], output=Context.BOTH)
-    ctx.end_msg("Ok")
+        ctx.start_msg("Install SystemC 2.3")
+        ctx.cmd_and_log([ctx.env.MAKE, "install"], output=Context.BOTH)
+        ctx.end_msg("Ok")
+    else:
+        ctx.msg("SystemC", "Already build")
 
     ### GreenLib ###
     greenlib_commit = "1b42c6cf83f091b5a1608c2bbc8f428db5d82fa9"
     greenlib_repo = "git://git.greensocs.com/greenlib.git"
-    greenlib_path = os.path.join(ctx.bldnode.abspath(), "contrib", "greenlib-repo")
+    greenlib_path = os.path.join(ctx.srcnode.abspath(), "contrib", "greenlib-repo")
     greenlib_patch = os.path.join(ctx.srcnode.abspath(), "contrib", "greenlib-2013-08-27.patch")
     greenlib_build = os.path.join(ctx.bldnode.abspath(), "contrib", "greenlib")
 
     if not os.path.isdir(greenlib_path):
-        ctx.find_program('git', var='GIT', mandatory=True, okmsg="ok")
-        ctx.find_program('patch', var='PATCH', mandatory=True, okmsg="ok")
-        ctx.find_program('cmake', var='CMAKE', mandatory=True, okmsg="ok")
-
         ctx.start_msg("Fetching GreenLib")
         ctx.cmd_and_log([ctx.env.GIT, "clone", greenlib_repo, greenlib_path], output=Context.BOTH)
         os.chdir(greenlib_path)
@@ -49,9 +61,11 @@ def contrib(ctx):
         ctx.start_msg("Patching GreenLib")
         ctx.cmd_and_log([ctx.env.PATCH, "-p1", "-i", greenlib_patch, "-d", greenlib_path], output=Context.BOTH)
         ctx.end_msg("Ok")
+    else:
+        ctx.msg("GreenLib", "Already fetched")
 
-        if not os.path.isdir(greenlib_build):
-            os.makedirs(greenlib_build)
+    if not os.path.isdir(greenlib_build):
+        os.makedirs(greenlib_build)
         os.chdir(greenlib_build)
         ctx.start_msg("Compiling GreenLib")
         ctx.cmd_and_log([ctx.env.CMAKE, greenlib_path, "-DSYSTEMC_PREFIX=%s" % (sysc_path)], output=Context.BOTH)
@@ -60,6 +74,7 @@ def contrib(ctx):
 
         ctx.start_msg("Symlinking GreenLib")
         greenlib_inc = os.path.join(greenlib_build, "include")
+
         if not os.path.isdir(greenlib_inc):
             os.mkdir(greenlib_inc)
         for sublib in ["greencontrol", "greenreg", "greenrouter", "greensignalbus", "greensignalsocket", "greensocket", "gsgpsocket"]:
@@ -73,17 +88,42 @@ def contrib(ctx):
             os.symlink(greenreg_lib, greenreg_inclib)
         ctx.end_msg("Ok")
     else:
-        ctx.msg("GreenLib", "Already prepared")
+        ctx.msg("GreenLib", "Already build")
 
-    ctx.start_msg("Compiling Trapgen")
-    trap_path = os.path.join(ctx.srcnode.abspath(), "contrib", "trap-gen-2012.07")
-    trap_build = os.path.join(ctx.bldnode.abspath(), "contrib", "trap-gen-2012.07-bld")
-    trap_dist = os.path.join(ctx.bldnode.abspath(), "contrib", "trap-gen-2012.07")
-    os.chdir(trap_path)
-    ctx.cmd_and_log(["./waf", "configure", "-o", trap_build, "--with-systemc=%s" % (sysc_path), "--prefix=%s" % (trap_dist)], output=Context.BOTH)
-    ctx.cmd_and_log(["./waf"], output=Context.BOTH)
-    ctx.cmd_and_log(["./waf", "install"], output=Context.BOTH)
-    ctx.end_msg("Ok")
+    ### TrapGen ###
+
+    trap_repo = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/trapgen.git"
+    trap_path = os.path.join(ctx.srcnode.abspath(), "contrib", "trap-gen-repo")
+    trap_build = os.path.join(ctx.bldnode.abspath(), "contrib", "trap-gen-bld")
+    trap_dist = os.path.join(ctx.bldnode.abspath(), "contrib", "trap-gen")
+
+    if not os.path.isdir(trap_path):
+        ctx.start_msg("Fetching TrapGen")
+        ctx.cmd_and_log([ctx.env.GIT, "clone", trap_repo, trap_path], output=Context.BOTH)
+        ctx.end_msg("Ok")
+    else:
+        ctx.msg("TrapGen", "Already fetched")
+
+    if not os.path.isdir(trap_build):
+        ctx.start_msg("Compiling Trapgen")
+        os.chdir(trap_path)
+        ctx.cmd_and_log(["./waf", "configure", "-o", trap_build, "--with-systemc=%s" % (sysc_path), "--prefix=%s" % (trap_dist)], output=Context.BOTH)
+        ctx.cmd_and_log(["./waf"], output=Context.BOTH)
+        ctx.cmd_and_log(["./waf", "install"], output=Context.BOTH)
+        ctx.end_msg("Ok")
+    else:
+        ctx.msg("TrapGen", "Already build")
+
+    amba_repo = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/ambakit.git"
+    amba_path = os.path.join(ctx.srcnode.abspath(), "contrib", "amba_socket-repo")
+
+    if not os.path.isdir(amba_path):
+        ctx.start_msg("Fetching AmbaKit")
+        ctx.cmd_and_log([ctx.env.GIT, "clone", amba_repo, amba_path], output=Context.BOTH)
+        ctx.end_msg("Ok")
+    else:
+        ctx.msg("AmbaKit", "Already fetched")
+
     os.chdir(ctx.bldnode.abspath())
 
 def build(sself):
