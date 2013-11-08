@@ -8,10 +8,55 @@ def contrib(ctx):
     path = os.path.join(ctx.bldnode.abspath(), "contrib.log")
     ctx.logger = Logs.make_logger(path, 'cfg')
 
+    
     ctx.find_program('git', var='GIT', mandatory=True, okmsg="ok")
     ctx.find_program('patch', var='PATCH', mandatory=True, okmsg="ok")
-    ctx.find_program('cmake', var='CMAKE', mandatory=True, okmsg="ok")
     ctx.find_program('make', var='MAKE', mandatory=True, okmsg="ok")
+
+    ctx.find_program('cmake', var='CMAKE', mandatory=True, okmsg="ok")
+    import subprocess
+    cmake_version_str = subprocess.check_output(["cmake", "--version"])
+    cmake_version = [int(v) for v in cmake_version_str.split(" ")[2].split(".")]
+    cmake_version = cmake_version[0] * 1000000 + cmake_version[1] * 10000 + cmake_version[2] * 100
+    if cmake_version < 2081101:
+        ctx.find_program('wget', var='WGET', mandatory=True, okmsg="ok")
+        ctx.find_program('tar', var='TAR', mandatory=True, okmsg="ok")
+        
+        cmake_version = "2.8.12"
+        cmake_down = "http://www.cmake.org/files/v2.8/cmake-%s.tar.gz" % (cmake_version)
+        cmake_tar = os.path.join(ctx.srcnode.abspath(), "contrib", "cmake-%s.tar.gz" % (cmake_version))
+        cmake_tar_cwd = os.path.join(ctx.srcnode.abspath(), "contrib")
+        cmake_path = os.path.join(ctx.srcnode.abspath(), "contrib", "cmake-%s" % (cmake_version))
+        cmake_build = os.path.join(ctx.bldnode.abspath(), "contrib", "cmake-%s" % (cmake_version))
+        if not os.path.exists(cmake_tar):
+            ctx.start_msg("Fetching CMake")
+            ctx.cmd_and_log([ctx.env.WGET, cmake_down, cmake_tar], output=Context.BOTH, cwd=cmake_tar_cwd)
+            ctx.end_msg("Ok")
+
+        if not os.path.isdir(cmake_path):
+            ctx.start_msg("Extracting CMake")
+            ctx.cmd_and_log([ctx.env.TAR, "-xzf", cmake_tar], output=Context.BOTH, cwd=cmake_tar_cwd)
+            ctx.end_msg("Ok")
+
+        if not os.path.isdir(cmake_build):
+            os.makedirs(cmake_build)
+            os.chdir(cmake_path)
+            ctx.start_msg("Configure CMake")
+            ctx.cmd_and_log([os.path.join(cmake_path, "bootstrap"), "--prefix=%s" % (cmake_build)], output=Context.BOTH)
+            ctx.end_msg("Ok")
+
+            ctx.start_msg("Compile CMake 2.3")
+            ctx.cmd_and_log([ctx.env.MAKE], output=Context.BOTH)
+            ctx.end_msg("Ok")
+
+            ctx.start_msg("Install CMake 2.3")
+            ctx.cmd_and_log([ctx.env.MAKE, "install"], output=Context.BOTH)
+            ctx.end_msg("Ok")
+        else:
+            ctx.msg("CMake", "Already build")
+        ctx.env.CMAKE = os.path.join(cmake_build, "bin", "cmake")
+
+
 
     ### System C + TLM ###
 
