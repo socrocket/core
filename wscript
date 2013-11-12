@@ -516,6 +516,7 @@ def configure(ctx):
             };
         }
 ''', header_name='systemc.h', use='SYSTEMC', uselib_store='SYSTEMC', mandatory=True, includes=syscpath)
+
     ctx.check_cxx(fragment='''
         #include <systemc.h>
 
@@ -535,6 +536,26 @@ def configure(ctx):
             };
         }
 ''', msg='Checking for SystemC version', use='SYSTEMC', mandatory=True, errmsg=systemCerrmsg)
+
+    ctx.check_cxx(fragment='''
+        #include <systemc.h>
+
+        #ifndef SYSTEMC_VERSION
+        #error SYSTEMC_VERSION not defined in file sc_ver.h
+        #endif
+
+        #if SYSTEMC_VERSION < 20120700
+        #error Wrong SystemC version
+        #endif
+
+        extern "C" {
+            int sc_main(int argc, char** argv) {
+                wif_trace_file trace("");
+                trace.set_time_unit(1, SC_NS);
+                return 0;
+            };
+        }
+''', msg='Checking for SystemC Version 2.3.0+', use='SYSTEMC', define_name="USE_SYSTEMC_2_3")
 
     ##################################################
     # Check for TLM header

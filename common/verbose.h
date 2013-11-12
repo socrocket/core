@@ -42,7 +42,9 @@
 
 #define CULT_ENABLE
 #define CULT_WITH_SYSTEMC
+#ifdef USE_SYSTEMC_2_3
 #define CULT_USE_SYSTEMC_2_3
+#endif
 //#define CULT_WITH_TLM
 #define CULT_SUBLEVELS 10
 

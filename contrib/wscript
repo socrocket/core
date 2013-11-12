@@ -13,12 +13,13 @@ def contrib(ctx):
     ctx.find_program('patch', var='PATCH', mandatory=True, okmsg="ok")
     ctx.find_program('make', var='MAKE', mandatory=True, okmsg="ok")
 
-    ctx.find_program('cmake', var='CMAKE', mandatory=True, okmsg="ok")
-    import subprocess
-    cmake_version_str = subprocess.check_output(["cmake", "--version"])
-    cmake_version = [int(v) for v in cmake_version_str.split(" ")[2].split(".")]
-    cmake_version = cmake_version[0] * 1000000 + cmake_version[1] * 10000 + cmake_version[2] * 100
-    if cmake_version < 2081101:
+    ctx.find_program('cmake', var='CMAKE', mandatory=False, okmsg="ok")
+    if ctx.env.get("CMAKE", None):
+        import subprocess
+        cmake_version_str = subprocess.check_output(["cmake", "--version"])
+        cmake_version = [int(v) for v in cmake_version_str.split(" ")[2].split(".")]
+        cmake_version = cmake_version[0] * 1000000 + cmake_version[1] * 10000 + cmake_version[2] * 100
+    if cmake_version < 2081101 or not ctx.env.get("CMAKE", None):
         ctx.find_program('wget', var='WGET', mandatory=True, okmsg="ok")
         ctx.find_program('tar', var='TAR', mandatory=True, okmsg="ok")
         
