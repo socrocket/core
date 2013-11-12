@@ -331,12 +331,12 @@ def configure(ctx):
     if not ctx.options.boost_libs or ctx.options.boost_libs == "":
       ctx.options.boost_libs = os.environ.get("BOOST_LIB",None)
 
-    boostLibs = 'thread regex date_time program_options filesystem unit_test_framework system'
+    boostLibs = 'thread regex date_time program_options filesystem unit_test_framework system serialization'
     boostErrorMessage = 'Unable to find ' + boostLibs + ' boost libraries of at least version 1.35, please install them and/or specify their location with the --boost-includes and --boost-libs configuration options. It can also happen that you have more than one boost version installed in a system-wide location: in this case remove the unnecessary versions.'
     
-    boostLibs = 'thread regex date_time program_options filesystem system'
+    boostLibs = 'thread regex date_time program_options filesystem system serialization'
 
-    ctx.check_boost(lib=boostLibs, static=ctx.options.static_build, mandatory=True, errmsg = boostErrorMessage)
+    ctx.check_boost(lib=boostLibs, static=True, mandatory=True, errmsg = boostErrorMessage)
     if int(ctx.env.BOOST_VERSION.split('_')[1]) < 35:
         ctx.fatal(boostErrorMessage)
     if not ctx.options.static_build:
@@ -430,14 +430,14 @@ def configure(ctx):
                 break
         if not elfHeaderFound:
             ctx.fatal('Unable to find libelf.h and/or gelf.h headers in specified path ' + str(elfIncPath))
-        if ctx.check_cxx(lib='elf', uselib_store='ELF_LIB', mandatory=False, libpath = elfLibPath):
+        if ctx.check_cxx(stlib='elf', uselib_store='ELF_LIB', mandatory=False, libpath = elfLibPath):
             ctx.check(header_name='libelf.h', uselib='ELF_LIB', uselib_store='ELF_LIB', features='cxx cprogram', mandatory=True, includes = elfIncPath)
             ctx.check(header_name='gelf.h', uselib='ELF_LIB', uselib_store='ELF_LIB', features='cxx cprogram', mandatory=True, includes = elfIncPath)
         foundShared = glob.glob(os.path.join(elfLibPath, ctx.env['cxxshlib_PATTERN'] % 'elf'))
         if foundShared:
             ctx.env.append_unique('RPATH', elfLibPath)
     else:
-        if ctx.check_cxx(lib='elf', uselib_store='ELF_LIB', mandatory = True):
+        if ctx.check_cxx(stlib='elf', uselib_store='ELF_LIB', mandatory = True):
             ctx.check(header_name='libelf.h', uselib='ELF_LIB', uselib_store='ELF_LIB', features='cxx cprogram', mandatory=True)
             ctx.check(header_name='gelf.h', uselib='ELF_LIB', uselib_store='ELF_LIB', features='cxx cprogram', mandatory=True)
     if 'elf' in ctx.env['LIB_ELF_LIB']:
@@ -454,7 +454,7 @@ def configure(ctx):
 
     #########################################################
     # Check for the winsock library
-    #########################################################
+    #######################################################c##
     if sys.platform == 'cygwin':
         ctx.check_cxx(lib='ws2_32', uselib_store='WINSOCK', mandatory=True)
 
@@ -668,6 +668,77 @@ def configure(ctx):
             errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required'
         )
 
+    ##################################################
+    # Check for Otf Library and Headers
+    ##################################################
+    if ctx.options.otfdir:
+      otflib = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.otfdir, "lib")))))
+      otfdir = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.otfdir, "include", "open-trace-format")))))
+    else:
+      out_dir = os.path.abspath(ctx.out_dir or out)
+      otflib = os.path.join(out_dir, "contrib", "otf", "lib")
+      otfdir = os.path.join(out_dir, "contrib", "otf", "include", "open-trace-format")
+
+    ctx.check_cxx(
+      stlib        = 'open-trace-format',
+      uselib_store = 'OTF',
+      mandatory    = True,
+      libpath      = otflib,
+      errmsg       = "OTF Library not found. Use --otf option or set $OTF.",
+      okmsg        = "ok"
+    ) 
+    ctx.check_cxx(
+      stlib        = 'otfaux',
+      uselib_store = 'OTF',
+      mandatory    = True,
+      libpath      = otflib,
+      errmsg       = "OTF Library not found. Use --otf option or set $OTF.",
+      okmsg        = "ok"
+    ) 
+    ctx.check_cxx(
+      header_name  = 'otf.h',
+      uselib_store = 'OTF',
+      mandatory    = True,
+      includes     = otfdir,
+      uselib       = 'OTF',
+      okmsg        = "ok"
+    ) 
+    
+
+    ##################################################
+    # Check for Cult Library and Headers
+    ##################################################
+    if ctx.options.cultdir:
+      cultlib = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.cultdir, "lib")))))
+      cultdir = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.cultdir, "include")))))
+    else:
+      out_dir = os.path.abspath(ctx.out_dir or top)
+#      print (out_dir)
+      cultlib = os.path.join(out_dir, "contrib", "cult", "build", "src")
+      cultdir = [os.path.join(out_dir,  "contrib", "cult", "include"),
+        os.path.join(out_dir, "contrib", "cult", "src", "core"),
+        os.path.join(out_dir, "contrib", "cult", "src", "cpp"),
+        os.path.join(out_dir, "contrib", "cult", "src", "sysc"),
+        os.path.join(out_dir, "contrib", "cult", "src", "tlm"),
+        os.path.join(out_dir, "contrib", "cult", "src")]
+    ctx.check_cxx(
+      stlib        = 'cult_tlm',
+      uselib_store = 'CULT',
+      mandatory    = True,
+      libpath      = cultlib,
+      errmsg       = "CULT_TLM Library not found. Use --cult option or set $CULT.",
+      uselib       = 'OTF',
+      okmsg        = "ok"
+    )
+    ctx.check_cxx(
+      header_name  = 'cult.h',
+      uselib_store = 'CULT',
+      mandatory    = True,
+      includes     = cultdir,
+      uselib       = 'CULT OTF',
+      okmsg        = "ok"
+    )
+    
     ##################################################
     # Check for SDL Library and Headers
     ##################################################
@@ -966,7 +1037,6 @@ def configure(ctx):
             includes     = sr_incdir,
             uselib       = 'SOCROCKET SYSTEMC TLM AMBA BOOST GREENSOCS',
         ) 
-    
     ##################################################
     # SPARC compiler search
     ##################################################
@@ -1052,6 +1122,8 @@ def options(ctx):
     gso = ctx.add_option_group("GreenSoCs Configuration Options")
     gso.add_option("--greensocs", dest="greensocsdir", help="Basedir of your GreenSoCs instalation", default=environ.get("GREENSOCS"))
     gso.add_option("--lua", type='string', dest="luadir", help="Basedir of your Lua installation", default=environ.get("LUA"))
+    gso.add_option("--otf", type='string', dest="otfdir", help="Basedir of your Otf installation", default=environ.get("OTF"))
+    gso.add_option("--cult", type='string', dest="cultdir", help="Basedir of your Cult installation", default=environ.get("CULT"))
     gso.add_option("--sdl", type='string', dest="sdldir", help="Basedir of your SDL installation", default=environ.get("SDL"))
     gso.add_option("--mpeg3", type='string', dest="mpeg3dir", help="Basedir of your mpeg3 installation", default=environ.get("mpeg3"))
     gso.add_option("--amba", type='string', dest="ambadir", help="Basedir of your AMBAKit distribution", default=environ.get("AMBA"))

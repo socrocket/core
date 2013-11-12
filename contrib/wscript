@@ -56,8 +56,6 @@ def contrib(ctx):
             ctx.msg("CMake", "Already build")
         ctx.env.CMAKE = os.path.join(cmake_build, "bin", "cmake")
 
-
-
     ### System C + TLM ###
 
     sysc_repo = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/systemc.git"
@@ -88,6 +86,74 @@ def contrib(ctx):
         ctx.end_msg("Ok")
     else:
         ctx.msg("SystemC", "Already build")
+
+    otf_path = os.path.join(ctx.srcnode.abspath(), "contrib", "OTF")
+    otf_build = os.path.join(ctx.bldnode.abspath(), "contrib", "otf_bld")
+    otf_dist = os.path.join(ctx.bldnode.abspath(), "contrib", "otf")
+
+    #if not os.path.isdir(otf_path):
+    #    ctx.start_msg("Fetching OTF")
+    #    ctx.cmd_and_log([ctx.env.GIT, "clone", otf_repo, otf_path], output=Context.BOTH)
+    #    ctx.end_msg("Ok")
+    #else:
+    #    ctx.msg("OTF", "Already fetched")
+
+    if not os.path.isdir(otf_build):
+        os.makedirs(otf_build)
+        os.chdir(otf_build)
+        ctx.start_msg("Configure OTF")
+        ctx.cmd_and_log([os.path.join(otf_path, "configure"), "--prefix=%s" % (otf_dist), "--without-zlib"], output=Context.BOTH)
+        ctx.end_msg("Ok")
+
+        ctx.start_msg("Compile OTF")
+        ctx.cmd_and_log([ctx.env.MAKE], output=Context.BOTH)
+        ctx.end_msg("Ok")
+
+        ctx.start_msg("Install OTF")
+        ctx.cmd_and_log([ctx.env.MAKE, "install"], output=Context.BOTH)
+        ctx.end_msg("Ok")
+    else:
+        ctx.msg("OTF", "Already build")
+
+    cult_path = os.path.join(ctx.srcnode.abspath(), "contrib", "cult")
+    cult_build = os.path.join(ctx.bldnode.abspath(), "contrib", "cult")
+    cult_dist = os.path.join(ctx.bldnode.abspath(), "contrib", "cult")
+
+    #if not os.path.isdir(cult_path):
+    #    ctx.start_msg("Fetching Cult")
+    #    ctx.cmd_and_log([ctx.env.GIT, "clone", cult_repo, cult_path], output=Context.BOTH)
+    #    ctx.end_msg("Ok")
+    #else:
+    #    ctx.msg("Cult", "Already fetched")
+
+    if not os.path.isdir(cult_build):
+        os.makedirs(cult_build)
+        os.chdir(cult_build)
+        ctx.start_msg("Configure Cult")
+        ctx.cmd_and_log(
+            [
+                ctx.env.CMAKE, cult_path, 
+	            "-DTARGET_ARCH=linux64", 
+                "-DCULT_SUBLEVELS=10", 
+                "-DSYSTEMC_VERSION=2.3", 
+                "-DSYSTEMC_HOME=%s" % (sysc_dist),
+                "-DTLM_HOME=%s/include" % (sysc_dist),
+                "-DSYSTEMCTLM2_INCLUDE_DIR=%s/include" % (sysc_dist),
+            ], 
+            output=Context.BOTH
+        )
+        ctx.end_msg("Ok")
+
+        ctx.start_msg("Compile Cult")
+        ctx.cmd_and_log([ctx.env.MAKE], output=Context.BOTH)
+        ctx.end_msg("Ok")
+
+        #ctx.start_msg("Install Cult")
+        #ctx.cmd_and_log([ctx.env.MAKE, "install"], output=Context.BOTH)
+        #ctx.end_msg("Ok")
+    else:
+        ctx.msg("OTF", "Already build")
+
 
     ### GreenLib ###
     greenlib_commit = "1b42c6cf83f091b5a1608c2bbc8f428db5d82fa9"
@@ -171,5 +237,5 @@ def contrib(ctx):
 
     os.chdir(ctx.bldnode.abspath())
 
-def build(sself):
+def build(self):
     pass

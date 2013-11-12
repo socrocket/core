@@ -1,9 +1,9 @@
-//*********************************************************************
+// *********************************************************************
 // Copyright 2010, Institute of Computer and Network Engineering,
 //                 TU-Braunschweig
 // All rights reserved
 // Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
+// without the express, prior written consent of the authors is
 // strictly prohibited.
 //
 // University of Technology Braunschweig
@@ -19,9 +19,9 @@
 // The program is provided "as is", there is no warranty that
 // the program is correct or suitable for any purpose,
 // neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
+// contained do not necessarily reflect the policy of the
 // European Space Agency or of TU-Braunschweig.
-//*********************************************************************
+// *********************************************************************
 // Title:      sc_main.cpp
 //
 // ScssId:
@@ -39,9 +39,7 @@
 // Author:     VLSI working group @ IDA @ TUBS
 // Maintainer: Thomas Schuster
 // Reviewed:
-//*********************************************************************
-
-
+// *********************************************************************
 #include <greencontrol/config.h>
 
 #include "json_parser.h"
@@ -121,7 +119,7 @@ boost::filesystem::path find_top_path(char *start) {
 }
 
 int sc_main(int argc, char** argv) {
-    boost::program_options::options_description desc("Options");      
+    boost::program_options::options_description desc("Options");
     desc.add_options()
       ("help", "Shows this message.")
       ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json.")
@@ -220,7 +218,7 @@ int sc_main(int argc, char** argv) {
            parvalue = iter->substr(iter->find_first_of("=")+1);
 
            // Set parameter
-           mApi->setInitValue(parname, parvalue); 
+           mApi->setInitValue(parname, parvalue);
         }
     }
 
@@ -228,25 +226,24 @@ int sc_main(int argc, char** argv) {
     if(vm.count("listoptions")) {
        paramlist = true;
     }
-    
+
     if(vm.count("listgsconfig")) {
        configlist = true;
     }
-    
     //if(vm.count("saveoptions")) {
     //   saveoptions = true;
     //}
     
-		std::string optionssearchkey = "";
-		if(vm.count("listoptionsfiltered")) {
+	std::string optionssearchkey = "";
+	if(vm.count("listoptionsfiltered")) {
         optionssearchkey = vm["listoptionsfiltered"].as<std::string>();
-				paramlistfiltered = true;
+	    paramlistfiltered = true;
     }
 
-		std::string configssearchkey = "";
-		if(vm.count("listgsconfigfiltered")) {
+	std::string configssearchkey = "";
+	if(vm.count("listgsconfigfiltered")) {
         configssearchkey = vm["listgsconfigfiltered"].as<std::string>();
-				configlistfiltered= true;
+	    configlistfiltered= true;
     }
 
     // Build GreenControl Configuration Namespace
@@ -264,18 +261,18 @@ int sc_main(int argc, char** argv) {
     gs::gs_param_array p_report("report", p_conf);
     gs::gs_param<bool> p_report_timing("timing", true, p_report);
     gs::gs_param<bool> p_report_power("power", true, p_report);
-
+/*
     if(!((std::string)p_system_log).empty()) {
         v::logApplication((char *)((std::string)p_system_log).c_str());
     }
-
+*/
     amba::amba_layer_ids ambaLayer;
     if(p_system_at) {
         ambaLayer = amba::amba_AT;
     } else {
         ambaLayer = amba::amba_LT;
     }
-    
+
     // *** CREATE MODULES
 
     // AHBCtrl
@@ -323,10 +320,10 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_apbctrl_index("hindex", 2u, p_apbctrl);
     gs::gs_param<bool> p_apbctrl_check("mcheck", true, p_apbctrl);
 
-    APBCtrl apbctrl("apbctrl", 
+    APBCtrl apbctrl("apbctrl",
         p_apbctrl_haddr,    // The 12 bit MSB address of the AHB area.
         p_apbctrl_hmask,    // The 12 bit AHB area address mask
-        p_apbctrl_check,    // Check for intersections in the memory map 
+        p_apbctrl_check,    // Check for intersections in the memory map
         p_apbctrl_index,    // AHB bus index
         p_report_power,     // Power Monitoring on/off
 		    ambaLayer           // TLM abstraction layer
@@ -401,31 +398,31 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_mctrl_sepbus("sepbus", false, p_mctrl);
     gs::gs_param<unsigned int> p_mctrl_sdbits("sdbits", 32, p_mctrl);
     gs::gs_param<unsigned int> p_mctrl_mobile("mobile", 0u, p_mctrl);
-    Mctrl mctrl( "mctrl", 
-        p_mctrl_prom_asel, 
-        p_mctrl_ram_asel, 
-        p_mctrl_prom_addr, 
-        p_mctrl_prom_mask, 
+    Mctrl mctrl( "mctrl",
+        p_mctrl_prom_asel,
+        p_mctrl_ram_asel,
+        p_mctrl_prom_addr,
+        p_mctrl_prom_mask,
         p_mctrl_io_addr,
-        p_mctrl_io_mask, 
-        p_mctrl_ram_addr, 
-        p_mctrl_ram_mask, 
-        p_mctrl_apb_addr, 
-        p_mctrl_apb_mask, 
-        p_mctrl_ram_wprot, 
+        p_mctrl_io_mask,
+        p_mctrl_ram_addr,
+        p_mctrl_ram_mask,
+        p_mctrl_apb_addr,
+        p_mctrl_apb_mask,
+        p_mctrl_ram_wprot,
         p_mctrl_ram_sram_banks,
         p_mctrl_ram8,
-        p_mctrl_ram16, 
-        p_mctrl_sepbus, 
-        p_mctrl_sdbits, 
-        p_mctrl_mobile, 
-        p_mctrl_sden, 
-        p_mctrl_index, 
+        p_mctrl_ram16,
+        p_mctrl_sepbus,
+        p_mctrl_sdbits,
+        p_mctrl_mobile,
+        p_mctrl_sden,
+        p_mctrl_index,
         p_mctrl_apb_index,
         p_report_power,
         ambaLayer
     );
-    
+
     // Connecting AHB Slave
     ahbctrl.ahbOUT(mctrl.ahb);
     // Connecting APB Slave
@@ -437,11 +434,11 @@ int sc_main(int argc, char** argv) {
     // ===============
 
     // ROM instantiation
-    MapMemory rom( "rom", 
-    //ArrayMemory rom( "rom", 
-                     MEMDevice::ROM, 
-                     p_mctrl_prom_banks, 
-                     p_mctrl_prom_bsize * 1024 * 1024, 
+    MapMemory rom( "rom",
+    //ArrayMemory rom( "rom",
+                     MEMDevice::ROM,
+                     p_mctrl_prom_banks,
+                     p_mctrl_prom_bsize * 1024 * 1024,
                      p_mctrl_prom_width,
                      0,
                      p_report_power
@@ -457,9 +454,9 @@ int sc_main(int argc, char** argv) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_prom_elf))) {
         uint8_t *execData;
         v::info << "rom" << "Loading Prom with " << p_mctrl_prom_elf << v::endl;
-        ExecLoader prom_loader(p_mctrl_prom_elf); 
+        ExecLoader prom_loader(p_mctrl_prom_elf);
         execData = prom_loader.getProgData();
-    
+
         for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
           rom.write(prom_loader.getDataStart() + i - ((((unsigned int)p_mctrl_prom_addr)&((unsigned int)p_mctrl_prom_mask))<<20), execData[i]);
         }
@@ -470,31 +467,31 @@ int sc_main(int argc, char** argv) {
     }
 
     // IO memory instantiation
-    MapMemory io( "io", 
-    //ArrayMemory io( "io", 
-                    MEMDevice::IO, 
-                    p_mctrl_prom_banks, 
-                    p_mctrl_prom_bsize * 1024 * 1024, 
+    MapMemory io( "io",
+    //ArrayMemory io( "io",
+                    MEMDevice::IO,
+                    p_mctrl_prom_banks,
+                    p_mctrl_prom_bsize * 1024 * 1024,
                     p_mctrl_prom_width,
                     0,
                     p_report_power
 
     );
-    
+
     // Connect to memory controller and clock
     mctrl.mem(io.bus);
     io.set_clk(p_system_clock, SC_NS);
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);
-    
+
     if(!((std::string)p_mctrl_io_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_io_elf))) {
         uint8_t *execData;
         v::info << "io" << "Loading IO with " << p_mctrl_io_elf << v::endl;
-        ExecLoader loader(p_mctrl_io_elf); 
+        ExecLoader loader(p_mctrl_io_elf);
         execData = loader.getProgData();
-    
+
         for(unsigned int i = 0; i < loader.getProgDim(); i++) {
           io.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_io_addr)&((unsigned int)p_mctrl_io_mask))<<20), execData[i]);
         }
@@ -505,11 +502,11 @@ int sc_main(int argc, char** argv) {
     }
 
     // SRAM instantiation
-    MapMemory sram( "sram", 
-    //ArrayMemory sram( "sram", 
-                      MEMDevice::SRAM, 
-                      p_mctrl_ram_sram_banks, 
-                      p_mctrl_ram_sram_bsize * 1024 * 1024, 
+    MapMemory sram( "sram",
+    //ArrayMemory sram( "sram",
+                      MEMDevice::SRAM,
+                      p_mctrl_ram_sram_banks,
+                      p_mctrl_ram_sram_bsize * 1024 * 1024,
                       p_mctrl_ram_sram_width,
                       0,
                       p_report_power
@@ -522,14 +519,14 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
-    
+
     if(!((std::string)p_mctrl_ram_sram_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sram_elf))) {
         uint8_t *execData;
         v::info << "sram" << "Loading SRam with " << p_mctrl_ram_sram_elf << v::endl;
-        ExecLoader loader(p_mctrl_ram_sram_elf); 
+        ExecLoader loader(p_mctrl_ram_sram_elf);
         execData = loader.getProgData();
-    
+
         for(unsigned int i = 0; i < loader.getProgDim(); i++) {
           sram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
         }
@@ -540,11 +537,11 @@ int sc_main(int argc, char** argv) {
     }
 
     // SDRAM instantiation
-    ArrayMemory sdram( "sdram", 
-                       MEMDevice::SDRAM, 
-                       p_mctrl_ram_sdram_banks, 
-                       p_mctrl_ram_sdram_bsize * 1024 * 1024, 
-                       p_mctrl_ram_sdram_width, 
+    ArrayMemory sdram( "sdram",
+                       MEMDevice::SDRAM,
+                       p_mctrl_ram_sdram_banks,
+                       p_mctrl_ram_sdram_bsize * 1024 * 1024,
+                       p_mctrl_ram_sdram_width,
                        p_mctrl_ram_sdram_cols,
                        p_report_power
     );
@@ -555,14 +552,14 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sdram_elf("elf", "", p_mctrl_ram_sdram);
-    
+
     if(!((std::string)p_mctrl_ram_sdram_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sdram_elf))) {
         uint8_t *execData;
         v::info << "sdram" << "Loading SDRam with " << p_mctrl_ram_sdram_elf << v::endl;
-        ExecLoader loader(p_mctrl_ram_sdram_elf); 
+        ExecLoader loader(p_mctrl_ram_sdram_elf);
         execData = loader.getProgData();
-    
+
         for(unsigned int i = 0; i < loader.getProgDim(); i++) {
           sdram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
         }
@@ -572,7 +569,7 @@ int sc_main(int argc, char** argv) {
       }
     }
 
-    
+
     //leon3.ENTRY_POINT   = 0;
     //leon3.PROGRAM_LIMIT = 0;
     //leon3.PROGRAM_START = 0;
@@ -600,7 +597,7 @@ int sc_main(int argc, char** argv) {
                                   p_report_power
 
       );
-      
+
       // Connect to ahbctrl and clock
       ahbctrl.ahbOUT(ahbmem->ahb);
       ahbmem->set_clk(p_system_clock, SC_NS);
@@ -610,20 +607,20 @@ int sc_main(int argc, char** argv) {
         if(boost::filesystem::exists(boost::filesystem::path((std::string)p_ahbmem_elf))) {
           uint8_t *execData;
           v::info << "ahbmem" << "Loading AHBMem with " << p_ahbmem_elf << v::endl;
-          ExecLoader prom_loader(p_ahbmem_elf); 
+          ExecLoader prom_loader(p_ahbmem_elf);
           execData = prom_loader.getProgData();
-    
+
           for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
             ahbmem->writeByteDBG(prom_loader.getDataStart() + i - ((((unsigned int)p_ahbmem_addr)&((unsigned int)p_ahbmem_mask))<<20), execData[i]);
           }
         } else {
           v::warn << "ahbmem" << "File " << p_ahbmem_elf << " does not exist!" << v::endl;
-        exit(1);
+          exit(1);
         }
       }
     }
 
-    
+
     // AHBMaster - ahbin (input_device)
     // ================================
     gs::gs_param_array p_ahbin("ahbin", p_conf);
@@ -733,14 +730,14 @@ int sc_main(int argc, char** argv) {
               p_report_power,            // Power Monitor,
               ambaLayer                  // TLM abstraction layer
       );
-      
+
       // Connecting AHB Master
       mmu_cache_inst->ahb(ahbctrl.ahbIN);
-      
+
       // Set clock
       mmu_cache_inst->set_clk(p_system_clock, SC_NS);
       connect(mmu_cache_inst->snoop, ahbctrl.snoop);
-      
+
       // For each Abstraction is another model needed
       if(p_system_at) {
         // LEON3 AT Processor
@@ -770,7 +767,7 @@ int sc_main(int argc, char** argv) {
         if(p_gdb_en) {
           GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3->abiIf));
           leon3->toolManager.addTool(*gdbStub);
-          gdbStub->initialize(p_gdb_port + i); 
+          gdbStub->initialize(p_gdb_port + i);
           //leon3->instrMem.setDebugger(gdbStub);
           //leon3->dataMem.setDebugger(gdbStub);
         }
@@ -780,6 +777,7 @@ int sc_main(int argc, char** argv) {
         // set_brk, open, read, ...
         if(!((std::string)p_system_osemu).empty()) {
           v::warn << "OSEmu" << "content " << p_system_osemu << v::endl;
+
           if(boost::filesystem::exists(boost::filesystem::path((std::string)p_system_osemu))) {
             v::warn << "OSEmu" << "Enabled" << v::endl;
             OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
@@ -828,7 +826,7 @@ int sc_main(int argc, char** argv) {
         if(p_gdb_en) {
           GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3->abiIf));
           leon3->toolManager.addTool(*gdbStub);
-          gdbStub->initialize(p_gdb_port + i); 
+          gdbStub->initialize(p_gdb_port + i);
           //leon3->instrMem.setDebugger(gdbStub);
           //leon3->dataMem.setDebugger(gdbStub);
         }
@@ -910,7 +908,7 @@ int sc_main(int argc, char** argv) {
 
       // Connect to apb and clock
       apbctrl.apb(gptimer->bus);
-      gptimer->set_clk(p_system_clock,SC_NS);      
+      gptimer->set_clk(p_system_clock,SC_NS);
 
       // Connecting Interrupts
       for(int i=0; i < 8; i++) {
@@ -962,7 +960,7 @@ int sc_main(int argc, char** argv) {
 
       i++;
     }
-    
+
     // AHBSlave - AHBProf
     // ==================
     gs::gs_param_array p_ahbprof("ahbprof", p_conf);
@@ -982,7 +980,7 @@ int sc_main(int argc, char** argv) {
       ahbctrl.ahbOUT(ahbprof->ahb);
       ahbprof->set_clk(p_system_clock,SC_NS);
     }
- 
+
     // CREATE AHB2Socwire bridge
     // =========================
     gs::gs_param_array p_socwire("socwire", p_conf);
@@ -1003,21 +1001,21 @@ int sc_main(int argc, char** argv) {
         p_socwire_ahb_index, // hindex
         ambaLayer            // abstraction
       );
-    
+
       // Connecting AHB Master
       ahb2socwire->ahb(ahbctrl.ahbIN);
-    
+
       // Connecting APB Slave
       apbctrl.apb(ahb2socwire->apb);
-    
+
       // Connecting Interrupts
       connect(irqmp.irq_in, ahb2socwire->irq, p_socwire_apb_irq);
-    
+
       // Connect socwire ports as loopback
       ahb2socwire->socwire.master_socket(ahb2socwire->socwire.slave_socket);
     }
-    
-   
+
+
     // * Param Listing **************************
     paramprinter printer;
     if(paramlist) {
@@ -1061,16 +1059,15 @@ int sc_main(int argc, char** argv) {
         cstart = clock();
         sc_core::sc_start();
         cend = clock();
+
+        v::info << "Summary" << "Start: " << dec << cstart << v::endl;
+        v::info << "Summary" << "End:   " << dec << cend << v::endl;
+        v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
+
     } catch(std::runtime_error &error) {
         v::error << "main" << "Execution is stoped caused by a runtime_error. Maybe you forgot to select an executable?" << v::endl;
         v::error << "main" << error.what();
     }
 
-    if(p_report_timing) {
-        v::info << "Summary" << "Start: " << dec << cstart << v::endl;
-        v::info << "Summary" << "End:   " << dec << cend << v::endl;
-        v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
-    }
     return trap::exitValue;
-
 }

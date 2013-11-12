@@ -1,9 +1,9 @@
-//*********************************************************************
+// *********************************************************************
 // Copyright 2010, Institute of Computer and Network Engineering,
 //                 TU-Braunschweig
 // All rights reserved
 // Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
+// without the express, prior written consent of the authors is
 // strictly prohibited.
 //
 // University of Technology Braunschweig
@@ -19,9 +19,9 @@
 // The program is provided "as is", there is no warranty that
 // the program is correct or suitable for any purpose,
 // neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
+// contained do not necessarily reflect the policy of the
 // European Space Agency or of TU-Braunschweig.
-//*********************************************************************
+// *********************************************************************
 // Title:      verbose.h
 //
 // ScssId:
@@ -35,19 +35,27 @@
 // Author:     VLSI working group @ IDA @ TU Braunschweig
 // Maintainer: Rolf Meyer
 // Reviewed:
-//*********************************************************************
+// *********************************************************************
 
 #ifndef VERBOSE_H
 #define VERBOSE_H
 
+#define CULT_ENABLE
+#define CULT_WITH_SYSTEMC
+//#define CULT_WITH_TLM
+#define CULT_SUBLEVELS 10
+
 #include "common.h"
+#include "cult.h"
 
 #include <iostream>
-#include <streambuf>
-#include <iomanip>
-#include <cstdio>
-#include <cstring>
+//#include <streambuf>
+//#include <iomanip>
+//#include <cstdio>
+//#include <cstring>
+#include <string>
 #include <systemc.h>
+//#include <tlm.h>
 
 /// @addtogroup utils
 /// @{
@@ -96,7 +104,7 @@ class Number {
         char fill;
         int width;
         bool hex;
-        
+
         friend ostream &operator <<(ostream &os, const Number &n);
 };
 
@@ -143,7 +151,7 @@ extern Number noint;
 #  ifdef GLOBALVERBOSITY
 #    define VERBOSITY GLOBALVERBOSITY
 #  else
-#    define VERBOSITY 4
+#    define VERBOSITY 3
 #  endif
 #endif
 
@@ -152,27 +160,51 @@ extern Number noint;
 template<int level>
 class msgstream {
     public:
-        msgstream(std::streambuf *sb) :
-            m_stream(sb) {
+        msgstream() :
+            messagestream() {
+            switch (level) {
+                case 0:
+                    cultloglevel = CULT_ERROR;
+                    break;
+                case 1:
+                    cultloglevel = CULT_WARNING;
+                    break;
+                case 2:
+                    cultloglevel = CULT_INFO_(2);
+                    break;
+                case 3:
+                    cultloglevel = CULT_INFO;
+                    break;
+                default:
+                    cultloglevel = CULT_DEBUG;
+            }
         }
-        
+
         template<class T>
-        inline msgstream& operator<<(const T &in) {
-            if (level < VERBOSITY) {
-                m_stream << in;
+        inline msgstream<level>& operator<<(const T &in) {
+			if ( level < VERBOSITY) {
+			  messagestream << in;
+			}
+            return *this;
+        }
+
+        inline msgstream<level>& operator<<(std::ostream& (*in)(std::ostream&)) {
+			if ( level < VERBOSITY ) {
+			  if ( in == v::endl ) {
+                std::string msg = messagestream.str();
+                CULT_LOG_MESSAGE_SC(module, cultloglevel, msg);
+                // Empty messagestream
+                messagestream.str("");
+			  }
             }
             return *this;
         }
 
-        inline msgstream& operator<<(std::ostream& (*in)(std::ostream&)) {
-            if (level < VERBOSITY) {
-                m_stream << in;
-            }
-            return *this;
-        }
+        std::string module;
+        std::stringstream messagestream;
 
     private:
-        std::ostream m_stream;
+        cult::LogLevel cultloglevel;
 };
 
 /// This stream is used for an output line.
@@ -180,44 +212,14 @@ class msgstream {
 template<int level>
 class logstream {
     public:
-        logstream(std::streambuf *sb) :
-            m_stream(sb) {
-        }
 
         template<class T>
         inline msgstream<level>& operator<<(const T &in) {
-            if (level < VERBOSITY) {
-                m_stream << "@" << sc_core::sc_time_stamp().to_string().c_str()
-                        << " /" << std::dec
-                        << (unsigned)sc_core::sc_delta_count() << " ("
-                        << ::v::Blue << in << ::v::Normal << "): ";
-                switch (level) {
-                    case 0:
-                        m_stream << v::Red << "Error: " << v::Normal;
-                        break;
-                    case 1:
-                        m_stream << v::Yellow << "Warning: " << v::Normal;
-                        break;
-                    case 2:
-                        m_stream << v::Green << "Report: " << v::Normal;
-                        break;
-                    case 3:
-                        m_stream << v::Cyan << "Info: " << v::Normal;
-                        break;
-                    default:
-                        m_stream << v::Magenta << "Debug: " << v::Normal;
-                }
-            }
+			if ( level < VERBOSITY ) {
+			  m_stream.module = in;
+			}
             return m_stream;
         }
-
-        /*inline
-         msgstream<level>& operator<<(std::ostream& (*in)(std::ostream&)) {
-         if(level<VERBOSITY) {
-         m_stream << in;
-         }
-         return *this;
-         }*/
 
         operator bool() const {
             return level < VERBOSITY;
@@ -232,18 +234,6 @@ extern logstream<2> report;
 extern logstream<3> info;
 extern logstream<4> debug;
 
-/// This function can be used if you wish to log all verbose output in a file.
-/// The logfile gets filled with data in parallel to the screen output.
-/// If you want to end the logging to a file simply call the function with NULL as parameter.
-///
-/// @param filename The file name of the logfile.
-void logFile(char *filename);
-
-/// This function is intended to create a logfile next to the executable simply callit like:
-/// > v::logApplication(argv[0])
-/// If argv[0] is "./build/test1/mytest" the logfile will be "./build/test1/mytest.log"
-///
-/// @param name Application name
 void logApplication(char *name);
 
 } // namespace

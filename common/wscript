@@ -57,7 +57,8 @@ def build(bld):
 			'block_allocator.cpp',
 			'paramprinter.cpp'],
     export_includes = '.',
-    uselib          = 'GREENSOCS SYSTEMC TLM',
+    uselib          = 'GREENSOCS SYSTEMC TLM BOOST',
+    use             = 'CULT OTF',
     install_path    = '${PREFIX}/lib',
   )
 
@@ -65,9 +66,9 @@ def build(bld):
     target          = 'simple.common',
     features        = 'cxx cprogram test',
     source          = 'tests/simple.cpp',
-    includes        = '.',
+    includes        = '. CULT',
     uselib          = 'SYSTEMC',
-    use             = 'common',
+    use             = 'common BOOST',
     install_path    = None,
   )
 
@@ -76,8 +77,8 @@ def build(bld):
     features        = 'cxx cprogram test',
     source          = 'tests/gs_config_test.cpp',
     includes        = 'GREENSOCS',
-    uselib          = 'GREENSOCS SYSTEMC',
-    use             = 'common',
+    uselib          = 'GREENSOCS SYSTEMC BOOST',
+    use             = 'common BOOST',
     install_path    = None,
   )
  

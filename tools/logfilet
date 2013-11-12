@@ -1,0 +1,95 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from argparse import ArgumentParser
+import argparse
+from collections import deque
+import collections
+
+parser = ArgumentParser(description="%(prog)s - A Tool to print selected lines from a LOGFILE to standard output.")
+parser.add_argument("-f", "--file",
+	dest="logfile",
+	required=True,
+	help="logfilename",
+)
+parser.add_argument("-s", "--starttime",
+	dest="starttime",
+	required=True,
+	type=int,
+	help="starttime",
+)
+parser.add_argument("-e","--endtime",
+	dest="endtime",
+	type=int,
+	help="endtime"
+)
+parser.add_argument("-pre", "--prelines",
+	dest="prelines",
+	type=int,
+	help="prelines",
+)
+parser.add_argument("-post", "--postlines",
+	dest="postlines",
+	type=int,
+	default=0,
+	help="postlines",
+)
+parser.add_argument("-sep", "--seperator",
+	dest="sep",
+	default=",",
+	help="seperator",
+)
+parser.add_argument("-pos", "--position",
+	dest="pos",
+	type=int,
+	default=0,
+	help="position",
+)
+parser.add_argument("--version",
+	action='version',
+	version='%(prog)s 0.3',
+	help="print %(prog)s version and exit"
+)
+args = parser.parse_args()
+
+postlines = args.postlines
+printpostlines = (postlines > 0)
+endtime = (args.starttime if (args.endtime is None) else args.endtime)
+
+prelinebuffer = collections.deque(maxlen=(args.prelines if args.prelines > 0 else 0))
+
+with open(args.logfile, "r") as logfile:
+	for rawline in logfile:
+		line = rawline.replace('\n', '')
+		logtimecell = line.split(args.sep)[args.pos].split(" ")
+
+		logtime = int(logtimecell[0])
+
+		if (logtime > 0):
+			if logtimecell[1] == "ns":
+				pass
+			elif logtimecell[1] == "us":
+				logtime *= 1000
+			elif logtimecell[1] == "ms":
+				logtime *= 1000000
+			elif logtimecell[1] == "s":
+				logtime *= 1000000000
+
+		if (logtime <= args.starttime):
+			postlines = args.postlines
+			printpostlines = (postlines > 0)
+
+		if (logtime < args.starttime):
+			prelinebuffer.append(line)
+			continue
+		else:
+			if (len(prelinebuffer) > 0):
+				for preline in prelinebuffer:
+					print(preline)
+				prelinebuffer.clear()
+			if (logtime <= endtime or printpostlines):
+				print(line)
+			if (logtime > endtime and printpostlines):
+				postlines -= 1
+				if (postlines <= 0):
+					printpostlines = False
