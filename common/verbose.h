@@ -42,20 +42,18 @@
 
 #define CULT_ENABLE
 #define CULT_WITH_SYSTEMC
+#define CULT_USE_SYSTEMC_2_3
 //#define CULT_WITH_TLM
 #define CULT_SUBLEVELS 10
 
-#include "common.h"
+#ifdef CULT_ENABLE
 #include "cult.h"
+#endif
+#include "common.h"
 
 #include <iostream>
-//#include <streambuf>
-//#include <iomanip>
-//#include <cstdio>
-//#include <cstring>
 #include <string>
 #include <systemc.h>
-//#include <tlm.h>
 
 /// @addtogroup utils
 /// @{

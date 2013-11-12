@@ -712,22 +712,24 @@ def configure(ctx):
       cultlib = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.cultdir, "lib")))))
       cultdir = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.cultdir, "include")))))
     else:
-      out_dir = os.path.abspath(ctx.out_dir or top)
+      out_dir = os.path.abspath(ctx.out_dir or out)
+      top_dir = os.path.abspath(top)
 #      print (out_dir)
-      cultlib = os.path.join(out_dir, "contrib", "cult", "build", "src")
-      cultdir = [os.path.join(out_dir,  "contrib", "cult", "include"),
-        os.path.join(out_dir, "contrib", "cult", "src", "core"),
-        os.path.join(out_dir, "contrib", "cult", "src", "cpp"),
-        os.path.join(out_dir, "contrib", "cult", "src", "sysc"),
-        os.path.join(out_dir, "contrib", "cult", "src", "tlm"),
-        os.path.join(out_dir, "contrib", "cult", "src")]
+      cultlib = os.path.join(out_dir, "contrib", "cult", "src")
+      cultdir = [
+        os.path.join(top_dir, "contrib", "cult", "include"),
+        os.path.join(top_dir, "contrib", "cult", "src", "core"),
+        os.path.join(top_dir, "contrib", "cult", "src", "cpp"),
+        os.path.join(top_dir, "contrib", "cult", "src", "sysc"),
+        os.path.join(top_dir, "contrib", "cult", "src", "tlm"),
+        os.path.join(top_dir, "contrib", "cult", "src")]
     ctx.check_cxx(
-      stlib        = 'cult_tlm',
+      stlib        = 'cult_sysc',
       uselib_store = 'CULT',
       mandatory    = True,
       libpath      = cultlib,
       errmsg       = "CULT_TLM Library not found. Use --cult option or set $CULT.",
-      uselib       = 'OTF',
+      #uselib       = 'OTF',
       okmsg        = "ok"
     )
     ctx.check_cxx(
@@ -735,7 +737,8 @@ def configure(ctx):
       uselib_store = 'CULT',
       mandatory    = True,
       includes     = cultdir,
-      uselib       = 'CULT OTF',
+      #uselib       = 'CULT OTF',
+      uselib       = 'CULT',
       okmsg        = "ok"
     )
     
