@@ -587,7 +587,7 @@ void AHBCtrl::arbitrate() {
   tlm::tlm_sync_enum status;
   sc_core::sc_time delay;
 
-  payload_t * trans;
+  payload_t *trans = NULL;
   int slave_id = 0;
 
   sc_core::sc_time tmp;

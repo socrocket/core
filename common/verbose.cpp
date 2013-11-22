@@ -1,9 +1,9 @@
-// *********************************************************************
+//*********************************************************************
 // Copyright 2010, Institute of Computer and Network Engineering,
 //                 TU-Braunschweig
 // All rights reserved
 // Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
+// without the express, prior written consent of the authors is 
 // strictly prohibited.
 //
 // University of Technology Braunschweig
@@ -19,9 +19,9 @@
 // The program is provided "as is", there is no warranty that
 // the program is correct or suitable for any purpose,
 // neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
+// contained do not necessarily reflect the policy of the 
 // European Space Agency or of TU-Braunschweig.
-// *********************************************************************
+//*********************************************************************
 // Title:      verbose.cpp
 //
 // ScssId:
@@ -37,21 +37,87 @@
 // Author:     VLSI working group @ IDA @ TU Braunschweig
 // Maintainer: Rolf Meyer
 // Reviewed:
-// *********************************************************************
+//*********************************************************************
 
 #include "verbose.h"
 
 namespace v {
 
-void logFile(char *name) {}
+template<typename char_type, typename traits = std::char_traits<char_type> >
+class basic_teebuf : public std::basic_streambuf<char_type, traits> {
+    public:
+        typedef typename traits::int_type int_type;
 
-void logApplication(char *name) {}
+        basic_teebuf(std::basic_streambuf<char_type, traits> *sb1,
+                     std::basic_streambuf<char_type, traits> *sb2) :
+            sb1(sb1), sb2(sb2) {
+        }
 
-logstream<0> error;
-logstream<1> warn;
-logstream<2> report;
-logstream<3> info;
-logstream<4> debug;
+        void set_tee(std::basic_streambuf<char_type, traits> *tee) {
+            //this->flush();
+            sb2 = tee;
+            sync();
+        }
+
+    private:
+        virtual int sync() {
+            int const r1 = sb1->pubsync();
+            int const r2 = (sb2? sb2->pubsync() : 0);
+            return r1 == 0 && r2 == 0? 0 : -1;
+        }
+
+        virtual int_type overflow(int_type c) {
+            int_type const eof = traits::eof();
+
+            if (traits::eq_int_type(c, eof)) {
+                return traits::not_eof(c);
+
+            } else {
+                char_type const ch = traits::to_char_type(c);
+                int_type const r1 = sb1->sputc(ch);
+                if (sb2) {
+                    sb2->sputc(ch);
+                    return traits::eq_int_type(r1, eof) || traits::eq_int_type(
+                            r1, eof)? eof : c;
+                } else {
+                    return traits::eq_int_type(r1, eof)? eof : c;
+                }
+            }
+        }
+
+    private:
+        std::basic_streambuf<char_type, traits> *sb1;
+        std::basic_streambuf<char_type, traits> *sb2;
+};
+
+typedef basic_teebuf<char> teebuf;
+std::ofstream outfile;
+teebuf logbuf(std::cout.rdbuf(), NULL);
+
+void logFile(char *name) {
+    if (outfile.is_open()) {
+        outfile.close();
+    }
+    if (name) {
+        outfile.open(name);
+        logbuf.set_tee(outfile.rdbuf());
+    }
+}
+
+void logApplication(char *name) {
+  // Create a logfile next to the binary
+  char logfile[strlen(name)+8];
+  logfile[0] = 0;
+  strcat(logfile, name);
+  strcat(logfile, ".log");
+  v::logFile(logfile);
+}
+
+logstream<0> error(&logbuf);
+logstream<1> warn(&logbuf);
+logstream<2> report(&logbuf);
+logstream<3> info(&logbuf);
+logstream<4> debug(&logbuf);
 
 /** Linux internal consol color pattern */
 Color bgBlack("\e[40m");
