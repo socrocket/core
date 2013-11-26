@@ -64,7 +64,7 @@ def configure(ctx):
     """Systools configuration section"""
     ctx.env["SYSTESTS"] = Options.options.systests
     ctx.env["MKPROMFLAGS"] = []
-    ctx.find_program('mkprom2', var='MKPROM', mandatory=True, okmsg="ok")
+    #ctx.find_program('mkprom2', var='MKPROM', mandatory=True, okmsg="ok")
 
 def systest_task_str(self):
     """Better Print Sting for Simulator Tests"""

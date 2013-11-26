@@ -189,6 +189,7 @@ def configure(ctx):
     # Check for python
     ctx.load('python')
     ctx.check_python_version((2,4,0))
+    ctx.check_python_headers()
     ctx.check_python_module('PyQt4')
 
     if ctx.options.static_build:
@@ -336,7 +337,7 @@ def configure(ctx):
     
     boostLibs = 'thread regex date_time program_options filesystem system serialization'
 
-    ctx.check_boost(lib=boostLibs, static=True, mandatory=True, errmsg = boostErrorMessage)
+    ctx.check_boost(lib=boostLibs, static=False, mandatory=True, errmsg = boostErrorMessage)
     if int(ctx.env.BOOST_VERSION.split('_')[1]) < 35:
         ctx.fatal(boostErrorMessage)
     if not ctx.options.static_build:
@@ -417,10 +418,17 @@ def configure(ctx):
     ###########################################################
     ctx.check(header_name='cxxabi.h', features='cxx cprogram', mandatory=True)
     ctx.check_cxx(function_name='abi::__cxa_demangle', header_name="cxxabi.h", mandatory=True)
-    if ctx.options.elfdir:
+    if use_contrib:
+        elfIncPath=[
+            os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(contrib_build, "libelf-0.8.13", "include", "libelf")))),
+            os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(contrib_build, "libelf-0.8.13", "include"))))
+        ]
+        elfLibPath=os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(contrib_build, "libelf-0.8.13", "lib"))))
+    else:
         elfIncPath=[os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.elfdir, 'include')))),
                     os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.elfdir, 'include', 'libelf'))))]
         elfLibPath=os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.elfdir, 'lib'))))
+    if ctx.options.elfdir or use_contrib:
         if not os.path.exists(os.path.join(elfLibPath, ctx.env['cxxstlib_PATTERN'] % 'elf')) and  not os.path.exists(os.path.join(elfLibPath, ctx.env['cxxshlib_PATTERN'] % 'elf')):
             ctx.fatal('Unable to find libelf in specified path ' + elfLibPath)
         elfHeaderFound = False
@@ -688,7 +696,7 @@ def configure(ctx):
             mandatory=1, 
             errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required'
         )
-
+    """
     ##################################################
     # Check for Otf Library and Headers
     ##################################################
@@ -762,7 +770,7 @@ def configure(ctx):
       uselib       = 'CULT',
       okmsg        = "ok"
     )
-    
+    """
     ##################################################
     # Check for SDL Library and Headers
     ##################################################
@@ -1084,16 +1092,16 @@ def configure(ctx):
         # If the path was not specified look in the search PATH
         crossxx = [ctx.find_program(ctx.options.sparc_prefix + 'g++')]
 
-    try:
-        path = os.path.abspath(os.path.expanduser(getattr(ctx.options,'sparc_cross')))
-        crossar = [ctx.find_program(ctx.options.sparc_prefix + 'ar', path_list=[os.path.join(path, 'bin')])]
-    except AttributeError as e:
-        # If the path was not specified look in the search PATH
-        crossar = [ctx.find_program(ctx.options.sparc_prefix + 'ar')]
+    #try:
+    #    path = os.path.abspath(os.path.expanduser(getattr(ctx.options,'sparc_cross')))
+    #    crossar = [ctx.find_program(ctx.options.sparc_prefix + 'ar', path_list=[os.path.join(path, 'bin')])]
+    #except AttributeError as e:
+    #    # If the path was not specified look in the search PATH
+    #    crossar = [ctx.find_program(ctx.options.sparc_prefix + 'ar')]
 
     ctx.env['CC'] = ctx.env['LINK_CC'] = crosscc
     ctx.env['CXX'] = ctx.env['LINK_CXX'] = crossxx
-    ctx.env['AR'] = crossar
+    #ctx.env['AR'] = crossar
     #ctx.set_env_name('sparc', sparc_env)
     sparcFlags = ['-Wall', '-static', '-O3']
     ctx.env['SHLIB_MARKER'] = ""

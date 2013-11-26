@@ -12,6 +12,8 @@ def contrib(ctx):
     ctx.find_program('git', var='GIT', mandatory=True, okmsg="ok")
     ctx.find_program('patch', var='PATCH', mandatory=True, okmsg="ok")
     ctx.find_program('make', var='MAKE', mandatory=True, okmsg="ok")
+    ctx.find_program('wget', var='WGET', mandatory=True, okmsg="ok")
+    ctx.find_program('tar', var='TAR', mandatory=True, okmsg="ok")
 
     ctx.find_program('cmake', var='CMAKE', mandatory=False, okmsg="ok")
     if "CMAKE" in ctx.env:
@@ -19,9 +21,7 @@ def contrib(ctx):
         cmake_version_str = subprocess.check_output(["cmake", "--version"])
         cmake_version = [int(v) for v in cmake_version_str.split(" ")[2].split(".")]
         cmake_version = cmake_version[0] * 1000000 + cmake_version[1] * 10000 + cmake_version[2] * 100
-    if cmake_version < 2081101 or not ("CMAKE" in ctx.env.get):
-        ctx.find_program('wget', var='WGET', mandatory=True, okmsg="ok")
-        ctx.find_program('tar', var='TAR', mandatory=True, okmsg="ok")
+    if not ("CMAKE" in ctx.env) or cmake_version < 2081101:
         
         cmake_version = "2.8.12"
         cmake_down = "http://www.cmake.org/files/v2.8/cmake-%s.tar.gz" % (cmake_version)
@@ -46,19 +46,52 @@ def contrib(ctx):
             ctx.cmd_and_log([os.path.join(cmake_path, "bootstrap"), "--prefix=%s" % (cmake_build)], output=Context.BOTH)
             ctx.end_msg("Ok")
 
-            ctx.start_msg("Compile CMake 2.3")
+            ctx.start_msg("Compile CMake")
             ctx.cmd_and_log([ctx.env.MAKE], output=Context.BOTH)
             ctx.end_msg("Ok")
 
-            ctx.start_msg("Install CMake 2.3")
+            ctx.start_msg("Install CMake")
             ctx.cmd_and_log([ctx.env.MAKE, "install"], output=Context.BOTH)
             ctx.end_msg("Ok")
         else:
             ctx.msg("CMake", "Already build")
         ctx.env.CMAKE = os.path.join(cmake_build, "bin", "cmake")
 
-    ### System C + TLM ###
+    elf_version = "0.8.13"
+    elf_down = "http://www.mr511.de/software/libelf-%s.tar.gz" % (elf_version)
+    elf_tar = os.path.join(ctx.srcnode.abspath(), "contrib", "libelf-%s.tar.gz" % (elf_version))
+    elf_tar_cwd = os.path.join(ctx.srcnode.abspath(), "contrib")
+    elf_path = os.path.join(ctx.srcnode.abspath(), "contrib", "libelf-%s" % (elf_version))
+    elf_build = os.path.join(ctx.bldnode.abspath(), "contrib", "libelf-%s-bld" % (elf_version))
+    elf_dist = os.path.join(ctx.bldnode.abspath(), "contrib", "libelf-%s" % (elf_version))
+    if not os.path.exists(elf_tar):
+        ctx.start_msg("Fetching libelf")
+        ctx.cmd_and_log([ctx.env.WGET, elf_down, elf_tar], output=Context.BOTH, cwd=elf_tar_cwd)
+        ctx.end_msg("Ok")
 
+    if not os.path.isdir(elf_path):
+        ctx.start_msg("Extracting libelf")
+        ctx.cmd_and_log([ctx.env.TAR, "-xzf", elf_tar], output=Context.BOTH, cwd=elf_tar_cwd)
+        ctx.end_msg("Ok")
+
+    if not os.path.isdir(elf_build):
+        os.makedirs(elf_build)
+        os.chdir(elf_build)
+        ctx.start_msg("Configure libelf")
+        ctx.cmd_and_log([os.path.join(elf_path, "configure"), "--prefix=%s" % (elf_dist)], output=Context.BOTH, cwd=elf_build)
+        ctx.end_msg("Ok")
+
+        ctx.start_msg("Compile libelf")
+        ctx.cmd_and_log([ctx.env.MAKE], output=Context.BOTH, cwd=elf_build)
+        ctx.end_msg("Ok")
+
+        ctx.start_msg("Install libelf")
+        ctx.cmd_and_log([ctx.env.MAKE, "install"], output=Context.BOTH, cwd=elf_build)
+        ctx.end_msg("Ok")
+    else:
+        ctx.msg("libelf", "Already build")
+
+    ### System C + TLM ###
     sysc_repo = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/systemc.git"
     sysc_path = os.path.join(ctx.srcnode.abspath(), "contrib", "systemc-repo")
     sysc_build = os.path.join(ctx.bldnode.abspath(), "contrib", "systemc")
@@ -126,7 +159,7 @@ def contrib(ctx):
     #    ctx.end_msg("Ok")
     #else:
     #    ctx.msg("Cult", "Already fetched")
-
+    """
     if not os.path.isdir(cult_build):
         os.makedirs(cult_build)
         os.chdir(cult_build)
@@ -154,7 +187,7 @@ def contrib(ctx):
         #ctx.end_msg("Ok")
     else:
         ctx.msg("OTF", "Already build")
-
+    """
 
     ### GreenLib ###
     greenlib_commit = "1b42c6cf83f091b5a1608c2bbc8f428db5d82fa9"
@@ -219,7 +252,7 @@ def contrib(ctx):
     if not os.path.isdir(trap_build):
         ctx.start_msg("Compiling Trapgen")
         os.chdir(trap_path)
-        ctx.cmd_and_log(["./waf", "configure", "-o", trap_build, "--with-systemc=%s" % (sysc_path), "--prefix=%s" % (trap_dist)], output=Context.BOTH)
+        ctx.cmd_and_log(["./waf", "configure", "-o", trap_build, "--with-elf=%s" % (elf_dist), "--with-systemc=%s" % (sysc_path), "--prefix=%s" % (trap_dist)], output=Context.BOTH)
         ctx.cmd_and_log(["./waf"], output=Context.BOTH)
         ctx.cmd_and_log(["./waf", "install"], output=Context.BOTH)
         ctx.end_msg("Ok")
