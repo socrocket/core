@@ -56,7 +56,7 @@ def build(bld):
       
     bld(
         target       = 'leon3mp.platform',
-        features     = 'cxx cprogram',
+        features     = 'cxx cprogram pyembed',
         source       = 'sc_main.cpp',
         includes     = '.',
         use          = use,

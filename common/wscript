@@ -48,14 +48,15 @@ top = '..'
 def build(bld):
   bld(
     target          = 'common',
-    features        = 'cxx cxxstlib',
+    features        = 'cxx cxxstlib pyembed',
     source          = ['verbose.cpp',
                        'powermonitor.cpp',
                        'timingmonitor.cpp',
 	               'msclogger.cpp',
 			'json_parser.cpp',
 			'block_allocator.cpp',
-			'paramprinter.cpp'],
+			'paramprinter.cpp',
+            'shell.cpp'],
     export_includes = '.',
     uselib          = 'GREENSOCS SYSTEMC TLM BOOST',
     use             = 'CULT OTF',

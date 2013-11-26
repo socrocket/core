@@ -87,6 +87,7 @@
 
 #include "leon3.funclt.h"
 #include "leon3.funcat.h"
+#include "shell.h"
 
 using namespace std;
 using namespace sc_core;
@@ -126,6 +127,7 @@ int sc_main(int argc, char** argv) {
       ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options.")
       ("argument,a", boost::program_options::value<std::vector<std::string> >(), "Arguments to the software running inside the simulation.")
       ("listoptions,l", "Show a list of all avaliable options")
+      ("interactiv,i", "Start simulation in interactiv mode")
       ("listoptionsfiltered,f", boost::program_options::value<std::string>(), "Show a list of avaliable options containing a keyword")
       ("listgsconfig,c", "Show a list of all avaliable gs_config options")
       ("listgsconfigfiltered,g", boost::program_options::value<std::string>(), "Show a list of avaliable options containing a keyword")
@@ -1057,7 +1059,8 @@ int sc_main(int argc, char** argv) {
     cstart = cend = clock();
     try {
         cstart = clock();
-        sc_core::sc_start();
+        //sc_core::sc_start();
+        start_shell((vm.count("interactiv")?SC_PAUSED:SC_RUNNING));
         cend = clock();
 
         v::info << "Summary" << "Start: " << dec << cstart << v::endl;
