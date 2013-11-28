@@ -32,8 +32,8 @@ static PyObject *sysc_stop(PyObject *self, PyObject *args) {
 }
 
 static PyMethodDef GSMethods[] = {
-  {"list", &sysc_start, METH_VARARGS, "List all gs_params."},
-  {"get_param", &sysc_stop, METH_VARARGS, "Get gs_param value."},
+  {"list", &sysc_start, METH_VARARGS, "List all gs_params."}, // Not Implemented
+  {"get_param", &sysc_stop, METH_VARARGS, "Get gs_param value."}, // Not Implemented
   {NULL, NULL, 0, NULL}
 };
 
