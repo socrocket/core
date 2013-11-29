@@ -494,12 +494,6 @@ def modelsim_sccom(self, node):
         test.ut_exec = ['sh', self.link_task.outputs[0].abspath()]
     #tsk.dep_nodes += self.mdeps
 
-# Sparc C compiler
-@TaskGen.before('process_source', 'process_rule')
-@TaskGen.feature('sparc')
-def sparc(self):
-  self.env = self.bld.env_of_name('sparc').copy()
-
 # ASM hooks for the gcc compiler
 def s_hook(self,node):
 	return self.create_compiled_task('c',node)

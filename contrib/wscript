@@ -2,222 +2,89 @@ top = '..'
 
 from waflib import Options, Context, Logs 
 from waflib.Configure import ConfigurationContext
+from tools.waf.common import configure as prep
 import os
 
-def contrib(ctx):
-    path = os.path.join(ctx.bldnode.abspath(), "contrib.log")
-    ctx.logger = Logs.make_logger(path, 'cfg')
+def contrib(self):
+    path = os.path.join(self.bldnode.abspath(), "contrib.log")
+    self.logger = Logs.make_logger(path, 'cfg')
 
-    
-    ctx.find_program('git', var='GIT', mandatory=True, okmsg="ok")
-    ctx.find_program('patch', var='PATCH', mandatory=True, okmsg="ok")
-    ctx.find_program('make', var='MAKE', mandatory=True, okmsg="ok")
-    ctx.find_program('wget', var='WGET', mandatory=True, okmsg="ok")
-    ctx.find_program('tar', var='TAR', mandatory=True, okmsg="ok")
-
-    ctx.find_program('cmake', var='CMAKE', mandatory=False, okmsg="ok")
-    if "CMAKE" in ctx.env:
+    prep(self)
+    self.find_program('cmake', var='CMAKE', mandatory=False, okmsg="ok")
+    if "CMAKE" in self.env:
         import subprocess
         cmake_version_str = subprocess.check_output(["cmake", "--version"])
         cmake_version = [int(v) for v in cmake_version_str.split(" ")[2].split(".")]
         cmake_version = cmake_version[0] * 1000000 + cmake_version[1] * 10000 + cmake_version[2] * 100
-    if not ("CMAKE" in ctx.env) or cmake_version < 2081101:
+    if not ("CMAKE" in self.env) or cmake_version < 2081101:
         
-        cmake_version = "2.8.12"
-        cmake_down = "http://www.cmake.org/files/v2.8/cmake-%s.tar.gz" % (cmake_version)
-        cmake_tar = os.path.join(ctx.srcnode.abspath(), "contrib", "cmake-%s.tar.gz" % (cmake_version))
-        cmake_tar_cwd = os.path.join(ctx.srcnode.abspath(), "contrib")
-        cmake_path = os.path.join(ctx.srcnode.abspath(), "contrib", "cmake-%s" % (cmake_version))
-        cmake_build = os.path.join(ctx.bldnode.abspath(), "contrib", "cmake-%s" % (cmake_version))
-        if not os.path.exists(cmake_tar):
-            ctx.start_msg("Fetching CMake")
-            ctx.cmd_and_log([ctx.env.WGET, cmake_down, cmake_tar], output=Context.BOTH, cwd=cmake_tar_cwd)
-            ctx.end_msg("Ok")
-
-        if not os.path.isdir(cmake_path):
-            ctx.start_msg("Extracting CMake")
-            ctx.cmd_and_log([ctx.env.TAR, "-xzf", cmake_tar], output=Context.BOTH, cwd=cmake_tar_cwd)
-            ctx.end_msg("Ok")
-
-        if not os.path.isdir(cmake_build):
-            os.makedirs(cmake_build)
-            os.chdir(cmake_path)
-            ctx.start_msg("Configure CMake")
-            ctx.cmd_and_log([os.path.join(cmake_path, "bootstrap"), "--prefix=%s" % (cmake_build)], output=Context.BOTH)
-            ctx.end_msg("Ok")
-
-            ctx.start_msg("Compile CMake")
-            ctx.cmd_and_log([ctx.env.MAKE], output=Context.BOTH)
-            ctx.end_msg("Ok")
-
-            ctx.start_msg("Install CMake")
-            ctx.cmd_and_log([ctx.env.MAKE, "install"], output=Context.BOTH)
-            ctx.end_msg("Ok")
-        else:
-            ctx.msg("CMake", "Already build")
-        ctx.env.CMAKE = os.path.join(cmake_build, "bin", "cmake")
-
-    elf_version = "0.8.13"
-    elf_down = "http://www.mr511.de/software/libelf-%s.tar.gz" % (elf_version)
-    elf_tar = os.path.join(ctx.srcnode.abspath(), "contrib", "libelf-%s.tar.gz" % (elf_version))
-    elf_tar_cwd = os.path.join(ctx.srcnode.abspath(), "contrib")
-    elf_path = os.path.join(ctx.srcnode.abspath(), "contrib", "libelf-%s" % (elf_version))
-    elf_build = os.path.join(ctx.bldnode.abspath(), "contrib", "libelf-%s-bld" % (elf_version))
-    elf_dist = os.path.join(ctx.bldnode.abspath(), "contrib", "libelf-%s" % (elf_version))
-    if not os.path.exists(elf_tar):
-        ctx.start_msg("Fetching libelf")
-        ctx.cmd_and_log([ctx.env.WGET, elf_down, elf_tar], output=Context.BOTH, cwd=elf_tar_cwd)
-        ctx.end_msg("Ok")
-
-    if not os.path.isdir(elf_path):
-        ctx.start_msg("Extracting libelf")
-        ctx.cmd_and_log([ctx.env.TAR, "-xzf", elf_tar], output=Context.BOTH, cwd=elf_tar_cwd)
-        ctx.end_msg("Ok")
-
-    if not os.path.isdir(elf_build):
-        os.makedirs(elf_build)
-        os.chdir(elf_build)
-        ctx.start_msg("Configure libelf")
-        ctx.cmd_and_log([os.path.join(elf_path, "configure"), "--prefix=%s" % (elf_dist)], output=Context.BOTH, cwd=elf_build)
-        ctx.end_msg("Ok")
-
-        ctx.start_msg("Compile libelf")
-        ctx.cmd_and_log([ctx.env.MAKE], output=Context.BOTH, cwd=elf_build)
-        ctx.end_msg("Ok")
-
-        ctx.start_msg("Install libelf")
-        ctx.cmd_and_log([ctx.env.MAKE, "install"], output=Context.BOTH, cwd=elf_build)
-        ctx.end_msg("Ok")
-    else:
-        ctx.msg("libelf", "Already build")
-
-    ### System C + TLM ###
-    sysc_repo = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/systemc.git"
-    sysc_path = os.path.join(ctx.srcnode.abspath(), "contrib", "systemc-repo")
-    sysc_build = os.path.join(ctx.bldnode.abspath(), "contrib", "systemc")
-    sysc_dist = os.path.join(ctx.bldnode.abspath(), "contrib", "systemc")
-
-    if not os.path.isdir(sysc_path):
-        ctx.start_msg("Fetching SystemC")
-        ctx.cmd_and_log([ctx.env.GIT, "clone", sysc_repo, sysc_path], output=Context.BOTH)
-        ctx.end_msg("Ok")
-    else:
-        ctx.msg("SystemC", "Already fetched")
-
-    if not os.path.isdir(sysc_build):
-        os.makedirs(sysc_build)
-        os.chdir(sysc_build)
-        ctx.start_msg("Configure SystemC 2.3")
-        ctx.cmd_and_log([os.path.join(sysc_path, "configure"), "--prefix=%s" % (sysc_dist)], output=Context.BOTH)
-        ctx.end_msg("Ok")
-
-        ctx.start_msg("Compile SystemC 2.3")
-        ctx.cmd_and_log([ctx.env.MAKE], output=Context.BOTH)
-        ctx.end_msg("Ok")
-
-        ctx.start_msg("Install SystemC 2.3")
-        ctx.cmd_and_log([ctx.env.MAKE, "install"], output=Context.BOTH)
-        ctx.end_msg("Ok")
-    else:
-        ctx.msg("SystemC", "Already build")
-
-    otf_path = os.path.join(ctx.srcnode.abspath(), "contrib", "OTF")
-    otf_build = os.path.join(ctx.bldnode.abspath(), "contrib", "otf_bld")
-    otf_dist = os.path.join(ctx.bldnode.abspath(), "contrib", "otf")
-
-    #if not os.path.isdir(otf_path):
-    #    ctx.start_msg("Fetching OTF")
-    #    ctx.cmd_and_log([ctx.env.GIT, "clone", otf_repo, otf_path], output=Context.BOTH)
-    #    ctx.end_msg("Ok")
-    #else:
-    #    ctx.msg("OTF", "Already fetched")
-
-    if not os.path.isdir(otf_build):
-        os.makedirs(otf_build)
-        os.chdir(otf_build)
-        ctx.start_msg("Configure OTF")
-        ctx.cmd_and_log([os.path.join(otf_path, "configure"), "--prefix=%s" % (otf_dist), "--without-zlib"], output=Context.BOTH)
-        ctx.end_msg("Ok")
-
-        ctx.start_msg("Compile OTF")
-        ctx.cmd_and_log([ctx.env.MAKE], output=Context.BOTH)
-        ctx.end_msg("Ok")
-
-        ctx.start_msg("Install OTF")
-        ctx.cmd_and_log([ctx.env.MAKE, "install"], output=Context.BOTH)
-        ctx.end_msg("Ok")
-    else:
-        ctx.msg("OTF", "Already build")
-
-    cult_path = os.path.join(ctx.srcnode.abspath(), "contrib", "cult")
-    cult_build = os.path.join(ctx.bldnode.abspath(), "contrib", "cult")
-    cult_dist = os.path.join(ctx.bldnode.abspath(), "contrib", "cult")
-
-    #if not os.path.isdir(cult_path):
-    #    ctx.start_msg("Fetching Cult")
-    #    ctx.cmd_and_log([ctx.env.GIT, "clone", cult_repo, cult_path], output=Context.BOTH)
-    #    ctx.end_msg("Ok")
-    #else:
-    #    ctx.msg("Cult", "Already fetched")
-    """
-    if not os.path.isdir(cult_build):
-        os.makedirs(cult_build)
-        os.chdir(cult_build)
-        ctx.start_msg("Configure Cult")
-        ctx.cmd_and_log(
-            [
-                ctx.env.CMAKE, cult_path, 
-	            "-DTARGET_ARCH=linux64", 
-                "-DCULT_SUBLEVELS=10", 
-                "-DSYSTEMC_VERSION=2.3", 
-                "-DSYSTEMC_HOME=%s" % (sysc_dist),
-                "-DTLM_HOME=%s/include" % (sysc_dist),
-                "-DSYSTEMCTLM2_INCLUDE_DIR=%s/include" % (sysc_dist),
-            ], 
-            output=Context.BOTH
+        self.build_dep(
+            name    = "cmake",
+            version = "2.8.12",
+            tar_url = "http://www.cmake.org/files/v2.8/%(base)s.tar.gz",
+            config_cmd = "%(src)s/bootstrap --prefix=%(prefix)s",
         )
-        ctx.end_msg("Ok")
+        self.env.CMAKE = os.path.join(self.bldnode.abspath(), ".dist", "cmake-2.8.12", "bin", "cmake")
 
-        ctx.start_msg("Compile Cult")
-        ctx.cmd_and_log([ctx.env.MAKE], output=Context.BOTH)
-        ctx.end_msg("Ok")
 
-        #ctx.start_msg("Install Cult")
-        #ctx.cmd_and_log([ctx.env.MAKE, "install"], output=Context.BOTH)
-        #ctx.end_msg("Ok")
-    else:
-        ctx.msg("OTF", "Already build")
+    self.build_dep(
+        name    = "systemc",
+        version = "2.3.0",
+        git_url = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/systemc.git",
+    )
+    """
+    self.build_dep(
+        name    = "otf",
+        version = "trunk",
+        git_url = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/otf.git",
+        config_cmd = "%(src)s/configure --prefix=%(prefix)s --without-zlib"
+    )
+    """
+    """
+    self.build_dep(
+        name    = "cult",
+        version = "trunk",
+        git_url = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/cult.git",
+        config_cmd = "%(cmake)s %%(src)s -DTARGET_ARCH=linux64 -DCULT_SUBLEVELS=10 "
+                     "-DSYSTEMC_VERSION=2.3 -DSYSTEMC_HOME=%(systemc)s -DTLM_HOME=%(tlm)s/include "
+                     "-DSYSTEMCTLM2_INCLUDE_DIR=%(tlm)s/include" % {
+                         "cmake": self.env.CMAKE,
+                         "systemc": self.env.SYSTEMC_HOME,
+                         "tlm": self.env.TLM_INCLUDE
+                         }
+    )
     """
 
+    
     ### GreenLib ###
     greenlib_commit = "1b42c6cf83f091b5a1608c2bbc8f428db5d82fa9"
     greenlib_repo = "git://git.greensocs.com/greenlib.git"
-    greenlib_path = os.path.join(ctx.srcnode.abspath(), "contrib", "greenlib-repo")
-    greenlib_patch = os.path.join(ctx.srcnode.abspath(), "contrib", "greenlib-2013-08-27.patch")
-    greenlib_build = os.path.join(ctx.bldnode.abspath(), "contrib", "greenlib")
+    greenlib_path = os.path.join(self.srcnode.abspath(), "contrib", "greenlib-repo")
+    greenlib_patch = os.path.join(self.srcnode.abspath(), "contrib", "greenlib-2013-08-27.patch")
+    greenlib_build = os.path.join(self.bldnode.abspath(), "contrib", "greenlib")
 
     if not os.path.isdir(greenlib_path):
-        ctx.start_msg("Fetching GreenLib")
-        ctx.cmd_and_log([ctx.env.GIT, "clone", greenlib_repo, greenlib_path], output=Context.BOTH)
+        self.start_msg("Fetching GreenLib")
+        self.cmd_and_log([self.env.GIT, "clone", greenlib_repo, greenlib_path], output=Context.BOTH)
         os.chdir(greenlib_path)
-        ctx.cmd_and_log([ctx.env.GIT, "checkout", greenlib_commit], output=Context.BOTH)
-        ctx.end_msg("Ok")
+        self.cmd_and_log([self.env.GIT, "checkout", greenlib_commit], output=Context.BOTH)
+        self.end_msg("Ok")
 
-        ctx.start_msg("Patching GreenLib")
-        ctx.cmd_and_log([ctx.env.PATCH, "-p1", "-i", greenlib_patch, "-d", greenlib_path], output=Context.BOTH)
-        ctx.end_msg("Ok")
+        self.start_msg("Patching GreenLib")
+        self.cmd_and_log([self.env.PATCH, "-p1", "-i", greenlib_patch, "-d", greenlib_path], output=Context.BOTH)
+        self.end_msg("Ok")
     else:
-        ctx.msg("GreenLib", "Already fetched")
+        self.msg("GreenLib", "Already fetched")
 
     if not os.path.isdir(greenlib_build):
         os.makedirs(greenlib_build)
         os.chdir(greenlib_build)
-        ctx.start_msg("Compiling GreenLib")
-        ctx.cmd_and_log([ctx.env.CMAKE, greenlib_path, "-DSYSTEMC_PREFIX=%s" % (sysc_path)], output=Context.BOTH)
-        ctx.cmd_and_log(["make"], output=Context.BOTH)
-        ctx.end_msg("Ok")
+        self.start_msg("Compiling GreenLib")
+        self.cmd_and_log([self.env.CMAKE, greenlib_path, "-DSYSTEMC_PREFIX=%s" % (sysc_path)], output=Context.BOTH)
+        self.cmd_and_log(["make"], output=Context.BOTH)
+        self.end_msg("Ok")
 
-        ctx.start_msg("Symlinking GreenLib")
+        self.start_msg("Symlinking GreenLib")
         greenlib_inc = os.path.join(greenlib_build, "include")
 
         if not os.path.isdir(greenlib_inc):
@@ -231,45 +98,45 @@ def contrib(ctx):
         greenreg_inclib = os.path.join(greenlib_inc, "greenreg", "libgreenreg.a")
         if os.path.isfile(greenreg_lib) and not os.path.islink(greenreg_inclib):
             os.symlink(greenreg_lib, greenreg_inclib)
-        ctx.end_msg("Ok")
+        self.end_msg("Ok")
     else:
-        ctx.msg("GreenLib", "Already build")
+        self.msg("GreenLib", "Already build")
 
     ### TrapGen ###
 
     trap_repo = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/trapgen.git"
-    trap_path = os.path.join(ctx.srcnode.abspath(), "contrib", "trap-gen-repo")
-    trap_build = os.path.join(ctx.bldnode.abspath(), "contrib", "trap-gen-bld")
-    trap_dist = os.path.join(ctx.bldnode.abspath(), "contrib", "trap-gen")
+    trap_path = os.path.join(self.srcnode.abspath(), "contrib", "trap-gen-repo")
+    trap_build = os.path.join(self.bldnode.abspath(), "contrib", "trap-gen-bld")
+    trap_dist = os.path.join(self.bldnode.abspath(), "contrib", "trap-gen")
 
     if not os.path.isdir(trap_path):
-        ctx.start_msg("Fetching TrapGen")
-        ctx.cmd_and_log([ctx.env.GIT, "clone", trap_repo, trap_path], output=Context.BOTH)
-        ctx.end_msg("Ok")
+        self.start_msg("Fetching TrapGen")
+        self.cmd_and_log([self.env.GIT, "clone", trap_repo, trap_path], output=Context.BOTH)
+        self.end_msg("Ok")
     else:
-        ctx.msg("TrapGen", "Already fetched")
+        self.msg("TrapGen", "Already fetched")
 
     if not os.path.isdir(trap_build):
-        ctx.start_msg("Compiling Trapgen")
+        self.start_msg("Compiling Trapgen")
         os.chdir(trap_path)
-        ctx.cmd_and_log(["./waf", "configure", "-o", trap_build, "--with-elf=%s" % (elf_dist), "--with-systemc=%s" % (sysc_path), "--prefix=%s" % (trap_dist)], output=Context.BOTH)
-        ctx.cmd_and_log(["./waf"], output=Context.BOTH)
-        ctx.cmd_and_log(["./waf", "install"], output=Context.BOTH)
-        ctx.end_msg("Ok")
+        self.cmd_and_log(["./waf", "configure", "-o", trap_build, "--with-elf=%s" % (elf_dist), "--with-systemc=%s" % (sysc_path), "--prefix=%s" % (trap_dist)], output=Context.BOTH)
+        self.cmd_and_log(["./waf"], output=Context.BOTH)
+        self.cmd_and_log(["./waf", "install"], output=Context.BOTH)
+        self.end_msg("Ok")
     else:
-        ctx.msg("TrapGen", "Already build")
+        self.msg("TrapGen", "Already build")
 
     amba_repo = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/ambakit.git"
-    amba_path = os.path.join(ctx.srcnode.abspath(), "contrib", "amba_socket-repo")
+    amba_path = os.path.join(self.srcnode.abspath(), "contrib", "amba_socket-repo")
 
     if not os.path.isdir(amba_path):
-        ctx.start_msg("Fetching AmbaKit")
-        ctx.cmd_and_log([ctx.env.GIT, "clone", amba_repo, amba_path], output=Context.BOTH)
-        ctx.end_msg("Ok")
+        self.start_msg("Fetching AmbaKit")
+        self.cmd_and_log([self.env.GIT, "clone", amba_repo, amba_path], output=Context.BOTH)
+        self.end_msg("Ok")
     else:
-        ctx.msg("AmbaKit", "Already fetched")
+        self.msg("AmbaKit", "Already fetched")
 
-    os.chdir(ctx.bldnode.abspath())
+    os.chdir(self.bldnode.abspath())
 
 def build(self):
     pass
