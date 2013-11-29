@@ -140,12 +140,12 @@ def get_subdirs(path='.'):
 
 def recurse_all(self):
     """Extend the Configuration to recurse all subdirectories"""
-    self.recurse(get_subdirs())
+    self.recurse(get_subdirs(self.path.abspath()))
 conf(recurse_all)
 
 def recurse_all_tests(self):
     """Extend the Configuration to recurse all subdirectories tests dirs"""
-    self.recurse(get_testdirs())
+    self.recurse(get_testdirs(self.path.abspath()))
 conf(recurse_all_tests)
 
 def tool(self, *k, **kw):

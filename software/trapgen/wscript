@@ -61,7 +61,7 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'aes.sparc',
       args        = '--option conf.ahbmem.elf=%s' % (ahbmem.abspath())
   )
@@ -69,7 +69,7 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'aes.sparc',
       at       = True,
   )
@@ -87,14 +87,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'bcnt.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'bcnt.sparc',
       at          = True,
   )
@@ -112,14 +112,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'blit.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'blit.sparc',
       at          = True,
   )
@@ -137,14 +137,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'crc.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'crc.sparc',
       at          = True,
   )
@@ -162,14 +162,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'des.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'des.sparc',
       at          = True,
   )
@@ -187,14 +187,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'dhry.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'dhry.sparc',
       at          = True,
   )
@@ -212,14 +212,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'engine.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'engine.sparc',
       at          = True,
   )
@@ -237,14 +237,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'fft.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'fft.sparc',
       at          = True,
   )
@@ -262,14 +262,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'fib.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'fib.sparc',
       at          = True,
   )
@@ -287,14 +287,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'fir2.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'fir2.sparc',
       at          = True,
   )
@@ -312,14 +312,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'gamma.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'gamma.sparc',
       at          = True,
   )
@@ -337,14 +337,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'hanoi.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'hanoi.sparc',
       at          = True,
   )
@@ -362,14 +362,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'heapsort.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'heapsort.sparc',
       at          = True,
   )
@@ -387,14 +387,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'jpeg.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'jpeg.sparc',
       at          = True,
   )
@@ -412,14 +412,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'lms.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'lms.sparc',
       at          = True,
   )
@@ -437,14 +437,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'matrix.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'matrix.sparc',
       at          = True,
   )
@@ -462,14 +462,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'mdrall.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'mdrall.sparc',
       at          = True,
   )
@@ -487,14 +487,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'pocsag.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'pocsag.sparc',
       at          = True,
   )
@@ -512,14 +512,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'queens.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'queens.sparc',
       args        = ['--option', 'conf.mmu_cache.ic.en=false', 
                      '--option', 'conf.mmu_cache.dc.en=false',
@@ -529,7 +529,7 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'queens.sparc',
       args        = ['--option', 'conf.mmu_cache.ic.en=true', 
                      '--option', 'conf.mmu_cache.ic.sets=1',
@@ -543,7 +543,7 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'queens.sparc',
       args        = ['--option', 'conf.mmu_cache.ic.en=true', 
                      '--option', 'conf.mmu_cache.ic.sets=1',
@@ -557,7 +557,7 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'queens.sparc',
       args        = ['--option', 'conf.mmu_cache.ic.en=true', 
                      '--option', 'conf.mmu_cache.ic.sets=2',
@@ -571,7 +571,7 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'queens.sparc',
       args        = ['--option', 'conf.mmu_cache.ic.en=true', 
                      '--option', 'conf.mmu_cache.ic.sets=2',
@@ -585,7 +585,7 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'queens.sparc',
       args        = ['--option', 'conf.mmu_cache.ic.en=true', 
                      '--option', 'conf.mmu_cache.ic.sets=3',
@@ -599,7 +599,7 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'queens.sparc',
       at          = True,
   )
@@ -617,14 +617,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'quicksort.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'quicksort.sparc',
       at          = True,
   )
@@ -642,14 +642,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'tolstoy.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'tolstoy.sparc',
       at          = True,
   )
@@ -667,14 +667,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'v42.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'v42.sparc',
       at          = True,
   )
@@ -692,14 +692,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'wavelt.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'wavelt.sparc',
       at          = True,
   )
@@ -717,14 +717,14 @@ def build(bld):
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'whets.sparc',
   )
   
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
-      rom         = 'default.prom',
+      rom         = 'sdram.prom',
       ram         = 'whets.sparc',
       at          = True,
   )
