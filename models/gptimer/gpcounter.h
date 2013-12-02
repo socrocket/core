@@ -43,7 +43,7 @@
 #define GPCOUNTER_H
 
 #include <greencontrol/config.h>
-#include <greenreg.h>
+#include <greenreg/greenreg.h>
 #include <systemc>
 //#include <boost/config.hpp>
 

@@ -262,8 +262,7 @@ int sc_main( int argc, char * * argv ){
     std::cout << std::endl << "Loading the application and initializing the tools ..." \
         << std::endl;
     //And with the loading of the executable code
-    boost::filesystem::path applicationPath = boost::filesystem::system_complete(boost::filesystem::path(vm["application"].as<std::string>(),
-        boost::filesystem::native));
+    boost::filesystem::path applicationPath = boost::filesystem::system_complete(boost::filesystem::path(vm["application"].as<std::string>()));
     if ( !boost::filesystem::exists( applicationPath ) ){
         std::cerr << "ERROR: specified application " << vm["application"].as<std::string>() \
             << " does not exist" << std::endl;

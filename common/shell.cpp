@@ -45,8 +45,8 @@ static PyMethodDef SysCMethods[] = {
 };
 
 void start_shell(sc_status status) {
-  const int argc = 1;
-  const char *argv[argc] = {"SystemC"};
+  int argc = 1;
+  char *argv[1] = {"SystemC"};
   Py_SetProgramName(argv[0]);
   Py_Initialize();
 

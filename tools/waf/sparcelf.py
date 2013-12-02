@@ -90,12 +90,16 @@ def configure(self):
             find(self)
     except:
         name    = "sparc-elf"
-        version = "2.8.12"
+        version = "4.4.2-1.0.44"
         self.dep_fetch(
             name    = name, 
             version = version,
-            tar_url = "http://www.cmake.org/files/v2.8/%(base)s.tar.gz",
+            tar     = "%(base)s.tar.bz2",
+            tar_url = "http://www.gaisler.com/anonftp/bcc/bin/linux/%(tar)s",
         )
+        # This works only for linux for other platforms (windows/mac) we need to find a different solution
+        # There is a build for windows as well in bcc/bin/win/%(tar)s but no for MacOSX but we can get the sources
+        # Which only extend the GNU gcc sources and does not provide any compile instructions.
         find(self, self.dep_path(name, version))
 
 @TaskGen.before('process_source', 'process_rule')

@@ -112,6 +112,7 @@ def find(self, path = None):
         self.env["HOME_GREENLIB"] = path
     
 def configure(self):
+    self.find_program('swig', var='SWIG', mandatory=True, okmsg="ok", errmsg="Please install SWIG to continue")
     try:
         if self.options.greenlibdir:
             find(self, self.options.greenlibdir)

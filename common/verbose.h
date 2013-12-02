@@ -237,14 +237,14 @@ extern logstream<4> debug;
 /// If you want to end the logging to a file simply call the function with NULL as parameter.
 ///
 /// @param filename The file name of the logfile.
-void logFile(char *filename);
+void logFile(const char *filename);
 
 /// This function is intended to create a logfile next to the executable simply callit like:
 /// > v::logApplication(argv[0])
 /// If argv[0] is "./build/test1/mytest" the logfile will be "./build/test1/mytest.log"
 ///
 /// @param name Application name
-void logApplication(char *name);
+void logApplication(const char *name);
 
 } // namespace
 

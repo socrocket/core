@@ -58,6 +58,7 @@ def build(bld):
 			'paramprinter.cpp',
             'shell.cpp'],
     export_includes = '.',
+    includes        = '.',
     uselib          = 'GREENSOCS SYSTEMC TLM BOOST',
     use             = 'CULT OTF',
     install_path    = '${PREFIX}/lib',

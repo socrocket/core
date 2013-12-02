@@ -94,7 +94,7 @@ typedef basic_teebuf<char> teebuf;
 std::ofstream outfile;
 teebuf logbuf(std::cout.rdbuf(), NULL);
 
-void logFile(char *name) {
+void logFile(const char *name) {
     if (outfile.is_open()) {
         outfile.close();
     }
@@ -104,7 +104,7 @@ void logFile(char *name) {
     }
 }
 
-void logApplication(char *name) {
+void logApplication(const char *name) {
   // Create a logfile next to the binary
   char logfile[strlen(name)+8];
   logfile[0] = 0;
