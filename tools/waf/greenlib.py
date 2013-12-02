@@ -126,7 +126,7 @@ def configure(self):
             version      = version,
             git_url      = "git://git.greensocs.com/greenlib.git",
             git_checkout = "ecfee38aebe09f91d1affd82ca03581a2bba3662",
-            #patch        = os.path.join(self.srcnode.abspath(), "contrib", "greenlib-2013-08-27.patch"),
+            patch        = os.path.join(self.srcnode.abspath(), "contrib", "greenlib-2013-12-02.patch"),
             config_cmd   = "%(cmake)s %%(src)s -DSYSTEMC_PREFIX=%(systemc)s -DTLM_HOME=%(tlm)s -DCMAKE_INSTALL_PREFIX=%%(prefix)s" % {"cmake":self.env.CMAKE, "systemc":self.env.HOME_SYSTEMC, "tlm": "%s/include" % self.env.HOME_TLM}
         )
         find(self, self.dep_path(name, version))
