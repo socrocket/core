@@ -644,6 +644,97 @@ def configure(ctx):
       okmsg        = "ok",
     )
 
+
+    ##################################################
+    # Check for LIBAV  Library and Headers
+    ##################################################
+
+    if ctx.options.avdir:
+      avlib = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.avdir, "lib")))))
+      avdir = glob.glob(os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(ctx.options.avdir, "include")))))
+    else:
+      avlib = ["/usr/lib", "/usr/lib/x86_64-linux-gnu/"]
+      avdir = "/usr/include"
+
+    ctx.check_cxx(
+      lib          = 'avcodec',
+      uselib_store = 'AV',
+      mandatory    = True,
+      libpath      = avlib,
+      errmsg       = "LIBAV_CODEC Library not found.",
+      okmsg        = "ok"
+    ) 
+    ctx.check_cxx(
+      header_name  = 'libavcodec/avcodec.h',
+      uselib_store = 'AV',
+      mandatory    = True,
+      includes     = avdir,
+      defines      = "__STDC_CONSTANT_MACROS",
+      uselib       = 'AV',
+      okmsg        = "ok"
+    ) 
+    
+
+    ctx.check_cxx(
+      lib          = 'avformat',
+      uselib_store = 'AV',
+      mandatory    = True,
+      libpath      = avlib,
+      errmsg       = "LIBAV_FORMAT Library not found.",
+      okmsg        = "ok"
+    ) 
+    ctx.check_cxx(
+      header_name  = 'libavformat/avformat.h',
+      uselib_store = 'AV',
+      mandatory    = True,
+      includes     = avdir,
+      defines      = "__STDC_CONSTANT_MACROS",
+      uselib       = 'AV',
+      okmsg        = "ok"
+    ) 
+    
+
+    ctx.check_cxx(
+      lib          = 'avdevice',
+      uselib_store = 'AV',
+      mandatory    = True,
+      libpath      = avlib,
+      errmsg       = "LIBAV_DEVICE Library not found.",
+      okmsg        = "ok"
+    ) 
+    ctx.check_cxx(
+      header_name  = 'libavdevice/avdevice.h',
+      uselib_store = 'AV',
+      mandatory    = True,
+      includes     = avdir,
+      defines      = "__STDC_CONSTANT_MACROS",
+      uselib       = 'AV',
+      okmsg        = "ok"
+    ) 
+
+
+    ctx.check_cxx(
+      lib          = 'swscale',
+      uselib_store = 'AV',
+      mandatory    = True,
+      libpath      = avlib,
+      errmsg       = "LIBAV_DEVICE Library not found.",
+      okmsg        = "ok"
+    ) 
+    ctx.check_cxx(
+      header_name  = 'libswscale/swscale.h',
+      uselib_store = 'AV',
+      mandatory    = True,
+      includes     = avdir,
+      defines      = "__STDC_CONSTANT_MACROS",
+      uselib       = 'AV',
+      okmsg        = "ok"
+    ) 
+    
+
+    
+
+
     ##################################################
     # Check for SDL Library and Headers
     ##################################################
@@ -1020,6 +1111,7 @@ def options(ctx):
     gso.add_option("--lua", type='string', dest="luadir", help="Basedir of your Lua installation", default=environ.get("LUA"))
     gso.add_option("--sdl", type='string', dest="sdldir", help="Basedir of your SDL installation", default=environ.get("SDL"))
     gso.add_option("--mpeg3", type='string', dest="mpeg3dir", help="Basedir of your mpeg3 installation", default=environ.get("mpeg3"))
+    gso.add_option('--libav', type='string', dest='avdir', help='Load given configuration of the template', default=environ.get("avdir"))
     gso.add_option("--amba", type='string', dest="ambadir", help="Basedir of your AMBAKit distribution", default=environ.get("AMBA"))
     gso.add_option("--grlib", type='string', dest="grlibdir", help="Basedir of your grlib distribution", default=environ.get("GRLIB_HOME"))
     gso.add_option("--grlib_tech", type='string', dest="grlibtech", help="Basedir of your modelsim grlib work libraries", default=environ.get("GRLIB_TECH"))
@@ -1051,3 +1143,4 @@ def options(ctx):
     conf = ctx.add_option_group("'./waf generate' Options")
     conf.add_option('-t', '--template', default=None, type='string', help='Defines a template to generate a new platform', dest='template')
     conf.add_option('-l', '--load', default=None, type='string', help='Load given configuration of the template', dest='configuration')
+
