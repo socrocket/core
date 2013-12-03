@@ -53,7 +53,7 @@ import os, sys
 
 def build(self):
     from tools.waf.logger import Logger
-    logger = Logger("%s/build.log" % out)
+    logger = Logger("%s/build.log" % self.out_dir)
     sys.stdout = logger
     sys.stderr = logger
     
@@ -602,7 +602,6 @@ def configure(ctx):
             int main(int argc, char * argv[]){return 0;}
 ''', msg='Check for TRAP version', use='TRAP ELF_LIB BOOST SYSTEMC', mandatory=1, errmsg='Error, at least revision ' + str(trapRevisionNum) + ' required')
 
-    
     ##################################################
     # Check for Lua Library and Headers
     ##################################################

@@ -22,7 +22,7 @@
 // contained do not necessarily reflect the policy of the
 // European Space Agency or of TU-Braunschweig.
 // ********************************************************************
-// Title:      json_parser.cpp
+// Title:      nullio.cpp
 //
 // ScssId:
 //
@@ -30,63 +30,38 @@
 //
 // Principal:  European Space Agency
 // Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Timo Veit
+// Maintainer: Thomas Schuster
 // Reviewed:
 // ********************************************************************
 
-#ifndef JSON_PARSER_H
-#define JSON_PARSER_H
+#include <iostream>
 
-#include "block_allocator.h"
-#include <vector>
-#include <stdio.h>
-#include <map>
-#include "greencontrol/config.h"
+#include "nullio.h"
 
-enum json_type {
-    JSON_NULL,
-    JSON_OBJECT,
-    JSON_ARRAY,
-    JSON_STRING,
-    JSON_INT,
-    JSON_FLOAT,
-    JSON_BOOL,
-};
+#include "verbose.h"
 
-struct json_value {
-    json_value *parent;
-    json_value *next_sibling;
-    json_value *first_child;
-    json_value *last_child;
+///Creates a connection
+void NullIO::makeConnection(){
+}
 
-    char *name;
-    union {
-        char *string_value;
-        int int_value;
-        float float_value;
-    };
-    json_type type;
-};
+///Opens a new socket connection on the specified port
+NullIO::NullIO() {
+}
 
-class json_parser {
-  public:
-    json_parser();
-    ~json_parser();
-    void config(const char *filename);
-	 void save(std::string path, gs::cnf::cnf_api* api);
+///Receives a character; returns true if read the character is valid,
+///false in case the character is not valid (such as if we are communicating
+///on a socket and there are no available characters)
+uint32_t NullIO::receivedChars() {
+   return NULL;
+}
 
-  private:
-    std::vector<char> m_buffer;
-    json_value *m_root;
-    gs::cnf::cnf_api* mApi;
-    json_value *json_parse(char *source, char **error_pos, char **error_desc, int *error_line, block_allocator *allocator);	
-    void createParamsList(json_value *value, json_value *parent);
-    std::string getValuePath(json_value* temp);
-    std::vector<std::pair<std::string, json_value*> > m_jsonValues;
-    void read_source(const char *filename);
-    void parse(char *source);
+///Receives a character; returns true if read the character is valid,
+///false in case the character is not valid (such as if we are communicating
+///on a socket and there are no available characters)
+void NullIO::getReceivedChar(char * toRecv){
+   return;
+}
 
-};
-
-#endif
-
+///Sends a character on the communication channel
+void NullIO::sendChar(char toSend){
+}

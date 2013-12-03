@@ -94,8 +94,10 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
   /// @param byte Write data
   void writeByteDBG(const uint32_t addr, const uint8_t byte);
 
+  // AHBSlave behavior callback
   uint32_t exec_func(tlm::tlm_generic_payload &gp, sc_time &delay, bool debug = false);
 
+  // Implement AHBSlave virtual function
   sc_core::sc_time get_clock();
 
   /// Called by scheduler at start of simulation

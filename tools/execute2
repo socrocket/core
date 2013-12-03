@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+if [ $# -lt 3 ] ; then
+  echo "Usage: $0 <platform-name> <rom-name> <sdram-elf-name> [<at|lt>] [platform-arguments ...]"
+  exit 1
+fi
+toolsdir=$(dirname $0)
+topdir=$(dirname ${toolsdir})
+
+lockfile=${topdir}/.lock-wafbuild
+if [ ! -f ${lockfile} ] ; then
+    echo "Please run './waf configure && ./waf build' bevore you try to execute a platform!"
+    exit 1
+fi
+
+builddir=$(${toolsdir}/get_python_attr ${topdir}/.lock-wafbuild out_dir)
+
+template=$1
+prom=$2
+app=$3
+level=$4
+if [ -z "$level" ] ; then
+  level="lt"
+fi
+at="false"
+if [ $level = "at" ] ; then
+  at="true"
+fi
+
+shift
+shift
+shift
+shift
+
+port=2000
+
+ppath="${builddir}/platforms/$template"
+platform="$ppath/$template.platform"
+prom="${builddir}/software/prom/$prom/$prom.prom"
+ram=$(find ${builddir}/software -name "$app.sparc")
+
+simlog=${ram}-${level}.sim.log
+uartlog=${ram}-${level}.uart.log
+
+export SIMULATOR="$platform \
+  --option conf.mctrl.prom.elf=$prom \
+  --option conf.mctrl.ram.sdram.elf=$ram \
+  --option conf.system.at=$at \
+  --option conf.apbuart.en=true \
+  --option conf.apbuart.port=${port} \
+  $@"
+
+export SIM_PID=""
+export UART_PID=""
+function int_handler {
+  if [ "$SIM_PID" ] ; then
+    kill $SIM_PID
+  fi
+  if [ "$SIM_PID" ] ; then
+    kill $UART_PID
+  fi
+};
+
+trap 'int_handler' INT
+
+echo "$SIMULATOR > ${simlog} 2>&1 &"
+(time $SIMULATOR ) > ${simlog} 2>&1 &
+
+SIM_PID=$$!
+sleep 6
+
+echo "nc localhost ${port} > ${uartlog} 2>&1 &"
+nc localhost ${port} > ${uartlog} 2>&1 &
+
+UART_PID=$$!
+sleep 2
+wait
+
+if [ $? -eq 0 ] ; then
+  echo "!!! Successfull"
+else
+  echo "!!! Failed"
+fi

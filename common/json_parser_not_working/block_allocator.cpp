@@ -22,7 +22,7 @@
 // contained do not necessarily reflect the policy of the
 // European Space Agency or of TU-Braunschweig.
 // ********************************************************************
-// Title:      json_parser.cpp
+// Title:      block_allocator.cpp
 //
 // ScssId:
 //
@@ -34,59 +34,60 @@
 // Reviewed:
 // ********************************************************************
 
-#ifndef JSON_PARSER_H
-#define JSON_PARSER_H
-
+#include <memory.h>
+#include <algorithm>
 #include "block_allocator.h"
-#include <vector>
-#include <stdio.h>
-#include <map>
-#include "greencontrol/config.h"
 
-enum json_type {
-    JSON_NULL,
-    JSON_OBJECT,
-    JSON_ARRAY,
-    JSON_STRING,
-    JSON_INT,
-    JSON_FLOAT,
-    JSON_BOOL,
-};
 
-struct json_value {
-    json_value *parent;
-    json_value *next_sibling;
-    json_value *first_child;
-    json_value *last_child;
+block_allocator::block_allocator(size_t blocksize): m_head(0), m_blocksize(blocksize)
+{
+}
 
-    char *name;
-    union {
-        char *string_value;
-        int int_value;
-        float float_value;
-    };
-    json_type type;
-};
 
-class json_parser {
-  public:
-    json_parser();
-    ~json_parser();
-    void config(const char *filename);
-	 void save(std::string path, gs::cnf::cnf_api* api);
+block_allocator::~block_allocator()
+{
+        while (m_head)
+        {
+                block *temp = m_head->next;
+                ::free(m_head);
+                m_head = temp;
+        }
+}
 
-  private:
-    std::vector<char> m_buffer;
-    json_value *m_root;
-    gs::cnf::cnf_api* mApi;
-    json_value *json_parse(char *source, char **error_pos, char **error_desc, int *error_line, block_allocator *allocator);	
-    void createParamsList(json_value *value, json_value *parent);
-    std::string getValuePath(json_value* temp);
-    std::vector<std::pair<std::string, json_value*> > m_jsonValues;
-    void read_source(const char *filename);
-    void parse(char *source);
 
-};
+void block_allocator::swap(block_allocator &rhs)
+{
+        std::swap(m_blocksize, rhs.m_blocksize);
+        std::swap(m_head, rhs.m_head);
+}
 
-#endif
 
+void *block_allocator::malloc(size_t size)
+{
+        if ((m_head && m_head->used + size > m_head->size) || !m_head)
+        {
+                // calc needed size for allocation
+                size_t alloc_size = std::max(sizeof(block) + size, m_blocksize);
+
+
+                // create new block
+                char *buffer = (char *)::malloc(alloc_size);
+                block *b = reinterpret_cast<block *>(buffer);
+                b->size = alloc_size;
+                b->used = sizeof(block);
+                b->buffer = buffer;
+                b->next = m_head;
+                m_head = b;
+        }
+
+
+        void *ptr = m_head->buffer + m_head->used;
+        m_head->used += size;
+        return ptr;
+}
+
+
+void block_allocator::free()
+{
+        block_allocator(0).swap(*this);
+}
