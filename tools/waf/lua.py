@@ -18,8 +18,8 @@ def find(self, path = None):
       libpath = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(path, "lib"))))
       incpath = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(path, "include"))))
     else:
-      lualib = "/usr/lib"
-      luadir = "/usr/include/lua5.1"
+      libpath = "/usr/lib"
+      incpath = "/usr/include/lua5.1"
 
     self.check_cxx(
       lib          = 'lua5.1',
@@ -67,6 +67,9 @@ def configure(self):
             name    = name, 
             version = version,
             tar_url = "http://www.lua.org/ftp/%(base)s.tar.gz",
+            build_dir = False,
+            config_cmd = "cp -r %(src)s %(BASE_PATH_BUILD)s/",
+            install_cmd = "cp -r %(src)s %(BASE_PATH_DIST)s/",
         )
         find(self, self.dep_path(name, version))
 

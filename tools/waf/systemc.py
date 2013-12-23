@@ -44,12 +44,14 @@ def find(self, scpath = None, tlmpath = None):
         sclib = []
 
     self.check_cxx(
-        stlib        = 'systemc', 
+        lib          = 'systemc', 
         uselib_store = 'SYSTEMC', 
         mandatory    = True, 
         libpath      = sclib, 
-        errmsg       = 'not found, use --with-systemc option'
+        errmsg       = 'not found, compiling internal version. To use a system wide version use --with-systemc option'
     )
+    if len(sclib)>0:
+        self.env.append_unique("LIBPATH_SYSTEMC", sclib[0])
 
     # Check if systemc is compiled with quick threads or not
     if not os.path.exists(os.path.join(scinc[0], 'sysc' , 'qt')):

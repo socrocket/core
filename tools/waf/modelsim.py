@@ -48,7 +48,7 @@ from waflib import TaskGen
 from waflib import Options
 from waflib.Configure import conf
 from waflib import Context
-import Utils
+from waflib import Utils
 import os, io, sys, stat
 import datetime, time
 
@@ -66,8 +66,8 @@ TODO: uselib_local integration
 TODO: Add testig for flags
 """
 def options(opt):
-  conf = opt.get_option_group("--download")
-  conf.add_option('--nomodelsim', dest='modelsim', action='store_false', default=True, help='Deactivates the build of all modelsim featured targets')
+  #conf = opt.get_option_group("--download")
+  opt.add_option('--nomodelsim', dest='modelsim', action='store_false', default=True, help='Deactivates the build of all modelsim featured targets')
 
 def configure(ctx):
   """Detect modelsim executables and set default flags"""
@@ -176,9 +176,14 @@ class vini_task(Task.Task):
       return 0
 
 # Task to create a modelsim work library
-vlib_task  = Task.simple_task_type('vlib', '${VLIB} ${TGT}', color='BLUE', before=['vcom', 'vlog', 'sccom', 'sclink'], vars=["VLIB"], shell=True)
+vlib_task  = Task.task_factory( 'vlib', 
+    func   = '${VLIB} ${TGT}', 
+    color  = 'BLUE', 
+    before = ['vcom', 'vlog', 'sccom', 'sclink'], 
+    vars   = ["VLIB"], 
+    shell  = True
+)
 vlib_task.quiet = True
-
 def vlib_task_str(self):
   return "vlib: create %s ...\n" % self.target
 vlib_task.__str__ = vlib_task_str
@@ -190,18 +195,35 @@ def vlib_task_runnable_status(self):
 vlib_task.runnable_status = vlib_task_runnable_status
 
 # Task to execute a do script before any other work on the target is done
-vsim_before  = Task.simple_task_type('vsim_before', '${VSIM} ${_VSIMFLAGS} ${_VSIMBEFORE}', color='RED', after=['vlib'], before=['vcom', 'vlog', 'sccom'], vars=['VSIM', '_VSIMFLAGS', '_VSIMBEFORE'])
+vsim_before  = Task.task_factory('vsim_before', 
+    func   = '${VSIM} ${_VSIMFLAGS} ${_VSIMBEFORE}', 
+    color  = 'RED', 
+    after  = ['vlib'], 
+    before = ['vcom', 'vlog', 'sccom'], 
+    vars   = ['VSIM', '_VSIMFLAGS', '_VSIMBEFORE']
+)
 
 #Task to execute a do stript after all other work is done on the target
-vsim_after   = Task.simple_task_type('vsim_after',  '${VSIM} ${_VSIMFLAGS} ${_VSIMAFTER}', color='RED', after=['vcom', 'vlog', 'sccom', 'sclink'], vars=['VSIM', '_VSIMFLAGS', '_VSIMAFTER'])
+vsim_after = Task.task_factory('vsim_after',
+    func   = '${VSIM} ${_VSIMFLAGS} ${_VSIMAFTER}', 
+    color  = 'RED', 
+    after  = ['vcom', 'vlog', 'sccom', 'sclink'], 
+    vars   = ['VSIM', '_VSIMFLAGS', '_VSIMAFTER']
+)
 def vsim_task_str(self):
   return "vsim: do %s -> %s\n" % (self.dotask, self.target)
 vsim_before.__str__ = vsim_task_str
 vsim_after.__str__ = vsim_task_str
 
 # Task to compile vhdl files
-vcom_task  = Task.simple_task_type('vcom', 'date +\'%%F %%r %%s\' > ${TGT[0].abspath()} && ${VCOM} ${_VCOMFLAGS} ${SRC[0].abspath()}', color='GREEN', shell=True, before=['scgenmod', 'sccom'], ext_in=".vhd", vars=['VCOM', '_VCOMFLAGS'])
-#vcom_task  = Task.simple_task_type('vcom', '${VCOM} ${_VCOMFLAGS} ${SRC}', color='GREEN', before=['scgenmod', 'sccom'], ext_in=".vhd", vars=['VCOM', '_VCOMFLAGS'])
+vcom_task = Task.task_factory( 'vcom',
+    func   = 'date +\'%%F %%r %%s\' > ${TGT[0].abspath()} && ${VCOM} ${_VCOMFLAGS} ${SRC[0].abspath()}', 
+    color  = 'GREEN', 
+    shell  = True, 
+    before = ['scgenmod', 'sccom'], 
+    ext_in = ".vhd", 
+    vars   = ['VCOM', '_VCOMFLAGS']
+)
 vcom_task.quiet = True
 vcom_task.nocache = True
 def vcom_task_str(self):
@@ -210,7 +232,13 @@ def vcom_task_str(self):
 vcom_task.__str__ = vcom_task_str
 
 # task to compile v files
-vlog_task  = Task.simple_task_type('vlog', '${VLOG} ${_VLOGFLAGS} ${SRC[0].abspath()}', color='GREEN', before=['scgenmod', 'sccom'], ext_in=".v", vars=['VLOG', '_VLOGFLAGS'])
+vlog_task  = Task.task_factory( 'vlog', 
+    func   = '${VLOG} ${_VLOGFLAGS} ${SRC[0].abspath()}', 
+    color  = 'GREEN', 
+    before = ['scgenmod', 'sccom'], 
+    ext_in = ".v", 
+    vars   = ['VLOG', '_VLOGFLAGS']
+)
 vlog_task.quiet = True
 vlog_task.nocache = True
 def vlog_task_str(self):
@@ -220,12 +248,15 @@ def vlog_task_str(self):
   return "vlog: %s -> %s\n" % (', '.join(ins), self.target)
 vlog_task.__str__ = vlog_task_str
 
-# Task to generate systemc headers out of a work library
-scgenmod_task  = Task.simple_task_type('scgenmod', '${SCGENMOD} ${_SCGENMODFLAGS} ${SCGENMODMAP} ${src} > ${TGT[0].abspath()}', color='BLUE', after=['vlib', 'vlog', 'vcom'], before=['sccom'], ext_out=".h", vars=['SCGENMOD', '_SCGENMODFLAGS', 'SCGENMAP'])
-scgenmod_task.quiet = True
-
 # task to compile systemc files
-sccom_task = Task.simple_task_type('sccom', '${SCCOM} ${_SCCOMFLAGS} ${SRC[0].abspath()}', color='BLUE', ext_in=".cpp", after=['vlib', 'vcom', 'vlog', 'scgenmod'], before=['sclink'], vars=['SCCOM', '_SCCOMFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'INCLUDES'])
+sccom_task = Task.task_factory( 'sccom', 
+    func   = '${SCCOM} ${_SCCOMFLAGS} ${SRC[0].abspath()}', 
+    color  = 'BLUE', 
+    ext_in = ".cpp", 
+    after  = ['vlib', 'vcom', 'vlog', 'scgenmod'], 
+    before = ['sclink'], 
+    vars   = ['SCCOM', '_SCCOMFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'INCLUDES']
+)
 sccom_task.quiet = True
 sccom_task.nocache = True
 def sccom_task_str(self):
@@ -236,7 +267,12 @@ def sccom_task_str(self):
 sccom_task.__str__ = sccom_task_str
 
 # task to link systemc files
-sclink_task = Task.simple_task_type('sclink', '${SCCOM} ${_SCLINKFLAGS} -link', color='YELLOW', after=['vlib', 'vcom', 'vlog', 'sccom'], vars=['SCCOM', '_SCLINKFLAGS'])
+sclink_task = Task.task_factory( 'sclink', 
+    func   = '${SCCOM} ${_SCLINKFLAGS} -link', 
+    color  = 'YELLOW', 
+    after  = ['vlib', 'vcom', 'vlog', 'sccom'], 
+    vars   = ['SCCOM', '_SCLINKFLAGS']
+)
 sclink_task.nocache = True
 def sclink_task_str(self):
   return "sc_link: %s\n" % self.target

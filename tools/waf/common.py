@@ -24,17 +24,17 @@ from waflib import Errors, Context, Utils, Options, Build, Configure
 
 def options(self): 
     """Setting default waf options right for SoCRocket"""
-    common = self.get_option_group("--prefix")
-    common.set_title("Common Configuration Options")
-    cpp = self.get_option_group("--check-cxx-compiler")
-    cpp.set_title("C++ Compiler Configuration Options")
-    inst = self.get_option_group("--force")
-    inst.remove_option("--destdir")
-    inst.remove_option("--force")
-    inst.set_title("Configuration Options")
-    inst.set_description(
-        """All following options can be provided to the configure rule."""
-    )
+    #common = self.get_option_group("--prefix")
+    #common.set_title("Common Configuration Options")
+    #cpp = self.get_option_group("--check-cxx-compiler")
+    #cpp.set_title("C++ Compiler Configuration Options")
+    #inst = self.get_option_group("--force")
+    #inst.remove_option("--destdir")
+    #inst.remove_option("--force")
+    #inst.set_title("Configuration Options")
+    #inst.set_description(
+    #    """All following options can be provided to the configure rule."""
+    #)
     self.add_option(
         "--verbosity", 
         dest="verbosity", 
@@ -50,13 +50,22 @@ def configure(self):
     self.find_program('make', var='MAKE', mandatory=True, okmsg="ok")
     self.find_program('wget', var='WGET', mandatory=True, okmsg="ok")
     self.find_program('tar', var='TAR', mandatory=True, okmsg="ok")
+    self.find_program('ln', var='LN', mandatory=True, okmsg="ok")
+    self.find_program('bash', var='BASH', mandatory=True, okmsg="ok")
 
     if self.options.jobs:
         self.env["JOBS"] = "-j%d" % self.options.jobs
 
     # Set verbosity level
     if self.options.verbosity:
-      self.env.append_unique('DEFINES', 'GLOBALVERBOSITY=%s' % self.options.verbosity)
+        self.env.append_unique('DEFINES', 'GLOBALVERBOSITY=%s' % self.options.verbosity)
+
+    if os.path.exists(os.path.join(self.srcnode.abspath(), "socrocket.md")):
+        self.env["IS_SOCROCKET"] = True
+    else:
+        self.env["IS_SOCROCKET"] = False
+    if hasattr(self.options, "socrocekt"):
+        self.env["SOCROCKET_HOME"] = self.options.socrocket
 
 def conf(f):
 	def fun(*k,**kw):
@@ -128,6 +137,7 @@ def macclean(self):
   """Clean garbage files from the source tree"""
   print subprocess.call(['find', '.', '(', '-name', '*.DS_Store', '-o', '-name', '*~', '-o', '-name', '.*~', ')', '-print', '-delete'], shell=False, stderr=subprocess.STDOUT)
 
+setattr(Context.g_module, 'macclean', macclean)
 class Macclean(Build.BuildContext):
     cmd = 'macclean'
     fun = 'macclean'
@@ -285,12 +295,16 @@ def fetch(self, *k, **kw):
 
     if kw.has_key("patch"):
         self.start_msg("Patching %s" % kw["name"])
-        self.cmd_and_log(
-            [self.env.PATCH, "-p1", "-i", kw["patch"], "-d", kw["src"]],
-            output=Context.BOTH, 
-            cwd=kw["src"]
-        )
-        self.end_msg("Ok")
+        try:
+            self.cmd_and_log(
+                [self.env.PATCH, "-p1", "-Nsi", kw["patch"], "-d", kw["src"]],
+                output=Context.BOTH, 
+                cwd=kw["src"],
+            )
+            self.end_msg("Ok")
+        except:
+            self.end_msg("Faild, make sure it was already applied")
+
     return k, kw
 
 
@@ -312,11 +326,12 @@ def dep_build(self, *k, **kw):
         self.end_msg("...")
 
         if not os.path.exists(kw["build"]):
-            os.makedirs(kw["build"])
+            if kw.get("build_dir", True):
+                os.makedirs(kw["build"])
 
             self.start_msg("  Configure %s" % kw["name"])
             self.cmd_and_log(
-                    (config_cmd % {"src": kw["src"], "build": kw["build"], "prefix": kw["prefix"]}).split(' '), 
+                    (config_cmd % kw).split(' '), 
                 output=Context.BOTH, 
                 cwd=kw.get("config_cwd",kw["build"]) % kw
             )
@@ -324,7 +339,7 @@ def dep_build(self, *k, **kw):
 
             self.start_msg("  Compile %s" % kw["name"])
             self.cmd_and_log(
-                (build_cmd % {"src": kw["src"], "build": kw["build"], "prefix": kw["prefix"]}).split(' '), 
+                (build_cmd % kw).split(' '), 
                 output=Context.BOTH, 
                 cwd=kw.get("build_cwd",kw["build"]) % kw
             )
@@ -333,7 +348,7 @@ def dep_build(self, *k, **kw):
         if not os.path.exists(kw["prefix"]):
             self.start_msg("  Install %s" % kw["name"])
             self.cmd_and_log(
-                (install_cmd % {"src": kw["src"], "build": kw["build"], "prefix": kw["prefix"]}).split(' '), 
+                (install_cmd % kw).split(' '), 
                 output=Context.BOTH, 
                 cwd=kw.get("install_cwd",kw["build"]) % kw
             )

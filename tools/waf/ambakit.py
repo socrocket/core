@@ -42,6 +42,7 @@ def find(self, path = None):
       msg          = "Checking for AMBAKit Version > 1.0.5",
       mandatory    = True,
       execute      = True,
+      rpath        = self.env.LIBPATH_SYSTEMC,
       fragment     = """
                      #include <amba.h>
                      int sc_main(int argc, char *argv[]) {
@@ -60,6 +61,12 @@ def find(self, path = None):
       includes      = [os.path.join(self.path.abspath(),'contrib', 'grambasockets'), 
                        os.path.join(self.path.abspath(), 'common'), 
                        os.path.join(self.path.abspath(), 'include')],
+      fragment     = """
+                     #include "greenreg_ambasockets.h"
+                     int sc_main(int argc, char *argv[]) {
+                       return 0;
+                     }
+                     """,
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM AMBA',
       okmsg         = "ok",
       msg           = "Check compatibility of AMBAKit and GreenReg"

@@ -20,12 +20,16 @@ def find(self, path = None):
     self.find_program('cmake', var='CMAKE', mandatory=True, okmsg="ok")
 
     if "CMAKE" in self.env:
+        self.start_msg("Checking cmake version")
         cmake_version_str = subprocess.check_output(["cmake", "--version"])
         cmake_version = [int(v) for v in cmake_version_str.split(" ")[2].split(".")]
         cmake_version = cmake_version[0] * 1000000 + cmake_version[1] * 10000 + cmake_version[2] * 100
 
     if not ("CMAKE" in self.env) or cmake_version < 2081101:
+        self.end_msg(cmake_version_str[:-2] + " is not enough using internal version")
         self.fatal("You need at least CMAKE version 2.8.12")
+    else:
+        self.end_msg(cmake_version_str[:-2] + " is ok")
     
 def configure(self):
     try:

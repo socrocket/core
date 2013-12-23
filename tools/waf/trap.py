@@ -65,7 +65,7 @@ def check_trap_linking(self, libName, libPaths, symbol):
 def find(self, path = None):
     # Finding trap-gen
     trapRevisionNum = 772
-    trapLibErrmsg = 'not found, use --trapgen option. It might also be that the trap library is compiled '
+    trapLibErrmsg = 'not found, compiling internal version. Use --trapgen option to use system wide version. It might also be that the trap library is compiled '
     trapLibErrmsg += 'against libraries (bfd/libelf, boost, etc.) different from the ones being used now; in case '
     trapLibErrmsg += 'try recompiling trap library.'
     if path:

@@ -1,69 +1,26 @@
 #! /usr/bin/env python
 # encoding: utf-8
-#*********************************************************************
-# Copyright 2010, Institute of Computer and Network Engineering,
-#                 TU-Braunschweig
-# All rights reserved
-# Any reproduction, use, distribution or disclosure of this program,
-# without the express, prior written consent of the authors is 
-# strictly prohibited.
-#
-# University of Technology Braunschweig
-# Institute of Computer and Network Engineering
-# Hans-Sommer-Str. 66
-# 38118 Braunschweig, Germany
-#
-# ESA SPECIAL LICENSE
-#
-# This program may be freely used, copied, modified, and redistributed
-# by the European Space Agency for the Agency's own requirements.
-#
-# The program is provided "as is", there is no warranty that
-# the program is correct or suitable for any purpose,
-# neither implicit nor explicit. The program and the information in it
-# contained do not necessarily reflect the policy of the European 
-# Space Agency or of TU-Braunschweig.
-#*********************************************************************
-# Title:      modelsim.py
-#
-# ScssId:
-#
-# Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-#
-# Purpose:    A build system integration for modelsim.
-#
-# Method:     $ ./waf configure; ./waf # to build it
-#
-# Modified on $Date: 2010-10-07 17:40:12 +0200 (Thu, 07 Oct 2010) $
-#          at $Revision: 159 $
-#          by $Author$
-#
-# Principal:  European Space Agency
-# Author:     VLSI working group @ IDA @ TUBS
-# Maintainer: Rolf Meyer
-# Reviewed:
-#*********************************************************************
 from waflib import Task
 from waflib import TaskGen
 from waflib import Options
 from waflib.Configure import conf
 from waflib import Context
-import Utils
+from waflib import Utils
 from waflib import Utils,Task,Logs,Options
 import os, sys
 
 TESTLOCK = Utils.threading.Lock()
 
-def options(opt):
+def options(self):
     """Options for the Systool will be added here"""
-    config = opt.get_option_group("--download")
-    config.add_option('--nosystests', dest='systests', action='store_false', 
+    #config = opt.get_option_group("--download")
+    self.add_option('--nosystests', dest='systests', action='store_false', 
         default=True, help='Deactivates all tests executed on a platform')
 
-def configure(ctx):
+def configure(self):
     """Systools configuration section"""
-    ctx.env["SYSTESTS"] = Options.options.systests
-    ctx.env["MKPROMFLAGS"] = []
+    self.env["SYSTESTS"] = Options.options.systests
+    self.env["MKPROMFLAGS"] = []
     #ctx.find_program('mkprom2', var='MKPROM', mandatory=True, okmsg="ok")
 
 def systest_task_str(self):
@@ -218,9 +175,9 @@ from waflib.TaskGen import feature, after_method, before_method, task_gen
 feature('systest')(make_systest)
 after_method('apply_link')(make_systest)
 
-MKPROM = Task.simple_task_type('MKPROM',
-    '${MKPROM} ${_MKPROMFLAGS} -o ${TGT} ${SRC}',
-    color='YELLOW')
+MKPROM = Task.task_factory( 'MKPROM',
+    func  = '${MKPROM} ${_MKPROMFLAGS} -o ${TGT} ${SRC}',
+    color = 'YELLOW')
 
 MKPROM_TSKS = list()
 

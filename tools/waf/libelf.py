@@ -38,10 +38,11 @@ def find(self, path = None):
                 libpath      = libpath
             ):
             self.check_cxx(
-                shlib='elf', 
+                lib='elf', 
                 uselib_store='ELF_LIB', 
                 mandatory=True, 
-                libpath = libpath
+                libpath = libpath,
+                errmsg  = "not found, using internal version. Use --with-libelf= option to provide a system wide version."
             )
 
         self.check(
@@ -50,7 +51,8 @@ def find(self, path = None):
             uselib_store='ELF_LIB', 
             features='cxx cprogram', 
             mandatory=True, 
-            includes = incpath
+            includes = incpath,
+            errmsg  = "not found, using internal version. Use --with-libelf= option to provide a system wide version."
         )
         self.check(
             header_name='gelf.h', 
@@ -58,7 +60,8 @@ def find(self, path = None):
             uselib_store='ELF_LIB', 
             features='cxx cprogram', 
             mandatory=True, 
-            includes = incpath
+            includes = incpath,
+            errmsg  = "not found, using internal version. Use --with-libelf= option to provide a system wide version."
         )
 
     else:
@@ -68,23 +71,26 @@ def find(self, path = None):
                 mandatory = False
             ):
             self.check_cxx(
-                shlib='elf', 
+                lib='elf', 
                 uselib_store='ELF_LIB', 
-                mandatory=True 
+                mandatory=True,
+                errmsg  = "not found, using internal version. Use --with-libelf= option to provide a system wide version."
             )
         self.check(
             header_name='libelf.h', 
             uselib='ELF_LIB', 
             uselib_store='ELF_LIB', 
             features='cxx cprogram', 
-            mandatory=True
+            mandatory=True,
+            errmsg  = "not found, using internal version. Use --with-libelf= option to provide a system wide version."
         )
         self.check(
             header_name='gelf.h', 
             uselib='ELF_LIB', 
             uselib_store='ELF_LIB', 
             features='cxx cprogram', 
-            mandatory=True
+            mandatory=True,
+            errmsg  = "not found, using internal version. Use --with-libelf= option to provide a system wide version."
         )
 
     if 'elf' in self.env['LIB_ELF_LIB']:
@@ -130,6 +136,4 @@ def configure(self):
             tar_url = "http://www.mr511.de/software/%(base)s.tar.gz",
         )
         find(self, self.dep_path(name, version))
-
-
 

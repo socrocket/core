@@ -80,6 +80,7 @@ def find(self, path = None):
     #    self.check_cxx(cxxflags=self.env['CXXFLAGS'], mandatory=True, msg='Checking for C++ compilation flags')
     if self.env['LINKFLAGS']:
         self.check_cc(linkflags=self.env['LINKFLAGS'], mandatory=True, msg='Checking for link flags')
+    #self.setenv('')
     
     
 def configure(self):
@@ -105,6 +106,7 @@ def configure(self):
 @TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('sparc')
 def feature_sparcelf(self):
-  self.env = self.bld.env_of_name('sparc-elf').copy()
+  env = self.bld.all_envs['sparc-elf'].derive()
+  self.env = env
 
 

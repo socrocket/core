@@ -10,8 +10,18 @@ import sys
 from waflib.Tools import waf_unit_test  
 from tools.waf.logger import Logger
 
+LOAD = [
+    'compiler_c',
+    'compiler_cxx',
+    'python',
+    'swig',
+    'waf_unit_test',
+]
+
 TOOLS = [
+    'common',
     'flags',
+    'virtualenv',
     'pthreads',
     'boost',
     'endian',
@@ -28,33 +38,27 @@ TOOLS = [
 #    'sdl',
 #    'mpeg3',
     'lua',
+    'blas',
+    'lapack',
     'greenlib',
     'ambakit',
     'socrocket',
-    'sparcelf',
     'wizard',
     'docs',
+    'shell',
+    'sparcelf',
 ]
 
 def options(self): 
-    self.load('compiler_c')
-    self.load('compiler_cxx')
-    self.load('python')
-    self.load('waf_unit_test')
-    self.load('common', tooldir='tools/waf')
-    self.load_tools(TOOLS)
+    self.load(LOAD)
+    self.load(TOOLS, tooldir='tools/waf')
 
 def configure(self):
-    self.load('compiler_cc')
-    self.load('compiler_cxx')
-    self.load('python')
+    self.load(LOAD)
     self.check_waf_version(mini='1.6.0')
     self.check_python_version((2,4,0))
     self.check_python_headers()
-    self.check_python_module('PyQt4')
-    self.load('waf_unit_test')
-    self.load('common', tooldir='tools/waf')
-    self.load_tools(TOOLS)
+    self.load(TOOLS, tooldir='tools/waf')
     
 def build(self):
     logger = Logger("%s/build.log" % self.bldnode.abspath())

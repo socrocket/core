@@ -4,6 +4,7 @@
 import sys
 import subprocess
 from waflib.Build import BuildContext
+from waflib import Context
 
 def options(self):
     pass
@@ -20,6 +21,7 @@ def docs(bld):
         print "To use the ./waf docs comand please install doxygen"
         sys.exit(0)
 
+setattr(Context.g_module, 'docs', docs)
 class Docs(BuildContext):
     cmd = 'docs'
     fun = 'docs'

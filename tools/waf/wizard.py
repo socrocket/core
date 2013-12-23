@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # vim: set expandtab:ts=4:sw=4:setfiletype python
 from waflib.Build import BuildContext
+from waflib import Context
 
 def options(self):
     conf = self.add_option_group("'./waf generate' Options")
@@ -32,3 +33,4 @@ class Generate(BuildContext):
     cmd = 'generate'
     fun = 'generate'
 
+setattr(Context.g_module, 'generate', generate)
