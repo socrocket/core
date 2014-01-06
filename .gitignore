@@ -3,6 +3,7 @@
 *.sparc
 *.prom
 *.log
+.*sw?
 gmon.out
 
 # Mac Files
@@ -10,7 +11,7 @@ gmon.out
 ._.DS_Store
 
 # waf files
-.lock-wafbuild
+.lock-*
 .waf*
 build
 deps
