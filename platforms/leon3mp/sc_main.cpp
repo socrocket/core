@@ -255,7 +255,7 @@ int sc_main(int argc, char** argv) {
       pythonscript = vm["pythonscript"].as<std::string>();
     }
 
-    PythonModule python("python_interpreter", pythonscript, argc, argv);
+    PythonModule python("python_interpreter", pythonscript.c_str(), argc, argv);
     python.start_of_initialization();
     // Build GreenControl Configuration Namespace
     // ==========================================
