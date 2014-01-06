@@ -94,7 +94,7 @@ def vexecute(self, cmd = ""):
     atexit.register(eexit)
 
 def bash(self):
-    vexecute()
+    vexecute(self)
 
 class Bash(BuildContext):
     cmd = 'bash'
@@ -103,7 +103,7 @@ class Bash(BuildContext):
 setattr(Context.g_module, 'bash', bash)
 
 def console(self):
-    vexecute("ipython qtconsole --colors=linux")
+    vexecute(self, "ipython qtconsole --colors=linux")
 
 class Console(BuildContext):
     cmd = 'console'
@@ -112,7 +112,7 @@ class Console(BuildContext):
 setattr(Context.g_module, 'console', console)
 
 def xconsole(self):
-    vexecute("ipython qtconsole --colors=linux")
+    vexecute(self, "ipython qtconsole --colors=linux")
 
 class XConsole(BuildContext):
     cmd = 'xconsole'

@@ -73,7 +73,7 @@ def find(self, path = None):
         incpath = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(path, "include"))))
 
         self.check_cxx(
-            lib='trap', 
+            stlib='trap', 
             use='ELF_LIB BOOST SYSTEMC', 
             uselib_store='TRAP', 
             mandatory=True, 

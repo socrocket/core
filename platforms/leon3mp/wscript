@@ -48,7 +48,7 @@ top = '..'
 def build(bld):
     ambaLayer = 'true'
     if not bld.env["LIB_SOCROCKET"]:
-        use       = 'ahbctrl ahbmem irqmp gptimer apbctrl apbuart socwire socw_socket mmu_cache mctrl ahbin ahbprof utils signalkit common'
+        use       = 'ahbctrl ahbmem irqmp gptimer apbctrl apbuart socwire socw_socket mmu_cache mctrl ahbin ahbprof utils signalkit pysc common'
     else:
         use       = 'SOCROCKET'
 

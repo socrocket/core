@@ -21,7 +21,7 @@ def configure(self):
     
     boostLibs = 'thread regex date_time program_options filesystem system serialization'
 
-    self.check_boost(lib=boostLibs, static=False, mandatory=True, errmsg = boostErrorMessage)
+    self.check_boost(lib=boostLibs, static=True, mandatory=True, errmsg = boostErrorMessage)
     if int(self.env.BOOST_VERSION.split('_')[1]) < 35:
         self.fatal(boostErrorMessage)
     if not self.options.static_build:

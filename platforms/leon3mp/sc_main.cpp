@@ -87,7 +87,7 @@
 
 #include "leon3.funclt.h"
 #include "leon3.funcat.h"
-#include "shell.h"
+#include "pysc.h"
 
 using namespace std;
 using namespace sc_core;
@@ -124,6 +124,7 @@ int sc_main(int argc, char** argv) {
     desc.add_options()
       ("help", "Shows this message.")
       ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json.")
+      ("pythonscript,p", boost::program_options::value<std::string>(), "The main python script file. Usual sc_main.py.")
       ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options.")
       ("argument,a", boost::program_options::value<std::vector<std::string> >(), "Arguments to the software running inside the simulation.")
       ("listoptions,l", "Show a list of all avaliable options")
@@ -248,6 +249,14 @@ int sc_main(int argc, char** argv) {
 	    configlistfiltered= true;
     }
 
+    // Initialize Python
+    std::string pythonscript = "";
+    if(vm.count("pythonscript")) {
+      pythonscript = vm["pythonscript"].as<std::string>();
+    }
+
+    PythonModule python("python_interpreter", pythonscript, argc, argv);
+    python.start_of_initialization();
     // Build GreenControl Configuration Namespace
     // ==========================================
     gs::gs_param_array p_conf("conf");
@@ -1056,21 +1065,18 @@ int sc_main(int argc, char** argv) {
     (void) signal(SIGTERM, stopSimFunction);
     (void) signal(10, stopSimFunction);
 
+    python.end_of_initialization();
     cstart = cend = clock();
-    try {
-        cstart = clock();
-        //sc_core::sc_start();
-        start_shell((vm.count("interactiv")?SC_PAUSED:SC_RUNNING));
-        cend = clock();
+    cstart = clock();
+    sc_core::sc_start();
+    cend = clock();
 
-        v::info << "Summary" << "Start: " << dec << cstart << v::endl;
-        v::info << "Summary" << "End:   " << dec << cend << v::endl;
-        v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
+    v::info << "Summary" << "Start: " << dec << cstart << v::endl;
+    v::info << "Summary" << "End:   " << dec << cend << v::endl;
+    v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
 
-    } catch(std::runtime_error &error) {
-        v::error << "main" << "Execution is stoped caused by a runtime_error. Maybe you forgot to select an executable?" << v::endl;
-        v::error << "main" << error.what();
-    }
+    python.start_of_evaluation();
+    python.end_of_evaluation();
 
     return trap::exitValue;
 }

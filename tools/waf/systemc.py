@@ -44,7 +44,7 @@ def find(self, scpath = None, tlmpath = None):
         sclib = []
 
     self.check_cxx(
-        lib          = 'systemc', 
+        stlib        = 'systemc', 
         uselib_store = 'SYSTEMC', 
         mandatory    = True, 
         libpath      = sclib, 
