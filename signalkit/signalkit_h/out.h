@@ -88,7 +88,7 @@ class signal_out : public signal_base<TYPE, MODULE> ,
         }
 
         /// Write the value of a signal.
-        /// Stores the value and triggers an updat in all receivers.
+        /// Stores the value and triggers an update in all receivers.
         ///
         /// @param value The new value of the signal.
         /// @param time The delay from sc_timestamp() at propagation.
