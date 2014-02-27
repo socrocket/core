@@ -158,18 +158,6 @@ def recurse_all_tests(self):
     self.recurse(get_testdirs(self.path.abspath()))
 conf(recurse_all_tests)
 
-def tool(self, *k, **kw):
-    kw.update({
-        "tooldir": "tools/waf"
-    })
-    self.load(*k, **kw)
-conf(tool)
-
-def load_tools(self, toollist):
-    for tool in toollist:
-        self.tool(tool)
-conf(load_tools)
-
 def get_testdirs(path='.'):
     """Return a list of all test subdirectories of path"""
     return [os.path.join(name, "tests") 

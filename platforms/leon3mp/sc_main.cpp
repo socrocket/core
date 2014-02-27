@@ -64,6 +64,7 @@
 #include "ahbctrl.h"
 #include "AHB2Socwire.h"
 #include "ahbprof.h"
+#include "greth.h"
 
 #include <iostream>
 #include <vector>
@@ -88,6 +89,9 @@
 #include "leon3.funclt.h"
 #include "leon3.funcat.h"
 #include "pysc.h"
+#include "vphy/tapdev.h"
+#include "vphy/loopback.h"
+//#include "vphy/trafgen.h"
 
 using namespace std;
 using namespace sc_core;
@@ -119,6 +123,25 @@ boost::filesystem::path find_top_path(char *start) {
 
 }
 
+string greth_script_path;
+void grethVPHYHook(char* dev_name)
+{
+  stringstream command;
+  command << greth_script_path.c_str() << " " << dev_name << " &"; // Do not wait
+  v::info << "GREth Post Script Path: " << command.str() << v::endl;
+  string command_str = command.str();
+  const char* command_c = command_str.c_str();
+
+  int res = std::system(command_c);
+  if(res<0)
+  {
+    v::error << "GREth Post Script Path: " << command << v::endl;
+  }
+  v::info << "GREth Post Script PID: " << res << v::endl;
+
+  return;
+}
+
 int sc_main(int argc, char** argv) {
     boost::program_options::options_description desc("Options");
     desc.add_options()
@@ -127,6 +150,7 @@ int sc_main(int argc, char** argv) {
       ("pythonscript,p", boost::program_options::value<std::string>(), "The main python script file. Usual sc_main.py.")
       ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options.")
       ("argument,a", boost::program_options::value<std::vector<std::string> >(), "Arguments to the software running inside the simulation.")
+      ("greth,g", boost::program_options::value<std::vector<std::string> >(), "Initial Options for GREth-Core.")
       ("listoptions,l", "Show a list of all avaliable options")
       ("interactiv,i", "Start simulation in interactiv mode")
       ("listoptionsfiltered,f", boost::program_options::value<std::string>(), "Show a list of avaliable options containing a keyword")
@@ -1025,7 +1049,153 @@ int sc_main(int argc, char** argv) {
       // Connect socwire ports as loopback
       ahb2socwire->socwire.master_socket(ahb2socwire->socwire.slave_socket);
     }
+  // ===========================================================
+    // GREth Media Access Controller with EDCL support (AHBMaster)
+    // ===========================================================
+  GREthConfiguration *greth_config = new GREthConfiguration();
+  // Load default configuration
+    gs::gs_param_array p_greth("greth", p_conf);
+    gs::gs_param<bool> p_greth_en("en", false, p_greth);
+    gs::gs_param<uint8_t> p_greth_hindex("hindex",greth_config->hindex, p_greth);
+    gs::gs_param<uint8_t> p_greth_pindex("pindex",greth_config->pindex, p_greth);
+    gs::gs_param<uint16_t> p_greth_paddr("paddr",greth_config->paddr, p_greth);
+    gs::gs_param<uint16_t> p_greth_pmask("pmask",greth_config->pmask, p_greth);
+    gs::gs_param<uint32_t> p_greth_pirq("pirq",greth_config->pirq, p_greth);
+    gs::gs_param<uint32_t> p_greth_memtech("memtech",greth_config->memtech, p_greth);
+    gs::gs_param<uint16_t> p_greth_ifg_gap("ifg_gap",greth_config->ifg_gap, p_greth);
+    gs::gs_param<uint16_t> p_greth_attempt_limit("attempt_limit",greth_config->attempt_limit, p_greth);
+    gs::gs_param<uint16_t> p_greth_backoff_limit("backoff_limit",greth_config->backoff_limit, p_greth);
+    gs::gs_param<uint16_t> p_greth_slot_time("slot_time",greth_config->slot_time, p_greth);
+    gs::gs_param<uint16_t> p_greth_mdcscaler("mdcscaler",greth_config->mdcscaler, p_greth);
+    gs::gs_param<bool> p_greth_enable_mdio("enable_mdio",greth_config->enable_mdio, p_greth);
+    gs::gs_param<uint8_t> p_greth_fifosize("fifosize",greth_config->fifosize, p_greth);
+    gs::gs_param<uint8_t> p_greth_nsync("nsync",greth_config->nsync, p_greth);
+    gs::gs_param<uint8_t> p_greth_edcl("edcl",greth_config->edcl, p_greth);
+    gs::gs_param<uint8_t> p_greth_edclbufsz("edclbufsz",greth_config->edclbufsz, p_greth);
+    gs::gs_param<uint32_t> p_greth_macaddrh("macaddrh",greth_config->macaddrh, p_greth);
+    gs::gs_param<uint32_t> p_greth_macaddrl("macaddrl",greth_config->macaddrl, p_greth);
+    gs::gs_param<uint16_t> p_greth_ipaddrh("ipaddrh",greth_config->ipaddrh, p_greth);
+    gs::gs_param<uint16_t> p_greth_ipaddrl("ipaddrl",greth_config->ipaddrl, p_greth);
+    gs::gs_param<uint8_t> p_greth_phyrstadr("phyrstadr",greth_config->phyrstadr, p_greth);
+    gs::gs_param<bool> p_greth_rmii("rmii",greth_config->rmii, p_greth);
+    gs::gs_param<bool> p_greth_oepol("oepol",greth_config->oepol, p_greth);
+    gs::gs_param<bool> p_greth_mdint_pol("mdint_pol",greth_config->mdint_pol, p_greth);
+    gs::gs_param<bool> p_greth_enable_mdint("enable_mdint",greth_config->enable_mdint, p_greth);
+    gs::gs_param<bool> p_greth_multicast("multicast",greth_config->multicast, p_greth);
+    gs::gs_param<uint8_t> p_greth_ramdebug("ramdebug",greth_config->ramdebug, p_greth);
+    gs::gs_param<uint8_t> p_greth_ehindex("ehindex",greth_config->ehindex, p_greth);
+    gs::gs_param<bool> p_greth_edclsepahb("edclsepahb",greth_config->edclsepahb, p_greth);
+    gs::gs_param<uint8_t> p_greth_mdiohold("mdiohold",greth_config->mdiohold, p_greth);
+    gs::gs_param<uint16_t> p_greth_maxsize("maxsize",greth_config->maxsize, p_greth);
+    gs::gs_param<int> p_greth_vphy_ctrl("vphy_ctrl",1 , p_greth);
 
+    // Set custom configuration adaptions
+    greth_config->hindex = p_greth_hindex;
+    greth_config->pindex = p_greth_pindex;
+    greth_config->paddr = p_greth_paddr;
+    greth_config->pmask = p_greth_pmask;
+    greth_config->pirq = p_greth_pirq;
+    greth_config->memtech = p_greth_memtech;
+    greth_config->ifg_gap = p_greth_ifg_gap;
+    greth_config->attempt_limit = p_greth_attempt_limit;
+    greth_config->backoff_limit = p_greth_backoff_limit;
+    greth_config->slot_time = p_greth_slot_time;
+    greth_config->mdcscaler = p_greth_mdcscaler;
+    greth_config->enable_mdio = p_greth_enable_mdio;
+    greth_config->fifosize = p_greth_fifosize;
+    greth_config->nsync = p_greth_nsync;
+    greth_config->edcl = p_greth_edcl;
+    greth_config->edclbufsz = p_greth_edclbufsz;
+    greth_config->macaddrh = p_greth_macaddrh;
+    greth_config->macaddrl = p_greth_macaddrl;
+    greth_config->ipaddrh = p_greth_ipaddrh;
+    greth_config->ipaddrl = p_greth_ipaddrl;
+    greth_config->phyrstadr = p_greth_phyrstadr;
+    greth_config->rmii = p_greth_rmii;
+    greth_config->oepol = p_greth_oepol;
+    greth_config->mdint_pol = p_greth_mdint_pol;
+    greth_config->enable_mdint = p_greth_enable_mdint;
+    greth_config->multicast = p_greth_multicast;
+    greth_config->ramdebug = p_greth_ramdebug;
+    greth_config->ehindex = p_greth_ehindex;
+    greth_config->edclsepahb = p_greth_edclsepahb;
+    greth_config->mdiohold = p_greth_mdiohold;
+    greth_config->maxsize = p_greth_maxsize;
+    // Optional params for tap offset and post script
+    if(vm.count("greth")) {
+        std::vector<std::string> vec = vm["greth"].as< std::vector<std::string> >();
+        for(std::vector<std::string>::iterator iter = vec.begin(); iter!=vec.end(); iter++) {
+           std::string parname;
+           std::string parvalue;
+
+           // *** Check right format (parname=value)
+           if(iter->find_first_of("=") == std::string::npos) {
+               v::warn << "main" << "Option value in command line greth has no '='. Type '--help' for help. " << *iter;
+           }
+           // if not space before equal sign
+           if(iter->find_first_of(" ") < iter->find_first_of("=")) {
+               v::warn << "main" << "Option value in command line option may not contain a space before '='. " << *iter;
+           }
+
+           // Parse parameter name
+           parname = iter->substr(0,iter->find_first_of("="));
+           // Parse parameter value
+           parvalue = iter->substr(iter->find_first_of("=")+1);
+
+           // Set parameter
+           if(parname.compare("tap.offset") == 0)
+           {
+               cout << "GRETH OTIONS:" << parname << " - " << parvalue << endl;
+               TAP::deviceno = atoi(parvalue.c_str());
+           }
+           if(parname.compare("post.script") == 0)
+           {
+               cout << "GRETH OTIONS:" << parname << " - " << parvalue << endl;
+               greth_script_path = parvalue.c_str();
+           }
+        }
+    }
+
+    GREth *greth;
+    if(p_greth_en)  {
+        MII *vphyLink;
+        switch(p_greth_vphy_ctrl) {
+        case 0:
+          vphyLink = new Loopback();
+          break;
+        case 1:
+        vphyLink = new Tap();
+        break;
+        //case 2:
+        //vphyLink = new TrafGen();
+        //break;
+        default:
+        v::info << "GREth.init" << "No VPHY defined -> choosing TAP as default." << v::endl;
+        vphyLink = new Tap();
+        break;
+        }
+
+      // Initialize the GREth with a virtual PHY
+      // ==========================
+      greth = new GREth("GREth",
+            greth_config,   // CONFIG
+            vphyLink,     // VPHY Controller
+            ambaLayer,      // LT or AT (AT not supported at time)
+            grethVPHYHook);   // Callback function, to init the TAP
+
+
+      greth->set_clk(40, SC_NS);
+
+      // Connect TLM buses
+      // ==========================
+      greth->ahb(ahbctrl.ahbIN);
+      apbctrl.apb(greth->apb);
+
+      // Connect IRQ
+      // ==========================
+      connect(irqmp.irq_in, greth->irq);
+    }
+  // GREth done. ==========================
 
     // * Param Listing **************************
     paramprinter printer;
