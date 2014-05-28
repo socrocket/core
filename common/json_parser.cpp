@@ -470,9 +470,11 @@ void json_parser::parse(char *source) {
                 mApi->setInitValue(it->first, it->second->string_value);
                 break;
             case JSON_INT:
+                sprintf(value, "%d" , it->second->int_value);
                 mApi->setInitValue(it->first, value);
                 break;
             case JSON_FLOAT:
+                sprintf(value, "%f" , it->second->int_value);
                 mApi->setInitValue(it->first, value);
                 break;
             case JSON_BOOL:
