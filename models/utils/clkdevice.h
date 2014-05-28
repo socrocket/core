@@ -1,41 +1,17 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      clkdevice.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    header file defining the clkdevice base class
-//             The clkdevice is the base for all devices using an internal clk.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup utils
+/// @{
+/// @file clkdevice.h
+/// header file defining the clkdevice base class The clkdevice is the base for
+/// all devices using an internal clk.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #ifndef CLKDEVICE_H
 #define CLKDEVICE_H
@@ -49,13 +25,13 @@ class CLKDevice {
 
         /// Reset input signal
         signal<bool>::in rst;
-    
+
         /// Clock input signal
         signal<sc_time>::in clk;
-    
+
         CLKDevice();
         virtual ~CLKDevice();
-       // Signal Callbacks 
+       // Signal Callbacks
         /// Reset Callback
         ///
         ///  This function is called when the reset signal is triggerd.
@@ -75,7 +51,7 @@ class CLKDevice {
         /// @param time  Delay to the current simulation time. Is not used in this callback.
         virtual void onclk(const sc_time &value, const sc_time &time);
 
-    
+
         /// Set the clockcycle length.
         ///
         ///  With this function you can set the clockcycle length of the gptimer instance.
@@ -109,3 +85,4 @@ class CLKDevice {
 };
 
 #endif // CLKDEVICE_H
+/// @}

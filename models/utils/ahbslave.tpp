@@ -1,38 +1,16 @@
-// ********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
-// European Space Agency or of TU-Braunschweig.
-// ********************************************************************
-// Title:      ahbslave.tpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-// ********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup utils
+/// @{
+/// @file ahbslave.tpp
+/// 
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 using namespace std;
 using namespace sc_core;
@@ -74,7 +52,7 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
 
     if (trans.get_response_status() != tlm::TLM_OK_RESPONSE) {
 
-       v::warn << name() << "Target did not return tlm::TLM_OK_RESPONSE" << v::endl; 
+       v::warn << name() << "Target did not return tlm::TLM_OK_RESPONSE" << v::endl;
 
     }
 
@@ -88,14 +66,14 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
     if (delay==SC_ZERO_TIME) {
 
       delay = address_cycle_base * get_clock() + sc_core::sc_time(1, SC_PS);
-    
+
     }
 
     //v::debug << this->name() << "Total delay: " << delay << v::endl;
 
     // Calculating delay for sending END_REQ
     request_delay = delay - sc_core::sc_time(1, SC_PS);
-    
+
     v::debug << this->name() << "Request Delay: " << request_delay << v::endl;
 
     // Consume request_delay and forward to request thread
@@ -127,7 +105,7 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
     return(tlm::TLM_COMPLETED);
 
   } else {
-  
+
     v::error << this->name() << "Invalid phase in call to nb_transport_fw!" << v::endl;
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
@@ -147,7 +125,7 @@ void AHBSlave<BASE>::requestThread() {
   tlm::tlm_generic_payload * trans;
 
   while(1) {
-    
+
     wait(m_RequestPEQ.get_event());
 
     trans = m_RequestPEQ.get_next_transaction();
@@ -155,12 +133,12 @@ void AHBSlave<BASE>::requestThread() {
     // Send END_REQ
     phase = tlm::END_REQ;
     delay = SC_ZERO_TIME;
-      
+
     v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase << v::endl;
-    
+
     // Backward arrow for msc
     msclogger::backward(this, &ahb, trans, phase, delay);
-      
+
     // Call to backward transport
     status = ahb->nb_transport_bw(*trans, phase, delay);
     assert(status==tlm::TLM_ACCEPTED);
@@ -195,13 +173,13 @@ void AHBSlave<BASE>::responseThread() {
     status = ahb->nb_transport_bw(*trans, phase, delay);
 
     if ((phase == tlm::END_RESP)||(status == tlm::TLM_COMPLETED)) {
-     
+
       // Decrement reference counter
       trans->release();
-    
+
     }
   }
-}      
+}
 
 // TLM blocking transport function
 template<class BASE>
@@ -246,3 +224,4 @@ void AHBSlave<BASE>::print_transport_statistics(const char *name) const throw() 
 /* vim: set expandtab noai ts=4 sw=4: */
 /* -*- mode: c-mode; tab-width: 4; indent-tabs-mode: nil; -*- */
 
+/// @}

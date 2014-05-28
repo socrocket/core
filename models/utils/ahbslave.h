@@ -1,40 +1,18 @@
-// ********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
-// European Space Agency or of TU-Braunschweig.
-// ********************************************************************
-// Title:      ahbslave.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-// ********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup utils
+/// @{
+/// @file ahbslave.h
+/// 
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 #ifndef AHBSLAVE_H
-#define AHBSLAVE_H 
+#define AHBSLAVE_H
 
 #include <tlm.h>
 #include <systemc.h>
@@ -55,19 +33,19 @@ class AHBSlave : public BASE, public AHBDevice {
   SC_HAS_PROCESS(AHBSlave);
 
   using BASE::name;
-        
-  AHBSlave(sc_core::sc_module_name mn, 
-           uint8_t hindex, 
-           uint8_t vendor, 
-           uint8_t device, 
-           uint8_t version, 
-           uint8_t irq, 
-           amba::amba_layer_ids ambaLayer, 
-           uint32_t bar0 = 0, 
-           uint32_t bar1 = 0, 
-           uint32_t bar2 = 0, 
+
+  AHBSlave(sc_core::sc_module_name mn,
+           uint8_t hindex,
+           uint8_t vendor,
+           uint8_t device,
+           uint8_t version,
+           uint8_t irq,
+           amba::amba_layer_ids ambaLayer,
+           uint32_t bar0 = 0,
+           uint32_t bar1 = 0,
+           uint32_t bar2 = 0,
            uint32_t bar3 = 0);
-  
+
   ~AHBSlave();
 
   /// AHB Slave Socket
@@ -106,23 +84,23 @@ class AHBSlave : public BASE, public AHBDevice {
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_RequestPEQ;
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_ResponsePEQ;
 
- private: 
+ private:
   /// Ready to accept new transaction (send END_REQ)
   sc_event unlock_event;
 
   bool busy;
   //sc_core::sc_time clockcycle;
- 
+
  protected:
   /// GreenControl API container
   gs::cnf::cnf_api *m_api;
-        
+
   /// Open a namespace for performance counting in the greencontrol realm
   gs::gs_param_array m_performance_counters;
 
   /// Stores the number of Bytes read from the device
   gs::gs_param<unsigned long long> m_reads;
- 
+
   /// Stores the number of Bytes written from the device
   gs::gs_param<unsigned long long> m_writes;
 
@@ -135,3 +113,4 @@ class AHBSlave : public BASE, public AHBDevice {
 
 /* vim: set expandtab noai ts=4 sw=4: */
 /* -*- mode: c-mode; tab-width: 4; indent-tabs-mode: nil; -*- */
+/// @}

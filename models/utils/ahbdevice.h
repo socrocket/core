@@ -1,43 +1,16 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      ahbdevice.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    header file containing the definition of a baseclass
-//             for all ahb tlm models. It implements the the device
-//             information register needed for the plug and play
-//             interface.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup utils
+/// @{
+/// @file ahbdevice.h
+/// 
+///
+/// @date 2013-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author 
+///
 
 #ifndef AHB_DEVICE_H
 #define AHB_DEVICE_H
@@ -76,7 +49,7 @@ class AHBDevice : public amba_slave_base {
 
         /// Returns the device id.
         virtual const uint16_t get_device_id() const throw();
-  
+
         /// Returns the vendor id.
         virtual const uint8_t get_vendor_id() const throw();
 
@@ -105,7 +78,7 @@ class AHBDevice : public amba_slave_base {
         /// @param bar The selected bar
         /// @see device_type
         virtual const device_type get_bar_type(uint32_t bar) const throw();
-        
+
         /// Returns the Bus specific most significant 12bit of the bar base address
         /// Shifted to the lowest bits in the word.
         virtual const uint32_t get_bar_base(uint32_t bar) const throw();
@@ -113,7 +86,7 @@ class AHBDevice : public amba_slave_base {
         /// Returns the Bus specific mask of the most significant 12bit of the bar address
         /// Shifted to the lowest bits in the word.
         virtual const uint32_t get_bar_mask(uint32_t bar) const throw();
-        
+
         /// Returns the Bus specific base address of the device.
         /// Returns the address of one bar in byte offset as seen from the bus.
         /// @param bar The selected bar
@@ -122,7 +95,7 @@ class AHBDevice : public amba_slave_base {
         /// Returns the size of one bar in bytes as seen from the bus.
         /// @param bar The selected bar
         virtual const uint32_t get_bar_size(uint32_t bar) const throw();
-        
+
         /// Returns the BAR relative address
         /// @param bar The selected bar
         virtual const uint32_t get_bar_relative_addr(uint32_t bar, uint32_t addr) const throw();
@@ -155,13 +128,13 @@ class AHBDevice : public amba_slave_base {
     private:
         /// Impementation of the device register file.
         uint32_t m_register[8];
-	
+
         /// The master of slave bus id of the device
         uint32_t m_busid;
 
         /// GreenControl API container
         //gs::cnf::cnf_api *m_api;
-        
+
         /// Open a namespace for performance counting in the greencontrol realm
         //gs::gs_param_array m_performance_counters;
 
@@ -178,9 +151,11 @@ class AHBDevice : public amba_slave_base {
 /// @return The bank address register content.
 /// @see AHBDevice
 /// @see AHBCtrl
-uint32_t BAR(AHBDevice::device_type type, uint16_t mask, bool cacheable, 
+uint32_t BAR(AHBDevice::device_type type, uint16_t mask, bool cacheable,
                   bool prefetchable, uint16_t address) throw();
 
 /// @}
 
 #endif
+/// @}
+/// @}

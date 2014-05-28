@@ -1,38 +1,16 @@
-// ********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
-// European Space Agency or of TU-Braunschweig.
-// ********************************************************************
-// Title:      ahbmaster.tpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-// ********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup utils
+/// @{
+/// @file ahbmaster.tpp
+/// 
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 using namespace std;
 using namespace sc_core;
@@ -64,7 +42,7 @@ tlm::tlm_sync_enum AHBMaster<BASE>::nb_transport_bw(tlm::tlm_generic_payload &tr
     uint32_t data_phase_base;
 
     // Calculate length of data phase
-    data_phase_base = (((trans.get_data_length()-1) >> 2) +1);    
+    data_phase_base = (((trans.get_data_length()-1) >> 2) +1);
 
     delay = data_phase_base * get_clock();
     m_ResponsePEQ.notify(trans, delay);
@@ -257,7 +235,7 @@ void AHBMaster<BASE>::ahbwrite(uint32_t addr, unsigned char * data, uint32_t len
     ahb.template validate_extension<amba::amba_lock>(*trans);
 
   }
-    
+
   if (m_ambaLayer == amba::amba_LT) {
 
     // Forward arrow for msc
@@ -350,11 +328,11 @@ uint32_t AHBMaster<BASE>::ahbread_dbg(uint32_t addr, unsigned char * data, unsig
   trans->set_address(addr);
   trans->set_data_length(length);
   trans->set_data_ptr(data);
-  trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);  
+  trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
   // Debug transport
   length_dbg = ahb->transport_dbg(*trans);
-  
+
   // Decrement reference count
   ahb.release_transaction(trans);
 
@@ -378,18 +356,18 @@ uint32_t AHBMaster<BASE>::ahbwrite_dbg(uint32_t addr, unsigned char * data, unsi
   trans->set_address(addr);
   trans->set_data_length(length);
   trans->set_data_ptr(data);
-  trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE); 
+  trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
   // Debug transport
   length_dbg = ahb->transport_dbg(*trans);
-  
+
   // Decrement reference count
   ahb.release_transaction(trans);
 
   return length_dbg;
 
 }
-   
+
 // Thread for response synchronization (sync and send END_RESP)
 template<class BASE>
 void AHBMaster<BASE>::ResponseThread() {
@@ -415,9 +393,9 @@ void AHBMaster<BASE>::ResponseThread() {
 
         // This variable is visible within response_callback.
         // Needs to be externally resetted.
-        response_error = true;    
+        response_error = true;
       }
-    
+
       // Check result
       response_callback(trans);
 
@@ -436,7 +414,7 @@ void AHBMaster<BASE>::ResponseThread() {
       // Return value must be TLM_COMPLETED or TLM_ACCEPTED
       assert((status==tlm::TLM_COMPLETED)||(status==tlm::TLM_ACCEPTED));
 
-      v::debug << name() << "Release " << trans << " Ref-Count before calling release " << trans->get_ref_count() << v::endl; 
+      v::debug << name() << "Release " << trans << " Ref-Count before calling release " << trans->get_ref_count() << v::endl;
 
       // Decrement reference count
       ahb.release_transaction(trans);
@@ -459,3 +437,4 @@ void AHBMaster<BASE>::print_transport_statistics(const char *name) const throw()
   v::report << name << " * Bytes read: " << m_reads << v::endl;
   v::report << name << " * Bytes written: " << m_writes << v::endl;
 }
+/// @}

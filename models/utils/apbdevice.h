@@ -1,43 +1,18 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      ahbdevice.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    header file containing the definition of a baseclass
-//             for all ahb tlm models. It implements the the device
-//             information register needed for the plug and play
-//             interface.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup utils
+/// @{
+/// @file apbdevice.h
+/// header file containing the definition of a baseclass for all ahb tlm models.
+/// It implements the the device information register needed for the plug and
+/// play interface.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #ifndef APB_DEVICE_H
 #define APB_DEVICE_H
@@ -66,7 +41,7 @@ class APBDevice : public amba_slave_base {
         /// All device informations are needed while constructing a device.
         /// The register content is formed here.
         APBDevice(uint32_t bus_id, uint8_t vendorid, uint16_t deviceid, uint8_t version,
-                  uint8_t irq, APBDevice::device_type type, uint16_t mask, 
+                  uint8_t irq, APBDevice::device_type type, uint16_t mask,
                   bool cacheable, bool prefetchable, uint16_t address);
 
         APBDevice();
@@ -78,7 +53,7 @@ class APBDevice : public amba_slave_base {
 
         /// Returns the vendor id.
         virtual const uint8_t get_vendor_id() const;
-  
+
         /// Returns the device register file.
         /// A set of 8 registers as specified by the grlib manual.
         /// See section: 14.2.2 (Page 79)
@@ -94,7 +69,7 @@ class APBDevice : public amba_slave_base {
         /// Returns the Bus specific mask of the most significant 12bit of the address
         /// Shifted to the lowest bits in the word.
         virtual const uint32_t get_mask() const;
-        
+
         /// Returns the Bus specific base address of the device.
         /// @see get_bar_addr
         /// @return The device base address.
@@ -124,3 +99,4 @@ class APBDevice : public amba_slave_base {
 };
 
 #endif
+/// @}

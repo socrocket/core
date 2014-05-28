@@ -1,45 +1,18 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      ahbdevice.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    contains the implementation of a baseclass
-//             for all ahb tlm models. It implements the the device
-//             information register needed for the plug and play
-//             interface.
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup utils
+/// @{
+/// @file ahbdevice.cpp
+/// contains the implementation of a baseclass for all ahb tlm models. It
+/// implements the the device information register needed for the plug and play
+/// interface.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #include "ahbdevice.h"
 #include "verbose.h"
@@ -52,7 +25,7 @@ AHBDevice::AHBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
                      uint8_t version, uint8_t irq, uint32_t bar0,
                      uint32_t bar1, uint32_t bar2, uint32_t bar3) //:
     //m_performance_counters("performance_counters"),
-    //m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters) 
+    //m_reads("bytes_read", 0llu, m_performance_counters), m_writes("bytes_written", 0llu, m_performance_counters)
     {
     m_register[0] = (irq & 0x1F) | ((version & 0x1F) << 5)
             | ((deviceid & 0xFFF) << 12) | (vendorid << 24);
@@ -76,11 +49,11 @@ AHBDevice::~AHBDevice() {
 }
 
 const uint16_t AHBDevice::get_device_id() const throw() {
-  return (m_register[0] >> 12) & 0xFFF; 
+  return (m_register[0] >> 12) & 0xFFF;
 }
 
 const uint8_t AHBDevice::get_vendor_id() const throw() {
-  return (m_register[0] >> 24) & 0xFF; 
+  return (m_register[0] >> 24) & 0xFF;
 }
 
 // Output APB slave information
@@ -97,7 +70,7 @@ const uint32_t *AHBDevice::get_device_info() const throw() {
 
 // Returns the device type entry for BAR bar
 const AHBDevice::device_type AHBDevice::get_bar_type(uint32_t bar) const throw() {
-    return static_cast<AHBDevice::device_type>(m_register[4 + bar] & 0xf); 
+    return static_cast<AHBDevice::device_type>(m_register[4 + bar] & 0xf);
 }
 
 // Extracts the 12bit MSB address for BAR bar
@@ -240,3 +213,4 @@ void AHBDevice::print_transport_statistics(const char *name) const throw() {
   //v::report << name << " * Bytes read: " << m_reads << v::endl;
   //v::report << name << " * Bytes written: " << m_writes << v::endl;
 }
+/// @}

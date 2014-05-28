@@ -1,43 +1,18 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      memdevice.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    header file containing the definition of a baseclass
-//             for all memory tlm models. It implements the the device
-//             information register needed for the plug and play
-//             interface.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup utils
+/// @{
+/// @file memdevice.h
+/// header file containing the definition of a baseclass for all memory tlm
+/// models. It implements the the device information register needed for the
+/// plug and play interface.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #ifndef MEM_DEVICE_H
 #define MEM_DEVICE_H
@@ -77,14 +52,14 @@ class MEMDevice {
 
         /// Return the device type name
         virtual const std::string get_type_name() const;
-        
+
         /// Returns the number of banks of the memory (sram or sdram bank if needed)
         virtual const uint32_t get_banks() const;
 
         /// Returns the bank size of the memory bank.
         /// All memory banks of a type should have the same size.
         virtual const uint32_t get_bsize() const;
-        
+
         /// Returns the bit width of a memory word.
         /// 8, 16, 32 or 64 bits are allowed.
         virtual const uint32_t get_bits() const;
@@ -104,3 +79,4 @@ class MEMDevice {
 };
 
 #endif
+/// @}
