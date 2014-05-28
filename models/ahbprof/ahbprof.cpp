@@ -1,38 +1,16 @@
-// ********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
-// European Space Agency or of TU-Braunschweig.
-// ********************************************************************
-// Title:      ahbprof.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-// ********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup ahbprof
+/// @{
+/// @file ahbprof.cpp
+/// 
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #include "ahbprof.h"
 #include <fstream>
@@ -48,10 +26,10 @@ AHBProf::AHBProf(const sc_core::sc_module_name nm, // Module name
                  uint16_t mask,                  // AMBA AHB address mask (12 bit)
                  amba::amba_layer_ids ambaLayer) :   // abstraction layer
             AHBSlave<>(nm,
-                       index, 
+                       index,
                        0xce, // Vendor: c3e
                        0x0FE,// Device: OutFileDevice,
-                       0, 
+                       0,
                        0,
                        ambaLayer,
                        BAR(AHBDevice::AHBMEM, mask, 0, 0, addr)),
@@ -73,7 +51,7 @@ AHBProf::AHBProf(const sc_core::sc_module_name nm, // Module name
 
 /// Destructor
 AHBProf::~AHBProf() {
-} 
+}
 
 /// Encapsulated functionality
 uint32_t AHBProf::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay, bool debug) {
@@ -83,8 +61,8 @@ uint32_t AHBProf::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &d
     if(address>16) {
        v::warn << name() << "Address offset bigger than 16" << v::endl;
     }
-  
-    if(trans.get_data_length() > 4) { 
+
+    if(trans.get_data_length() > 4) {
        v::warn << name() << "Transaction exceeds slave memory region" << v::endl;
     }
 
@@ -142,3 +120,4 @@ uint32_t AHBProf::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &d
 sc_core::sc_time AHBProf::get_clock() {
   return clock_cycle;
 }
+/// @}

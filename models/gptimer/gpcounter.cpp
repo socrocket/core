@@ -1,56 +1,26 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      gpcounter.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    source file defining the implementation of the gptimer
-//             model. Due to the fact that the gptimer class is a
-//             template class it gets included by its definition in
-//             gptimer.h
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup gptimer
+/// @{
+/// @file gpcounter.cpp
+/// source file defining the implementation of the gptimer model. Due to the
+/// fact that the gptimer class is a template class it gets included by its
+/// definition in gptimer.h
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #include <string>
 #include "gpcounter.h"
 #include "gptimer.h"
 #include "verbose.h"
 
-/// @addtogroup gptimer
-/// @{
-
 GPCounter::GPCounter(GPTimer &_parent, unsigned int _nr, sc_core::sc_module_name name) :
-    gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false), 
+    gr_subdevice(name, _parent), p(_parent), nr(_nr), stopped(true), chain_run(false),
     m_performance_counters("performance_counters"),
     m_underflows("undeflows", 0ull, m_performance_counters) {
     SC_THREAD(ticking);
@@ -91,7 +61,7 @@ void GPCounter::end_of_simulation() {
     v::report << name() << " * ----------------" << v::endl;
     v::report << name() << " * Counter Underflows: " << m_underflows << v::endl;
     v::report << name() << " ********************************************" << v::endl;
- 
+
 }
 
 void GPCounter::ctrl_read() {
@@ -195,7 +165,7 @@ void GPCounter::ticking() {
         if(p.counter.size()-1==nr && p.g_wdog_length!=0) {
            p.wdog.write(true);
         }
-        
+
         wait(p.clock_cycle);
         //PM::send(this, "underflow", 0, sc_time_stamp(),0,1);
         if(m_pirq&&irqnr) {

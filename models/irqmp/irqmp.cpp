@@ -1,43 +1,16 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      irqmp.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Implementation of multi-processor interrupt controller
-//             (IRQMP).
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup irqmp
+/// @{
+/// @file irqmp.cpp
+/// Implementation of multi-processor interrupt controller (IRQMP).
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 /// @addtogroup irqmp
 /// @{
@@ -47,11 +20,11 @@
 #include <string>
 
 /// Constructor
-Irqmp::Irqmp(sc_core::sc_module_name name, 
-	     int paddr, 
-	     int pmask, 
-	     int ncpu, 
-	     int eirq, 
+Irqmp::Irqmp(sc_core::sc_module_name name,
+	     int paddr,
+	     int pmask,
+	     int ncpu,
+	     int eirq,
 	     unsigned int pindex,
 	     bool powmon) :
             gr_device(name, //sc_module name
@@ -68,12 +41,12 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
                     ::amba::amba_APB, // bus type
                     ::amba::amba_LT, // communication type / abstraction level
                     false // not used
-            ), 
-            cpu_rst("CPU_RESET"), cpu_stat("CPU_STAT"), irq_req("CPU_REQUEST"), 
-            irq_ack(&Irqmp::acknowledged_irq,"IRQ_ACKNOWLEDGE"), 
-            irq_in(&Irqmp::incomming_irq, "IRQ_INPUT"), 
+            ),
+            cpu_rst("CPU_RESET"), cpu_stat("CPU_STAT"), irq_req("CPU_REQUEST"),
+            irq_ack(&Irqmp::acknowledged_irq,"IRQ_ACKNOWLEDGE"),
+            irq_in(&Irqmp::incomming_irq, "IRQ_INPUT"),
             g_ncpu(ncpu), g_eirq(eirq),
-            m_performance_counters("performance_counters"), 
+            m_performance_counters("performance_counters"),
             m_irq_counter("irq_line_activity", 32, m_performance_counters),
             m_cpu_counter("cpu_line_activity", ncpu, m_performance_counters),
             m_pow_mon(powmon),
@@ -97,30 +70,30 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
 
    assert(ncpu < 17 && "the IRQMP can only handle up to 16 CPUs");
 
-   // create register | name + description        
+   // create register | name + description
    r.create_register("level", "Interrupt Level Register",
                      // offset
                      0x00,
-            
+
                      // config
                      gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
                      | gs::reg::FULL_WIDTH,
-            
+
                      // init value
                      0x00000000,
-            
+
                      // write mask
                      Irqmp::IR_LEVEL_IL,
-            
+
                      // reg width (maximum 32 bit)
                      32,
-            
+
                      // lock mask: Not implementet, has to be zero.
                      0x00);
-    
+
    r.create_register("pending", "Interrupt Pending Register", 0x04,
-                     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | 
-                     gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH, 0x00000000, 
+                     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |
+                     gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH, 0x00000000,
                      IR_PENDING_EIP | IR_PENDING_IP, 32, 0x00);
    //Following register is part of the manual, but will never be used.
    // 1) A system with 0 cpus will never be implemented
@@ -148,7 +121,7 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
                      | gs::reg::FULL_WIDTH, 0x00000000, 0x00000000, 32,
                      0x00);
 
-   
+
    for (int i = 0; i < g_ncpu; ++i) {
      r.create_register(gen_unique_name("mask", false),
                        "Interrupt Mask Register", 0x40 + 0x4 * i,
@@ -172,9 +145,9 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
    }
 
    SC_THREAD(launch_irq);
-   
+
    // Initialize performance counter by zerooing
-   // Keep in mind counter will not be reseted in reset 
+   // Keep in mind counter will not be reseted in reset
    for(int i = 0; i < 32; i++) {
      m_irq_counter[i] = 0;
    }
@@ -196,7 +169,7 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
    v::info << this->name() << " * pindex: " << pindex << v::endl;
    v::info << this->name() << " * pow_mon: " << m_pow_mon << v::endl;
    v::info << this->name() << " ******************************************************************************* " << v::endl;
-    
+
 }
 
 Irqmp::~Irqmp() {
@@ -332,23 +305,23 @@ void Irqmp::incomming_irq(const bool &value, const uint32_t &irq, const sc_time 
     // Performance counter increase
     m_irq_counter[irq] = m_irq_counter[irq] + 1;
     v::debug << name() << "Interrupt line " << irq << " triggered" << v::endl;
-    
-    // If the incomming interrupt is not listed in the broadcast register 
+
+    // If the incomming interrupt is not listed in the broadcast register
     // it goes in the pending register
     if(!r[BROADCAST].bit_get(irq)) {
         r[IR_PENDING].bit_set(irq, t);
     }
-    
+
     // If it is not listed n the broadcast register and not an extended interrupt it goes into the force registers.
     // EIRs cannot be forced
     if(r[BROADCAST].bit_get(irq) && (irq < 16)) {
         //set force registers for broadcasted interrupts
-        for(int32_t cpu = 0; cpu < g_ncpu; cpu++) { 
+        for(int32_t cpu = 0; cpu < g_ncpu; cpu++) {
             r[PROC_IR_FORCE(cpu)].bit_set(irq, t);
             forcereg[cpu] |= (t << irq);
         }
     }
-    // Pending and force regs are set now. 
+    // Pending and force regs are set now.
     // To call an explicit launch_irq signal is set here
     e_signal.notify(2 * clock_cycle);
 }
@@ -385,8 +358,8 @@ void Irqmp::launch_irq() {
             // Recalculate relevant interrupts
             all = pending | (eirq_en << g_eirq) | (r[PROC_IR_FORCE(cpu)] & IR_FORCE_IF);
             v::debug << name() << "For CPU " << cpu << " pending: " << v::uint32 << pending << ", all " << v::uint32 << all << v::endl;
-            
-            // Find the highes not extended interrupt on level 1 
+
+            // Find the highes not extended interrupt on level 1
             masked = (all & r[IR_LEVEL]) & IR_PENDING_IP;
             for(high = 15; high > 0; high--) {
                 if(masked & (1 << high)) {
@@ -396,7 +369,7 @@ void Irqmp::launch_irq() {
 
             // If no IR on level 1 found check level 0.
             if(high == 0) {
-                // Find the highes not extended interrupt on level 0 
+                // Find the highes not extended interrupt on level 0
                 masked = (all & ~r[IR_LEVEL]) & IR_PENDING_IP;
                 for(high = 15; high > 0; high--) {
                     if(masked & (1 << high)) {
@@ -454,7 +427,7 @@ void Irqmp::clear_write() {
             irq_req.write(~0, std::pair<uint32_t, bool>(i, false));
         }
     }
-    
+
     uint32_t cleared_vector = r[IR_PENDING] & ~r[IR_CLEAR];
     r[IR_PENDING] = cleared_vector;
     cleared_vector = r[IR_FORCE] & ~r[IR_CLEAR];
@@ -476,11 +449,11 @@ void Irqmp::force_write() {
 
         v::debug << name() << "Force " << cpu << "  write " << v::uint32 << forcereg[cpu] << " old "<< v::endl;
         forcereg[cpu] |= reg;
-        
+
         //write mask clears IFC bits:
         //IF && !IFC && write_mask
         forcereg[cpu] &= (~(forcereg[cpu] >> 16) & PROC_IR_FORCE_IF);
-        
+
         r[PROC_IR_FORCE(cpu)] = forcereg[cpu];
         v::debug << name() << "Force " << cpu << "  write " << v::uint32 << forcereg[cpu] << v::endl;
         if(g_eirq != 0 && r[PROC_EXTIR_ID(cpu)]!=0) {
@@ -497,13 +470,13 @@ void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_
     if(g_eirq != 0 && r[PROC_EXTIR_ID(cpu)]!=0) {
         r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
     }
-    
+
     //clear interrupt from pending and force register
     //if(r[BROADCAST].bit_get(irq)) {
             r[PROC_IR_FORCE(cpu)].bit_set(irq, f);
             forcereg[cpu] &= ~(1 << irq) & 0xFFFE;
     //}
-    
+
     irq_req.write(~0, std::pair<uint32_t, bool>(irq, false));
     r[IR_PENDING].bit_set(irq, f);
     r[IR_FORCE].bit_set(irq, f);
@@ -535,4 +508,5 @@ void Irqmp::pending_write() {
     e_signal.notify(1 * clock_cycle);
 }
 
+/// @}
 /// @}

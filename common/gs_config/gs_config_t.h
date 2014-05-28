@@ -1,23 +1,16 @@
-//   GreenControl framework
-//
-// LICENSETEXT
-//
-//   Copyright (C) 2007-2009 : GreenSocs Ltd
-// 	 http://www.greensocs.com/ , email: info@greensocs.com
-//
-//   Developed by :
-//   
-//   Christian Schroeder <schroeder@eis.cs.tu-bs.de>,
-//   Wolfgang Klingauf <klingauf@eis.cs.tu-bs.de>
-//     Technical University of Braunschweig, Dept. E.I.S.
-//     http://www.eis.cs.tu-bs.de
-//
-//
-// The contents of this file are subject to the licensing terms specified
-// in the file LICENSE. Please consult this file for restrictions and
-// limitations that may apply.
-// 
-// ENDLICENSETEXT
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup common
+/// @{
+/// @file gs_config_t.h
+/// 
+///
+/// @date 2013-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author 
+///
 
 // doxgen comments
 
@@ -36,7 +29,7 @@ namespace gs {
 
         /// Template specialized base class for configuration parameters.
         template <typename T>
-        class gs_config_t 
+        class gs_config_t
             : public gs_config_base, public gs_param_base
         {
             /// Typedef for this specialized class.
@@ -75,7 +68,7 @@ namespace gs {
             my_type& operator -- ();    // prefix
             val_type operator -- (int); // postfix
             my_type& operator ++ ();    // prefix
-            val_type operator ++ (int); // postfix  
+            val_type operator ++ (int); // postfix
 
 
             // //////////////////////////////////////////////////////////////////// //
@@ -107,10 +100,10 @@ namespace gs {
             *
             * Explicit constructor to avoid implicit construction of parameters.
             *
-            * gs_param MUST call init() or init(value) after construction to 
+            * gs_param MUST call init() or init(value) after construction to
             * add the parameter to the plugin database!!!
             *
-            * @param nam  The local (or full hierarchical) parameter name (local: not including points) 
+            * @param nam  The local (or full hierarchical) parameter name (local: not including points)
             *             (local: unique inside a module, hierarchical: unique in the system).
             */
             explicit gs_config_t(const std::string &nam)
@@ -123,10 +116,10 @@ namespace gs {
             *
             * Explicit constructor to avoid implicit construction of parameters.
             *
-            * gs_param MUST call init() or init(value) after construction to 
+            * gs_param MUST call init() or init(value) after construction to
             * add the parameter to the plugin database!!!
             *
-            * @param nam  The local (or full hierarchical) parameter name (local: not including points) 
+            * @param nam  The local (or full hierarchical) parameter name (local: not including points)
             *             (local: unique inside a module, hierarchical: unique in the system).
             * @param register_at_db  see gs::cnf::gs_param_base, default = true.
             * @param parent_array    see gs::cnf::gs_param_base, default=NULL.
@@ -140,7 +133,7 @@ namespace gs {
             {  }
 
             /// Init method to set the value and add the parameter to the plugin db.
-            /** 
+            /**
             * Has to be called by the gs_param class after construction!
             * Does set the value and add the parameter to the plugin db.
             */
@@ -177,13 +170,13 @@ namespace gs {
             /// Set the value of this parameter to the value of another gs_param.
             /**
             * To resolve the correct = operator in the (not specialized) class
-            * which inherits from this class has to use 
+            * which inherits from this class has to use
             * \code using gs_param_t<val_type>::operator =; \endcode
             *
             * @param v  Parameter where the value should be read from.
             * @return   Pointer to this.
             */
-            my_type& operator = (const my_type& v) { 
+            my_type& operator = (const my_type& v) {
                 setValue(v.getValue()); //m_api->setParam(m_par_name, const_cast<my_type&>(v).get());
                 return *this;
             }
@@ -191,13 +184,13 @@ namespace gs {
             /// Set the value of this parameter.
             /**
             * To resolve the correct = operator in the (not specialized) class
-            * which inherits from this class has to use 
+            * which inherits from this class has to use
             * \code using gs_param_t<val_type>::operator =; \endcode
             *
             * @param v  Value which has to be set.
             * @return   Pointer to this.
             */
-            my_type& operator = (const val_type& v) { 
+            my_type& operator = (const val_type& v) {
                 setValue(v);
                 return *this;
             }
@@ -206,8 +199,8 @@ namespace gs {
             /**
             * @return Value of the parameter.
             */
-            operator const val_type& () const { 
-                return getValue(); 
+            operator const val_type& () const {
+                return getValue();
             }
 
             /// Set the value of this parameter.
@@ -247,7 +240,7 @@ namespace gs {
             /**
             * @param str  The new value for this parameter, represented as a string.
             * @return If setting was successful
-            */ 
+            */
             bool setString(const std::string &str) {
                 make_pre_write_callbacks();
                 bool success = deserialize(my_value, envvar_subst(str, m_par_name));
@@ -298,8 +291,8 @@ namespace gs {
 
             /// Serialize this parameter.
             /** Uses the convertValueToString method */
-            //void serialize(const val_type &val) {                             
-            //  convertValueToString(val);                                      
+            //void serialize(const val_type &val) {
+            //  convertValueToString(val);
             //}
 
         protected:
@@ -310,10 +303,10 @@ namespace gs {
             * @param  str String that should be converted to a value
             * @return If the convert was successfull
             */
-            const val_type& convertStringToValue(const std::string& str) {    
+            const val_type& convertStringToValue(const std::string& str) {
                 deserialize(my_value, envvar_subst(str, m_par_name));
-                return my_value;                              
-            }                                                                 
+                return my_value;
+            }
 
         };
 
@@ -322,3 +315,4 @@ namespace gs {
 } // end namespace gs
 
 #endif
+/// @}

@@ -1,43 +1,18 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      signalkit_h/ifs.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    This file contains abstract interfaces to provide tlm 
-//             signal behaviour in the signal kit.
-//             The archivement of the interfaces is to deal with abstract 
-//             template types as payload.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup signalkit
+/// @{
+/// @file ifs.h
+/// This file contains abstract interfaces to provide tlm signal behaviour in
+/// the signal kit. The archivement of the interfaces is to deal with abstract
+/// template types as payload.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #ifndef SIGNALKIT_IFS_H
 #define SIGNALKIT_IFS_H
@@ -98,7 +73,7 @@ class signal_out_bind_if {
         }
 
         /// Abstract bind method interface.
-        /// This method has to be implemented by each output signal to make it 
+        /// This method has to be implemented by each output signal to make it
         /// bind with an input.
         ///
         /// @param t       Input interface to bind with.
@@ -119,7 +94,7 @@ class signal_out_if : virtual public signal_if<TYPE> ,
         /// Write method.
         /// This abstract method has to be implemented by each output signal.
         /// It handles the write behaviour of the signal.
-        /// Therefore it will propagate the written value to the other ends 
+        /// Therefore it will propagate the written value to the other ends
         /// of the signal (input signals).
         ///
         /// @param value The new value of the signal. Which is to set.
@@ -157,7 +132,7 @@ class signal_in_if : virtual public signal_if<TYPE> {
         }
 
         /// Abstract bind method interface.
-        /// This method has to be implemented by each input signal to make it 
+        /// This method has to be implemented by each input signal to make it
         /// bind with an output.
         ///
         /// @param t Input interface to bind with.
@@ -195,12 +170,13 @@ TYPE signal_out_if<TYPE>::operator=(const signal_if<TYPE> &t) {
 
 namespace __gnu_cxx {
 template<>
-struct hash<signalkit::signal_out_if<int> *> { 
-  size_t operator()(signalkit::signal_out_if<int> *__x) const { 
-    return (size_t)(__x); 
+struct hash<signalkit::signal_out_if<int> *> {
+  size_t operator()(signalkit::signal_out_if<int> *__x) const {
+    return (size_t)(__x);
   }
 };
 } // __gnu_cxx
 #endif
 
 #endif // SIGNALKIT_IFS_H
+/// @}

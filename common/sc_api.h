@@ -1,5 +1,16 @@
-// Detect SystemC API and define the macro SYSTEMC_API
-// (include detection for other SystemC vendors if necessary)
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup common
+/// @{
+/// @file sc_api.h
+/// 
+///
+/// @date 2013-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author 
+///
 
 #ifndef SYSTEMC_API_H
 #define SYSTEMC_API_H
@@ -35,3 +46,4 @@
 #include "sc_find.h"
 
 #endif
+/// @}

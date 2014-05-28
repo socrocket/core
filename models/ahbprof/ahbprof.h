@@ -1,38 +1,16 @@
-// ********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
-// European Space Agency or of TU-Braunschweig.
-// ********************************************************************
-// Title:      ahbprof.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-// ********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup ahbprof AHB Profiler
+/// @{
+/// @file ahbprof.h
+/// 
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #ifndef AHBPROF_H
 #define AHBPROF_H
@@ -41,7 +19,7 @@
 #include <amba.h>
 #include <map>
 #include <fstream>
-#include <stdint.h> 
+#include <stdint.h>
 
 #include "ahbslave.h"
 #include "clkdevice.h"
@@ -62,7 +40,7 @@ struct prof_info {
 class AHBProf : public AHBSlave<>, public CLKDevice {
  public:
   SC_HAS_PROCESS(AHBProf);
-  
+
   /// Constructor
   /// @brief Constructor for the test bench memory class
   /// @param haddr AHB address of the AHB slave socket (12 bit)
@@ -70,10 +48,10 @@ class AHBProf : public AHBSlave<>, public CLKDevice {
   /// @param ambaLayer Abstraction layer used (AT/LT)
   /// @param slave_id AHB Slave id
   /// @param outfile File name of a text file to initialize the memory from
-  AHBProf(const sc_core::sc_module_name nm, 
+  AHBProf(const sc_core::sc_module_name nm,
          uint32_t index = 0,
-         uint16_t addr = 0, 
-         uint16_t mask = 0, 
+         uint16_t addr = 0,
+         uint16_t mask = 0,
          amba::amba_layer_ids ambaLayer = amba::amba_LT);
 
   /// Destructor
@@ -91,3 +69,4 @@ class AHBProf : public AHBSlave<>, public CLKDevice {
 };
 
 #endif
+/// @}

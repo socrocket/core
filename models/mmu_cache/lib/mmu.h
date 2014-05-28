@@ -1,44 +1,19 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      mmu.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition of a memory management unit.
-//             The mmu can be configured to have split or combined
-//             TLBs for instructions and data. The TLB size can be
-//             configured as well. The memory page size is currently
-//             currently fixed to 4kB.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup mmu_cache
+/// @{
+/// @file mmu.h
+/// Class definition of a memory management unit. The mmu can be configured to
+/// have split or combined TLBs for instructions and data. The TLB size can be
+/// configured as well. The memory page size is currently currently fixed to
+/// 4kB.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #ifndef __MMU_H__
 #define __MMU_H__
@@ -82,7 +57,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
 
   // Member functions
   // ----------------
-  
+
   /// Page descriptor cache (PDC) lookup
   unsigned int tlb_lookup(unsigned int addr, std::map<t_VAT,
                           t_PTE_context> * tlb, unsigned int tlb_size,
@@ -97,7 +72,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
   unsigned int read_mfsr();
   /// Read mmu fault address register (ASI 0x19)
   unsigned int read_mfar();
-  
+
   /// Write mmu control register (ASI 0x19)
   void write_mcr(unsigned int * data);
   /// Write mmu context pointer register (ASI 0x19)
@@ -114,11 +89,11 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// Diagnostic write of data PDC or shared instruction and data PDC (ASI 0x6)
   void diag_write_dctlb(unsigned int addr, unsigned int * data);
 
-  /// Selects a TLB entry for replacement (LRU or RANDOM replacement). 
+  /// Selects a TLB entry for replacement (LRU or RANDOM replacement).
   /// Removes the selected entry from the TLB map and returns the 'number'
   /// of the TLB (which is now free).
   unsigned int tlb_remove(std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size);
-	
+
   /// LRU replacement history updater
   void lru_update(t_VAT vpn, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size);
 
@@ -176,7 +151,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
 
   // mmu internal registers
   // ----------------------
-  
+
   /// MMU Control Register (Page 253 Sparc Ref Manual):<br>
   /// -------------------------------------------------<br>
   /// [31-28] IMPL - Identifies the specific implementation of the MMU.
@@ -212,7 +187,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// - The upper 4 of the 36 bits of the physical address are zero.<br>
   /// - The MMU indicates that all virtual addresses are non-cacheable<br>
   unsigned int MMU_CONTROL_REG;
-  
+
   /// MMU Context Table Pointer (Page 254 Sparc Ref Manual):<br>
   /// ------------------------------------------------------<br>
   /// The Context Table Pointer points to the Context Table in physical memory.
@@ -223,7 +198,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// size of the table.<br>
   /// [31-2] Context Table Pointer<br>
   unsigned int MMU_CONTEXT_TABLE_POINTER_REG;
-  
+
   /// MMU Context Number (Page 255 Sparc Ref Manual):<br>
   /// -----------------------------------------------<br>
   /// The Context Register defines which of the possible process virtual address
@@ -233,7 +208,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// context number, which must be one less than a power of 2.<br>
   /// [31-0] Context Number<br>
   unsigned int MMU_CONTEXT_REG;
-  
+
   /// MMU Fault Status Register (Page 256 Sparc Ref Manual):<br>
   /// ------------------------------------------------------<br>
   /// The Fault Status Register provides information on exceptions (faults) issued
@@ -277,7 +252,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// according to the same priority used for the Fault Status Register. Writes to the
   /// Fault Address Register are ignored.<br>
   /// [31-0] Fault Address<br>
-  
+
   unsigned int MMU_FAULT_ADDRESS_REG;
 
   // mmu parameters
@@ -319,7 +294,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
 
   /// GreenControl API container
   gs::cnf::cnf_api *m_api;
-        
+
   /// Open a namespace for performance counting in the greencontrol realm
   gs::gs_param_array m_performance_counters;
 
@@ -404,3 +379,4 @@ class mmu : public sc_core::sc_module, public mmu_if {
 };
 
 #endif // __MMU_H__
+/// @}

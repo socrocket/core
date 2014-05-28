@@ -1,43 +1,17 @@
-// ********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
-// European Space Agency or of TU-Braunschweig.
-// ********************************************************************
-// Title:      timingmonitor.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    The timing monitor can be used to track
-//             progress, performance and simulation time
-//             of testbenches.
-//             
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-// ********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup common
+/// @{
+/// @file timingmonitor.h
+/// The timing monitor can be used to track progress, performance and simulation
+/// time of testbenches.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #ifndef TIMINGMONITOR_H
 #define TIMINGMONITOR_H
@@ -60,7 +34,7 @@ class TimingMonitor {
     sc_core::sc_time st_end;     // sim time end
     clock_t rt_start;            // real time start
     clock_t rt_end;              // real time end
- 
+
   } t_timing_rec;
 
 
@@ -68,7 +42,7 @@ class TimingMonitor {
   typedef std::map<unsigned int, t_timing_rec> t_timing_map;
   /// Iterator for timing information
   typedef t_timing_map::iterator t_timing_it;
-  
+
   /// The map for tracking phases & time
   static t_timing_map timing_map;
 
@@ -89,3 +63,4 @@ class TimingMonitor {
 
 
 #endif // TIMINGMONITOR_H
+/// @}

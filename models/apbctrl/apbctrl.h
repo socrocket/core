@@ -1,40 +1,16 @@
-// ********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
-// European Space Agency or of TU-Braunschweig.
-// ********************************************************************
-// Title:      apbctrl.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition of the AHB/APB bridge
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-// ********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup apbctrl
+/// @{
+/// @file apbctrl.h
+/// Class definition of the AHB/APB bridge
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #ifndef APBCTRL_H
 #define APBCTRL_H
@@ -66,7 +42,7 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
 
   /// Helper function for creating slave map decoder entries
   void setAddressMap(const uint32_t binding, const uint32_t pindex, const uint32_t paddr, const uint32_t pmask);
-  
+
   /// Get slave index for a given address
   int get_index(const uint32_t address);
 
@@ -79,7 +55,7 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
   /// Return clock cycle for ahb interface
   sc_core::sc_time get_clock();
 
-  /// Check memory map for overlaps 
+  /// Check memory map for overlaps
   void checkMemMap();
 
   /// Constructor
@@ -103,13 +79,13 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
   // asserterr  - Enable assertions for AMBA requirements
   // assertwarn - Enable assertions for AMBA recommendations
   // ccheck     - Sanity checks on PnP configuration records
-  
+
   /// Desctructor
   ~APBCtrl();
 
   /// Set up slave map and collect plug & play information
   void start_of_simulation();
-        
+
   /// SystemC end of simulation hook
   void end_of_simulation();
 
@@ -123,10 +99,10 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
   gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Dynamic/Switching power callback
-  gs::cnf::callback_return_type swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);  
+  gs::cnf::callback_return_type swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
  private:
-  
+
   typedef tlm::tlm_generic_payload payload_t;
   typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;
 
@@ -138,7 +114,7 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
     uint32_t pindex;
     uint32_t paddr;
     uint32_t pmask;
-    
+
   } slave_info_t;
 
   /// Address decoder table (slave index, (bar addr, mask))
@@ -150,7 +126,7 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
 
   // Event queue for AT mode
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_AcceptPEQ;
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_TransactionPEQ;	
+  tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_TransactionPEQ;
 
   // Ready to accept new transaction (send END_REQ)
   sc_event unlock_event;
@@ -202,7 +178,7 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
   gs::gs_param<double> dyn_read_energy_norm;
 
   /// Normalized write access energy
-  gs::gs_param<double> dyn_write_energy_norm;  
+  gs::gs_param<double> dyn_write_energy_norm;
 
   /// Parameter array for power data output
   gs::gs_param_array power;
@@ -230,9 +206,10 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
 
   /// Number of writes to memory (read & reset by monitor)
   gs::gs_param<unsigned long long> dyn_writes;
- 
+
 };
 
 /// @}
 
 #endif // APBCTRL_H
+/// @}

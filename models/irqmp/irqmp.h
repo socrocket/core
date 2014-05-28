@@ -1,41 +1,16 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      irqmp.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition of multi-processor interrupt controller.
-//             (IRQMP).
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup irqmp
+/// @{
+/// @file irqmp.h
+/// Class definition of multi-processor interrupt controller. (IRQMP).
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #ifndef IRQMP_H
 #define IRQMP_H
@@ -55,15 +30,15 @@
 /// @addtogroup irqmp IRQMP
 /// @{
 
-class Irqmp : public gs::reg::gr_device, 
+class Irqmp : public gs::reg::gr_device,
                public APBDevice,
                public CLKDevice {
  public:
-  
+
   SC_HAS_PROCESS(Irqmp);
   SK_HAS_SIGNALS(Irqmp);
   GC_HAS_CALLBACKS();
-  
+
   /// Slave socket responsible for all bus communication
   gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb_slv;
 
@@ -86,7 +61,7 @@ class Irqmp : public gs::reg::gr_device,
   sc_event e_signal;
 
   /// Constructor
-  /// 
+  ///
   ///  The constructor is taking the VHDL generics as parameters.
   ///
   /// @param name SystemC instance name.
@@ -94,7 +69,7 @@ class Irqmp : public gs::reg::gr_device,
   /// @param pmask Upper 12bit of the APB mask.
   /// @param ncpu  Number of CPU which receive interupts.
   /// @param eirq  Interrupt channel which hides all the extended interrupt channels.
-  Irqmp(sc_module_name name, int32_t paddr = 0, int32_t pmask = 0xFFF, int32_t ncpu = 2, int32_t eirq = 1, uint32_t pindex = 0, bool powmon = false); 
+  Irqmp(sc_module_name name, int32_t paddr = 0, int32_t pmask = 0xFFF, int32_t ncpu = 2, int32_t eirq = 1, uint32_t pindex = 0, bool powmon = false);
 
   /// Default destructor
   ///
@@ -102,16 +77,16 @@ class Irqmp : public gs::reg::gr_device,
   ~Irqmp();
 
   // function prototypes
-  
+
   /// Automatically called at start of simulation
   void start_of_simulation();
 
   /// SystemC end of elaboration implementation
   void end_of_elaboration();
-  
+
   /// SystemC end of simulation
   void end_of_simulation();
-  
+
   /// Calculate power/energy values from normalized input data
   void power_model();
 
@@ -126,7 +101,7 @@ class Irqmp : public gs::reg::gr_device,
   ///  This function is called whenever an interrupt is triggered.
   ///  It will change the output state.
   void launch_irq();
-        
+
   // Bus Register Callbacks
 
   /// Write to IR clear register
@@ -153,7 +128,7 @@ class Irqmp : public gs::reg::gr_device,
   ///  It will trigger the recalculation of the outputs.
   void pending_write();
 
-  // Signal Callbacks 
+  // Signal Callbacks
   /// Reset Callback
   ///
   ///  This function is called when the reset signal is triggert.
@@ -163,7 +138,7 @@ class Irqmp : public gs::reg::gr_device,
   ///              Therefore the reset is done on the transition from false to true.
   /// @param time  Delay to the current simulation time. Is not used in this callback.
   void dorst();
-  
+
   /// Incomming interrupts
   ///
   ///  This Callback is registert to the interrupt input signal.
@@ -201,18 +176,18 @@ class Irqmp : public gs::reg::gr_device,
 
   /// GreenControl API container
   gs::cnf::cnf_api *m_api;
-        
+
   /// Open a namespace for performance counting in the greencontrol realm
   gs::gs_param_array m_performance_counters;
-        
+
   /// Performance Counter per IRQ Line
   /// The number of executed interrupts is stored in the variable
   gs::gs_param<unsigned long long *> m_irq_counter;
-  
+
   /// Performance Counter per CPU Line
   /// The number of executed interrupts on each cpu line is stored in the variable
   gs::gs_param<unsigned long long *>m_cpu_counter;
-  
+
   /// power monitoring enabled or not
   const uint32_t m_pow_mon;
  public:
@@ -245,15 +220,15 @@ class Irqmp : public gs::reg::gr_device,
   static const uint32_t IR_CLEAR           = 0x0C;
   static const uint32_t MP_STAT            = 0x10;
   static const uint32_t BROADCAST          = 0x14;
-  
+
   inline static const uint32_t PROC_IR_MASK(int CPU_INDEX) {
     return (0x40 + 0x4 * CPU_INDEX);
   }
-  
+
   inline static const uint32_t PROC_IR_FORCE(int CPU_INDEX) {
     return (0x80 + 0x4 * CPU_INDEX);
   }
-  
+
   inline static const uint32_t PROC_EXTIR_ID(int CPU_INDEX) {
     return (0xC0 + 0x4 * CPU_INDEX);
   }
@@ -262,14 +237,14 @@ class Irqmp : public gs::reg::gr_device,
   /// interrupt level register
   /// interrupt priority level (0 or 1)
   static const uint32_t IR_LEVEL_IL        = 0x0000FFFE;
-  
+
   /// interrupt pending register
   /// extended interrupt pending (true or false)
   static const uint32_t IR_PENDING_EIP     = 0xFFFF0000;
 
   /// interrupt pending (true or false)
   static const uint32_t IR_PENDING_IP      = 0x0000FFFE;
-  
+
   /// interrupt force register
   /// force interrupt (true or false)
   static const uint32_t IR_FORCE_IF        = 0x0000FFFE;
@@ -286,7 +261,7 @@ class Irqmp : public gs::reg::gr_device,
 
   /// interrupt number used for extended interrupts
   static const uint32_t MP_STAT_EIRQ       = 0x000F0000;
-  
+
   /// broadcast register (applicable if NCPU>1)
   /// broadcast mask: if n=1, interrupt n is broadcasted
   static const uint32_t BROADCAST_BM       = 0x0000FFFE;
@@ -297,7 +272,7 @@ class Irqmp : public gs::reg::gr_device,
 
   /// interrupt mask (0 = masked)
   static const uint32_t PROC_MASK_IM       = 0x0000FFFE;
-  
+
   /// processor interrupt force register
   /// interrupt force clear
   static const uint32_t PROC_IR_FORCE_IFC  = 0xFFFE0000;
@@ -330,7 +305,7 @@ class Irqmp : public gs::reg::gr_device,
 
   /// interrupt mask register
   static const uint32_t MASK_DEFAULT       = 0xFFFFFFFE;
-  
+
   /// processor interrupt force register
   static const uint32_t PROC_FORCE_DEFAULT = 0x00000000;
 
@@ -341,3 +316,4 @@ class Irqmp : public gs::reg::gr_device,
 /// @}
 
 #endif
+/// @}

@@ -1,43 +1,18 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      gpcounter.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    header file containing the definition of the gptimer
-//             model. Due to the fact that the gptimer class is a
-//             template class it includes its implementation from
-//             gptimer.tpp
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup gptimer
+/// @{
+/// @file gpcounter.h
+/// header file containing the definition of the gptimer model. Due to the fact
+/// that the gptimer class is a template class it includes its implementation
+/// from gptimer.tpp
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #ifndef GPCOUNTER_H
 #define GPCOUNTER_H
@@ -53,8 +28,6 @@
 #include <ostream>
 #include <vector>
 
-/// @addtogroup gptimer GPTimer
-/// @{
 class GPTimer;
 
 /// @brief This class implements an internal counter of a gptimer.
@@ -151,10 +124,10 @@ class GPCounter : public gs::reg::gr_subdevice {
 
         /// Start a Counter from dhalt or to enable it etc.
         void start();
-        
+
         /// Stop a Counter from dhalt or to enable it etc.
         void stop();
-        
+
       // Threads
         /// This function contains the core functionality of the Counter.
         /// It is a SC_THREAD which triggers the interupt and waits for the e_tick event.
@@ -170,6 +143,5 @@ class GPCounter : public gs::reg::gr_subdevice {
         gs::gs_param<unsigned long long> m_underflows;
 };
 
-/// @}
-//
 #endif // GPCOUNTER_H
+/// @}

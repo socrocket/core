@@ -1,47 +1,19 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", ther is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      input_device.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition of a cache-subsystem.
-//             The cache-subsystem envelopes an instruction cache,
-//             a data cache and a memory management unit.
-//             The input_device class provides two TLM slave interfaces
-//             for connecting the cpu to the caches and an AHB master
-//             interface for connection to the main memory.
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup ahbin
+/// @{
+/// @file ahbin_pruned.cpp
+/// Class definition of a cache-subsystem. The cache-subsystem envelopes an
+/// instruction cache, a data cache and a memory management unit. The
+/// input_device class provides two TLM slave interfaces for connecting the cpu
+/// to the caches and an AHB master interface for connection to the main memory.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #include "input_device.h"
 #include "vendian.h"
@@ -57,7 +29,7 @@ input_device::input_device(sc_core::sc_module_name name,
     m_irq(hirq),
     AHBDevice(hindex,
 	      0x01,  // vendor: Gaisler Research (Fake the LEON)
-	      0x003,  // 
+	      0x003,  //
 	      0,
 	      m_irq,
 	      0,
@@ -67,12 +39,12 @@ input_device::input_device(sc_core::sc_module_name name,
 
     ahb("ahb_socket", amba::amba_AHB, abstractionLayer, false),
     irq("irq"),
-    m_master_id(hindex), 
+    m_master_id(hindex),
     m_performance_counters("performance_counters"),
     m_right_transactions("successful_transactions", 0llu, m_performance_counters),
     m_total_transactions("total_transactions", 0llu, m_performance_counters),
     m_pow_mon(pow_mon),
-    m_abstractionLayer(abstractionLayer), 
+    m_abstractionLayer(abstractionLayer),
     mResponsePEQ("ResponsePEQ"),
     mDataPEQ("DataPEQ"),
     mEndTransactionPEQ("EndTransactionPEQ") {
@@ -107,7 +79,7 @@ input_device::input_device(sc_core::sc_module_name name,
     v::info << this->name() << " * Created INPUT_DEVICE in following configuration: " << v::endl;
     v::info << this->name() << " * --------------------------------------------- " << v::endl;
     v::info << this->name() << " * abstraction Layer (LT = 8 / AT = 4): " << abstractionLayer << v::endl;
-    v::info << this->name() << " ************************************************** " << v::endl;   
+    v::info << this->name() << " ************************************************** " << v::endl;
 }
 
 void input_device::dorst() {
@@ -129,7 +101,7 @@ void input_device::cleanUP() {
       if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
 
 	v::error << name() << "Transaction " << hex << trans << " failed with " << trans->get_response_status() << v::endl;
-	  
+
       } else {
 
 	m_right_transactions++;
@@ -236,7 +208,7 @@ void input_device::mem_write(unsigned int addr, unsigned int asi, unsigned char 
     ahb.validate_extension<amba::amba_id> (*trans);
     ahb.get_extension<amba::amba_id> (m_id, *trans);
     m_id->value = m_master_id;
- 
+
     // Set transfer type extension
     amba::amba_trans_type * trans_ext;
     ahb.validate_extension<amba::amba_trans_type>(*trans);
@@ -264,9 +236,9 @@ void input_device::mem_write(unsigned int addr, unsigned int asi, unsigned char 
 
 	// Check TLM RESPONSE
 	if (trans->get_response_status()!=tlm::TLM_OK_RESPONSE) {
-	  
+
 	  v::error << name() << "Transaction " << hex << trans << " failed with " << trans->get_response_status() << v::endl;
-	  
+
 	} else {
 
 	  m_right_transactions++;
@@ -324,7 +296,7 @@ void input_device::mem_write(unsigned int addr, unsigned int asi, unsigned char 
 	      // Slave directly jumps to TLM_COMPLETED (Pseudo AT).
 	      // Don't send END_RESP
 	      // wait(delay)
-	  
+
 	      break;
 
             default:
@@ -390,7 +362,7 @@ void input_device::mem_read(unsigned int addr, unsigned int asi, unsigned char *
 
     // Collect transport statistics
     transport_statistics(*trans);
-    
+
     // Init delay
     delay = SC_ZERO_TIME;
 
@@ -406,9 +378,9 @@ void input_device::mem_read(unsigned int addr, unsigned int asi, unsigned char *
 
 	// Check TLM RESPONSE
 	if (trans->get_response_status()!=tlm::TLM_OK_RESPONSE) {
-	  
+
 	  v::error << name() << "Transaction " << hex << trans << " failed with " << trans->get_response_status() << v::endl;
-	  
+
 	} else {
 
 	  m_right_transactions++;
@@ -423,7 +395,7 @@ void input_device::mem_read(unsigned int addr, unsigned int asi, unsigned char *
 
 	// Initial phase for AT
 	phase = tlm::BEGIN_REQ;
-      
+
 	v::debug << name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 
 	// Non-blocking transport
@@ -466,7 +438,7 @@ void input_device::mem_read(unsigned int addr, unsigned int asi, unsigned char *
 	    break;
 
 	  case tlm::TLM_COMPLETED:
-	
+
 	    // Slave directly jumps to TLM_COMPLETED (Pseudo AT).
 	    // Don't send END_RESP
 	    // wait(delay)
@@ -533,7 +505,7 @@ void input_device::DataThread() {
     status = ahb->nb_transport_fw(*trans, phase, delay);
 
     switch(status) {
-      
+
       case tlm::TLM_ACCEPTED:
       case tlm::TLM_UPDATED:
 
@@ -562,7 +534,7 @@ void input_device::DataThread() {
 	  v::error << name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
 
 	}
-	
+
 	break;
 
       case tlm::TLM_COMPLETED:
@@ -625,7 +597,7 @@ void input_device::end_of_simulation() {
     v::report << name() << " * " << v::endl;
     v::report << name() << " * AHB Master interface reports: " << v::endl;
     print_transport_statistics(name());
-    v::report << name() << " ********************************************" << v::endl;    
+    v::report << name() << " ********************************************" << v::endl;
 
 }
 
@@ -633,3 +605,4 @@ void input_device::end_of_simulation() {
 void input_device::clkcng() {
 
 }
+/// @}

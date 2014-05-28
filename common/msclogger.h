@@ -1,42 +1,17 @@
-// ********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
-// European Space Agency or of TU-Braunschweig.
-// ********************************************************************
-// Title:      msclogger.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Utility class for timing verification.
-//             Keeps track of TLM communication by
-//             writing a MSCGEN control file. 
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-// ********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup common
+/// @{
+/// @file msclogger.h
+/// Utility class for timing verification. Keeps track of TLM communication by
+/// writing a MSCGEN control file.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 
 #ifndef MSCLOGGER_H
@@ -72,7 +47,7 @@ class msclogger {
     if (msclogger_enable) {
 
       msc.open(filename);
-  
+
       msc << "msc {\n";
       msc << "  hscale=\"2\";\n\n";
       msc << "  " << nodes << ";\n\n";
@@ -97,7 +72,7 @@ class msclogger {
       uint32_t a = 0;
       socket_t *socket_to = ahb->get_other_side(0, a);
       sc_core::sc_object * to = socket_to->get_parent();
-  
+
       size_t addr = reinterpret_cast<size_t>(trans);
       uint32_t id = addr & 0xFFFFFF;
       msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
@@ -112,7 +87,7 @@ class msclogger {
       uint32_t a = 0;
       socket_t *socket_to = ahb->get_other_side(binding, a);
       sc_core::sc_object * to = socket_to->get_parent();
-  
+
       size_t addr = reinterpret_cast<size_t>(trans);
       uint32_t id = addr & 0xFFFFFF;
       msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/"  << sc_time_stamp() \
@@ -130,7 +105,7 @@ class msclogger {
       sc_core::sc_object * to = socket_to->get_parent();
       size_t addr = reinterpret_cast<size_t>(trans);
       uint32_t id = addr & 0xFFFFFF;
-    
+
       msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
           << "/" << delay << ")\", linecolour = \"#" << hex << id << "\", textcolour = \"#" << hex << id << "\"];\n";
 
@@ -146,7 +121,7 @@ class msclogger {
       sc_core::sc_object * to = socket_to->get_parent();
       size_t addr = reinterpret_cast<size_t>(trans);
       uint32_t id = addr & 0xFFFFFF;
-    
+
       msc << "  " << from->name() << "=>" << to->name() << " [ label = \"" << phase << "(" << trans << "/" << sc_time_stamp() \
           << "/" << delay << ")\", linecolour = \"#" << hex << id << "\", textcolour = \"#" << hex << id << "\"];\n";
     }
@@ -163,11 +138,11 @@ class msclogger {
       uint32_t id = addr & 0xFFFFFF;
 
       msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
-        
+
       switch (status) {
 
       case 0:
-          
+
         msc << "TLM_ACCEPTED";
         break;
       case 1:
@@ -195,11 +170,11 @@ class msclogger {
       uint32_t id = addr & 0xFFFFFF;
 
       msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
-      
+
       switch (status) {
 
       case 0:
-          
+
         msc << "TLM_ACCEPTED";
         break;
       case 1:
@@ -226,15 +201,15 @@ class msclogger {
       uint32_t id = addr & 0xFFFFFF;
 
       msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
-      
+
       switch (status) {
 
       case 0:
-          
+
         msc << "TLM_ACCEPTED";
         break;
       case 1:
-            
+
         msc << "TLM_UPDATED";
         break;
       default:
@@ -257,11 +232,11 @@ class msclogger {
       uint32_t id = addr & 0xFFFFFF;
 
       msc << "  " << from->name() << ">>" << to->name() << " [ label = \"";
-      
+
       switch (status) {
 
       case 0:
-          
+
         msc << "TLM_ACCEPTED";
         break;
       case 1:
@@ -279,3 +254,4 @@ class msclogger {
 };
 
 #endif // MSCLOGGER
+/// @}

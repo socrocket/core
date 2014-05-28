@@ -1,23 +1,16 @@
-//   GreenControl framework
-//
-// LICENSETEXT
-//
-//   Copyright (C) 2007-2009 : GreenSocs Ltd
-// 	 http://www.greensocs.com/ , email: info@greensocs.com
-//
-//   Developed by :
-//   
-//   Christian Schroeder <schroeder@eis.cs.tu-bs.de>,
-//   Wolfgang Klingauf <klingauf@eis.cs.tu-bs.de>
-//     Technical University of Braunschweig, Dept. E.I.S.
-//     http://www.eis.cs.tu-bs.de
-//
-//
-// The contents of this file are subject to the licensing terms specified
-// in the file LICENSE. Please consult this file for restrictions and
-// limitations that may apply.
-// 
-// ENDLICENSETEXT
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup common
+/// @{
+/// @file gs_config_class.h
+/// 
+///
+/// @date 2013-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author 
+///
 
 // doxygen comments
 
@@ -96,7 +89,7 @@ public:                                                                \
     using gs_config_t<val_type>::setString;                                          \
     using gs_config_t<val_type>::getString;                                          \
     using gs_config_t<val_type>::setValue;                                           \
-    using gs_config_t<val_type>::getValue                                           
+    using gs_config_t<val_type>::getValue
 
 
         /// The parameters, gs_config class, templated.
@@ -106,7 +99,7 @@ public:                                                                \
         * All data types for which no specialization is existing, will use this class.
         */
         template<typename T>
-        class gs_config 
+        class gs_config
             : public gs_config_t<T>
         {
             /// Typedef for the value.
@@ -126,7 +119,7 @@ public:                                                                \
             /**
             * Does not change the target_val if str == ""
             */
-            inline static bool static_deserialize(val_type &target_val, const std::string& str) { 
+            inline static bool static_deserialize(val_type &target_val, const std::string& str) {
                 //cout << "gs_config_t<T>::string_to_value("<<str<<", "<<val<<"), set val to: ";
                 std::istringstream ss(str);
                 val_type tmp;
@@ -137,7 +130,7 @@ public:                                                                \
                 // no conversion error
                 if (ss.eof() && !ss.fail() && !ss.bad()) {
                     target_val = tmp;
-                } 
+                }
                 else {
                     std::stringstream ess;
                     ess << "Conversion error: '" << str << "'";
@@ -184,3 +177,4 @@ public:                                                                \
 } // end namespace gs
 
 #endif
+/// @}

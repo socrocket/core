@@ -1,45 +1,18 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      vectorcache.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition of a virtual cache
-//             model. The cache can be configured direct mapped or
-//             set associative. Set-size, line-size and replacement
-//             strategy can be defined through constructor arguments.
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup mmu_cache
+/// @{
+/// @file vectorcache.cpp
+/// Class definition of a virtual cache model. The cache can be configured
+/// direct mapped or set associative. Set-size, line-size and replacement
+/// strategy can be defined through constructor arguments.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #include "vectorcache.h"
 
@@ -53,25 +26,25 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
                          unsigned int repl, unsigned int lram,
                          unsigned int lramstart, unsigned int lramsize,
 			 bool pow_mon) :
-    sc_module(name), 
-    m_mmu_cache(_mmu_cache), 
+    sc_module(name),
+    m_mmu_cache(_mmu_cache),
     m_tlb_adaptor(_tlb_adaptor),
-    m_burst_en(burst_en), 
-    m_pseudo_rand(0), 
-    m_sets(sets-1), 
-    m_setsize((unsigned int)log2((double)setsize)), 
-    m_setlock(setlock), 
-    m_linesize((unsigned int)log2((double)linesize)), 
-    m_wordsperline(linesize), 
-    m_bytesperline(m_wordsperline << 2), 
-    m_offset_bits((unsigned int)log2((double)m_bytesperline)), 
-    m_number_of_vectors(setsize*256/linesize), 
-    m_idx_bits(m_setsize + 8 - m_linesize), 
-    m_tagwidth(32 - m_idx_bits - m_offset_bits), 
-    m_repl(repl), 
-    m_mmu_en(mmu_en), 
-    m_lram(lram), 
-    m_lramstart(lramstart), 
+    m_burst_en(burst_en),
+    m_pseudo_rand(0),
+    m_sets(sets-1),
+    m_setsize((unsigned int)log2((double)setsize)),
+    m_setlock(setlock),
+    m_linesize((unsigned int)log2((double)linesize)),
+    m_wordsperline(linesize),
+    m_bytesperline(m_wordsperline << 2),
+    m_offset_bits((unsigned int)log2((double)m_bytesperline)),
+    m_number_of_vectors(setsize*256/linesize),
+    m_idx_bits(m_setsize + 8 - m_linesize),
+    m_tagwidth(32 - m_idx_bits - m_offset_bits),
+    m_repl(repl),
+    m_mmu_en(mmu_en),
+    m_lram(lram),
+    m_lramstart(lramstart),
     m_lramsize((unsigned int)log2((double)lramsize)),
     m_performance_counters("performance_counters"),
     rhits("read_hits", sets, m_performance_counters),
@@ -116,7 +89,7 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
       assert(0);
 
     }
-      
+
     // LRR replacement may only be selected for two-way caches
     if ((m_repl==2)&(m_sets!=1)) {
 
@@ -125,14 +98,14 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
 
     }
 
-    // Direct mapped cache (replacement) only allowed for one-way caches 
+    // Direct mapped cache (replacement) only allowed for one-way caches
     if ((m_sets > 0) && (m_repl == 0)) {
 
       v::error << this->name() << "Replacement policy not valid. Direct mapped only allowed for one-way caches!" << v::endl;
       assert(0);
 
     }
-    
+
     // create the cache sets
     for (unsigned int i = 0; i <= m_sets; i++) {
 
@@ -205,9 +178,9 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
 
 
     CACHE_CONFIG_REG |= ((m_sets & 0x7) << 24);
-    
+
     // REPL: 00 - direct mapped, 01 - LRU, 10 - LRR, 11 - RANDOM
-    if (m_sets == 0) {  
+    if (m_sets == 0) {
       // if direct mapped cache set 0
       m_repl = 0;
     }
@@ -248,7 +221,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
   unsigned int burst_len;
   unsigned int replacer_limit;
-    
+
   // Is the cache enabled (0b11) or frozen (0b01) ?
   if ((!is_dbg) && (check_mode() & 0x1)) {
 
@@ -257,7 +230,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
     unsigned int idx = ((address << m_tagwidth) >> (m_tagwidth + m_offset_bits));
     unsigned int offset = ((address << (32 - m_offset_bits)) >> (32 - m_offset_bits));
     unsigned int byt = (address & 0x3);
-    
+
     // space for data to refill a cache line of maximum size
     unsigned char ahb_data[32];
 
@@ -276,17 +249,17 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
         // Read access to all tag ram (parallel sets)
         if (m_pow_mon) dyn_tag_reads++;
-               
+
         // Check the cache tag
         if ((*m_current_cacheline[i]).tag.atag == tag) {
 
           //v::debug << this->name() <<  "Correct atag found in set " << i << v::endl;
-      
+
           // Check the valid bit
           if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) {
 
             v::debug << this->name() << "Cache Hit in Set " << i << "(valid: " << hex << (*m_current_cacheline[i]).tag.valid << " check mask: " << hex << offset2valid(offset, len) << ")" << v::endl;
-			
+
             // update debug information
             CACHEREADHIT_SET(*debug,i);
 
@@ -306,22 +279,22 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
             // valid data in set i
             cache_hit = i;
-			
+
             // increment hit counter
             rhits[i]++;
 
             break;
           } else {
-            
+
             v::debug << this->name() << "Tag Hit but data not valid in set " << i  << v::endl;
 
             if (len == 8) {
               // dword - make sure to disable both words
-              (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset, len);               
+              (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset, len);
             }
 
           }
-          
+
         } else {
 
           v::debug << this->name() << "Cache miss in set " << i << v::endl;
@@ -341,7 +314,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
     // are loaded into the cache from main memory.
     if (cache_hit == -1) {
 
-      // Increment miss counter 
+      // Increment miss counter
       rmisses++;
 
       // Increment time
@@ -352,7 +325,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       // If burst fetch is enabled, the cache line is filled starting at the missed address
       // until the end of the line.
       if (m_burst_en && (m_mmu_cache->read_ccr(true) & 0x10000)) {
-	      
+
         burst_len = m_bytesperline - ((offset >> 2) << 2);
         replacer_limit = m_bytesperline - 4;
 
@@ -432,7 +405,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             for (unsigned int i = offset; i <= replacer_limit; i += 4) {
 
               ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
-              
+
             }
 
             // reset lru
@@ -487,7 +460,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             }
 
           } else {
-		  
+
             //v::debug << name() << "All sets occupied - frozen miss" << v::endl;
 
             // update debug information
@@ -509,7 +482,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
     v::debug << this->name() << "BYPASS read from address: " << hex
              << address << v::endl;
-    
+
     // Increment bypass counter
     bypassops++;
 
@@ -577,7 +550,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
                     if (m_repl == 1) {
                         lru_update(i);
                     }
-                    
+
                     // update debug information
                     CACHEWRITEHIT_SET(*debug, i);
                     is_hit = true;
@@ -596,7 +569,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
                       for (unsigned int j = 0; j < 8; j++) {
                         (*m_current_cacheline[i]).entry[(offset+j) >> 2].c[(j % 4)] = *(data + j);
                       }
- 
+
                     }
 
 		    // Increment hit counter
@@ -623,7 +596,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
                     if (len == 8) {
 
                       if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset+4)) != 0) {
-                    
+
                         v::debug << this->name() << "64bit invalidate" << v::endl;
                         (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset+4);
 
@@ -644,7 +617,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 	    v::debug << name() << "ACCESS IS WRITEMISS " << hex << *debug << v::endl;
 	    wmisses++;
 	}
-	    
+
         // write data to main memory
         // todo: - implement byte access
         //       - implement write buffer
@@ -887,7 +860,7 @@ unsigned int vectorcache::read_config_reg(sc_core::sc_time *t) {
   #ifdef LITTLE_ENDIAN_BO
   swap_Endianess(tmp);
   #endif
-    
+
   return (tmp);
 
 }
@@ -1180,9 +1153,9 @@ void vectorcache::end_of_simulation() {
   v::report << name() << " ******************************************** " << v::endl;
   v::report << name() << " * Caching statistic:                        " << v::endl;
   v::report << name() << " * -------------------" << v::endl;
- 
+
   for (uint32_t i=0;i<=m_sets;i++) {
-  
+
     v::report << name() << " * Read hits set" << i << ": " << rhits[i] << v::endl;
 
     total_rhits += rhits[i];
@@ -1190,7 +1163,7 @@ void vectorcache::end_of_simulation() {
   }
 
   v::report << name() << " * Total Read Hits: " << total_rhits << v::endl;
-  v::report << name() << " * Read Misses:  " << rmisses << v::endl; 
+  v::report << name() << " * Read Misses:  " << rmisses << v::endl;
 
   // avoid / 0
   if (total_rhits+rmisses != 0) {
@@ -1204,7 +1177,7 @@ void vectorcache::end_of_simulation() {
     v::report << name() << " * Write hits set" << i << ": " << whits[i] << v::endl;
 
     total_whits += whits[i];
-  
+
   }
 
   v::report << name() << " * Total Write Hits: " << total_whits << v::endl;
@@ -1226,3 +1199,4 @@ void vectorcache::end_of_simulation() {
 void vectorcache::clkcng(sc_core::sc_time &clk) {
   clockcycle = clk;
 }
+/// @}

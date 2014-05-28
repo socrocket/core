@@ -1,42 +1,17 @@
-//*****************************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*****************************************************************************
-// Title:      mctrl.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    header file defining the mctrl module template
-//             includes implementation file mctrl.tpp at the bottom
-//
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*****************************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup mctrl
+/// @{
+/// @file mctrl.h
+/// header file defining the mctrl module template includes implementation file
+/// mctrl.tpp at the bottom
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #ifndef MCTRL_H
 #define MCTRL_H
@@ -75,7 +50,7 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
     public:
         SC_HAS_PROCESS(Mctrl);
         SK_HAS_SIGNALS(Mctrl);
-        
+
         /// Creates a new Instance of an MCtrl.
         ///
         /// @param name The SystemC name of the component to be created.
@@ -102,17 +77,17 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         /// @param powermon
         /// @param abstractionLayer
         ///
-        /// All constructor parameter are directly related to an VHDL Generic in the original Model. 
-        /// Therefore read the GRLIB IP Core User's Manual Section 66.15 for more information.  
+        /// All constructor parameter are directly related to an VHDL Generic in the original Model.
+        /// Therefore read the GRLIB IP Core User's Manual Section 66.15 for more information.
         Mctrl(sc_module_name name, int romasel = 28, int sdrasel = 29,
-              int romaddr = 0x0, int rommask = 0xE00, 
-              int ioaddr = 0x200, int iomask = 0xE00, 
+              int romaddr = 0x0, int rommask = 0xE00,
+              int ioaddr = 0x200, int iomask = 0xE00,
               int ramaddr = 0x400, int rammask = 0xC00,
-              int paddr = 0x0, int pmask = 0xFFF, 
-              int wprot = 0, int srbanks = 4, 
-              int ram8 = 0, int ram16 = 0, int sepbus = 0, 
-              int sdbits = 32, int mobile = 0, int sden = 0, 
-	      unsigned int hindex = 0, unsigned int pindex = 0, 
+              int paddr = 0x0, int pmask = 0xFFF,
+              int wprot = 0, int srbanks = 4,
+              int ram8 = 0, int ram16 = 0, int sepbus = 0,
+              int sdbits = 32, int mobile = 0, int sden = 0,
+	      unsigned int hindex = 0, unsigned int pindex = 0,
 	      bool powmon = false,
 	      amba::amba_layer_ids ambaLayer = amba::amba_LT);
 
@@ -130,7 +105,7 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         gs::socket::initiator_multi_socket<32> mem;
 
         // SystemC Declarations
-        /// proclamation of callbacks   
+        /// proclamation of callbacks
         GC_HAS_CALLBACKS();
 
         /// Execute the callback registering when systemc reaches the end of elaboration.
@@ -215,50 +190,50 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
 	sc_event unlock_event;
 
         // Control / timing variables
-        
+
         /// Count time elapsing in callbacks (to be added in next transaction)
         sc_core::sc_time callback_delay;
-        
+
         /// Capture end time of last transaction to calculate sdram idle time
-        sc_core::sc_time start_idle; 
-        
+        sc_core::sc_time start_idle;
+
         /// Time to perform next refresh
-        sc_core::sc_time next_refresh; 
-        
-        // Refresh can only be started in idle state, 
+        sc_core::sc_time next_refresh;
+
+        // Refresh can only be started in idle state,
         // so it might be necessary to stall
         sc_core::sc_time refresh_stall;
 
         /// False - ready to accept new transaction
         bool busy;
-        
+
         /// Length of refresh cycle
-        uint8_t m_trfc; 
-        
+        uint8_t m_trfc;
+
         /// Capture current state of power mode
-        uint8_t m_pmode; 
+        uint8_t m_pmode;
 
         /// The number of total transactions handled by the mctrl
         gs::gs_param<unsigned long long> m_total_transactions;
-        
+
         /// The number of successfull ended transactions
         gs::gs_param<unsigned long long> m_right_transactions;
 
         /// Total time of power down mode
         gs::gs_param<sc_time> m_power_down_time;
-        
+
         /// Last time switched to power down mode
         gs::gs_param<sc_time> m_power_down_start;
 
         /// Total time of deep power down mode
         gs::gs_param<sc_time> m_deep_power_down_time;
-        
+
         /// Last time switched to deep power down mode
         gs::gs_param<sc_time> m_deep_power_down_start;
 
         /// Total time of auto self refresh mode
         gs::gs_param<sc_time> m_self_refresh_time;
-        
+
         /// Last time switched to auto self refresh mode
         gs::gs_param<sc_time> m_self_refresh_start;
 
@@ -439,3 +414,4 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
 
 #endif // MCTRL_H
 
+/// @}

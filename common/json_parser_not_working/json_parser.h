@@ -1,3 +1,16 @@
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup common
+/// @{
+/// @file json_parser.h
+/// 
+///
+/// @date 2013-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author 
+///
 #ifndef JSON_PARSER_H
 #define JSON_PARSER_H
 
@@ -50,7 +63,7 @@ private:
 	json_value *m_root;
     block_allocator* m_allocator;
 //	gs::cnf::cnf_api* mApi;
-	json_value *json_parse(char *source, char **error_pos, char **error_desc, int *error_line, block_allocator *allocator);	
+	json_value *json_parse(char *source, char **error_pos, char **error_desc, int *error_line, block_allocator *allocator);
 	void createParamsList(json_value *value, json_value *parent);
 	std::string getValuePath(json_value* temp);
 	std::vector<std::pair<std::string, json_value*> > m_jsonValues;
@@ -59,3 +72,4 @@ private:
     json_value* createJsonTree(json_value* root, std::string jsonPath, std::string value = "0");
 };
 #endif
+/// @}

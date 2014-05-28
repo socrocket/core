@@ -1,22 +1,16 @@
-//   GreenConfig framework
-//
-// LICENSETEXT
-//
-//   Copyright (C) 2009 : GreenSocs Ltd
-// 	 http://www.greensocs.com/ , email: info@greensocs.com
-//
-//   Developed by :
-//   
-//   Christian Schroeder <schroeder@eis.cs.tu-bs.de>,
-//     Technical University of Braunschweig, Dept. E.I.S.
-//     http://www.eis.cs.tu-bs.de
-//
-//
-// The contents of this file are subject to the licensing terms specified
-// in the file LICENSE. Please consult this file for restrictions and
-// limitations that may apply.
-// 
-// ENDLICENSETEXT
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup common
+/// @{
+/// @file propertyconfig.h
+/// 
+///
+/// @date 2013-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author 
+///
 
 
 #ifndef __CONFIG1_H__
@@ -37,3 +31,4 @@
 #include "gs_config.h"     // parameters
 #include "gs_config_class.h"
 #endif
+/// @}

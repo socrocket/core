@@ -1,43 +1,17 @@
-// ********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
-// European Space Agency or of TU-Braunschweig.
-// ********************************************************************
-// Title:      timingmonitor.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    The timing monitor can be used to track
-//             progress, performance and simulation time
-//             of testbenches.
-//             
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-// ********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup common
+/// @{
+/// @file timingmonitor.cpp
+/// The timing monitor can be used to track progress, performance and simulation
+/// time of testbenches.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #include "timingmonitor.h"
 
@@ -93,7 +67,7 @@ sc_core::sc_time TimingMonitor::phase_systime(const unsigned int id) {
   // Phase/key must exist in timing_map
   if (it == timing_map.end()) {
 
-    v::error << "TimingMonitor" << "No such phase: " << id << v::endl; 
+    v::error << "TimingMonitor" << "No such phase: " << id << v::endl;
 
     return(sc_core::sc_time(0,SC_NS));
 
@@ -120,7 +94,7 @@ double TimingMonitor::phase_realtime(const unsigned int id) {
 
     return(0);
 
-  } 
+  }
 
   start_clock = (it->second).rt_start;
   end_clock   = (it->second).rt_end;
@@ -177,10 +151,11 @@ void TimingMonitor::report_timing() {
 	  //  << " (Start: " << tmp.st_start << " End: " << tmp.st_end << ")" << v::endl;
     //v::report << "TimingMonitor" << "* Real Time: " << TimingMonitor::phase_realtime(id) << " sec " << v::endl;
     //v::report << "TimingMonitor" << "* --------------------------------------------------------------" << v::endl;
-  
+
     it++;
   }
 
   v::report << "TimingMonitor" << "******************************************************************" << v::endl;
 
 }
+/// @}

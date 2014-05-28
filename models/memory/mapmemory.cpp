@@ -1,45 +1,19 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      mapmemory.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Implementation of the generic memory model to be used 
-//             with the SoCRocket MCTRL. Can be configured as ROM, 
-//             IO, SRAM or SDRAM. Underlying memory is implemented 
-//             as a flexible vmap.
-//             Recommended for simulation of large, sparsely
-//             populated memories.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Dennis Bode
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup memory
+/// @{
+/// @file mapmemory.cpp
+/// Implementation of the generic memory model to be used with the SoCRocket
+/// MCTRL. Can be configured as ROM, IO, SRAM or SDRAM. Underlying memory is
+/// implemented as a flexible vmap. Recommended for simulation of large,
+/// sparsely populated memories.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Dennis Bode
+///
 
 #include "mapmemory.h"
 
@@ -67,13 +41,13 @@ static const char *power_params[4][4] = {
 // Constructor implementation
 MapMemory::MapMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) :
   sc_module(name),
-  MEMDevice(type, banks, bsize, bits, cols), 
-  bus("bus"), 
-  m_pow_mon(powmon), 
+  MEMDevice(type, banks, bsize, bits, cols),
+  bus("bus"),
+  m_pow_mon(powmon),
   m_performance_counters("performance_counters"),
-  m_reads("bytes_read", 0ull, m_performance_counters), 
+  m_reads("bytes_read", 0ull, m_performance_counters),
   m_writes("bytes_writen", 0ull, m_performance_counters),
-  sta_power_norm("power." + get_type_name() + ".sta_power_norm", 1269.53125, true), // Normalized static power input 
+  sta_power_norm("power." + get_type_name() + ".sta_power_norm", 1269.53125, true), // Normalized static power input
   int_power_norm("power." + get_type_name() + ".int_power_norm", 1.61011e-12, true), // Normalized internal power input (act. independ)
   dyn_read_energy_norm("power." + get_type_name() + ".dyn_read_energy_norm", 7.57408e-13, true), // Normalized read energy input
   dyn_write_energy_norm("power.mapmemory.dyn_write_energy_norm", 7.57408e-13, true), // Normalized write energy input
@@ -86,7 +60,7 @@ MapMemory::MapMemory(sc_core::sc_module_name name, MEMDevice::device_type type, 
   dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
   dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
   dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation
-  
+
  {
    // TLM 2.0 socket configuration
    gs::socket::config<tlm::tlm_base_protocol_types> bus_cfg;
@@ -97,18 +71,18 @@ MapMemory::MapMemory(sc_core::sc_module_name name, MEMDevice::device_type type, 
 
    // Obtain pointer to GreenControl API
    m_api = gs::cnf::GCnf_Api::getApiInstance(this);
-    
-   // Register TLM 2.0 transport functions 
+
+   // Register TLM 2.0 transport functions
    bus.register_b_transport(this, &MapMemory::b_transport);
    bus.register_transport_dbg(this, &MapMemory::transport_dbg);
 
    // Register power callback functions
    if (m_pow_mon) {
-    
+
      GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, MapMemory, sta_power_cb);
      GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, MapMemory, int_power_cb);
      GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, MapMemory, swi_power_cb);
-    
+
      // Set norm power - depending on type
      m_api->setInitValue("power.sram.sta_power_norm", power_params[type][0]);
      m_api->setInitValue("power.sram.int_power_norm", power_params[type][1]);
@@ -127,7 +101,7 @@ MapMemory::MapMemory(sc_core::sc_module_name name, MEMDevice::device_type type, 
    v::info << this->name() << " * cols (SD only): " << cols << v::endl;
    v::info << this->name() << " * pow_mon: " << powmon << v::endl;
    v::info << this->name() << " ******************************************************************************* " << v::endl;
-   
+
 }
 
 MapMemory::~MapMemory() {
@@ -149,7 +123,7 @@ void MapMemory::start_of_simulation() {
 
 // Print execution statistic at end of simulation
 void MapMemory::end_of_simulation() {
-     
+
     v::report << name() << " ********************************************" << v::endl;
     v::report << name() << " * "<< get_type_name() <<" Memory Statistic:" << v::endl;
     v::report << name() << " * -----------------------------------------" << v::endl;
@@ -207,7 +181,7 @@ void MapMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
   gp.get_extension(ers);
 
   if(ers) {
-  
+
     // Check erase extension first:
     // The start address is encoded in the TLM address field.
     uint32_t start = gp.get_address();
@@ -226,7 +200,7 @@ void MapMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
       erase(start, end);
 
       gp.set_response_status(tlm::TLM_OK_RESPONSE);
-      
+
       // Count write operations for power calculation
       dyn_writes += (end-start) >> 2;
 
@@ -239,19 +213,19 @@ void MapMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     uint32_t addr        = gp.get_address();
     uint32_t len         = gp.get_data_length();
     unsigned char* ptr   = gp.get_data_ptr();
-      
+
     if(cmd == tlm::TLM_READ_COMMAND) {
-      
+
       for(uint32_t i = 0; i < len; i++) {
         ptr[i] = read(addr + i);
       }
-        
+
       v::debug << name() << "Read memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
       gp.set_response_status(tlm::TLM_OK_RESPONSE);
-        
+
       // Count read operations for power calculation
       dyn_reads += (len >> 2) + 1;
-        
+
     } else if (cmd == tlm::TLM_WRITE_COMMAND) {
 
       for(uint32_t i = 0; i < len; i++) {
@@ -263,7 +237,7 @@ void MapMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
 
       // Count write operations for power calculation
       dyn_writes += (len >> 2) + 1;
-        
+
     } else {
 
       v::warn << name() << "Command not valid / or TLM_IGNORE" << v::endl;
@@ -288,7 +262,7 @@ unsigned int MapMemory::transport_dbg(tlm::tlm_generic_payload& gp) {
     v::debug << name() << "Debug read memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
     gp.set_response_status(tlm::TLM_OK_RESPONSE);
     return len;
-            
+
   case tlm::TLM_WRITE_COMMAND:
     for(uint32_t i=0; i<len; i++) {
       write(addr + i, ptr[i]);
@@ -318,7 +292,7 @@ uint8_t MapMemory::read(const uint32_t addr) {
 
 // Erase memory
 void MapMemory::erase(uint32_t start, uint32_t end) {
-  v::debug << name() << "Erase memory region from: " << v::uint32 << start 
+  v::debug << name() << "Erase memory region from: " << v::uint32 << start
            << " to: " << v::uint32 << end << v::endl;
 
   // Find or insert start address
@@ -327,7 +301,7 @@ void MapMemory::erase(uint32_t start, uint32_t end) {
     memory.insert(std::make_pair(start, 0));
     start_iter = memory.find(start);
   }
-    
+
   // Find or insert end address
   map_mem::iterator end_iter = memory.find(end);
   if(end_iter==memory.end()) {
@@ -340,3 +314,4 @@ void MapMemory::erase(uint32_t start, uint32_t end) {
 
 }
 
+/// @}

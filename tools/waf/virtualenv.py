@@ -5,6 +5,9 @@ import os
 import subprocess
 from waflib.TaskGen import taskgen_method
 from waflib import Context
+from waflib import Task
+from waflib import TaskGen
+from waflib import Utils
 from common import conf
 
 def options(self):
@@ -28,19 +31,33 @@ def python_get(self, name):
     self.end_msg("ok")
 conf(python_get)
 
-@taskgen_method
-def venv_site_link(self, source):
-    for src in source:
-      snode = self.path.find_node(src)
-      dnode = snode.get_bld()
-      if not os.path.exists(dnode.abspath()):
-          os.symlink(os.path.relpath(snode.abspath(), os.path.join(dnode.abspath(), "..")), dnode.abspath())
+class venv_link_task(Task.Task):
+  """Link a Python source directory into the site-packages dir of the venv"""
+  name = 'venv_link'
+  color = 'BLUE'
+  before = []
+  quiet = True
+  def __str__(self):
+      return "vini: string -> %s\n" % (self.outputs[0].name)
+    
+  def run(self):
+      for src in self.inputs:
+        snode = self.path.find_node(src)
+        dnode = snode.get_bld()
+        if not os.path.exists(dnode.abspath()):
+            os.symlink(os.path.relpath(snode.abspath(), os.path.join(dnode.abspath(), "..")), dnode.abspath())
 
-    snode = self.path.get_bld().abspath()
-    dnode = os.path.join(self.bldnode.abspath(), ".venv", "lib", "python2.7", "site-packages", os.path.basename(snode))
-    if not os.path.exists(dnode):
-        os.symlink(os.path.relpath(snode, os.path.join(dnode, "..")), dnode)
-conf(venv_site_link)
+      snode = self.path.get_bld().abspath()
+      dnode = os.path.join(self.bldnode.abspath(), ".venv", "lib", "python2.7", "site-packages", os.path.basename(snode))
+      if not os.path.exists(dnode):
+          os.symlink(os.path.relpath(snode, os.path.join(dnode, "..")), dnode)
+      return 0
+
+@TaskGen.before('process_source', 'process_rule')
+@TaskGen.feature('venv_package')
+def venv_package(self):
+  if hasattr(self, "pysource"):
+      links = self.create_task('venv_link', src=Utils.to_list(self.pysource))
 
 def configure(self):
     try:

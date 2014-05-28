@@ -1,45 +1,19 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      mmu_cache.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition of LEON2/3 cache-subsystem consisting
-//             of instruction cache, data cache, i/d localrams
-//             and memory management unit.
-//             The mmu_cache class provides two TLM slave sockets
-//             for connecting the cpu and an AHB master
-//             interface for connecting the processor bus.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup mmu_cache
+/// @{
+/// @file mmu_cache.h
+/// Class definition of LEON2/3 cache-subsystem consisting of instruction cache,
+/// data cache, i/d localrams and memory management unit. The mmu_cache class
+/// provides two TLM slave sockets for connecting the cpu and an AHB master
+/// interface for connecting the processor bus.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #ifndef __MMU_CACHE_H__
 #define __MMU_CACHE_H__
@@ -75,16 +49,16 @@
 class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
 
  public:
-  
+
   GC_HAS_CALLBACKS();
   SC_HAS_PROCESS(mmu_cache);
   SK_HAS_SIGNALS(mmu_cache);
   // TLM sockets
   // -----------
-  
+
   // iu3 instruction cache in/out
   tlm_utils::simple_target_socket<mmu_cache> icio;
-  
+
   // iu3 data cache in/out
   tlm_utils::simple_target_socket<mmu_cache> dcio;
 
@@ -142,7 +116,7 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
             amba::amba_layer_ids ambaLayer);
 
   // Destructor
-  ~mmu_cache();  
+  ~mmu_cache();
 
   // Member functions
   // ----------------
@@ -160,13 +134,13 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   tlm::tlm_sync_enum icio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
   /// TLM non-blocking forward transport function for dcio socket
   tlm::tlm_sync_enum dcio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
-	
+
   /// TLM instruction debug transport
   unsigned int icio_transport_dbg(tlm::tlm_generic_payload &trans);
 
   /// TLM data debug transport
   unsigned int dcio_transport_dbg(tlm::tlm_generic_payload &trans);
-  
+
   /// Instruction service thread for AT
   void icio_service_thread();
 
@@ -195,11 +169,11 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
 
   /// Snooping function (For calling dcache->snoop_invalidate)
   void snoopingCallBack(const t_snoop& snoop, const sc_core::sc_time& delay);
-  
+
   /// Automatically called at the beginning of the simulation
   void start_of_simulation();
 
-  /// Calculate power/energy values from normalized input data  
+  /// Calculate power/energy values from normalized input data
   void power_model();
 
   /// Static power callback
@@ -222,10 +196,10 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
 
   /// Return clock period (for ahb interface)
   sc_core::sc_time get_clock();
-  
+
   // data members
   // ------------
-	
+
   // icio payload event queue (for AT)
   tlm_utils::peq_with_get<tlm::tlm_generic_payload> icio_PEQ;
 
@@ -282,9 +256,9 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   /// amba master id
   unsigned int m_master_id;
 
-  /// Total number of successful transactions for execution statistics 
+  /// Total number of successful transactions for execution statistics
   gs::gs_param<unsigned long long> m_right_transactions;
-  
+
   /// Total number of transactions for execution statistics
   gs::gs_param<unsigned long long> m_total_transactions;
 
@@ -293,13 +267,13 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
 
   /// amba abstraction layer
   amba::amba_layer_ids m_abstractionLayer;
-  
+
   /// begin response signal for AT
   sc_event ahb_response_event;
 
   // ****************************************************
   // Power Modeling Parameters
-  
+
   /// Normalized static power of controller
   gs::gs_param<double> sta_power_norm;
 
@@ -310,7 +284,7 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   gs::gs_param<double> dyn_read_energy_norm;
 
   /// Normalized write access energy
-  gs::gs_param<double> dyn_write_energy_norm;  
+  gs::gs_param<double> dyn_write_energy_norm;
 
   /// Parameter array for power data output
   gs::gs_param_array power;
@@ -337,11 +311,12 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   gs::gs_param<unsigned long long> dyn_reads;
 
   /// Number of writes to memory (read & reset by monitor)
-  gs::gs_param<unsigned long long> dyn_writes;    
-  
-  
+  gs::gs_param<unsigned long long> dyn_writes;
+
+
 };
 
 /// @}
 
 #endif //__MMU_CACHE_H__
+/// @}

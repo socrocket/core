@@ -1,50 +1,21 @@
-// *****************************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-// *****************************************************************************
-// Title:      ahbmem.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Provide a test bench memory class with AHB slave interface.
-//
-// Method:     Memory is modeled with a map.
-//             DMI and streaming width fields are ignored.
-//             Delays are not modeled.
-//             Address checking is performed in that way, that transactions
-//             are only executed if the slave select condition defined in
-//             grlib user manual holds.
-//             Transactions generating a correct slave select but exceeding
-//             the memory region due to their length are reported as warning
-//             and executed anyhow.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-// *****************************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup ahbmem
+/// @{
+/// @file ahbmem.cpp
+/// Provide a test bench memory class with AHB slave interface. DMI and
+/// streaming width fields are ignored. Delays are not modeled. Address checking
+/// is performed in that way, that transactions are only executed if the slave
+/// select condition defined in grlib user manual holds. Transactions generating
+/// a correct slave select but exceeding the memory region due to their length
+/// are reported as warning and executed anyhow.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #include "ahbmem.h"
 #include <fstream>
@@ -61,15 +32,15 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
                uint32_t wait_states,
                bool pow_mon) :
             AHBSlave<>(nm,
-                       slave_id, 
-                       0x01, // Gaisler 
+                       slave_id,
+                       0x01, // Gaisler
                        0x00E,// AHB Mem,
-                       0, 
+                       0,
                        0,
                        ambaLayer,
                        BAR(AHBDevice::AHBMEM, hmask_, cacheable, 0, haddr_)),
             ahbBaseAddress(static_cast<uint32_t> (hmask_ & haddr_) << 20),
-            ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1), 
+            ahbSize(~(static_cast<uint32_t> (hmask_) << 20) + 1),
             mhaddr(haddr_),
             mhmask(hmask_),
 	    mcacheable(cacheable),
@@ -88,7 +59,7 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm, // Module name
             dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
             dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
             dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation
-            
+
 {
 
     // haddr and hmask must be 12 bit
@@ -123,7 +94,7 @@ AHBMem::~AHBMem() {
     // Delete memory contents
     mem.clear();
     GC_UNREGISTER_CALLBACKS();
-} 
+}
 
 /// Encapsulated functionality
 uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay, bool debug) {
@@ -132,10 +103,10 @@ uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &de
 
   // Is the address for me
   if(!((mhaddr ^ (trans.get_address() >> 20)) & mhmask)) {
-  
+
     // Warn if access exceeds slave memory region
     if((trans.get_address() + trans.get_data_length()) >
-    
+
        (ahbBaseAddress + ahbSize)) {
        v::warn << name() << "Transaction exceeds slave memory region" << endl;
 
@@ -156,7 +127,7 @@ uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &de
       if (m_pow_mon) {
 
         dyn_writes += words_transferred;
-        
+
       }
 
       // Total delay is base delay + wait states
@@ -282,3 +253,4 @@ void AHBMem::end_of_simulation() {
   v::report << name() << " * ************************************************** " << v::endl;
 
 }
+/// @}

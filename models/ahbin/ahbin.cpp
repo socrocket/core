@@ -1,44 +1,17 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", ther is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      AHBIn.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition for AHBIn.
-//             Provides frames of data samples in regual intervals.
-//             CPU is notifed about new data via IRQ.
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup ahbin
+/// @{
+/// @file ahbin.cpp
+/// Class definition for AHBIn. Provides frames of data samples in regual
+/// intervals. CPU is notifed about new data via IRQ.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #include "ahbin.h"
 
@@ -90,7 +63,7 @@ AHBIn::AHBIn(sc_core::sc_module_name name,     // The SystemC name of the compon
   v::info << this->name() << " * Created AHBIn in following configuration: " << v::endl;
   v::info << this->name() << " * --------------------------------------------- " << v::endl;
   v::info << this->name() << " * abstraction Layer (LT = 8 / AT = 4): " << m_abstractionLayer << v::endl;
-  v::info << this->name() << " ************************************************** " << v::endl;   
+  v::info << this->name() << " ************************************************** " << v::endl;
 }
 
 // Rest handler
@@ -127,7 +100,7 @@ void AHBIn::gen_frame() {
   wait(1, SC_MS);
 
   while(1) {
-    
+
     v::info << name() << "Start sending new data frame!" << v::endl;
 
     // Generate data frame and send to memory
@@ -151,8 +124,8 @@ void AHBIn::gen_frame() {
     irq.write(false);
 
     // Wait for next frame trigger
-    wait(); 
-    
+    wait();
+
   }
 
 }
@@ -166,3 +139,4 @@ sc_core::sc_time AHBIn::get_clock() {
   return clock_cycle;
 }
 
+/// @}

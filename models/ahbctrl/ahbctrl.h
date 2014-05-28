@@ -1,42 +1,17 @@
-// ********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
-// European Space Agency or of TU-Braunschweig.
-// ********************************************************************
-// Title:      ahbctrl.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    AHB Controller / Bus model.
-//             The decoder collects all AHB request from the masters and
-//             forwards them to the appropriate slave.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-// ********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup ahbctrl AHBCtrl
+/// @{
+/// @file ahbctrl.h
+/// AHB Controller / Bus model. The decoder collects all AHB request from the
+/// masters and forwards them to the appropriate slave.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #ifndef AHBCTRL_H
 #define AHBCTRL_H
@@ -53,20 +28,17 @@
 
 #include "msclogger.h"
 
-/// @addtogroup ahbctrl AHBCtrl
-/// @{
-
 class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
  public:
- 
+
   GC_HAS_CALLBACKS();
   SC_HAS_PROCESS(AHBCtrl);
   SK_HAS_SIGNALS(AHBCtrl);
 
   // AMBA sockets
   // ------------------
-     
+
   /// AHB slave multi-socket
   amba::amba_slave_socket<32, 0>  ahbIN;
   /// AHB master multi-socket
@@ -89,11 +61,11 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
                                       tlm::tlm_phase& phase, sc_core::sc_time& delay);
 
   /// TLM debug interface
-  unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);	
+  unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload& gp);
 
   /// The arbiter thread. Responsible for arbitrating transactions in AT mode.
   void arbitrate();
-	
+
   void AcceptThread();
 
   void RequestThread();
@@ -125,10 +97,10 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
           bool fpnpen,          ///< Enable full decoding of PnP configuration records.
           bool mcheck,          ///< Check if there are any intersections between core memory regions.
           bool pow_mon,         ///< Enable power monitoring
-          amba::amba_layer_ids ambaLayer);		 
-		 
+          amba::amba_layer_ids ambaLayer);
+
   /// Reset Callback
-  void dorst(); 
+  void dorst();
   // Omitted parameters:
   // -------------------
   // nahbm  - Number of AHB masters
@@ -142,7 +114,7 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   // enbusmon - Enable AHB bus monitor
   // assertwarn - Enable assertions for AMBA recommendations.
   // asserterr - Enable assertion for AMBA requirements
-  
+
   /// Desctructor
   ~AHBCtrl();
 
@@ -182,7 +154,7 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
   /// Enable power monitoring (Only TLM)
   bool m_pow_mon;
-  
+
   typedef tlm::tlm_generic_payload payload_t;
   typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;
 
@@ -211,13 +183,13 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
   /// Keeps track on where the transactions have been coming from
   typedef struct {
-    
+
     unsigned int master_id;
     unsigned int slave_id;
     sc_time start_time;
     TransStateType state;
     payload_t * trans;
-    
+
   } connection_t;
 
   connection_t request_map[16];
@@ -240,7 +212,7 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   tlm_utils::peq_with_get<payload_t> m_AcceptPEQ;
   tlm_utils::peq_with_get<payload_t> m_RequestPEQ;
   tlm_utils::peq_with_get<payload_t> m_ResponsePEQ;
-  tlm_utils::peq_with_get<payload_t> m_EndResponsePEQ;	
+  tlm_utils::peq_with_get<payload_t> m_EndResponsePEQ;
 
   /// The number of slaves in the system
   unsigned int num_of_slave_bindings;
@@ -249,7 +221,7 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
   /// GreenControl API container
   gs::cnf::cnf_api *m_api;
-        
+
   /// Open a namespace for performance counting in the greencontrol realm
   gs::gs_param_array m_performance_counters;
 
@@ -308,7 +280,7 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   gs::gs_param<double> dyn_read_energy_norm;
 
   /// Normalized write access energy
-  gs::gs_param<double> dyn_write_energy_norm;  
+  gs::gs_param<double> dyn_write_energy_norm;
 
   /// Parameter array for power data output
   gs::gs_param_array power;
@@ -339,10 +311,10 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
   // Private functions
   // -----------------
-  
+
   /// Set up slave map and collect plug & play information
   void start_of_simulation();
-    
+
   /// Calculate power/energy values from normalized input data
   void power_model();
 
@@ -367,7 +339,7 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
   /// Returns a PNP register from the slave configuration area
   unsigned int getPNPReg(const uint32_t address);
-	
+
   /// Keeps track of master-payload relation
   void addPendingTransaction(tlm::tlm_generic_payload& trans, connection_t connection);
 
@@ -376,6 +348,5 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
 };
 
-/// @}
-
 #endif // AHBCTRL_H
+/// @}

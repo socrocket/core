@@ -1,43 +1,18 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      vectorcache.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition of a virtual cache
-//             model. The cache can be configured direct mapped or
-//             set associative. Set-size, line-size and replacement
-//             strategy can be defined through constructor arguments.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup mmu_cache
+/// @{
+/// @file vectorcache.h
+/// Class definition of a virtual cache model. The cache can be configured
+/// direct mapped or set associative. Set-size, line-size and replacement
+/// strategy can be defined through constructor arguments.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #ifndef __VECTORCACHE_H__
 #define __VECTORCACHE_H__
@@ -149,7 +124,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
               unsigned int lram, unsigned int lramstart,
               unsigned int lramsize,
               bool pow_mon);
-  
+
   virtual ~vectorcache();
 
  protected:
@@ -158,7 +133,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
   // ------------
   /// pointer to the class with the amba interface
   mmu_cache_if * m_mmu_cache;
-  
+
   /// pointer to the class with the mmu interface
   mem_if * m_tlb_adaptor;
 
@@ -179,7 +154,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
   /// (00 - no repl. (direct mapped), 01 - LRU, 10 - LRR, 11 - RANDOM)
   /// [31]    Cache locking (CL) - Set if cache locking is implemented
   unsigned int CACHE_CONFIG_REG;
-  
+
   /// the actual cache memory
   std::vector<std::vector<t_cache_line>*> cache_mem;
 
@@ -240,7 +215,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
   // ----------
   /// GreenControl API container
   gs::cnf::cnf_api *m_api;
-        
+
   /// Open a namespace for performance counting in the greencontrol realm
   gs::gs_param_array m_performance_counters;
 
@@ -249,7 +224,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
 
   /// Counter for read misses
   gs::gs_param<unsigned long long> rmisses;
-  
+
   /// Counter for write hits
   gs::gs_param<unsigned long long *> whits;
 
@@ -273,7 +248,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
 
   /// Number of data ram reads (monitor read & reset)
   gs::gs_param<unsigned long long> dyn_data_reads;
-  
+
   /// Number of data ram writes (monitor read & reset)
   gs::gs_param<unsigned long long> dyn_data_writes;
 
@@ -282,10 +257,11 @@ class vectorcache : public sc_core::sc_module, public cache_if {
   sc_core::sc_time m_hit_read_response_delay;
   sc_core::sc_time m_miss_read_response_delay;
   sc_core::sc_time m_write_response_delay;
-  
+
   /// Clock cycle time
   sc_core::sc_time clockcycle;
 
 };
 
 #endif // __VECTORCACHE_H__
+/// @}

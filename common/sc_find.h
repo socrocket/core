@@ -1,3 +1,16 @@
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup common
+/// @{
+/// @file sc_find.h
+/// 
+///
+/// @date 2013-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author 
+///
 #ifndef SC_FIND_H
 #define SC_FIND_H
 
@@ -63,3 +76,4 @@ inline void find_or_create_new(T*& obj, const char* name, ARG1*& arg1) {
 }
 
 #endif // SC_FIND_H
+/// @}

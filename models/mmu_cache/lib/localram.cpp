@@ -1,54 +1,29 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      localram.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Implementation of scratchpad/localram.
-//             Can be attached to the icache and dcache controllers.
-//             The localram enables fast 0-waitstate access
-//             to instructions or data.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup mmu_cache
+/// @{
+/// @file localram.cpp
+/// Implementation of scratchpad/localram. Can be attached to the icache and
+/// dcache controllers. The localram enables fast 0-waitstate access to
+/// instructions or data.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #include "localram.h"
 #include "verbose.h"
 
 /// constructor
-localram::localram(sc_core::sc_module_name name, 
+localram::localram(sc_core::sc_module_name name,
 		   unsigned int lrsize,
                    unsigned int lrstart,
 		   bool pow_mon) :
-                   sc_module(name), 
-		   m_lrsize(lrsize<<10), 
+                   sc_module(name),
+		   m_lrsize(lrsize<<10),
 		   m_lrstart(lrstart << 24),
 		   m_pow_mon(pow_mon),
 		   m_performance_counters("performance_counters"),
@@ -172,7 +147,7 @@ void localram::mem_write(unsigned int addr, unsigned int asi, unsigned char *dat
 
   // update debug information
   SCRATCHPAD_SET(*debug);
-  
+
   *delay = ((len-1)>>2)*clockcycle;
 
 }
@@ -193,7 +168,7 @@ void localram::power_model() {
 
   // Static power calculatin (pW)
   sta_power = sta_power_norm * (m_lrsize << 3);
-  
+
   // Cell internal power (uW)
   int_power = int_power_norm * (m_lrsize << 3) * 1/(clockcycle.to_seconds());
 
@@ -202,7 +177,7 @@ void localram::power_model() {
 
   // Energy per write access (uJ)
   dyn_write_energy = dyn_write_energy_norm * 32 * (m_lrsize << 3);
-  
+
 }
 
 // Static power callback
@@ -245,3 +220,4 @@ void localram::end_of_simulation() {
 void localram::clkcng(sc_core::sc_time &clk) {
   clockcycle = clk;
 }
+/// @}

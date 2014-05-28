@@ -1,3 +1,16 @@
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup common
+/// @{
+/// @file json_parser.cpp
+/// 
+///
+/// @date 2013-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author 
+///
 #include <memory.h>
 #include "json_parser.h"
 #include <string>
@@ -518,7 +531,7 @@ json_value* json_parser::createJsonTree(json_value* root, string path, string va
         root->last_child->type = JSON_STRING;
         root->last_child->string_value = new char[value.size()];
         strcpy(root->last_child->string_value, value.c_str());
-            
+
     }
 
     return root;
@@ -536,3 +549,4 @@ void json_parser::save() {
     }
     cout << print(root) << endl << endl;
 }
+/// @}

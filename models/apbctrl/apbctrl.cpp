@@ -1,42 +1,16 @@
-// ********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
-// European Space Agency or of TU-Braunschweig.
-// ********************************************************************
-// Title:      apbctrl.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Implementation of the AHB APB Bridge
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-// ********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup apbctrl
+/// @{
+/// @file apbctrl.cpp
+/// Implementation of the AHB APB Bridge
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #include "apbctrl.h"
 #include "verbose.h"
@@ -61,7 +35,7 @@ APBCtrl::APBCtrl(sc_core::sc_module_name nm, // SystemC name
   apb("apb", amba::amba_APB, amba::amba_LT, false),
   m_AcceptPEQ("AcceptPEQ"),
   m_TransactionPEQ("TransactionPEQ"),
-  m_pnpbase(0xFF000), 
+  m_pnpbase(0xFF000),
   m_haddr(haddr_),
   m_hmask(hmask_),
   m_mcheck(mcheck),
@@ -188,7 +162,7 @@ uint32_t APBCtrl::exec_func(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, b
 
   m_total_transactions++;
   transport_statistics(ahb_gp);
-  
+
   // Extract data pointer from payload
   uint8_t *data = ahb_gp.get_data_ptr();
   // Extract address from payload
@@ -209,16 +183,16 @@ uint32_t APBCtrl::exec_func(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, b
         //uint32_t word = (addr + i) >> 2;
         uint32_t byte = (addr + i) & 0x3;
         uint32_t reg = getPNPReg(addr + i);
-        
+
         data[i] = ((uint8_t *)&reg)[byte];
 
         delay += clock_cycle;
       }
 
       ahb_gp.set_response_status(tlm::TLM_OK_RESPONSE);
-   
+
     } else {
-    
+
       v::error << name() << " Forbidden write to APBCTRL configuration area (PNP)!" << v::endl;
       ahb_gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
@@ -229,7 +203,7 @@ uint32_t APBCtrl::exec_func(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, b
   }
 
   // Find slave by address / returns slave index or -1 for not mapped
-  int index = get_index(addr);  
+  int index = get_index(addr);
 
   // For valid slave index
   if(index >= 0) {
@@ -280,7 +254,7 @@ uint32_t APBCtrl::exec_func(tlm::tlm_generic_payload & ahb_gp, sc_time &delay, b
 
         }
       }
-      
+
     } else {
 
       apb[index]->transport_dbg(*apb_gp);
@@ -395,8 +369,8 @@ void APBCtrl::power_model() {
   dyn_read_energy = dyn_read_energy_norm * num_of_bindings;
 
   // Energy per write access (uJ)
-  dyn_write_energy = dyn_write_energy_norm * num_of_bindings;  
-  
+  dyn_write_energy = dyn_write_energy_norm * num_of_bindings;
+
 }
 
 // Static power callback
@@ -467,7 +441,7 @@ void APBCtrl::checkMemMap() {
        slaves.insert(make_pair(start_addr, obj));
    }
    for(iter_t iter=slaves.begin(); iter != slaves.end(); iter++) {
-      // First Slave need it in last to start 
+      // First Slave need it in last to start
       if(last.index!=~0u) {
           // All other elements
           // See if the last element is begining and end befor the current
@@ -488,3 +462,4 @@ void APBCtrl::checkMemMap() {
   }
 }
 
+/// @}

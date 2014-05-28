@@ -1,40 +1,16 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      gptimer.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition of the General-Purpose Timer (GP_TIMER)
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup gptimer GPTimer
+/// @{
+/// @file gptimer.h
+/// Class definition of the General-Purpose Timer (GP_TIMER)
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #ifndef GPTIMER_H
 #define GPTIMER_H
@@ -55,9 +31,6 @@
 #include <string>
 #include <ostream>
 #include <vector>
-
-/// @addtogroup gptimer GPTimer
-/// @{
 
 /// @brief This class is a TLM 2.0 Model of the Aeroflex Gaisler GRLIB GPTimer.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 37
@@ -94,7 +67,7 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   /// See tick_calc for calculation and ticking for the event wait statement.
   ///
   sc_core::sc_event e_tick;
-  
+
   /// A vector of Counter classes, each representate an internal counter.
   // TODO Replace by Array instanciated at construction time.
   std::vector<GPCounter *> counter;
@@ -120,7 +93,7 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   ///                at reset. When the timer value reaches 0, the WDOG output
   ///                is driven active.
   GPTimer(sc_core::sc_module_name name, unsigned int ncounters = 1,
-          int pindex = 0, int paddr = 0, int pmask = 4095, int pirq = 0, 
+          int pindex = 0, int paddr = 0, int pmask = 4095, int pirq = 0,
           int sepirq = 0, int sbits = 16, int nbits = 32, int wdog = 0,
           bool powmon = false);
 
@@ -141,14 +114,14 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
 
   /// Execute the callback registering when systemc reaches the end of elaboration.
   void end_of_elaboration();
-        
+
   // Register Callbacks
   /// Register callback executed before the prescaler value register gets read, to calculate the current value.
   void scaler_read();
 
   /// Register callback executed after the presacler value is written, to recalculate the counter and ticking functions.
   void scaler_write();
-  
+
   /// Register callback executed after the presacler reset is written, to recalculate the counter and ticking functions.
   void screload_write();
 
@@ -157,7 +130,7 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
 
   // Signal Callbacks
   /// Signal callback executed a reset on the timer when the rst signal arrives.
-  /// 
+  ///
   /// @param value The new Value of the Signal.
   /// @param time A possible delay. Which means the reset might be performed in the future (Not used for resets!).
   virtual void dorst();
@@ -226,10 +199,10 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   // Register Value Offsets, Masks and Bits
   /// Scaler Value Register Address
   static const uint32_t SCALER = 0x00;
-  
+
   /// Scaler Relaod Register Address
   static const uint32_t SCRELOAD = 0x04;
-        
+
   /// Scaler Configuration Register Address
   static const uint32_t CONF = 0x08;
 
@@ -256,19 +229,19 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
 
   /// Position of the Bit in the Scaler Configuration Register
   static const uint32_t CONF_DF = 9;
-  
+
   /// Position of the SetInterrupt Bit in the Scaler Configuration Register
   static const uint32_t CONF_SI = 8;
-        
+
   /// Mask of the IRQ Bits in the Scaler Configuration Register
   static const uint32_t CONF_IQ_MA = 0x000000F8;
-        
+
   /// Offset of the IRQ Bits in the Scaler Configuration Register
   static const uint32_t CONF_IQ_OS = 3;
-        
+
   /// Mask of the Counter Number Bits in the Scaler Configuration Register
   static const uint32_t CONF_NR_MA = 0x00000007;
-        
+
   /// Offset of the Counter Number Bits in the Scaler Configuration Register
   static const uint32_t CONF_NR_OS = 0;
 
@@ -289,13 +262,12 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
 
   /// Position of the Reset Bit in the Counter Control Registers
   static const uint32_t CTRL_RS = 1;
-  
+
   /// Position of the Enable Bit in the Counter Control Registers
   static const uint32_t CTRL_EN = 0;
 
   friend class GPCounter;
 };
 
-/// @}
-
 #endif // GPTIMER_H
+/// @}

@@ -1,3 +1,16 @@
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup common
+/// @{
+/// @file gs_config.h
+/// 
+///
+/// @date 2013-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author 
+///
 #include <string>
 #include <vmap.h>
 
@@ -6,7 +19,7 @@
 namespace gs {
     namespace cnf {
         class gs_config_base {
-            public:  
+            public:
                 class easy_init {
                     public:
                         easy_init(gs::cnf::gs_config_base* owner) : m_owner(owner) {}
@@ -69,3 +82,4 @@ namespace gs {
     }
 }
 
+/// @}

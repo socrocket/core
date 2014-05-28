@@ -1,43 +1,18 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      ivectorcache.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition of an instruction
-//             cache. The cache can be configured direct mapped or
-//             set associative. Set-size, line-size and replacement
-//             strategy can be defined through constructor arguments.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup mmu_cache
+/// @{
+/// @file ivectorcache.h
+/// Class definition of an instruction cache. The cache can be configured direct
+/// mapped or set associative. Set-size, line-size and replacement strategy can
+/// be defined through constructor arguments.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #ifndef __IVECTORCACHE_H__
 #define __IVECTORCACHE_H__
@@ -84,7 +59,7 @@ class ivectorcache : public vectorcache {
 
   /// *****************************************************
   /// Power Modeling Parameters
-  
+
   /// Normalized static power input for logic
   gs::gs_param<double> sta_power_norm;
 
@@ -129,7 +104,7 @@ class ivectorcache : public vectorcache {
 
   /// Power frame starting time
   gs::gs_param<sc_core::sc_time> power_frame_starting_time;
-  
+
   /// Parameter array for power output of itag ram
   gs::gs_param_array itag;
 
@@ -211,8 +186,9 @@ class ivectorcache : public vectorcache {
     GC_UNREGISTER_CALLBACKS();
 
   }
-  
+
 };
 
 #endif // __IVECTORCACHE_H__
 
+/// @}

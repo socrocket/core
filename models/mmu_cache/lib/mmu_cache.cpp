@@ -1,47 +1,19 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", ther is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      mmu_cache.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Implementation of LEON2/3 cache-subsystem consisting
-//             of instruction cache, data cache, i/d localrams
-//             and memory management unit.
-//             The mmu_cache class provides two TLM slave sockets
-//             for connecting the cpu and an AHB master
-//             interface for connecting the processor bus.
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup mmu_cache
+/// @{
+/// @file mmu_cache.cpp
+/// Implementation of LEON2/3 cache-subsystem consisting of instruction cache,
+/// data cache, i/d localrams and memory management unit. The mmu_cache class
+/// provides two TLM slave sockets for connecting the cpu and an AHB master
+/// interface for connecting the processor bus.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #include "mmu_cache.h"
 #include "vendian.h"
@@ -72,22 +44,22 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
               0,      // version
               0,      // irq
                 abstractionLayer), // LT or AT
-  icio("icio"), 
-  dcio("dcio"), 
+  icio("icio"),
+  dcio("dcio"),
   snoop(&mmu_cache::snoopingCallBack,"SNOOP"),
   irq("irq"),
-  icio_PEQ("icio_PEQ"), 
+  icio_PEQ("icio_PEQ"),
   dcio_PEQ("dcio_PEQ"),
-  m_icen(icen), 
+  m_icen(icen),
   m_dcen(dcen),
   m_dsnoop(dsnoop),
-  m_ilram(ilram), 
+  m_ilram(ilram),
   m_ilramstart(ilramstart),
   m_dlram(dlram),
   m_dlramstart(dlramstart),
   m_cached(cached),
   m_mmu_en(mmu_en),
-  m_master_id(hindex), 
+  m_master_id(hindex),
   m_right_transactions("successful_transactions", 0ull, m_performance_counters),
   m_total_transactions("total_transactions", 0ull, m_performance_counters),
   m_pow_mon(pow_mon),
@@ -105,8 +77,8 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
   dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
   dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
   dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
-  dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation    
-    
+  dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation
+
 {
 
     // Parameter checks
@@ -116,7 +88,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     assert((m_cached>=0)&&(m_cached<=0xffff));
 
     // create mmu (if required)
-    m_mmu = (mmu_en == 1)? new mmu("mmu", 
+    m_mmu = (mmu_en == 1)? new mmu("mmu",
                                    (mmu_cache_if *)this,
                                    itlb_num,
                                    dtlb_num,
@@ -137,8 +109,8 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     dcache = (dcen == 1)? (cache_if*)new dvectorcache("dvectorcache",
             (mmu_cache_if *)this, (mmu_en)? (mem_if *)m_mmu->get_dtlb_if()
                                            : (mem_if *)this, mmu_en,
-            dsets, dsetsize, dsetlock, dlinesize, drepl, dlram, dlramstart, 
-            dlramsize, m_pow_mon) : (cache_if*)new nocache("no_dcache", 
+            dsets, dsetsize, dsetlock, dlinesize, drepl, dlram, dlramstart,
+            dlramsize, m_pow_mon) : (cache_if*)new nocache("no_dcache",
             (mmu_en)? (mem_if *)m_mmu->get_dtlb_if() : (mem_if *)this);
 
     // Create instruction scratchpad
@@ -197,7 +169,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
       GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, mmu_cache, int_power_cb);
       GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, mmu_cache, swi_power_cb);
 
-    }    
+    }
 
     // Module Configuration Report
     v::info << this->name() << " ************************************************** " << v::endl;
@@ -210,7 +182,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     v::info << this->name() << " * data scratchpad enable (dlram): " << dlram << v::endl;
     v::info << this->name() << " * abstraction Layer (LT = 8 / AT = 4): " << abstractionLayer << v::endl;
     v::info << this->name() << " * data cache snooping (0 = off / 1 = on): " << dsnoop << v::endl;
-    v::info << this->name() << " ************************************************** " << v::endl;   
+    v::info << this->name() << " ************************************************** " << v::endl;
 }
 
 mmu_cache::~mmu_cache() {
@@ -237,7 +209,7 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
   // Extract extension
   icio_payload_extension * iext;
   trans.get_extension(iext);
- 
+
   unsigned int *debug;
   unsigned int flush;
 
@@ -252,7 +224,7 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
     // No iext
     debug = NULL;
     flush = 0;
-  
+
     v::error << name() << "IEXT Payload extension missing" << v::endl;
   }
 
@@ -270,7 +242,7 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
     return;
 
   }
-  
+
   if (cmd == tlm::TLM_READ_COMMAND) {
 
     // Instruction scratchpad enabled && address points into selected 16MB region
@@ -282,7 +254,7 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
     } else {
 
       icache->mem_read((unsigned int)addr, 0x8, ptr, 4, &delay, debug, is_dbg, false);
-    
+
     }
 
     // Set response status
@@ -293,7 +265,7 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
     v::error << name() << " Command not valid for instruction cache (tlm_write)" << v::endl;
     // Set response status
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-    
+
   }
 }
 
@@ -338,7 +310,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       flush  = dext->flush;
       //flushl = dext->flushl;
       lock   = dext->lock;
-      
+
   } else {
       // No dext extension
       // assuming normal access
@@ -414,7 +386,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       delay = clock_cycle;
 
       break;
-      
+
     case 5:
 
       v::debug << name() << "Diagnostic read from instruction PDC (ASI 0x5)" << v::endl;
@@ -520,16 +492,16 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
           *(unsigned int *)ptr = m_mmu->read_mcr();
           // Set TLM response
           trans.set_response_status(tlm::TLM_OK_RESPONSE);
-            
+
         } else if (addr == 0x100) {
-            
+
           // Context Pointer Register
           v::debug << name() << "ASI read MMU Context Pointer Register" << v::endl;
-            
+
           *(unsigned int *)ptr = m_mmu->read_mctpr();
           // Set TLM response
           trans.set_response_status(tlm::TLM_OK_RESPONSE);
-            
+
         } else if (addr == 0x200) {
 
           // Context Register
@@ -540,7 +512,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
           trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
         } else if (addr == 0x300) {
-          
+
           // Fault Status Register
           v::debug << name() << "ASI read MMU Fault Status Register" << v::endl;
 
@@ -558,12 +530,12 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
           trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
         } else {
-                    
+
           v::error << name() << "Address not valid for read with ASI 0x19" << v::endl;
 
           // Setting TLM response
           trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
-            
+
         }
 
       } else {
@@ -675,7 +647,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       break;
 
     case 5:
-      
+
       v::debug << name() << "Diagnostic write to instruction PDC (ASI 0x5)" << v::endl;
 
       // Only possible if mmu enabled
@@ -728,7 +700,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
       icache->write_cache_tag((unsigned int)addr, (unsigned int*)ptr, &delay);
       // Set TLM response
-      trans.set_response_status(tlm::TLM_OK_RESPONSE);     
+      trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       break;
 
@@ -740,7 +712,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
       // Set TLM response
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
-  
+
       break;
 
     case 0xe:
@@ -753,8 +725,8 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
       break;
 
-    case 0xf: 
-      
+    case 0xf:
+
       v::debug << name() << "ASI write data cache entry" << v::endl;
 
       dcache->write_cache_entry((unsigned int)addr, (unsigned int*)ptr, &delay);
@@ -762,7 +734,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       break;
-   
+
     case 0x15:
 
       // All write operations with ASI 0x15 flush the instruction cache
@@ -778,13 +750,13 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
       // All write operations with ASI 0x16 flush the data cache
       v::debug << name() << "ASI flush data cache" << v::endl;
-       
+
       dcache->flush(&delay, debug, is_dbg);
       // Set TLM response
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
       break;
-      
+
     case 0x19:
 
       // Only works if MMU present
@@ -794,7 +766,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
         // Address decoder for MMU register access
         if (addr == 0x000) {
-          
+
           // MMU Control Register
           v::debug << name() << "ASI write MMU Control Register" << v::endl;
 
@@ -815,13 +787,13 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 
           // Context Register
           v::debug << name() << "ASI write MMU Context Register" << v::endl;
-          
+
           m_mmu->write_mctxr((unsigned int*)ptr);
           // Set TLM response
           trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
         } else {
-                    
+
           v::error << name() << "Address not valid for write with ASI 0x19 (or read-only)" << v::endl;
 
           // Setting TLM response
@@ -881,9 +853,9 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       v::error << name() << "ASI not recognized: " << hex << asi << v::endl;
       // Setting TLM response
       trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
-      
+
     }
-   
+
   } else {
 
     v::error << name() << "TLM command not valid" << v::endl;
@@ -891,7 +863,7 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
   }
-  
+
 }
 
 /// TLM blocking forward transport function for icio socket
@@ -946,7 +918,7 @@ void mmu_cache::dcio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_ti
 #endif
   // Reset delay
   //delay = SC_ZERO_TIME;
-   
+
 }
 
 /// TLM non-blocking forward transport function for icio socket
@@ -986,7 +958,7 @@ tlm::tlm_sync_enum mmu_cache::icio_nb_transport_fw(tlm::tlm_generic_payload &tra
 
 /// Processes transactions from the icio_PEQ.
 /// Contains a state machine to manage the communication path back to instruction initiator
-/// Is registered as an SC_THREAD and sensitive to icio_PEQ.get_event() 
+/// Is registered as an SC_THREAD and sensitive to icio_PEQ.get_event()
 void mmu_cache::icio_service_thread() {
 
   tlm::tlm_generic_payload *trans;
@@ -1038,14 +1010,14 @@ void mmu_cache::icio_service_thread() {
         break;
 
       default:
-        
+
         v::error << name() << "TLM return status undefined or not valid!! " << v::endl;
         assert(0);
 
       } // switch
 
     } // while PEQ
-  
+
     wait();
 
   }  // while thread
@@ -1075,7 +1047,7 @@ tlm::tlm_sync_enum mmu_cache::dcio_nb_transport_fw(tlm::tlm_generic_payload &tra
     return tlm::TLM_COMPLETED;
 
   } else {
-   
+
     v::error << name() << "Illegal phase in call to dcio_nb_transport_fw: " << phase << v::endl;
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
@@ -1142,14 +1114,14 @@ void mmu_cache::dcio_service_thread() {
 
           v::error << name() << "TLM return status undefined or not valid!! " << v::endl;
           break;
- 
+
       } // switch
-    
+
     } // while PEQ
 
     wait();
 
-  } // while thread     
+  } // while thread
 }
 
 // Instruction debug transport
@@ -1178,7 +1150,7 @@ unsigned int mmu_cache::dcio_transport_dbg(tlm::tlm_generic_payload &trans) {
 
   return trans.get_data_length();
 
-} 
+}
 
 /// Called from AHB master to signal begin response
 void mmu_cache::response_callback(tlm::tlm_generic_payload * trans) {
@@ -1190,7 +1162,7 @@ void mmu_cache::response_callback(tlm::tlm_generic_payload * trans) {
 
   // Let mem_read/mem_write function know that we received a response
   ahb_response_event.notify();
-  
+
 }
 
 /// Function for write access to AHB master socket
@@ -1207,7 +1179,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * d
     // @AT wait for response from bus
     if (m_abstractionLayer == amba::amba_AT) wait(ahb_response_event);
 
- 
+
   } else {
 
     // Debug transport
@@ -1223,7 +1195,7 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * da
 
   bool cacheable = false;
   tlm::tlm_response_status response;
-  
+
   if (!is_dbg) {
 
     // Regular read
@@ -1404,7 +1376,7 @@ void mmu_cache::end_of_simulation() {
     v::report << name() << " * " << v::endl;
     v::report << name() << " * AHB Master interface reports: " << v::endl;
     print_transport_statistics(name());
-    v::report << name() << " ********************************************" << v::endl;    
+    v::report << name() << " ********************************************" << v::endl;
 
 }
 
@@ -1418,7 +1390,7 @@ sc_core::sc_time mmu_cache::get_clock() {
 void mmu_cache::clkcng() {
 
     // Set icache clock
-    if(m_icen) { 
+    if(m_icen) {
         icache->clkcng(clock_cycle);
     }
 
@@ -1442,3 +1414,4 @@ void mmu_cache::clkcng() {
       ilocalram->clkcng(clock_cycle);
     }
 }
+/// @}

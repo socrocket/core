@@ -1,44 +1,19 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      arraymemory.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Implementation of the generic memory model to be used 
-//             with the SoCRocket MCTRL. Can be configured as ROM, 
-//             IO, SRAM or SDRAM. Underlying memory is implemented 
-//             as a flat array.
-//             Recommended for fast simulation of small memories.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Dennis Bode
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup memory
+/// @{
+/// @file arraymemory.cpp
+/// Implementation of the generic memory model to be used with the SoCRocket
+/// MCTRL. Can be configured as ROM, IO, SRAM or SDRAM. Underlying memory is
+/// implemented as a flat array. Recommended for fast simulation of small
+/// memories.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Dennis Bode
+///
 
 #include "arraymemory.h"
 #include <tlm.h>
@@ -66,10 +41,10 @@ static const char *power_params[4][4] = {
 ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) :
   sc_module(name),
   MEMDevice(type, banks, bsize, bits, cols),
-  bus("bus"), 
-  m_pow_mon(powmon), 
+  bus("bus"),
+  m_pow_mon(powmon),
   m_performance_counters("performance_counters"),
-  m_reads("bytes_read", 0ull, m_performance_counters), 
+  m_reads("bytes_read", 0ull, m_performance_counters),
   m_writes("bytes_writen", 0ull, m_performance_counters),
   sta_power_norm("power." + get_type_name() + ".sta_power_norm", 1269.53125, true), // Normalized static power input
   int_power_norm("power." + get_type_name() + ".int_power_norm", 1.61011e-6, true), // Normalized internal power input (act. independent)
@@ -83,7 +58,7 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
   dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
   dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
   dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
-  dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation  
+  dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation
 
 {
 
@@ -103,11 +78,11 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
 
   // Register power callback functions
   if (m_pow_mon) {
-    
+
     GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, ArrayMemory, sta_power_cb);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, ArrayMemory, int_power_cb);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, ArrayMemory, swi_power_cb);
-    
+
     // Set norm power - depending on type
     m_api->setInitValue("power.sram.sta_power_norm", power_params[type][0]);
     m_api->setInitValue("power.sram.int_power_norm", power_params[type][1]);
@@ -126,7 +101,7 @@ ArrayMemory::ArrayMemory(sc_core::sc_module_name name, MEMDevice::device_type ty
   v::info << this->name() << " * cols (SD only): " << cols << v::endl;
   v::info << this->name() << " * pow_mon: " << powmon << v::endl;
   v::info << this->name() << " ******************************************************************************* " << v::endl;
-    
+
   // Calculate array size
   size_t mem_size = bsize;
   mem_size *= (banks<5)?banks:8;
@@ -155,7 +130,7 @@ void ArrayMemory::start_of_simulation() {
 
 // Print execution statistic at end of simulation
 void ArrayMemory::end_of_simulation() {
-     
+
     v::report << name() << " ********************************************" << v::endl;
     v::report << name() << " * "<< get_type_name() << " Memory Statistic:" << v::endl;
     v::report << name() << " * -----------------------------------------" << v::endl;
@@ -226,12 +201,12 @@ void ArrayMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
       gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
 
     } else {
-    
+
       // Erase designated memory region
       erase(start, end);
 
       gp.set_response_status(tlm::TLM_OK_RESPONSE);
-      
+
       // Count write operations for power calculation
       dyn_writes += (end-start)>>2;
 
@@ -252,7 +227,7 @@ void ArrayMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
       for(uint32_t i = 0; i < len; i++) {
         ptr[i] = read(addr + i);
       }
-      
+
       v::debug << name() << "Read memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
       gp.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -274,7 +249,7 @@ void ArrayMemory::b_transport(tlm::tlm_generic_payload& gp, sc_time& delay) {
     } else {
 
       v::warn << name() << "Command not valid / or TLM_IGNORE" << v::endl;
-      
+
     }
   }
 }
@@ -295,7 +270,7 @@ unsigned int ArrayMemory::transport_dbg(tlm::tlm_generic_payload& gp) {
     v::debug << name() << "Debug read memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
     gp.set_response_status(tlm::TLM_OK_RESPONSE);
     return len;
-            
+
   case tlm::TLM_WRITE_COMMAND:
     for(uint32_t i=0; i<len; i++) {
       write(addr + i, ptr[i]);
@@ -325,7 +300,7 @@ uint8_t ArrayMemory::read(const uint32_t addr) {
 
 // Erase memory
 void ArrayMemory::erase(uint32_t start, uint32_t end) {
-    v::debug << name() << "Erase memory region from: " << v::uint32 << start 
+    v::debug << name() << "Erase memory region from: " << v::uint32 << start
                        << " to: " << v::uint32 << end << v::endl;
 
     for(size_t i = start; i < end + 1; i++) {
@@ -333,3 +308,4 @@ void ArrayMemory::erase(uint32_t start, uint32_t end) {
     }
 }
 
+/// @}

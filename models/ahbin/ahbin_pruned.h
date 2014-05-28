@@ -1,45 +1,19 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      input_device.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition of a cache-subsystem.
-//             The cache-subsystem envelopes an instruction cache,
-//             a data cache and a memory management unit.
-//             The input_device class provides two TLM slave interfaces
-//             for connecting the cpu to the caches and an AHB master
-//             interface for connection to the main memory.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup ahbin Input Device
+/// @{
+/// @file ahbin_pruned.h
+/// Class definition of a cache-subsystem. The cache-subsystem envelopes an
+/// instruction cache, a data cache and a memory management unit. The
+/// input_device class provides two TLM slave interfaces for connecting the cpu
+/// to the caches and an AHB master interface for connection to the main memory.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #ifndef __INPUT_DEVICE_H__
 #define __INPUT_DEVICE_H__
@@ -59,9 +33,6 @@
 
 #include "verbose.h"
 
-/// @addtogroup input_device Input_Device
-/// @{
-
 /// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
 class input_device : public sc_core::sc_module, public AHBDevice, public CLKDevice {
 
@@ -79,13 +50,13 @@ class input_device : public sc_core::sc_module, public AHBDevice, public CLKDevi
         signal<bool>::out irq;
 
         // Constructor
-        input_device(sc_core::sc_module_name name, 
+        input_device(sc_core::sc_module_name name,
                      unsigned int hindex,
                      unsigned int hirq,
                      bool powmon,
                      amba::amba_layer_ids ambaLayer);
 
-	
+
 	/// TLM non-blocking backward transport function for ahb master socket
 	tlm::tlm_sync_enum ahb_nb_transport_bw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
 
@@ -133,7 +104,7 @@ class input_device : public sc_core::sc_module, public AHBDevice, public CLKDevi
         /// GreenControl Parameter array
         gs::gs_param_array m_performance_counters;
 
-        /// Total number of successful transactions for execution statistics 
+        /// Total number of successful transactions for execution statistics
         gs::gs_param<uint64_t> m_right_transactions;
 	/// Total number of transactions for execution statistics
         gs::gs_param<uint64_t> m_total_transactions;
@@ -157,6 +128,5 @@ class input_device : public sc_core::sc_module, public AHBDevice, public CLKDevi
 	tlm_utils::peq_with_get<tlm::tlm_generic_payload> mEndTransactionPEQ;
 };
 
-/// @}
-
 #endif //__INPUT_DEVICE_H__
+/// @}

@@ -1,52 +1,25 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      ahbuart.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup apbuart
+/// @{
+/// @file apbuart.cpp
+/// 
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #include <string>
 #include "apbuart.h"
-
-/// @addtogroup gptimer
-/// @{
 
 // Constructor: create all members, registers and Counter objects.
 // Store configuration default value in conf_defaults.
 APBUART::APBUART(sc_core::sc_module_name name, io_if *backend, uint16_t pindex, uint16_t paddr, uint16_t pmask, int pirq, bool console, bool powmon) :
     gr_device(name, gs::reg::ALIGNED_ADDRESS, 4, NULL),
-    APBDevice(pindex, 0x1, 0x00C, 0, pirq, APBIO, pmask, false, false, paddr), 
+    APBDevice(pindex, 0x1, 0x00C, 0, pirq, APBIO, pmask, false, false, paddr),
     bus("bus", r, (paddr & pmask) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false),
     irq("IRQ"),
     m_backend(backend),
@@ -67,7 +40,7 @@ APBUART::APBUART(sc_core::sc_module_name name, io_if *backend, uint16_t pindex, 
                       32,                                          // Register width.
                       0x00                                         // Lock Mask: NI.
     );
-    
+
     r.create_register("status", "UART Status Register",
                       STATUS,                                      // offset
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
@@ -77,7 +50,7 @@ APBUART::APBUART(sc_core::sc_module_name name, io_if *backend, uint16_t pindex, 
                       32,                                          // Register width.
                       0x00                                         // Lock Mask: NI.
     );
-    
+
     r.create_register("control", "UART Control Register",
                       CONTROL,                                     // offset
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
@@ -87,7 +60,7 @@ APBUART::APBUART(sc_core::sc_module_name name, io_if *backend, uint16_t pindex, 
                       32,                                          // Register width.
                       0x00                                         // Lock Mask: NI.
     );
-    
+
     r.create_register("scaler", "UART Scaler Register",
                       SCALER,                                      // offset
                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
@@ -97,7 +70,7 @@ APBUART::APBUART(sc_core::sc_module_name name, io_if *backend, uint16_t pindex, 
                       32,                                          // Register width.
                       0x00                                         // Lock Mask: NI.
     );
-    
+
     // Configuration report
     v::info << this->name() << " ******************************************************************************* " << v::endl;
     v::info << this->name() << " * Created UART with following parameters: " << v::endl;
@@ -179,4 +152,3 @@ void APBUART::dorst() {
 }
 
 /// @}
-

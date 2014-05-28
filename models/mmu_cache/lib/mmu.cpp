@@ -1,47 +1,19 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      mmu.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Implementation of a memory management unit.
-//             The mmu can be configured to have split or combined
-//             TLBs for instructions and data. The TLB size can be
-//             configured as well. The memory page size is currently
-//             currently fixed to 4kB.
-//
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup mmu_cache
+/// @{
+/// @file mmu.cpp
+/// Implementation of a memory management unit. The mmu can be configured to
+/// have split or combined TLBs for instructions and data. The TLB size can be
+/// configured as well. The memory page size is currently currently fixed to
+/// 4kB.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #include "mmu.h"
 #include "verbose.h"
@@ -52,15 +24,15 @@ mmu::mmu(sc_core::sc_module_name name, // sysc module name,
          unsigned int dtlbnum,         // number of data tlbs
          unsigned int tlb_type,        // tlb type
          unsigned int tlb_rep,         // tlb replacement strategy
-         unsigned int mmupgsz,         // mmu page size 
+         unsigned int mmupgsz,         // mmu page size
 	 bool pow_mon) :               // power monitoring on/off
-            sc_module(name), 
-            m_mmu_cache(_mmu_cache), 
-	    m_itlbnum(itlbnum), 
-	    m_dtlbnum(dtlbnum), 
-	    m_itlblog2((unsigned int)log2((double)m_itlbnum)), 
-	    m_dtlblog2((unsigned int)log2((double)m_dtlbnum)), 
-	    m_tlb_type(tlb_type), 
+            sc_module(name),
+            m_mmu_cache(_mmu_cache),
+	    m_itlbnum(itlbnum),
+	    m_dtlbnum(dtlbnum),
+	    m_itlblog2((unsigned int)log2((double)m_itlbnum)),
+	    m_dtlblog2((unsigned int)log2((double)m_dtlbnum)),
+	    m_tlb_type(tlb_type),
 	    m_tlb_rep(tlb_rep),
             m_mmupgsz(mmupgsz),
 	    m_pseudo_rand(0),
@@ -305,7 +277,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 	    if (m_tlb_rep==1) {
 
 	      lru_update(vpn, tlb, tlb_size);
-	      
+
 	    }
 
             return (paddr);
@@ -405,10 +377,10 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
 	    // Remove a TLB entry, with respect to replacement strategy
 	    slot_no = tlb_remove(tlb, tlb_size);
-	    
+
 	    tmp.tlb_no = slot_no;
 
-   
+
         } else {
 
 	  v::info << this->name() << "Create new entry PDC entry - TLB number: " << tlb->size() << v::endl;
@@ -455,13 +427,13 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         v::error << this->name()
                 << "Error in 1st-Level Page Table / Entry type not valid"
                 << v::endl;
-        
+
         // Set fault status and fault address
         MMU_FAULT_STATUS_REG = 0;
         MMU_FAULT_STATUS_REG |= 1 << 8; // L  - Level of Error
         MMU_FAULT_STATUS_REG |= 4 << 2; // FT - Translation Error
         MMU_FAULT_STATUS_REG |= 1 << 1; // FAV - Fault Address Register valid
-        
+
         MMU_FAULT_ADDRESS_REG = addr;
 
         if (tlb == itlb) {
@@ -474,7 +446,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
           v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
           m_mmu_cache->set_irq(0x2c);
 
-        }        
+        }
 
         return (0);
     }
@@ -502,9 +474,9 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
 	  // Remove a TLB entry, with respect to replacement strategy
 	  slot_no = tlb_remove(tlb, tlb_size);
-	    
+
 	  tmp.tlb_no = slot_no;
-	    
+
         } else {
 
 	  v::info << this->name() << "Create new entry PDC entry - TLB number: " << tlb->size() << v::endl;
@@ -557,7 +529,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         MMU_FAULT_STATUS_REG |= 2 << 8; // L  - Level of Error
         MMU_FAULT_STATUS_REG |= 4 << 2; // FT - Translation Error
         MMU_FAULT_STATUS_REG |= 1 << 1; // FAV - Fault Address Register valid
-        
+
         MMU_FAULT_ADDRESS_REG = addr;
 
         if (tlb == itlb) {
@@ -600,7 +572,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 	    slot_no = tlb_remove(tlb, tlb_size);
 
 	    tmp.tlb_no = slot_no;
-	    
+
         } else {
 
 	  v::info << this->name() << "Create new entry PDC entry - TLB number: " << tlb->size() << v::endl;
@@ -647,7 +619,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         MMU_FAULT_STATUS_REG |= 3 << 8; // L  - Level of Error
         MMU_FAULT_STATUS_REG |= 4 << 2; // FT - Translation Error
         MMU_FAULT_STATUS_REG |= 1 << 1; // FAV - Fault Address Register valid
-        
+
         MMU_FAULT_ADDRESS_REG = addr;
 
         if (tlb == itlb) {
@@ -702,7 +674,7 @@ unsigned int mmu::read_mctpr() {
 
   #ifdef LITTLE_ENDIAN_BO
   swap_Endianess(tmp);
-  #endif  
+  #endif
 
   return (tmp);
 
@@ -760,7 +732,7 @@ unsigned int mmu::read_mfsr() {
   #ifdef LITTLE_ENDIAN_BO
   swap_Endianess(tmp);
   #endif
-  
+
   return (tmp);
 
 }
@@ -882,7 +854,7 @@ unsigned int mmu::tlb_remove(std::map<t_VAT, t_PTE_context> * tlb, unsigned int 
       v::info << this->name() << "Select TLB (Random): " << tlb_select << " for replacement. " << v::endl;
 
       count = 0;
-      
+
       for(selector = tlb->begin(); selector != tlb->end(); selector++) {
 
 	if (count == tlb_select) {
@@ -892,7 +864,7 @@ unsigned int mmu::tlb_remove(std::map<t_VAT, t_PTE_context> * tlb, unsigned int 
 
 	}
       }
-    
+
   }
 
   return tlb_select;
@@ -901,7 +873,7 @@ unsigned int mmu::tlb_remove(std::map<t_VAT, t_PTE_context> * tlb, unsigned int 
 
 // LRU replacement history updater
 void mmu::lru_update(t_VAT vpn, std::map<t_VAT, t_PTE_context> * tlb, unsigned int tlb_size) {
-  
+
   std::map<t_VAT, t_PTE_context>::iterator selector;
 
   v::info << name() << "LRU_UPDATE for VPN: " << hex << vpn << v::endl;
@@ -917,7 +889,7 @@ void mmu::lru_update(t_VAT vpn, std::map<t_VAT, t_PTE_context> * tlb, unsigned i
 	(selector->second.lru)--;
 
       }
- 
+
     } else {
 
 	selector->second.lru = 7;
@@ -974,7 +946,7 @@ void mmu::start_of_simulation() {
 
   // Initialize power model
   if (m_pow_mon) {
-    
+
     power_model();
 
   }
@@ -1016,7 +988,7 @@ void mmu::power_model() {
 
   // dtlb read energy
   dyn_dtlb_read_energy = dyn_tlb_read_energy_norm * data_tlbs;
-  
+
   // dtlb write energy
   dyn_dtlb_write_energy = dyn_tlb_write_energy_norm * data_tlbs;
 
@@ -1099,7 +1071,7 @@ void mmu::end_of_simulation() {
     }
 
   }
-  
+
   v::report << name() << " ******************************************** " << v::endl;
 
 }
@@ -1127,3 +1099,4 @@ tlb_adaptor * mmu::get_dtlb_if() {
 void mmu::clkcng(sc_core::sc_time &clk) {
   clockcycle = clk;
 }
+/// @}

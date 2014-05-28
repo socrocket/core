@@ -1,43 +1,17 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      mctrl.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    implementation of the mctrl module
-//             is included by mctrl.h template header file
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Dennis Bode
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup mctrl
+/// @{
+/// @file mctrl.cpp
+/// implementation of the mctrl module is included by mctrl.h template header
+/// file
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Dennis Bode
+///
 
 #include "mctrl.h"
 #include <tlm.h>
@@ -52,13 +26,13 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
              int _romaddr, int _rommask, int _ioaddr, int _iomask,
              int _ramaddr, int _rammask, int _paddr, int _pmask, int _wprot,
              int _srbanks, int _ram8, int _ram16, int _sepbus, int _sdbits,
-             int _mobile, int _sden, unsigned int hindex, unsigned int pindex, 
+             int _mobile, int _sden, unsigned int hindex, unsigned int pindex,
 	     bool powermon, amba::amba_layer_ids ambaLayer) :
             AHBSlave<gs::reg::gr_device>( name,
                                           hindex,
                                           0x04, // ven: ESA
                                           0x0F, // dev: MCTRL
-                                          0, 
+                                          0,
                                           0, // VER, IRQ
                                           ambaLayer,
                                           BAR(AHBDevice::AHBMEM, _rommask, true, true, _romaddr),
@@ -78,14 +52,14 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                     false //socket is not used for arbitration
             ),
             mem("mem", gs::socket::GS_TXN_ONLY),
-            busy(false), 
-            m_total_transactions("total_transactions", 0ull, m_performance_counters), 
-            m_right_transactions("successful_transactions", 0ull, m_performance_counters), 
-            m_power_down_time("total_power_down", sc_core::SC_ZERO_TIME, m_performance_counters), 
+            busy(false),
+            m_total_transactions("total_transactions", 0ull, m_performance_counters),
+            m_right_transactions("successful_transactions", 0ull, m_performance_counters),
+            m_power_down_time("total_power_down", sc_core::SC_ZERO_TIME, m_performance_counters),
             m_power_down_start("last_power_down", sc_core::SC_ZERO_TIME, m_performance_counters),
-            m_deep_power_down_time("total_deep_power_down", sc_core::SC_ZERO_TIME, m_performance_counters), 
+            m_deep_power_down_time("total_deep_power_down", sc_core::SC_ZERO_TIME, m_performance_counters),
             m_deep_power_down_start("last_deep_power_down", sc_core::SC_ZERO_TIME, m_performance_counters),
-            m_self_refresh_time("total_self_refresh", sc_core::SC_ZERO_TIME, m_performance_counters), 
+            m_self_refresh_time("total_self_refresh", sc_core::SC_ZERO_TIME, m_performance_counters),
             m_self_refresh_start("last_self_refresh", sc_core::SC_ZERO_TIME, m_performance_counters),
             sta_power_norm("power.mctrl.sta_power_norm", 1.7e+8, true), // Normalized static power of controller
             int_power_norm("power.mctrl.int_power_norm", 1.874e-8, true), // Normalized internal power of controller
@@ -100,56 +74,56 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
             dyn_write_energy("dyn_write_energy", 0.0, power), // Energy for write access
             dyn_reads("dyn_reads", 0ull, power), // Number of read accesses
             dyn_writes("dyn_writes", 0ull, power), // Number of write accesses
-            g_romasel(_romasel), g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask), 
-            g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr), 
+            g_romasel(_romasel), g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask),
+            g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr),
             g_rammask(_rammask), g_paddr(_paddr), g_pmask(_pmask), g_wprot(_wprot),
             g_srbanks(_srbanks), g_ram8(_ram8), g_ram16(_ram16), g_sepbus(_sepbus),
             g_sdbits(_sdbits), g_mobile(_mobile), g_sden(_sden), m_pow_mon(powermon)
 
  {
 
-    // Display APB slave information 
-    v::info << this->name() << "APB slave @" << v::uint32 << apb.get_base_addr() 
+    // Display APB slave information
+    v::info << this->name() << "APB slave @" << v::uint32 << apb.get_base_addr()
             << " size: " << v::uint32 << apb.get_size() << " byte" << v::endl;
     v::info << this->name() << "(" << hex << _paddr << ":" << hex << _pmask << ")" << hex << ::APBDevice::get_device_info()[1] << v::endl;
- 
+
     //check consistency of address space generics
     //rom space in MByte: 4GB - masked area (rommask)
     //rom space in Byte: 2^(romasel + 1)
     //same for ram and sdrasel
     if((4096 - _rommask) != (1 << (_romasel - 19))) {
-        v::error << this->name() << "Inconsistent address space parameters. " 
+        v::error << this->name() << "Inconsistent address space parameters. "
                  << "Check romasel and (rom-addr/-mask parameter." << v::endl;
     }
     if((4096 - _rammask) != (1 << (_sdrasel - 19))) {
-        v::error << this->name() << "Inconsistent address space parameters. " 
+        v::error << this->name() << "Inconsistent address space parameters. "
                  << "Check sdrasel vs. ram-addr/-mask parameter." << v::endl;
     }
     if(_romaddr < _ioaddr  && (_romaddr + 4096 - _rommask) > _ioaddr) {
         v::error << this->name() << "Inconsistent address space parameters. "
                  << "Check rom/io address and mask for overlaps." << v::endl;
     }
-    
+
     if(_romaddr < _ramaddr  && (_romaddr + 4096 - _rommask) > _ramaddr) {
         v::error << this->name() << "Inconsistent address space parameters. "
                  << "Check rom/ram address and mask for overlaps." << v::endl;
     }
-    
+
     if(_ioaddr  < _romaddr && (_ioaddr  + 4096 - _iomask)  > _romaddr) {
         v::error << this->name() << "Inconsistent address space parameters. "
                  << "Check io/rom address and mask for overlaps." << v::endl;
     }
-    
+
     if(_ioaddr  < _ramaddr && (_ioaddr  + 4096 - _iomask)  > _ramaddr) {
         v::error << this->name() << "Inconsistent address space parameters. "
                  << "Check io/ram address and mask for overlaps." << v::endl;
     }
-    
+
     if(_ramaddr < _romaddr && (_ramaddr + 4096 - _rammask) > _romaddr) {
         v::error << this->name() << "Inconsistent address space parameters. "
                  << "Check *ram/rom address and mask for overlaps." << v::endl;
     }
-    
+
     if(_ramaddr < _ioaddr  && (_ramaddr + 4096 - _rammask) > _ioaddr) {
         v::error << this->name() << "Inconsistent address space parameters. "
                  << "Check ram/io address and mask for overlaps." << v::endl;
@@ -160,29 +134,29 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
                        gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // configuration
                        gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
                        MCFG1_DEFAULT, // init value(to be calculated from the generics for all 4 registers)
-                       // write mask             
-                       // FIXME: check consistency of ram8, 
-                       //        ram 16 generics vs. default and 
+                       // write mask
+                       // FIXME: check consistency of ram8,
+                       //        ram 16 generics vs. default and
                        //        mask of PROM WIDTH field
                        MCFG1_WRITE_MASK | 1 << 9 | 1 << 8,
                        32, // reg width (maximum 32 bit)
                        0x00 // lock mask: Not implementet, has to be zero.
                        );
     r.create_register( "MCFG2", "Memory Configuration Register 2", 0x04,
-                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | 
+                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |
                        gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-                       MCFG2_DEFAULT,  
-                       //FIXME: check consistency of ram8, 
-                       //       ram 16 generics vs. default and 
+                       MCFG2_DEFAULT,
+                       //FIXME: check consistency of ram8,
+                       //       ram 16 generics vs. default and
                        //       mask of RAM WIDTH field
                        MCFG2_WRITE_MASK | 1 << 5 | 1 << 4,
                        32, 0x00);
     r.create_register( "MCFG3", "Memory Configuration Register 3", 0x08,
-                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | 
+                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |
                        gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
                        MCFG3_DEFAULT, MCFG3_WRITE_MASK, 32, 0x00);
     r.create_register( "MCFG4", "Power-Saving Configuration Register", 0x0C,
-                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | 
+                       gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |
                        gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
                        MCFG4_DEFAULT, MCFG4_WRITE_MASK, 32, 0x00);
 
@@ -216,7 +190,7 @@ Mctrl::Mctrl(sc_module_name name, int _romasel, int _sdrasel,
     v::info << this->name() << " * abstractionLayer (LT = 8 / AT = 4): " << ambaLayer << v::endl;
     v::info << this->name() << " ******************************************************************************* " << v::endl;
 
-    
+
 }
 
 //destructor unregisters callbacks
@@ -227,7 +201,7 @@ Mctrl::~Mctrl() {
 //register GreenReg callback after elaboration
 void Mctrl::end_of_elaboration() {
     // create bit accessors for green registers
-    // callbacks can then be registers on the defined bits only instead 
+    // callbacks can then be registers on the defined bits only instead
     // of the entire register
     // arguments: br.create(name, start bit, end bit)
     r[MCFG2].br.create("lmr", 26, 26);      // tcas needs LMR command
@@ -336,8 +310,8 @@ void Mctrl::start_of_simulation() {
                     if(c_sram.id > 10) {
                         c_sram = port;
                         // set ram width and ram bank size
-                        r[MCFG2] = (r[MCFG2].get() & ~0x00001EC0) | 
-                                   (((int)(log2(device->get_bsize())-13) & 0xF) << 9) | 
+                        r[MCFG2] = (r[MCFG2].get() & ~0x00001EC0) |
+                                   (((int)(log2(device->get_bsize())-13) & 0xF) << 9) |
                                    (((int)(log2(device->get_bits())-3) & 0x3) << 4);
                     } else {
                         v::error << name() << "More than one SRAM area is connected to the Controller!" << v::endl;
@@ -346,8 +320,8 @@ void Mctrl::start_of_simulation() {
                 case MEMDevice::SDRAM: {
                     if(c_sdram.id > 10) {
                         c_sdram = port;
-                        r[MCFG2] = (r[MCFG2].get() & ~0x003E0000) | 
-                                     (((int)(log2(device->get_bsize())-22) & 0x7) << 23) | 
+                        r[MCFG2] = (r[MCFG2].get() & ~0x003E0000) |
+                                     (((int)(log2(device->get_bsize())-22) & 0x7) << 23) |
                                      (((int)(log2(device->get_cols())-8) & 0x3) << 21);
                     } else {
                         v::error << name() << "More than one SDRAM area is connected to the Controller!" << v::endl;
@@ -358,7 +332,7 @@ void Mctrl::start_of_simulation() {
               v::warn << name() << "There is a device connected on the mem bus which is not inherite by MEMDevice named " << obj->name() << v::endl;
         }
     }
-    
+
     // Initialize power model
     if (m_pow_mon) {
 
@@ -369,10 +343,10 @@ void Mctrl::start_of_simulation() {
 
 // Print execution statistic at end of simulation
 void Mctrl::end_of_simulation() {
- 
+
   sc_time nominal_time;
- 
-  switch_power_mode(); 
+
+  switch_power_mode();
   v::report << name() << " ********************************************" << v::endl;
   v::report << name() << " * Mctrl Statistic:" << v::endl;
   v::report << name() << " * ----------------" << v::endl;
@@ -404,7 +378,7 @@ void Mctrl::dorst() {
     r[MCFG2] = 0x1F100000;
     r[MCFG3] = 0x00000000;
     r[MCFG4] = 0x00F00000 | ((1 && g_mobile) << 31);
-    
+
     //set default values of mobile SDRAM
     if(g_sden) {
         uint32_t mcfg;
@@ -423,9 +397,9 @@ void Mctrl::dorst() {
                 mcfg = static_cast<uint32_t> (r[MCFG4] | MCFG4_ME);
                 r[MCFG4].set(mcfg);
                 break;
-                // Case 3 would be the same as 2 here, 
+                // Case 3 would be the same as 2 here,
                 // the difference being that 3 disables std SDRAM,
-                //i.e. mobile cannot be disabled. 
+                //i.e. mobile cannot be disabled.
                 //This will be implemented wherever someone tries to
                 //disable mobile SDRAM.
             default:;
@@ -450,13 +424,13 @@ void Mctrl::dorst() {
         r[MCFG1] = r[MCFG1] | (set << 27);
     }
     if(c_sram.id != 100 && c_sram.dev != NULL) {
-        r[MCFG2] = (r[MCFG2].get() & ~0x00001EC0) | 
-                   (((int)(log2(c_sram.dev->get_bsize())-13) & 0xF) << 9) | 
+        r[MCFG2] = (r[MCFG2].get() & ~0x00001EC0) |
+                   (((int)(log2(c_sram.dev->get_bsize())-13) & 0xF) << 9) |
                    (((int)(log2(c_sram.dev->get_bits())-3) & 0x3) << 4);
     }
     if(c_sdram.id != 100 && c_sram.dev != NULL) {
-        r[MCFG2] = (r[MCFG2].get() & ~0x003E0000) | 
-                   (((int)(log2(c_sdram.dev->get_bsize())-22) & 0x7) << 23) | 
+        r[MCFG2] = (r[MCFG2].get() & ~0x003E0000) |
+                   (((int)(log2(c_sdram.dev->get_bsize())-22) & 0x7) << 23) |
                    (((int)(log2(c_sdram.dev->get_cols())-8) & 0x3) << 21);
     }
 }
@@ -475,9 +449,9 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
     bool rmw = (r[MCFG2].get() >> 6) & 1;
     MEMPort  port   = get_port(addr);
     sc_time mem_delay;
-    
+
     m_total_transactions++;
-    
+
     v::debug << name() << "Try to access memory at " << v::uint32 << addr << " of length " << length << "." << " pmode: " << (uint32_t)m_pmode << v::endl;
 
     // Log event count for power monitoring
@@ -486,7 +460,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
       if (gp.get_command() == tlm::TLM_READ_COMMAND) {
 
         dyn_reads += (length >> 2) + 1;
-        
+
       } else {
 
         dyn_writes += (length >> 2) + 1;
@@ -518,14 +492,14 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
                     mem_width = (r[MCFG2].get() >> 4) & 0x3;
                     break;
             }
-            
+
             // Set mem_width in byte from bitmask
             switch(mem_width) {
                 default: mem_width = 4; break;
                 case 1:  mem_width = 2; break;
                 case 0:  mem_width = 1; break;
             }
-            
+
             // Calculate delay: The static delay for the hole transaction and the per word delay:
             switch(port.dev->get_type()) {
                 case MEMDevice::ROM:
@@ -541,7 +515,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
                     } else {
                         trans_delay = 1;
                         word_delay = (2 + ((r[MCFG1].get()>>0) & 0xF));
-                        
+
                         // The RTL Model reads every mem_word as an 32bit word from the memory.
                         // So we need to ensure the same behaviour here we multiply the read times to fit 32bit each.
                         // GRIP 59.5
@@ -609,7 +583,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
                       switch(m_pmode) {
                           default: break;
                           case 1: trans_delay += 1; break; // Power-Down Mode Delay
-                          case 2: trans_delay += 1; 
+                          case 2: trans_delay += 1;
                               v::warn << name() << "The Controller is in Auto-Self-Refresh Mode. Transaction might not be wanted!" <<v::endl;
                               break;  // Auto-Self Refresh
                           case 5: { // Deep power down! No transaction possible:
@@ -617,11 +591,11 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
                               gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
                               return 0;
                           }
-                      } 
+                      }
                     }
                     break;
             }
-            
+
             v::debug << name() << "Length: " << std::dec << length << ", mem_width: " << std::dec << mem_width << ", width: " << width << v::endl;
             v::debug << name() << "RMW Enabled: " << rmw << v::endl;
             if(gp.is_write()) {
@@ -643,13 +617,13 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
                 } else if(length<mem_width) {
                     // Error in case of subword access
                     v::error << name() << "Invalid memory access: Transaction width is not compatible with memory width (Transaction-Width: "
-                             << width << ", Memory-Width: " << mem_width << ", Data-Length: " << length << ". Please change width or enable Read-Modify-Write Transactions." 
+                             << width << ", Memory-Width: " << mem_width << ", Data-Length: " << length << ". Please change width or enable Read-Modify-Write Transactions."
                              <<v::endl;
                     gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
                     return 0;
                 }
             }
-            
+
             memgp.set_command(gp.get_command());
             memgp.set_address(port.addr);
             memgp.set_data_length(length);
@@ -661,7 +635,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
             gp.set_response_status(memgp.get_response_status());
             m_right_transactions++;
 
-            // Bus Ready used? 
+            // Bus Ready used?
             // If IO Bus Ready take the delay from the memmory.
               // Or if the RAM Bus Ready is set.
             if((port.dev->get_type() == MEMDevice::IO && (r[MCFG1].get() & MCFG1_IBRDY)) ||
@@ -684,7 +658,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
         gp.set_response_status(TLM_ADDRESS_ERROR_RESPONSE);
         return 0;
     }
-    
+
     return length;
 }
 
@@ -703,17 +677,17 @@ void Mctrl::launch_sdram_command() {
             break;
         // Auto-Refresh: Forces a refresh, which needs idle state!
         // How can that be guaranteed?
-        // Refresh asap, i.e. right after termination of active command? 
+        // Refresh asap, i.e. right after termination of active command?
         // Always send a precharge before Refresh?
-        // Whatever, for LT it's as simple as waiting for exactly 
+        // Whatever, for LT it's as simple as waiting for exactly
         // one refresh cycle:
-        // --> The previous transaction will always have finished 
+        // --> The previous transaction will always have finished
         // before the Sim Kernel takes note of this callback.
         case 2:
             callback_delay += clock_cycle *(3 + (MCFG2_SDRAM_TRFC_DEFAULT >> 30));
             break;
 
-        // Precharge: Terminate current burst transaction 
+        // Precharge: Terminate current burst transaction
         // (no effect in LT) --> wait for tRP
         case 1:
             callback_delay += clock_cycle * (2 + (MCFG2_TRP_DEFAULT >> 29));
@@ -741,13 +715,13 @@ void Mctrl::switch_power_mode() {
     gp.set_data_ptr((unsigned char*)&data);
     gp.set_extension(erase);
     switch(m_pmode) {
-        case 1: 
+        case 1:
             m_power_down_time = m_power_down_time.getValue() + (sc_time_stamp() - m_power_down_start.getValue());
             break;
-        case 2: 
+        case 2:
             m_self_refresh_time = m_self_refresh_time.getValue() + (sc_time_stamp() - m_self_refresh_start.getValue());
             break;
-        case 5: 
+        case 5:
             m_deep_power_down_time = m_deep_power_down_time.getValue() + (sc_time_stamp() - m_deep_power_down_start.getValue());
             break;
         default:
@@ -762,15 +736,15 @@ void Mctrl::switch_power_mode() {
             v::debug << name() << "Power Mode: None" << v::endl;
             //PM::send_idle(this, "idle", sc_time_stamp(), true);
         }   break;
-        
+
         // Dont do anything in PowerDown mode!
-        case 1: { 
+        case 1: {
             v::debug << name() << "Power Mode: Power Down" << v::endl;
             m_pmode = 1;
             //PM::send_idle(this, "idle_powerdown", sc_time_stamp(), true);
             m_power_down_start = sc_time_stamp();
         }   break;
-        
+
         //partial array self refresh: partially erase SDRAM
         case 2: {
             uint8_t pasr = r[MCFG4] & MCFG4_PASR;
@@ -837,8 +811,8 @@ void Mctrl::mcfg1_write() {
       mcfg |= (2 << 8);
       v::warn << name() << "PROM access with 16bit width configured in MCFG1, but RAM16 Generic is 0 so 32bit access assumed." << v::endl;
     }
-    v::debug << name() << "Old MCFG1: " << v::uint32 << r[MCFG1].get() 
-                       << " new MCFG1: " << v::uint32 << mcfg 
+    v::debug << name() << "Old MCFG1: " << v::uint32 << r[MCFG1].get()
+                       << " new MCFG1: " << v::uint32 << mcfg
                        << " ram8,16: " << g_ram8 << "," << g_ram16 << v::endl;
     r[MCFG1].set(mcfg);
 }
@@ -846,7 +820,7 @@ void Mctrl::mcfg1_write() {
 void Mctrl::mcfg2_write() {
     uint32_t mcfg = r[MCFG2].get();
     if(!g_sden) {
-      mcfg &= ~MCFG2_SE; 
+      mcfg &= ~MCFG2_SE;
     }
     if((((mcfg>>4)&0x3)==0)&&!g_ram8) {
       mcfg &= ~MCFG2_RAM_WIDTH;
@@ -858,8 +832,8 @@ void Mctrl::mcfg2_write() {
       mcfg |= (2 << 4);
       v::warn << name() << "RAM access with 16bit width configured in MCFG2, but RAM16 Generic is 0 so 32bit access assumed." << v::endl;
     }
-    v::debug << name() << "Old MCFG2: " << v::uint32 << r[MCFG2].get() 
-                       << " new MCFG2: " << v::uint32 << mcfg 
+    v::debug << name() << "Old MCFG2: " << v::uint32 << r[MCFG2].get()
+                       << " new MCFG2: " << v::uint32 << mcfg
                        << " ram8,16: " << g_ram8 << "," << g_ram16 << v::endl;
     r[MCFG2].set(mcfg);
 }
@@ -977,7 +951,7 @@ uint32_t Mctrl::transport_dbg(tlm_generic_payload& gp) {
         gp.set_response_status(TLM_ADDRESS_ERROR_RESPONSE);
         return 0;
     }
-    
+
     return length;
 }
 
@@ -986,3 +960,4 @@ sc_core::sc_time Mctrl::get_clock() {
   return clock_cycle;
 
 }
+/// @}

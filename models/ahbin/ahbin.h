@@ -1,43 +1,17 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      ahbin.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition for input device.
-//             Provides frames of data samples in regual intervals.
-//             CPU is notifed about new data via IRQ.
-//             
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup ahbin Input Device
+/// @{
+/// @file ahbin.h
+/// Class definition for input device. Provides frames of data samples in regual
+/// intervals. CPU is notifed about new data via IRQ.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #ifndef __AHBIN_H__
 #define __AHBIN_H__
@@ -45,7 +19,7 @@
 // The TLM header (to be included in each TL model)
 #include <tlm.h>
 
-// AHB TLM master socket and protocol implementation 
+// AHB TLM master socket and protocol implementation
 #include "ahbmaster.h"
 // Timing interface (specify clock period)
 #include "clkdevice.h"
@@ -59,9 +33,6 @@
 // Provides methods for generating random data
 #include <math.h>
 
-/// @addtogroup AHBIn Input_Device
-/// @{
-
 /// Definition of class AHBIn
 class AHBIn : public AHBMaster<>, public CLKDevice {
 
@@ -74,7 +45,7 @@ class AHBIn : public AHBMaster<>, public CLKDevice {
 
   /// Constructor
   AHBIn(sc_core::sc_module_name name,    // The SystemC name of the component
-               unsigned int hindex,         // The master index for registering with the AHB 
+               unsigned int hindex,         // The master index for registering with the AHB
                unsigned int hirq,               // The number of the IRQ raised for available data
                unsigned int framesize,          // The size of the data frame to be generated
                unsigned int frameaddr,          // The address the data is supposed to be copied to
@@ -82,7 +53,7 @@ class AHBIn : public AHBMaster<>, public CLKDevice {
                bool pow_mon,                    // Enable power monitoring
                amba::amba_layer_ids ambaLayer); // TLM abstraction layer
 
-	
+
 
    /// Thread for triggering gen_frame (generates new_frame event)
   void frame_trigger();
@@ -92,7 +63,7 @@ class AHBIn : public AHBMaster<>, public CLKDevice {
 
   /// Reset function
   void dorst();
-  
+
   /// Deal with clock changes
   void clkcng();
 
@@ -132,6 +103,5 @@ class AHBIn : public AHBMaster<>, public CLKDevice {
 
 };
 
-/// @}
-
 #endif //__AHBIN_H__
+/// @}

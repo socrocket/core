@@ -1,43 +1,18 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      localram.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Class definition of scratchpad/localram.
-//             Can be attached to the icache and dcache controllers.
-//             The localram enables fast 0-waitstate access
-//             to instructions or data.
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup mmu_cache
+/// @{
+/// @file localram.h
+/// Class definition of scratchpad/localram. Can be attached to the icache and
+/// dcache controllers. The localram enables fast 0-waitstate access to
+/// instructions or data.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #ifndef __LOCALRAM_H__
 #define __LOCALRAM_H__
@@ -75,7 +50,7 @@ class localram : public sc_core::sc_module, public mem_if {
   /// Write to scratchpad
   virtual void mem_write(unsigned int address, unsigned int asi, unsigned char *data, unsigned int len,
                          sc_core::sc_time *t, unsigned int *debug, bool is_dbg);
-  
+
   /// Helper functions for definition of clock cycle
   void clkcng(sc_core::sc_time &clk);
 
@@ -92,7 +67,7 @@ class localram : public sc_core::sc_module, public mem_if {
   gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Dynamic/Switching power callback
-  gs::cnf::callback_return_type swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);  
+  gs::cnf::callback_return_type swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
   /// Hook up for showing statistics
   void end_of_simulation();
@@ -103,11 +78,11 @@ class localram : public sc_core::sc_module, public mem_if {
   /// @param name    SystemC module name
   /// @param lrsize  Local ram size. Size in kbyte = 2^lrsize (like top-level template)
   /// @param lrstart Local ram start address. The 8 most significant bits of the address.
-  localram(sc_core::sc_module_name name, 
-           unsigned int lrsize, 
+  localram(sc_core::sc_module_name name,
+           unsigned int lrsize,
            unsigned int lrstart,
            bool pow_mon = false);
-  
+
   /// Destructor
   ~localram();
 
@@ -134,10 +109,10 @@ class localram : public sc_core::sc_module, public mem_if {
 
   /// GreenControl API container
   gs::cnf::cnf_api *m_api;
-        
+
   /// Open a namespace for performance counting in the greencontrol realm
   gs::gs_param_array m_performance_counters;
-  
+
   /// Number of read accesses
   gs::gs_param<unsigned long long> sreads;
 
@@ -191,10 +166,11 @@ class localram : public sc_core::sc_module, public mem_if {
 
   /// Number of writes to memory (read & reset by monitor)
   gs::gs_param<unsigned long long> dyn_writes;
-  
+
   /// Clock cycle time
   sc_core::sc_time clockcycle;
 
 };
 
 #endif // __LOCALRAM_H__
+/// @}

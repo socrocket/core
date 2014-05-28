@@ -1,44 +1,17 @@
-// *****************************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the
-// European Space Agency or of TU-Braunschweig.
-// *****************************************************************************
-// Title:      ahbctrl.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    AHB address decoder.
-//             The decoder collects all AHB request from the masters and
-//             forwards them to the appropriate slave.
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-// *****************************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup ahbctrl
+/// @{
+/// @file ahbctrl.cpp
+/// AHB address decoder. The decoder collects all AHB request from the masters
+/// and forwards them to the appropriate slave.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #include "ahbctrl.h"
 #include "verbose.h"
@@ -60,7 +33,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
 		 bool mcheck,          // Check if there are any intersections between core memory regions
 		 bool pow_mon,         // Enable power monitoring
 		 amba::amba_layer_ids ambaLayer) :
-      sc_module(nm),      
+      sc_module(nm),
       ahbIN("ahbIN", amba::amba_AHB, ambaLayer, false),
       ahbOUT("ahbOUT", amba::amba_AHB, ambaLayer, false),
       snoop("snoop"),
@@ -90,7 +63,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
       m_max_wait("maximum_waiting_time", SC_ZERO_TIME, m_performance_counters),
       m_max_wait_master("maximum_waiting_master_id", defmast, m_performance_counters),
       m_idle_count("idle_cycles", 0ull, m_performance_counters),
-      m_total_transactions("total_transactions", 0ull, m_performance_counters), 
+      m_total_transactions("total_transactions", 0ull, m_performance_counters),
       m_right_transactions("successful_transactions", 0ull, m_performance_counters),
       m_writes("bytes_written", 0ull, m_performance_counters),
       m_reads("bytes_read", 0ull, m_performance_counters),
@@ -188,7 +161,7 @@ AHBCtrl::AHBCtrl(sc_core::sc_module_name nm, // SystemC name
   v::info << name() << " * mcheck: " << mcheck << v::endl;
   v::info << name() << " * pow_mon: " << pow_mon << v::endl;
   v::info << name() << " * ambaLayer (LT = 8 / AT = 4):  " << ambaLayer << v::endl;
-  v::info << name() << " ******************************************************************************* " << v::endl; 
+  v::info << name() << " ******************************************************************************* " << v::endl;
 
 }
 
@@ -230,14 +203,14 @@ int AHBCtrl::get_index(const uint32_t address) {
   for (it = slave_map.begin(); it != slave_map.end(); it++) {
 
     slave_info_t info = it->second;
-  
+
     if (((addr ^ info.haddr) & info.hmask) == 0) {
 
       // There may be up to four BARs per device.
       // Only return device ID.
       m_right_transactions++;
       return ((it->first)>>2);
- 
+
     }
   }
 
@@ -278,7 +251,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     } else {
       result = 0;
     }
- 
+
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(result);
     #endif
@@ -287,7 +260,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 
   } else {
 
-    
+
     // Calculate index of the device in mMasters pointer array (32 byte per device)
     unsigned int device = (addr >> 2) >> 3;
     // Calculate offset within device information
@@ -299,7 +272,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     }
 
     if (mMasters[device] != NULL) {
-      
+
       result = mMasters[device][offset];
 
     } else {
@@ -342,7 +315,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
 
   busy = true;
   is_lock = ahbIN.get_extension<amba::amba_lock>(lock, trans);
-  
+
   lock_master = id;
 
   // Collect transport statistics
@@ -372,7 +345,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
           // one cycle delay per 32bit register
           delay += clock_cycle;
       }
-      
+
       // and return
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
 
@@ -388,7 +361,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
 
       v::error << name() << " Forbidden write to AHBCTRL configuration area (PNP)!" << v::endl;
       trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-      
+
       delay=SC_ZERO_TIME;
 
       msclogger::return_backward(this, &ahbIN, &trans, tlm::TLM_COMPLETED, delay);
@@ -439,7 +412,7 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
 
     // Power event end
     //PM::send(this,event_name,0,sc_time_stamp()+delay,id,m_pow_mon);
-    
+
     wait(delay);
     delay=SC_ZERO_TIME;
 
@@ -447,10 +420,10 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
     return;
 
   } else {
-    
+
     other_socket = ahbIN.get_other_side(id, a);
     mstobj = other_socket->get_parent();
-    
+
     v::error << name() << "AHB Request 0x" << hex << v::setfill('0')
                << v::setw(8) << trans.get_address() << ", from master:"
                << mstobj->name() << ": Unmapped address space." << endl;
@@ -482,12 +455,12 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
     amba::amba_id * m_id;
     ahbIN.validate_extension<amba::amba_id>(trans);
     ahbIN.get_extension<amba::amba_id>(m_id, trans);
-    m_id->value = master_id;    
+    m_id->value = master_id;
 
     v::debug << name() << "Acquire " << hex << &trans << " Master ID = " << master_id << " Ref-Count = " << trans.get_ref_count() << v::endl;
 
     // In communication with the ahbctrl, BEGIN_REQ marks the begin of the bus request.
-    // Transaction is send to request thread, where it is going to be decoded and put in PENDING state. 
+    // Transaction is send to request thread, where it is going to be decoded and put in PENDING state.
     m_AcceptPEQ.notify(trans, delay);
 
     // Collect transport statistics
@@ -500,7 +473,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(uint32_t master_id, tlm::tlm_generic
     msclogger::return_backward(this, &ahbIN, &trans, tlm::TLM_ACCEPTED, delay, master_id);
 
      // Transaction accepted
-    return tlm::TLM_ACCEPTED;    
+    return tlm::TLM_ACCEPTED;
 
   } else if (phase == tlm::END_RESP) {
 
@@ -573,7 +546,7 @@ void AHBCtrl::print_requests() {
   for(int i=0;i<16;i++) {
 
     v::info << name() << "Master " << i << " Transaction: " <<  request_map[i].trans << " State: " << request_map[i].state << v::endl;
-    
+
   }
 
   v::info << name() << " ---------------------------------------------------- " << v::endl;
@@ -638,7 +611,7 @@ void AHBCtrl::arbitrate() {
         } else {
 
           if (request_map[lock_master].state == TRANS_PENDING) {
-            
+
             address_bus_owner = lock_master;
             request_map[lock_master].state = TRANS_SCHEDULED;
             trans = request_map[lock_master].trans;
@@ -649,16 +622,16 @@ void AHBCtrl::arbitrate() {
             break;
           }
         }
-        
+
       // Round-robin
       } else {
 
         if (!is_lock) {
 
           for(uint32_t i=0; i<num_of_master_bindings; i++) {
-            
+
             robin = (robin+1) % num_of_master_bindings;
-          
+
             v::debug << name() << "Robin: " << robin << v::endl;
 
             if (request_map[robin].state == TRANS_PENDING) {
@@ -677,22 +650,22 @@ void AHBCtrl::arbitrate() {
             }
           }
         } else {
-          
+
           if (request_map[lock_master].state == TRANS_PENDING) {
 
             v::debug << name() << "Select for robin: " << robin << v::endl;
-            
+
             address_bus_owner = lock_master;
             request_map[lock_master].state = TRANS_SCHEDULED;
             trans = request_map[lock_master].trans;
             slave_id = request_map[lock_master].slave_id;
 
             is_lock = ahbIN.get_extension<amba::amba_lock>(lock, *trans);
-              
+
           }
         }
       }
-    
+
       if (address_bus_owner != -1) {
 
         waiting_time = sc_time_stamp() - request_map[address_bus_owner].start_time;
@@ -705,7 +678,7 @@ void AHBCtrl::arbitrate() {
 
         }
 
-        tmp = m_total_wait; 
+        tmp = m_total_wait;
         tmp += waiting_time;
 
         m_total_wait = tmp;
@@ -723,7 +696,7 @@ void AHBCtrl::arbitrate() {
             uint32_t byte = (addr + i) & 0x3;
             uint32_t reg = getPNPReg(addr + i);
             data[i] = ((uint8_t*)&reg)[byte];
-          
+
           }
 
           // Set TLM response
@@ -736,7 +709,7 @@ void AHBCtrl::arbitrate() {
           // Calculate delay for sending BEGIN_RESP (no wait states for PNP)
           response_delay = clock_cycle - sc_core::sc_time(1, SC_PS);
           m_ResponsePEQ.notify(*trans, response_delay);
-          
+
         } else {
 
           // Forward request to slave
@@ -752,7 +725,7 @@ void AHBCtrl::arbitrate() {
           assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_UPDATED));
 
           if (phase == tlm::END_REQ) {
-            
+
             m_RequestPEQ.notify(*trans, delay);
             delay = SC_ZERO_TIME;
 
@@ -822,7 +795,7 @@ void AHBCtrl::AcceptThread() {
       } else {
 
         v::error << name() << "DECODING ERROR" << v::endl;
-          
+
       }
     }
   }
@@ -848,11 +821,11 @@ void AHBCtrl::RequestThread() {
     // Get new transaction from RequestPEQ (nb_transport_bw or arbitrate)
     while((trans = m_RequestPEQ.get_next_transaction())) {
 
-      amba::amba_id * master_id; 
+      amba::amba_id * master_id;
       ahbIN.get_extension<amba::amba_id>(master_id, *trans);
 
       connection = request_map[master_id->value];
-     
+
       // Broadcast master_id and address for dcache snooping
       if (trans->get_command() == tlm::TLM_WRITE_COMMAND) {
 
@@ -882,7 +855,7 @@ void AHBCtrl::RequestThread() {
 
       // Backward arrow for msc
       msclogger::backward(this, &ahbIN, trans, phase, delay, connection.master_id);
-    
+
       status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
 
       assert(status==tlm::TLM_ACCEPTED);
@@ -958,7 +931,7 @@ void AHBCtrl::EndResponseThread() {
 
       assert(trans != NULL);
 
-      amba::amba_id *master_id; 
+      amba::amba_id *master_id;
       ahbIN.get_extension<amba::amba_id>(master_id, *trans);
 
       connection = response_map[master_id->value];
@@ -1043,7 +1016,7 @@ void AHBCtrl::start_of_simulation() {
 
       // Get pointer to device information
       const uint32_t * deviceinfo = slave->get_device_info();
-      
+
       // Get bus id (hindex oder master id)
       const uint32_t sbusid = slave->get_busid();
       assert(sbusid < 16);
@@ -1051,7 +1024,7 @@ void AHBCtrl::start_of_simulation() {
 
       // Map device information into PNP region
       if (mfpnpen) {
-	
+
 	mSlaves[sbusid] = deviceinfo;
 
       }
@@ -1066,7 +1039,7 @@ void AHBCtrl::start_of_simulation() {
 	  uint32_t addr = slave->get_bar_base(j);
 	  uint32_t mask = slave->get_bar_mask(j);
 
-	  v::info << name() << "* BAR" << dec << j << " with MSB addr: 0x" << hex << addr << " and mask: 0x" << hex << mask <<  v::endl; 
+	  v::info << name() << "* BAR" << dec << j << " with MSB addr: 0x" << hex << addr << " and mask: 0x" << hex << mask <<  v::endl;
 
 	  // Insert slave region into memory map
 	  setAddressMap(i+j, sbusid, addr, mask);
@@ -1076,11 +1049,11 @@ void AHBCtrl::start_of_simulation() {
 	  v::info << name() << "* BAR" << dec << j << " not used." << v::endl;
 
 	}
-      
-      } 
+
+      }
 
     } else {
-      
+
       v::error << name() << "Slave bound to socket 'ahbOUT' is not a valid AHBDevice (no plug & play information)!" << v::endl;
       assert(0);
 
@@ -1120,7 +1093,7 @@ void AHBCtrl::start_of_simulation() {
 
       // Map device information into PNP region
       if (mfpnpen) {
-	
+
 	mMasters[mbusid] = deviceinfo;
 
       }
@@ -1135,18 +1108,18 @@ void AHBCtrl::start_of_simulation() {
 	  uint32_t addr = master->get_bar_base(j);
 	  uint32_t mask = master->get_bar_mask(j);
 
-	  v::info << name() << "* BAR" << dec << j << " with MSB addr: 0x" << hex << addr << " and mask: 0x" << hex << mask <<  v::endl; 
+	  v::info << name() << "* BAR" << dec << j << " with MSB addr: 0x" << hex << addr << " and mask: 0x" << hex << mask <<  v::endl;
 
 	} else {
 
 	  v::info << name() << "* BAR" << dec << j << " not used." << v::endl;
 
 	}
-      
-      } 
+
+      }
 
     } else {
-      
+
       v::error << name() << "Master bound to socket 'ahbin' is not a valid AHBDevice" << v::endl;
       assert(0);
 
@@ -1182,8 +1155,8 @@ void AHBCtrl::power_model() {
   dyn_read_energy = dyn_read_energy_norm * (num_of_slave_bindings + num_of_master_bindings);
 
   // Energy per write access (uJ)
-  dyn_write_energy = dyn_write_energy_norm * (num_of_slave_bindings + num_of_master_bindings);  
-  
+  dyn_write_energy = dyn_write_energy_norm * (num_of_slave_bindings + num_of_master_bindings);
+
 }
 
 // Static power callback
@@ -1235,7 +1208,7 @@ void AHBCtrl::end_of_simulation() {
       v::report << name() << " * Master with maximum waiting time: " << m_max_wait_master << v::endl;
       v::report << name() << " * Average arbitration time / transaction: " << total_wait / m_arbitrated << " (" << (total_wait / m_arbitrated) / clock_cycle << " cycles)" << v::endl;
       v::report << name() << " * " << v::endl;
-    
+
     }
 
     v::report << name() << " * AHB Master interface reports: " << v::endl;
@@ -1269,7 +1242,7 @@ void AHBCtrl::checkMemMap() {
        slaves.insert(std::make_pair(start_addr, obj));
    }
    for(iter_t iter=slaves.begin(); iter != slaves.end(); iter++) {
-      // First Slave need it in last to start 
+      // First Slave need it in last to start
       if(last.index!=~0u) {
           // All other elements
           // See if the last element is begining and end befor the current
@@ -1302,7 +1275,7 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
     // Extract address from payload
     uint32_t addr   = trans.get_address();
     // Extract length from payload
-    uint32_t length = trans.get_data_length(); 
+    uint32_t length = trans.get_data_length();
     uint8_t *data  = trans.get_data_ptr();
 
     if (mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8))))==0)) {
@@ -1319,7 +1292,7 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
                 uint32_t reg = getPNPReg(addr + i);
                 data[i] = ((uint8_t*)&reg)[byte];
             }
-	
+
             trans.set_response_status(tlm::TLM_OK_RESPONSE);
             return length;
         } else {
@@ -1327,7 +1300,7 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
             trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
             return 0;
         }
-    }    
+    }
 
     // Find slave by address / returns slave index or -1 for not mapped
     int index = get_index(trans.get_address());
@@ -1349,7 +1322,7 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
 
     } else {
 
-    
+
        v::warn << name() << "AHB Request@0x" << hex << v::setfill('0')
                << v::setw(8) << trans.get_address() << ", from master:"
                << mstobj->name() << ": Unmapped address space." << endl;
@@ -1364,7 +1337,7 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
 void AHBCtrl::transport_statistics(tlm::tlm_generic_payload &gp) {
 
   if(gp.is_write()) {
-    
+
     // Total number of bytes written
     m_writes += gp.get_data_length();
 
@@ -1386,3 +1359,4 @@ void AHBCtrl::print_transport_statistics(const char *name) const {
   v::report << name << " * Bytes read: " << m_reads << v::endl;
   v::report << name << " * Bytes written: " << m_writes << v::endl;
 }
+/// @}

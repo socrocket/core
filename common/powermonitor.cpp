@@ -1,48 +1,23 @@
-//*****************************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*****************************************************************************
-// Title:      powermonitor.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Demonstration of a power monitor for the SoCRocket
-//             Virtual Platform
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*****************************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup common
+/// @{
+/// @file powermonitor.cpp
+/// Demonstration of a power monitor for the SoCRocket Virtual Platform
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #include "powermonitor.h"
 
 // Constructor
 powermonitor::powermonitor(sc_core::sc_module_name name,
                            sc_core::sc_time report_time,
-                           bool exram) : 
+                           bool exram) :
   sc_module(name),
   m_report_time(report_time),
   m_exram(exram)
@@ -52,7 +27,7 @@ powermonitor::powermonitor(sc_core::sc_module_name name,
 
     SC_THREAD(report_trigger);
 
-  } 
+  }
 
 }
 
@@ -130,7 +105,7 @@ std::vector<std::string> powermonitor::get_IP_params(std::vector<std::string> &p
 void powermonitor::gen_report() {
 
   // Static power of model (pW)
-  double model_sta_power = 0.0; 
+  double model_sta_power = 0.0;
   // Module internal power (uW)
   double model_int_power = 0.0;
   // Module switching power (uW)
@@ -141,7 +116,7 @@ void powermonitor::gen_report() {
   // Total internal power (dynamic)
   double total_int_power = 0.0;
   // Total switching power (dynamic)
-  double total_swi_power = 0.0;  
+  double total_swi_power = 0.0;
 
   gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
   std::string n_power = "power";
@@ -155,7 +130,7 @@ void powermonitor::gen_report() {
 
   // *************************************************
   // Isolate power parameters
-  
+
   for(uint32_t i=0; i<param_list.size();i++) {
 
     boost::split(param_fields, param_list[i], boost::is_any_of("."));
@@ -166,13 +141,13 @@ void powermonitor::gen_report() {
       if(param_fields[param_fields.size()-2] == "power") {
 
         power_list.push_back(param_list[i]);
-     
+
       }
     }
   }
 
   // *************************************************
-  // 
+  //
 
   while(power_list.size() != 0) {
 
@@ -189,7 +164,7 @@ void powermonitor::gen_report() {
 
         // Read models' static power
         mApi->getValue(std::string(get_model_name(models_list[0]) + ".power.sta_power"), model_sta_power);
-      
+
         v::info << name() << " * Static power (leakage): " << model_sta_power << " pW" << v::endl;
 
         total_sta_power += model_sta_power;
@@ -213,13 +188,13 @@ void powermonitor::gen_report() {
 
         //v::warn << name() << " * Model provides no internal power information!" << v::endl;
 
-      }    
+      }
 
       // Does the model induce switching dependent dynamic read power
       if (mApi->existsParam(std::string(get_model_name(models_list[0]) + ".power.swi_power"))) {
- 
+
         mApi->getValue(std::string(get_model_name(models_list[0]) + ".power.swi_power"), model_swi_power);
-        
+
         v::info << name() << " * Switching power (dynamic): " << model_swi_power << " uW" << v::endl;
 
         total_swi_power += model_swi_power;
@@ -260,3 +235,4 @@ void powermonitor::end_of_simulation() {
   }
 
 }
+/// @}

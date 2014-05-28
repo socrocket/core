@@ -1,45 +1,18 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      dvectorcache.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    Implementation of a data
-//             cache. The cache can be configured direct mapped or
-//             set associative. Set-size, line-size and replacement
-//             strategy can be defined through constructor arguments.
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Thomas Schuster
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup mmu_cache
+/// @{
+/// @file dvectorcache.cpp
+/// Implementation of a data cache. The cache can be configured direct mapped or
+/// set associative. Set-size, line-size and replacement strategy can be defined
+/// through constructor arguments.
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Thomas Schuster
+///
 
 #include "dvectorcache.h"
 
@@ -70,8 +43,8 @@ void dvectorcache::power_model() {
     sta_ddata_power_norm * pow(2.0, (double)m_setsize) * (m_sets + 1) * 8;
 
   // Cell internal power = controller + dtag ram + ddata ram
-  int_power = int_power_norm * 1/(clockcycle.to_seconds()) + 
-    int_dtag_power_norm * m_number_of_vectors * 32 * (m_sets +1) * 1/(clockcycle.to_seconds()) + 
+  int_power = int_power_norm * 1/(clockcycle.to_seconds()) +
+    int_dtag_power_norm * m_number_of_vectors * 32 * (m_sets +1) * 1/(clockcycle.to_seconds()) +
     int_ddata_power_norm * pow(2.0, (double)m_setsize) * (m_sets + 1) * 8 * 1/(clockcycle.to_seconds());
 
   // Energy per dtag read access (uJ)
@@ -121,3 +94,4 @@ void dvectorcache::start_of_simulation() {
 
   }
 }
+/// @}

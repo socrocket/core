@@ -1,51 +1,21 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      gptimer.cpp
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    source file defining the implementation of the gptimer
-//             model. Due to the fact that the gptimer class is a
-//             template class it gets included by its definition in
-//             gptimer.h
-//
-// Method:
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup gptimer
+/// @{
+/// @file gptimer.cpp
+/// source file defining the implementation of the gptimer model. Due to the
+/// fact that the gptimer class is a template class it gets included by its
+/// definition in gptimer.h
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #include <string>
 #include "gptimer.h"
-
-/// @addtogroup gptimer
-/// @{
 
 // Constructor: create all members, registers and Counter objects.
 // Store configuration default value in conf_defaults.
@@ -55,11 +25,11 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                    int sbits, int nbits, int wdog, bool powmon) :
   m_ntimers(ntimers),
   gr_device(name, gs::reg::ALIGNED_ADDRESS, 4 * (1 + ntimers), NULL),
-  APBDevice(pindex, 0x1, 0x11, 0, pirq, APBIO, pmask, false, false, paddr), 
-  bus("bus", r, (paddr & pmask) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false), 
-  irq("IRQ"), wdog("WDOG"), 
-  conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)), 
-  lasttime(0, sc_core::SC_NS), lastvalue(0), 
+  APBDevice(pindex, 0x1, 0x11, 0, pirq, APBIO, pmask, false, false, paddr),
+  bus("bus", r, (paddr & pmask) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false),
+  irq("IRQ"), wdog("WDOG"),
+  conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)),
+  lasttime(0, sc_core::SC_NS), lastvalue(0),
   g_sbits(sbits),
   g_nbits(nbits),
   g_wdog_length(wdog),
@@ -75,13 +45,13 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                    int pindex, int paddr, int pmask, int pirq, int sepirq,
                    int sbits, int nbits, int wdog, bool powmon) :
   gr_device(name, gs::reg::ALIGNED_ADDRESS, 4 * (1 + ntimers), NULL),
-  APBDevice(pindex, 0x1, 0x11, 0, pirq, APBIO, pmask, false, false, paddr), 
-  bus("bus", r, (paddr & pmask) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false), 
-  irq("IRQ"), wdog("WDOG"), 
+  APBDevice(pindex, 0x1, 0x11, 0, pirq, APBIO, pmask, false, false, paddr),
+  bus("bus", r, (paddr & pmask) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false),
+  irq("IRQ"), wdog("WDOG"),
 //irq and wdog signals
 //  irq("irq", pirq), wdog("wdog", wdog),
-  conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)), 
-  lasttime(0, sc_core::SC_NS), lastvalue(0), 
+  conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)),
+  lasttime(0, sc_core::SC_NS), lastvalue(0),
   p_conf("conf"),
   m_ntimers("ntimers", ntimers, p_conf),
   g_sbits("sbit", sbits, p_conf),
@@ -131,7 +101,7 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                      32,                  // Register width. Maximum register with is 32bit sbit must be less than 32.
                      0x00                 // Lock Mask: Not implementet has to be zero.
                      );
-    
+
    r.create_register("screload", "Scaler Reload Value",
                      0x04, // offset
                      gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |      // config
@@ -142,7 +112,7 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                      32,                                               // register width
                      0x00                                              // lock mask
                      );
-   
+
    r.create_register("conf", "Configuration Register",
                      0x08,                                        // offset
                      gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
@@ -167,7 +137,7 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                        32, // register width
                        0x00 // lock mask
                        );
-        
+
      r.create_register(gen_unique_name("reload", false), "Reload Value Register",
                        RELOAD(i), // offset
                        gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
@@ -178,7 +148,7 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
                        32, // register width
                        0x00 // lock mask
                        );
-        
+
      r.create_register(gen_unique_name("ctrl", false), "Controle Register",
                        CTRL(i), // offset
                        gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | // config
@@ -195,7 +165,7 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
 
     GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, GPTimer, sta_power_cb);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, GPTimer, int_power_cb);
- 
+
    }
 
    // Configuration report
@@ -270,7 +240,7 @@ void GPTimer::end_of_elaboration() {
 
     GR_FUNCTION(GPTimer, scaler_write);
     GR_SENSITIVE(r[SCALER].add_rule(gs::reg::POST_WRITE, "scaler_write", gs::reg::NOTIFY));
-    
+
     GR_FUNCTION(GPTimer, screload_write);
     GR_SENSITIVE(r[SCRELOAD].add_rule(gs::reg::POST_WRITE, "scaler_reload_write", gs::reg::NOTIFY));
 
@@ -357,5 +327,3 @@ int GPTimer::numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b,
 }
 
 /// @}
-
-

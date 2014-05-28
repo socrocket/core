@@ -1,40 +1,16 @@
-//*********************************************************************
-// Copyright 2010, Institute of Computer and Network Engineering,
-//                 TU-Braunschweig
-// All rights reserved
-// Any reproduction, use, distribution or disclosure of this program,
-// without the express, prior written consent of the authors is 
-// strictly prohibited.
-//
-// University of Technology Braunschweig
-// Institute of Computer and Network Engineering
-// Hans-Sommer-Str. 66
-// 38118 Braunschweig, Germany
-//
-// ESA SPECIAL LICENSE
-//
-// This program may be freely used, copied, modified, and redistributed
-// by the European Space Agency for the Agency's own requirements.
-//
-// The program is provided "as is", there is no warranty that
-// the program is correct or suitable for any purpose,
-// neither implicit nor explicit. The program and the information in it
-// contained do not necessarily reflect the policy of the 
-// European Space Agency or of TU-Braunschweig.
-//*********************************************************************
-// Title:      signalkit_h/infield.h
-//
-// ScssId:
-//
-// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
-//
-// Purpose:    This file implements the signalkit infiels signal
-//
-// Principal:  European Space Agency
-// Author:     VLSI working group @ IDA @ TUBS
-// Maintainer: Rolf Meyer
-// Reviewed:
-//*********************************************************************
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup signalkit
+/// @{
+/// @file infield.h
+/// This file implements the signalkit infiels signal
+///
+/// @date 2010-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author Rolf Meyer
+///
 
 #ifndef SIGNALKIT_INFIELD_H
 #define SIGNALKIT_INFIELD_H
@@ -95,7 +71,7 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
         /// Virtual destructor
         virtual ~signal_infield() {
         }
-        
+
         /// Bind method.
         /// This method binds a specific input channel to a corresponding output.
         /// Each channel can be bind multiple times.
@@ -153,14 +129,14 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
             typename std::MAP<uint32_t, TYPE>::const_iterator item =
                     this->m_value.find(channel);
             if(item == this->m_value.end()) {
-               //v::error << this->name() << "No value is register to channel number " 
+               //v::error << this->name() << "No value is register to channel number "
                //         << std::dec << channel << v::endl;
                return TYPE();
             }
             return item->second;
         }
 
-        /// Safe read reads the value of a channel. 
+        /// Safe read reads the value of a channel.
         /// If the channel not exists return default value.
         ///
         /// @param channel       The channel to read from.
@@ -203,3 +179,4 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
 } // signalkit
 
 #endif // SIGNALKIT_INFIELD_H
+/// @}
