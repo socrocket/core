@@ -687,7 +687,7 @@ void AHBCtrl::arbitrate() {
             trans = request_map[lock_master].trans;
             slave_id = request_map[lock_master].slave_id;
 
-            is_lock = ahbOUT.get_extension<amba::amba_lock>(lock, *trans);
+            is_lock = ahbIN.get_extension<amba::amba_lock>(lock, *trans);
               
           }
         }
