@@ -16,9 +16,5 @@ gmon.out
 build
 deps
 bigbuckbunny_small.m2v
-# Contrib Sources
-contrib/*-repo
-contrib/cmake*
-contrib/libelf*
 # Mkprom2
 xdump.s
