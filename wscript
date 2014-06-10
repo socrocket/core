@@ -47,6 +47,7 @@ TOOLS = [
     'docs',
     'shell',
     'cpplint',
+    'oclint',
     'clang_compilation_database',
     'sparcelf',
 ]

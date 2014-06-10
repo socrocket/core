@@ -43,8 +43,8 @@ def find(self, path = None):
 
 def configure(self):
     try:
-        if self.options.elfdir:
-            find(self, self.options.elfdir)
+        if self.options.blasdir:
+            find(self, self.options.blasdir)
         else:
             find(self)
     except:

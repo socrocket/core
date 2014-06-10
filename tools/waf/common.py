@@ -245,8 +245,8 @@ def fetch(self, *k, **kw):
             shutil.copytree(fetch_path, kw["src"])
 
     elif kw.has_key("tar_url"):
-        tar_url = kw.get("tar_url", "") % kw
         kw["tar"] = kw.get("tar", "%(base)s.tar.gz") % kw
+        tar_url = kw.get("tar_url", "") % kw
         self.start_msg("Fetching %s" % kw["name"])
         if not os.path.exists(os.path.join(kw["BASE_PATH_FETCH"], kw["tar"])):
             self.cmd_and_log(
@@ -272,7 +272,7 @@ def fetch(self, *k, **kw):
             self.cmd_and_log(
                 [self.env.TAR, "-xf", fetch_path], 
                 output=Context.BOTH, 
-                cwd=kw["BASE_PATH_SRC"]
+                cwd=os.path.dirname(kw["src"])
             )
             self.end_msg("Ok")
         else:

@@ -85,8 +85,8 @@ def find(self, path = None):
     
 def configure(self):
     try:
-        if self.options.cmakedir:
-            find(self, self.options.cmakedir)
+        if self.options.sparcelfdir:
+            find(self, self.options.sparcelfdir)
         else:
             find(self)
     except:
