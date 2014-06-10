@@ -46,6 +46,7 @@ TOOLS = [
     'wizard',
     'docs',
     'shell',
+    'cpplint',
     'sparcelf',
 ]
 
@@ -59,6 +60,14 @@ def configure(self):
     self.check_python_version((2,4,0))
     self.check_python_headers()
     self.load(TOOLS, tooldir='tools/waf')
+    self.env.CPPLINT_FILTERS = ','.join((
+    #    '-whitespace/newline',      # c++11 lambda
+    #    '-readability/braces',      # c++11 constructor
+    #    '-whitespace/braces',       # c++11 constructor
+    #    '-build/storage_class',     # c++11 for-range
+    #    '-whitespace/blank_line',   # user pref
+    #    '-whitespace/labels'        # user pref
+    ))
     
 def build(self):
     logger = Logger("%s/build.log" % self.bldnode.abspath())
@@ -67,6 +76,9 @@ def build(self):
     
     self.recurse_all()
 
+    # Linting
+    self(features='cpplint', source=self.path.ant_glob(['**/*.cpp', '**/*.tpp', '**/*.h']), target='cpplint')
+    # Install headers
     self.install_files('${PREFIX}/include', self.path.ant_glob(['**/*.h', '**/*.tpp'], excl=['**/signalkit/**', '**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']))
     self.install_files('${PREFIX}/', ['waf', 'wscript', 'platforms/wscript'], relative_trick=True)
     self.install_files('${PREFIX}/', self.path.ant_glob('tools/**', excl=['**/*.pyc', '**/.svn/**', '**/.git/**']), relative_trick=True)

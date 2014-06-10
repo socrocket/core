@@ -667,6 +667,7 @@ INPUT                  = models \
                          adapters \
                          platforms \
                          doc \
+                         tools \
                          socrocket.md
 
 # This tag can be used to specify the character encoding of the source files
@@ -692,6 +693,7 @@ FILE_PATTERNS          = *.c \
                          *.hxx \
                          *.cpp \
                          *.hpp \
+                         *.py \
                          *.s \
                          *.S \
                          *.md \

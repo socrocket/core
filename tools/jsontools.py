@@ -1,8 +1,16 @@
 #!/usr/bin/env python
+"""
+@addtogroup tools
+@file jsontools.py
+"""
+
 import json
 import sys
 
 def get_json_attr(jsonfile, attrname = None):
+  """
+  Find a json attribute
+  """
   filename = jsonfile.strip('"').strip("'")
   filehandler = open(filename)
   obj = json.load(filehandler)
