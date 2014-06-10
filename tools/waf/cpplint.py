@@ -88,18 +88,6 @@ class cpplint_formatter(Logs.formatter):
             rec.c1 = Logs.colors.CYAN
         return super(cpplint_formatter, self).format(rec)
 
-
-class cpplint_handler(logging.Handler):
-    def __init__(self, stream=sys.stderr, **kw):
-        super(cpplint_handler, self).__init__(stream, **kw)
-        self.stream = stream
-
-    def emit(self, rec):
-        rec.stream = self.stream
-        self.emit_override(rec)
-        self.flush()
-
-
 class cpplint_wrapper(object):
     stream = None
     tasks_count = 0
@@ -115,17 +103,18 @@ class cpplint_wrapper(object):
         with cpplint_wrapper.lock:
             cpplint_wrapper.tasks_count += 1
             if cpplint_wrapper.tasks_count == 1:
-                sys.stderr.flush()
+                #sys.stderr.flush()
                 cpplint_wrapper.stream = sys.stderr
-                sys.stderr = self
+                #sys.stderr = self
             return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         with cpplint_wrapper.lock:
             cpplint_wrapper.tasks_count -= 1
             if cpplint_wrapper.tasks_count == 0:
-                sys.stderr = cpplint_wrapper.stream
-                sys.stderr.flush()
+                #sys.stderr = cpplint_wrapper.stream
+                #sys.stderr.flush()
+                pass
 
     def isatty(self):
         return True
@@ -140,10 +129,15 @@ class cpplint_wrapper(object):
             critical_errors += 1
         if level <= 2:
             self.logger.info(message)
+            Logs.pprint('NORMAL', message)
         elif level <= 4:
             self.logger.warning(message)
+            Logs.pprint('NORMAL', message)
         else:
             self.logger.error(message)
+            Logs.pprint('NORMAL', message)
+    #def flush(self, *k, **kw):
+    #    self.stream.flush(*k, **kw)
 
 
 cpplint_logger = None
@@ -152,7 +146,7 @@ def get_cpplint_logger(fmt):
     if cpplint_logger:
         return cpplint_logger
     cpplint_logger = logging.getLogger('cpplint')
-    hdlr = cpplint_handler()
+    hdlr = logging.StreamHandler()
     hdlr.setFormatter(cpplint_formatter(fmt))
     cpplint_logger.addHandler(hdlr)
     cpplint_logger.setLevel(logging.DEBUG)
@@ -190,6 +184,11 @@ def run_cpplint(self):
         return
     if not self.env.CPPLINT_OUTPUT in CPPLINT_RE:
         return
+    for src in self.to_list(getattr(self, 'files', [])):
+        if isinstance(src, str):
+            self.create_task('cpplint', self.path.find_or_declare(src))
+        else:
+            self.create_task('cpplint', src)
     for src in self.to_list(getattr(self, 'source', [])):
         if isinstance(src, str):
             self.create_task('cpplint', self.path.find_or_declare(src))
