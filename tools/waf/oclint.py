@@ -21,10 +21,10 @@ def find(self, path = None):
     # Check if the compiler is present
 
     if path:
-        self.find_program('oclint', path_list=[os.path.join(path, 'bin'), path])
+        self.find_program('oclint', path_list=[os.path.join(path, 'bin'), path], madatory=False)
     else:
         # If the path was not specified look in the search PATH
-        self.find_program('oclint')
+        self.find_program('oclint', mandatory=False)
 
 def configure(self):
     try:
