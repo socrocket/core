@@ -77,8 +77,6 @@ def build(self):
     
     self.recurse_all()
 
-    # Linting
-    self(features='cpplint', files=self.path.ant_glob(['**/*.cpp', '**/*.tpp', '**/*.h'], excl=['build', '**/.**']), target='cpplint')
     # Install headers
     self.install_files('${PREFIX}/include', self.path.ant_glob(['**/*.h', '**/*.tpp'], excl=['build','**/signalkit/**', '**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']))
     self.install_files('${PREFIX}/', ['waf', 'wscript', 'platforms/wscript'], relative_trick=True)

@@ -47,7 +47,7 @@ When using this tool, the wscript will look like:
 import sys, re
 import logging
 import threading
-from waflib import Task, Build, TaskGen, Logs, Utils
+from waflib import Task, Context, Build, TaskGen, Logs, Utils
 try:
     from tools.cpplint import ProcessFile, _cpplint_state
 except ImportError:
@@ -219,4 +219,14 @@ def configure(conf):
     except ImportError:
         conf.env.CPPLINT_SKIP = True
         conf.end_msg('not found, skipping it.')
+
+def lint(self):
+    """Use cpplint to check all files"""
+    # Linting
+    self(features='cpplint', files=self.path.ant_glob(['**/*.cpp', '**/*.tpp', '**/*.h'], excl=['build', 'contrib/**', '**/extern/**', '**/GREthExampleApps/**', '**/.**']), target='cpplint')
+
+setattr(Context.g_module, 'lint', lint)
+class Lint(Build.BuildContext):
+    cmd = 'lint'
+    fun = 'lint'
 

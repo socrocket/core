@@ -12,8 +12,8 @@
 /// @author Rolf Meyer
 ///
 
-#ifndef GPTIMER_H
-#define GPTIMER_H
+#ifndef MODELS_GPTIMER_GPTIMER_H_
+#define MODELS_GPTIMER_GPTIMER_H_
 
 #include "gpcounter.h"
 #include "apbdevice.h"
@@ -269,5 +269,5 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   friend class GPCounter;
 };
 
-#endif // GPTIMER_H
+#endif  // MODELS_GPTIMER_GPTIMER_H_
 /// @}
