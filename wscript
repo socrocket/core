@@ -33,8 +33,6 @@ TOOLS = [
     'cmake',
     'winsocks',
     'trap',
-#    'cult',
-#    'otf',
 #    'sdl',
 #    'mpeg3',
     'lua',
