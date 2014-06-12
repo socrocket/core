@@ -1,6 +1,5 @@
 GPTimer - General Purpose Timer SystemC Model {#gptimer_p}
 ==========================================================
-
 @section gptimer_p1 Functionality and Features
 
 The GPTimer unit acts as a slave at the APB bus. Its basic functionality is a countdown mechanism that asserts an interrupt on underflow. The GPTimer unit consists of a prescaler unit that is generating ticks and up to seven counter units that are decrementing on prescaler ticks. In the VHDL model, the counter units are named ‘timers’ just like the entire IP model. As this is a potential source of confusion, the name has been changed to ‘counters’ in the TLM implementation.
@@ -121,7 +120,7 @@ For the compilation of the Timer IP, a WAF wscript is provided and integrated in
 Instantiation of Timer with 4 Counters:
 
 @code
-  Timer dut("timer", 4);
+  GPTimer dut("gptimer", 4);
 @endcode
 
 Bind APB socket:

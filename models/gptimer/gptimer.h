@@ -7,7 +7,7 @@
 /// @date 2010-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Rolf Meyer
 ///
@@ -15,22 +15,22 @@
 #ifndef MODELS_GPTIMER_GPTIMER_H_
 #define MODELS_GPTIMER_GPTIMER_H_
 
-#include "gpcounter.h"
-#include "apbdevice.h"
-#include "clkdevice.h"
-
-#include "gs_config/propertyconfig.h"
 #include <greencontrol/all.h>
 #include <greenreg_ambasockets.h>
 #include <systemc>
 #include <boost/config.hpp>
 
-#include "signalkit.h"
-#include "verbose.h"
-
 #include <string>
-#include <ostream>
 #include <vector>
+
+#include "models/gptimer/gpcounter.h"
+#include "models/utils/apbdevice.h"
+#include "models/utils/clkdevice.h"
+
+#include "signalkit/signalkit.h"
+#include "common/verbose.h"
+
+#include "gs_config/propertyconfig.h"
 
 /// @brief This class is a TLM 2.0 Model of the Aeroflex Gaisler GRLIB GPTimer.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 37
@@ -63,35 +63,34 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   /// The tick event.
   ///
   /// This event gets set to calculate and produce the tick value for the prescaler underflow.
-  /// The value gets calculated either when the prescaler reset or value register change or when the undeflow just happend.
+  /// The value gets calculated either when the prescaler reset or value register change
+  /// or when the undeflow just happend.
   /// See tick_calc for calculation and ticking for the event wait statement.
   ///
   sc_core::sc_event e_tick;
 
   /// A vector of Counter classes, each representate an internal counter.
-  // TODO Replace by Array instanciated at construction time.
+  // TODO(rmeyer) Replace by Array instanciated at construction time.
   std::vector<GPCounter *> counter;
 
 
   /// Creates an instance of an GPTimer.
   ///
-  /// @param name    The name of the instance. It's needed for debunging.
+  /// @param name      The name of the instance. It's needed for debunging.
   /// @param ncounters Defines the number of counters in the unit. Default is 1. Max is 7.
-  /// @param gpindex TODO
-  /// @param gpaddr  TODO
-  /// @param gpmask  TODO
-  /// @param gpirq   Defines which APB interupt the timers will generate. Default is 0.
-  /// @param gsepirq If set to 1, each timer will drive an individual interrupt line,
-  ///                starting with interrupt irq. If set to 0, all timers will drive
-  ///                the same interrupt line (irq).
-  /// @param pindex  APB Bus Index. Defines the slave index at the APB Bus.
-  /// @param ntimers Defines the number of timers in the unit. Default is 1. Max is 7.
-  /// @param gnbits  Defines the number of bits in the timers. Default is 32.
-  /// @param gsbits  Defines the number of bits in the scaler. Default is 16.
-  /// @param gwdog   Watchdog reset value. When set to a non-zero value, the
-  ///                last timer will be enabled and pre-loaded with this value
-  ///                at reset. When the timer value reaches 0, the WDOG output
-  ///                is driven active.
+  /// @param pindex   APB bus slave index
+  /// @param paddr    APB bus slave address
+  /// @param pmask    APB bus slave mask
+  /// @param pirq     Defines which APB interupt the timers will generate. Default is 0.
+  /// @param sepirq   If set to 1, each timer will drive an individual interrupt line,
+  ///                  starting with interrupt irq. If set to 0, all timers will drive
+  ///                  the same interrupt line (irq).
+  /// @param nbits    Defines the number of bits in the timers. Default is 32.
+  /// @param sbits    Defines the number of bits in the scaler. Default is 16.
+  /// @param wdog     Watchdog reset value. When set to a non-zero value, the
+  ///                  last timer will be enabled and pre-loaded with this value
+  ///                  at reset. When the timer value reaches 0, the WDOG output
+  ///                  is driven active.
   GPTimer(sc_core::sc_module_name name, unsigned int ncounters = 1,
           int pindex = 0, int paddr = 0, int pmask = 4095, int pirq = 0,
           int sepirq = 0, int sbits = 16, int nbits = 32, int wdog = 0,
@@ -100,6 +99,17 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   /// Free all counter and unregister all callbacks.
   ~GPTimer();
 
+  /// Initialize the generics with meta data.
+  ///
+  /// Will ne called from the constructor.
+  void init_generics();
+
+  /// Initialize the register file.
+  ///
+  /// Will be called from the constructor.
+  /// Also creates the GPCounter objects to minimize the number of loops in the constructor.
+  void init_registers();
+
   /// SystemC start of simulation callback
   void start_of_simulation();
 
@@ -107,10 +117,14 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   void power_model();
 
   /// Static power callback
-  gs::cnf::callback_return_type sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type sta_power_cb(
+      gs::gs_param_base& changed_param,  // NOLINT(runtime/references)
+      gs::cnf::callback_type reason);
 
   /// Dynamic/Internal power callback
-  gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  gs::cnf::callback_return_type int_power_cb(
+      gs::gs_param_base& changed_param,  // NOLINT(runtime/references)
+      gs::cnf::callback_type reason);
 
   /// Execute the callback registering when systemc reaches the end of elaboration.
   void end_of_elaboration();
@@ -155,24 +169,54 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   ///
   int32_t valueof(sc_core::sc_time t, int32_t offset, sc_core::sc_time cycletime) const;
 
-  /// @brief TODO
+  /// Calculates the number of ticks (prescaler underflows) in between two certain time points.
   ///
-  int numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime);
+  /// The cycletime can be set to enable the simple calculation of chained counters.
+  /// Usualy it is clock_cycle but in case of a chained counter it is the cycletime of counter[n-1].
+  /// @param start Start time as sc_core::sc_time
+  /// @param end End time as sc_core::sc_time
+  /// @param counter Number of a gpcounter to respect the counter delay (round robin decrement).
+  /// @param cycletime The length of an cycle in which the decremention of the prescalet takes place.
+  int numberofticksbetween(sc_core::sc_time start, sc_core::sc_time end, int counter, sc_core::sc_time cycletime);
 
+  /// Configuration generic container
   gs::cnf::gs_param_array p_conf;
-  gs::cnf::gs_config<uint32_t> m_ntimers;
+
+  /// Number of Counter in the Timer.
+  /// For compatibility to the GPTimer VHDL model this is still called "timers".
+  /// But keep in mind that the ticking units of the SystemC GPTimer are called
+  /// GPCounters/counters to decrease confusion.
+  gs::cnf::gs_config<uint32_t> g_ntimers;
+
+  /// Number of scaler bits to use for the pescaler.
+  /// This value can be up to 32bits and limits the maximum value of the prescaler.
   gs::cnf::gs_config<uint32_t> g_sbits;
+
+  /// Number of counter register bits.
+  /// This value can be up to 32bits and limits the maximum value of all counters.
   gs::cnf::gs_config<uint32_t> g_nbits;
+
+  /// Length of the initial watchdog period.
+  /// It will be set after reset and if the watchdog counter reaches zero fire an watchdog event to reset the hardware.
+  /// If zero the watchdog ist disabled.
   gs::cnf::gs_config<uint32_t> g_wdog_length;
+
+  /// Enables the powermonitor capapbilities
   gs::cnf::gs_config<uint32_t> powermon;
 
-  // *****************************************************
   // gs_config for index, addr, mask, sepirq
+  /// APB bus slave index
+  gs::cnf::gs_config<uint32_t> g_pindex;
 
-  gs::cnf::gs_config<uint32_t> m_pindex;
-  gs::cnf::gs_config<uint32_t> m_paddr;
-  gs::cnf::gs_config<uint32_t> m_pmask;
-  gs::cnf::gs_config<bool> m_sepirq;
+  /// APB bus slave address
+  gs::cnf::gs_config<uint32_t> g_paddr;
+
+  /// APB bus slave mask
+  gs::cnf::gs_config<uint32_t> g_pmask;
+
+  /// Seperated IRQ lines.
+  /// If you whant to have seperated IRQ lines for each counter set this generic to true.
+  gs::cnf::gs_config<bool> g_sepirq;
 
   // *****************************************************
   // Power Modeling Parameters

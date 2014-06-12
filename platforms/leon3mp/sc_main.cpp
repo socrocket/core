@@ -28,7 +28,7 @@
 #include "ahbmem.h"
 #include "mctrl.h"
 #include "defines.h"
-#include "gptimer.h"
+#include "models/gptimer/gptimer.h"
 #include "apbuart.h"
 #include "tcpio.h"
 #include "nullio.h"

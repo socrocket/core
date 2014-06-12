@@ -49,7 +49,7 @@ import logging
 import threading
 from waflib import Task, Context, Build, TaskGen, Logs, Utils
 try:
-    from tools.cpplint import ProcessFile, _cpplint_state
+    from tools.cpplint import ProcessFile, _cpplint_state, _line_length
 except ImportError:
     pass
 
@@ -162,6 +162,7 @@ class cpplint(Task.Task):
     def run(self):
         global critical_errors
         _cpplint_state.SetFilters(self.env.CPPLINT_FILTERS)
+        _line_length = 120
         break_level = self.env.CPPLINT_BREAK
         verbosity = self.env.CPPLINT_LEVEL
         with cpplint_wrapper(get_cpplint_logger(self.env.CPPLINT_OUTPUT),
@@ -201,7 +202,7 @@ def options(opt):
                    help='add filters to cpplint')
     opt.add_option('--cpplint-level', default=1, type='int', dest='CPPLINT_LEVEL',
                    help='specify the log level (default: 1)')
-    opt.add_option('--cpplint-break', default=5, type='int', dest='CPPLINT_BREAK',
+    opt.add_option('--cpplint-break', default=1, type='int', dest='CPPLINT_BREAK',
                    help='break the build if error >= level (default: 5)')
     opt.add_option('--cpplint-skip', action='store_true',
                    default=False, dest='CPPLINT_SKIP',
@@ -211,22 +212,31 @@ def options(opt):
                    help='select output format (waf, emacs, vs7)')
 
 
-def configure(conf):
-    conf.start_msg('Checking cpplint')
+def configure(self):
+    self.start_msg('Checking cpplint')
     try:
         import cpplint
-        conf.end_msg('ok')
+        self.end_msg('ok')
+        self.env.CPPLINT_FILTERS = ','.join((
+        #    '-whitespace/newline',      # c++11 lambda
+        #    '-readability/braces',      # c++11 constructor
+        #    '-whitespace/braces',       # c++11 constructor
+        #    '-build/storage_class',     # c++11 for-range
+        #    '-whitespace/blank_line',   # user pref
+        #    '-whitespace/labels'        # user pref
+        ))
+
     except ImportError:
-        conf.env.CPPLINT_SKIP = True
-        conf.end_msg('not found, skipping it.')
+        self.env.CPPLINT_SKIP = True
+        self.end_msg('not found, skipping it.')
 
 def lint(self):
     """Use cpplint to check all files"""
     # Linting
     self(features='cpplint', files=self.path.ant_glob(['**/*.cpp', '**/*.tpp', '**/*.h'], excl=['build', 'contrib/**', '**/extern/**', '**/GREthExampleApps/**', '**/.**']), target='cpplint')
 
-setattr(Context.g_module, 'lint', lint)
-class Lint(Build.BuildContext):
-    cmd = 'lint'
-    fun = 'lint'
+setattr(Context.g_module, 'cpplint', lint)
+class CPPLint(Build.BuildContext):
+    cmd = 'cpplint'
+    fun = 'cpplint'
 
