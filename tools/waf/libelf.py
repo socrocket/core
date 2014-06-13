@@ -34,7 +34,7 @@ def find(self, path = None):
         if not self.check_cxx(
                 stlib        = 'elf', 
                 uselib_store = 'ELF_LIB', 
-                mandatory    = False, 
+                #mandatory    = False, 
                 libpath      = libpath
             ):
             self.check_cxx(
@@ -68,7 +68,7 @@ def find(self, path = None):
         if self.check_cxx(
                 stlib='elf', 
                 uselib_store='ELF_LIB', 
-                mandatory = False
+                #mandatory = False
             ):
             self.check_cxx(
                 lib='elf', 

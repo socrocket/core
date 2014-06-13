@@ -46,5 +46,6 @@ def configure(self):
             tar_url = "http://www.cmake.org/files/v2.8/%(base)s.tar.gz",
             config_cmd = "%(src)s/bootstrap --prefix=%(prefix)s",
         )
-        self.find_program('cmake', var='CMAKE', mandatory=True, okmsg="ok", path_list=[self.dep_path(name, version)])
+        self.find_program('cmake', var='CMAKE', mandatory=True, okmsg="ok",
+            path_list=[os.path.join(self.dep_path(name, version), 'bin')])
 
