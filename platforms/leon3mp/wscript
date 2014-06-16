@@ -46,13 +46,12 @@
 top = '..'
 
 def build(bld):
-    ambaLayer = 'true'
     if not bld.env["LIB_SOCROCKET"]:
         use       = 'ahbctrl ahbmem irqmp gptimer apbctrl apbuart socwire socw_socket mmu_cache mctrl ahbin ahbprof greth utils signalkit pysc common'
     else:
         use       = 'SOCROCKET'
 
-    use  += ' leon3.funclt leon3.funcat TRAP CULT OTF BOOST ELF_LIB LUA SYSTEMC AMBA TLM GREENSOCS'
+    use  += ' leon3.funclt leon3.funcat TRAP BOOST ELF_LIB AMBA TLM GREENSOCS SYSTEMC LUA'
       
     bld(
         target       = 'leon3mp.platform',

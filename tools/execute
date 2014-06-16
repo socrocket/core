@@ -8,13 +8,13 @@ fi
 toolsdir=$(dirname $0)
 topdir=$(dirname ${toolsdir})
 
-lockfile=${topdir}/.lock-wafbuild
+lockfile=${topdir}/.lock-waf_linux2_build
 if [ ! -f ${lockfile} ] ; then
-    echo "Please run './waf configure && ./waf build' bevore you try to execute a platform!"
+    echo "Please run './waf configure && ./waf build' before you try to execute a platform!"
     exit 1
 fi
 
-builddir=$(${toolsdir}/get_python_attr ${topdir}/.lock-wafbuild out_dir)
+builddir=$(${toolsdir}/get_python_attr ${topdir}/.lock-waf_linux2_build out_dir)
 
 template=$1
 prom=$2

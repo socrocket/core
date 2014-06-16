@@ -15,14 +15,16 @@ def options(self):
 def find(self, path = None):
     """Check for Lua Library and Headers"""
     if path:
-      libpath = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(path, "lib"))))
-      incpath = os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(path, "include"))))
+      libpath = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(path, "lib")))),
+        os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(path, "src"))))]
+      incpath = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(path,"include")))),
+        os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(path,"src"))))]
     else:
       libpath = "/usr/lib"
       incpath = "/usr/include/lua5.1"
 
     self.check_cxx(
-      lib          = 'lua5.1',
+      lib          = 'lua',
       uselib_store = 'LUA',
       mandatory    = True,
       libpath      = libpath,
@@ -53,6 +55,8 @@ def find(self, path = None):
     )
     if path:
         self.env["HOME_LUA"] = path
+        self.env["LUA_DIR"] = incpath[-1]
+        self.env["LUA_LIB"] = libpath[-1]
 
 def configure(self):
     try:
@@ -69,7 +73,9 @@ def configure(self):
             tar_url = "http://www.lua.org/ftp/%(base)s.tar.gz",
             build_dir = False,
             config_cmd = "cp -r %(src)s %(BASE_PATH_BUILD)s/",
-            install_cmd = "cp -r %(src)s %(BASE_PATH_DIST)s/",
+            config_cwd = self.bldnode.abspath(),
+            build_cmd = "%s %s linux" % (self.env.MAKE, self.env.JOBS),
+            install_cmd = "cp -r %(build)s %(BASE_PATH_DIST)s/",
         )
         find(self, self.dep_path(name, version))
 
