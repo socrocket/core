@@ -72,10 +72,6 @@ def configure(self):
         else:
             self.fatal('Compiler Version' + '.'.join(self.env.CC_VERSION) + ' too old: at least version 4.x required')
 
-    if self.options.static_build:
-        self.env['SHLIB_MARKER'] = ''
-        self.env['STLIB_MARKER'] = '-static'
-
     # Determining gcc search dirs
     compilerExecutable = ''
     if len(self.env['CXX']):
