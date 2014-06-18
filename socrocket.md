@@ -28,16 +28,10 @@ Version | Date     | Description
 1.1     | 17/09/10 | Version prior to the MDR meeting
 1.2     | 03/05/11 |                                
 
-@subpage requirements "Requirements"
-
-@subpage install "Installation"
-
-@subpage structure "Library Structure"
-
-@subpage firstrun "Run Software"
-
-@subpage wizard "Generator Wizard"
-
-@subpage models_p "A list of all models"
-
-@subpage utils_p "Utils"
+* @subpage requirements "Requirements"
+* @subpage install "Installation"
+* @subpage structure "Library Structure"
+* @subpage firstrun "Run Software"
+* @subpage wizard "Generator Wizard"
+* @subpage models_p "A list of all models"
+* @subpage utils_p "Utils"

@@ -9,20 +9,19 @@ To compile and simulate the comprised models, software and example platforms the
 
 Tool / Lib         | Version    | Vendor                    | Installation Path Variables
 ------------------ | ---------- | ------------------------- | ---------------------------
-Python (+PyQT4)    | >2.4       | Python team               | On `$PATH`
-GCC (x86)          | >4.1.0     | GCC team                  | On `$PATH`
+Python (+PyQT4)    | >2.7       | Python team               | On `$PATH`
+GCC (x86)          | >4.6.0     | GCC team                  | On `$PATH`
 GCC/BCC (Sparc  )  | >4.3.4     | GCC team                  | On `$PATH`
 binutils           | >2.19      | GNU team                  | On `$PATH`
-Doxygen*           | >=1.8.1    | Doxygen                   | On `$PATH`
+Doxygen*           | >1.8.2     | Doxygen                   | On `$PATH`
 GCOV/LCOV*         | >4.1.0     | GNU team                  | On `$PATH`
 Boost              | >1_37_0    | Boost team                | `$BOOST_DIR` - header path; `$BOOST_LIB` - library path
-SystemC            | =2.2.x     | OSCI                      | `$SYSTEMC_HOME` – installation root
+SystemC            | >2.3.0     | OSCI                      | `$SYSTEMC_HOME` – installation root
 libelf             | 0.152      | Elf Team                  | `$ELF_HOME` – installation root
-TLM 2.0            | 2009-07-15 | OSCI                      | `$TLM2_HOME` – installation root
-GreenSocs          | 4.2.0      | GreenSocs Ltd.            | `$GREENSOCS_HOME` – inst. root
+GreenLib           | 4.3.0      | GreenSocs Ltd.            | `$GREENSOCS_HOME` – inst. root
 AMBASockets        | 1.0        | Carbon Design Systems Inc | `$AMBA_HOME` – installation root
-LUA                | >=5.1      | Lua Comunity              | `$LUA_HOME` – installation root
-Modelsim*          | >6.0       | Mentor Graphics           | On `$PATH`
+LUA                | >=5.2      | Lua Comunity              | `$LUA_HOME` – installation root
+Questasim*         | >6.0       | Mentor Graphics           | On `$PATH`
 GRLIB*             | 1.0.21     | Aeroflex Gaisler          | `$GRLIB_HOME` – installation root; `GRLIB_TECH` – Path to compiled demo design: `/designs/leon3-gr-xc3s-1500/modelsim`
 
 *Table 3 - Software Dependencies (* optional)*
