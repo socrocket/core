@@ -84,24 +84,27 @@ def find(self, path = None):
     
     
 def configure(self):
+    env = self.get_env()
     try:
         if self.options.sparcelfdir:
             find(self, self.options.sparcelfdir)
         else:
             find(self)
     except:
+        self.setenv('')
         name    = "sparc-elf"
-        version = "4.4.2-1.0.44"
+        version = "4.4.2"
         self.dep_fetch(
             name    = name, 
             version = version,
             tar     = "%(base)s.tar.bz2",
-            tar_url = "http://www.gaisler.com/anonftp/bcc/bin/linux/%(tar)s",
+            tar_url = "http://www.gaisler.com/anonftp/bcc/bin/linux/%(base)s-1.0.44.tar.bz2",
         )
         # This works only for linux for other platforms (windows/mac) we need to find a different solution
         # There is a build for windows as well in bcc/bin/win/%(tar)s but no for MacOSX but we can get the sources
         # Which only extend the GNU gcc sources and does not provide any compile instructions.
         find(self, self.dep_path(name, version))
+        self.set_env(env)
 
 @TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('sparc')
