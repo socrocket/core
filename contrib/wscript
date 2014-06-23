@@ -3,4 +3,4 @@
 top = '..'
 
 def build(self):
-    pass
+  self.recurse_all()
