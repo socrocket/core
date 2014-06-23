@@ -1,6 +1,5 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: set expandtab:ts=4:sw=4:setfiletype python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
 APPNAME = 'SoCRocket'
 VERSION = '$Revision$'
 top = '.'
