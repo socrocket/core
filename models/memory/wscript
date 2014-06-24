@@ -7,7 +7,7 @@ def build(bld):
   bld(
     target          = 'memory',
     features        = 'cxx cxxstlib',
-    source          = 'mapmemory.cpp arraymemory.cpp arraystorage.cpp mapstorage.cpp basememory.cpp memory.cpp memorypower.cpp', 
+    source          = 'arraystorage.cpp mapstorage.cpp basememory.cpp memory.cpp memorypower.cpp', 
     export_includes = '.',
     uselib          = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM GREENSOCS',
     use             = 'utils signalkit common',
