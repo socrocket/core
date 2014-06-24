@@ -22,8 +22,6 @@
 
 #include "mmu_cache.h"
 #include "ahbin.h"
-#include "arraymemory.h"
-#include "mapmemory.h"
 #include "memory.h"
 #include "apbctrl.h"
 #include "ahbmem.h"
