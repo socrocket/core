@@ -127,12 +127,16 @@ def configure(self):
             git_url      = "git://git.greensocs.com/greenlib.git",
             git_checkout = "ecfee38aebe09f91d1affd82ca03581a2bba3662",
             patch        = os.path.join(self.srcnode.abspath(), "contrib", "greenlib-2013-12-02.patch"),
-            config_cmd   = "%(cmake)s %%(src)s -DLUA_INCLUDE_DIR=%(lua_dir)s -DLUA_LIBRARY_DIR=%(lua_lib)s -DSYSTEMC_PREFIX=%(systemc)s -DTLM_HOME=%(tlm)s -DCMAKE_INSTALL_PREFIX=%%(prefix)s" % {
+            config_cmd   = "%(cmake)s %%(src)s -DLUA_INCLUDE_DIR=%(lua_dir)s -DLUA_LIBRARIES=%(lua_lib)s -DSYSTEMC_PREFIX=%(systemc)s -DTLM_HOME=%(tlm)s -DCMAKE_INSTALL_PREFIX=%%(prefix)s" % {
               "cmake":self.env.CMAKE, 
               "systemc":self.env.HOME_SYSTEMC, 
               "tlm": "%s/include" % self.env.HOME_TLM,
               "lua_dir": self.env.LUA_DIR,
               "lua_lib": self.env.LUA_LIB,
+            },
+            build_cmd = "%(make)s %(jobs)s greenreg" % {
+              "make" : self.env.MAKE,
+              "jobs" : self.env.JOBS,
             }
         )
         find(self, self.dep_path(name, version))

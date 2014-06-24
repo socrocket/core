@@ -1,6 +1,5 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
-# vim: set expandtab:ts=4:sw=4:setfiletype python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
 APPNAME = 'SoCRocket'
 VERSION = '$Revision$'
 top = '.'
@@ -83,4 +82,3 @@ def build(self):
     self.install_files('${PREFIX}/', self.path.ant_glob('templates/**', excl=['**/*~', '**/.svn/**', '**/.git/**']), relative_trick=True)
     self.install_files('${PREFIX}/include', self.path.ant_glob('contrib/grambasockets/*.h', excl=['**/*~', '**/.svn/**', '**/.git/**']))
     self.add_post_fun(waf_unit_test.summary)
-

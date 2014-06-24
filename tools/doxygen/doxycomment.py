@@ -164,7 +164,7 @@ def SplitLine(Line, LineNumber, CommentBlocks):
 def BlockHandler(lineArray, options, StartDelimiter, EndDelimiter, Processor):
 	ProcessedLines = []
 
-	if lineArray[1].find('=') == 0 or lineArray[0].startswith('#'):
+	if len(lineArray) > 1 and (lineArray[1].find('=') == 0 or lineArray[0].startswith('#')):
 		CommentBlocks = [{"Location": {"Start": {"LineIndex": 0}, "End": {"LineIndex": len(lineArray)}}, "Contents": lineArray}]
 	else:
 		# Get the full comment blocks
