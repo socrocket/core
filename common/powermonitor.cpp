@@ -153,7 +153,7 @@ void powermonitor::gen_report() {
 
     models_list = get_IP_params(power_list);
 
-    if (!((!m_exram)&&((get_model_name(models_list[0])=="rom")||(get_model_name(models_list[0])=="sram")||(get_model_name(models_list[0])=="sdram")||(get_model_name(models_list[0])=="io")))) {
+    if (!((m_exram)&&((get_model_name(models_list[0])=="rom")||(get_model_name(models_list[0])=="sram")||(get_model_name(models_list[0])=="sdram")||(get_model_name(models_list[0])=="io")))) {
 
       v::info << name() << " ***************************************************** " << v::endl;
       v::info << name() << " * Component: " << get_model_name(models_list[0]) << v::endl;
