@@ -24,6 +24,7 @@
 #include "ahbin.h"
 #include "arraymemory.h"
 #include "mapmemory.h"
+#include "memory.h"
 #include "apbctrl.h"
 #include "ahbmem.h"
 #include "mctrl.h"
@@ -441,13 +442,13 @@ int sc_main(int argc, char** argv) {
     // ===============
 
     // ROM instantiation
-    MapMemory rom( "rom",
-    //ArrayMemory rom( "rom",
+    Memory rom( "rom",
                      MEMDevice::ROM,
                      p_mctrl_prom_banks,
                      p_mctrl_prom_bsize * 1024 * 1024,
                      p_mctrl_prom_width,
                      0,
+                     BaseMemory::MAP,
                      p_report_power
     );
 
@@ -474,15 +475,14 @@ int sc_main(int argc, char** argv) {
     }
 
     // IO memory instantiation
-    MapMemory io( "io",
-    //ArrayMemory io( "io",
-                    MEMDevice::IO,
-                    p_mctrl_prom_banks,
-                    p_mctrl_prom_bsize * 1024 * 1024,
-                    p_mctrl_prom_width,
-                    0,
-                    p_report_power
-
+    Memory io( "io",
+               MEMDevice::IO,
+               p_mctrl_prom_banks,
+               p_mctrl_prom_bsize * 1024 * 1024,
+               p_mctrl_prom_width,
+               0,
+               BaseMemory::MAP,
+               p_report_power
     );
 
     // Connect to memory controller and clock
@@ -509,15 +509,14 @@ int sc_main(int argc, char** argv) {
     }
 
     // SRAM instantiation
-    MapMemory sram( "sram",
-    //ArrayMemory sram( "sram",
-                      MEMDevice::SRAM,
-                      p_mctrl_ram_sram_banks,
-                      p_mctrl_ram_sram_bsize * 1024 * 1024,
-                      p_mctrl_ram_sram_width,
-                      0,
-                      p_report_power
-
+    Memory sram( "sram",
+                 MEMDevice::SRAM,
+                 p_mctrl_ram_sram_banks,
+                 p_mctrl_ram_sram_bsize * 1024 * 1024,
+                 p_mctrl_ram_sram_width,
+                 0,
+                 BaseMemory::MAP,
+                 p_report_power
     );
 
     // Connect to memory controller and clock
@@ -544,12 +543,13 @@ int sc_main(int argc, char** argv) {
     }
 
     // SDRAM instantiation
-    ArrayMemory sdram( "sdram",
+    Memory sdram( "sdram",
                        MEMDevice::SDRAM,
                        p_mctrl_ram_sdram_banks,
                        p_mctrl_ram_sdram_bsize * 1024 * 1024,
                        p_mctrl_ram_sdram_width,
                        p_mctrl_ram_sdram_cols,
+                       BaseMemory::ARRAY,
                        p_report_power
     );
 
