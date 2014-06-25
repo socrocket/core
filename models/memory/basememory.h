@@ -15,29 +15,29 @@ class BaseMemory {
 
     typedef implementation_type type;
     
-    BaseMemory(implementation_type type, const uint32_t size);
+    BaseMemory(const implementation_type &type, const uint32_t &size);
     
     ~BaseMemory();
 
-    uint8_t read(const uint32_t addr);
+    uint8_t read(const uint32_t &addr);
 
-    uint8_t read_dbg(const uint32_t addr);
+    uint8_t read_dbg(const uint32_t &addr);
 
-    void write(const uint32_t addr, const uint8_t byte);
+    void write(const uint32_t &addr, const uint8_t &byte);
     
-    void write_dbg(const uint32_t addr, const uint8_t byte);
+    void write_dbg(const uint32_t &addr, const uint8_t &byte);
 
-    void write_block(const uint32_t addr, uint8_t *data, uint32_t len);
+    void write_block(const uint32_t &addr, uint8_t *data, const uint32_t &len);
     
-    void write_block_dbg(const uint32_t addr, uint8_t *data, uint32_t len);
+    void write_block_dbg(const uint32_t &addr, uint8_t *data, const uint32_t &len);
     
-    void read_block(const uint32_t addr, uint8_t *data, uint32_t len);
+    void read_block(const uint32_t &addr, uint8_t *data, const uint32_t &len);
     
-    void read_block_dbg(const uint32_t addr, uint8_t *data, uint32_t len);
+    void read_block_dbg(const uint32_t &addr, uint8_t *data, const uint32_t &len);
 
-    void erase(uint32_t start, uint32_t end);
+    void erase(const uint32_t &start, const uint32_t &end);
 
-    void erase_dbg(uint32_t start, uint32_t end);
+    void erase_dbg(const uint32_t &start, const uint32_t &end);
 
     // byte read count
     unsigned long long reads;

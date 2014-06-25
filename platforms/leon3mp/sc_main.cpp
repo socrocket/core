@@ -464,7 +464,7 @@ int sc_main(int argc, char** argv) {
         execData = prom_loader.getProgData();
 
         for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
-          rom.write(prom_loader.getDataStart() + i - ((((unsigned int)p_mctrl_prom_addr)&((unsigned int)p_mctrl_prom_mask))<<20), execData[i]);
+          rom.write_dbg(prom_loader.getDataStart() + i - ((((unsigned int)p_mctrl_prom_addr)&((unsigned int)p_mctrl_prom_mask))<<20), execData[i]);
         }
       } else {
         v::warn << "rom" << "File " << p_mctrl_prom_elf << " does not exist!" << v::endl;
@@ -498,7 +498,7 @@ int sc_main(int argc, char** argv) {
         execData = loader.getProgData();
 
         for(unsigned int i = 0; i < loader.getProgDim(); i++) {
-          io.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_io_addr)&((unsigned int)p_mctrl_io_mask))<<20), execData[i]);
+          io.write_dbg(loader.getDataStart() + i - ((((unsigned int)p_mctrl_io_addr)&((unsigned int)p_mctrl_io_mask))<<20), execData[i]);
         }
       } else {
         v::warn << "io" << "File " << p_mctrl_io_elf << " does not exist!" << v::endl;
@@ -532,7 +532,7 @@ int sc_main(int argc, char** argv) {
         execData = loader.getProgData();
 
         for(unsigned int i = 0; i < loader.getProgDim(); i++) {
-          sram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
+          sram.write_dbg(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
         }
       } else {
         v::warn << "sram" << "File " << p_mctrl_ram_sram_elf << " does not exist!" << v::endl;
@@ -566,7 +566,7 @@ int sc_main(int argc, char** argv) {
         execData = loader.getProgData();
 
         for(unsigned int i = 0; i < loader.getProgDim(); i++) {
-          sdram.write(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
+          sdram.write_dbg(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
         }
       } else {
         v::warn << "sdram" << "File " << p_mctrl_ram_sdram_elf << " does not exist!" << v::endl;
