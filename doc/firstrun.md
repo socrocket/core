@@ -35,7 +35,7 @@ To execute the program the generated image must be loaded into ROM at the beginn
 Therefore, the name and the location of the application must be entered in the system configuration file. 
 This can be done by manually editing the configuration (JSON file) or by using the set_json_attr utility:
 ~~~
-./tools/set_json_attr myconf.json conf.mctrl.prom.elf=“hello.sparc.prom” > myhelloconf.json
+./tools/set_json_attr myconf.json conf.mctrl.prom.elf="hello.sparc.prom" > myhelloconf.json
 ~~~
 
 Now the simulation can be started as follows:

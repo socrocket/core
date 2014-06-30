@@ -44,6 +44,18 @@ def options(self):
 
 def configure(self):
     """Standard tools needed for fetching and building"""
+    print """
+      To compile SoCRocket you need to have installed a basic Unix system.
+      Atleast it needs to contain: 
+
+        nm, git, patch, make, wget, tar, ln, bash ans swig.
+
+      Furthermore you need to provide cross compiler for sparc. If not provided
+      we will try to fetch them from Gaisler (sparc-elf-gcc). But you will need 
+      to provice a 32bit environment to execute the precompiled toolchain.
+
+      For the ipython support blas and lapack needs to be installed.
+    """
     self.find_program('nm', mandatory=1, var='NM')
     self.find_program('git', var='GIT', mandatory=True, okmsg="ok")
     self.find_program('patch', var='PATCH', mandatory=True, okmsg="ok")
