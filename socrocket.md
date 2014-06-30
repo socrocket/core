@@ -29,6 +29,7 @@ Version | Date     | Description
 1.2     | 03/05/11 |                                
 
 * @subpage requirements "Requirements"
+* @subpage codingstyle_p "Coding Style Guide"
 * @subpage install "Installation"
 * @subpage structure "Library Structure"
 * @subpage firstrun "Run Software"
