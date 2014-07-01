@@ -168,5 +168,5 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
     gs::gs_param<unsigned long long> dyn_writes;  // NOLINT(runtime/int)
 };
 
-#endif  // MODELS_AHBMEM_AHBMEM_H_
+#endif // MODELS_AHBMEM_AHBMEM_H_
 /// @}

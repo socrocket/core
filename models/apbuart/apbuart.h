@@ -12,8 +12,8 @@
 /// @author Rolf Meyer
 ///
 
-#ifndef APBUART_H
-#define APBUART_H
+#ifndef MODELS_APBUART_APBUART_H_
+#define MODELS_APBUART_APBUART_H_
 
 #include "apbdevice.h"
 #include "clkdevice.h"
@@ -92,5 +92,5 @@ class APBUART : public gs::reg::gr_device, public APBDevice, public CLKDevice {
         static const uint32_t SCALER_MASK     = 0x00000FFF;
 };
 
-#endif // APBUART_H
+#endif // MODELS_APBUART_APBUART_H_
 /// @}

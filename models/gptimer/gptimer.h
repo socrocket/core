@@ -313,5 +313,5 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   friend class GPCounter;
 };
 
-#endif  // MODELS_GPTIMER_GPTIMER_H_
+#endif // MODELS_GPTIMER_GPTIMER_H_
 /// @}

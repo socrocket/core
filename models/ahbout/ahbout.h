@@ -12,8 +12,8 @@
 /// @author Rolf Meyer
 ///
 
-#ifndef AHBOUT_H
-#define AHBOUT_H
+#ifndef MODELS_AHBOUT_AHBOUT_H_
+#define MODELS_AHBOUT_AHBOUT_H_
 
 #include <amba.h>
 #include <fstream>
@@ -56,5 +56,5 @@ class AHBOut : public AHBSlave<>, public CLKDevice {
     ofstream outfile;
 };
 
-#endif
+#endif // MODELS_AHBOUT_AHBOUT_H_
 /// @}

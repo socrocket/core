@@ -12,8 +12,8 @@
 /// @author Rolf Meyer
 ///
 
-#ifndef AHBPROF_H
-#define AHBPROF_H
+#ifndef MODELS_AHBPROF_AHBPROF_H_
+#define MODELS_AHBPROF_AHBPROF_H_
 
 #include <tlm.h>
 #include <amba.h>
@@ -68,5 +68,5 @@ class AHBProf : public AHBSlave<>, public CLKDevice {
   const uint32_t m_mask;
 };
 
-#endif
+#endif // MODELS_AHBPROF_AHBPROF_H_
 /// @}

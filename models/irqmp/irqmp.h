@@ -12,8 +12,8 @@
 /// @author Rolf Meyer
 ///
 
-#ifndef IRQMP_H
-#define IRQMP_H
+#ifndef MODELS_IRQMP_IRQMP_H_
+#define MODELS_IRQMP_IRQMP_H_
 
 #include <greenreg_ambasockets.h>
 #include <systemc.h>
@@ -315,5 +315,5 @@ class Irqmp : public gs::reg::gr_device,
 
 /// @}
 
-#endif
+#endif // MODELS_IRQMP_IRQMP_H_
 /// @}

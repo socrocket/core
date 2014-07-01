@@ -11,8 +11,8 @@
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
-#ifndef AHBMASTER_H
-#define AHBMASTER_H
+#ifndef MODELS_UTILS_AHBMASTER_H_
+#define MODELS_UTILS_AHBMASTER_H_
 
 #include <tlm.h>
 #include <systemc.h>
@@ -131,5 +131,5 @@ class AHBMaster : public BASE, public AHBDevice {
 
 #include "ahbmaster.tpp"
 
-#endif // AHBMASTER_H
+#endif // MODELS_UTILS_AHBMASTER_H_
 /// @}

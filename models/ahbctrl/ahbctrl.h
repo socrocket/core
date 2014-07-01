@@ -13,8 +13,8 @@
 /// @author Thomas Schuster
 ///
 
-#ifndef AHBCTRL_H
-#define AHBCTRL_H
+#ifndef MODELS_AHBCTRL_AHBCTRL_H_
+#define MODELS_AHBCTRL_AHBCTRL_H_
 
 #include "socrocket.h"
 
@@ -348,5 +348,5 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
 };
 
-#endif // AHBCTRL_H
+#endif // MODELS_AHBCTRL_AHBCTRL_H_
 /// @}

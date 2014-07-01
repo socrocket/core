@@ -39,26 +39,26 @@ Coding Style done in the SoCRocket Week 2014-6
 Model        | Lint | GUARDS | DOCS | DOCSUP | CONF | REGS  
 ------------ | ---- | ------ | ---- | ------ | ---- | ----
 ahbcamera    | OK   |  OK    |      |        |      |
-ahbctrl      |      |        |      |        |      |
+ahbctrl      |      |  BF    |      |        |      |
 ahbdisplay   | OK   |  OK    |      |        |      |
 ahbin        | OK   |  OK    |      |        |      |
-ahbmem       | RM   |        |      |        |      |
-ahbout       | RM   |        |      |        |      |
-ahbprof      | RM   |        |      |        |      |
-ahbshuffler  | RM   |        |      |        |      |
-ahbspacewire |      |        |      |        |      |
-ahbudp       | RM   |        |      |        |      |
-apbctrl      |      |        |      |        |      |
-apbuart      | RM   |        |      |        |      |
+ahbmem       | RM   |  BF    |      |        |      |
+ahbout       | RM   |  BF    |      |        |      |
+ahbprof      | RM   |  BF    |      |        |      |
+ahbshuffler  | RM   |  BF    |      |        |      |
+ahbspacewire |      |  BF    |      |        |      |
+ahbudp       | RM   |  BF    |      |        |      |
+apbctrl      |      |  BF    |      |        |      |
+apbuart      | RM   |  BF    |      |        |      |
 extern       |      |        |      |        |      |
-gptimer      | OK   | OK     |      |        |      |
+gptimer      | OK   |  OK    |      |        |      |
 greth        |      |        |      |        |      |
-irqmp        | RM   |        |      |        |      |
-mctrl        |      |        |      |        |      |
+irqmp        | RM   |  BF    |      |        |      |
+mctrl        |      |  BF    |      |        |      |
 memory       | JW   |        |      |        |      |
 mips         | RM   |        |      |        |      |
 mmu_cache    | TS   |        |      |        |      |
-socwire      |      |        |      |        |      |
-stimgen      |      |        |      |        |      |
-utils        |      |        |      |        |      |
+socwire      |      |  BF    |      |        |      |
+stimgen      |      |  BF    |      |        |      |
+utils        |      |  BF    |      |        |      |
 

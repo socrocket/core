@@ -12,8 +12,8 @@
 /// @author Thomas Schuster
 ///
 
-#ifndef IO_IF_H
-#define IO_IF_H
+#ifndef MODELS_APBUART_IO_IF_H_
+#define MODELS_APBUART_IO_IF_H_
 
 #include <stdint.h>
 
@@ -24,5 +24,5 @@ class io_if {
     virtual void sendChar(char) = 0;
 };
 
-#endif // IO_IF_H
+#endif // MODELS_APBUART_IO_IF_H_
 /// @}

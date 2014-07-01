@@ -11,8 +11,8 @@
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
-#ifndef AHBSLAVE_H
-#define AHBSLAVE_H
+#ifndef MODELS_UTILS_AHBSLAVE_H_
+#define MODELS_UTILS_AHBSLAVE_H_
 
 #include <tlm.h>
 #include <systemc.h>
@@ -108,7 +108,7 @@ class AHBSlave : public BASE, public AHBDevice {
 
 #include "ahbslave.tpp"
 
-#endif // AHBSLAVE_H
+#endif // MODELS_UTILS_AHBSLAVE_H_
 
 
 /* vim: set expandtab noai ts=4 sw=4: */

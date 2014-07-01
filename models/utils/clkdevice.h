@@ -13,8 +13,8 @@
 /// @author Rolf Meyer
 ///
 
-#ifndef CLKDEVICE_H
-#define CLKDEVICE_H
+#ifndef MODELS_UTILS_CLKDEVICE_H_
+#define MODELS_UTILS_CLKDEVICE_H_
 
 #include <systemc.h>
 #include "signalkit.h"
@@ -84,5 +84,5 @@ class CLKDevice {
     sc_time clock_cycle;
 };
 
-#endif // CLKDEVICE_H
+#endif // MODELS_UTILS_CLKDEVICE_H_
 /// @}

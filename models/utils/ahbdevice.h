@@ -12,8 +12,8 @@
 /// @author 
 ///
 
-#ifndef AHB_DEVICE_H
-#define AHB_DEVICE_H
+#ifndef MODELS_UTILS_AHBDEVICE_H_
+#define MODELS_UTILS_AHBDEVICE_H_
 
 #include <greencontrol/config.h>
 #include <amba.h>
@@ -156,6 +156,6 @@ uint32_t BAR(AHBDevice::device_type type, uint16_t mask, bool cacheable,
 
 /// @}
 
-#endif
+#endif // MODELS_UTILS_AHBDEVICE_H_
 /// @}
 /// @}
