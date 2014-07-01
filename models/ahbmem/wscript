@@ -2,13 +2,14 @@
 # vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
 top = '../..'
 
-def build(bld):
-  bld(
+def build(self):
+  self(
     target          = 'ahbmem',
     features        = 'cxx cxxstlib',
     source          = 'ahbmem.cpp', 
-    export_includes = '.',
+    export_includes = self.top_dir,
+    includes        = self.top_dir,
     uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     use             = 'utils signalkit common',
-    install_path   = '${PREFIX}/lib',
+    install_path    = '${PREFIX}/lib',
   )

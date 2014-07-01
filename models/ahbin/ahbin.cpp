@@ -93,7 +93,7 @@ void AHBIn::gen_frame() {
     // Generate data frame and send to memory
     for (uint32_t i = 0; i < m_framesize; i++) {
       // Random number
-      tmp = rand_r();
+      tmp = rand();
 
       // AHB write
       ahbwrite((m_frameaddr << 20) + (i << 2), (unsigned char *)&tmp, 4);

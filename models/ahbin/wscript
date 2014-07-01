@@ -2,9 +2,9 @@
 # vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
 top = '../..'
 
-def build(bld):
+def build(self):
 
-  bld(
+  self(
     target          = 'ahbin',
     features        = 'cxx cxxstlib',
     source          = 'ahbin.cpp',
