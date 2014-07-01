@@ -1,8 +1,20 @@
-// Interface for adressable storage, eg. map or array based
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup memory memory
+/// @{
+/// @file storage.h
+/// Interface definition for storage-implementations for memories
+///
+/// @date 2014-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the
+///            authors is strictly prohibited.
+/// @author Jan Wagner
+///
 
-#ifndef  STORAGE_H
-#define STORAGE_H
-#include "systemc.h"
+#ifndef  MODELS_MEMORY_STORAGE_H_
+#define MODELS_MEMORY_STORAGE_H_
+#include <systemc.h>
 
 class Storage {
   public:
@@ -11,11 +23,11 @@ class Storage {
     virtual uint8_t read(const uint32_t &addr) = 0;
 
     virtual void write_block(const uint32_t &addr, uint8_t *data, const uint32_t &len) = 0;
-    
-    virtual void read_block(const uint32_t &addr, uint8_t *data, const uint32_t &len) const = 0;
+
+    virtual void read_block(const uint32_t &addr, uint8_t *data, const uint32_t &len) = 0;
 
     virtual void erase(const uint32_t &start, const uint32_t &end) = 0;
-
 };
 
-#endif
+#endif  // MODELS_MEMORY_STORAGE_H_
+/// @}

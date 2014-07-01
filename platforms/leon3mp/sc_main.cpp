@@ -21,10 +21,10 @@
 #include <osEmulator.hpp>
 
 #include "mmu_cache.h"
-#include "ahbin.h"
-#include "memory.h"
+#include "models/ahbin/ahbin.h"
+#include "models/memory/memory.h"
 #include "apbctrl.h"
-#include "ahbmem.h"
+#include "models/ahbmem/ahbmem.h"
 #include "mctrl.h"
 #include "defines.h"
 #include "models/gptimer/gptimer.h"

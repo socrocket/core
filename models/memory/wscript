@@ -2,14 +2,15 @@
 # vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
 top = '../..'
 
-def build(bld):
+def build(self):
   import os.path
-  bld(
+  self(
     target          = 'memory',
     features        = 'cxx cxxstlib',
     source          = 'arraystorage.cpp mapstorage.cpp basememory.cpp memory.cpp memorypower.cpp', 
-    export_includes = '.',
+    export_includes = self.top_dir,
+    includes        = self.top_dir,
     uselib          = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM GREENSOCS',
     use             = 'utils signalkit common',
-    install_path   = '${PREFIX}/lib',
+    install_path    = '${PREFIX}/lib',
   )

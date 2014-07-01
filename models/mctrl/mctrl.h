@@ -37,7 +37,7 @@
 #include <signalkit.h>
 #include "vendian.h"
 #include "verbose.h"
-#include "ext_erase.h"
+#include "models/memory/ext_erase.h"
 
 /// @addtogroup mctrl MCtrl
 /// @{

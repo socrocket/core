@@ -1,4 +1,18 @@
-#include "arraystorage.h"
+// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup memory
+/// @{
+/// @file arraystorage.cpp
+/// source file defining the implementation of the arraysorage model.
+///
+/// @date 2014-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the
+///            authors is strictly prohibited.
+/// @author Jan Wagner
+///
+
+#include "models/memory/arraystorage.h"
 
 ArrayStorage::ArrayStorage(const uint32_t &size) {
   data = new uint8_t[size];
@@ -25,6 +39,7 @@ void ArrayStorage::write_block(const uint32_t &addr, uint8_t *ptr, const uint32_
   memcpy(&data[addr], ptr, len);
 }
 
-void ArrayStorage::read_block(const uint32_t &addr, uint8_t *ptr, const uint32_t &len) const {
+void ArrayStorage::read_block(const uint32_t &addr, uint8_t *ptr, const uint32_t &len) {
   memcpy(ptr, &data[addr], len);
 }
+/// @}
