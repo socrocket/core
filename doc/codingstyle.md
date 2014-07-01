@@ -26,6 +26,13 @@ A configuration is availabe in tools/uncrustify.cfg. It cn be used with:
 uncrustify -c tools/uncrustify.cfg --replace <filename>
 ~~~
 
+To update/add header guards in a coding style compliant way the script "tools/fixheaderguards.py" can be used. The script was originally created by Martin Preisler and slightly adapted to our coding style. The original is available here: https://bitbucket.org/mpreisler/include-guard-fixer/
+
+Just run it from the project root with:
+~~~
+tools/fixheaderguards.py <filename>
+~~~
+
 Coding Style done in the SoCRocket Week 2014-6
 ----------------------------------------------
 
