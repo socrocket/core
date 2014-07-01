@@ -14,8 +14,8 @@
 /// @author Rolf Meyer
 ///
 
-#ifndef APB_DEVICE_H
-#define APB_DEVICE_H
+#ifndef MODELS_UTILS_APBDEVICE_H_
+#define MODELS_UTILS_APBDEVICE_H_
 
 #include <stdint.h>
 #include <amba.h>
@@ -98,5 +98,5 @@ class APBDevice : public amba_slave_base {
 	uint32_t m_busid;
 };
 
-#endif
+#endif // MODELS_UTILS_APBDEVICE_H_
 /// @}

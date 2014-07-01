@@ -13,8 +13,8 @@
 /// @author Thomas Schuster
 ///
 
-#ifndef TCPIO_H
-#define TCPIO_H
+#ifndef MODELS_APBUART_TCPIO_H_
+#define MODELS_APBUART_TCPIO_H_
 
 #include <string>
 #include <iostream>
@@ -62,5 +62,5 @@ struct ConnectionThread{
     }
 };
 
-#endif // TCPIO_H
+#endif // MODELS_APBUART_TCPIO_H_
 /// @}

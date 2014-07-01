@@ -12,8 +12,8 @@
 /// @author Thomas Schuster
 ///
 
-#ifndef APBCTRL_H
-#define APBCTRL_H
+#ifndef MODELS_APBCTRL_APBCTRL_H_
+#define MODELS_APBCTRL_APBCTRL_H_
 
 #include "ahbslave.h"
 #include "apbdevice.h"
@@ -211,5 +211,5 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
 
 /// @}
 
-#endif // APBCTRL_H
+#endif // MODELS_APBCTRL_APBCTRL_H_
 /// @}

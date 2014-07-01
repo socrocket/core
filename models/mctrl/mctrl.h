@@ -13,8 +13,8 @@
 /// @author Rolf Meyer
 ///
 
-#ifndef MCTRL_H
-#define MCTRL_H
+#ifndef MODELS_MCTRL_MCTRL_H_
+#define MODELS_MCTRL_MCTRL_H_
 
 #include <tlm.h>
 #include <systemc.h>
@@ -412,6 +412,6 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
         static const uint32_t MCFG4_DEFAULT               = 0x00F00000;
 };
 
-#endif // MCTRL_H
+#endif // MODELS_MCTRL_MCTRL_H_
 
 /// @}

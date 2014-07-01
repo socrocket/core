@@ -7,161 +7,166 @@
 /// @date 2010-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Rolf Meyer
 ///
 
-#ifndef AHBMEM_H
-#define AHBMEM_H
+#ifndef MODELS_AHBMEM_AHBMEM_H_
+#define MODELS_AHBMEM_AHBMEM_H_
 
-#include <tlm.h>
 #include <amba.h>
-#include <map>
+#include <tlm.h>
 
-#include "ahbslave.h"
-#include "clkdevice.h"
-#include "msclogger.h"
+#if defined(MTI_SYSTEMC)
+#include <peq_with_get.h>
+#else
+#include <tlm_utils/peq_with_get.h>
+#endif
 
 #include <greencontrol/config.h>
 
-#if defined(MTI_SYSTEMC)
-#include "peq_with_get.h"
-#else
-#include "tlm_utils/peq_with_get.h"
-#endif
+
+#include <map>
+
+#include "models/utils/ahbslave.h"
+#include "models/utils/clkdevice.h"
+#include "common/msclogger.h"
 
 class AHBMem : public AHBSlave<>, public CLKDevice {
+  public:
+    GC_HAS_CALLBACKS();
+    SC_HAS_PROCESS(AHBMem);
 
- public:
+    /// Constructor
+    /// @brief Constructor for the test bench memory class
+    /// @param haddr AHB address of the AHB slave socket (12 bit)
+    /// @param hmask AHB address mask (12 bit)
+    /// @param ambaLayer Abstraction layer used (AT/LT)
+    /// @param infile File name of a text file to initialize the memory from
+    /// @param addr Start address for memory initilization
+    AHBMem(const sc_core::sc_module_name nm,
+    uint16_t haddr_,
+    uint16_t hmask_ = 0,
+    amba::amba_layer_ids ambaLayer = amba::amba_LT,
+    uint32_t slave_id = 0,
+    bool cacheable = 1,
+    uint32_t wait_states = 0,
+    bool pow_mon = false);
 
-  GC_HAS_CALLBACKS();
-  SC_HAS_PROCESS(AHBMem);
+    /// Destructor
+    ~AHBMem();
 
-  /// Constructor
-  /// @brief Constructor for the test bench memory class
-  /// @param haddr AHB address of the AHB slave socket (12 bit)
-  /// @param hmask AHB address mask (12 bit)
-  /// @param ambaLayer Abstraction layer used (AT/LT)
-  /// @param infile File name of a text file to initialize the memory from
-  /// @param addr Start address for memory initilization
-  AHBMem(const sc_core::sc_module_name nm,
-         uint16_t haddr_,
-         uint16_t hmask_ = 0,
-         amba::amba_layer_ids ambaLayer = amba::amba_LT,
-         uint32_t slave_id = 0,
-         bool cacheable = 1,
-         uint32_t wait_states = 0,
-         bool pow_mon = false);
+    /// Reset callback
+    void dorst();
 
-  /// Destructor
-  ~AHBMem();
+    /// @brief Delete memory content
+    void clear_mem() {
+      mem.clear();
+    }
 
-  /// Reset callback
-  void dorst();
+    /// @brief Method to write a byte into the memory
+    /// @param addr Write address
+    /// @param byte Write data
+    void writeByteDBG(const uint32_t addr, const uint8_t byte);
 
-  /// @brief Delete memory content
-  void clear_mem() {
-    mem.clear();
-  }
+    // AHBSlave behavior callback
+    uint32_t exec_func(
+        tlm::tlm_generic_payload &gp,  // NOLINT(runtime/references)
+        sc_time &delay,                // NOLINT(runtime/references)
+        bool debug = false);
 
-  /// @brief Method to write a byte into the memory
-  /// @param addr Write address
-  /// @param byte Write data
-  void writeByteDBG(const uint32_t addr, const uint8_t byte);
+    // Implement AHBSlave virtual function
+    sc_core::sc_time get_clock();
 
-  // AHBSlave behavior callback
-  uint32_t exec_func(tlm::tlm_generic_payload &gp, sc_time &delay, bool debug = false);
+    /// Called by scheduler at start of simulation
+    void start_of_simulation();
 
-  // Implement AHBSlave virtual function
-  sc_core::sc_time get_clock();
+    /// Calculate power/energy values from normalized input data
+    void power_model();
 
-  /// Called by scheduler at start of simulation
-  void start_of_simulation();
+    /// Static power callback
+    gs::cnf::callback_return_type sta_power_cb(
+        gs::gs_param_base &changed_param,  // NOLINT(runtime/references)
+        gs::cnf::callback_type reason);
 
-  /// Calculate power/energy values from normalized input data
-  void power_model();
+    /// Dynamic/Internal power callback
+    gs::cnf::callback_return_type int_power_cb(
+        gs::gs_param_base &changed_param,  // NOLINT(runtime/references)
+        gs::cnf::callback_type reason);
 
-  /// Static power callback
-  gs::cnf::callback_return_type sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+    /// Dynamic/Switching power callback
+    gs::cnf::callback_return_type swi_power_cb(
+        gs::gs_param_base &changed_param,  // NOLINT(runtime/references)
+        gs::cnf::callback_type reason);
 
-  /// Dynamic/Internal power callback
-  gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+    /// Generates execution statistic at end of simulation
+    void end_of_simulation();
 
-  /// Dynamic/Switching power callback
-  gs::cnf::callback_return_type swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+  private:
+    /// The actual memory
+    std::map<uint32_t, uint8_t> mem;
 
-  /// Generates execution statistic at end of simulation
-  void end_of_simulation();
+    /// AHB slave base address and size
+    const uint32_t ahbBaseAddress;
+    // size is saved in bytes
+    const uint32_t ahbSize;
 
- private:
+    /// 12 bit MSB address and mask (constructor parameters)
+    const uint32_t mhaddr;
+    const uint32_t mhmask;
 
-  /// The actual memory
-  std::map<uint32_t, uint8_t> mem;
+    /// Device cacheable or not
+    const bool mcacheable;
 
-  /// AHB slave base address and size
-  const uint32_t ahbBaseAddress;
-  // size is saved in bytes
-  const uint32_t ahbSize;
+    /// Number of wait states to be inserted for each transfer
+    const uint32_t mwait_states;
 
-  /// 12 bit MSB address and mask (constructor parameters)
-  const uint32_t mhaddr;
-  const uint32_t mhmask;
+    /// Power monitoring on/off
+    const bool m_pow_mon;
 
-  /// Device cacheable or not
-  const bool mcacheable;
+  public:
+    /// Power Modeling Parameters
 
-  /// Number of wait states to be inserted for each transfer
-  const uint32_t mwait_states;
+    /// Normalized static power input
+    gs::gs_param<double> sta_power_norm;
 
-  /// Power monitoring on/off
-  const bool m_pow_mon;
+    /// Normalized internal power input (activation independent)
+    gs::gs_param<double> int_power_norm;
 
- public:
+    /// Normalized read access energy
+    gs::gs_param<double> dyn_read_energy_norm;
 
-  /// *****************************************************
-  /// Power Modeling Parameters
+    /// Normalized write access energy
+    gs::gs_param<double> dyn_write_energy_norm;
 
-  /// Normalized static power input
-  gs::gs_param<double> sta_power_norm;
+    /// Parameter array for power data output
+    gs::gs_param_array power;
 
-  /// Normalized internal power input (activation independent)
-  gs::gs_param<double> int_power_norm;
+    /// Static power of module
+    gs::gs_param<double> sta_power;
 
-  /// Normalized read access energy
-  gs::gs_param<double> dyn_read_energy_norm;
+    /// Dynamic power of module (activation independent)
+    gs::gs_param<double> int_power;
 
-  /// Normalized write access energy
-  gs::gs_param<double> dyn_write_energy_norm;
+    /// Switching power of module
+    gs::gs_param<double> swi_power;
 
-  /// Parameter array for power data output
-  gs::gs_param_array power;
+    /// Power frame starting time
+    gs::gs_param<sc_core::sc_time> power_frame_starting_time;
 
-  /// Static power of module
-  gs::gs_param<double> sta_power;
+    /// Dynamic energy per read access
+    gs::gs_param<double> dyn_read_energy;
 
-  /// Dynamic power of module (activation independent)
-  gs::gs_param<double> int_power;
+    /// Dynamic energy per write access
+    gs::gs_param<double> dyn_write_energy;
 
-  /// Switching power of module
-  gs::gs_param<double> swi_power;
+    /// Number of reads from memory (read & reset by monitor)
+    gs::gs_param<unsigned long long> dyn_reads;  // NOLINT(runtime/int)
 
-  /// Power frame starting time
-  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
-
-  /// Dynamic energy per read access
-  gs::gs_param<double> dyn_read_energy;
-
-  /// Dynamic energy per write access
-  gs::gs_param<double> dyn_write_energy;
-
-  /// Number of reads from memory (read & reset by monitor)
-  gs::gs_param<unsigned long long> dyn_reads;
-
-  /// Number of writes to memory (read & reset by monitor)
-  gs::gs_param<unsigned long long> dyn_writes;
-
+    /// Number of writes to memory (read & reset by monitor)
+    gs::gs_param<unsigned long long> dyn_writes;  // NOLINT(runtime/int)
 };
 
-#endif
+#endif // MODELS_AHBMEM_AHBMEM_H_
 /// @}

@@ -14,8 +14,8 @@
 /// @author Rolf Meyer
 ///
 
-#ifndef MEM_DEVICE_H
-#define MEM_DEVICE_H
+#ifndef MODELS_UTILS_MEMDEVICE_H_
+#define MODELS_UTILS_MEMDEVICE_H_
 
 #include <stdint.h>
 #include <string>
@@ -78,5 +78,5 @@ class MEMDevice {
 
 };
 
-#endif
+#endif // MODELS_UTILS_MEMDEVICE_H_
 /// @}

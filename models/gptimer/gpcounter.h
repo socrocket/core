@@ -137,5 +137,5 @@ class GPCounter : public gs::reg::gr_subdevice {
   gs::gs_param<unsigned long long> m_underflows;  // NOLINT(runtime/int)
 };
 
-#endif  // MODELS_GPTIMER_GPCOUNTER_H_
+#endif // MODELS_GPTIMER_GPCOUNTER_H_
 /// @}

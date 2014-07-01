@@ -13,8 +13,8 @@
 /// @author Thomas Schuster
 ///
 
-#ifndef NULLIO_H
-#define NULLIO_H
+#ifndef MODELS_APBUART_NULLIO_H_
+#define MODELS_APBUART_NULLIO_H_
 
 #include <string>
 #include <iostream>
@@ -42,5 +42,5 @@ class NullIO : public io_if {
    void makeConnection();
 };
 
-#endif // TCPIO_H
+#endif // MODELS_APBUART_NULLIO_H_
 /// @}
