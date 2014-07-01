@@ -36,7 +36,7 @@ def default_guard_define_name_generator(filename, directory):
         dirnames_str = "%s%s%s" % ("" if "/" not in dirnames_current else "_", altered_dirname, dirnames_str)
         dirnames_current = os.path.dirname(dirnames_current)
     
-    return "%s%s" % (dirnames_str, altered_filename)
+    return "%s%s_" % (dirnames_str, altered_filename)
 
 def clean_include_guard(file, guard_define_name_generator, check_only):
     filename = os.path.basename(file)
