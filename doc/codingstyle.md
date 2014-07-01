@@ -55,7 +55,7 @@ gptimer      | OK   |  OK    |      |        |      |
 greth        |      |        |      |        |      |
 irqmp        | RM   |  BF    |      |        |      |
 mctrl        |      |  BF    |      |        |      |
-memory       | OK   |  OK    |      |        |      |
+memory       | OK   |  OK    | OK   |        |      |
 mips         | RM   |        |      |        |      |
 mmu_cache    | TS   |        |      |        |      |
 socwire      |      |  BF    |      |        |      |
