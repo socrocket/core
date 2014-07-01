@@ -25,3 +25,33 @@ A configuration is availabe in tools/uncrustify.cfg. It cn be used with:
 ~~~
 uncrustify -c tools/uncrustify.cfg --replace <filename>
 ~~~
+
+Coding Style done in the SoCRocket Week 2014-6
+----------------------------------------------
+
+Model        | Lint | GUARDS | DOCS | DOCSUP | CONF | REGS  
+------------ | ---- | ------ | ---- | ------ | ---- | ----
+ahbcamera    | OK   |  OK    |      |        |      |
+ahbctrl      |      |        |      |        |      |
+ahbdisplay   | OK   |  OK    |      |        |      |
+ahbin        | OK   |  OK    |      |        |      |
+ahbmem       | RM   |        |      |        |      |
+ahbout       | RM   |        |      |        |      |
+ahbprof      | RM   |        |      |        |      |
+ahbshuffler  | RM   |        |      |        |      |
+ahbspacewire |      |        |      |        |      |
+ahbudp       | RM   |        |      |        |      |
+apbctrl      |      |        |      |        |      |
+apbuart      | RM   |        |      |        |      |
+extern       |      |        |      |        |      |
+gptimer      | OK   | OK     |      |        |      |
+greth        |      |        |      |        |      |
+irqmp        | RM   |        |      |        |      |
+mctrl        |      |        |      |        |      |
+memory       | JW   |        |      |        |      |
+mips         | RM   |        |      |        |      |
+mmu_cache    | TS   |        |      |        |      |
+socwire      |      |        |      |        |      |
+stimgen      |      |        |      |        |      |
+utils        |      |        |      |        |      |
+

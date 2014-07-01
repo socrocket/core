@@ -1,0 +1,735 @@
+% Offizielle Beispieldatei für beamer-Vorlage aus tubslatex Version 0.3beta2
+\documentclass[fleqn,11pt,aspectratio=43]{beamer}
+
+\usepackage[ngerman]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{pxfonts}
+
+\usetheme[%
+  %cmyk,%<cmyk/rgbprint>,          Auswahl des Farbmodells
+  orange,%<blue/orange/green/violet> Auswahl des Sekundärfarbklangs
+  %dark,%<light,medium>        Auswahl der Helligkeit
+  %colorhead,%    Farbig hinterlegte Kopfleiste
+  %colorfoot,%    Farbig hinterlegt Fußleiste auf Titelseite
+  colorblocks,%   Blöcke Farbig hinterlegen
+  %nopagenum,%    Keine Seitennumer in Fußzeile
+  %nodate,%       Kein Datum in Fußleiste
+  %tocinheader,%   Inhaltsverzeichnis in Kopfleiste
+  %tinytocinheader,% kleines Kopfleisten-Inhaltsverzeichnis
+  %widetoc,%      breites Kopfleisten-Inhaltsverzeichnis
+  %narrowtoc,%    schmales Kopfleisten-Inhaltsverzeichnis
+  %nosubsectionsinheader,%  Keine subsections im Kopfleisten-Inhaltsverzeichnis
+  %nologoinfoot,% Kein Logo im Fußbereich darstellen
+  ]{tubs}
+
+% Titelgrafik, automatisch beschnitten, Weitere Optionen: <scaled/cropx/cropy>
+%\titlegraphic[scaled]{\includegraphics{img/titlepicture.jpg}}
+\titlegraphic[cropy]{\includegraphics{img/zynq.jpg}}
+
+% Logo, dass auf Titelseiten oben rechts und auf Inthaltsseiten unten rechts
+% dargestellt wird. Es wird jeweils automatisch skliert
+\logo{\includegraphics{img/logo_mit_text.pdf}}
+
+% settings for source code highlighting
+\lstset{ %
+  backgroundcolor=\color{white},         % choose the background color
+  basicstyle=\ttfamily\footnotesize,     % size of fonts used for the code
+  breaklines=true,                       % automatic line breaking only at whitespace
+  captionpos=b,                          % sets the caption-position to bottom
+  commentstyle=\color{tuGreenDark80},    % comment style
+  escapeinside={\%*}{*)},                % if you want to add LaTeX within your code
+  keywordstyle=\color{tuBlueMedium100}\bfseries, % keyword style
+  stringstyle=\color{tuVioletMedium},    % string literal style
+}
+
+% Titelseite
+\title{SoCRocket Week 2014}
+\subtitle{Introduction of SoCRocket}
+\author{Rolf Meyer}
+
+\begin{document}
+
+\begin{frame}[plain]
+\titlepage
+\end{frame}
+
+\part{Introduction}
+
+\begin{frame}[plain]
+  \partpage
+\end{frame}
+\begin{frame}{Contens}
+\tableofcontents
+\end{frame}
+
+\section{File structure}
+
+\begin{frame}{File structure - 1}
+
+\begin{itemize}
+  \item /contrib
+  \begin{itemize}
+    \item Patches for external dependencies
+    \item Rewritten dependencies
+    \item Own dependencies
+  \end{itemize}
+  \item /common
+  \begin{itemize}
+    \item Library for common used classes and functions
+    \item Small platform helpers
+    \item VerbosityKit, MsgLogger, Power, EndianessHelper
+  \end{itemize}
+  \item /models
+  \begin{itemize}
+    \item Base directory for all models
+    \item Each model is a library in an own subdirectory
+    \item AHBCtrl, APBCtrl, AHBMem, Irqmp, ...
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{File structure - 2}
+
+\begin{itemize}
+  \item /models/utils
+  \begin{itemize}
+    \item Suporting infrastructure to build models
+    \item APBDevice, AHBDevice, AHBMaster, AHBSlave, MEMDevice
+  \end{itemize}
+  \item /platforms
+  \begin{itemize}
+    \item Basedirectory for all paltforms
+    \item All platforms formed from the models are stored in this directory
+    \item leon3mp.platform, yuvstream.platform, mips1sp.platform
+  \end{itemize}
+  \item /templates
+  \begin{itemize}
+    \item Basedirectory for the configuration files of a platform
+    \item Needed for the generator wizard
+    \item XML Templates (.tpa), Configfile (.json)
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{File structure - 3}
+
+\begin{itemize}
+  \item /adapters
+  \begin{itemize}
+    \item VHDL-Transactors
+  \end{itemize}
+  \item /tools
+  \begin{itemize}
+    \item Home to all scripts
+    \item Including generator wizard and build system scripts
+    \item get\_json\_attr, set\_json\_attr, list.sh
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\section{Python - Crash course}
+
+\begin{frame}{Python - Explaination of the Syntax}
+\begin{itemize}
+  \item Most languages use curly braces to group pieces of code. 
+  \item Like everything in a for loop will be surrounded by a \{ and a \}. 
+  \item Not in Python. 
+  \item Indention is the key. 
+  \item Everything on the same indention level is part of the same group of code.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Python - Loops}
+\begin{lstlisting}[language=python]
+for loop stuff:
+    weee
+    fun
+this_isnt_part_of_the_loop()
+\end{lstlisting}
+Each statement is (usually) on its own line whereas a semicolon is used to delimit lines in most other programming language syntaxes.
+\end{frame}
+
+\begin{frame}[fragile]{Python - Functions}
+Functions are defined using the def statment. It goes like this...
+\begin{lstlisting}[language=python]
+def functionname(parameter1, parameter2):
+    code goes here
+    and here 
+    etc.
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Python - Classes}
+Classes are defined by the class statement.
+\begin{lstlisting}[language=python]
+class Classname(ParentClass):
+    def __init__(self):
+        self.member = 5
+\end{lstlisting}
+Member functions always have the first prameter self. It is the equivalent to this.
+\end{frame}
+
+\begin{frame}[fragile]{Python - Beware the Indetion!}
+And you can have more indentions under a def in the same way you would have used curly braces before...
+\begin{lstlisting}[language=python]
+def foo():
+    do stuff
+    do more stuff
+    for loop time:
+        this is part of the loop
+        so is this
+    but this is not, this is just part of the rest of the function
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Python - Lists}
+\begin{itemize}
+  \item Lists are very versatile.
+  \item Lists do not all have to contain the same type of data. 
+  \item It's ok to mix strings and numbers and objects and nested lists, etc.
+\end{itemize}
+\begin{lstlisting}[language=python]
+shopping_list = ["bread","milk","hamster brains"]
+\end{lstlisting}
+
+then if you want to add an item to the list...
+\begin{lstlisting}[language=python]
+shopping_list = shopping_list + ["turnips"]
+\end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]{Python - Lists access}
+If you want to access just one item in that list you can do it like this...
+\begin{lstlisting}[language=python]
+shopping_list[0]
+\end{lstlisting}
+That's the first item in the list. 
+\begin{lstlisting}[language=python]
+shopping_list[1]
+\end{lstlisting}
+would be the 2nd, etc.
+\end{frame}
+
+\begin{frame}[fragile]{Python - Lists range}
+If you want a range of items in the list you can do that with colon magic...
+\begin{lstlisting}[language=python]
+shopping_list[0:3]
+\end{lstlisting}
+Accesses the first 3 items in the list. 
+\begin{itemize}
+  \item The way it works is the first number is where you want to start
+  \item The second number is where you want to end (not how many you want).
+  \item It goes up to but not including the 2nd number.
+  \item Leave them empty to go frome the start/to the end.
+  \item {\tt shopping\_list[:]} gets a copy of the hole list.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Python - For loops}
+This is the biggest change from most languages:
+\begin{itemize}
+  \item Traditionally, a variable increments until a condition is false. 
+\end{itemize}
+For loops in Python:
+\begin{itemize}
+  \item The interpreter goes throug to each item of a list with a variable
+  \item Making the variable equal to each one as it goes...
+\end{itemize}
+\begin{lstlisting}[language=python]
+for thingy in shoppin_list:
+    buy(thingy)
+\end{lstlisting}
+
+there's a loop (assuming we're using the same shopping list from earlier)
+\end{frame}
+
+\begin{frame}[fragile]{Python - Loop over integers}
+If you want a list of numbers that go from x to y, here's how you do that:
+\begin{lstlisting}[language=python]
+list_of_nums = range(x, y + 1)
+\end{lstlisting}
+
+\begin{itemize}
+  \item Then list of nums will be a list of numbers...in that range. 
+  \item It always starts at the first number and goes up to (but not including) the 2nd number. 
+  \item That's what that + 1 thing is in there for.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Python - If statements}
+\begin{lstlisting}[language=python]
+if some condition:
+    do this
+\end{lstlisting}
+
+Simple enough:
+
+\begin{lstlisting}[language=python]
+if x > 4:
+    print "OMG, x must be HUGE!"
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Python - Or else!}
+Then there's else:
+\begin{lstlisting}[language=python]
+if x > 4:
+    print "OMG, x must be HUGE!"
+else:
+    print "x ain't nuttin'"
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Python - Or else if!}
+else if's are denoted by elif's
+
+\begin{lstlisting}[language=python]
+if x > 4:
+    print "OMG, x must be HUGE!"
+elif x == 4:
+    print "x is four"
+else:
+    print "x is tiny"
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{Python - While loops}
+While loops look just like if's and work like how you would imagine them
+\begin{lstlisting}[language=python]
+while condition:
+    do this
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{Python - Strings}
+Strings are concatenated with + signs
+\begin{lstlisting}[language=python]
+greeting = "Hello, " + "World!"
+\end{lstlisting}
+To define a string you can use ", ', """ or '''. This saves the hassle of escaping.
+And vprintf replacment ist build in ({\tt \%s, \%d, \%f...}):
+\begin{lstlisting}[language=python]
+name = "%(first)s %(last)s" %  {
+    'first':name[0], 
+    'last':name[1]
+}
+greeting = """Hello %s""" % name
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Python - == and =}
+== and = are just like most languages:
+\begin{lstlisting}[language=python]
+foo = "yo"
+if (foo == "yo"):
+    print "foo is yo"
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{Python - Comments}
+Comments are done with a \#:
+\begin{lstlisting}[language=python]
+print "this is some code" #this line prints stuff
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{Python - And and Or}
+  There are no \&\& or ||, it's just {\tt and} and {\tt or}
+\begin{lstlisting}[language=python]
+if (x == 2) and (y > 5):
+    do_stuff()
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Python - But there is much more}
+  \begin{itemize}
+    \item There are tonns of usefull features in the python language.
+    \begin{itemize}
+      \item Go to "https://docs.python.org/2/tutorial/index.html" for a full tutorial.
+      \item Language references you can finde here:
+      \item https://docs.python.org/2/reference/index.html
+    \end{itemize}
+    \item And like Java Python comes with a standard libray
+    \begin{itemize}
+      \item Which is full of useful things
+      \item os, json, base64, HTMLParser, shlex, etc.
+      \item https://docs.python.org/2/library/index.html
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\section{Build System}
+
+\begin{frame}[fragile]{Build System}
+  \begin{itemize}
+    \item Waf 1.7
+    \item Python based
+    \item Split into serveral files: “wscript”s and python scripts!
+    \item It’s simple: 
+  \end{itemize}
+\begin{lstlisting}[language=bash]
+./configure; make; make install
+\end{lstlisting}
+For waf: 
+\begin{lstlisting}[language=bash]
+./waf configure; ./waf build; ./waf install
+./waf configure build install # in short
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Build System}
+  \begin{itemize}
+    \item Build ist default!
+    \item To reduce build time compile only needed targets
+  \end{itemize}
+  \begin{lstlisting}[language=bash]
+./waf --target=<target>
+  \end{lstlisting}
+
+Usefull:
+  \begin{lstlisting}[language=bash]
+./waf list      # List all targets
+./waf clean     # Clean build dir
+./waf distclean # Remove build dir
+  \end{lstlisting}
+\end{frame}
+
+\subsection{Waf}
+
+\begin{frame}[fragile]{Waf - Top-level wscript}
+The top-level wscript is the collection point to a common build system and initializes all the tools needed to build.
+
+Most of them are outsourced in python scripts which residents in /tools/waf/
+The only remains are the phase functions and call hooks:
+
+\begin{lstlisting}[language=python]
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+APPNAME = 'SoCRocket'
+top = '.'
+out = 'build'
+
+import sys
+from waflib.Tools import waf_unit_test
+from tools.waf.logger import Logger
+
+LOAD = ['compiler_c', 'compiler_cxx', 'python', 
+        'swig', 'waf_unit_test', ...]
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Waf - Top-level wscript 2}
+\begin{lstlisting}[language=python]
+TOOLS = ['common', 'flags', 'virtualenv', 'pthreads', 
+         'boost', 'modelsim', 'systools', ...]
+
+def options(self):
+    self.load(LOAD)
+    self.load(TOOLS, tooldir='tools/waf')
+
+def configure(self):
+    self.load(LOAD)
+    self.check_waf_version(mini='1.6.0')
+    self.check_python_version((2,4,0))
+    self.check_python_headers()
+    self.load(TOOLS, tooldir='tools/waf')
+
+def build(self):
+    self.recurse_all()
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Waf - Recursion wscripts}
+Some wscripts are just needed for reaching further subdirectories:
+Models, platforms, software, …
+  
+\begin{lstlisting}[language=python]
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '..'
+
+def build(self):
+  self.recurse_all()
+  self.recurse_all_tests()
+\end{lstlisting}
+The "recurese\_*"-members come from the common file (/tools/waf) included in the top-level wscript as first tool
+\end{frame}
+
+\begin{frame}[fragile]{Waf - Models wscript}
+Each models is a static C++ Libary! Nothing more  
+  
+\begin{lstlisting}[language=python]
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '../..'
+
+def build(self):
+  bld(
+    target          = 'gptimer',
+    features        = 'cxx cxxstlib',
+    source          = 'gptimer.cpp gpcounter.cpp',
+    export_includes = '.',
+    uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
+    use             = 'common signalkit utils',
+    install_path   = '${PREFIX}/lib',
+  )
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Waf - Platforms wscript}
+Tests or Platforms are C++ applications linked with all libraries needed for execution
+  
+\begin{lstlisting}[language=python]
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '../..'
+
+def build(self):
+    bld(
+        target       = 'leon3mp.platform',
+        features     = 'cxx cprogram pyembed',
+        source       = 'sc_main.cpp',
+        includes     = '.',
+        use          = 'ahbctrl irqmp gptimer apbctrl ...'
+        uselib       = 'TRAP BOOST ELF_LIB SYSTEMC ...'
+    )
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Waf – Target software wscripts}
+Waf can be used to compile Target software exactly the same as for host software (Models/Libraries or Platforms/Applications):
+  
+\begin{lstlisting}[language=python]
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '../..'
+def build(self):
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'hello.sparc',
+     cflags       = '-static -g -O1 -lm -mno-fpu',
+     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     source       = ['hello.c'],
+     install_path = None,
+  )
+\end{lstlisting}
+The only difference is the feature {\tt sparc}
+\end{frame}
+
+\begin{frame}[fragile]{Waf – Unittests}
+If a test shall be performed on a host target just add the feature {\tt test}.
+If it needs to be executed in a specific platform (host and target code) use a systest:
+\begin{lstlisting}[language=python]
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '../..'
+
+def build(self):
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'hello.sparc',
+  )
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Waf – Modelsim Targets}
+The feature modelsim uses modelsim to compile. You can specify it as a unittest too.
+\begin{lstlisting}[language=python]
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 ...
+top = '..'
+def build(self):
+  bld(
+    target   = 'gptimer.1.rtl.test',
+    features = 'modelsim test',
+    source   = ['gptimer_wrapper.vhd',
+                'test1/testbench.cpp', 'test1/top_rtl.cpp',
+                '../../../adapters/rtltransactor.cpp',
+                '../../utils/clkdevice.cpp',
+                '../../utils/apbdevice.cpp'],
+    uselib   = 'AMBA GREENSOCS BOOST',
+    includes = '. test1 ../../utils',
+  )
+\end{lstlisting}
+\end{frame}
+
+
+\subsection{Python tools}
+\begin{frame}[fragile]{Waf Python Tools - Common}
+Common registes a basic set of tools to compile SoCRocket.
+\begin{itemize}
+  \item The recursion utilities
+  \item helper for fetching and compiling dependencies
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Waf Python Tools - Configuration}
+In the configuration phase all dependencies are checked and stored 
+\begin{lstlisting}[language=python]
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '..'
+
+def find(self):
+    self.check_cxx(
+        lib='elf',
+        uselib_store='ELF_LIB',
+        mandatory=True,
+        libpath = libpath,
+        errmsg  = "not found"
+    )
+
+def configure(self):
+    find(self)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Waf Python Tools - Deps}
+Moreover socrocket is fetiching missing dependencies (via tar or git):
+\begin{lstlisting}[language=python]
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 ...
+top = '..'
+
+def configure(self):
+    try:
+        find(self)
+    except:
+        name    = "libelf"
+        version = "0.8.13"
+        self.dep_build(
+            name    = name, version = version,
+            tar_url = "http://www.mr511.de/%(base)s.tar.gz",
+        )
+        find(self, self.dep_path(name, version))
+\end{lstlisting}
+\end{frame}
+
+\part{ToDos}
+
+\begin{frame}[plain]
+  \partpage
+\end{frame}
+\begin{frame}{Contens}
+\tableofcontents
+\end{frame}
+
+\section{What needs to be done}
+
+\begin{frame}{ToDos}
+  \begin{itemize}
+    \item Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam
+      nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam
+    \item At vero eos et accusam et justo duo dolores et ea rebum.
+      \begin{itemize}
+        \item Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum
+          dolor sit amet!
+          \begin{itemize}
+            \item Nam eget dui.
+            \item Maecenas tempus, tellus eget condimentum rhoncus, sem quam
+              semper libero, sit amet adipiscing sem neque sed ipsum.
+          \end{itemize}
+        \item Duis leo
+      \end{itemize}
+    \item Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. 
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{SoCRocketDevice}
+  \begin{itemize}
+    \item A common parant device to derive from.
+    \item All models should derive from it (over AHBDevice, APBDevice)
+    \item A common class to implement API calls
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{GS\_Config Parameter}
+  \begin{itemize}
+    \item All platforms use gs\_params to implement component generics like in grlib designs.
+    \item But these parameters are generics of the components/models. 
+    \item They should be implemented inside the models.
+    \item A initializer function called {\tt init\_configuration()} should be present in each model.
+    \item In this method all descriptions and attributes from the {\tt .tpa}-file should be added.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Register Init}
+  \begin{itemize}
+    \item Like the gs\_config specific function {\tt init\_configuration()} a 
+    \item In this method all descriptions and attributes from the {\tt .tpa}-file should be added.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{sc\_report VerbosityKit backend }
+\end{frame}
+
+\begin{frame}{Documentation}
+\begin{itemize}
+    \item Update Doxygen documentation from the user manual.
+    \item Each directory needs to have a {\tt <model>.md}
+    \item {\tt doc/*.md} for common chapters from the user manual and hldse
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Documentation guid}
+\end{frame}
+
+\begin{frame}{Coding Style}
+We will follow the google coding guidlines
+(It's not perfect but already existing, including tools)
+\begin{itemize}
+  \item http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml
+\end{itemize}
+Make use of coding style tools like:
+\begin{itemize}
+  \item Cpplint.py (from goole)
+  \item OCLint
+  \item clang sanitizer
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\#define Guards}
+\begin{itemize}
+  \item All header files should have \#define guards to prevent multiple inclusion.
+  \item The format of the symbol name should be {\tt <PROJECT>\_<PATH>\_<FILE>\_H\_}.
+  \item To guarantee uniqueness, they should be based on the full path in a project's source tree. 
+  \item For example, the file foo/src/bar/baz.h in project foo should have the following guard:
+\end{itemize}
+
+\begin{lstlisting}[language=c]
+#ifndef SOCROCKET_MODELS_GPTIMER_GPTIMER_H_
+#define SOCROCKET_MODELS_GPTIMER_GPTIMER_H_
+//...
+#endif  // SOCROCKET_MODELS_GPTIMER_GPTIMER_H_
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{includes}
+  \begin{itemize}
+    \item All of a project's header files should be listed as descendants of the project's source directory.
+    \item Without use of UNIX directory shortcuts . (the current directory) or .. (the parent directory). 
+  \end{itemize}
+
+For example, socrocket/models/gptimer/gptimer.h should be included as
+
+\begin{lstlisting}[language=c]
+#include "models/gptimer/gptimer.h"
+\end{lstlisting}
+
+  \begin{alertblock}{This will break our project structure}
+    But everythng will get more consistent. \\
+    every target needs to include self.root (waf)
+  \end{alertblock}
+\end{frame}
+
+\end{document}
