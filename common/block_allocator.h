@@ -2,57 +2,49 @@
 /// @addtogroup common
 /// @{
 /// @file block_allocator.h
-/// 
+///
 ///
 /// @date 2010-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Timo Veit
 ///
 
-#ifndef BLOCK_ALLOCATOR_H
-#define BLOCK_ALLOCATOR_H
+#ifndef COMMON_BLOCK_ALLOCATOR_H_
+#define COMMON_BLOCK_ALLOCATOR_H_
 
+#include <algorithm>
 
-class block_allocator
-{
-private:
-        struct block
-        {
-                size_t size;
-                size_t used;
-                char *buffer;
-                block *next;
-        };
+class block_allocator {
+  private:
+    struct block {
+      size_t size;
+      size_t used;
+      char *buffer;
+      block *next;
+    };
 
+    block *m_head;
+    size_t m_blocksize;
 
-        block *m_head;
-        size_t m_blocksize;
+    block_allocator(const block_allocator &);
+    block_allocator &operator=(block_allocator &);
 
+  public:
+    explicit block_allocator(size_t blocksize);
+    ~block_allocator();
 
-        block_allocator(const block_allocator &);
-        block_allocator &operator=(block_allocator &);
+    // exchange contents with rhs
+    void swap(block_allocator &rhs);
 
+    // allocate memory
+    void*malloc(size_t size);
 
-public:
-        block_allocator(size_t blocksize);
-        ~block_allocator();
-
-
-        // exchange contents with rhs
-        void swap(block_allocator &rhs);
-
-
-        // allocate memory
-        void *malloc(size_t size);
-
-
-        // free all allocated blocks
-        void free();
+    // free all allocated blocks
+    void free();
 };
 
-
-#endif
+#endif  // COMMON_BLOCK_ALLOCATOR_H_
 /// @}

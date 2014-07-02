@@ -2,14 +2,14 @@
 # vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
 top = '../..'
 
-def build(bld):
-  import os.path
-  bld(
+def build(self):
+  self(
     target          = 'mctrl',
     features        = 'cxx cxxstlib',
     source          = 'mctrl.cpp', 
-    export_includes = '.',
+    export_includes = self.top_dir,
+    includes        = self.top_dir,
     uselib          = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     use             = 'memory utils signalkit common',
-    install_path   = '${PREFIX}/lib',
+    install_path    = '${PREFIX}/lib',
   )

@@ -8,13 +8,13 @@
 /// @date 2010-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
 
 #include <tlm.h>
-#include <fstream>
+#include <fstream>  // NOLINT(readability/streams)
 
 std::ofstream msc;
 sc_core::sc_time msclogger_start;

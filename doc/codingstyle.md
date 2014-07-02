@@ -21,7 +21,7 @@ All files can be checked with:
 Furthermore to simpliefy the migration process of old/other code to the codingstyle you may use "uncrustify":
 http://uncrustify.sourceforge.net/
 
-A configuration is availabe in tools/uncrustify.cfg. It cn be used with:
+A configuration is availabe in tools/uncrustify.cfg. Make sure you use at least version 0.60. It can be used with:
 ~~~
 uncrustify -c tools/uncrustify.cfg --replace <filename>
 ~~~
@@ -38,27 +38,27 @@ Coding Style done in the SoCRocket Week 2014-6
 
 Model        | Lint | GUARDS | DOCS | DOCSUP | DOXY | CONF | REGS  
 ------------ | ---- | ------ | ---- | ------ | ---- | ---- | ----
-ahbcamera    | OK   |  OK    | OK   |        |      |      |     
-ahbctrl      |      |  BF    |      |        |      |      |     
-ahbdisplay   | OK   |  OK    | OK   |        |      |      |     
+ahbcamera    | OK   |  OK    | OK   |        | OK   |      |     
+ahbctrl      | OK   |  OK    | OK   |        | OK   |      |     
+ahbdisplay   | OK   |  OK    | OK   |        | OK   |      |     
 ahbin        | OK   |  OK    | OK   |        |      |      |     
-ahbmem       | OK   |  BF    | OK   |        |      |      |     
-ahbout       | OK   |  BF    | OK   |        |      |      |     
-ahbprof      | OK   |  BF    | OK   |        |      |      |     
-ahbshuffler  | OK   |  BF    | OK   |        |      |      |     
-ahbspacewire |      |  BF    |      |        |      |      |     
-ahbudp       | OK   |  BF    |      |        | OK   |      |     
-apbctrl      |      |  BF    |      |        |      |      |     
-apbuart      | OK   |  BF    | OK   |        |      |      |     
-extern       |      |        |      |        |      |      |     
+ahbmem       | OK   |  OK    | OK   |        | OK   |      |     
+ahbout       | OK   |  OK    | OK   |        |      |      |     
+ahbprof      | OK   |  OK    | OK   |        | OK   |      |     
+ahbshuffler  | OK   |  OK    | OK   |        | OK   |      |     
+ahbspacewire |      |  OK    |      |        |      |      |     
+ahbudp       | OK   |  OK    |      |        | OK   |      |     
+apbctrl      | OK   |  OK    | OK   |        |      |      |     
+apbuart      | OK   |  OK    | OK   |        |      |      |     
 gptimer      | OK   |  OK    | OK   |        | OK   |      |     
 greth        |      |        |      |        |      |      |     
-irqmp        | OK   |  BF    | OK   | OK     |      |      |     
-mctrl        |      |  BF    |      |        |      |      |     
-memory       | OK   |  OK    | OK   |        |      |      |     
+irqmp        | OK   |  OK    | OK   | OK     |      |      |     
+mctrl        | RM   |  OK    | OK   |        |      |      |     
+memory       | OK   |  OK    | OK   | OK     | OK   |      |     
 mips         | OK   |        |      | OK     |      |      |     
 mmu_cache    | TS   |        |      |        |      |      |     
-socwire      |      |  BF    |      |        |      |      |     
-stimgen      |      |  BF    |      |        |      |      |     
-utils        |      |  BF    |      |        |      |      |     
-common       |      |        |      |        |      |      |     
+socwire      |      |  OK    |      |        |      |      |     
+stimgen      | OK   |  OK    |      |        |      |      |     
+utils        | OK   |  OK    | OK   |        | OK   | --   |     
+common       | RM   |        |      |        |      | --   |  
+leon3mp      |      |        |      |        |      |      |

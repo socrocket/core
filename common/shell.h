@@ -2,21 +2,21 @@
 /// @addtogroup common
 /// @{
 /// @file shell.h
-/// 
+///
 ///
 /// @date 2013-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
-/// @author 
+/// @author
 ///
-#ifndef SOCROCKET_SHELL_H
-#define SOCROCKET_SHELL_H
+#ifndef COMMON_SHELL_H_
+#define COMMON_SHELL_H_
 
 #include <systemc.h>
 
 void start_shell(sc_status status = SC_RUNNING);
 
-#endif // SOCROCKET_SHELL_H
+#endif  // COMMON_SHELL_H_
 /// @}
