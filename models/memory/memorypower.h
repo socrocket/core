@@ -55,6 +55,12 @@ class MemoryPower : public sc_core::sc_module, public CLKDevice, public MEMDevic
 
     /// 32-bit-writes counter callback
     gs::cnf::callback_return_type dyn_writes_cb(gs::gs_param_base &changed_param, gs::cnf::callback_type reason);
+    
+    /// 32-bit-reads counter callback, write
+    gs::cnf::callback_return_type dyn_reads_write_cb(gs::gs_param_base &changed_param, gs::cnf::callback_type reason);
+
+    /// 32-bit-writes counter callback, write
+    gs::cnf::callback_return_type dyn_writes_write_cb(gs::gs_param_base &changed_param, gs::cnf::callback_type reason);
 
     /// Power monitoring
     bool m_pow_mon;
@@ -114,6 +120,11 @@ class MemoryPower : public sc_core::sc_module, public CLKDevice, public MEMDevic
     gs::gs_param<unsigned long long> dyn_writes;
 
   private:
+    /// Offset for dyn_reads
+    unsigned long long dyn_reads_offset;
+
+    /// Offset for dyn_writes
+    unsigned long long dyn_writes_offset;
 };
 
 #endif  // MODELS_MEMORY_MEMORYPOWER_H_
