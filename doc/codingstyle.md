@@ -36,29 +36,29 @@ tools/fixheaderguards.py <filename>
 Coding Style done in the SoCRocket Week 2014-6
 ----------------------------------------------
 
-Model        | Lint | GUARDS | DOCS | DOCSUP | CONF | REGS  
------------- | ---- | ------ | ---- | ------ | ---- | ----
-ahbcamera    | OK   |  OK    |      |        |      |
-ahbctrl      |      |  BF    |      |        |      |
-ahbdisplay   | OK   |  OK    |      |        |      |
-ahbin        | OK   |  OK    |      |        |      |
-ahbmem       | RM   |  BF    |      |        |      |
-ahbout       | RM   |  BF    |      |        |      |
-ahbprof      | RM   |  BF    |      |        |      |
-ahbshuffler  | RM   |  BF    |      |        |      |
-ahbspacewire |      |  BF    |      |        |      |
-ahbudp       | RM   |  BF    |      |        |      |
-apbctrl      |      |  BF    |      |        |      |
-apbuart      | RM   |  BF    |      |        |      |
-extern       |      |        |      |        |      |
-gptimer      | OK   |  OK    |      |        |      |
-greth        |      |        |      |        |      |
-irqmp        | RM   |  BF    |      |        |      |
-mctrl        |      |  BF    |      |        |      |
-memory       | OK   |  OK    | OK   |        |      |
-mips         | RM   |        |      |        |      |
-mmu_cache    | TS   |        |      |        |      |
-socwire      |      |  BF    |      |        |      |
-stimgen      |      |  BF    |      |        |      |
-utils        |      |  BF    |      |        |      |
-
+Model        | Lint | GUARDS | DOCS | DOCSUP | DOXY | CONF | REGS  
+------------ | ---- | ------ | ---- | ------ | ---- | ---- | ----
+ahbcamera    | OK   |  OK    | OK   |        |      |      |     
+ahbctrl      |      |  BF    |      |        |      |      |     
+ahbdisplay   | OK   |  OK    | OK   |        |      |      |     
+ahbin        | OK   |  OK    | OK   |        |      |      |     
+ahbmem       | OK   |  BF    | OK   |        |      |      |     
+ahbout       | OK   |  BF    | OK   |        |      |      |     
+ahbprof      | OK   |  BF    | OK   |        |      |      |     
+ahbshuffler  | OK   |  BF    | OK   |        |      |      |     
+ahbspacewire |      |  BF    |      |        |      |      |     
+ahbudp       | OK   |  BF    |      |        | OK   |      |     
+apbctrl      |      |  BF    |      |        |      |      |     
+apbuart      | OK   |  BF    | OK   |        |      |      |     
+extern       |      |        |      |        |      |      |     
+gptimer      | OK   |  OK    | OK   |        | OK   |      |     
+greth        |      |        |      |        |      |      |     
+irqmp        | OK   |  BF    | OK   | OK     |      |      |     
+mctrl        |      |  BF    |      |        |      |      |     
+memory       | OK   |  OK    | OK   |        |      |      |     
+mips         | OK   |        |      | OK     |      |      |     
+mmu_cache    | TS   |        |      |        |      |      |     
+socwire      |      |  BF    |      |        |      |      |     
+stimgen      |      |  BF    |      |        |      |      |     
+utils        |      |  BF    |      |        |      |      |     
+common       |      |        |      |        |      |      |     

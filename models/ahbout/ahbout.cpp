@@ -3,7 +3,6 @@
 /// @{
 /// @file ahbout.cpp
 ///
-///
 /// @date 2010-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
@@ -12,22 +11,22 @@
 /// @author Rolf Meyer
 ///
 
-#include "ahbout.h"
-#include "verbose.h"
 #include <fstream>
 #include <iostream>
+#include "models/ahbout/ahbout.h"
+#include "common/verbose.h"
 
 /// Constructor
 AHBOut::AHBOut(const sc_core::sc_module_name nm,  // Module name
-  uint16_t haddr_,                               // AMBA AHB address (12 bit)
-  uint16_t hmask_,                               // AMBA AHB address mask (12 bit)
-  amba::amba_layer_ids ambaLayer,                // abstraction layer
+  uint16_t haddr_,                                // AMBA AHB address (12 bit)
+  uint16_t hmask_,                                // AMBA AHB address mask (12 bit)
+  amba::amba_layer_ids ambaLayer,                 // abstraction layer
   uint32_t slave_id,
   char *outfile_) :
   AHBSlave<>(nm,
     slave_id,
-    0xce,                    // Vendor: c3e
-    0x0FD,                   // Device: OutFileDevice,
+    0xce,                                         // Vendor: c3e
+    0x0FD,                                        // Device: OutFileDevice,
     0,
     0,
     ambaLayer,
@@ -55,7 +54,10 @@ AHBOut::~AHBOut() {
 }
 
 /// Encapsulated functionality
-uint32_t AHBOut::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay, bool debug) {
+uint32_t AHBOut::exec_func(
+    tlm::tlm_generic_payload &trans,  // NOLINT(runtime/references)
+    sc_core::sc_time &delay,          // NOLINT(runtime/references)
+    bool debug) {
   // uint32_t words_transferred;
 
   // Is the address for me

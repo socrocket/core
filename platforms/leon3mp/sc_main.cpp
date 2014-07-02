@@ -13,53 +13,49 @@
 /// @author Thomas Schuster
 ///
 #include <greencontrol/config.h>
-
-#include "json_parser.h"
-#include "paramprinter.h"
-
-#include <execLoader.hpp>
-#include <osEmulator.hpp>
-
-#include "mmu_cache.h"
-#include "models/ahbin/ahbin.h"
-#include "models/memory/memory.h"
-#include "apbctrl.h"
-#include "models/ahbmem/ahbmem.h"
-#include "mctrl.h"
-#include "defines.h"
-#include "models/gptimer/gptimer.h"
-#include "apbuart.h"
-#include "tcpio.h"
-#include "nullio.h"
-#include "irqmp.h"
-#include "ahbctrl.h"
-#include "AHB2Socwire.h"
-#include "ahbprof.h"
-#include "greth.h"
-
-#include <iostream>
-#include <vector>
+#include <systemc.h>
+#include <tlm.h>
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
 #include <string.h>
 #include <amba.h>
-#include <cstring>
-#include <cstdlib>
-#include <stdexcept>
-#include "verbose.h"
-#include "powermonitor.h"
-
 #include <GDBStub.hpp>
-#include <systemc.h>
-#include <tlm.h>
+#include <execLoader.hpp>
+#include <osEmulator.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/errors.hpp>
+#include <iostream>
+#include <vector>
+#include <cstring>
+#include <cstdlib>
+#include <stdexcept>
+
+#include "common/json_parser.h"
+#include "common/paramprinter.h"
+#include "common/verbose.h"
+#include "common/powermonitor.h"
+#include "models/mmu_cache/lib/mmu_cache.h"
+#include "models/ahbin/ahbin.h"
+#include "models/memory/memory.h"
+#include "models/apbctrl/apbctrl.h"
+#include "models/ahbmem/ahbmem.h"
+#include "models/mctrl/mctrl.h"
+#include "defines.h"
+#include "models/gptimer/gptimer.h"
+#include "models/apbuart/apbuart.h"
+#include "models/apbuart/tcpio.h"
+#include "models/apbuart/nullio.h"
+#include "models/irqmp/irqmp.h"
+#include "models/ahbctrl/ahbctrl.h"
+#include "models/socwire/AHB2Socwire.h"
+#include "models/ahbprof/ahbprof.h"
+#include "models/greth/greth.h"
 
 #include "leon3.funclt.h"
 #include "leon3.funcat.h"
-#include "pysc.h"
+#include "pysc/pysc.h"
 #include "vphy/tapdev.h"
 #include "vphy/loopback.h"
 //#include "vphy/trafgen.h"

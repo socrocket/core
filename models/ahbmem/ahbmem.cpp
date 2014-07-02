@@ -2,12 +2,6 @@
 /// @addtogroup ahbmem
 /// @{
 /// @file ahbmem.cpp
-/// Provide a test bench memory class with AHB slave interface. DMI and
-/// streaming width fields are ignored. Delays are not modeled. Address checking
-/// is performed in that way, that transactions are only executed if the slave
-/// select condition defined in grlib user manual holds. Transactions generating
-/// a correct slave select but exceeding the memory region due to their length
-/// are reported as warning and executed anyhow.
 ///
 /// @date 2010-2014
 /// @copyright All rights reserved.
@@ -16,6 +10,12 @@
 ///            authors is strictly prohibited.
 /// @author Rolf Meyer
 ///
+/// Provide a test bench memory class with AHB slave interface. DMI and
+/// streaming width fields are ignored. Delays are not modeled. Address checking
+/// is performed in that way, that transactions are only executed if the slave
+/// select condition defined in grlib user manual holds. Transactions generating
+/// a correct slave select but exceeding the memory region due to their length
+/// are reported as warning and executed anyhow.
 
 #include <fstream>
 
@@ -39,7 +39,7 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm,  // Module name
       0,
       ambaLayer,
       BAR(AHBDevice::AHBMEM, hmask_, cacheable, 0, haddr_)),
-    ahbBaseAddress(static_cast<uint32_t>(hmask_ & haddr_) << 20),
+    ahbBaseAddress(static_cast<uint32_t>((hmask_) & haddr_) << 20),
     ahbSize(~(static_cast<uint32_t>(hmask_) << 20) + 1),
     mhaddr(haddr_),
     mhmask(hmask_),
@@ -93,7 +93,10 @@ AHBMem::~AHBMem() {
 }
 
 /// Encapsulated functionality
-uint32_t AHBMem::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay, bool debug) {
+uint32_t AHBMem::exec_func(
+    tlm::tlm_generic_payload &trans,  // NOLINT(runtime/references)
+    sc_core::sc_time &delay,          // NOLINT(runtime/references)
+    bool debug) {
   uint32_t words_transferred;
 
   // Is the address for me
@@ -191,21 +194,27 @@ void AHBMem::power_model() {
 }
 
 // Static power callback
-gs::cnf::callback_return_type AHBMem::sta_power_cb(gs::gs_param_base &changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type AHBMem::sta_power_cb(
+    gs::gs_param_base &changed_param,  // NOLINT(runtime/references)
+    gs::cnf::callback_type reason) {
   // Nothing to do !!
   // Static power of AHBMem is constant !!
   return GC_RETURN_OK;
 }
 
 // Internal power callback
-gs::cnf::callback_return_type AHBMem::int_power_cb(gs::gs_param_base &changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type AHBMem::int_power_cb(
+    gs::gs_param_base &changed_param,  // NOLINT(runtime/references)
+    gs::cnf::callback_type reason) {
   // Nothing to do !!
   // AHBMem internal power is constant !!
   return GC_RETURN_OK;
 }
 
 // Switching power callback
-gs::cnf::callback_return_type AHBMem::swi_power_cb(gs::gs_param_base &changed_param, gs::cnf::callback_type reason) {
+gs::cnf::callback_return_type AHBMem::swi_power_cb(
+    gs::gs_param_base &changed_param,  // NOLINT(runtime/references)
+    gs::cnf::callback_type reason) {
   swi_power =
     ((dyn_read_energy *
       dyn_reads) + (dyn_write_energy * dyn_writes)) / (sc_time_stamp() - power_frame_starting_time).to_seconds();
