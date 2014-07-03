@@ -80,8 +80,7 @@ void logApplication(const char *name) {
   // Create a logfile next to the binary
   char logfile[1024];
   logfile[0] = 0;
-  snprintf(logfile, sizeof(logfile), name);
-  snprintf(logfile, sizeof(logfile), ".log");
+  snprintf(logfile, sizeof(logfile), "%s%s", name, ".log");
   v::logFile(logfile);
 }
 

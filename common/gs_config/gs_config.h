@@ -12,7 +12,7 @@
 /// @author 
 ///
 #include <string>
-#include <vmap.h>
+#include "common/vmap.h"
 
 //class easy_init;
 

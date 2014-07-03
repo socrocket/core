@@ -22,9 +22,9 @@
 /// Creates a connection
 void TcpIo::makeConnection() {
   try {
-    asio::io_service io_service;
-    asio::ip::tcp::acceptor acceptor(io_service, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port));
-    this->socket = new asio::ip::tcp::socket(io_service);
+    boost::asio::io_service io_service;
+    boost::asio::ip::tcp::acceptor acceptor(io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port));
+    this->socket = new boost::asio::ip::tcp::socket(io_service);
     v::info << "UART: waiting for connections on port " << port << v::endl;
     acceptor.accept(*this->socket);
     v::info << "UART: connection accepted on port " << port << v::endl;
@@ -61,13 +61,13 @@ void TcpIo::getReceivedChar(char *toRecv) {
   }
 
   boost::system::error_code asioError;
-  this->socket->read_some(asio::buffer(toRecv, 1), asioError);
+  this->socket->read_some(boost::asio::buffer(toRecv, 1), asioError);
 
   if (*toRecv == '\r') {
     *toRecv = '\0';
   }
 
-  if (asioError == asio::error::eof) {
+  if (asioError == boost::asio::error::eof) {
     v::error << "TcpIo" << "Connection with the UART Unexpetedly closed";
   }
 }
@@ -75,6 +75,6 @@ void TcpIo::getReceivedChar(char *toRecv) {
 /// Sends a character on the communication channel
 void TcpIo::sendChar(char toSend) {
   boost::system::error_code asioError;
-  asio::write(*this->socket, asio::buffer(&toSend, 1), asio::transfer_all(), asioError);
+  boost::asio::write(*this->socket, boost::asio::buffer(&toSend, 1), boost::asio::transfer_all(), asioError);
 }
 /// @}

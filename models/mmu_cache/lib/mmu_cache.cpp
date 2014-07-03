@@ -16,7 +16,7 @@
 ///
 
 #include "mmu_cache.h"
-#include "vendian.h"
+#include "common/vendian.h"
 
 //SC_HAS_PROCESS(mmu_cache<>);
 /// Constructor

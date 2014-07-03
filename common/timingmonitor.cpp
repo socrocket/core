@@ -22,7 +22,7 @@ TimingMonitor::t_timing_map TimingMonitor::timing_map;
 void TimingMonitor::phase_start_timing(const unsigned int id, const char *name) {
   t_timing_rec tmp;
 
-  tmp.name = reinterpret_cast<char *>(name);
+  tmp.name = const_cast<char *>(name);
   tmp.st_start = sc_core::sc_time_stamp();
   tmp.rt_start = std::clock();
   tmp.st_end = sc_core::SC_ZERO_TIME;

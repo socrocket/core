@@ -174,10 +174,10 @@ This example shows how to instantiate the module APBCTRL. The APBCTRL is a bridg
 ~~~{.cpp}
 #include "amba.h"
 
-#include "ahbctrl.h"
-#include "apbctrl.h"
+#include "models/ahbctrl/ahbctrl.h"
+#include "models/apbctrl/apbctrl.h"
 #include "genericmemory.h"
-#include "mctrl.h"
+#include "models/mctrl/mctrl.h"
 #include "testbench.h"
 
 #include <systemc.h>

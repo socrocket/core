@@ -21,8 +21,8 @@
 #include "mmu_cache_if.h"
 #include "mmu_if.h"
 #include "mem_if.h"
-#include "verbose.h"
-#include "vendian.h"
+#include "common/verbose.h"
+#include "common/vendian.h"
 #include "defines.h"
 
 class tlb_adaptor : public sc_core::sc_module, public mem_if {

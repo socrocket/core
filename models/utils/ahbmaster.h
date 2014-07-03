@@ -16,16 +16,16 @@
 #define MODELS_UTILS_AHBMASTER_H_
 
 #include <stdint.h>
-#include <systemc.h>
-#include <tlm.h>
 #include <greencontrol/config.h>
 #include <amba.h>
+#include <systemc.h>
+#include <tlm.h>
 
 #include "models/utils/ahbdevice.h"
 #include "common/msclogger.h"
 #include "common/verbose.h"
 
-template<class BASE = sc_module>
+template<class BASE = sc_core::sc_module>
 class AHBMaster : public BASE, public AHBDevice {
   public:
     SC_HAS_PROCESS(AHBMaster);
@@ -69,7 +69,8 @@ class AHBMaster : public BASE, public AHBDevice {
         tlm::tlm_response_status &response);  // NOLINT(runtime/references)
 
     /// Read data from AHB
-    virtual void ahbread(uint32_t addr,
+    virtual void ahbread(
+        uint32_t addr,
         unsigned char *data,
         uint32_t length,
         sc_core::sc_time &delay,              // NOLINT(runtime/references)

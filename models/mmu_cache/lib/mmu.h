@@ -26,7 +26,7 @@
 #include "tlb_adaptor.h"
 #include "mmu_cache_if.h"
 
-#include "vendian.h"
+#include "common/vendian.h"
 #include "defines.h"
 
 // implementation of a memory management unit

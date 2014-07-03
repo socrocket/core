@@ -22,9 +22,9 @@
 #include <string>
 #include <vector>
 
-#include "models/apbuart/apbdevice.h"
 #include "models/apbuart/io_if.h"
-#include "modela/utils/clkdevice.h"
+#include "models/utils/apbdevice.h"
+#include "models/utils/clkdevice.h"
 #include "signalkit/signalkit.h"
 #include "common/verbose.h"
 

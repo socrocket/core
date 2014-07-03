@@ -28,12 +28,12 @@
 #include "icio_payload_extension.h"
 #include "dcio_payload_extension.h"
 
-#include "socrocket.h"
-#include "signalkit.h"
-#include "ahbmaster.h"
-#include "clkdevice.h"
+#include "common/socrocket.h"
+#include "signalkit/signalkit.h"
+#include "models/utils/ahbmaster.h"
+#include "models/utils/clkdevice.h"
 
-#include "verbose.h"
+#include "common/verbose.h"
 #include "cache_if.h"
 #include "ivectorcache.h"
 #include "dvectorcache.h"

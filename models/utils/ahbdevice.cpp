@@ -135,21 +135,21 @@ sc_dt::uint64 AHBDevice::get_size() throw() {
   uint32_t size = get_bar_size(0);
   uint32_t old = addr;
   if (get_bar_addr(1)) {
-    addr = max(addr, get_bar_addr(1));
+    addr = std::max(addr, get_bar_addr(1));
     if (addr != old) {
       size = get_bar_addr(1);
       old = addr;
     }
   }
   if (get_bar_addr(2)) {
-    addr = max(addr, get_bar_addr(2));
+    addr = std::max(addr, get_bar_addr(2));
     if (addr != old) {
       size = get_bar_addr(2);
       old = addr;
     }
   }
   if (get_bar_addr(3)) {
-    addr = max(addr, get_bar_addr(3));
+    addr = std::max(addr, get_bar_addr(3));
     if (addr != old) {
       size = get_bar_addr(3);
       old = addr;
@@ -164,21 +164,21 @@ const uint32_t AHBDevice::get_size_() const throw() {
   uint32_t size = get_bar_size(0);
   uint32_t old = addr;
   if (get_bar_addr(1)) {
-    addr = max(addr, get_bar_addr(1));
+    addr = std::max(addr, get_bar_addr(1));
     if (addr != old) {
       size = get_bar_addr(1);
       old = addr;
     }
   }
   if (get_bar_addr(2)) {
-    addr = max(addr, get_bar_addr(2));
+    addr = std::max(addr, get_bar_addr(2));
     if (addr != old) {
       size = get_bar_addr(2);
       old = addr;
     }
   }
   if (get_bar_addr(3)) {
-    addr = max(addr, get_bar_addr(3));
+    addr = std::max(addr, get_bar_addr(3));
     if (addr != old) {
       size = get_bar_addr(3);
       old = addr;

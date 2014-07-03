@@ -320,8 +320,8 @@ void Mctrl::start_of_simulation() {
           c_sram = port;
           // set ram width and ram bank size
           r[MCFG2] = (r[MCFG2].get() & ~0x00001EC0) |
-                     ((static_cast<int>(std::log2(device->get_bsize()) - 13) & 0xF) << 9) |
-                     ((static_cast<int>(std::log2(device->get_bits()) - 3) & 0x3) << 4);
+                     ((static_cast<int>(log2(device->get_bsize()) - 13) & 0xF) << 9) |
+                     ((static_cast<int>(log2(device->get_bits()) - 3) & 0x3) << 4);
         } else {
           v::error << name() << "More than one SRAM area is connected to the Controller!" << v::endl;
         }
@@ -330,8 +330,8 @@ void Mctrl::start_of_simulation() {
         if (c_sdram.id > 10) {
           c_sdram = port;
           r[MCFG2] = (r[MCFG2].get() & ~0x003E0000) |
-                     ((static_cast<int>(std::log2(device->get_bsize()) - 22) & 0x7) << 23) |
-                     ((static_cast<int>(std::log2(device->get_cols()) - 8) & 0x3) << 21);
+                     ((static_cast<int>(log2(device->get_bsize()) - 22) & 0x7) << 23) |
+                     ((static_cast<int>(log2(device->get_cols()) - 8) & 0x3) << 21);
         } else {
           v::error << name() << "More than one SDRAM area is connected to the Controller!" << v::endl;
         }
@@ -438,13 +438,13 @@ void Mctrl::dorst() {
   }
   if ((c_sram.id != 100) && (c_sram.dev != NULL)) {
     r[MCFG2] = (r[MCFG2].get() & ~0x00001EC0) |
-               ((static_cast<int>(std::log2(c_sram.dev->get_bsize()) - 13) & 0xF) << 9) |
-               ((static_cast<int>(std::log2(c_sram.dev->get_bits()) - 3) & 0x3) << 4);
+               ((static_cast<int>(log2(c_sram.dev->get_bsize()) - 13) & 0xF) << 9) |
+               ((static_cast<int>(log2(c_sram.dev->get_bits()) - 3) & 0x3) << 4);
   }
   if ((c_sdram.id != 100) && (c_sram.dev != NULL)) {
     r[MCFG2] = (r[MCFG2].get() & ~0x003E0000) |
-               ((static_cast<int>(std::log2(c_sdram.dev->get_bsize()) - 22) & 0x7) << 23) |
-               ((static_cast<int>(std::log2(c_sdram.dev->get_cols()) - 8) & 0x3) << 21);
+               ((static_cast<int>(log2(c_sdram.dev->get_bsize()) - 22) & 0x7) << 23) |
+               ((static_cast<int>(log2(c_sdram.dev->get_cols()) - 8) & 0x3) << 21);
   }
 }
 

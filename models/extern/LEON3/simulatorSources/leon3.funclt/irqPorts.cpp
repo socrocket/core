@@ -41,7 +41,7 @@
 #include <trap_utils.hpp>
 
 #include "signalkit.h"
-#include "verbose.h"
+#include "common/verbose.h"
 
 
 using namespace leon3_funclt_trap;

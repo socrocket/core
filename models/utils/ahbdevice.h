@@ -20,9 +20,6 @@
 #include <stdint.h>
 #include <tlm.h>
 
-/// @addtogroup utils
-/// @{
-
 /// This class is a base class for grlib models. It implements the device plug and play informations.
 /// Together with the AHBCtrl class it implements the plug and play feature of the grlib.
 /// @see AHBCtrl
@@ -32,10 +29,10 @@ class AHBDevice : public amba_slave_base {
     /// See grlib manual for more information
     /// Section 4.2.3
     enum device_type {
-      NONE = 0,         /// Bar is not existing
-      APBIO = 1,        /// Bar is an APB Device
-      AHBMEM = 2,       /// Bar is absolute addressed to 0 at AHB Bus
-      AHBIO = 3         /// Bar is relative to AHBIO region
+      NONE = 0,         ///< Bar is not existing
+      APBIO = 1,        ///< Bar is an APB Device
+      AHBMEM = 2,       ///< Bar is absolute addressed to 0 at AHB Bus
+      AHBIO = 3         ///< Bar is relative to AHBIO region
     };
 
     /// All device informations are needed while constructing a device.
@@ -155,8 +152,5 @@ class AHBDevice : public amba_slave_base {
 uint32_t BAR(AHBDevice::device_type type, uint16_t mask, bool cacheable,
   bool prefetchable, uint16_t address) throw();
 
-/// @}
-
 #endif  // MODELS_UTILS_AHBDEVICE_H_
-/// @}
 /// @}

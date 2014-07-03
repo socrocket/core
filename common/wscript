@@ -2,8 +2,8 @@
 # vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
 top = '..'
 
-def build(bld):
-  bld(
+def build(self):
+  self(
     target          = 'common',
     features        = 'cxx cxxstlib pyembed',
     source          = ['verbose.cpp',
@@ -14,28 +14,28 @@ def build(bld):
                        'block_allocator.cpp',
                        'paramprinter.cpp',
                        'shell.cpp'],
-    export_includes = '.',
-    includes        = '.',
+    export_includes = self.top_dir,
+    includes        = self.top_dir,
     uselib          = 'GREENSOCS SYSTEMC TLM BOOST',
     use             = 'CULT OTF',
     install_path    = '${PREFIX}/lib',
   )
 
-  bld(
+  self(
     target          = 'simple.common',
     features        = 'cxx cprogram test',
     source          = 'tests/simple.cpp',
-    includes        = '. CULT',
+    includes        = self.top_dir,
     uselib          = 'SYSTEMC',
     use             = 'common BOOST',
     install_path    = None,
   )
 
-  bld(
+  self(
     target          = 'gs_config_test',
     features        = 'cxx cprogram test',
     source          = 'tests/gs_config_test.cpp',
-    includes        = 'GREENSOCS',
+    includes        = self.top_dir,
     uselib          = 'GREENSOCS SYSTEMC BOOST',
     use             = 'common BOOST',
     install_path    = None,

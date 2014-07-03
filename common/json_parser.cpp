@@ -148,7 +148,7 @@ void json_append(json_value *lhs, json_value *rhs) {
 
 #define ERROR(it, desc) \
   *error_pos = it; \
-  *error_desc = reinterpret_cast<char *>(desc); \
+  *error_desc = const_cast<char *>(desc); \
   *error_line = 1 - escaped_newlines; \
   for (char *c = it; c != source; --c) { \
     if (*c == '\n') {++*error_line; } \
@@ -268,7 +268,7 @@ json_value *json_parser::json_parse(char *source,
             }
 
             if (codepoint <= 0x7F) {
-              *last = static_cast<char>(codepoint__;
+              *last = static_cast<char>(codepoint);
             } else if (codepoint <= 0x7FF) {
               *last++ = static_cast<char>(0xC0 | (codepoint >> 6));
               *last = static_cast<char>(0x80 | (codepoint & 0x3F));
@@ -470,7 +470,7 @@ void json_parser::parse(char *source) {
       mApi->setInitValue(it->first, value);
       break;
     case JSON_FLOAT:
-      snprintf(value, sizeof(value), "%f", it->second->int_value);
+      snprintf(value, sizeof(value), "%f", it->second->float_value);
       mApi->setInitValue(it->first, value);
       break;
     case JSON_BOOL:

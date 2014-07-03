@@ -212,7 +212,7 @@ def base(self, *k, **kw):
     base = kw.get("base", "%(name)s-%(version)s") % kw
     kw.update({"base":base})
 
-    kw["BASE_PATH"] = kw.get("BASE_PATH", os.path.join(self.bldnode.abspath(), ".deps")) % kw
+    kw["BASE_PATH"] = kw.get("BASE_PATH", os.path.join(self.bldnode.abspath(), ".conf_check_deps")) % kw
     kw["BASE_PATH_FETCH"] = kw.get("BASE_PATH_FETCH", "%(BASE_PATH)s/fetch") % kw
     kw["BASE_PATH_SRC"] = kw.get("BASE_PATH_SRC", "%(BASE_PATH)s/src") % kw
     kw["BASE_PATH_BUILD"] = kw.get("BASE_PATH_BUILD", "%(BASE_PATH)s/build") % kw

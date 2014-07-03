@@ -51,7 +51,7 @@
 #include "models/ahbctrl/ahbctrl.h"
 #include "models/socwire/AHB2Socwire.h"
 #include "models/ahbprof/ahbprof.h"
-#include "models/greth/greth.h"
+#include "models/greth/greth/greth.h"
 
 #include "leon3.funclt.h"
 #include "leon3.funcat.h"

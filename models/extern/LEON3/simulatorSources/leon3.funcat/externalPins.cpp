@@ -38,7 +38,7 @@
 
 #include <leon3.funcat/externalPins.hpp>
 #include <trap_utils.hpp>
-#include "verbose.h"
+#include "common/verbose.h"
 
 using namespace leon3_funcat_trap;
 

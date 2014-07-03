@@ -47,7 +47,7 @@
 #include <tlm_utils/peq_with_cb_and_phase.h>
 #include "icio_payload_extension.h"
 #include "dcio_payload_extension.h"
-#include "verbose.h"
+#include "common/verbose.h"
 
 #define FUNC_MODEL
 #define AT_IF

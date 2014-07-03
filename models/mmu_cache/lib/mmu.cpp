@@ -16,7 +16,7 @@
 ///
 
 #include "mmu.h"
-#include "verbose.h"
+#include "common/verbose.h"
 
 mmu::mmu(sc_core::sc_module_name name, // sysc module name,
          mmu_cache_if * _mmu_cache,    // pointer to memory interface

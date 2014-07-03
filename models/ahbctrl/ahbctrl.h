@@ -25,6 +25,7 @@
 #include "models/utils/clkdevice.h"
 #include "signalkit/signalkit.h"
 #include "common/msclogger.h"
+#include "common/socrocket.h"
 
 class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   public:
