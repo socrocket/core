@@ -236,7 +236,7 @@ Have a look at class `CLKDevice` to learn more (3.2).
 #include "socrocket.h"
 #include "power_monitor.h"
 
-#include "signalkit.h"
+#include "signalkit/signalkit.h"
 #include "testbench.h"
 #include "models/ahbctrl/ahbctrl.h"
 #include "models/ahbmem/ahbmem.h"

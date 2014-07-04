@@ -2,20 +2,12 @@
 /// @addtogroup signalkit
 /// @{
 /// @file signalkit.h
-/// 
-///
 /// @date 2010-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the 
 ///            authors is strictly prohibited.
 /// @author Rolf Meyer
-///
-
-#ifndef SIGNALKIT_H
-#define SIGNALKIT_H
-
-/// @defgroup signalkit SignalKit
 ///
 /// The SignalKit enables the user to read and write signal like channels.
 /// Unlike the signal implementation is SystemC the signals are not using the SystemC kernel.
@@ -31,14 +23,13 @@
 ///
 /// Therefore unlike TLM sockets it is not possible to interact over signals directly between a master and slave.
 /// Insted it is useful in a case of unidiectional communication: interrupts or resets.
-///
-/// @{
 
-#include "signalkit_h/module.h"
-#include "signalkit_h/adapter.h"
-#include "signalkit_h/connect.h"
 
-/// @}
+#ifndef SIGNALKIT_H
+#define SIGNALKIT_H
+#include "signalkit/signalkit_h/module.h"
+#include "signalkit/signalkit_h/adapter.h"
+#include "signalkit/signalkit_h/connect.h"
 
-#endif // SIGNALKIT_H
+#endif  // SIGNALKIT_H
 /// @}

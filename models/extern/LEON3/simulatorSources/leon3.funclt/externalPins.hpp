@@ -41,7 +41,7 @@
 #include <trap_utils.hpp>
 #include <systemc.h>
 
-#include "signalkit.h"
+#include "signalkit/signalkit.h"
 
 #define FUNC_MODEL
 #define LT_IF

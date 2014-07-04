@@ -2,17 +2,17 @@
 # vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
 top = '..'
 
-def build(bld):
-  bld(
+def build(self):
+  self(
     name            = 'signalkit',
-    export_includes = '.',
+    export_includes = self.top_dir,
     uselib          = 'BOOST SYSTEMC',
     use             = 'common',
     install_path    = '${PREFIX}/lib',
   )
-  bld.install_files('${PREFIX}/include', bld.path.ant_glob('**/*.h', excl=['**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']), relative_trick=True)
+  self.install_files('${PREFIX}/include', self.path.ant_glob('**/*.h', excl=['**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']), relative_trick=True)
 
-  bld(
+  self(
     target       = 'signalkit.simple.test',
     features     = 'cxx cprogram test',
     source       = 'tests/simple.cpp',
@@ -22,7 +22,7 @@ def build(bld):
     install_path = None,
   )
   
-  bld(
+  self(
     target       = 'signalkit.systemc.test',
     features     = 'cxx cprogram test',
     source       = 'tests/systemc.cpp',
@@ -32,7 +32,7 @@ def build(bld):
     install_path = None,
   )
   
-  bld(
+  self(
     target       = 'signalkit.datatypemapping.test',
     features     = 'cxx cprogram test',
     source       = 'tests/datatypemapping.cpp',

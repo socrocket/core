@@ -15,24 +15,21 @@
 #ifndef SIGNALKIT_SELECTOR_H
 #define SIGNALKIT_SELECTOR_H
 
-#include "signalkit_h/base.h"
-#include "signalkit_h/ifs.h"
-#include "signalkit_h/out.h"
 #include <stdint.h>
+#include "signalkit/signalkit_h/base.h"
+#include "signalkit/signalkit_h/ifs.h"
+#include "signalkit/signalkit_h/out.h"
 
 #ifdef EN_HASH
-#define MAP MAP
-#include <ext/MAP>
+#define SIGNALKIT_MAP__ SIGNALKIT_MAP__
+#include <ext/SIGNALKIT_MAP__>
 namespace std { using namespace __gnu_cxx; }
 #else
-#define MAP map
+#define SIGNALKIT_MAP__ map
 #include <map>
 #endif
 
 namespace signalkit {
-
-/// @addtogroup signalkit
-/// @{
 
 /// Signalkit selector signal.
 /// This class implements a TLM Signal abstraction of an outgoing signal with multiple channels.
@@ -119,14 +116,12 @@ class signal_selector : public signal_base<TYPE, MODULE> ,
 
     private:
         /// Channels to outputs list type.
-        typedef std::MAP<uint32_t, signal_out<TYPE, MODULE> *> t_map;
+        typedef std::SIGNALKIT_MAP__<uint32_t, signal_out<TYPE, MODULE> *> t_map;
         /// Stores the output list
         t_map outs;
 };
 
-/// @}
+}  // namespace signalkit
 
-} // signalkit
-
-#endif // SIGNALKIT_SELECTOR_H
+#endif  // SIGNALKIT_SELECTOR_H
 /// @}

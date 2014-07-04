@@ -15,14 +15,11 @@
 #ifndef SIGNALKIT_OUT_H
 #define SIGNALKIT_OUT_H
 
-#include "signalkit_h/base.h"
-#include "signalkit_h/ifs.h"
+#include "signalkit/signalkit_h/base.h"
+#include "signalkit/signalkit_h/ifs.h"
 #include <stdint.h>
 
 namespace signalkit {
-
-/// @addtogroup signalkit
-/// @{
 
 /// Signalkit output signal.
 /// This class implements a TLM Signal abstraction of an outgoing signal.
@@ -103,9 +100,7 @@ class signal_out : public signal_base<TYPE, MODULE> ,
         t_receiver m_receiver;
 };
 
-/// @}
+}  // namespace signalkit
 
-} // signalkit
-
-#endif // SIGNALKIT_OUT_H
+#endif  // SIGNALKIT_OUT_H
 /// @}

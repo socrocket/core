@@ -15,23 +15,20 @@
 #ifndef SIGNALKIT_INFIELD_H
 #define SIGNALKIT_INFIELD_H
 
-#include "signalkit_h/base.h"
-#include "signalkit_h/ifs.h"
 #include <stdint.h>
+#include "signalkit/signalkit_h/base.h"
+#include "signalkit/signalkit_h/ifs.h"
 
 #ifdef EN_HASH
-#define MAP MAP
-#include <ext/MAP>
+#define SIGNALKIT_MAP__ SIGNALKIT_MAP__
+#include <ext/SIGNALKIT_MAP__>
 namespace std { using namespace __gnu_cxx; }
 #else
-#define MAP map
+#define SIGNALKIT_MAP__ map
 #include <map>
 #endif
 
 namespace signalkit {
-
-/// @addtogroup signalkit
-/// @{
 
 /// This signal is an input signal which can be connected to multiple output signals.
 /// But altered from the input signal the infield has knowlage about the source of the
@@ -101,12 +98,12 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
             // The content of each channel is stored with it's channel number.
             // So first we have to get the channel number from the interface.
             // Then we have to update the value to the channel.
-            typename std::MAP<signal_out_if<TYPE> *, uint32_t>::iterator
+            typename std::SIGNALKIT_MAP__<signal_out_if<TYPE> *, uint32_t>::iterator
                     channel = this->m_channel.find(sender);
             if (channel == m_channel.end()) {
                 return;
             }
-            typename std::MAP<uint32_t, TYPE>::iterator value =
+            typename std::SIGNALKIT_MAP__<uint32_t, TYPE>::iterator value =
                     this->m_value.find(channel->second);
             if (value == m_value.end()) {
                 return;
@@ -126,7 +123,7 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
         /// @param channel The channel to read from.
         /// @return        The value of the channel.
         TYPE read(const uint32_t &channel) const {
-            typename std::MAP<uint32_t, TYPE>::const_iterator item =
+            typename std::SIGNALKIT_MAP__<uint32_t, TYPE>::const_iterator item =
                     this->m_value.find(channel);
             if(item == this->m_value.end()) {
                //v::error << this->name() << "No value is register to channel number "
@@ -143,7 +140,7 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
         /// @param default_value The default value to read in case of an error.
         /// @return              The value of the channel.
         TYPE read(const uint32_t &channel, const TYPE &default_value) const {
-            typename std::MAP<uint32_t, TYPE>::iterator item =
+            typename std::SIGNALKIT_MAP__<uint32_t, TYPE>::iterator item =
                     this->m_value.find(channel);
             if (item != this->m_value.end()) {
                 return item->second;
@@ -165,18 +162,16 @@ class signal_infield : public signal_base<TYPE, MODULE> , public signal_in_if<
 
     private:
         /// Stores output interfaces to channel information.
-        std::MAP<signal_out_if<TYPE> *, uint32_t> m_channel;
+        std::SIGNALKIT_MAP__<signal_out_if<TYPE> *, uint32_t> m_channel;
 
         /// Stores the values of each channel.
-        std::MAP<uint32_t, TYPE> m_value;
+        std::SIGNALKIT_MAP__<uint32_t, TYPE> m_value;
 
         /// Stores the callback.
         t_callback m_callback;
 };
 
-/// @}
+}  // namespace signalkit
 
-} // signalkit
-
-#endif // SIGNALKIT_INFIELD_H
+#endif  // SIGNALKIT_INFIELD_H
 /// @}

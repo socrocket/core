@@ -17,7 +17,7 @@
 #define __NOCACHE_H_
 
 #include <tlm.h>
-#include "signalkit.h"
+#include "signalkit/signalkit.h"
 
 #include "common/verbose.h"
 #include "cache_if.h"

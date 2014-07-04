@@ -15,14 +15,11 @@
 #ifndef SIGNALKIT_INOUT_H
 #define SIGNALKIT_INOUT_H
 
-#include "signalkit_h/out.h"
-#include "signalkit_h/in.h"
 #include <stdint.h>
+#include "signalkit/signalkit_h/out.h"
+#include "signalkit/signalkit_h/in.h"
 
 namespace signalkit {
-
-/// @addtogroup signalkit
-/// @{
 
 /// Signalkit input output signal.
 /// This class implements a TLM Signal abstraction of an bidirectional signal.
@@ -61,9 +58,7 @@ class signal_inout : public signal_out<TYPE, MODULE> , public signal_in<TYPE,
         }
 };
 
-/// @}
+}  // signalkit
 
-} // signalkit
-
-#endif // SIGNALKIT_INOUT_H
+#endif  // SIGNALKIT_INOUT_H
 /// @}

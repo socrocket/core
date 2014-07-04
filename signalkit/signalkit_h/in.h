@@ -15,14 +15,11 @@
 #ifndef TLM_SIGNAL_IN_H
 #define TLM_SIGNAL_IN_H
 
-#include "signalkit_h/base.h"
-#include "signalkit_h/ifs.h"
 #include <stdint.h>
+#include "signalkit/signalkit_h/base.h"
+#include "signalkit/signalkit_h/ifs.h"
 
 namespace signalkit {
-
-/// @addtogroup
-/// @{
 
 /// Signalkit input signal.
 /// This class implements a TLM Signal abstraction of an incomming signal.
@@ -103,9 +100,7 @@ class signal_in : public signal_base<TYPE, MODULE> , public signal_in_if<TYPE> {
         t_callback m_callback;
 };
 
-/// @}
+}  // namespace signalkit
 
-} // signalkit
-
-#endif // TLM_SIGNAL_IN_H
+#endif  // TLM_SIGNAL_IN_H
 /// @}

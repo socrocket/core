@@ -16,13 +16,10 @@
 #ifndef SIGNALKIT_CONNECT_H
 #define SIGNALKIT_CONNECT_H
 
-#include "signalkit_h/ifs.h"
-#include "signalkit_h/adapter.h"
 #include <stdint.h>
+#include "signalkit/signalkit_h/ifs.h"
+#include "signalkit/signalkit_h/adapter.h"
 namespace signalkit {
-
-/// @addtogroup signalkit
-/// @{
 
 /// Connects an input signal with an output signal
 template<class TYPE>
@@ -97,9 +94,7 @@ sc_core::sc_module *connect(sc_core::sc_out<INTYPE> &in, signal_in<OUTTYPE, MODU
     return result;
 }
 
-/// @}
-
-} // signalkit
+} // namespace signalkit
 
 #endif // SIGNALKIT_CONNECT_H
 /// @}

@@ -21,9 +21,6 @@
 
 namespace signalkit {
 
-/// @addtogroup signalkit
-/// @{
-
 /// Main signal interface.
 /// This interface implements the basic read functionality of a signal value
 /// This is needed for input and output signals.
@@ -160,8 +157,6 @@ TYPE signal_out_if<TYPE>::operator=(const signal_if<TYPE> &t) {
     write(value);
     return this->m_value;
 }
-
-/// @}
 
 } // signalkit
 

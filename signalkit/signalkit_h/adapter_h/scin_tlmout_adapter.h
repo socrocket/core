@@ -15,13 +15,10 @@
 #ifndef SCIN_TLMOUT_ADAPTER_H
 #define SCIN_TLMOUT_ADAPTER_H
 
-#include "signalkit_h/module.h"
 #include <systemc>
+#include "signalkit/signalkit_h/module.h"
 
 namespace signalkit {
-
-/// @addtogroup signalkit
-/// @{
 
 template<class INTYPE, class OUTTYPE = INTYPE>
 class scin_tlmout_adapter : public signal_module<scin_tlmout_adapter<INTYPE,
@@ -49,9 +46,7 @@ class scin_tlmout_adapter : public signal_module<scin_tlmout_adapter<INTYPE,
         }
 };
 
-/// @}
+}  // namespace signalkit
 
-} // signalkit
-
-#endif // SCIN_TLMOUT_ADAPTER_H
+#endif  // SCIN_TLMOUT_ADAPTER_H
 /// @}

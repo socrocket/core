@@ -233,7 +233,7 @@ def configure(self):
 def lint(self):
     """Use cpplint to check all files"""
     # Linting
-    self(features='cpplint', files=self.path.ant_glob(['**/*.cpp', '**/*.tpp', '**/*.h'], excl=['build', 'contrib/**', '**/extern/**', '**/GREthExampleApps/**', '**/.**']), target='cpplint')
+    self(features='cpplint', files=self.path.ant_glob(['**/*.cpp', '**/*.tpp', '**/*.h'], excl=['build', 'contrib/**', '**/extern/**', '**/GREthExampleApps/**', '**/.**', '**/tests/**', 'software/**']), target='cpplint')
 
 setattr(Context.g_module, 'cpplint', lint)
 class CPPLint(Build.BuildContext):

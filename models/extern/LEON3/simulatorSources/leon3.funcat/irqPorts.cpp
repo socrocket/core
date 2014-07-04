@@ -39,7 +39,7 @@
 #include <leon3.funcat/irqPorts.hpp>
 #include <trap_utils.hpp>
 
-#include "signalkit.h"
+#include "signalkit/signalkit.h"
 
 
 using namespace leon3_funcat_trap;

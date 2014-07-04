@@ -16,16 +16,13 @@
 #ifndef SIGNALKIT_MODULE_H
 #define SIGNALKIT_MODULE_H
 
-#include "signalkit_h/in.h"
-#include "signalkit_h/out.h"
-#include "signalkit_h/inout.h"
-#include "signalkit_h/selector.h"
-#include "signalkit_h/infield.h"
+#include "signalkit/signalkit_h/in.h"
+#include "signalkit/signalkit_h/out.h"
+#include "signalkit/signalkit_h/inout.h"
+#include "signalkit/signalkit_h/selector.h"
+#include "signalkit/signalkit_h/infield.h"
 
 namespace signalkit {
-
-/// @addtogroup signalkit
-/// @{
 
 /// Signalkit module base class.
 /// Derive from this class to use the signalkit.
@@ -65,9 +62,7 @@ class signal_module {
 #define SIGNALMODULE(name) \
   SK_HAS_SIGNALS(name)
 
-/// @}
+}  // namespace signalkit
 
-} // signalkit
-
-#endif // SIGNALKIT_MODULE_H
+#endif  // SIGNALKIT_MODULE_H
 /// @}

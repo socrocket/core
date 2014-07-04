@@ -19,9 +19,6 @@
 
 namespace signalkit {
 
-/// @addtogroup signalkit
-/// @{
-
 /// Base class for all signalkit signals.
 /// This is needed to hide the direct pointer to the parent model.
 /// Each instantiated member signal needs a pointer to it's parent class to
@@ -56,10 +53,7 @@ class signal_base : public sc_core::sc_object {
         }
 };
 
-/// @}
+};  // namespace signalkit
 
-}
-; // signalkit
-
-#endif // SIGNALKIT_BASE_H
+#endif  // SIGNALKIT_BASE_H
 /// @}

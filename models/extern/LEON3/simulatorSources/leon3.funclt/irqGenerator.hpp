@@ -49,7 +49,7 @@
 #include <trap_utils.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "signalkit.h"
+#include "signalkit/signalkit.h"
 
 //Now some stuff for generating random numbers
 #include <ctime>

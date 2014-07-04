@@ -40,7 +40,7 @@
 #include <leon3.funclt/irqPorts.hpp>
 #include <trap_utils.hpp>
 
-#include "signalkit.h"
+#include "signalkit/signalkit.h"
 #include "common/verbose.h"
 
 

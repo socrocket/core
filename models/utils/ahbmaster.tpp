@@ -190,7 +190,7 @@ void AHBMaster<BASE>::ahbread(
       delay = SC_ZERO_TIME;
     } else {
       // Forbidden phase
-      v::error << this->name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
+      v::error << this->name() << "Invalid phase in return path (from call to nb_transport_fw)!" << status << v::endl;
       trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
       assert(-1);
     }
@@ -285,7 +285,7 @@ void AHBMaster<BASE>::ahbwrite(
       delay = SC_ZERO_TIME;
     } else {
       // Forbidden phase
-      v::error << this->name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
+      v::error << this->name() << "Invalid phase in return path (from call to nb_transport_fw)!" << status << v::endl;
       trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
       assert(-1);
     }
@@ -379,8 +379,8 @@ void AHBMaster<BASE>::ResponseThread() {
       phase = tlm::END_RESP;
       delay = sc_core::SC_ZERO_TIME;
 
-      v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase <<
-      v::endl;
+      v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase
+               << v::endl;
 
       // Forward arrow for msc
       msclogger::forward(this, &ahb, trans, phase, delay);
@@ -391,8 +391,8 @@ void AHBMaster<BASE>::ResponseThread() {
       // Return value must be TLM_COMPLETED or TLM_ACCEPTED
       assert((status == tlm::TLM_COMPLETED) || (status == tlm::TLM_ACCEPTED));
 
-      v::debug << name() << "Release " << trans << " Ref-Count before calling release " << trans->get_ref_count() <<
-      v::endl;
+      v::debug << name() << "Release " << trans << " Ref-Count before calling release " << trans->get_ref_count()
+               << status << v::endl;
 
       // Decrement reference count
       ahb.release_transaction(trans);
