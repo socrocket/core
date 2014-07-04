@@ -7,8 +7,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'aes.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['AES.c'],
      install_path = None,
   )
@@ -35,8 +36,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'bcnt.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['bcnt.c'],
      install_path = None,
   )
@@ -60,8 +62,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'blit.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['blit.c'],
      install_path = None,
   )
@@ -85,8 +88,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'crc.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['crc.c'],
      install_path = None,
   )
@@ -110,8 +114,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'des.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['des.c'],
      install_path = None,
   )
@@ -135,8 +140,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'dhry.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['dhry.c'],
      install_path = None,
   )
@@ -160,8 +166,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'engine.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['engine.c'],
      install_path = None,
   )
@@ -185,8 +192,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'fft.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['fft.c'],
      install_path = None,
   )
@@ -210,8 +218,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'fib.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['fib.c'],
      install_path = None,
   )
@@ -235,8 +244,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'fir2.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['fir2.c'],
      install_path = None,
   )
@@ -260,8 +270,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'gamma.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['gamma.c'],
      install_path = None,
   )
@@ -285,8 +296,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'hanoi.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['hanoi.c'],
      install_path = None,
   )
@@ -310,8 +322,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'heapsort.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['heapsort.c'],
      install_path = None,
   )
@@ -335,8 +348,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'jpeg.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['jpeg.c'],
      install_path = None,
   )
@@ -360,8 +374,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'lms.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['lms.c'],
      install_path = None,
   )
@@ -385,8 +400,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'matrix.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['matrix.c'],
      install_path = None,
   )
@@ -410,8 +426,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'mdrall.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['mdrAll.c'],
      install_path = None,
   )
@@ -435,8 +452,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'pocsag.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['pocsag.c'],
      install_path = None,
   )
@@ -460,8 +478,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'queens.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['queens.c'],
      install_path = None,
   )
@@ -565,8 +584,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'quicksort.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['quicksort.c'],
      install_path = None,
   )
@@ -590,8 +610,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'tolstoy.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['tolstoy.c'],
      install_path = None,
   )
@@ -615,8 +636,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'v42.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['v42.c'],
      install_path = None,
   )
@@ -640,8 +662,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'wavelt.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['wavelt.c'],
      install_path = None,
   )
@@ -665,8 +688,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'whets.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['whets.c'],
      install_path = None,
   )

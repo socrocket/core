@@ -6,8 +6,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'fft64.sparc',
-     cflags       = '-static -g -O1 -lm',
-     linkflags    = '-static -g -O1 -lm',
+     cflags       = '-static -g -O1',
+     linkflags    = '-static -g -O1',
+     lib          = 'm',
      source       = ['radix4_nofile.c'],
      install_path = None,
   )
@@ -15,8 +16,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'fft64_input_gen.sparc',
-     cflags       = '-static -g -O1 -lm',
-     linkflags    = '-static -g -O1 -lm',
+     cflags       = '-static -g -O1',
+     linkflags    = '-static -g -O1',
+     lib          = 'm',
      source       = ['radix4_input_gen.c'],
      install_path = None,
   )
