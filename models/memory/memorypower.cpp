@@ -64,6 +64,10 @@ MemoryPower::MemoryPower(sc_module_name name,
     GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, MemoryPower, swi_power_cb);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&dyn_reads, gs::cnf::pre_read, MemoryPower, dyn_reads_cb);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&dyn_writes, gs::cnf::pre_read, MemoryPower, dyn_writes_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&dyn_reads, gs::cnf::post_write, MemoryPower, dyn_reads_write_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&dyn_writes, gs::cnf::post_write, MemoryPower, dyn_writes_write_cb);
+    dyn_reads_offset = 0ull;
+    dyn_writes_offset = 0ull;
   }
 }
 
@@ -98,13 +102,25 @@ gs::cnf::callback_return_type MemoryPower::swi_power_cb(gs::gs_param_base &chang
 
 gs::cnf::callback_return_type MemoryPower::dyn_reads_cb(gs::gs_param_base &changed_param,
   gs::cnf::callback_type reason) {
-  dyn_reads = reads32;
+  dyn_reads = reads32 - dyn_reads_offset;
   return GC_RETURN_OK;
 }
 
 gs::cnf::callback_return_type MemoryPower::dyn_writes_cb(gs::gs_param_base &changed_param,
   gs::cnf::callback_type reason) {
-  dyn_writes = writes32;
+  dyn_writes = writes32 - dyn_writes_offset;
+  return GC_RETURN_OK;
+}
+
+gs::cnf::callback_return_type MemoryPower::dyn_writes_write_cb(gs::gs_param_base &changed_param,
+  gs::cnf::callback_type reason) {
+  dyn_writes_offset = writes32 - dyn_writes;
+  return GC_RETURN_OK;
+}
+
+gs::cnf::callback_return_type MemoryPower::dyn_reads_write_cb(gs::gs_param_base &changed_param,
+  gs::cnf::callback_type reason) {
+  dyn_reads_offset = reads32 - dyn_reads;
   return GC_RETURN_OK;
 }
 /// @}
