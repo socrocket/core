@@ -38,17 +38,16 @@ class venv_link_task(Task.Task):
   before = []
   quiet = True
   def __str__(self):
-      return "vini: string -> %s\n" % (self.outputs[0].name)
+      return "venv: %s -> virtualenv\n" % (', '.join([n.name for n in self.inputs]))
     
   def run(self):
-      for src in self.inputs:
-        snode = self.path.find_node(src)
+      for snode in self.inputs:
         dnode = snode.get_bld()
         if not os.path.exists(dnode.abspath()):
             os.symlink(os.path.relpath(snode.abspath(), os.path.join(dnode.abspath(), "..")), dnode.abspath())
 
-      snode = self.path.get_bld().abspath()
-      dnode = os.path.join(self.bldnode.abspath(), ".venv", "lib", "python2.7", "site-packages", os.path.basename(snode))
+      snode = self.generator.bld.path.get_bld().abspath()
+      dnode = os.path.join(self.env["VENV_PATH"], "lib", "python2.7", "site-packages", os.path.basename(snode))
       if not os.path.exists(dnode):
           os.symlink(os.path.relpath(snode, os.path.join(dnode, "..")), dnode)
       return 0
@@ -57,7 +56,12 @@ class venv_link_task(Task.Task):
 @TaskGen.feature('venv_package')
 def venv_package(self):
   if hasattr(self, "pysource"):
-      links = self.create_task('venv_link', src=Utils.to_list(self.pysource))
+      srclist = []
+      for src in self.pysource:
+        snode = self.path.find_node(src)
+        srclist.append(snode)
+      dst = self.bld.bldnode.find_node(".conf_check_venv")
+      links = self.create_task('venv_link', src=srclist, tgt=dst)
 
 def configure(self):
     try:
@@ -72,7 +76,7 @@ def configure(self):
         )
         self.find_program('virtualenv.py', var="VIRTUALENV", mandatory=True, okmsg="ok", path_list=[self.dep_path(name, version)])
     self.start_msg("Create python virtualenv")
-    self.env["VENV_PATH"] = os.path.join(self.bldnode.abspath(), ".venv")
+    self.env["VENV_PATH"] = os.path.join(self.bldnode.abspath(), ".conf_check_venv")
     self.cmd_and_log(
         [self.env.VIRTUALENV, self.env.VENV_PATH],
         output=Context.BOTH,

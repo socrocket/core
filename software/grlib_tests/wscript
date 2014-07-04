@@ -7,8 +7,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'hello.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['hello.c'],
      install_path = None,
   )
@@ -32,8 +33,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'cache.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['top_cache_test.c',
                      'ramfill.c', 
                      'standalone.c', 
@@ -108,8 +110,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'ram.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['top_ram_test.c',
                      'ramfill.c', 
                      'standaloneasm.S', 
@@ -139,8 +142,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'reg.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['top_reg_test.c',
                      'ramfill.c', 
                      'standaloneasm.S', 
@@ -170,8 +174,9 @@ def build(bld):
   bld(
      features     = 'c cprogram sparc',
      target       = 'mmu.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      source       = ['top_mmu_test.c',
                      'ramfill.c', 
                      'standalone.c', 
@@ -201,8 +206,9 @@ def build(bld):
   # readpnp.sparc
   bld(
      features     = 'c cprogram sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      target       = 'readpnp.sparc',
      source       = [
        'readpnp.c',
@@ -233,8 +239,9 @@ def build(bld):
   # argstests.sparc
   bld(
      features     = 'c cprogram sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
      target       = 'argstest.sparc',
      source       = ['top_args_test.c'],
      install_path = None,
@@ -260,8 +267,9 @@ def build(bld):
   # amba.sparc
   #bld(
   #   features     = 'c cprogram sparc',
-  #   cflags       = '-static -g -O1 -lm -mno-fpu',
-  #   linkflags    = '-static -g -O1 -lm -mno-fpu',
+  #   cflags       = '-static -g -O1 -mno-fpu',
+  #   linkflags    = '-static -g -O1 -mno-fpu',
+  #   lib          = 'm',
   #   target       = 'amba.sparc',
   #   source       = ['amba.c'],
   #   install_path = None,
@@ -270,8 +278,9 @@ def build(bld):
   # ambalist.sparc
   bld(
      features     = 'c cprogram sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu -lleonbare',
-     linkflags    = '-static -g -O1 -lm -mno-fpu -lleonbare',
+     cflags       = '-static -g -O1 -mno-fpu -lleonbare',
+     linkflags    = '-static -g -O1 -mno-fpu -lleonbare',
+     lib          = 'm',
      target       = 'ambalist.sparc',
      source       = ['ambalist.c'],
      install_path = None,
@@ -280,8 +289,9 @@ def build(bld):
   # mphello.sparc
   bld(
      features     = 'c cprogram sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu -lleonbare',
-     linkflags    = '-static -g -O1 -lm -mno-fpu -lleonbare',
+     cflags       = '-static -g -O1 -mno-fpu -lleonbare',
+     linkflags    = '-static -g -O1 -mno-fpu -lleonbare',
+     lib          = 'm',
      target       = 'mphello.sparc',
      source       = ['mp-hello.c'],
      install_path = None,

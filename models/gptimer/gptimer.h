@@ -32,6 +32,8 @@
 
 #include "gs_config/propertyconfig.h"
 
+#undef CTRL
+
 /// @brief This class is a TLM 2.0 Model of the Aeroflex Gaisler GRLIB GPTimer.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 37
 class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {

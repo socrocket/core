@@ -7,50 +7,49 @@
 /// @date 2010-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
 
-#ifndef POWERMONITOR_H
-#define POWERMONITOR_H
+#ifndef COMMON_POWERMONITOR_H_
+#define COMMON_POWERMONITOR_H_
 
-#include <systemc>
+#include <stdint.h>
+#include <greencontrol/config.h>
 #include <boost/algorithm/string.hpp>
-#include "greencontrol/config.h"
-
-#include "stdint.h"
-#include "verbose.h"
-
+#include <systemc>
 #include <iomanip>
+#include <string>
+#include <vector>
+
+#include "common/verbose.h"
 
 // Power monitor demonstrator
 class powermonitor : public sc_module {
+  public:
+    // Generate report
+    void gen_report();
 
- public:
+    // Triggers report generation
+    void report_trigger();
 
-  // Generate report
-  void gen_report();
+    std::string get_model_name(std::string &param);  // NOLINT(runtime/references)
 
-  // Triggers report generation
-  void report_trigger();
+    std::vector<std::string> get_IP_params(std::vector<std::string> &params);  // NOLINT(runtime/references)
 
-  std::string get_model_name(std::string &param);
+    // Called by systemc scheduler at end of simulation
+    void end_of_simulation();
 
-  std::vector<std::string> get_IP_params(std::vector<std::string> &params);
+    SC_HAS_PROCESS(powermonitor);
 
-  // Called by systemc scheduler at end of simulation
-  void end_of_simulation();
+    // Constructor
+    powermonitor(sc_core::sc_module_name name, sc_core::sc_time m_report_time = SC_ZERO_TIME, bool exram = false);
 
-  SC_HAS_PROCESS(powermonitor);
-
-  // Constructor
-  powermonitor(sc_core::sc_module_name name, sc_core::sc_time m_report_time = SC_ZERO_TIME, bool exram=false);
-
-  // Local variables for constructor parameters
-  sc_core::sc_time m_report_time;
-  bool m_exram;
+    // Local variables for constructor parameters
+    sc_core::sc_time m_report_time;
+    bool m_exram;
 };
 
-#endif // POWERMONITOR_H
+#endif  // COMMON_POWERMONITOR_H_
 /// @}

@@ -77,7 +77,7 @@
 #include <leon3.funclt/externalPins.hpp>
 #include <string>
 #include <systemc.h>
-#include "verbose.h"
+#include "common/verbose.h"
 
 using namespace leon3_funclt_trap;
 using namespace trap;

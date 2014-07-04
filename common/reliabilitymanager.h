@@ -2,30 +2,30 @@
 /// @addtogroup common
 /// @{
 /// @file reliabilitymanager.h
-/// 
+///
 ///
 /// @date 2010-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
 
-#ifndef RELIABILITYMANAGER_H
-#define RELIABILITYMANAGER_H
+#ifndef COMMON_RELIABILITYMANAGER_H_
+#define COMMON_RELIABILITYMANAGER_H_
 
 #include <systemc.h>
 #include <tlm.h>
-
 #include <stdint.h>
 #include <string.h>
-#include <vmap.h>
+#include <string>
+#include "common/vmap.h"
 
 class FaultDectect_if {
   public:
-    virtual bool detect(tlm::generic_payload &gp) = 0;
-    virtual void protect(tlm::generic_payload &gp) = 0;
+    virtual bool detect(tlm::generic_payload &gp) = 0;  // NOLINT(runtime/references)
+    virtual void protect(tlm::generic_payload &gp) = 0;  // NOLINT(runtime/references)
 };
 
 template<class WIDTH>
@@ -48,15 +48,17 @@ struct ReliabilityCell {
   WIDTH orMask;
 };
 
-template<uint8_t>ReliabilityCell::ReliabilityCell():
-  mode(NONE), type(NONE), andMask(0xFF), orMask(0x0) {};
+template<uint8_t>
+ReliabilityCell::ReliabilityCell() :
+  mode(NONE), type(NONE), andMask(0xFF), orMask(0x0) {}
 
-template<uint32_t>ReliabilityCell::ReliabilityCell():
-  mode(NONE), type(NONE), andMask(0xFFFFFFFF), orMask(0x0) {};
+template<uint32_t>
+ReliabilityCell::ReliabilityCell() :
+  mode(NONE), type(NONE), andMask(0xFFFFFFFF), orMask(0x0) {}
 
 class ReliabilityManager {
   public:
-    void transaction(sc_object *self, tlm::generic_payload &gp);
+    void transaction(sc_object *self, tlm::generic_payload &gp);  // NOLINT(runtime/references)
     void registerModel(sc_object *self);
 
     void addressAddressPermanent(std::string name, uint8_t _and, uint8_t _or);
@@ -73,7 +75,7 @@ class ReliabilityManager {
   private:
     gs::gcnf_api *m_Api;
 
-    vmap<std::string, ReliabilityCell<uint32_t> m_addresserrors;
+    vmap < std::string, ReliabilityCell<uint32_t> m_addresserrors;
 
     tlm::tlm_dbg_transport_if *mmapped_bus;
     /// Errors in memory mapped registers and memories. Addressed by bus address
@@ -85,6 +87,6 @@ class ReliabilityManager {
 
 ReliabilityManager *RM;
 
-#endif
+#endif  // COMMON_RELIABILITYMANAGER_H_
 
 /// @}

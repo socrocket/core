@@ -21,7 +21,7 @@ All files can be checked with:
 Furthermore to simpliefy the migration process of old/other code to the codingstyle you may use "uncrustify":
 http://uncrustify.sourceforge.net/
 
-A configuration is availabe in tools/uncrustify.cfg. It cn be used with:
+A configuration is availabe in tools/uncrustify.cfg. Make sure you use at least version 0.60. It can be used with:
 ~~~
 uncrustify -c tools/uncrustify.cfg --replace <filename>
 ~~~
@@ -36,29 +36,29 @@ tools/fixheaderguards.py <filename>
 Coding Style done in the SoCRocket Week 2014-6
 ----------------------------------------------
 
-Model        | Lint | GUARDS | DOCS | DOCSUP | CONF | REGS  
------------- | ---- | ------ | ---- | ------ | ---- | ----
-ahbcamera    | OK   |  OK    |      |        |      |
-ahbctrl      |      |  BF    |      |        |      |
-ahbdisplay   | OK   |  OK    |      |        |      |
-ahbin        | OK   |  OK    |      |        |      |
-ahbmem       | RM   |  BF    |      |        |      |
-ahbout       | RM   |  BF    |      |        |      |
-ahbprof      | RM   |  BF    |      |        |      |
-ahbshuffler  | RM   |  BF    |      |        |      |
-ahbspacewire |      |  BF    |      |        |      |
-ahbudp       | RM   |  BF    |      |        |      |
-apbctrl      |      |  BF    |      |        |      |
-apbuart      | RM   |  BF    |      |        |      |
-extern       |      |        |      |        |      |
-gptimer      | OK   |  OK    |      |        |      |
-greth        |      |        |      |        |      |
-irqmp        | RM   |  BF    |      |        |      |
-mctrl        |      |  BF    |      |        |      |
-memory       | OK   |  OK    | OK   |        |      |
-mips         | RM   |        |      |        |      |
-mmu_cache    | TS   |        |      |        |      |
-socwire      |      |  BF    |      |        |      |
-stimgen      |      |  BF    |      |        |      |
-utils        |      |  BF    |      |        |      |
-
+Model        | Lint | GUARDS | DOCS | DOCSUP | DOXY | CONF | REGS  
+------------ | ---- | ------ | ---- | ------ | ---- | ---- | ----
+ahbcamera    | OK   |  OK    | OK   |        | OK   |      |     
+ahbctrl      | OK   |  OK    | OK   |        | OK   |      |     
+ahbdisplay   | OK   |  OK    | OK   |        | OK   |      |     
+ahbin        | OK   |  OK    | OK   |        |      |      |     
+ahbmem       | OK   |  OK    | OK   |        | OK   |      |     
+ahbout       | OK   |  OK    | OK   |        |      |      |     
+ahbprof      | OK   |  OK    | OK   |        | OK   |      |     
+ahbshuffler  | OK   |  OK    | OK   |        | OK   |      |     
+ahbspacewire |      |  OK    |      |        |      |      |     
+ahbudp       | OK   |  OK    |      |        | OK   |      |     
+apbctrl      | OK   |  OK    | OK   |        |      |      |     
+apbuart      | OK   |  OK    | OK   |        |      |      |     
+gptimer      | OK   |  OK    | OK   |        | OK   |      |     
+greth        |      |        |      |        |      |      |     
+irqmp        | OK   |  OK    | OK   | OK     |      |      |     
+mctrl        | RM   |  OK    | OK   |        |      |      |     
+memory       | OK   |  OK    | OK   | OK     | OK   |      |     
+mips         | OK   |        |      | OK     |      |      |     
+mmu_cache    | TS   |        |      |        |      |      |     
+socwire      |      |  OK    |      |        |      |      |     
+stimgen      | OK   |  OK    |      |        |      |      |     
+utils        | OK   |  OK    | OK   |        | OK   | --   |     
+common       | RM   |        |      |        |      | --   |  
+leon3mp      |      |        |      |        |      |      |

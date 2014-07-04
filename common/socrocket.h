@@ -7,25 +7,20 @@
 /// @date 2010-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
 
-#ifndef __SOCROCKET_H__
-#define __SOCROCKET_H__
+#ifndef COMMON_SOCROCKET_H_
+#define COMMON_SOCROCKET_H_
 
 // Snooping information (AHBCTRL -> MMU_CACHE)
 typedef struct {
-
   unsigned int master_id;
   unsigned int address;
   unsigned int length;
-
 } t_snoop;
 
-
-#endif // __SOCROCKET_H__
-
-
+#endif  // COMMON_SOCROCKET_H_
 /// @}

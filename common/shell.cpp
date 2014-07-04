@@ -2,51 +2,49 @@
 /// @addtogroup common
 /// @{
 /// @file shell.cpp
-/// 
+///
 ///
 /// @date 2013-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
-/// @author 
+/// @author
 ///
 #ifndef SOCROCKET_SHELL_H
 #define SOCROCKET_SHELL_H
 
 #include <Python.h>
 #include <systemc.h>
-#include "shell.h"
+#include "common/shell.h"
 
-using namespace sc_core;
-
-static PyObject *sysc_start(PyObject *self, PyObject *args) {
-  if(!PyArg_ParseTuple(args, ":start")) {
+static PyObject*sysc_start(PyObject *self, PyObject *args) {
+  if (!PyArg_ParseTuple(args, ":start")) {
     return NULL;
   }
-  sc_start();
+  sc_core::sc_start();
   return Py_BuildValue("");
 }
 
-static PyObject *sysc_pause(PyObject *self, PyObject *args) {
-  if(!PyArg_ParseTuple(args, ":pause")) {
+static PyObject*sysc_pause(PyObject *self, PyObject *args) {
+  if (!PyArg_ParseTuple(args, ":pause")) {
     return NULL;
   }
-  sc_pause();
+  sc_core::sc_pause();
   return Py_BuildValue("");
 }
 
-static PyObject *sysc_stop(PyObject *self, PyObject *args) {
-  if(!PyArg_ParseTuple(args, ":exit")) {
+static PyObject*sysc_stop(PyObject *self, PyObject *args) {
+  if (!PyArg_ParseTuple(args, ":exit")) {
     return NULL;
   }
-  sc_stop();
+  sc_core::sc_stop();
   return Py_BuildValue("");
 }
 
 static PyMethodDef GSMethods[] = {
-  {"list", &sysc_start, METH_VARARGS, "List all gs_params."}, // Not Implemented
-  {"get_param", &sysc_stop, METH_VARARGS, "Get gs_param value."}, // Not Implemented
+  {"list", &sysc_start, METH_VARARGS, "List all gs_params."},  // Not Implemented
+  {"get_param", &sysc_stop, METH_VARARGS, "Get gs_param value."},  // Not Implemented
   {NULL, NULL, 0, NULL}
 };
 
@@ -69,11 +67,11 @@ void start_shell(sc_status status) {
   PyImport_AddModule("greenlib");
   Py_InitModule("greenlib", GSMethods);
 
-  while(1) {
-    if(status == SC_RUNNING) {
-      sc_start();
-      status = sc_get_status();
-    } else if(status == SC_PAUSED) {
+  while (1) {
+    if (status == SC_RUNNING) {
+      sc_core::sc_start();
+      status = sc_core::sc_get_status();
+    } else if (status == SC_PAUSED) {
       Py_Main(argc, argv);
     } else {
       break;
@@ -83,5 +81,5 @@ void start_shell(sc_status status) {
   Py_Finalize();
 }
 
-#endif // SOCROCKET_SHELL_H
+#endif  // SOCROCKET_SHELL_H
 /// @}

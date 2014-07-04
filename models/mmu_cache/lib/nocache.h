@@ -19,7 +19,7 @@
 #include <tlm.h>
 #include "signalkit.h"
 
-#include "verbose.h"
+#include "common/verbose.h"
 #include "cache_if.h"
 #include "mem_if.h"
 

@@ -38,10 +38,10 @@
 // Reviewed:
 //*********************************************************************
 
-#ifndef GREENREG_AMBASOCKETS_H
-#define GREENREG_AMBASOCKETS_H
+#ifndef GREENREG_AMBASOCKETS_H_
+#define GREENREG_AMBASOCKETS_H_
 
-#include "greenreg/greenreg.h"
+#include <greenreg/greenreg.h>
 #include "gr_ambasockets.h"
 
 namespace gs {
@@ -102,4 +102,4 @@ class greenreg_socket<gs::amba::amba_master<32> > : public gs::amba::amba_master
 } // end namespace gs:reg
 } // end namespace gs:reg
 
-#endif // __GREENREG_AMBASOCKET_H__
+#endif  // GREENREG_AMBASOCKET_H_

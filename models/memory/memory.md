@@ -92,7 +92,7 @@ MapStorage). The modules are declared in lines 13-16 and created, within the con
  
     #include <systemc.h>
     #include "memory.h"
-    #include "mctrl.h"
+    #include "models/mctrl/mctrl.h"
     
     class Top : public sc_module {
       public:

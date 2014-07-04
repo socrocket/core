@@ -2,14 +2,15 @@
 # vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
 top = '../..'
 
-def build(bld):
-  bld(
+def build(self):
+  self(
     target          = 'apbctrl',
     features        = 'cxx cxxstlib',
     source          = 'apbctrl.cpp', 
-    export_includes = '.',
+    export_includes = self.top_dir,
+    includes        = self.top_dir,
     uselib          = 'SYSTEMC TLM AMBA GREENSOCS',
     use             = 'utils common',
-    install_path   = '${PREFIX}/lib',
+    install_path    = '${PREFIX}/lib',
   )
   

@@ -16,13 +16,13 @@
 #define MODELS_AHBOUT_AHBOUT_H_
 
 #include <amba.h>
+#include <tlm.h>
 #include <fstream>
 #include <map>
-#include <tlm.h>
 
-#include "ahbslave.h"
-#include "clkdevice.h"
-#include "msclogger.h"
+#include "models/utils/ahbslave.h"
+#include "models/utils/clkdevice.h"
+#include "common/msclogger.h"
 
 class AHBOut : public AHBSlave<>, public CLKDevice {
   public:
@@ -45,9 +45,13 @@ class AHBOut : public AHBSlave<>, public CLKDevice {
     /// Destructor
     ~AHBOut();
 
-    uint32_t exec_func(tlm::tlm_generic_payload &gp, sc_time &delay, bool debug = false);
+    uint32_t exec_func(
+        tlm::tlm_generic_payload &gp,  // NOLINT(runtime/references)
+        sc_time &delay,                // NOLINT(runtime/references)
+        bool debug = false);
 
     sc_core::sc_time get_clock();
+
   private:
     /// 12 bit MSB address and mask (constructor parameters)
     const uint32_t mhaddr;
@@ -56,5 +60,5 @@ class AHBOut : public AHBSlave<>, public CLKDevice {
     ofstream outfile;
 };
 
-#endif // MODELS_AHBOUT_AHBOUT_H_
+#endif  // MODELS_AHBOUT_AHBOUT_H_
 /// @}

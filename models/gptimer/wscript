@@ -3,13 +3,13 @@
 top = '../..'
 
 def build(self):
-  self(
-    target          = 'gptimer',
-    features        = 'cxx cxxstlib',
-    source          = 'gptimer.cpp gpcounter.cpp', 
-    export_includes = self.top_dir,
-    includes = self.top_dir,
-    uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
-    use             = 'common signalkit utils',
-    install_path   = '${PREFIX}/lib',
-  )
+    self(
+        target          = 'gptimer',
+        features        = 'cxx cxxstlib',
+        source          = 'gptimer.cpp gpcounter.cpp', 
+        export_includes = self.top_dir,
+        includes = self.top_dir,
+        uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
+        use             = 'common signalkit utils',
+        install_path   = '${PREFIX}/lib',
+    )

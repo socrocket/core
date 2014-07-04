@@ -13,16 +13,16 @@ LOAD = [
     'compiler_c',
     'compiler_cxx',
     'python',
-    'swig',
     'waf_unit_test',
 ]
 
 TOOLS = [
     'common',
+    'swig',
     'flags',
     'virtualenv',
     'pthreads',
-    'boost',
+    'boosting',
     'endian',
     'grlib',
     'modelsim',

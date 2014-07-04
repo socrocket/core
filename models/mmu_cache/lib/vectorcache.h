@@ -22,13 +22,13 @@
 #include <tlm.h>
 
 #include "math.h"
-#include "verbose.h"
+#include "common/verbose.h"
 #include "defines.h"
 #include "cache_if.h"
 #include "mmu_cache_if.h"
 #include "tlb_adaptor.h"
 #include "mem_if.h"
-#include "vendian.h"
+#include "common/vendian.h"
 
 // implementation of cache memory and controller
 /// @brief virtual cache model, contain common functionality of instruction and data cache

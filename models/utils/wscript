@@ -2,8 +2,8 @@
 # vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
 top = '../..'
 
-def build(bld):
-  bld(
+def build(self):
+  self(
     target          = 'utils',
     features        = 'cxx cxxstlib',
     source          = ['ahbdevice.cpp',
@@ -13,8 +13,9 @@ def build(bld):
                        'ahbslave.cpp',
                        'ahbmaster.cpp'
                       ],
-    export_includes = '.',
+    export_includes = self.top_dir,
+    includes        = self.top_dir,
     uselib          = 'SYSTEMC TLM AMBA GREENSOCS',
     use             = 'signalkit common',
-    install_path   = '${PREFIX}/lib',
+    install_path    = '${PREFIX}/lib',
   )
