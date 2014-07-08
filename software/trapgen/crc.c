@@ -1,5 +1,7 @@
 /******* PowerStone Benchmark *******/
 
+#define SHORT_BENCH
+
 #include <math.h>
 #include <stdio.h>
 
