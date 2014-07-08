@@ -429,19 +429,11 @@ void AHBCtrl::b_transport(uint32_t id, tlm::tlm_generic_payload& trans, sc_core:
 
     }
 
-    // Power event start
-    //const char *event_name = "ahb_trans";
-    //size_t data_int = (size_t)trans.get_data_ptr();
-    //uint32_t id = data_int & 0xFFFFFFFF;
+    delay+=clock_cycle;
 
     // Forward request to the selected slave
     ahbOUT[index]->b_transport(trans, delay);
 
-    //v::debug << name() << "Delay after return from slave: " << delay << v::endl;
-
-    // Power event end
-    //PM::send(this,event_name,0,sc_time_stamp()+delay,id,m_pow_mon);
-    
     wait(delay);
     delay=SC_ZERO_TIME;
 
@@ -609,9 +601,7 @@ void AHBCtrl::arbitrate() {
 
     // Last address of current transfer must have been sampled.
     // Last data sample is on the way.
-    //v::debug << name() << " address_bus_owner: " << address_bus_owner << " data_bus_state: " << data_bus_state << v::endl;
-    //if (sc_time_stamp() > sc_core::sc_time(83880, SC_NS)) sc_stop();
-
+    
     if ((address_bus_owner == -1) && ((data_bus_state == RESPONSE) || (data_bus_state == IDLE))) {
 
       // Priority arbitration
@@ -673,7 +663,8 @@ void AHBCtrl::arbitrate() {
               slave_id = request_map[robin].slave_id;
 
               is_lock = ahbIN.get_extension<amba::amba_lock>(lock, *trans);
-              lock_master = i;
+
+              lock_master = robin;
 
               break;
             }

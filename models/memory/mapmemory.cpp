@@ -65,7 +65,13 @@ static const char *power_params[4][4] = {
 };
 
 // Constructor implementation
-MapMemory::MapMemory(sc_core::sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols, bool powmon) :
+MapMemory::MapMemory(sc_core::sc_module_name name, 
+                     MEMDevice::device_type type, 
+                     uint32_t banks, 
+                     uint32_t bsize, 
+                     uint32_t bits, 
+                     uint32_t cols,
+                     bool powmon) :
   sc_module(name),
   MEMDevice(type, banks, bsize, bits, cols), 
   bus("bus"), 
