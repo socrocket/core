@@ -238,10 +238,13 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     // The Virtual Address Tag consists of three indices, which are used to look
     // up the three level page table in main memory. The indices are extracted from
     // the tag and translated to byte addresses (shift left 2 bit)
-    unsigned int idx1 = (vpn >> (m_idx2 + m_idx3) << 2);
-    unsigned int idx2 = (vpn << (32 - m_idx2 - m_idx3)) >> (30 - m_idx3);
-    unsigned int idx3 = (vpn << (32 - m_idx3)) >> (30 - m_idx3);
-
+    //unsigned int idx1 = (vpn >> (m_idx2 + m_idx3) << 2);
+    //unsigned int idx2 = (vpn << (32 - m_idx2 - m_idx3)) >> (30 - m_idx3);
+    //unsigned int idx3 = (vpn << (32 - m_idx3)) >> (30 - m_idx3);
+    unsigned int idx1 = (vpn >> 12);
+    unsigned int idx2 = (vpn << 6) & 0x3e;
+    unsigned int idx3 = vpn & 0x3e;
+    
     // Locals for intermediate results
     t_PTE_context tmp;
     unsigned int paddr;
@@ -252,7 +255,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     bool context_miss = false;
 
     // Search virtual address tag in ipdc (associative)
-    v::info << this->name() << "lookup with VPN: " << std::hex << vpn
+    v::info << this->name() << "Zugriff mit ADDR: " << std::hex << addr << "VPN: " << std::hex << vpn
             << " and OFFSET: " << std::hex << offset << v::endl;
     pdciter = tlb->find(vpn);
 
@@ -372,23 +375,34 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     // tlb miss processing
     v::info << this->name()
             << "START TLB MISS PROCESSING FOR VIRTUAL ADDRESS: " << std::hex
-            << addr << v::endl;
+            << addr << " with indices 1/2/3: " << idx1 << "/" << idx2 << "/" << idx3 << v::endl;
 
-    // ***************************************
-    // 3-Level TLB table walk
-    // ***************************************
+    // **************************************
+    // Context-Table lookup
+    // **************************************
 
-    // 1. load from 1st-level page table
-    m_mmu_cache->mem_read(MMU_CONTEXT_TABLE_POINTER_REG + idx1, 0x8,
+    m_mmu_cache->mem_read((MMU_CONTEXT_TABLE_POINTER_REG << 4) + (MMU_CONTEXT_REG << 2), 0x8,
                           (unsigned char *)&data, 4, t, debug, is_dbg, false);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);
     #endif
 
-    v::info << this->name() << "Back from read addr: " << std::hex
-            << (MMU_CONTEXT_TABLE_POINTER_REG + idx1) << " data: " << std::hex
-            << data << v::endl;
+    v::info << this->name() << "CONTEXT TABLE LOOKUP returns page table address: " << std::hex << data << v::endl;
+
+    // ***************************************
+    // 3-Level TLB table walk
+    // ***************************************
+
+    // 1. load from 1st-level page table
+    m_mmu_cache->mem_read((data << 4)+(idx1<<2), 0x8,
+                          (unsigned char *)&data, 4, t, debug, is_dbg, false);
+
+    #ifdef LITTLE_ENDIAN_BO
+    swap_Endianess(data);
+    #endif
+
+    v::info << this->name() << "Back from 1st-level page table: "  << std::hex << data << v::endl;
 
     // page table entry (PTE) or page table descriptor (PTD) (to level 2)
     if ((data & 0x3) == 0x2) {
@@ -476,11 +490,13 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
         }        
 
+        sc_stop();
+
         return (0);
     }
 
     // 2. load from 2nd-level page table
-    m_mmu_cache->mem_read((((data) >> 2) << 2) + idx2, 0x8, (unsigned char *)&data,
+    m_mmu_cache->mem_read((((data) << 4) + (idx2 << 2)), 0x8, (unsigned char *)&data,
                           4, t, debug, is_dbg, false);
 
     #ifdef LITTLE_ENDIAN_BO
@@ -572,11 +588,13 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
         }
 
+        sc_stop();
+
         return (0);
     }
 
     // 3. load from 3rd-level page table
-    m_mmu_cache->mem_read((((data) >> 2) << 2) + idx3, 0x8, (unsigned char *)&data,
+    m_mmu_cache->mem_read(((data << 4) + (idx3<<2)), 0x8, (unsigned char *)&data,
                           4, t, debug, is_dbg, false);
 
     #ifdef LITTLE_ENDIAN_BO
@@ -661,6 +679,8 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
           m_mmu_cache->set_irq(0x2c);
 
         }
+
+        sc_stop();
 
         return (0);
     }

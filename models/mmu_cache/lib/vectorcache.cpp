@@ -604,13 +604,6 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
                     // valid is already set
 
-                    // increment time
-                    if (!is_dbg) {
-
-                      *delay += clockcycle;
-
-                    }
-
                     break;
 
                 } else {
@@ -635,6 +628,10 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
                 v::debug << this->name() << "Cache miss in set " << i << v::endl;
             }
+
+            // increment time
+            *delay += ((len - 1) >> 2)*clockcycle;
+
         }
 
         // update debug information
