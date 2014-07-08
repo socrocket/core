@@ -257,7 +257,7 @@ int sc_main(int argc, char** argv) {
     // Decide whether LT or AT
     gs::gs_param<bool> p_system_at("at", false, p_system);
     gs::gs_param<unsigned int> p_system_ncpu("ncpu", 1, p_system);
-    gs::gs_param<unsigned int> p_system_clock("clk", 10, p_system);
+    gs::gs_param<unsigned int> p_system_clock("clk", 20.0, p_system);
     gs::gs_param<std::string> p_system_osemu("osemu", "", p_system);
     gs::gs_param<std::string> p_system_log("log", "", p_system);
 
@@ -359,6 +359,89 @@ int sc_main(int argc, char** argv) {
     // Connect to APB and clock
     apbctrl.apb(irqmp.apb_slv);
     irqmp.set_clk(p_system_clock,SC_NS);
+
+    // APBSlave - GPTimer
+    // ==================
+    gs::gs_param_array p_gptimer("gptimer", p_conf);
+    gs::gs_param<bool> p_gptimer_en("en", true, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_addr("addr", 0x0F0, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_mask("mask", 0xFFF, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_index("index", 3, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_irq("irq", 8, p_gptimer);
+    gs::gs_param<bool> p_gptimer_sepirq("sepirq", true, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_ntimers("ntimers", 7, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_sbits("sbit", 16, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_nbits("nbits", 32, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_wdog("wdog", 0u, p_gptimer);
+
+    if(p_gptimer_en) {
+      GPTimer *gptimer = new GPTimer("gptimer",
+        7,  // ntimers
+        3,  // index
+        0x0F0,   // paddr
+        0xFFF,   // pmask
+        8,    // pirq
+        true, // sepirq
+        16,  // sbits
+        32,  // nbits
+        0u,   // wdog
+        p_report_power  // powmon
+      );
+
+      // Connect to apb and clock
+      apbctrl.apb(gptimer->bus);
+      gptimer->set_clk(p_system_clock,SC_NS);      
+
+      // Connecting Interrupts
+      for(int i=0; i < 8; i++) {
+        signalkit::connect(irqmp.irq_in, gptimer->irq, p_gptimer_irq + i);
+      }
+
+    }
+
+    // APBSlave - APBUart
+    // ==================
+    std::string n_uart = "conf.uart";
+    gs::gs_param_array *p_uart = new gs::gs_param_array(n_uart);
+    int i = 0;
+    while(mApi->getParamList(n_uart + "." + boost::lexical_cast<std::string>(i), false).size()!=0) {
+      std::string n_inst = n_uart + "." + boost::lexical_cast<std::string>(i);
+      io_if *io = NULL;
+      int port = 2000, type = 0, index = 1, addr = 0x001, mask = 0xFFF, irq = 2;
+      mApi->getValue(std::string(n_inst + ".type"), type);
+      mApi->getValue(std::string(n_inst + ".index"), index);
+      mApi->getValue(std::string(n_inst + ".addr"), addr);
+      mApi->getValue(std::string(n_inst + ".mask"), mask);
+      mApi->getValue(std::string(n_inst + ".irq"), irq);
+
+      switch(type) {
+        case 1:
+          mApi->getValue(std::string(n_inst + ".port"), port);
+          io = new TcpIo(port);
+          break;
+        default:
+          io = new NullIO();
+          break;
+      }
+
+      APBUART *apbuart = new APBUART(sc_core::sc_gen_unique_name("apbuart", false), io,
+        index,           // index
+        addr,            // paddr
+        mask,            // pmask
+        irq,             // pirq
+        p_report_power   // powmon
+      );
+
+      // Connecting APB Slave
+      apbctrl.apb(apbuart->bus);
+      // Connecting Interrupts
+      signalkit::connect(irqmp.irq_in, apbuart->irq, irq);
+      // Set clock
+      apbuart->set_clk(p_system_clock,SC_NS);
+      // ******************************************
+
+      i++;
+    }
 
     // AHBSlave - MCtrl, ArrayMemory
     // =============================
@@ -659,17 +742,17 @@ int sc_main(int argc, char** argv) {
     gs::gs_param_array p_mmu_cache("mmu_cache", p_conf);
     gs::gs_param_array p_mmu_cache_ic("ic", p_mmu_cache);
     gs::gs_param<bool> p_mmu_cache_ic_en("en", true, p_mmu_cache_ic);
-    gs::gs_param<int> p_mmu_cache_ic_repl("repl", 3, p_mmu_cache_ic);
+    gs::gs_param<int> p_mmu_cache_ic_repl("repl", 1, p_mmu_cache_ic);
     gs::gs_param<int> p_mmu_cache_ic_sets("sets", 4, p_mmu_cache_ic);
-    gs::gs_param<int> p_mmu_cache_ic_linesize("linesize", 4, p_mmu_cache_ic);
-    gs::gs_param<int> p_mmu_cache_ic_setsize("setsize", 16, p_mmu_cache_ic);
+    gs::gs_param<int> p_mmu_cache_ic_linesize("linesize", 8, p_mmu_cache_ic);
+    gs::gs_param<int> p_mmu_cache_ic_setsize("setsize", 8, p_mmu_cache_ic);
     gs::gs_param<bool> p_mmu_cache_ic_setlock("setlock", 1, p_mmu_cache_ic);
     gs::gs_param_array p_mmu_cache_dc("dc", p_mmu_cache);
     gs::gs_param<bool> p_mmu_cache_dc_en("en", true, p_mmu_cache_dc);
-    gs::gs_param<int> p_mmu_cache_dc_repl("repl", 3, p_mmu_cache_dc);
+    gs::gs_param<int> p_mmu_cache_dc_repl("repl", 1, p_mmu_cache_dc);
     gs::gs_param<int> p_mmu_cache_dc_sets("sets", 2, p_mmu_cache_dc);
     gs::gs_param<int> p_mmu_cache_dc_linesize("linesize", 4, p_mmu_cache_dc);
-    gs::gs_param<int> p_mmu_cache_dc_setsize("setsize", 1, p_mmu_cache_dc);
+    gs::gs_param<int> p_mmu_cache_dc_setsize("setsize", 8, p_mmu_cache_dc);
     gs::gs_param<bool> p_mmu_cache_dc_setlock("setlock", 1, p_mmu_cache_dc);
     gs::gs_param<bool> p_mmu_cache_dc_snoop("snoop", 1, p_mmu_cache_dc);
     gs::gs_param_array p_mmu_cache_ilram("ilram", p_mmu_cache);
@@ -683,7 +766,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_mmu_cache_cached("cached", 0u, p_mmu_cache);
     gs::gs_param<unsigned int> p_mmu_cache_index("index", 0u, p_mmu_cache);
     gs::gs_param_array p_mmu_cache_mmu("mmu", p_mmu_cache);
-    gs::gs_param<bool> p_mmu_cache_mmu_en("en", false, p_mmu_cache_mmu);
+    gs::gs_param<bool> p_mmu_cache_mmu_en("en", true, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_itlb_num("itlb_num", 8, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_dtlb_num("dtlb_num", 8, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_tlb_type("tlb_type", 0u, p_mmu_cache_mmu);
@@ -859,135 +942,6 @@ int sc_main(int argc, char** argv) {
       }
     }
 
-    // APBSlave - GPTimer
-    // ==================
-/*********
-    gs::gs_param_array p_gptimer("gptimer", p_conf);
-    gs::gs_param<bool> p_gptimer_en("en", true, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_addr("addr", 0x0F0, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_mask("mask", 0xFFF, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_index("index", 3, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_irq("irq", 8, p_gptimer);
-    gs::gs_param<bool> p_gptimer_sepirq("sepirq", true, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_ntimers("ntimers", 7, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_sbits("sbit", 16, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_nbits("nbits", 32, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_wdog("wdog", 0u, p_gptimer);
-
-    if(p_gptimer_en) {
-      GPTimer *gptimer = new GPTimer("gptimer",
-        p_gptimer_ntimers,// ntimers
-        p_gptimer_index,  // index
-        p_gptimer_addr,   // paddr
-        p_gptimer_mask,   // pmask
-        p_gptimer_irq,    // pirq
-        p_gptimer_sepirq, // sepirq
-        p_gptimer_sbits,  // sbits
-        p_gptimer_nbits,  // nbits
-        p_gptimer_wdog,   // wdog
-        p_report_power    // powmon
-      );
-***************/
-    gs::gs_param_array p_gptimer("gptimer", p_conf);
-    gs::gs_param<bool> p_gptimer_en("en", true, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_addr("addr", 0x0F0, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_mask("mask", 0xFFF, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_index("index", 3, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_irq("irq", 8, p_gptimer);
-    gs::gs_param<bool> p_gptimer_sepirq("sepirq", true, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_ntimers("ntimers", 7, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_sbits("sbit", 16, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_nbits("nbits", 32, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_wdog("wdog", 0u, p_gptimer);
-
-    if(p_gptimer_en) {
-      GPTimer *gptimer = new GPTimer("gptimer",
-        7,  // ntimers
-        3,  // index
-        0x0F0,   // paddr
-        0xFFF,   // pmask
-        8,    // pirq
-        true, // sepirq
-        16,  // sbits
-        32,  // nbits
-        0u,   // wdog
-        p_report_power  // powmon
-      );
-
-      // Connect to apb and clock
-      apbctrl.apb(gptimer->bus);
-      gptimer->set_clk(p_system_clock,SC_NS);      
-
-      // Connecting Interrupts
-      for(int i=0; i < 8; i++) {
-        signalkit::connect(irqmp.irq_in, gptimer->irq, p_gptimer_irq + i);
-      }
-
-    }
-
-    // APBSlave - APBUart
-    // ==================
-    std::string n_uart = "conf.uart";
-    gs::gs_param_array *p_uart = new gs::gs_param_array(n_uart);
-    int i = 0;
-    while(mApi->getParamList(n_uart + "." + boost::lexical_cast<std::string>(i), false).size()!=0) {
-      std::string n_inst = n_uart + "." + boost::lexical_cast<std::string>(i);
-      io_if *io = NULL;
-      int port = 2000, type = 0, index = 1, addr = 0x001, mask = 0xFFF, irq = 2;
-      mApi->getValue(std::string(n_inst + ".type"), type);
-      mApi->getValue(std::string(n_inst + ".index"), index);
-      mApi->getValue(std::string(n_inst + ".addr"), addr);
-      mApi->getValue(std::string(n_inst + ".mask"), mask);
-      mApi->getValue(std::string(n_inst + ".irq"), irq);
-
-      switch(type) {
-        case 1:
-          mApi->getValue(std::string(n_inst + ".port"), port);
-          io = new TcpIo(port);
-          break;
-        default:
-          io = new NullIO();
-          break;
-      }
-
-      APBUART *apbuart = new APBUART(sc_core::sc_gen_unique_name("apbuart", false), io,
-        index,           // index
-        addr,            // paddr
-        mask,            // pmask
-        irq,             // pirq
-        p_report_power   // powmon
-      );
-
-      // Connecting APB Slave
-      apbctrl.apb(apbuart->bus);
-      // Connecting Interrupts
-      signalkit::connect(irqmp.irq_in, apbuart->irq, irq);
-      // Set clock
-      apbuart->set_clk(p_system_clock,SC_NS);
-      // ******************************************
-
-      i++;
-    }
-    
-    // AHBSlave - AHBProf
-    // ==================
-    gs::gs_param_array p_ahbprof("ahbprof", p_conf);
-    gs::gs_param<bool> p_ahbprof_en("en", true, p_ahbprof);
-    gs::gs_param<unsigned int> p_ahbprof_addr("addr", 0x900, p_ahbprof);
-    gs::gs_param<unsigned int> p_ahbprof_mask("mask", 0xFFF, p_ahbprof);
-    gs::gs_param<unsigned int> p_ahbprof_index("index", 6, p_ahbprof);
-    if(p_ahbprof_en) {
-      AHBProf *ahbprof = new AHBProf("ahbprof",
-        p_ahbprof_index,  // index
-        p_ahbprof_addr,   // paddr
-        p_ahbprof_mask,   // pmask
-        ambaLayer
-      );
-
-      // Connecting APB Slave
-      ahbctrl.ahbOUT(ahbprof->ahb);
-      ahbprof->set_clk(p_system_clock,SC_NS);
-    }
  
     // CREATE AHB2Socwire bridge
     // =========================
@@ -1023,7 +977,26 @@ int sc_main(int argc, char** argv) {
       ahb2socwire->socwire.master_socket(ahb2socwire->socwire.slave_socket);
     }
     
-   
+    // AHBSlave - AHBProf
+    // ==================
+    gs::gs_param_array p_ahbprof("ahbprof", p_conf);
+    gs::gs_param<bool> p_ahbprof_en("en", true, p_ahbprof);
+    gs::gs_param<unsigned int> p_ahbprof_addr("addr", 0x900, p_ahbprof);
+    gs::gs_param<unsigned int> p_ahbprof_mask("mask", 0xFFF, p_ahbprof);
+    gs::gs_param<unsigned int> p_ahbprof_index("index", 6, p_ahbprof);
+    if(p_ahbprof_en) {
+      AHBProf *ahbprof = new AHBProf("ahbprof",
+        p_ahbprof_index,  // index
+        p_ahbprof_addr,   // paddr
+        p_ahbprof_mask,   // pmask
+        ambaLayer
+      );
+
+      // Connecting APB Slave
+      ahbctrl.ahbOUT(ahbprof->ahb);
+      ahbprof->set_clk(p_system_clock,SC_NS);
+    }
+
     // * Param Listing **************************
 		paramprinter printer;
     if(paramlist) {
