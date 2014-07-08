@@ -95,10 +95,20 @@ uint32_t AHBProf::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &d
       //v::info << name() << "Address: " << address << " -- State: " << state << v::endl;
       switch(state) {
         case 1:
+          
+          v::report << name() << " ************************************************** " << v::endl;
+          v::report << name() << " * Application triggered start of time measurement  " << v::endl;
+          v::report << name() << " ************************************************** " << v::endl;
+
           info[address].real_start = std::clock();
           info[address].sim_start = sc_time_stamp();
           break;
         case 2:
+
+          v::report << name() << " ************************************************** " << v::endl;
+          v::report << name() << " * Application triggered end of time measurement    " << v::endl;
+          v::report << name() << " ************************************************** " << v::endl;
+
           info[address].real_end = std::clock();
           info[address].sim_end = sc_time_stamp();
           break;
@@ -110,6 +120,11 @@ uint32_t AHBProf::exec_func(tlm::tlm_generic_payload &trans, sc_core::sc_time &d
 
           break;
         case 255:
+          
+          v::report << name() << " *********************************** " << v::endl;
+          v::report << name() << " * Application triggered sc_stop() " << v::endl;
+          v::report << name() << " *********************************** " << v::endl;
+
           sc_core::sc_stop();
           break;
         default:;

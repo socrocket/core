@@ -132,12 +132,12 @@ void APBUART::end_of_elaboration() {
 void APBUART::data_read() {
   char c;
   uint32_t reg = 0;
-  if(m_backend->receivedChars() && r[STATUS].bit_get(0)) {
+  if(m_backend->receivedChars() && r[STATUS].bit_get(0)) {  // CONTROL receiver enable
     m_backend->getReceivedChar(&c);
     reg = (uint32_t)c;
     r[DATA] = reg;
     v::debug << name() << "Received chars: " << reg << v::endl;
-    if(r[STATUS].bit_get(2)) {
+    if(r[STATUS].bit_get(2)) {    // CONTROL receiver interrupt enable
       e_irq.notify(clock_cycle * 100);
     }
   }
@@ -148,10 +148,10 @@ void APBUART::data_write() {
   uint32_t reg = 0;
   reg = r[DATA];
   c = (char)(reg & 0xFF);
-  if(r[STATUS].bit_get(1)) {
+  if(r[STATUS].bit_get(1)) { // CONTROL transmitter enable
     m_backend->sendChar(c);
   }
-  if(r[STATUS].bit_get(3)) {
+  if(r[STATUS].bit_get(3)) { // CONTROL transmitter interrupt enable
     e_irq.notify(clock_cycle * 100);
   }
 }
