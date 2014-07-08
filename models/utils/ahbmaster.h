@@ -96,6 +96,12 @@ class AHBMaster : public BASE, public AHBDevice {
   /// Write data to AHB
   virtual void ahbwrite(uint32_t addr, unsigned char * data, uint32_t length, sc_core::sc_time &delay, bool is_lock, tlm::tlm_response_status &response);
 
+  // Generic AHB access function (blocking and non-blocking)
+  virtual void ahbaccess(tlm::tlm_generic_payload * trans);
+
+  // Generic AHB debug access function 
+  virtual uint32_t ahbaccess_dbg(tlm::tlm_generic_payload * trans);
+
   /// Debug read from AHB
   virtual uint32_t ahbread_dbg(uint32_t addr, unsigned char * data, uint32_t length);
 

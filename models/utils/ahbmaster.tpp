@@ -123,10 +123,7 @@ void AHBMaster<BASE>::ahbwrite(uint32_t addr, unsigned char * data, uint32_t len
 template<class BASE>
 void AHBMaster<BASE>::ahbread(uint32_t addr, unsigned char * data, uint32_t length, sc_core::sc_time &delay, bool &cacheable, bool is_lock, tlm::tlm_response_status &response) {
 
-  tlm::tlm_phase phase;
-  tlm::tlm_sync_enum status;
-
-  // Allocate new transactin (reference counter = 1
+  // Allocate new transaction (reference counter = 1)
   tlm::tlm_generic_payload *trans = ahb.get_transaction();
 
   v::debug << this->name() << "Allocate new transaction: " << hex << trans << " Acquire / Ref-Count = " << trans->get_ref_count() << v::endl;
@@ -138,109 +135,27 @@ void AHBMaster<BASE>::ahbread(uint32_t addr, unsigned char * data, uint32_t leng
   trans->set_data_ptr(data);
   trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
-  if (is_lock) {
+  if (is_lock) ahb.template validate_extension<amba::amba_lock>(*trans);
 
-    ahb.template validate_extension<amba::amba_lock>(*trans);
+  // Call generic transport function
+  ahbaccess(trans);
 
-  }
+  // Check response
+  response = trans->get_response_status();
+  if (response != tlm::TLM_OK_RESPONSE) response_error = true;
+  
+  cacheable = (ahb.get_extension<amba::amba_cacheable>(*trans)) ? true : false;
 
-  if (m_ambaLayer == amba::amba_LT) {
+  // Decrement reference counter
+  ahb.release_transaction(trans);
 
-    // Forward arrow for msc
-    msclogger::forward(this, &ahb, trans, tlm::BEGIN_REQ);
-
-    v::debug << this->name() << "Transaction " << hex << trans << " call to b_transport" << v::endl;
-
-    // Blocking transport
-    ahb->b_transport(*trans, delay);
-
-    response = trans->get_response_status();
-
-    if (response != tlm::TLM_OK_RESPONSE) {
-
-       // Needs to be reset by testbench
-       response_error = true;
-
-    }
-
-    // Check the data
-    response_callback(trans);
-
-    // Consume transfer delay
-    wait(delay);
-    delay = SC_ZERO_TIME;
-
-    cacheable = (ahb.get_extension<amba::amba_cacheable>(*trans)) ? true : false;
-
-    // Decrement reference counter
-    ahb.release_transaction(trans);
-
-  } else {
-
-    // Initial phase for AT
-    phase = tlm::BEGIN_REQ;
-
-    // Simulated master->bus path delay
-    delay = SC_ZERO_TIME;
-
-    // Forward arrow for msc
-    msclogger::forward(this, &ahb, trans, phase, delay);
-
-    v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
-
-    status = ahb->nb_transport_fw(*trans, phase, delay);
-
-    // By sending BEGIN_REQ the master starts a bus request.
-    // The slave is expected to send END_REQ and BEGIN_RESP.
-    //
-    // END_REQ - Time at which slave samples address of single transfer
-    // or last address of burst. After END_REQ the master may issue the
-    // next transaction.
-    //
-    // BEGIN_RESP - Indicates that the data is ready.
-    // Marks the begin of the data phase for single transfers and bursts.
-    // Slave may insert wait states before BEGIN_RESP.
-    //
-    // ! For bursts BEGIN_RESP comes before END_REQ, because
-    // the AHB data phase starts before the last address
-    // has been sampled !
-
-    assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_UPDATED));
-
-    if (phase == tlm::BEGIN_REQ) {
-
-      // Wait for END_REQ to come in on backward path
-      wait(m_EndRequestEvent);
-
-    } else if (phase == tlm::END_REQ) {
-
-      // The bus has send END_REQ on the return path
-      wait(delay);
-      delay=SC_ZERO_TIME;
-
-    } else {
-
-      // Forbidden phase
-      v::error << this->name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
-      trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
-      assert(-1);
-
-    }
-
-    response = trans->get_response_status();
-    cacheable = (ahb.get_extension<amba::amba_cacheable>(*trans)) ? true : false;
-
-  }
 }
 
 // Function for write access to AHB master socket
 template<class BASE>
 void AHBMaster<BASE>::ahbwrite(uint32_t addr, unsigned char * data, uint32_t length, sc_core::sc_time &delay, bool is_lock, tlm::tlm_response_status &response) {
 
-  tlm::tlm_phase phase;
-  tlm::tlm_sync_enum status;
-
-  // Allocate new transactin (reference counter = 1)
+  // Allocate new transaction (reference counter = 1)
   tlm::tlm_generic_payload *trans = ahb.get_transaction();
 
   v::debug << this->name() << "Allocate new transaction " << hex << trans << "Acquire / Ref-Count = " << trans->get_ref_count() << v::endl;
@@ -252,61 +167,61 @@ void AHBMaster<BASE>::ahbwrite(uint32_t addr, unsigned char * data, uint32_t len
   trans->set_data_ptr(data);
   trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
-  if (is_lock) {
+  if (is_lock) ahb.template validate_extension<amba::amba_lock>(*trans);
 
-    ahb.template validate_extension<amba::amba_lock>(*trans);
+  // Call generic transport function
+  ahbaccess(trans);
 
-  }
-    
+  // Check response
+  response = trans->get_response_status();
+  if (response != tlm::TLM_OK_RESPONSE) response_error = true;
+
+  // Decrement reference counter
+  ahb.release_transaction(trans);
+
+}
+
+
+template<class BASE>
+void AHBMaster<BASE>::ahbaccess(tlm::tlm_generic_payload * trans) {
+
+  tlm::tlm_phase phase;
+  tlm::tlm_sync_enum status;
+  sc_core::sc_time delay;
+
+  // Increment reference counter
+  trans->acquire();
+
   if (m_ambaLayer == amba::amba_LT) {
 
-    // Forward arrow for msc
+    v::debug << this->name() << "Transaction " << hex << trans << " call to b_transport" << v::endl;
+    
+    // Forward arrow for MSC
     msclogger::forward(this, &ahb, trans, tlm::BEGIN_REQ);
+    // Start blocking transport
     ahb->b_transport(*trans, delay);
 
-    response = trans->get_response_status();
-
-    if (response != tlm::TLM_OK_RESPONSE) {
-
-       // Needs to be reset by testbench
-       response_error = true;
-
-    }
-
+    if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) response_error = true;
+ 
     // Consume transfer delay
     wait(delay);
-    delay = SC_ZERO_TIME;
+    delay=SC_ZERO_TIME;
 
-    // Decrement reference counter
-    ahb.release_transaction(trans);
+    // For read-data checking
+    if (trans->is_read()) response_callback(trans);
 
   } else {
 
-    // Initial phase for AT
-    phase = tlm::BEGIN_REQ;
-
-    // Forward arrow for msc
-    msclogger::forward(this, &ahb, trans, phase, delay);
-
     v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 
+    // Initial phase for AT
+    phase = tlm::BEGIN_REQ;
+    // Forward arrow for MSC
+    msclogger::forward(this, &ahb, trans, phase, delay);
+    v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+
+    // Start non-blocking transaction
     status = ahb->nb_transport_fw(*trans, phase, delay);
-
-    // By sending BEGIN_REQ the master starts a bus request.
-    // The slave is expected to send END_REQ and BEGIN_RESP.
-    //
-    // END_REQ - Time at which slave samples address of single transfer
-    // or last address of burst. After END_REQ the master may issue the
-    // next transaction.
-    //
-    // BEGIN_RESP - Indicates that the data is ready.
-    // Marks the begin of the data phase for single transfers and bursts.
-    // Slave may insert wait states before BEGIN_RESP.
-    //
-    // ! For bursts BEGIN_RESP comes before END_REQ, because
-    // the AHB data phase starts before the last address
-    // has been sampled !
-
     assert((status==tlm::TLM_ACCEPTED)||(status==tlm::TLM_UPDATED));
 
     if (phase == tlm::BEGIN_REQ) {
@@ -315,8 +230,8 @@ void AHBMaster<BASE>::ahbwrite(uint32_t addr, unsigned char * data, uint32_t len
       wait(m_EndRequestEvent);
 
     } else if (phase == tlm::END_REQ) {
-
-      // The bus has send END_REQ on the return path
+      
+      // The bus has sent END_REQ on the return path
       wait(delay);
       delay=SC_ZERO_TIME;
 
@@ -326,12 +241,12 @@ void AHBMaster<BASE>::ahbwrite(uint32_t addr, unsigned char * data, uint32_t len
       v::error << this->name() << "Invalid phase in return path (from call to nb_transport_fw)!" << v::endl;
       trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
       assert(-1);
-
     }
-
-    response = trans->get_response_status();
-
   }
+
+  // Decrement reference counter
+  trans->release();
+
 }
 
 // Perform AHB debug read
@@ -352,11 +267,11 @@ uint32_t AHBMaster<BASE>::ahbread_dbg(uint32_t addr, unsigned char * data, unsig
   trans->set_data_ptr(data);
   trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);  
 
-  // Debug transport
-  length_dbg = ahb->transport_dbg(*trans);
+  // Call generic debug transport
+  length_dbg = ahbaccess_dbg(trans);
   
   // Decrement reference count
-  ahb.release_transaction(trans);
+  trans->release();
 
   return length_dbg;
 
@@ -380,13 +295,20 @@ uint32_t AHBMaster<BASE>::ahbwrite_dbg(uint32_t addr, unsigned char * data, unsi
   trans->set_data_ptr(data);
   trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE); 
 
-  // Debug transport
-  length_dbg = ahb->transport_dbg(*trans);
+  // Call generic debug transport
+  length_dbg = ahbaccess_dbg(trans);
   
   // Decrement reference count
-  ahb.release_transaction(trans);
+  trans->release();
 
   return length_dbg;
+
+}
+
+template<class BASE>
+uint32_t AHBMaster<BASE>::ahbaccess_dbg(tlm::tlm_generic_payload * trans) {
+
+  return(ahb->transport_dbg(*trans));
 
 }
    
@@ -439,7 +361,7 @@ void AHBMaster<BASE>::ResponseThread() {
       v::debug << name() << "Release " << trans << " Ref-Count before calling release " << trans->get_ref_count() << v::endl; 
 
       // Decrement reference count
-      ahb.release_transaction(trans);
+      trans->release();
 
     }
   }
