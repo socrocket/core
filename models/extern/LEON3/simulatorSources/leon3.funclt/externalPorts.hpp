@@ -92,9 +92,8 @@ namespace leon3_funclt_trap{
                 }
 
             } else {
-                //sc_time delay = this->quantKeeper.get_local_time();
+                sc_time delay = this->quantKeeper.get_local_time();
                 unsigned int debug = 0;
-                sc_time delay = SC_ZERO_TIME;
                 dcio_payload_extension *dcioExt = new dcio_payload_extension();
                 tlm::tlm_generic_payload trans;
 		
@@ -129,12 +128,12 @@ namespace leon3_funclt_trap{
                 // Release extension
                 trans.free_all_extensions();
                 
-                wait(delay);
                 //Now lets keep track of time
-                //this->quantKeeper.set(delay);
-                //if(this->quantKeeper.need_sync()){
-                //    this->quantKeeper.sync();
-                //}
+                this->quantKeeper.set(delay);
+                if(this->quantKeeper.need_sync()){
+std::cout << "Quantum (external) sync" << std::endl;
+                    this->quantKeeper.sync();
+                }
             }
             //Now the code for endianess conversion: the processor is always modeled
             //with the host endianess; in case they are different, the endianess
@@ -180,9 +179,8 @@ namespace leon3_funclt_trap{
                 }
 
             } else {
-              //sc_time delay = this->quantKeeper.get_local_time();
+                sc_time delay = this->quantKeeper.get_local_time();
                 unsigned int debug = 0;
-                sc_time delay = SC_ZERO_TIME;
                 icio_payload_extension *icioExt = new icio_payload_extension();
                 tlm::tlm_generic_payload trans;
 		
@@ -215,12 +213,12 @@ namespace leon3_funclt_trap{
                 // Remove payload extension
                 trans.free_all_extensions();
 
-                wait(delay);
                 //Now lets keep track of time
-                //this->quantKeeper.set(delay);
-                //if(this->quantKeeper.need_sync()){
-                //    this->quantKeeper.sync();
-                //}
+                this->quantKeeper.set(delay);
+                if(this->quantKeeper.need_sync()){
+std::cout << "Quantum (external) sync" << std::endl;
+                    this->quantKeeper.sync();
+                }
             }
             //Now the code for endianess conversion: the processor is always modeled
             //with the host endianess; in case they are different, the endianess
@@ -273,9 +271,8 @@ namespace leon3_funclt_trap{
                     this->quantKeeper.sync();
                 }
             } else {
-                //sc_time delay = this->quantKeeper.get_local_time();
+                sc_time delay = this->quantKeeper.get_local_time();
                 unsigned int debug = 0;
-                sc_time delay = SC_ZERO_TIME;
                 dcio_payload_extension *dcioExt = new dcio_payload_extension();
                 tlm::tlm_generic_payload trans;
 
@@ -308,12 +305,12 @@ namespace leon3_funclt_trap{
                     this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
                 }
 
-                wait(delay);
                 //Now lets keep track of time
-                //this->quantKeeper.set(delay);
-                //if(this->quantKeeper.need_sync()){
-                //    this->quantKeeper.sync();
-                //}
+                this->quantKeeper.set(delay);
+                if(this->quantKeeper.need_sync()){
+std::cout << "Quantum (external) sync" << std::endl;
+                    this->quantKeeper.sync();
+                }
             }
         }
 

@@ -71,9 +71,9 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword( const unsigned int & add
         }
 
     } else{
-        //sc_time delay = this->quantKeeper.get_local_time();
+        sc_time delay = this->quantKeeper.get_local_time();
         unsigned int debug = 0;
-        sc_time delay = SC_ZERO_TIME;
+ 
         dcio_payload_extension *dcioExt = new dcio_payload_extension();
         tlm::tlm_generic_payload trans;
 
@@ -105,12 +105,12 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword( const unsigned int & add
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
 
-        wait(delay);
         //Now lets keep track of time
-        //this->quantKeeper.set(delay);
-        //if(this->quantKeeper.need_sync()){
-        //    this->quantKeeper.sync();
-        //}
+        this->quantKeeper.set(delay);
+        if(this->quantKeeper.need_sync()){
+          std::cout << "Quantum (external) sync" << std::endl;
+            this->quantKeeper.sync();
+        }
 
         trans.free_all_extensions();
     }
@@ -145,9 +145,9 @@ unsigned short int leon3_funclt_trap::TLMMemory::read_half( const unsigned int &
         }
 
     } else{
-      //sc_time delay = this->quantKeeper.get_local_time();
+        sc_time delay = this->quantKeeper.get_local_time();
         unsigned int debug = 0;
-        sc_time delay = SC_ZERO_TIME;
+        
         dcio_payload_extension *dcioExt = new dcio_payload_extension();
         tlm::tlm_generic_payload trans;
 
@@ -180,12 +180,12 @@ unsigned short int leon3_funclt_trap::TLMMemory::read_half( const unsigned int &
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
 
-        wait(delay);
         //Now lets keep track of time
-        //this->quantKeeper.set(delay);
-        //if(this->quantKeeper.need_sync()){
-        //    this->quantKeeper.sync();
-        //}
+        this->quantKeeper.set(delay);
+        if(this->quantKeeper.need_sync()){
+         std::cout << "Quantum (external) sync" << std::endl;
+            this->quantKeeper.sync();
+        }
 
         trans.free_all_extensions();
 
@@ -220,9 +220,9 @@ unsigned char leon3_funclt_trap::TLMMemory::read_byte( const unsigned int & addr
         }
 
     } else {
-        //sc_time delay = this->quantKeeper.get_local_time();
+        sc_time delay = this->quantKeeper.get_local_time();
         unsigned int debug = 0;
-        sc_time delay = SC_ZERO_TIME;
+
         dcio_payload_extension *dcioExt = new dcio_payload_extension();
         tlm::tlm_generic_payload trans;
 
@@ -255,12 +255,12 @@ unsigned char leon3_funclt_trap::TLMMemory::read_byte( const unsigned int & addr
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
 
-        wait(delay);
-        //Now lets keep track of time
-        //this->quantKeeper.set(delay);
-        //if(this->quantKeeper.need_sync()){
-        //    this->quantKeeper.sync();
-        //}
+        // Now lets keep track of time
+        this->quantKeeper.set(delay);
+        if(this->quantKeeper.need_sync()){
+         std::cout << "Quantum (external) sync" << std::endl;
+            this->quantKeeper.sync();
+        }
 
         trans.free_all_extensions();
     }
@@ -297,9 +297,9 @@ void leon3_funclt_trap::TLMMemory::write_dword( const unsigned int & address,
             this->quantKeeper.sync();
         }
     } else {
-        //sc_time delay = this->quantKeeper.get_local_time();
+        sc_time delay = this->quantKeeper.get_local_time();
         unsigned int debug = 0;
-        sc_time delay = SC_ZERO_TIME;
+        
         dcio_payload_extension *dcioExt = new dcio_payload_extension();
         tlm::tlm_generic_payload trans;
 
@@ -332,12 +332,12 @@ void leon3_funclt_trap::TLMMemory::write_dword( const unsigned int & address,
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
 
-        wait(delay);
         //Now lets keep track of time
-        //this->quantKeeper.set(delay);
-        //if(this->quantKeeper.need_sync()){
-        //    this->quantKeeper.sync();
-        //}
+        this->quantKeeper.set(delay);
+        if(this->quantKeeper.need_sync()){
+         std::cout << "Quantum (external) sync" << std::endl;
+            this->quantKeeper.sync();
+        }
 
         trans.free_all_extensions();
     }
@@ -374,9 +374,9 @@ void leon3_funclt_trap::TLMMemory::write_half( const unsigned int & address,
             this->quantKeeper.sync();
         }
     } else{
-        //sc_time delay = this->quantKeeper.get_local_time();
+        sc_time delay = this->quantKeeper.get_local_time();
         unsigned int debug = 0;
-        sc_time delay = SC_ZERO_TIME;
+        
         dcio_payload_extension *dcioExt = new dcio_payload_extension();
         tlm::tlm_generic_payload trans;
 		
@@ -409,12 +409,12 @@ void leon3_funclt_trap::TLMMemory::write_half( const unsigned int & address,
             this->dmi_ptr_valid = this->initSocket->get_direct_mem_ptr(trans, this->dmi_data);
         }
 
-        wait(delay);
-        //Now lets keep track of time
-        //this->quantKeeper.set(delay);
-        //if(this->quantKeeper.need_sync()){
-        //    this->quantKeeper.sync();
-        //}
+        // Now lets keep track of time
+        this->quantKeeper.set(delay);
+        if(this->quantKeeper.need_sync()){
+std::cout << "Quantum (external) sync" << std::endl;
+            this->quantKeeper.sync();
+        }
 
         trans.free_all_extensions();
 
@@ -446,9 +446,9 @@ void leon3_funclt_trap::TLMMemory::write_byte( const unsigned int & address,
             this->quantKeeper.sync();
         }
     } else {
-        //sc_time delay = this->quantKeeper.get_local_time();
+        sc_time delay = this->quantKeeper.get_local_time();
         unsigned int debug = 0;
-        sc_time delay = SC_ZERO_TIME;
+
         dcio_payload_extension *dcioExt = new dcio_payload_extension();
         tlm::tlm_generic_payload trans;
 
@@ -484,10 +484,11 @@ void leon3_funclt_trap::TLMMemory::write_byte( const unsigned int & address,
         wait(delay);
 
         //Now lets keep track of time
-        //this->quantKeeper.set(delay);
-        //if(this->quantKeeper.need_sync()){
-        //    this->quantKeeper.sync();
-        //}
+        this->quantKeeper.set(delay);
+        if(this->quantKeeper.need_sync()){
+std::cout << "Quantum (external) sync" << std::endl;
+            this->quantKeeper.sync();
+        }
 
         trans.free_all_extensions();
     }
