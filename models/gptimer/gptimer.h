@@ -29,8 +29,7 @@
 
 #include "signalkit/signalkit.h"
 #include "common/verbose.h"
-
-#include "gs_config/propertyconfig.h"
+#include "common/gs_config.h"
 
 #undef CTRL
 

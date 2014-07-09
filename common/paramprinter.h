@@ -16,7 +16,7 @@
 
 #include <greencontrol/config.h>
 #include <string>
-#include "common/gs_config/propertyconfig.h"
+#include "common/gs_config.h"
 
 class paramprinter {
   public:

@@ -40,20 +40,21 @@ AHBCtrl::AHBCtrl(
   ahbIN("ahbIN", amba::amba_AHB, ambaLayer, false),
   ahbOUT("ahbOUT", amba::amba_AHB, ambaLayer, false),
   snoop("snoop"),
-  mioaddr(ioaddr),
-  miomask(iomask),
-  mcfgaddr(cfgaddr),
-  mcfgmask(cfgmask),
-  mrrobin(rrobin),
-  msplit(split),
-  mdefmast(defmast),
-  mioen(ioen),
-  mfixbrst(fixbrst),
-  mfpnpen(fpnpen),
-  mmcheck(mcheck),
+  g_conf("conf"),
+  g_ioaddr("ioaddr", ioaddr, g_conf),
+  g_iomask("iomask", iomask, g_conf),
+  g_cfgaddr("cfgaddr", cfgaddr, g_conf),
+  g_cfgmask("cfgmask", cfgmask, g_conf),
+  g_rrobin("rrobin", rrobin, g_conf),
+  g_split("split", split, g_conf),
+  g_defmast("defmast", defmast, g_conf),
+  g_ioen("ioen", ioen, g_conf),
+  g_fixbrst("fixbrst", fixbrst, g_conf),
+  g_fpnpen("fpnpen", fpnpen, g_conf),
+  g_mcheck("mcheck", mcheck, g_conf),
+  g_pow_mon("pow_mon",pow_mon, g_conf),
   arbiter_eval_delay(1, SC_PS),
   busy(false),
-  m_pow_mon(pow_mon),
   robin(0),
   address_bus_owner(-1),
   m_AcceptPEQ("AcceptPEQ"),
@@ -130,7 +131,7 @@ AHBCtrl::AHBCtrl(
   ahbIN.register_transport_dbg(this, &AHBCtrl::transport_dbg);
 
   // Register power callback functions
-  if (m_pow_mon) {
+  if (g_pow_mon) {
     GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, AHBCtrl, sta_power_cb);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, AHBCtrl, int_power_cb);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, AHBCtrl, swi_power_cb);
@@ -206,7 +207,10 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
 
   m_total_transactions++;
   // Calculate address offset in configuration area (slave info starts from 0x800)
-  unsigned int addr   = address - (((mioaddr << 20) | (mcfgaddr << 8)) & ((miomask << 20) | (mcfgmask << 8)));
+  unsigned int addr   = address - (
+      ((static_cast<uint32_t>(g_ioaddr) << 20) |
+       (static_cast<uint32_t>(g_cfgaddr) << 8)) &
+       ((static_cast<uint32_t>(g_iomask) << 20) | (static_cast<uint32_t>(g_cfgmask) << 8)));
   v::debug << name() << "Accessing PNP area at " << addr << v::endl;
 
   // Slave area
@@ -298,10 +302,14 @@ void AHBCtrl::b_transport(uint32_t id,
   uint32_t length = trans.get_data_length();
 
   // Is this an access to configuration area
-  if (mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8)))) == 0)) {
+  if (g_fpnpen && ((
+          (addr ^ ((static_cast<uint32_t>(g_ioaddr) << 20) |
+                   (static_cast<uint32_t>(g_cfgaddr) << 8))) &
+          ((static_cast<uint32_t>(g_iomask) << 20) |
+           (static_cast<uint32_t>(g_cfgmask) << 8))) == 0)) {
     // Configuration area is read only
     if (trans.get_command() == tlm::TLM_READ_COMMAND) {
-      // addr = addr - (((mioaddr << 20) | (mcfgaddr << 8)) & ((miomask << 20) | (mcfgmask << 8)));
+      // addr = addr - (((g_ioaddr << 20) | (g_cfgaddr << 8)) & ((g_iomask << 20) | (g_cfgmask << 8)));
       // Extract data pointer from payload
       uint8_t *data  = trans.get_data_ptr();
 
@@ -374,7 +382,7 @@ void AHBCtrl::b_transport(uint32_t id,
     // v::debug << name() << "Delay after return from slave: " << delay << v::endl;
 
     // Power event end
-    // PM::send(this,event_name,0,sc_time_stamp()+delay,id,m_pow_mon);
+    // PM::send(this,event_name,0,sc_time_stamp()+delay,id,g_pow_mon);
 
     wait(delay);
     delay = SC_ZERO_TIME;
@@ -538,7 +546,7 @@ void AHBCtrl::arbitrate() {
 
     if ((address_bus_owner == -1) && ((data_bus_state == RESPONSE) || (data_bus_state == IDLE))) {
       // Priority arbitration
-      if (mrrobin == 0) {
+      if (g_rrobin == 0) {
         if (!is_lock) {
           // Master with the highest ID has the highest priority
           for (int i = 15; i >= 0; i--) {
@@ -686,9 +694,12 @@ void AHBCtrl::AcceptThread() {
       ahbIN.get_extension<amba::amba_id>(master_id, *trans);
 
       // Is PNP access
-      if (mfpnpen &&
-          ((((trans->get_address() ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8)))) ==
-           0)) {
+      if (g_fpnpen && ((
+              (trans->get_address() ^
+                ((static_cast<uint32_t>(g_ioaddr) << 20) |
+                 (static_cast<uint32_t>(g_cfgaddr) << 8))) &
+              ((static_cast<uint32_t>(g_iomask) << 20) |
+               (static_cast<uint32_t>(g_cfgmask) << 8))) == 0)) {
         if (trans->get_command() == tlm::TLM_WRITE_COMMAND) {
           v::warn << name() << "PNP area is read-only. Write operation ignored" << v::endl;
         }
@@ -922,7 +933,7 @@ void AHBCtrl::start_of_simulation() {
       v::info << name() << "* SLAVE id: " << sbusid << v::endl;
 
       // Map device information into PNP region
-      if (mfpnpen) {
+      if (g_fpnpen) {
         mSlaves[sbusid] = deviceinfo;
       }
 
@@ -979,7 +990,7 @@ void AHBCtrl::start_of_simulation() {
       v::info << name() << "* Master id: " << mbusid << v::endl;
 
       // Map device information into PNP region
-      if (mfpnpen) {
+      if (g_fpnpen) {
         mMasters[mbusid] = deviceinfo;
       }
 
@@ -1007,12 +1018,12 @@ void AHBCtrl::start_of_simulation() {
   v::info << name() << "******************************************************************************* " << v::endl;
 
   // Check memory map for overlaps
-  if (mmcheck) {
+  if (g_mcheck) {
     checkMemMap();
   }
 
   // Initialize power model
-  if (m_pow_mon) {
+  if (g_pow_mon) {
     power_model();
   }
 }
@@ -1153,10 +1164,14 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
   uint32_t length = trans.get_data_length();
   uint8_t *data  = trans.get_data_ptr();
 
-  if (mfpnpen && ((((addr ^ ((mioaddr << 20) | (mcfgaddr << 8))) & ((miomask << 20) | (mcfgmask << 8)))) == 0)) {
+  if (g_fpnpen &&
+      (((addr ^ ((static_cast<uint32_t>(g_ioaddr) << 20) |
+                 (static_cast<uint32_t>(g_cfgaddr) << 8))) &
+        ((static_cast<uint32_t>(g_iomask) << 20) |
+         (static_cast<uint32_t>(g_cfgmask) << 8))) == 0)) {
     // Configuration area is read only
     if (trans.get_command() == tlm::TLM_READ_COMMAND) {
-      // addr = addr - (((mioaddr << 20) | (mcfgaddr << 8)) & ((miomask << 20) | (mcfgmask << 8)));
+      // addr = addr - (((g_ioaddr << 20) | (g_cfgaddr << 8)) & ((g_iomask << 20) | (g_cfgmask << 8)));
       // Extract data pointer from payload
 
       // Get registers from config area
@@ -1210,7 +1225,7 @@ void AHBCtrl::transport_statistics(tlm::tlm_generic_payload &gp) {  // NOLINT(ru
     m_writes += gp.get_data_length();
 
     // Number of write transfers (clock cycles with bus busy)
-    if (m_pow_mon) {
+    if (g_pow_mon) {
       dyn_writes += (gp.get_data_length() >> 2) + 1;
     }
   } else if (gp.is_read()) {
@@ -1218,7 +1233,7 @@ void AHBCtrl::transport_statistics(tlm::tlm_generic_payload &gp) {  // NOLINT(ru
     m_reads += gp.get_data_length();
 
     // Number of read transfers (clock cycles with bus busy)
-    if (m_pow_mon) {
+    if (g_pow_mon) {
       dyn_reads += (gp.get_data_length() >> 2) + 1;
     }
   }

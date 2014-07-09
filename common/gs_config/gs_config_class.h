@@ -22,8 +22,8 @@
 #include <sstream>
 #include <boost/tokenizer.hpp> // for parameter array!
 
-#include "gs_config_t.h"
-#include "gs_config_operator_macros.h"
+#include "common/gs_config/gs_config_t.h"
+#include "common/gs_config/gs_config_operator_macros.h"
 
 
 namespace gs {
@@ -162,7 +162,7 @@ public:                                                                \
         // /////////////////// NATIVE DATA TYPES ///////////////////////////////////////// //
         // /////////////////////////////////////////////////////////////////////////////// //
 
-#include "gs_config_native.hpp"
+#include "common/gs_config/gs_config_native.hpp"
 
 
 
@@ -170,7 +170,7 @@ public:                                                                \
         // /////////////////// SystemC DATA TYPES //////////////////////////////////////// //
         // /////////////////////////////////////////////////////////////////////////////// //
 
-#include "gs_config_systemc.hpp"
+#include "common/gs_config/gs_config_systemc.hpp"
 
     } // end namespace cnf
     using cnf::gs_config; // make gs_config available in gs namespace
