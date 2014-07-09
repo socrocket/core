@@ -131,8 +131,8 @@ namespace leon3_funclt_trap{
                 //Now lets keep track of time
                 this->quantKeeper.set(delay);
                 if(this->quantKeeper.need_sync()){
-std::cout << "Quantum (external) sync" << std::endl;
-                    this->quantKeeper.sync();
+		  // std::cout << "Quantum (external) sync" << std::endl;
+                  this->quantKeeper.sync();
                 }
             }
             //Now the code for endianess conversion: the processor is always modeled
@@ -216,8 +216,8 @@ std::cout << "Quantum (external) sync" << std::endl;
                 //Now lets keep track of time
                 this->quantKeeper.set(delay);
                 if(this->quantKeeper.need_sync()){
-std::cout << "Quantum (external) sync" << std::endl;
-                    this->quantKeeper.sync();
+		  //std::cout << "Quantum (external) sync" << std::endl;
+                  this->quantKeeper.sync();
                 }
             }
             //Now the code for endianess conversion: the processor is always modeled
@@ -308,8 +308,8 @@ std::cout << "Quantum (external) sync" << std::endl;
                 //Now lets keep track of time
                 this->quantKeeper.set(delay);
                 if(this->quantKeeper.need_sync()){
-std::cout << "Quantum (external) sync" << std::endl;
-                    this->quantKeeper.sync();
+		  //std::cout << "Quantum (external) sync" << std::endl;
+                  this->quantKeeper.sync();
                 }
             }
         }

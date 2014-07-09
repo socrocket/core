@@ -108,7 +108,7 @@ sc_dt::uint64 leon3_funclt_trap::TLMMemory::read_dword( const unsigned int & add
         //Now lets keep track of time
         this->quantKeeper.set(delay);
         if(this->quantKeeper.need_sync()){
-          std::cout << "Quantum (external) sync" << std::endl;
+          //std::cout << "Quantum (external) sync" << std::endl;
             this->quantKeeper.sync();
         }
 
@@ -183,7 +183,7 @@ unsigned short int leon3_funclt_trap::TLMMemory::read_half( const unsigned int &
         //Now lets keep track of time
         this->quantKeeper.set(delay);
         if(this->quantKeeper.need_sync()){
-         std::cout << "Quantum (external) sync" << std::endl;
+	  //std::cout << "Quantum (external) sync" << std::endl;
             this->quantKeeper.sync();
         }
 
@@ -258,7 +258,7 @@ unsigned char leon3_funclt_trap::TLMMemory::read_byte( const unsigned int & addr
         // Now lets keep track of time
         this->quantKeeper.set(delay);
         if(this->quantKeeper.need_sync()){
-         std::cout << "Quantum (external) sync" << std::endl;
+	  //std::cout << "Quantum (external) sync" << std::endl;
             this->quantKeeper.sync();
         }
 
@@ -335,7 +335,7 @@ void leon3_funclt_trap::TLMMemory::write_dword( const unsigned int & address,
         //Now lets keep track of time
         this->quantKeeper.set(delay);
         if(this->quantKeeper.need_sync()){
-         std::cout << "Quantum (external) sync" << std::endl;
+	  //std::cout << "Quantum (external) sync" << std::endl;
             this->quantKeeper.sync();
         }
 
@@ -412,7 +412,7 @@ void leon3_funclt_trap::TLMMemory::write_half( const unsigned int & address,
         // Now lets keep track of time
         this->quantKeeper.set(delay);
         if(this->quantKeeper.need_sync()){
-std::cout << "Quantum (external) sync" << std::endl;
+	  //std::cout << "Quantum (external) sync" << std::endl;
             this->quantKeeper.sync();
         }
 
@@ -486,7 +486,7 @@ void leon3_funclt_trap::TLMMemory::write_byte( const unsigned int & address,
         //Now lets keep track of time
         this->quantKeeper.set(delay);
         if(this->quantKeeper.need_sync()){
-std::cout << "Quantum (external) sync" << std::endl;
+	  //std::cout << "Quantum (external) sync" << std::endl;
             this->quantKeeper.sync();
         }
 

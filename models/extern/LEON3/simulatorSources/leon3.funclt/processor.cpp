@@ -240,7 +240,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
         }
         this->quantKeeper.inc((numCycles + 1)*this->latency);
         if(this->quantKeeper.need_sync()){
-          std::cout << "Quantum Keeper (processor) sync." << std::endl;
+          //std::cout << "Quantum Keeper (processor) sync." << std::endl;
             this->quantKeeper.sync();
         }
         this->instrExecuting = false;
