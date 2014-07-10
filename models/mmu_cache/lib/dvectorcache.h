@@ -145,6 +145,7 @@ class dvectorcache : public vectorcache {
               _tlb_adaptor,
               mmu_en,
               0, // burst fetch forbidden
+	      1, // enable new linefetch mode for dcaches
               sets, setsize, setlock,
               linesize, repl, lram, lramstart, lramsize, pow_mon),
     sta_power_norm("power.mmu_cache.dcache.sta_power_norm", 1.35e+8, true), // norm. static power logic (controller)

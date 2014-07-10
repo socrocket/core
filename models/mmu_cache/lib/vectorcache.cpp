@@ -17,10 +17,11 @@
 #include "vectorcache.h"
 
 // constructor
-// args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
+// args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in words, replacement strategy
 vectorcache::vectorcache(sc_core::sc_module_name name,
                          mmu_cache_if * _mmu_cache, mem_if *_tlb_adaptor,
                          unsigned int mmu_en, unsigned int burst_en,
+			 bool new_linefetch_en,
                          unsigned int sets, unsigned int setsize,
                          unsigned int setlock, unsigned int linesize,
                          unsigned int repl, unsigned int lram,
@@ -30,21 +31,22 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     m_mmu_cache(_mmu_cache),
     m_tlb_adaptor(_tlb_adaptor),
     m_burst_en(burst_en),
-    m_pseudo_rand(0),
-    m_sets(sets-1),
-    m_setsize((unsigned int)log2((double)setsize)),
-    m_setlock(setlock),
-    m_linesize((unsigned int)log2((double)linesize)),
-    m_wordsperline(linesize),
-    m_bytesperline(m_wordsperline << 2),
-    m_offset_bits((unsigned int)log2((double)m_bytesperline)),
-    m_number_of_vectors(setsize*256/linesize),
-    m_idx_bits(m_setsize + 8 - m_linesize),
-    m_tagwidth(32 - m_idx_bits - m_offset_bits),
-    m_repl(repl),
-    m_mmu_en(mmu_en),
-    m_lram(lram),
-    m_lramstart(lramstart),
+    m_new_linefetch_en(new_linefetch_en),
+    m_pseudo_rand(0), 
+    m_sets(sets-1), 
+    m_setsize((unsigned int)log2((double)setsize)), 
+    m_setlock(setlock), 
+    m_linesize((unsigned int)log2((double)linesize)), 
+    m_wordsperline(linesize), 
+    m_bytesperline(m_wordsperline << 2), 
+    m_offset_bits((unsigned int)log2((double)m_bytesperline)), 
+    m_number_of_vectors(setsize*256/linesize), 
+    m_idx_bits(m_setsize + 8 - m_linesize), 
+    m_tagwidth(32 - m_idx_bits - m_offset_bits), 
+    m_repl(repl), 
+    m_mmu_en(mmu_en), 
+    m_lram(lram), 
+    m_lramstart(lramstart), 
     m_lramsize((unsigned int)log2((double)lramsize)),
     m_performance_counters("performance_counters"),
     rhits("read_hits", sets, m_performance_counters),
@@ -176,7 +178,6 @@ vectorcache::vectorcache(sc_core::sc_module_name name,
     // enter setsize
     CACHE_CONFIG_REG |= ((m_setsize & 0xf) << 20);
 
-
     CACHE_CONFIG_REG |= ((m_sets & 0x7) << 24);
 
     // REPL: 00 - direct mapped, 01 - LRU, 10 - LRR, 11 - RANDOM
@@ -219,9 +220,10 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
   int set_select = -1;
   int cache_hit = -1;
 
-  unsigned int burst_len;
-  unsigned int replacer_limit;
-
+  unsigned int burst_len = 0;
+  unsigned int burst_address = 0;
+  unsigned int replacer_limit = 0;
+    
   // Is the cache enabled (0b11) or frozen (0b01) ?
   if ((!is_dbg) && (check_mode() & 0x1)) {
 
@@ -256,7 +258,8 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
           //v::debug << this->name() <<  "Correct atag found in set " << i << v::endl;
 
           // Check the valid bit
-          if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) {
+          if ((!m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) ||
+	      (m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & 0x1))) {
 
             v::debug << this->name() << "Cache Hit in Set " << i << "(valid: " << hex << (*m_current_cacheline[i]).tag.valid << " check mask: " << hex << offset2valid(offset, len) << ")" << v::endl;
 
@@ -285,12 +288,13 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
             break;
           } else {
-
-            v::debug << this->name() << "Tag Hit but data not valid in set " << i  << v::endl;
+            
+            v::debug << this->name() << "Tag Hit but data not valid in set " << i << v::endl;
 
             if (len == 8) {
               // dword - make sure to disable both words
-              (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset, len);
+              (m_new_linefetch_en == false) ? (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset, len) : (*m_current_cacheline[i]).tag.valid = 0;               
+
             }
 
           }
@@ -324,37 +328,42 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       // ---------------------------------------------
       // If burst fetch is enabled, the cache line is filled starting at the missed address
       // until the end of the line.
-      if (m_burst_en && (m_mmu_cache->read_ccr(true) & 0x10000)) {
-
-        burst_len = m_bytesperline - ((offset >> 2) << 2);
-        replacer_limit = m_bytesperline - 4;
-
-        v::debug << name() << "Burst fetch of length: " << burst_len << v::endl;
+      if ((m_burst_en && (m_mmu_cache->read_ccr(true) & 0x10000))||(m_new_linefetch_en)) {
+	
+	if (m_new_linefetch_en) {
+	  burst_address = ((address >> (m_linesize+2)) << (m_linesize+2));  // Beginning of cache line
+	  burst_len     = m_bytesperline;
+	} else {
+	  burst_address = ((address >> 2) << 2);
+	  burst_len = m_bytesperline - ((offset >> 2) << 2);
+	  replacer_limit = m_bytesperline - 4;
+	}
 
       } else {
 
-        if (len == 8) {
+	burst_address = ((address >> 2) << 2);
 
+        if (len == 8) {
           // 64bit
           burst_len = 8;
           replacer_limit = offset+4;
-
         } else {
-
           // 32bit or below
           burst_len =  4;
           replacer_limit = offset;
-
         }
       }
 
+      v::debug << name() << "Actual address: 0x" << v::hex << address << " Burst address: 0x" << burst_address << " Burst length: 0x" << burst_len << v::endl;
+
       // Access ahb interface or mmu - return true if data is cacheable
-      if (m_tlb_adaptor->mem_read(((address >> 2) << 2), asi, ahb_data, burst_len, delay, debug, is_dbg, is_lock)) {
+      if (m_tlb_adaptor->mem_read(burst_address, asi, ahb_data, burst_len, delay, debug, is_dbg, is_lock)) {
 
         // Check for unvalid data which can be replaced without harm
         for (unsigned int i = 0; i <= m_sets; i++) {
 
-          if ((((*m_current_cacheline[i]).tag.valid) & offset2valid(offset, len)) == 0) {
+          if ((!m_new_linefetch_en && ((((*m_current_cacheline[i]).tag.valid) & offset2valid(offset, len)) == 0)) || 
+	      (m_new_linefetch_en && ((((*m_current_cacheline[i]).tag.valid) & 0x1) == 0))) {
 
             // select unvalid data for replacement
             set_select = i;
@@ -382,8 +391,12 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
           }
 
           // fill in the new data (always the complete word)
-          memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2],
-                 ahb_data, burst_len);
+	  if (!m_new_linefetch_en) {
+	    memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2],
+		   ahb_data, burst_len);
+	  } else {
+	    memcpy(&(*m_current_cacheline[set_select]).entry[0], ahb_data, m_bytesperline);
+	  }
 
           if (m_pow_mon) {
             // Write access to data ram
@@ -402,11 +415,13 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             (*m_current_cacheline[set_select]).tag.valid = 0;
 
             // .. and switch on the ones for the new entries
-            for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-
-              ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
-
-            }
+	    if (!m_new_linefetch_en) {
+	      for (unsigned int i = offset; i <= replacer_limit; i += 4) {
+		((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
+	      }
+	    } else {
+	      (*m_current_cacheline[set_select]).tag.valid = 0x1;
+	    }
 
             // reset lru
             (*m_current_cacheline[set_select]).tag.lru = m_max_lru;
@@ -418,12 +433,14 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
           } else {
 
-            // switch on the valid bits for the new entries
-            for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-
-              ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
-
-            }
+	    if (!m_new_linefetch_en) {
+	      // switch on the valid bits for the new entries
+	      for (unsigned int i = offset; i <= replacer_limit; i += 4) {
+		((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
+	      }
+	    } else {
+	      (*m_current_cacheline[set_select]).tag.valid = 0x1;
+	    }
           }
 
         } else {
@@ -442,8 +459,11 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             //v::debug << name() << "Found set for replacing: " << set_select << v::endl;
 
             // fill in the new data (always the complete word)
-            memcpy(&(*m_current_cacheline[set_select]).entry[offset
-                                                             >> 2], ahb_data, burst_len);
+	    if (!m_new_linefetch_en) {
+	      memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, burst_len);
+	    } else {
+	      memcpy(&(*m_current_cacheline[set_select]).entry[0], ahb_data, m_bytesperline);
+	    }
 
             if (m_pow_mon) {
               // Write access to data ram
@@ -452,12 +472,14 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
               dyn_tag_writes++;
             }
 
-            // switch on the valid bits for the new entries
-            for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-
-              ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
-
-            }
+	    if (!m_new_linefetch_en) {
+	      // switch on the valid bits for the new entries
+	      for (unsigned int i = offset; i <= replacer_limit; i += 4) {
+		((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
+	      } 
+            } else {
+	      (*m_current_cacheline[set_select]).tag.valid = 0x1;
+	    }
 
           } else {
 
@@ -474,8 +496,11 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       CACHEREADMISS_SET(*debug, set_select);
 
       // copy the data requested by the processor
-      memcpy(data, ahb_data + byt, len);
-
+      if (!m_new_linefetch_en) {
+	memcpy(data, ahb_data + byt, len);
+      } else {
+	memcpy(data, ahb_data + offset, len);
+      }
     }
 
   } else {
@@ -539,67 +564,65 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
             // Check the cache tag
             if ((*m_current_cacheline[i]).tag.atag == tag) {
 
-                //v::debug << this->name() << "Correct atag found in set " << i << v::endl;
+	      //v::debug << this->name() << "Correct atag found in set " << i << v::endl;
 
                 // Check the valid bits
-                if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) {
+	      if ((!m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) ||
+		  (m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & 0x1))) {
 
-                  v::debug << this->name() << "Cache Hit in Set " << i << " (valid: " << hex << (*m_current_cacheline[i]).tag.valid << " check mask: " << hex << offset2valid(offset, len) << ")" << v::endl;
+		v::debug << this->name() << "Cache Hit in Set " << i << " (valid: " << hex << (*m_current_cacheline[i]).tag.valid << " check mask: " << hex << offset2valid(offset, len) << ")" << v::endl;
 
-                    // update lru history
-                    if (m_repl == 1) {
-                        lru_update(i);
-                    }
+		// update lru history
+		if (m_repl == 1) {
+		  lru_update(i);
+		}
+                    
+		// update debug information
+		CACHEWRITEHIT_SET(*debug, i);
+		is_hit = true;
 
-                    // update debug information
-                    CACHEWRITEHIT_SET(*debug, i);
-                    is_hit = true;
+		if (len != 8) {
+		  // write data to cache
+		  for (unsigned int j = 0; j < len; j++) {
+		    (*m_current_cacheline[i]).entry[offset >> 2].c[byt + j] = *(data + j);
+		  }
 
-                    if (len != 8) {
+		} else {
+		  // is 64 bit
 
-                      // write data to cache
-                      for (unsigned int j = 0; j < len; j++) {
-                        (*m_current_cacheline[i]).entry[offset >> 2].c[byt + j] = *(data + j);
-                      }
+		  // write data to cache
+		  for (unsigned int j = 0; j < 8; j++) {
+		    (*m_current_cacheline[i]).entry[(offset+j) >> 2].c[(j % 4)] = *(data + j);
+		  }
+ 		}
 
-                    } else {
-                      // is 64 bit
+		// Increment hit counter
+		whits[i]++;
 
-                      // write data to cache
-                      for (unsigned int j = 0; j < 8; j++) {
-                        (*m_current_cacheline[i]).entry[(offset+j) >> 2].c[(j % 4)] = *(data + j);
-                      }
+		// valid is already set
+		break;
 
-                    }
+	      } else {
 
-		    // Increment hit counter
-		    whits[i]++;
+		v::debug << this->name()
+			 << "Tag Hit but data not valid in set " << i
+			 << v::endl;
 
-                    // valid is already set
+		// For 64bit access invalidate the upper word
+		if (len == 8) {
 
-                    break;
-
-                } else {
-
-                    v::debug << this->name()
-                            << "Tag Hit but data not valid in set " << i
-                            << v::endl;
-
-                    // For 64bit access invalidate the upper word
-                    if (len == 8) {
-
-                      if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset+4)) != 0) {
-
-                        v::debug << this->name() << "64bit invalidate" << v::endl;
-                        (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset+4);
-
-                      }
-                    }
-                }
+		  if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset+4)) != 0) {
+                    
+		    v::debug << this->name() << "64bit invalidate" << v::endl;
+		    (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset+4);
+		    
+		  }
+		}
+	      }
 
             } else {
 
-                v::debug << this->name() << "Cache miss in set " << i << v::endl;
+	      v::debug << this->name() << "Cache miss in set " << i << v::endl;
             }
 
             // increment time
@@ -614,7 +637,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 	    v::debug << name() << "ACCESS IS WRITEMISS " << hex << *debug << v::endl;
 	    wmisses++;
 	}
-
+	    
         // write data to main memory
         // todo: - implement byte access
         //       - implement write buffer

@@ -146,6 +146,7 @@ class ivectorcache : public vectorcache {
   vectorcache(name, _mmu_cache, _tlb_adaptor,
               mmu_en,
               1, // burst fetch allowed
+	      0, // new_line_fetch mode forbidden (only for dcaches)
               sets, setsize, setlock, linesize,
               repl, lram, lramstart, lramsize, pow_mon),
     sta_power_norm("power.mmu_cache.icache.sta_power_norm", 1.10e+8, true), // norm. static power logic (controller)

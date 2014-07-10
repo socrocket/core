@@ -118,6 +118,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
   vectorcache(sc_core::sc_module_name name, mmu_cache_if * _mmu_cache,
               mem_if * _tlb_adaptor, unsigned int mmu_en,
               unsigned int burst_en,
+	      bool new_linefetch_en,
               unsigned int sets,
               unsigned int setsize, unsigned int setlock,
               unsigned int linesize, unsigned int repl,
@@ -165,6 +166,9 @@ class vectorcache : public sc_core::sc_module, public cache_if {
 
   /// indicates whether the cache can be put in burst mode or not
   unsigned int m_burst_en;
+  /// enables linefetch mode for "newer" as used in "newer" versions
+  /// of dcache in grlib
+  bool m_new_linefetch_en;
   /// pseudo random pointer
   unsigned int m_pseudo_rand;
 

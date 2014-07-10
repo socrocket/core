@@ -150,6 +150,9 @@ uint32_t APBCtrl::exec_func(
     tlm::tlm_generic_payload &ahb_gp,  // NOLINT(runtime/references)
     sc_time &delay,                    // NOLINT(runtime/references)
     bool debug) {
+
+  payload_t * apb_gp = NULL;
+  unsigned int i = 0;
   m_total_transactions++;
   transport_statistics(ahb_gp);
 
@@ -186,63 +189,71 @@ uint32_t APBCtrl::exec_func(
     return ahb_gp.get_data_length();
   }
 
-  // Find slave by address / returns slave index or -1 for not mapped
-  int index = get_index(addr);
+  // Split up transaction into multiple 32bit APB accesses
+  for (i = 0;i < length; i+=4) {
 
-  // For valid slave index
-  if (index >= 0) {
-    // -- For Debug only --
-    uint32_t a = 0;
-    socket_t *other_socket = apb.get_other_side(index, a);
-    sc_core::sc_object *obj = other_socket->get_parent();
+    // Find slave by address / returns slave index or -1 for not mapped
+    int index = get_index(addr+i);  
 
-    v::debug << name() << "Forwarding request to APB slave:" << obj->name()
-             << "@0x" << hex << v::setfill('0') << v::setw(8)
-             << (ahb_gp.get_address() & 0x000fffff) << endl;
-    // --------------------
+    // For valid slave index
+    if(index >= 0) {
 
-    // Take APB transaction from pool
-    payload_t *apb_gp = apb.get_transaction();
+      // -- For Debug only --
+      uint32_t a = 0;
+      socket_t *other_socket = apb.get_other_side(index, a);
+      sc_core::sc_object *obj = other_socket->get_parent();
 
-    // Build APB transaction from incoming AHB transaction:
-    // ----------------------------------------------------
-    apb_gp->set_command(ahb_gp.get_command());
-    // Substract the base address of the bridge
-    apb_gp->set_address(ahb_gp.get_address() & 0x000fffff);
-    apb_gp->set_data_length(ahb_gp.get_data_length());
-    apb_gp->set_byte_enable_ptr(ahb_gp.get_byte_enable_ptr());
-    apb_gp->set_data_ptr(ahb_gp.get_data_ptr());
+      v::debug << name() << "Forwarding request to APB slave:" << obj->name()
+	       << "@0x" << hex << v::setfill('0') << v::setw(8)
+	       << ((ahb_gp.get_address() & 0x000fffff)+i) << endl;
+      // --------------------
 
-    if (!debug) {
-      // Power event start
-      // PM::send(this,"apb_trans", 1, sc_time_stamp(), (unsigned int)apb_gp->get_data_ptr(), m_pow_mon);
+      // Take APB transaction from pool
+      apb_gp = apb.get_transaction();
 
-      // Forward request to the selected slave
-      apb[index]->b_transport(*apb_gp, delay);
+      // Build APB transaction from incoming AHB transaction:
+      // ----------------------------------------------------
+      apb_gp->set_command(ahb_gp.get_command());
+      // Substract the base address of the bridge
+      apb_gp->set_address((ahb_gp.get_address() & 0x000fffff)+i);
+      apb_gp->set_data_length(4);
+      apb_gp->set_byte_enable_ptr(ahb_gp.get_byte_enable_ptr());
+      apb_gp->set_data_ptr(ahb_gp.get_data_ptr()+i);
 
-      // Add delay for APB setup cycle
-      delay += clock_cycle;
+      if (!debug) {
 
-      // Power Calculation
-      if (m_pow_mon) {
-        if (ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
-          dyn_reads += (ahb_gp.get_data_length() >> 2) + 1;
-        } else {
-          dyn_writes += (ahb_gp.get_data_length() >> 2) + 1;
-        }
+	// Power event start
+	//PM::send(this,"apb_trans", 1, sc_time_stamp(), (unsigned int)apb_gp->get_data_ptr(), m_pow_mon);
+
+	// Forward request to the selected slave
+	apb[index]->b_transport(*apb_gp, delay);
+
+	// Add delay for APB setup cycle
+	delay += clock_cycle;
+
+	// Power Calculation
+	if (m_pow_mon) {
+	  if (ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
+	    dyn_reads += (ahb_gp.get_data_length() >> 2) + 1;
+	  } else {
+	    dyn_writes += (ahb_gp.get_data_length() >> 2) + 1;
+	  }
+	}
+      } else {
+	apb[index]->transport_dbg(*apb_gp);
       }
+      
+      // Copy back response message
+      ahb_gp.set_response_status(apb_gp->get_response_status());
+      // Release transaction
+      apb.release_transaction(apb_gp);
+
     } else {
-      apb[index]->transport_dbg(*apb_gp);
+      v::warn << name() << "Access to unmapped APB address space at address " << v::uint32 << addr << endl;
+      ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+      // Release transaction
+      apb.release_transaction(apb_gp);
     }
-
-    // Copy back response message
-    ahb_gp.set_response_status(apb_gp->get_response_status());
-
-    // Release transaction
-    apb.release_transaction(apb_gp);
-  } else {
-    v::warn << name() << "Access to unmapped APB address space at address " << v::uint32 << addr << endl;
-    ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
   }
 
   return ahb_gp.get_data_length();
