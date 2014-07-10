@@ -60,6 +60,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
   m_cached(cached),
   m_mmu_en(mmu_en),
   m_master_id(hindex),
+  bus_in_fifo("bus_in_fifo",1),
   m_right_transactions("successful_transactions", 0ull, m_performance_counters),
   m_total_transactions("total_transactions", 0ull, m_performance_counters),
   m_pow_mon(pow_mon),
@@ -77,8 +78,8 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
   dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
   dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
   dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
-  dyn_writes("dyn_writes", 0ull, power), // Write access counter for power computation
-  bus_in_fifo("bus_in_fifo",1) {
+  dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation
+  {
 
     wb_pointer = 0;
     globl_count = 0;
