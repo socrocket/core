@@ -14,15 +14,6 @@ def build(bld):
      install_path = None,
   )
 
-  bld(
-     features     = 'c cprogram sparc',
-     target       = 'mini.sparc',
-     cflags       = '-static -g -O1 -lm -mno-fpu',
-     linkflags    = '-static -g -O1 -lm -mno-fpu',
-     source       = ['mini.c'],
-     install_path = None,
-  )
-  
   ahbmemtgen = bld.get_tgen_by_name("aes.sparc")
   ahbmem     = ahbmemtgen.path.find_or_declare("aes.sparc")
   bld(
