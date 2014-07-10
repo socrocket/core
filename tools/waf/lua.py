@@ -59,12 +59,12 @@ def find(self, path = None):
       self.env["LUA_LIB"] = libpath[-1]
 
 def configure(self):
-    try:
-        if self.options.elfdir:
-            find(self, self.options.elfdir)
-        else:
-            find(self)
-    except:
+    #try:
+    #    if self.options.elfdir:
+    #        find(self, self.options.elfdir)
+    #    else:
+    #        find(self)
+    #except:
         name    = "lua"
         version = "5.2.2"
         self.dep_build(
