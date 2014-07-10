@@ -4,6 +4,15 @@ top = '../..'
 
 def build(bld):
   # hello.sparc
+  #bld(
+  #   features     = 'cxx cxxprogram sparc',
+  #   target       = 'hello.sparc',
+  #   cflags       = '-static -g -O1 -lm -Ttext=0x60000000',
+  #   linkflags    = '-static -g -O1 -lm -Ttext=0x60000000',
+  #   source       = ['hello.c'],
+  #   install_path = None,
+  #)
+
   bld(
      features     = 'c cprogram sparc',
      target       = 'hello.sparc',

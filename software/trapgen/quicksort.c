@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define SHORT_BENCH
+
 #ifdef SHORT_BENCH
 #define TO_SORT_SIZE 2048
 #else
