@@ -134,7 +134,7 @@ def configure(self):
               "lua_dir": self.env.LUA_DIR,
               "lua_lib": self.env.LUA_LIB,
             },
-            build_cmd = "%(make)s %(jobs)s greenreg" % {
+            build_cmd = "%(make)s %(jobs)s" % {
               "make" : self.env.MAKE,
               "jobs" : self.env.JOBS,
             }

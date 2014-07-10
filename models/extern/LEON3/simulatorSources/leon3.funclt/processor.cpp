@@ -90,7 +90,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
     int firstinstrId = this->decoder.decode(firstbitString);
     Instruction *firstinstr = this->INSTRUCTIONS[firstinstrId];
     while(true){
-        //unsigned int numCycles = 0;
+        unsigned int numCycles = 0;
         this->instrExecuting = true;
 
         if(irqAck.stopped) {
@@ -111,11 +111,11 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
         if((IRQ != 0xFFFFFFFF) && (PSR[key_ET] && (IRQ == 15 || IRQ > PSR[key_PIL]))){
             this->IRQ_irqInstr->setInterruptValue(IRQ);
             try{
-                //numCycles = this->IRQ_irqInstr->behavior();
-                this->IRQ_irqInstr->behavior(); // Replacement for ^^
+                numCycles = this->IRQ_irqInstr->behavior();
+                //this->IRQ_irqInstr->behavior(); // Replacement for ^^
             }
             catch(annull_exception &etc){
-                //numCycles = 0;
+              numCycles = 0;
             }
 
         } else{
@@ -149,14 +149,14 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
                         #ifndef DISABLE_TOOLS
                         if(!(this->toolManager.newIssue(curPC, curInstrPtr))){
                             #endif
-                            //numCycles = curInstrPtr->behavior();
-                            curInstrPtr->behavior(); // Replacement for ^^
+                            numCycles = curInstrPtr->behavior();
+                            //curInstrPtr->behavior(); // Replacement for ^^
                             #ifndef DISABLE_TOOLS
                         }
                         #endif
                     }
                     catch(annull_exception &etc){
-                        //numCycles = 0;
+                        numCycles = 0;
                     }
                 }
                 else{
@@ -174,14 +174,14 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
                         #ifndef DISABLE_TOOLS
                         if(!(this->toolManager.newIssue(curPC, instr))){
                             #endif
-                            //numCycles = instr->behavior();
-                            instr->behavior(); // Replacement for ^^
+                            numCycles = instr->behavior();
+                            //instr->behavior(); // Replacement for ^^
                             #ifndef DISABLE_TOOLS
                         }
                         #endif
                     }
                     catch(annull_exception &etc){
-                        //numCycles = 0;
+                        numCycles = 0;
                     }
                     if(curCount < 256){
                         curCount++;
@@ -208,14 +208,14 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
                     #ifndef DISABLE_TOOLS
                     if(!(this->toolManager.newIssue(curPC, instr))){
                         #endif
-                        //numCycles = instr->behavior();
-                        instr->behavior(); // Replacement for ^^
+                        numCycles = instr->behavior();
+                        //instr->behavior(); // Replacement for ^^
                         #ifndef DISABLE_TOOLS
                     }
                     #endif
                 }
                 catch(annull_exception &etc){
-                    //numCycles = 0;
+                    numCycles = 0;
                 }
                 this->instrCache.insert(std::pair< unsigned int, CacheElem >(bitString, CacheElem()));
                 instrCacheEnd = this->instrCache.end();

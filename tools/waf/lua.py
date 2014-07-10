@@ -20,8 +20,8 @@ def find(self, path = None):
       incpath = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(path,"include")))),
         os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(path,"src"))))]
     else:
-      libpath = "/usr/lib"
-      incpath = "/usr/include/lua5.1"
+      libpath = ["/usr/lib"]
+      incpath = ["/usr/include/lua5.1"]
 
     self.check_cxx(
       lib          = 'lua',
@@ -54,9 +54,9 @@ def find(self, path = None):
       okmsg        = "ok",
     )
     if path:
-        self.env["HOME_LUA"] = path
-        self.env["LUA_DIR"] = incpath[-1]
-        self.env["LUA_LIB"] = libpath[-1]
+      self.env["HOME_LUA"] = path
+      self.env["LUA_DIR"] = incpath[-1]
+      self.env["LUA_LIB"] = libpath[-1]
 
 def configure(self):
     try:

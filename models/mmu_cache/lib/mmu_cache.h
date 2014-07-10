@@ -21,7 +21,7 @@
 #include <greencontrol/config.h>
 #include <amba.h>
 #include <tlm.h>
-#include <tlm_1/tlm_req_rsp/tlm_channels/tlm_fifo/tlm_fifo.h>
+//#include <tlm_1/tlm_req_rsp/tlm_channels/tlm_fifo/tlm_fifo.h>
 #include <tlm_utils/simple_target_socket.h>
 
 #include <math.h>
