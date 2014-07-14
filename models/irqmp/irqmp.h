@@ -53,7 +53,7 @@ class Irqmp : public gs::reg::gr_device,
     signal<uint32_t>::infield irq_ack;
 
     /// IRQ input signals from other devices
-    signal<bool>::infield irq_in;
+    signal<std::pair<uint32_t,bool> >::in irq_in;
 
     /// Internal signal to decouple inputs and outputs. Furthermore it addes the needed delays
     sc_event e_signal;
@@ -157,7 +157,7 @@ class Irqmp : public gs::reg::gr_device,
     ///              be cleared in the interrupt controler.
     /// @param irq   The interrupt line which is triggered.
     /// @param time  Delay to the simulation time. Not used in this signal.
-    void incomming_irq(const bool &value, const uint32_t &irq, const sc_time &time);
+    void incomming_irq(const std::pair<uint32_t, bool> &value, const sc_time &time);
 
     /// Acknowledged Irq Callback
     ///

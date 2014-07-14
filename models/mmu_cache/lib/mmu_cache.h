@@ -67,7 +67,7 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   signal<t_snoop>::in snoop;
 
   // Signalkit IRQ output
-  signal<bool>::selector irq;
+  signal<std::pair<uint32_t, bool> >::out irq;
 
   /// @brief Constructor of the top-level class of the memory sub-system (caches and mmu).
   /// @icen          instruction cache enable

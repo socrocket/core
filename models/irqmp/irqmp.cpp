@@ -283,32 +283,32 @@ void Irqmp::dorst() {
 //  - write incoming interrupts into pending or force registers
 //
 // process sensitive to apbi.pirq
-void Irqmp::incomming_irq(const bool &value, const uint32_t &irq, const sc_time &time) {
+void Irqmp::incomming_irq(const std::pair<uint32_t, bool> &irq, const sc_time &time) {
   // A variable with true as workaround for greenreg.
   bool t = true;
-  if (!value) {
+  if (!irq.second) {
     // Return if the value turned to false.
     // Interrupts will not be unset this way.
     // So we cann simply ignore a false value.
     return;
   }
   // Performance counter increase
-  m_irq_counter[irq] = m_irq_counter[irq] + 1;
-  v::debug << name() << "Interrupt line " << irq << " triggered" << v::endl;
+  m_irq_counter[irq.first] = m_irq_counter[irq.first] + 1;
+  v::debug << name() << "Interrupt line " << irq.first << " triggered" << v::endl;
 
   // If the incomming interrupt is not listed in the broadcast register
   // it goes in the pending register
-  if (!r[BROADCAST].bit_get(irq)) {
-    r[IR_PENDING].bit_set(irq, t);
+  if (!r[BROADCAST].bit_get(irq.first)) {
+    r[IR_PENDING].bit_set(irq.first, t);
   }
 
   // If it is not listed n the broadcast register and not an extended interrupt it goes into the force registers.
   // EIRs cannot be forced
-  if (r[BROADCAST].bit_get(irq) && (irq < 16)) {
+  if (r[BROADCAST].bit_get(irq.first) && (irq.first < 16)) {
     // set force registers for broadcasted interrupts
     for (int32_t cpu = 0; cpu < g_ncpu; cpu++) {
-      r[PROC_IR_FORCE(cpu)].bit_set(irq, t);
-      forcereg[cpu] |= (t << irq);
+      r[PROC_IR_FORCE(cpu)].bit_set(irq.first, t);
+      forcereg[cpu] |= (t << irq.first);
     }
   }
   // Pending and force regs are set now.

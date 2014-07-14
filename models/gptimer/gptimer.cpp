@@ -27,8 +27,6 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
     APBDevice(pindex, 0x1, 0x11, 0, pirq, APBIO, pmask, false, false, paddr),
     bus("bus", r, ((paddr) & (pmask)) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false),
     irq("IRQ"), wdog("WDOG"),
-  // irq and wdog signals
-  // irq("irq", pirq), wdog("wdog", wdog),
     conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)),
     lasttime(0, sc_core::SC_NS), lastvalue(0),
     p_conf("conf"),

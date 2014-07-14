@@ -102,11 +102,11 @@ void AHBIn::gen_frame() {
     v::info << name() << "Transmission of frame completed" << v::endl;
 
     // Notify CPU by raising an interrupt
-    irq.write(true);
+    irq.write(std::pair<uint32_t, bool>(1 << m_irq, true));
 
     // After one clock_cycle SystemC time lower to interrupt
     wait(clock_cycle);
-    irq.write(false);
+    irq.write(std::pair<uint32_t, bool>(1 << m_irq, false));
 
     // Wait for next frame trigger
     wait();

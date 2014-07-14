@@ -30,6 +30,7 @@ APBUART::APBUART(sc_core::sc_module_name name,
   bus("bus", r, ((paddr) & pmask) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false),
   irq("IRQ"),
   m_backend(backend),
+  g_pirq(pirq),
   powermon(powmon) {
   // Display APB slave information
   v::info << this->name() << "APB slave @0x" << hex << v::setw(8)
@@ -143,9 +144,9 @@ void APBUART::status_read() {
 void APBUART::send_irq() {
   while (true) {
     wait(e_irq);
-    irq.write(true);
+    irq.write(std::pair<uint32_t, bool>(1<< g_pirq, true));
     wait(clock_cycle);
-    irq.write(false);
+    irq.write(std::pair<uint32_t, bool>(1<< g_pirq, false));
   }
 }
 

@@ -40,7 +40,7 @@ class AHBIn : public AHBMaster<>, public CLKDevice {
     SK_HAS_SIGNALS(AHBIn);
 
     /// SignalKit interrupt output
-    signal<bool>::out irq;
+    signal<std::pair<uint32_t, bool> >::out irq;
 
     /// Constructor
     AHBIn(sc_core::sc_module_name name,  // The SystemC name of the component
