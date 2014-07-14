@@ -23,6 +23,7 @@ class gs_config<uint8_t>
     GC_SPECIALISATIONS_BINARY_OPERATORS;
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -109,6 +110,7 @@ class gs_config<int8_t>
     GC_SPECIALISATIONS_BINARY_OPERATORS;
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -188,6 +190,7 @@ public:
     GC_SPECIALISATIONS_BINARY_OPERATORS;
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -263,6 +266,7 @@ class gs_config<int16_t>
     GC_SPECIALISATIONS_BINARY_OPERATORS;
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -341,6 +345,7 @@ public:
     GC_SPECIALISATIONS_BINARY_OPERATORS;
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -414,6 +419,7 @@ class gs_config<int32_t>
     GC_SPECIALISATIONS_BINARY_OPERATORS;
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -508,6 +514,7 @@ public:
     GC_SPECIALISATIONS_BINARY_OPERATORS;
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -581,6 +588,7 @@ public:
     GC_SPECIALISATIONS_BINARY_OPERATORS;
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {

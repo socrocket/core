@@ -22,6 +22,7 @@
 #include <sstream>
 #include <boost/tokenizer.hpp> // for parameter array!
 
+#include "common/common.h"
 #include "common/gs_config/gs_config_t.h"
 #include "common/gs_config/gs_config_operator_macros.h"
 #include "common/gs_config/gs_config_delegate.h"

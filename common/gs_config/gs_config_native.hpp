@@ -47,6 +47,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -141,6 +142,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
 
     /// Overloads gs_config::getTypeString
@@ -235,6 +237,7 @@ public:
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     // not allowed for bool: 
     // GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -325,6 +328,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -401,6 +405,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -513,6 +518,7 @@ public:
     explicit gs_config(const std::string &nam, const std::string &val, gs_param_array* parent_array, const bool force_top_level_name, const bool register_at_db) : gs_config_t<val_type>(nam, force_top_level_name,  parent_array, register_at_db) { gs_config_t<val_type>::init(convertStringToValue(val));         } 
     explicit gs_config(const std::string &nam, const std::string &val, gs_param_array& parent_array, const bool force_top_level_name, const bool register_at_db) : gs_config_t<val_type>(nam, force_top_level_name, &parent_array, register_at_db) { gs_config_t<val_type>::init(convertStringToValue(val));         } 
 
+    GS_CONFIG_DELEGATE;
     const val_type convertStringToValue(const std::string& str) {    
         return str; 
     }                                                                 
@@ -693,6 +699,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -782,6 +789,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -890,6 +898,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -991,6 +1000,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -1092,6 +1102,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -1195,6 +1206,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {

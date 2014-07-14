@@ -54,6 +54,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config_base::getTypeString
     const std::string getTypeString() const {
@@ -115,6 +116,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config_base::getTypeString
     const std::string getTypeString() const {
@@ -175,6 +177,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config_base::getTypeString
     const std::string getTypeString() const {
@@ -235,6 +238,7 @@ class gs_config< sc_dt::sc_uint<W> >
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config_base::getTypeString
     const std::string getTypeString() const {
@@ -296,6 +300,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config_base::getTypeString
     const std::string getTypeString() const {
@@ -357,6 +362,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config_base::getTypeString
     const std::string getTypeString() const {
@@ -417,6 +423,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config_base::getTypeString
     const std::string getTypeString() const {
@@ -478,6 +485,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config_base::getTypeString
     const std::string getTypeString() const {
@@ -535,6 +543,7 @@ public:
 
     // ///////////////////////
     //  operators
+    GS_CONFIG_DELEGATE;
 
     /// Operator = with sc_logic
     my_type& operator = (const sc_dt::sc_logic &v) { 
@@ -644,6 +653,7 @@ public:
 
     // ///////////////////////
     //  operators
+    GS_CONFIG_DELEGATE;
 
     /// Operator = with sc_logic_value_t
     my_type& operator = (const sc_dt::sc_logic_value_t v) { 
@@ -787,6 +797,7 @@ public:
 
     //GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     //GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config_base::getTypeString
     const std::string getTypeString() const {
