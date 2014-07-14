@@ -17,7 +17,7 @@
 #ifndef MODELS_GPTIMER_GPCOUNTER_H_
 #define MODELS_GPTIMER_GPCOUNTER_H_
 
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <greenreg/greenreg.h>
 #include <systemc>
 
@@ -134,7 +134,7 @@ class GPCounter : public gs::reg::gr_subdevice {
   gs::gs_param_array m_performance_counters;
 
   /// Number of underflows of the counter
-  gs::gs_param<unsigned long long> m_underflows;  // NOLINT(runtime/int)
+  gs::gs_config<uint64_t> m_underflows;  // NOLINT(runtime/int)
 };
 
 #endif // MODELS_GPTIMER_GPCOUNTER_H_

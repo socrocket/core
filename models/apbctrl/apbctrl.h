@@ -16,7 +16,7 @@
 #define MODELS_APBCTRL_APBCTRL_H_
 
 #include <amba.h>
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <systemc>
 
 #include "models/utils/ahbslave.h"
@@ -164,52 +164,52 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
     // Performance Counters
 
     /// Total number of transactions
-    gs::gs_param<unsigned long long> m_total_transactions;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> m_total_transactions;  // NOLINT(runtime/int)
 
     /// Successful number of transactions
-    gs::gs_param<unsigned long long> m_right_transactions;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> m_right_transactions;  // NOLINT(runtime/int)
 
     // *****************************************************
     // Power Modeling Parameters
 
     /// Normalized static power input
-    gs::gs_param<double> sta_power_norm;
+    gs::gs_config<double> sta_power_norm;
 
     /// Normalized internal power input (activation independent)
-    gs::gs_param<double> int_power_norm;
+    gs::gs_config<double> int_power_norm;
 
     /// Normalized read access energy
-    gs::gs_param<double> dyn_read_energy_norm;
+    gs::gs_config<double> dyn_read_energy_norm;
 
     /// Normalized write access energy
-    gs::gs_param<double> dyn_write_energy_norm;
+    gs::gs_config<double> dyn_write_energy_norm;
 
     /// Parameter array for power data output
     gs::gs_param_array power;
 
     /// Static power of module
-    gs::gs_param<double> sta_power;
+    gs::gs_config<double> sta_power;
 
     /// Internal power of module (activation independent)
-    gs::gs_param<double> int_power;
+    gs::gs_config<double> int_power;
 
     /// Switching power of module
-    gs::gs_param<double> swi_power;
+    gs::gs_config<double> swi_power;
 
     /// Power frame starting time
-    gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+    gs::gs_config<sc_core::sc_time> power_frame_starting_time;
 
     /// Dynamic energy per read access
-    gs::gs_param<double> dyn_read_energy;
+    gs::gs_config<double> dyn_read_energy;
 
     /// Dynamic energy per write access
-    gs::gs_param<double> dyn_write_energy;
+    gs::gs_config<double> dyn_write_energy;
 
     /// Number of reads from memory (read & reset by monitor)
-    gs::gs_param<unsigned long long> dyn_reads;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> dyn_reads;  // NOLINT(runtime/int)
 
     /// Number of writes to memory (read & reset by monitor)
-    gs::gs_param<unsigned long long> dyn_writes;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> dyn_writes;  // NOLINT(runtime/int)
 };
 
 /// @}

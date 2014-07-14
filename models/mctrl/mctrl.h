@@ -19,7 +19,7 @@
 #include <systemc.h>
 #include <tlm.h>
 #include <amba.h>
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <greenreg_ambasockets.h>
 #include <greensocket/initiator/multi_socket.h>
 #include <boost/config.hpp>
@@ -217,70 +217,70 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
     uint8_t m_pmode;
 
     /// The number of total transactions handled by the mctrl
-    gs::gs_param<unsigned long long> m_total_transactions;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> m_total_transactions;  // NOLINT(runtime/int)
 
     /// The number of successfull ended transactions
-    gs::gs_param<unsigned long long> m_right_transactions;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> m_right_transactions;  // NOLINT(runtime/int)
 
     /// Total time of power down mode
-    gs::gs_param<sc_time> m_power_down_time;
+    gs::gs_config<sc_time> m_power_down_time;
 
     /// Last time switched to power down mode
-    gs::gs_param<sc_time> m_power_down_start;
+    gs::gs_config<sc_time> m_power_down_start;
 
     /// Total time of deep power down mode
-    gs::gs_param<sc_time> m_deep_power_down_time;
+    gs::gs_config<sc_time> m_deep_power_down_time;
 
     /// Last time switched to deep power down mode
-    gs::gs_param<sc_time> m_deep_power_down_start;
+    gs::gs_config<sc_time> m_deep_power_down_start;
 
     /// Total time of auto self refresh mode
-    gs::gs_param<sc_time> m_self_refresh_time;
+    gs::gs_config<sc_time> m_self_refresh_time;
 
     /// Last time switched to auto self refresh mode
-    gs::gs_param<sc_time> m_self_refresh_start;
+    gs::gs_config<sc_time> m_self_refresh_start;
 
     // *****************************************************
     // Power Modeling Parameters
 
     /// Normalized static power of controller
-    gs::gs_param<double> sta_power_norm;
+    gs::gs_config<double> sta_power_norm;
 
     /// Normalized internal power of controller
-    gs::gs_param<double> int_power_norm;
+    gs::gs_config<double> int_power_norm;
 
     /// Normalized read energy
-    gs::gs_param<double> dyn_read_energy_norm;
+    gs::gs_config<double> dyn_read_energy_norm;
 
     /// Normalized write energy
-    gs::gs_param<double> dyn_write_energy_norm;
+    gs::gs_config<double> dyn_write_energy_norm;
 
     /// Parameter array for power data output
     gs::gs_param_array power;
 
     /// Controller static power
-    gs::gs_param<double> sta_power;
+    gs::gs_config<double> sta_power;
 
     /// Controller internal power
-    gs::gs_param<double> int_power;
+    gs::gs_config<double> int_power;
 
     /// Controller switching poer
-    gs::gs_param<double> swi_power;
+    gs::gs_config<double> swi_power;
 
     /// Power frame starting time
-    gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+    gs::gs_config<sc_core::sc_time> power_frame_starting_time;
 
     /// Dynamic energy per read access
-    gs::gs_param<double> dyn_read_energy;
+    gs::gs_config<double> dyn_read_energy;
 
     /// Dynamic energy per write access
-    gs::gs_param<double> dyn_write_energy;
+    gs::gs_config<double> dyn_write_energy;
 
     /// Number of reads from memory
-    gs::gs_param<unsigned long long> dyn_reads;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> dyn_reads;  // NOLINT(runtime/int)
 
     /// Number of writes from memory
-    gs::gs_param<unsigned long long> dyn_writes;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> dyn_writes;  // NOLINT(runtime/int)
 
     // Constructor parameters (modeling VHDL generics)
     const int g_romasel;

@@ -14,8 +14,8 @@
 
 // doxygen comments
 
-#ifndef __GS_CONFIG_INTERNAL_H__
-#define __GS_CONFIG_INTERNAL_H__
+#ifndef COMMON_GS_CONFIG_GS_CONFIG_CLASS_H_
+#define COMMON_GS_CONFIG_GS_CONFIG_CLASS_H_
 
 #include <string>
 #include <iostream>
@@ -24,22 +24,22 @@
 
 #include "common/gs_config/gs_config_t.h"
 #include "common/gs_config/gs_config_operator_macros.h"
-
+#include "common/gs_config/gs_config_delegate.h"
 
 namespace gs {
-    namespace cnf {
+namespace cnf {
 
-#define GS_CONFIG_HEAD                                                  \
-protected:                                                             \
+#define GS_CONFIG_HEAD                                                    \
+protected:                                                                \
     typedef gs_config<val_type> my_type;                                  \
     using gs_config_t<val_type>::my_value;                                \
     using gs_config_t<val_type>::m_api;                                   \
     using gs_config_t<val_type>::m_par_name;                              \
     using gs_config_t<val_type>::convertStringToValue;                    \
-private:                                                               \
+private:                                                                  \
     explicit gs_config(const val_type &val) { sc_assert(false); }         \
-    \
-public:                                                                \
+                                                                          \
+public:                                                                   \
     explicit gs_config() : gs_config_t<val_type>(false, NULL, true) { gs_config_t<val_type>::init();  } \
     \
     explicit gs_config(const std::string &nam) : gs_config_t<val_type>(nam        , false, NULL, true) { gs_config_t<val_type>::init(); } \
@@ -157,24 +157,13 @@ public:                                                                \
         // for compatibility
 //#define gcnf_param gs_config;
 
-
-        // /////////////////////////////////////////////////////////////////////////////// //
-        // /////////////////// NATIVE DATA TYPES ///////////////////////////////////////// //
-        // /////////////////////////////////////////////////////////////////////////////// //
-
 #include "common/gs_config/gs_config_native.hpp"
-
-
-
-        // /////////////////////////////////////////////////////////////////////////////// //
-        // /////////////////// SystemC DATA TYPES //////////////////////////////////////// //
-        // /////////////////////////////////////////////////////////////////////////////// //
-
+#include "common/gs_config/gs_config_stdint.hpp"
 #include "common/gs_config/gs_config_systemc.hpp"
 
-    } // end namespace cnf
-    using cnf::gs_config; // make gs_config available in gs namespace
-} // end namespace gs
+}  // namespace cnf
+using cnf::gs_config; // make gs_config available in gs namespace
+}  // namespace gs
 
-#endif
+#endif  // COMMON_GS_CONFIG_GS_CONFIG_CLASS_H_
 /// @}

@@ -18,7 +18,7 @@
 #define __VECTORCACHE_H__
 
 #include <vector>
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <tlm.h>
 
 #include "math.h"
@@ -227,16 +227,16 @@ class vectorcache : public sc_core::sc_module, public cache_if {
   gs::gs_param<unsigned long long *> rhits;
 
   /// Counter for read misses
-  gs::gs_param<unsigned long long> rmisses;
+  gs::gs_config<uint64_t> rmisses;
 
   /// Counter for write hits
   gs::gs_param<unsigned long long *> whits;
 
   /// Counter for write misses
-  gs::gs_param<unsigned long long> wmisses;
+  gs::gs_config<uint64_t> wmisses;
 
   /// Counter for bypass operations
-  gs::gs_param<unsigned long long> bypassops;
+  gs::gs_config<uint64_t> bypassops;
 
   /// enable power monitoring
   bool m_pow_mon;
@@ -245,16 +245,16 @@ class vectorcache : public sc_core::sc_module, public cache_if {
   /// Power Modeling Parameters
 
   /// Number of tag ram reads (monitor read & reset)
-  gs::gs_param<unsigned long long> dyn_tag_reads;
+  gs::gs_config<uint64_t> dyn_tag_reads;
 
   /// Number of tag ram writes (monitor read & reset)
-  gs::gs_param<unsigned long long> dyn_tag_writes;
+  gs::gs_config<uint64_t> dyn_tag_writes;
 
   /// Number of data ram reads (monitor read & reset)
-  gs::gs_param<unsigned long long> dyn_data_reads;
+  gs::gs_config<uint64_t> dyn_data_reads;
 
   /// Number of data ram writes (monitor read & reset)
-  gs::gs_param<unsigned long long> dyn_data_writes;
+  gs::gs_config<uint64_t> dyn_data_writes;
 
   // delay parameters
   // ----------------

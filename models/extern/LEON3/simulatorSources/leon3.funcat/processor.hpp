@@ -38,7 +38,7 @@
 #ifndef AT_PROCESSOR_HPP
 #define AT_PROCESSOR_HPP
 
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <customExceptions.hpp>
 #include <leon3.funcat/instructions.hpp>
 #include <leon3.funcat/decoder.hpp>
@@ -154,34 +154,34 @@ namespace leon3_funcat_trap{
       /// Power Modeling Parameters
       
       /// Normalized static power input
-      gs::gs_param<double> sta_power_norm;
+      gs::gs_config<double> sta_power_norm;
 
       /// Normalized internal power input (activation independent)
-      gs::gs_param<double> int_power_norm;
+      gs::gs_config<double> int_power_norm;
 
       /// Normalized average instruction energy
-      gs::gs_param<double> dyn_instr_energy_norm;
+      gs::gs_config<double> dyn_instr_energy_norm;
 
       /// Parameter array for power data output
       gs::gs_param_array power;
 
       /// Static power of module
-      gs::gs_param<double> sta_power;
+      gs::gs_config<double> sta_power;
 
       /// Dynamic power of module (activation independent)
-      gs::gs_param<double> int_power;
+      gs::gs_config<double> int_power;
 
       /// Switching power of module
-      gs::gs_param<double> swi_power;
+      gs::gs_config<double> swi_power;
 
       /// Power frame starting time
-      gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+      gs::gs_config<sc_core::sc_time> power_frame_starting_time;
       
       /// Average dynamic energy per instruction
-      gs::gs_param<double> dyn_instr_energy;
+      gs::gs_config<double> dyn_instr_energy;
 
       /// Number of instructions processed in time frame
-      gs::gs_param<unsigned long long> dyn_instr;
+      gs::gs_config<uint64_t> dyn_instr;
 
     };
 

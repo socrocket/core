@@ -16,7 +16,7 @@
 #define MODELS_UTILS_AHBDEVICE_H_
 
 #include <amba.h>
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <stdint.h>
 #include <tlm.h>
 
@@ -137,10 +137,10 @@ class AHBDevice : public amba_slave_base {
     // gs::gs_param_array m_performance_counters;
 
     /// Stores the number of Bytes read from the device
-    // gs::gs_param<uint64_t> m_reads;
+    // gs::gs_config<uint64_t> m_reads;
 
     /// Stores the number of Bytes written from the device
-    // gs::gs_param<uint64_t> m_writes;
+    // gs::gs_config<uint64_t> m_writes;
 };
 
 /// This function returns a grlib bank address register.

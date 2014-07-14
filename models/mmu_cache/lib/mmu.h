@@ -19,7 +19,7 @@
 #define __MMU_H__
 
 #include <map>
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <tlm.h>
 
 #include "mmu_if.h"
@@ -303,75 +303,75 @@ class mmu : public sc_core::sc_module, public mmu_if {
   gs::gs_param<unsigned long long *> tdhits;
 
   /// Number of TLB misses
-  gs::gs_param<unsigned long long> timisses;
-  gs::gs_param<unsigned long long> tdmisses;
+  gs::gs_config<uint64_t> timisses;
+  gs::gs_config<uint64_t> tdmisses;
 
 
   // *****************************************************
   // Power Modeling Parameters
 
   /// Normalized static power of mmu
-  gs::gs_param<double> sta_power_norm;
+  gs::gs_config<double> sta_power_norm;
 
   /// Normalized internal power of mmu (switching independent)
-  gs::gs_param<double> int_power_norm;
+  gs::gs_config<double> int_power_norm;
 
   /// Normalized tlb static power input
-  gs::gs_param<double> sta_tlb_power_norm;
+  gs::gs_config<double> sta_tlb_power_norm;
 
   /// Normalized internal power of tlb
-  gs::gs_param<double> int_tlb_power_norm;
+  gs::gs_config<double> int_tlb_power_norm;
 
   /// Normalized tlb read energy
-  gs::gs_param<double> dyn_tlb_read_energy_norm;
+  gs::gs_config<double> dyn_tlb_read_energy_norm;
 
   /// Normalized tlb write energy
-  gs::gs_param<double> dyn_tlb_write_energy_norm;
+  gs::gs_config<double> dyn_tlb_write_energy_norm;
 
   /// Parameter array for power data output
   gs::gs_param_array power;
 
   /// MMU static power
-  gs::gs_param<double> sta_power;
+  gs::gs_config<double> sta_power;
 
   /// MMU internal power
-  gs::gs_param<double> int_power;
+  gs::gs_config<double> int_power;
 
   /// MMU switching power
-  gs::gs_param<double> swi_power;
+  gs::gs_config<double> swi_power;
 
   /// Power frame starting time
-  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+  gs::gs_config<sc_core::sc_time> power_frame_starting_time;
 
   /// Parameter array for power output of itlb
   gs::gs_param_array itlbram;
 
   /// Dynamic energy itlb read
-  gs::gs_param<double> dyn_itlb_read_energy;
+  gs::gs_config<double> dyn_itlb_read_energy;
 
   /// Dynamic energy itlb write
-  gs::gs_param<double> dyn_itlb_write_energy;
+  gs::gs_config<double> dyn_itlb_write_energy;
 
   /// Number of itlb reads
-  gs::gs_param<unsigned long long> dyn_itlb_reads;
+  gs::gs_config<uint64_t> dyn_itlb_reads;
 
   /// Number of itlb writes
-  gs::gs_param<unsigned long long> dyn_itlb_writes;
+  gs::gs_config<uint64_t> dyn_itlb_writes;
 
   /// Parameter array for power output of dtlb
   gs::gs_param_array dtlbram;
 
   /// Dynamic energy dtlb read
-  gs::gs_param<double> dyn_dtlb_read_energy;
+  gs::gs_config<double> dyn_dtlb_read_energy;
 
   /// Dynamic energy dtlb write
-  gs::gs_param<double> dyn_dtlb_write_energy;
+  gs::gs_config<double> dyn_dtlb_write_energy;
 
   /// Number of dtlb reads
-  gs::gs_param<unsigned long long> dyn_dtlb_reads;
+  gs::gs_config<uint64_t> dyn_dtlb_reads;
 
   /// Number of dtlb writes
-  gs::gs_param<unsigned long long> dyn_dtlb_writes;
+  gs::gs_config<uint64_t> dyn_dtlb_writes;
 
   /// Clock cycle time
   sc_core::sc_time clockcycle;

@@ -17,7 +17,7 @@
 
 #include <stdint.h>
 #include <systemc.h>
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <greenreg_ambasockets.h>
 #include <boost/config.hpp>
 #include <utility>
@@ -204,19 +204,19 @@ class Irqmp : public gs::reg::gr_device,
     // Power Modeling Parameters
 
     /// Normalized static power of controller
-    gs::gs_param<double> sta_power_norm;
+    gs::gs_config<double> sta_power_norm;
 
     /// Normalized dynamic power of controller
-    gs::gs_param<double> int_power_norm;
+    gs::gs_config<double> int_power_norm;
 
     /// Parameter array for power data output
     gs::gs_param_array power;
 
     /// Controller static power
-    gs::gs_param<double> sta_power;
+    gs::gs_config<double> sta_power;
 
     /// Controller dynamic power
-    gs::gs_param<double> int_power;
+    gs::gs_config<double> int_power;
 
     // ******************************************************
     // Constant and mask definitions

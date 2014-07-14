@@ -18,7 +18,7 @@
 #ifndef MODELS_MEMORY_MEMORY_H_
 #define MODELS_MEMORY_MEMORY_H_
 
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <greensocket/target/single_socket.h>
 #include <systemc.h>
 #include <tlm.h>
@@ -75,8 +75,8 @@ class Memory : public MemoryPower {
     /// TLM 2.0 debug transport function
     unsigned int transport_dbg(tlm::tlm_generic_payload &gp);
 
-    gs::gs_param<uint64_t> m_writes;
-    gs::gs_param<uint64_t> m_reads;
+    gs::gs_config<uint64_t> m_writes;
+    gs::gs_config<uint64_t> m_reads;
 };
 
 #endif  // MODELS_MEMORY_MEMORY_H_
