@@ -10,6 +10,8 @@
 #define DEFAULT_P                 1
 #define PI                         3.1416
 
+#define SHORT_BENCH
+
 #define SWAP(a,b) {double tmp; tmp=a; a=b; b=tmp;}
 
 struct GlobalMemory {

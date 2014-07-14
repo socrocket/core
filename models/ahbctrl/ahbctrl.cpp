@@ -375,6 +375,7 @@ void AHBCtrl::b_transport(uint32_t id,
     // const char *event_name = "ahb_trans";
     // size_t data_int = (size_t)trans.get_data_ptr();
     // uint32_t id = data_int & 0xFFFFFFFF;
+    delay+=clock_cycle;
 
     // Forward request to the selected slave
     ahbOUT[index]->b_transport(trans, delay);
@@ -592,7 +593,8 @@ void AHBCtrl::arbitrate() {
               slave_id = request_map[robin].slave_id;
 
               is_lock = ahbIN.get_extension<amba::amba_lock>(lock, *trans);
-              lock_master = i;
+
+              lock_master = robin;
 
               break;
             }

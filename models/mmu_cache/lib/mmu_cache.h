@@ -21,6 +21,7 @@
 #include <greencontrol/config.h>
 #include <amba.h>
 #include <tlm.h>
+//#include <tlm_1/tlm_req_rsp/tlm_channels/tlm_fifo/tlm_fifo.h>
 #include <tlm_utils/simple_target_socket.h>
 
 #include <math.h>
@@ -256,7 +257,16 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   /// amba master id
   unsigned int m_master_id;
 
-  /// Total number of successful transactions for execution statistics
+  void mem_access();
+
+  unsigned char write_buf[1024];
+  unsigned int wb_pointer;
+
+  sc_event bus_read_completed;
+
+  tlm::tlm_fifo<tlm::tlm_generic_payload *> bus_in_fifo;
+
+  /// Total number of successful transactions for execution statistics 
   gs::gs_param<unsigned long long> m_right_transactions;
 
   /// Total number of transactions for execution statistics
@@ -311,9 +321,10 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   gs::gs_param<unsigned long long> dyn_reads;
 
   /// Number of writes to memory (read & reset by monitor)
-  gs::gs_param<unsigned long long> dyn_writes;
+  gs::gs_param<unsigned long long> dyn_writes;    
 
-
+  uint64_t globl_count;
+  
 };
 
 /// @}

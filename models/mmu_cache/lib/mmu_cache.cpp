@@ -77,9 +77,11 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
   dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
   dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
   dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
-  dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation
+  dyn_writes("dyn_writes", 0ull, power), // Write access counter for power computation
+  bus_in_fifo("bus_in_fifo",1) {
 
-{
+    wb_pointer = 0;
+    globl_count = 0;
 
     // Parameter checks
     // ----------------
@@ -161,6 +163,8 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 
     // Initialize cache control registers
     CACHE_CONTROL_REG = 0;
+
+    SC_THREAD(mem_access);
 
     // Register power callback functions
     if (m_pow_mon) {
@@ -869,55 +873,33 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 /// TLM blocking forward transport function for icio socket
 void mmu_cache::icio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
-  v::debug << name() << "icio_b_transport received trans " << hex << &trans << " with delay " << delay << v::endl;
+  v::debug << name() << "TRANS: " << globl_count++ << " icio_b_transport received trans " << hex << &trans << " (" << v::hex << trans.get_address() << ") with delay " << delay << v::endl;
+
+  if (trans.get_address()==0x40000000) v::info << "Boot completed - jump to main" << v::endl;
 
   // Call the functional part of the model
   // ---------------------------
   exec_instr(trans, delay, false);
   // ---------------------------
 
-  // Consume component delay
-  delay+=clock_cycle;
-
-  // Reset delay
-  //delay = SC_ZERO_TIME;
+  v::debug << name() << "Transaction " << hex << &trans << "returned from exec_instr with delay " << delay << v::endl;
 
 }
 
 /// TLM forward blocking transport function for dcio socket
 void mmu_cache::dcio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
-  v::debug << name() << "dcio_b_transport received trans " << hex << &trans << " with delay " << delay << v::endl;
+  if (trans.is_read()) {
+    v::debug << name() << "TRANS: " << globl_count++ << " dcio_b_transport (READ) received trans " << hex << &trans << " (" << v::hex << trans.get_address() << ") with delay " << delay << v::endl;
+  } else {
+    v::debug << name() << "TRANS: " << globl_count++ << " dcio_b_transport (WRITE) received trans " << hex << &trans << " (" << v::hex << trans.get_address() << ") with delay " << delay << v::endl;
+  }
 
   // Call the functional part of the model
   // -----------------------
   exec_data(trans, delay, false);
   // -----------------------
-#if 0
-  static int counter = 0;
-  counter++;
-  switch(trans.get_data_length()) {
-    case 1:
-      std::cout << counter << "##" << (trans.is_write()?"W":"R") << " " << v::uint32 << trans.get_address() << " " << trans.get_data_length() << v::uint8 << (uint32_t) *(uint8_t *)trans.get_data_ptr() << v::endl;
-      break;
-    case 2:
-      std::cout << counter << "##" << (trans.is_write()?"W":"R") << " " << v::uint32 << trans.get_address() << " " << trans.get_data_length() << v::uint16 << (uint32_t) *(uint16_t *)trans.get_data_ptr() << v::endl;
-      break;
-    case 8:
-      std::cout << counter << "##" << (trans.is_write()?"W":"R") << " " << v::uint32 << trans.get_address() << " " << trans.get_data_length() << v::uint64 << (uint64_t) *(uint64_t *)trans.get_data_ptr() << v::endl;
-      break;
-    default:
-      std::cout << counter << "##" << (trans.is_write()?"W":"R") << " " << v::uint32 << trans.get_address() << " " << trans.get_data_length() << v::uint32 << (uint32_t) *(uint32_t *)trans.get_data_ptr() << v::endl;
-  }
-  #if 1
-  if(counter==0x159bf1) {
-      std::cout << "####" << (trans.is_write()?"W":"R") << " " << v::uint32 << trans.get_address() << " " << trans.get_data_length() << v::uint64 << (uint64_t) *(uint64_t *)trans.get_data_ptr() << v::endl;
-      std::cout << "HERE!!!!" << v::endl;
-  }
-  #endif
-#endif
-  // Reset delay
-  //delay = SC_ZERO_TIME;
+  v::debug << name() << "Transaction " << hex << &trans << "returned from exec_data with delay " << delay << v::endl;
 
 }
 
@@ -926,8 +908,12 @@ tlm::tlm_sync_enum mmu_cache::icio_nb_transport_fw(tlm::tlm_generic_payload &tra
 
   v::debug << name() << "ICIO nb_transport forward received transaction: " << hex << &trans << " with phase " << phase << v::endl;
 
+  if (trans.get_address()==0x40000000) v::info << "Boot completed - jump to main" << v::endl;
+ 
   // The master has sent BEGIN_REQ
   if (phase == tlm::BEGIN_REQ) {
+
+    //std::cout << "P" << m_master_id << ",I," << std::hex << trans.get_address() << v::endl;
 
     // Put transaction in PEQ
     icio_PEQ.notify(trans, delay);
@@ -1030,6 +1016,8 @@ tlm::tlm_sync_enum mmu_cache::dcio_nb_transport_fw(tlm::tlm_generic_payload &tra
 
   // The master has sent BEGIN_REQ
   if (phase == tlm::BEGIN_REQ) {
+
+    //std::cout << "P" << m_master_id << ",D," << std::hex << trans.get_address() << v::endl;
 
     // Put transaction into PEQ
     dcio_PEQ.notify(trans, delay);
@@ -1170,22 +1158,45 @@ void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * d
                           unsigned int length, sc_core::sc_time * delay,
                           unsigned int * debug, bool is_dbg, bool is_lock) {
 
-  tlm::tlm_response_status response;
+  // Allocate new transaction (reference counter = 1)
+  tlm::tlm_generic_payload * trans = ahb.get_transaction();
 
-  // Timed transport
+  v::debug << this->name() << "Allocate new transaction (WRITE) " << hex << trans << "Acquire / Ref-Count = " << trans->get_ref_count() << v::endl;
+
+  // Copy payload data
+  memcpy(write_buf + wb_pointer, data, length);
+
+  // Initialize transaction
+  trans->set_command(tlm::TLM_WRITE_COMMAND);
+  trans->set_address(addr);
+  trans->set_data_length(length);
+  trans->set_data_ptr(write_buf + wb_pointer);
+  trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+
+  wb_pointer = (wb_pointer + length) % 256;
+
   if (!is_dbg) {
 
-    ahbwrite(addr, data, length, *delay, is_lock, response);
-    // @AT wait for response from bus
-    if (m_abstractionLayer == amba::amba_AT) wait(ahb_response_event);
-
+    if (is_lock) {
+      ahb.validate_extension<amba::amba_lock>(*trans);
+    }
+ 
+    v::debug << this->name() << "Schedule transaction (WRITE) " << v::hex << trans << " FIFO level: " << bus_in_fifo.used() << v::endl;
+    trans->acquire();
+    bus_in_fifo.put(trans);
+    wait(SC_ZERO_TIME);
+    v::debug << this->name() << "Done scheduling transaction (WRITE) " << v::hex << trans << " FIFO level: " << bus_in_fifo.used() << v::endl;
 
   } else {
 
     // Debug transport
-    ahbwrite_dbg(addr, data, length);
+    ahbaccess_dbg(trans);
 
   }
+
+  // Decrement reference counter
+  trans->release();
+
 }
 
 // Function for read access to AHB master socket
@@ -1194,35 +1205,75 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * da
                          unsigned int * debug, bool is_dbg, bool is_lock) {
 
   bool cacheable = false;
-  tlm::tlm_response_status response;
+  // Allocate new transaction (reference counter = 1)
+  tlm::tlm_generic_payload * trans = ahb.get_transaction();
+
+  v::debug << this->name() << "Allocate new transaction (READ) " << v::hex << trans << "Acquire / Ref-Count = " << trans->get_ref_count() << v::endl;
+
+  // Initialize transaction
+  trans->set_command(tlm::TLM_READ_COMMAND);
+  trans->set_address(addr);
+  trans->set_data_length(length);
+  trans->set_data_ptr(data);
+  trans->set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
 
   if (!is_dbg) {
 
-    // Regular read
-    ahbread(addr, data, length, *delay, cacheable, is_lock, response);
-    // @AT wait for response from bus
-    if (m_abstractionLayer == amba::amba_AT) wait(ahb_response_event);
+    if (is_lock) {
+      ahb.validate_extension<amba::amba_lock>(*trans);
+    }
+
+    v::debug << this->name() << "Schedule transaction (READ) " << v::hex << trans << " FIFO level: " <<  bus_in_fifo.used() << v::endl;
+    trans->acquire();
+    bus_in_fifo.put(trans);
+    v::debug << this->name() << "Done scheduling transaction (READ) " << v::hex << trans << v::endl;
+
+    // Read misses are blocking the cache !!
+    wait(bus_read_completed);
+    v::debug << this->name() << "Done transaction (READ) / bus_read_completed event" << v::hex << trans << v::endl;
+
+    // Check cacheability
+    if (m_cached != 0)  {
+      cacheable = (m_cached & (1 << (addr >> 28))) ? true : false;
+    }
 
   } else {
-
-    // Debug read
-    ahbread_dbg(addr, data, length);
-
-  }
-
-  // Check cacheability:
-  // -------------------
-  // Cacheable areas are defined by the 'cached' parameter.
-  // In case 'cached' is zero, plug & play information will be used.
-  if (m_cached != 0) {
-
-    // use fixed mask
-    cacheable = (m_cached & (1 << (addr >> 28))) ? true : false;
+    
+    ahbaccess_dbg(trans);
 
   }
+
+  // Decrement reference counter
+  trans->release();
 
   return cacheable;
 
+}
+
+// Thread for serializing memory access
+void mmu_cache::mem_access() {
+
+  tlm::tlm_generic_payload * trans;
+  
+  while(1) {
+
+    while(bus_in_fifo.nb_get(trans)) {
+
+      //v::debug << this->name() << "Transaction " << v::hex << trans << " issued to AHB" << v::endl;
+      ahbaccess(trans);
+      //v::debug << this->name() << "Transaction " << v::hex << trans << " returned from AHB" << v::endl;
+
+      if (m_abstractionLayer == amba::amba_AT) wait(ahb_response_event);
+      if (trans->is_read()) bus_read_completed.notify();
+
+      // Decrement ref counter
+      trans->release();
+    }
+
+    if (bus_in_fifo.used() == 0) {
+      wait(bus_in_fifo.ok_to_get());
+    }
+  }
 }
 
 // Send an interrupt over the central IRQ interface

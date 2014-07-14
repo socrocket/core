@@ -11,7 +11,7 @@ from ..template import TemplateCollection
 class Wizard(QtGui.QWizard):
   def __init__(self, templates, parent=None):
     super(Wizard, self).__init__(parent)
-    self.setButtonLayout([QtGui.QWizard.Stretch, QtGui.QWizard.NextButton, QtGui.QWizard.FinishButton, QtGui.QWizard.CancelButton])
+    #self.setButtonLayout([QtGui.QWizard.Stretch, QtGui.QWizard.NextButton, QtGui.QWizard.FinishButton, QtGui.QWizard.CancelButton])
     #self.setStyleSheet("QWizard { background: blue }; QWizardPage { background: yellow;}")
     self.templates = templates
     self.addPage(IntroPage())

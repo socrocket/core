@@ -300,7 +300,8 @@ void Mctrl::start_of_simulation() {
       case MEMDevice::ROM: {
         if (c_rom.id > 10) {
           c_rom = port;
-          uint32_t bits = (device->get_bits() >> 3) & 3;
+          uint32_t bits = (device->get_bits() >> 4) & 3;
+          v::debug << name() << "ROM-Width: " << bits << v::endl;
           r[MCFG1] = r[MCFG1] | (bits << 8);
         } else {
           v::error << name() << "More than one ROM is connected to the Controller!" << v::endl;
@@ -309,7 +310,7 @@ void Mctrl::start_of_simulation() {
       case MEMDevice::IO: {
         if (c_io.id > 10) {
           c_io = port;
-          uint32_t bits = (device->get_bits() >> 3) & 3;
+          uint32_t bits = (device->get_bits() >> 4) & 3;
           r[MCFG1] = r[MCFG1] | (bits << 27);
         } else {
           v::error << name() << "More than one IO area is connected to the Controller!" << v::endl;
@@ -512,7 +513,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
         break;
       }
 
-      // Calculate delay: The static delay for the hole transaction and the per word delay:
+      // Calculate delay: The static delay for the whole transaction and the per word delay:
       switch (port.dev->get_type()) {
       case MEMDevice::ROM:
         rmw = false;
@@ -523,10 +524,10 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
             return 0;
           }
           trans_delay = 0;
-          word_delay = 3 + ((r[MCFG1].get() >> 4) & 0xF);
+          word_delay = 1 + ((r[MCFG1].get() >> 4) & 0xF);
         } else {
-          trans_delay = 1;
-          word_delay = (2 + ((r[MCFG1].get() >> 0) & 0xF));
+          trans_delay = 0;
+          word_delay = 1 + ((r[MCFG1].get() >> 0) & 0xF);
 
           // The RTL Model reads every mem_word as an 32bit word from the memory.
           // So we need to ensure the same behaviour here we multiply the read times to fit 32bit each.
@@ -572,14 +573,14 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
       case MEMDevice::SRAM:
         if (gp.is_write()) {
           trans_delay = 0;
-          word_delay = 3 + ((r[MCFG2].get() >> 2) & 0x3);
-          if (rmw && (mem_width > length)) {
+          word_delay = 2 + ((r[MCFG2].get() >> 2) & 0x3);
+          if (rmw && (length < 4)) {
             trans_delay += 0;
-            word_delay += 2 + ((r[MCFG2].get() >> 0) & 0x3);
+            word_delay += 4 + ((r[MCFG2].get() >> 0) & 0x3);
           }
         } else {
           trans_delay = 0;
-          word_delay = 4 + ((r[MCFG2].get() >> 0) & 0x3);
+          word_delay = 8 + ((r[MCFG2].get() >> 0) & 0x3);
         }
         break;
       case MEMDevice::SDRAM:
@@ -625,11 +626,11 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
         // RMW in case of subword access
         if (rmw && (length < mem_width)) {
           length = (length & ~(mem_width - 1)) + mem_width;
-          v::debug << name() << "RMW Fetch: " << v::uint32 <<
-          (uint32_t)(port.addr &
-                     ~(mem_width -
-                       1)) << ", length: " << std::dec << length << ", pos: " << v::uint32 <<
-          (uint32_t)(port.addr & (mem_width - 1)) << v::endl;
+          v::debug << name() << "RMW Fetch: " 
+                   << v::uint32 << (uint32_t)(port.addr & ~(mem_width - 1)) 
+                   << ", length: " << std::dec << length << ", pos: " 
+                   << v::uint32 << (uint32_t)(port.addr & (mem_width - 1)) 
+                   << v::endl;
           // RMW enabled!
           data = new unsigned char[length];
           memgp.set_command(TLM_READ_COMMAND);

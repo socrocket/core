@@ -27,3 +27,4 @@ def configure(self):
     if not self.options.static_build:
         self.env.append_unique('RPATH', self.env['LIBPATH_BOOST_THREAD'])
 
+

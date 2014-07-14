@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <time.h>
 
+#define SHORT_BENCH
+
 #if defined(_lisard_1_)
 #define UNR 4
 #endif

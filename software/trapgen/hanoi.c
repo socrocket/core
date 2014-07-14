@@ -55,6 +55,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define SHORT_BENCH
+
 #define other(i,j) (6-(i+j))
 
 double TimeArray[3];
