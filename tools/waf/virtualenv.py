@@ -46,7 +46,7 @@ class venv_link_task(Task.Task):
         if not os.path.exists(dnode.abspath()):
             os.symlink(os.path.relpath(snode.abspath(), os.path.join(dnode.abspath(), "..")), dnode.abspath())
 
-      snode = self.generator.bld.path.get_bld().abspath()
+      snode = self.generator.path.get_bld().abspath()
       dnode = os.path.join(self.env["VENV_PATH"], "lib", ("python%s" % self.env.PYTHON_VERSION), "site-packages", os.path.basename(snode))
       if not os.path.exists(dnode):
           os.symlink(os.path.relpath(snode, os.path.join(dnode, "..")), dnode)
