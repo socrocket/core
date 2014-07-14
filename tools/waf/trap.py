@@ -182,10 +182,16 @@ def configure(self):
         name    = "trap"
         version = "trunk"
         config_cmd = "%(src)s/waf configure -o %(build)s --prefix=%(prefix)s"
-        if self.env.HOME_LIB_ELF:
-            config_cmd += " --with-elf="+self.env.HOME_LIB_ELF
+        if self.env.HOME_LIBELF:
+            config_cmd += " --with-elf="+self.env.HOME_LIBELF
         if self.env.HOME_SYSTEMC:
             config_cmd += " --with-systemc="+self.env.HOME_SYSTEMC
+        if self.env.STLIBPATH_BOOST:
+          config_cmd += " --boost-libs="+self.env.STLIBPATH_BOOST[0]
+        if self.env.LIBPATH_BOOST:
+          config_cmd += " --boost-libs="+self.env.LIBPATH_BOOST[0]
+        if self.env.INCLUDES_BOOST:
+          config_cmd += " --boost-includes="+self.env.INCLUDES_BOOST[0]
         self.dep_build(
             name        = name, 
             version     = version,

@@ -26,6 +26,7 @@
 #include "signalkit/signalkit.h"
 #include "common/msclogger.h"
 #include "common/socrocket.h"
+#include "common/gs_config.h"
 
 class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   public:
@@ -126,37 +127,49 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   private:
     // Data Members
     // ------------
+    /// Configuration generic container
+    gs::cnf::gs_param_array g_conf;
 
     /// The MSB address of the I/O area
-    unsigned int mioaddr;
+    gs::cnf::gs_config<uint32_t> g_ioaddr;
+
     /// The I/O area address mask
-    unsigned int miomask;
+    gs::cnf::gs_config<uint32_t> g_iomask;
+
     /// The MSB address of the configuration area (PNP)
-    unsigned int mcfgaddr;
+    gs::cnf::gs_config<uint32_t> g_cfgaddr;
+
     /// The address mask of the configuration area
-    unsigned int mcfgmask;
+    gs::cnf::gs_config<uint32_t> g_cfgmask;
+
     /// 1 - round robin, 0 - fixed priority arbitration (only AT)
-    bool mrrobin;
+    gs::cnf::gs_config<bool> g_rrobin;
+
     /// Enable support for AHB SPLIT response (only AT)
-    bool msplit;
+    gs::cnf::gs_config<bool> g_split;
+
     /// ID of the default master
-    unsigned int mdefmast;
+    gs::cnf::gs_config<uint32_t> g_defmast;
+
     /// AHB I/O area enable
-    bool mioen;
+    gs::cnf::gs_config<bool> g_ioen;
+
     /// Enable support for fixed-length bursts
-    bool mfixbrst;
+    gs::cnf::gs_config<bool> g_fixbrst;
+
     /// Enable support for fixed-length bursts
-    bool mfpnpen;
+    gs::cnf::gs_config<bool> g_fpnpen;
+
     /// Check if there are any intersections between core memory regions
-    bool mmcheck;
+    gs::cnf::gs_config<bool> g_mcheck;
+
+    /// Enable power monitoring (Only TLM)
+    gs::cnf::gs_config<bool> g_pow_mon;
 
     const sc_time arbiter_eval_delay;
 
     // Shows if bus is busy in LT mode
     bool busy;
-
-    /// Enable power monitoring (Only TLM)
-    bool m_pow_mon;
 
     typedef tlm::tlm_generic_payload payload_t;
     typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;
@@ -226,13 +239,13 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
     gs::gs_param_array m_performance_counters;
 
     /// Total waiting time in arbiter
-    gs::gs_param<sc_time> m_total_wait;
+    gs::gs_config<sc_time> m_total_wait;
 
     /// Total number of arbitrated instructions
-    gs::gs_param<unsigned long long> m_arbitrated;  // NOLINT(runtime/int)
+    gs::gs_config<unsigned long long> m_arbitrated;  // NOLINT(runtime/int)
 
     /// Maximum waiting time in arbiter
-    gs::gs_param<sc_time> m_max_wait;
+    gs::gs_config<sc_time> m_max_wait;
 
     /// ID of the master with the maximum waiting time
     gs::gs_param<unsigned long long> m_max_wait_master;  // NOLINT(runtime/int)

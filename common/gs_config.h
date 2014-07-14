@@ -13,8 +13,8 @@
 ///
 
 
-#ifndef __CONFIG1_H__
-#define __CONFIG1_H__
+#ifndef COMMON_GS_CONFIG_H_
+#define COMMON_GS_CONFIG_H_
 
 //
 // This file is the recommended file to include the basic
@@ -27,8 +27,8 @@
 
 #define END_GS_CONFIG_NAMESPACE   }  }
 
-#include "greencontrol/config.h"
-#include "gs_config.h"     // parameters
-#include "gs_config_class.h"
-#endif
+#include <greencontrol/config.h>
+#include "common/gs_config/gs_config.h"     // parameters
+#include "common/gs_config/gs_config_class.h"
+#endif  // COMMON_GS_CONFIG_H_
 /// @}
