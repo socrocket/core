@@ -1260,9 +1260,9 @@ void mmu_cache::mem_access() {
 
     while(bus_in_fifo.nb_get(trans)) {
 
-      //v::debug << this->name() << "Transaction " << v::hex << trans << " issued to AHB" << v::endl;
+      v::debug << this->name() << "Transaction " << v::hex << trans << " issued to AHB" << v::endl;
       ahbaccess(trans);
-      //v::debug << this->name() << "Transaction " << v::hex << trans << " returned from AHB" << v::endl;
+      v::debug << this->name() << "Transaction " << v::hex << trans << " returned from AHB" << v::endl;
 
       if (m_abstractionLayer == amba::amba_AT) wait(ahb_response_event);
       if (trans->is_read()) bus_read_completed.notify();

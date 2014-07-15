@@ -580,7 +580,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
           }
         } else {
           trans_delay = 0;
-          word_delay = 8 + ((r[MCFG2].get() >> 0) & 0x3);
+          word_delay = 2 + ((r[MCFG2].get() >> 0) & 0x3);
         }
         break;
       case MEMDevice::SDRAM:
@@ -621,7 +621,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
 
       v::debug << name() << "Length: " << std::dec << length << ", mem_width: " << std::dec << mem_width <<
       ", width: " << width << v::endl;
-      v::debug << name() << "RMW Enabled: " << rmw << v::endl;
+      v::debug << name() << "RMW Enabled: " << rmw << " Transfer Delay: " << trans_delay << " Per Word Delay: " << word_delay << v::endl;
       if (gp.is_write()) {
         // RMW in case of subword access
         if (rmw && (length < mem_width)) {
