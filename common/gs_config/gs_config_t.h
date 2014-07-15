@@ -30,7 +30,7 @@ namespace gs {
         /// Template specialized base class for configuration parameters.
         template <typename T>
         class gs_config_t
-            : public gs_config_base, public gs_param_base
+            : public gs_config_base
         {
             /// Typedef for this specialized class.
             typedef gs_config_t<T> my_type;
@@ -79,7 +79,7 @@ namespace gs {
             /**
             */
             explicit gs_config_t()
-                : gs_param_base("", true, NULL, false)
+                : gs_config_base("", true, NULL, false)
             {  }
 
             /// Constructor with the special parameters. Name will be set in base. Avoid using it! You MUST call init() after instantiation!
@@ -91,7 +91,7 @@ namespace gs {
             *                             be carefull in using this.
             */
             explicit gs_config_t(const bool force_top_level_name, gs_param_array* parent_array, const bool register_at_db)
-                : gs_param_base("", register_at_db, parent_array, force_top_level_name)
+                : gs_config_base("", register_at_db, parent_array, force_top_level_name)
             {  }
 
             /// Constructor with (local or hierarchical) name. You MUST call init() after instantiation!
@@ -107,7 +107,7 @@ namespace gs {
             *             (local: unique inside a module, hierarchical: unique in the system).
             */
             explicit gs_config_t(const std::string &nam)
-                : gs_param_base(nam, true, NULL, false)
+                : gs_config_base(nam, true, NULL, false)
             {  }
 
             /// Constructor with (local or hierarchical) name and special parameters. You MUST call init() after instantiation!
@@ -129,7 +129,7 @@ namespace gs {
             */
             explicit gs_config_t(const std::string &nam, const bool force_top_level_name,
                 gs_param_array* parent_array, const bool register_at_db)
-                : gs_param_base(nam, register_at_db, parent_array, force_top_level_name)
+                : gs_config_base(nam, register_at_db, parent_array, force_top_level_name)
             {  }
 
             /// Init method to set the value and add the parameter to the plugin db.
@@ -141,6 +141,7 @@ namespace gs {
                 GS_PARAM_DUMP("Init gs_config_t "<< m_par_name.c_str());
                 // set my_value
                 my_value = default_val;
+                setProperty("default", convertValueToString(my_value));
                 // add to plugin database
                 if (m_register_at_db) {
                     assert(m_api != NULL);
@@ -151,6 +152,7 @@ namespace gs {
             void init() {
                 GS_PARAM_DUMP("Init gs_config_t "<< m_par_name.c_str());
                 my_value = convertStringToValue(string(""));
+                setProperty("default", convertValueToString(my_value));
                 // add to plugin database
                 if (m_register_at_db) {
                     assert(m_api != NULL);

@@ -22,8 +22,8 @@
 /// Constructor of class APBCtrl
 APBCtrl::APBCtrl(
     sc_core::sc_module_name nm,  // SystemC name
-    uint32_t haddr_,             // The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
-    uint32_t hmask_,             // The 12bit AHB area address mask
+    uint32_t haddr,              // The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
+    uint32_t hmask,              // The 12bit AHB area address mask
     bool mcheck,                 // Check if there are any intersections between APB slave memory regions
     uint32_t hindex,             // AHB bus index
     bool pow_mon,                // Enable power monitoring
@@ -35,15 +35,17 @@ APBCtrl::APBCtrl(
     0,
     0,
     ambaLayer,
-    BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr_)),
+    BAR(AHBDevice::AHBMEM, hmask, 0, 0, haddr)),
   apb("apb", amba::amba_APB, amba::amba_LT, false),
   m_AcceptPEQ("AcceptPEQ"),
   m_TransactionPEQ("TransactionPEQ"),
   m_pnpbase(0xFF000),
-  m_haddr(haddr_),
-  m_hmask(hmask_),
-  m_mcheck(mcheck),
-  m_pow_mon(pow_mon),
+  g_conf("conf"),
+  g_haddr("haddr", haddr, g_conf),
+  g_hmask("hmask", hmask, g_conf),
+  g_hindex("hindex", hindex, g_conf),
+  g_mcheck("mcheck", mcheck, g_conf),
+  g_pow_mon("pow_mon", pow_mon, g_conf),
   m_ambaLayer(ambaLayer),
   num_of_bindings(0),
   m_total_transactions("total_transactions", 0ull, m_performance_counters),
@@ -61,20 +63,15 @@ APBCtrl::APBCtrl(
   dyn_reads("dyn_reads", 0ull, power),  // Read access counter for power computation
   dyn_writes("dyn_writes", 0ull, power) {  // Write access counter for power computation
   // Assert generics are withing allowed ranges
-  assert(haddr_ <= 0xfff);
-  assert(hmask_ <= 0xfff);
+  assert(haddr <= 0xfff);
+  assert(hmask <= 0xfff);
 
-  // Register power monitor
-  if (m_pow_mon) {
-    GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, APBCtrl, sta_power_cb);
-    GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, APBCtrl, int_power_cb);
-    GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, APBCtrl, swi_power_cb);
-  }
+  init_generics();
 
   v::info << name() << " ***********************************************************************" << v::endl;
   v::info << name() << " * Created APBCTRL with following parameters: " << v::endl;
   v::info << name() << " * ------------------------------------------ " << v::endl;
-  v::info << name() << " * haddr/hmask: " << hex << haddr_ << "/" << hmask_ << v::endl;
+  v::info << name() << " * haddr/hmask: " << hex << haddr << "/" << hmask << v::endl;
   v::info << name() << " * mcheck: " << mcheck << v::endl;
   v::info << name() << " * hindex: " << hindex << v::endl;
   v::info << name() << " * pow_mon: " << pow_mon << v::endl;
@@ -90,6 +87,31 @@ void APBCtrl::dorst() {
 // Destructor
 APBCtrl::~APBCtrl() {
   GC_UNREGISTER_CALLBACKS();
+}
+
+void APBCtrl::init_generics() {
+  g_haddr.add_properties()
+    ("name", "AHB Base Address")
+    ("range", "0..4095")
+    ("The 12bit MSB address at the AHB bus");
+
+  g_hmask.add_properties()
+    ("name", "AHB Base Mask")
+    ("range", "0..4095")
+    ("The 12bit AHB address mask");
+
+  g_hindex.add_properties()
+    ("name", "AHB Slave Index")
+    ("range", "0..15")
+    ("The slave index at the AHB bus");
+
+  g_mcheck.add_properties()
+    ("name", "Memory check")
+    ("If true check slaves for memory address errors");
+
+  g_pow_mon.add_properties()
+    ("name", "Power Monitoring")
+    ("If true enable power monitoring");
 }
 
 /// Helper function for creating slave map decoder entries
@@ -223,7 +245,7 @@ uint32_t APBCtrl::exec_func(
       if (!debug) {
 
 	// Power event start
-	//PM::send(this,"apb_trans", 1, sc_time_stamp(), (unsigned int)apb_gp->get_data_ptr(), m_pow_mon);
+	//PM::send(this,"apb_trans", 1, sc_time_stamp(), (unsigned int)apb_gp->get_data_ptr(), g_pow_mon);
 
 	// Forward request to the selected slave
 	apb[index]->b_transport(*apb_gp, delay);
@@ -232,7 +254,7 @@ uint32_t APBCtrl::exec_func(
 	delay += clock_cycle;
 
 	// Power Calculation
-	if (m_pow_mon) {
+	if (g_pow_mon) {
 	  if (ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
 	    dyn_reads += (ahb_gp.get_data_length() >> 2) + 1;
 	  } else {
@@ -257,6 +279,15 @@ uint32_t APBCtrl::exec_func(
   }
 
   return ahb_gp.get_data_length();
+}
+
+void APBCtrl::end_of_elaboration() {
+  // Register power monitor
+  if (g_pow_mon) {
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, APBCtrl, sta_power_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, APBCtrl, int_power_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, APBCtrl, swi_power_cb);
+  }
 }
 
 /// Set up slave map and collect plug & play information
@@ -318,12 +349,12 @@ void APBCtrl::start_of_simulation() {
   v::info << name() << "******************************************************************************* " << v::endl;
 
   // Check memory map for overlaps
-  if (m_mcheck) {
+  if (g_mcheck) {
     checkMemMap();
   }
 
   // Initialize power model
-  if (m_pow_mon) {
+  if (g_pow_mon) {
     power_model();
   }
 }

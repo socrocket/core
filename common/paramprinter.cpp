@@ -15,7 +15,7 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
-#include "common/vmap.h"
+#include <map>
 #include "common/paramprinter.h"
 
 paramprinter::paramprinter() {
@@ -50,10 +50,12 @@ void paramprinter::printConfigs() {
     if (dynamic_cast<gs::cnf::gs_config_base *>(paramList[i]) != 0) {
       std::cout << " " << paramList[i]->getName() << std::endl;
       gs::cnf::gs_config_base *config = dynamic_cast<gs::cnf::gs_config_base *>(paramList[i]);
-      vmap<std::string, std::string> descriptionMap = config->getProperties();
-      for (vmap<std::string, std::string>::iterator it = descriptionMap.begin(); it != descriptionMap.end(); ++it) {
+      std::map<std::string, std::string> descriptionMap = config->getProperties();
+      for (std::map<std::string, std::string>::iterator it = descriptionMap.begin(); it != descriptionMap.end(); ++it) {
         std::cout << "\t" << it->first << ": \t" << it->second << std::endl;
       }
+      std::cout << "\tdocumentation: \t" << config->get_documentation() << std::endl;
+      std::cout << "\ttype: \t" << config->getTypeString() << std::endl;
     }
   }
 }
@@ -66,10 +68,12 @@ void paramprinter::printConfigs(std::string key) {
       if (paramList[i]->getName().find(key) != std::string::npos) {
         std::cout << " " << paramList[i]->getName() << std::endl;
         gs::cnf::gs_config_base *config = dynamic_cast<gs::cnf::gs_config_base *>(paramList[i]);
-        vmap<std::string, std::string> descriptionMap = config->getProperties();
-        for (vmap<std::string, std::string>::iterator it = descriptionMap.begin(); it != descriptionMap.end(); ++it) {
+        std::map<std::string, std::string> descriptionMap = config->getProperties();
+        for (std::map<std::string, std::string>::iterator it = descriptionMap.begin(); it != descriptionMap.end(); ++it) {
           std::cout << "\t" << it->first << ": \t" << it->second << std::endl;
         }
+        std::cout << "\tdocumentation: \t" << config->get_documentation() << std::endl;
+        std::cout << "\ttype: \t" << config->getTypeString() << std::endl;
       }
     }
   }
