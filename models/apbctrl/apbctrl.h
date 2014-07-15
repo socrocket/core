@@ -60,13 +60,14 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
     void checkMemMap();
 
     /// Constructor
-    APBCtrl(sc_core::sc_module_name nm,  ///< SystemC name
-    uint32_t haddr_ = 0xfff,             ///< The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
-    uint32_t hmask_ = 0,                 ///< The 12bit AHB area address mask
-    bool mcheck = 0,                     ///< Check if there are any intersections between APB slave memory regions
-    uint32_t hindex = 0,                 ///< AHB bus index
-    bool pow_mon = 0,                    ///< Enables power monitoring
-    amba::amba_layer_ids ambaLayer = amba::amba_LT);
+    APBCtrl(
+      sc_core::sc_module_name nm,  ///< SystemC name
+      uint32_t haddr = 0xfff,      ///< The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
+      uint32_t hmask = 0,          ///< The 12bit AHB area address mask
+      bool mcheck = 0,             ///< Check if there are any intersections between APB slave memory regions
+      uint32_t hindex = 0,         ///< AHB bus index
+      bool pow_mon = 0,            ///< Enables power monitoring
+      amba::amba_layer_ids ambaLayer = amba::amba_LT);
 
     // Omitted parameters:
     // -------------------

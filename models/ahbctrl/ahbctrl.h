@@ -90,20 +90,21 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
     void print_transport_statistics(const char *name) const;
 
     /// Constructor
-    AHBCtrl(sc_core::sc_module_name nm,  ///< SystemC name
-    unsigned int ioaddr,        ///< The MSB address of the I/O area
-    unsigned int iomask,        ///< The I/O area address mask
-    unsigned int cfgaddr,       ///< The MSB address of the configuration area (PNP)
-    unsigned int cfgmask,       ///< The address mask of the configuration area
-    bool rrobin,                ///< 1 - round robin, 0 - fixed priority arbitration (only AT)
-    bool split,                 ///< Enable support for AHB SPLIT response (only AT)
-    unsigned int defmast,       ///< ID of the default master
-    bool ioen,                  ///< AHB I/O area enable
-    bool fixbrst,               ///< Enable support for fixed-length bursts
-    bool fpnpen,                ///< Enable full decoding of PnP configuration records.
-    bool mcheck,                ///< Check if there are any intersections between core memory regions.
-    bool pow_mon,               ///< Enable power monitoring
-    amba::amba_layer_ids ambaLayer);
+    AHBCtrl(
+      sc_core::sc_module_name nm,  ///< SystemC name
+      unsigned int ioaddr,        ///< The MSB address of the I/O area
+      unsigned int iomask,        ///< The I/O area address mask
+      unsigned int cfgaddr,       ///< The MSB address of the configuration area (PNP)
+      unsigned int cfgmask,       ///< The address mask of the configuration area
+      bool rrobin,                ///< 1 - round robin, 0 - fixed priority arbitration (only AT)
+      bool split,                 ///< Enable support for AHB SPLIT response (only AT)
+      unsigned int defmast,       ///< ID of the default master
+      bool ioen,                  ///< AHB I/O area enable
+      bool fixbrst,               ///< Enable support for fixed-length bursts
+      bool fpnpen,                ///< Enable full decoding of PnP configuration records.
+      bool mcheck,                ///< Check if there are any intersections between core memory regions.
+      bool pow_mon,               ///< Enable power monitoring
+      amba::amba_layer_ids ambaLayer);
 
     /// Reset Callback
     void dorst();
