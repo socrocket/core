@@ -17,7 +17,7 @@
 
 #include <stdint.h>
 #include <systemc.h>
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <greenreg_ambasockets.h>
 #include <boost/config.hpp>
 #include <utility>
@@ -53,7 +53,7 @@ class Irqmp : public gs::reg::gr_device,
     signal<uint32_t>::infield irq_ack;
 
     /// IRQ input signals from other devices
-    signal<bool>::infield irq_in;
+    signal<std::pair<uint32_t,bool> >::in irq_in;
 
     /// Internal signal to decouple inputs and outputs. Furthermore it addes the needed delays
     sc_event e_signal;
@@ -157,7 +157,7 @@ class Irqmp : public gs::reg::gr_device,
     ///              be cleared in the interrupt controler.
     /// @param irq   The interrupt line which is triggered.
     /// @param time  Delay to the simulation time. Not used in this signal.
-    void incomming_irq(const bool &value, const uint32_t &irq, const sc_time &time);
+    void incomming_irq(const std::pair<uint32_t, bool> &value, const sc_time &time);
 
     /// Acknowledged Irq Callback
     ///
@@ -204,19 +204,19 @@ class Irqmp : public gs::reg::gr_device,
     // Power Modeling Parameters
 
     /// Normalized static power of controller
-    gs::gs_param<double> sta_power_norm;
+    gs::gs_config<double> sta_power_norm;
 
     /// Normalized dynamic power of controller
-    gs::gs_param<double> int_power_norm;
+    gs::gs_config<double> int_power_norm;
 
     /// Parameter array for power data output
     gs::gs_param_array power;
 
     /// Controller static power
-    gs::gs_param<double> sta_power;
+    gs::gs_config<double> sta_power;
 
     /// Controller dynamic power
-    gs::gs_param<double> int_power;
+    gs::gs_config<double> int_power;
 
     // ******************************************************
     // Constant and mask definitions

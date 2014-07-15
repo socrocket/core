@@ -18,7 +18,7 @@
 #ifndef __MMU_CACHE_H__
 #define __MMU_CACHE_H__
 
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <amba.h>
 #include <tlm.h>
 //#include <tlm_1/tlm_req_rsp/tlm_channels/tlm_fifo/tlm_fifo.h>
@@ -67,7 +67,7 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   signal<t_snoop>::in snoop;
 
   // Signalkit IRQ output
-  signal<bool>::selector irq;
+  signal<std::pair<uint32_t, bool> >::out irq;
 
   /// @brief Constructor of the top-level class of the memory sub-system (caches and mmu).
   /// @icen          instruction cache enable
@@ -267,10 +267,10 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   tlm::tlm_fifo<tlm::tlm_generic_payload *> bus_in_fifo;
 
   /// Total number of successful transactions for execution statistics 
-  gs::gs_param<unsigned long long> m_right_transactions;
+  gs::gs_config<uint64_t> m_right_transactions;
 
   /// Total number of transactions for execution statistics
-  gs::gs_param<unsigned long long> m_total_transactions;
+  gs::gs_config<uint64_t> m_total_transactions;
 
   /// power monitoring enabled
   bool m_pow_mon;
@@ -285,43 +285,43 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   // Power Modeling Parameters
 
   /// Normalized static power of controller
-  gs::gs_param<double> sta_power_norm;
+  gs::gs_config<double> sta_power_norm;
 
   /// Normalized internal power of controller
-  gs::gs_param<double> int_power_norm;
+  gs::gs_config<double> int_power_norm;
 
   /// Normalized read access energy
-  gs::gs_param<double> dyn_read_energy_norm;
+  gs::gs_config<double> dyn_read_energy_norm;
 
   /// Normalized write access energy
-  gs::gs_param<double> dyn_write_energy_norm;
+  gs::gs_config<double> dyn_write_energy_norm;
 
   /// Parameter array for power data output
   gs::gs_param_array power;
 
   /// Controller static power
-  gs::gs_param<double> sta_power;
+  gs::gs_config<double> sta_power;
 
   /// Controller internal power
-  gs::gs_param<double> int_power;
+  gs::gs_config<double> int_power;
 
   /// Controller switching power
-  gs::gs_param<double> swi_power;
+  gs::gs_config<double> swi_power;
 
   /// Power frame starting time
-  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+  gs::gs_config<sc_core::sc_time> power_frame_starting_time;
 
   /// Dynamic energy per read access
-  gs::gs_param<double> dyn_read_energy;
+  gs::gs_config<double> dyn_read_energy;
 
   /// Dynamic energy per write access
-  gs::gs_param<double> dyn_write_energy;
+  gs::gs_config<double> dyn_write_energy;
 
   /// Number of reads from memory (read & reset by monitor)
-  gs::gs_param<unsigned long long> dyn_reads;
+  gs::gs_config<uint64_t> dyn_reads;
 
   /// Number of writes to memory (read & reset by monitor)
-  gs::gs_param<unsigned long long> dyn_writes;    
+  gs::gs_config<uint64_t> dyn_writes;    
 
   uint64_t globl_count;
   

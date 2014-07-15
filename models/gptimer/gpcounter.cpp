@@ -151,7 +151,7 @@ void GPCounter::ticking() {
             if (p->r[GPTimer::CONF].b[GPTimer::CONF_SI]) {
                 irqnr += nr;
             }
-            p->irq.write((1 << irqnr), true);
+            p->irq.write(std::pair<uint32_t, bool>(1 << irqnr, true));
             m_pirq = true;
         }
         if (p->counter.size()-1 == nr && p->g_wdog_length != 0) {
@@ -160,7 +160,7 @@ void GPCounter::ticking() {
 
         wait(p->clock_cycle);
         if (m_pirq && irqnr) {
-            p->irq.write(1 << irqnr, false);
+            p->irq.write(std::pair<uint32_t, bool>(1 << irqnr, false));
         }
         if (p->counter.size()-1 == nr && p->g_wdog_length != 0) {
            p->wdog.write(false);

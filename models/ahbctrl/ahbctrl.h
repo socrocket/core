@@ -17,7 +17,7 @@
 #define MODELS_AHBCTRL_AHBCTRL_H_
 
 #include <amba.h>
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <tlm.h>
 #include <map>
 
@@ -26,6 +26,7 @@
 #include "signalkit/signalkit.h"
 #include "common/msclogger.h"
 #include "common/socrocket.h"
+#include "common/gs_config.h"
 
 class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   public:
@@ -126,37 +127,49 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
   private:
     // Data Members
     // ------------
+    /// Configuration generic container
+    gs::cnf::gs_param_array g_conf;
 
     /// The MSB address of the I/O area
-    unsigned int mioaddr;
+    gs::cnf::gs_config<uint32_t> g_ioaddr;
+
     /// The I/O area address mask
-    unsigned int miomask;
+    gs::cnf::gs_config<uint32_t> g_iomask;
+
     /// The MSB address of the configuration area (PNP)
-    unsigned int mcfgaddr;
+    gs::cnf::gs_config<uint32_t> g_cfgaddr;
+
     /// The address mask of the configuration area
-    unsigned int mcfgmask;
+    gs::cnf::gs_config<uint32_t> g_cfgmask;
+
     /// 1 - round robin, 0 - fixed priority arbitration (only AT)
-    bool mrrobin;
+    gs::cnf::gs_config<bool> g_rrobin;
+
     /// Enable support for AHB SPLIT response (only AT)
-    bool msplit;
+    gs::cnf::gs_config<bool> g_split;
+
     /// ID of the default master
-    unsigned int mdefmast;
+    gs::cnf::gs_config<uint32_t> g_defmast;
+
     /// AHB I/O area enable
-    bool mioen;
+    gs::cnf::gs_config<bool> g_ioen;
+
     /// Enable support for fixed-length bursts
-    bool mfixbrst;
+    gs::cnf::gs_config<bool> g_fixbrst;
+
     /// Enable support for fixed-length bursts
-    bool mfpnpen;
+    gs::cnf::gs_config<bool> g_fpnpen;
+
     /// Check if there are any intersections between core memory regions
-    bool mmcheck;
+    gs::cnf::gs_config<bool> g_mcheck;
+
+    /// Enable power monitoring (Only TLM)
+    gs::cnf::gs_config<bool> g_pow_mon;
 
     const sc_time arbiter_eval_delay;
 
     // Shows if bus is busy in LT mode
     bool busy;
-
-    /// Enable power monitoring (Only TLM)
-    bool m_pow_mon;
 
     typedef tlm::tlm_generic_payload payload_t;
     typedef gs::socket::bindability_base<tlm::tlm_base_protocol_types> socket_t;
@@ -226,31 +239,31 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
     gs::gs_param_array m_performance_counters;
 
     /// Total waiting time in arbiter
-    gs::gs_param<sc_time> m_total_wait;
+    gs::gs_config<sc_time> m_total_wait;
 
     /// Total number of arbitrated instructions
-    gs::gs_param<unsigned long long> m_arbitrated;  // NOLINT(runtime/int)
+    gs::gs_config<unsigned long long> m_arbitrated;  // NOLINT(runtime/int)
 
     /// Maximum waiting time in arbiter
-    gs::gs_param<sc_time> m_max_wait;
+    gs::gs_config<sc_time> m_max_wait;
 
     /// ID of the master with the maximum waiting time
-    gs::gs_param<unsigned long long> m_max_wait_master;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> m_max_wait_master;  // NOLINT(runtime/int)
 
     /// Number of idle cycles
-    gs::gs_param<unsigned long long> m_idle_count;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> m_idle_count;  // NOLINT(runtime/int)
 
     /// Total number of transactions handled by the instance
-    gs::gs_param<unsigned long long> m_total_transactions;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> m_total_transactions;  // NOLINT(runtime/int)
 
     /// Succeeded number of transaction handled by the instance
-    gs::gs_param<unsigned long long> m_right_transactions;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> m_right_transactions;  // NOLINT(runtime/int)
 
     /// Counts bytes written to AHBCTRL from the master side
-    gs::gs_param<unsigned long long> m_writes;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> m_writes;  // NOLINT(runtime/int)
 
     /// Counts bytes read from AHBCTRL from the master side
-    gs::gs_param<unsigned long long> m_reads;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> m_reads;  // NOLINT(runtime/int)
 
     /// ID of the master which currently 'owns' the bus
     uint32_t current_master;
@@ -271,43 +284,43 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
     // Power Modeling Parameters
 
     /// Normalized static power input
-    gs::gs_param<double> sta_power_norm;
+    gs::gs_config<double> sta_power_norm;
 
     /// Normalized internal power input (activation independent)
-    gs::gs_param<double> int_power_norm;
+    gs::gs_config<double> int_power_norm;
 
     /// Normalized read access energy
-    gs::gs_param<double> dyn_read_energy_norm;
+    gs::gs_config<double> dyn_read_energy_norm;
 
     /// Normalized write access energy
-    gs::gs_param<double> dyn_write_energy_norm;
+    gs::gs_config<double> dyn_write_energy_norm;
 
     /// Parameter array for power data output
     gs::gs_param_array power;
 
     /// Static power of module
-    gs::gs_param<double> sta_power;
+    gs::gs_config<double> sta_power;
 
     /// Dynamic power of module (activation independent)
-    gs::gs_param<double> int_power;
+    gs::gs_config<double> int_power;
 
     /// Switching power of module
-    gs::gs_param<double> swi_power;
+    gs::gs_config<double> swi_power;
 
     /// Power frame starting time
-    gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+    gs::gs_config<sc_core::sc_time> power_frame_starting_time;
 
     /// Dynamic energy per read access
-    gs::gs_param<double> dyn_read_energy;
+    gs::gs_config<double> dyn_read_energy;
 
     /// Dynamic energy per write access
-    gs::gs_param<double> dyn_write_energy;
+    gs::gs_config<double> dyn_write_energy;
 
     /// Number of reads from memory (read & reset by monitor)
-    gs::gs_param<unsigned long long> dyn_reads;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> dyn_reads;  // NOLINT(runtime/int)
 
     /// Number of writes to memory (read & reset by monitor)
-    gs::gs_param<unsigned long long> dyn_writes;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> dyn_writes;  // NOLINT(runtime/int)
 
     // Private functions
     // -----------------

@@ -56,67 +56,67 @@ class dvectorcache : public vectorcache {
   /// Power Modeling Parameters
 
   /// Normalized static power input for logic
-  gs::gs_param<double> sta_power_norm;
+  gs::gs_config<double> sta_power_norm;
 
   /// Normalized internal power input for logic (activation independent)
-  gs::gs_param<double> int_power_norm;
+  gs::gs_config<double> int_power_norm;
 
    /// Normalized static power input for dtag ram (dp)
-  gs::gs_param<double> sta_dtag_power_norm;
+  gs::gs_config<double> sta_dtag_power_norm;
 
   /// Normalized static power input for ddata ram (sp)
-  gs::gs_param<double> sta_ddata_power_norm;
+  gs::gs_config<double> sta_ddata_power_norm;
 
   /// Normalized internal power input for dtag ram (dp)
-  gs::gs_param<double> int_dtag_power_norm;
+  gs::gs_config<double> int_dtag_power_norm;
 
   /// Normalized internal power input for ddata ram (sp)
-  gs::gs_param<double> int_ddata_power_norm;
+  gs::gs_config<double> int_ddata_power_norm;
 
   /// Normalized read access energy for dtag ram (dp)
-  gs::gs_param<double> dyn_dtag_read_energy_norm;
+  gs::gs_config<double> dyn_dtag_read_energy_norm;
 
   /// Normalized write access energy for dtag ram (dp)
-  gs::gs_param<double> dyn_dtag_write_energy_norm;
+  gs::gs_config<double> dyn_dtag_write_energy_norm;
 
   /// Normalized read access energy for ddata ram (sp)
-  gs::gs_param<double> dyn_ddata_read_energy_norm;
+  gs::gs_config<double> dyn_ddata_read_energy_norm;
 
   /// Normalized write access energy for ddata ram (sp)
-  gs::gs_param<double> dyn_ddata_write_energy_norm;
+  gs::gs_config<double> dyn_ddata_write_energy_norm;
 
   /// Parameter array for power output (dcache controller)
   gs::gs_param_array power;
 
   /// Static power of module
-  gs::gs_param<double> sta_power;
+  gs::gs_config<double> sta_power;
 
   /// Internal dynamic power (activation independent)
-  gs::gs_param<double> int_power;
+  gs::gs_config<double> int_power;
 
   /// Switching power
-  gs::gs_param<double> swi_power;
+  gs::gs_config<double> swi_power;
 
   /// Power frame starting time
-  gs::gs_param<sc_core::sc_time> power_frame_starting_time;
+  gs::gs_config<sc_core::sc_time> power_frame_starting_time;
 
   /// Parameter array for power output of dtag ram
   gs::gs_param_array dtag;
 
   /// Dynamic energy per dtag read access
-  gs::gs_param<double> dyn_tag_read_energy;
+  gs::gs_config<double> dyn_tag_read_energy;
 
   /// Dynamic energy per dtag write access
-  gs::gs_param<double> dyn_tag_write_energy;
+  gs::gs_config<double> dyn_tag_write_energy;
 
   /// Parameter array for power output of ddata ram
   gs::gs_param_array ddata;
 
   /// Dynamic energy per ddata read access
-  gs::gs_param<double> dyn_data_read_energy;
+  gs::gs_config<double> dyn_data_read_energy;
 
   /// Dynamic energy per ddata write access
-  gs::gs_param<double> dyn_data_write_energy;
+  gs::gs_config<double> dyn_data_write_energy;
 
   // Constructor
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy

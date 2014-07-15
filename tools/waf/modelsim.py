@@ -24,7 +24,7 @@ TODO: Add testig for flags
 """
 def options(opt):
   #conf = opt.get_option_group("--download")
-  opt.add_option('--nomodelsim', dest='modelsim', action='store_false', default=True, help='Deactivates the build of all modelsim featured targets')
+  opt.add_option('--modelsim', dest='modelsim', action='store_true', default=False, help='Deactivates the build of all modelsim featured targets')
 
 def configure(ctx):
   """Detect modelsim executables and set default flags"""

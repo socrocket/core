@@ -1280,7 +1280,7 @@ void mmu_cache::mem_access() {
 // Send an interrupt over the central IRQ interface
 void mmu_cache::set_irq(uint32_t tt) {
 
-  irq.write(tt, true);
+  irq.write(std::pair<uint32_t, bool>(tt, true));
 
 }
 

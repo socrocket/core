@@ -47,6 +47,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -141,6 +142,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
 
     /// Overloads gs_config::getTypeString
@@ -235,6 +237,7 @@ public:
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     // not allowed for bool: 
     // GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -325,6 +328,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -401,6 +405,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -513,6 +518,7 @@ public:
     explicit gs_config(const std::string &nam, const std::string &val, gs_param_array* parent_array, const bool force_top_level_name, const bool register_at_db) : gs_config_t<val_type>(nam, force_top_level_name,  parent_array, register_at_db) { gs_config_t<val_type>::init(convertStringToValue(val));         } 
     explicit gs_config(const std::string &nam, const std::string &val, gs_param_array& parent_array, const bool force_top_level_name, const bool register_at_db) : gs_config_t<val_type>(nam, force_top_level_name, &parent_array, register_at_db) { gs_config_t<val_type>::init(convertStringToValue(val));         } 
 
+    GS_CONFIG_DELEGATE;
     const val_type convertStringToValue(const std::string& str) {    
         return str; 
     }                                                                 
@@ -693,6 +699,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -782,6 +789,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -890,6 +898,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -991,6 +1000,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -1092,6 +1102,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -1195,6 +1206,7 @@ public:
 
     GC_SPECIALISATIONS_INCREMENT_OPERATORS;
     GC_SPECIALISATIONS_DECREMENT_OPERATORS;
+    GS_CONFIG_DELEGATE;
 
     /// Overloads gs_config::getTypeString
     const std::string getTypeString() const {
@@ -1256,91 +1268,3 @@ public:
 
 };
 
-// /////////////////////////////////////////////////////////////////////////////// //
-// /////////////////// gs_config< INT16_T > /////////////////////////////////////////// //
-// /////////////////////////////////////////////////////////////////////////////// //
-
-/// Template specialization for gs_config<int16_t>.
-/**
-* Default value = 0.
-*/
-template<>
-class gs_config<int16_t>
-    : public gs_config_t<int16_t>
-{
-    /// Typedef for the value.
-    typedef int16_t val_type;
-
-public:
-    GS_CONFIG_HEAD;
-
-    // ///////////////////////
-    //  operators
-
-    GC_SPECIALISATIONS_ARITHMETIC_OPERATORS;
-
-    GC_SPECIALISATIONS_BINARY_OPERATORS;
-
-    GC_SPECIALISATIONS_INCREMENT_OPERATORS;
-    GC_SPECIALISATIONS_DECREMENT_OPERATORS;
-
-    /// Overloads gs_config::getTypeString
-    const std::string getTypeString() const {
-        return string("int16_t");
-    }
-
-    /// Overloads gs_config::getType
-    const Param_type getType() const {
-        return PARTYPE_INT;
-        //TODO: add PARTYPE_INT16_T
-    }
-
-    /// Overloads gs_config_t<T>::convertValueToString
-    std::string convertValueToString(const val_type &val) const{
-        return static_convertValueToString(val);;
-    }  
-    inline static std::string static_convertValueToString(const val_type &val) {
-        std::ostringstream ss;
-        ss << val;
-        return ss.str();
-    }
-
-    /// Static convertion function called by virtual deserialize and others (e.g. GCnf_API)
-    inline static bool static_deserialize(val_type &target_val, const std::string& str) { 
-        std::istringstream ss(str);
-        GS_PARAM_DUMP_WITHNAME("gs_config", "deserialize: string='"<< ss.str().c_str() << "'");
-        if (ss.str().length() == 0) {
-            target_val = 0;
-            GS_PARAM_DUMP_WITHNAME("gs_config", "deserialize: set default value");
-            return true;
-        }
-        val_type tmp;
-        ss >> tmp;
-        // if next char is a decimal point, ignore
-        if (!ss.eof() && ss.peek() == '.') {
-            target_val = tmp;
-            GS_PARAM_DUMP_WITHNAME("gs_config", "(int) ignored decimal point");
-            return true;
-        }
-        // if error try hex
-        if (!ss.eof() || ss.fail() || ss.bad()) {
-            GS_PARAM_DUMP_WITHNAME("gs_config", "stream fail or not eof, try hex");
-            ss.~istringstream();
-            new ( (void *) &ss ) std::istringstream(str); // TODO: changed m_api->getParam(m_par_name) to str; correct??
-            ss >> (std::hex) >> tmp;
-        }
-        // no conversion error
-        if (ss.eof() && !ss.fail() && !ss.bad()) {
-            target_val = tmp;
-            GS_PARAM_DUMP_WITHNAME("gs_config", "(int) stream eof and not fail"); 
-        }  
-        else {
-            std::stringstream ess;
-            ess << "Conversion error: '" << str << "'";
-            SC_REPORT_WARNING("deserialize", ess.str().c_str());
-            return false;
-        }
-        return true;
-    }    
-
-};

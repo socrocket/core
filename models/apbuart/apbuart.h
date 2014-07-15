@@ -38,12 +38,13 @@ class APBUART : public gs::reg::gr_device, public APBDevice, public CLKDevice {
     /// APB Slave socket for all bus communication
     gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;
 
-    signal<bool>::out irq;
+    signal<std::pair<uint32_t, bool> >::out irq;
 
     sc_event e_irq;
 
     io_if *m_backend;
-    // signal<bool>::selector irq;
+
+    uint32_t g_pirq;
 
     APBUART(sc_core::sc_module_name name, io_if *backend, uint16_t pindex = 0,
     uint16_t paddr = 0, uint16_t pmask = 4095, int pirq = 0,

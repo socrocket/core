@@ -16,7 +16,7 @@
 #define MODELS_UTILS_AHBMASTER_H_
 
 #include <stdint.h>
-#include <greencontrol/config.h>
+#include "common/gs_config.h"
 #include <amba.h>
 #include <systemc.h>
 #include <tlm.h>
@@ -148,10 +148,10 @@ class AHBMaster : public BASE, public AHBDevice {
     gs::gs_param_array m_performance_counters;
 
     /// Stores the number of Bytes read from the device
-    gs::gs_param<unsigned long long> m_reads;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> m_reads;  // NOLINT(runtime/int)
 
     /// Stores the number of Bytes written from the device
-    gs::gs_param<unsigned long long> m_writes;  // NOLINT(runtime/int)
+    gs::gs_config<uint64_t> m_writes;  // NOLINT(runtime/int)
 
     // Indicates a TLM response error
     bool response_error;

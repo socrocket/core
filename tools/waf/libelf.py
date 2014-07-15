@@ -108,6 +108,8 @@ def find(self, path = None):
             mandatory=True, 
             errmsg='Error, elf_getphdrnum not present in libelf; try to update to a newest version'
         )
+    if path:
+        self.env.HOME_LIBELF = path
 
 def configure(self):
     self.check(

@@ -29,8 +29,7 @@
 
 #include "signalkit/signalkit.h"
 #include "common/verbose.h"
-
-#include "gs_config/propertyconfig.h"
+#include "common/gs_config.h"
 
 #undef CTRL
 
@@ -44,7 +43,7 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   /// APB Slave socket for all bus communication
   gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;
 
-  signal<bool>::selector irq;
+  signal<std::pair<uint32_t, bool> >::out irq;
   signal<bool>::out wdog;
 
   /// Stores the default config register value

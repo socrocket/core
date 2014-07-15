@@ -48,7 +48,11 @@ def configure(self):
       To compile SoCRocket you need to have installed a basic Unix system.
       Atleast it needs to contain: 
 
-        nm, git, patch, make, wget, tar, ln, bash ans swig.
+        nm, git, patch, make, wget, tar, ln, bash ans swig, python.
+
+      Moreover you will need the development packages from readline:
+
+        libreadline-dev
 
       Furthermore you need to provide cross compiler for sparc. If not provided
       we will try to fetch them from Gaisler (sparc-elf-gcc). But you will need 

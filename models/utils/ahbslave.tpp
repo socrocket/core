@@ -154,7 +154,7 @@ void AHBSlave<BASE>::responseThread() {
     phase = tlm::BEGIN_RESP;
     delay = SC_ZERO_TIME;
 
-    v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase <<
+    v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << status << phase <<
     v::endl;
 
     // Backward arrow for msc
