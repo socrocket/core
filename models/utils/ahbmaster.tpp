@@ -23,8 +23,10 @@ tlm::tlm_sync_enum AHBMaster<BASE>::nb_transport_bw(
     tlm::tlm_generic_payload &trans,  // NOLINT(runtime/references)
     tlm::tlm_phase &phase,            // NOLINT(runtime/references)
     sc_core::sc_time &delay) {        // NOLINT(runtime/references)
-  v::debug << this->name() << "nb_transport_bw received transaction " << hex << &trans << " with phase " << phase <<
-  v::endl;
+  v::debug << this->name() << "nb_transport_bw received transaction " << hex << &trans << " with phase " << phase << v::endl;
+
+  v::debug << this->name() << "Acquire " << hex << &trans << " Ref-Count before acquire (nb_transport_bw) " << trans.get_ref_count() << v::endl;
+  trans.acquire();
 
   if (phase == tlm::END_REQ) {
     // END_REQ marks the time at which the address or the last address of a burst is sampled by the slave.
@@ -39,10 +41,14 @@ tlm::tlm_sync_enum AHBMaster<BASE>::nb_transport_bw(
 
     // Calculate length of data phase
     data_phase_base = (((trans.get_data_length() - 1) >> 2) + 1);
-
     delay = data_phase_base * get_clock();
+    
+    // Increment reference counter
+    v::debug << this->name() << "Acquire " << hex << &trans << " Ref-Count before acquire (m_ResponsePEQ) " << trans.get_ref_count() << v::endl;
+    trans.acquire();
     m_ResponsePEQ.notify(trans, delay);
     delay = SC_ZERO_TIME;
+
   } else {
     v::error << this->name() << "Invalid phase in call to nb_transport_bw!" << v::endl;
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
@@ -51,6 +57,10 @@ tlm::tlm_sync_enum AHBMaster<BASE>::nb_transport_bw(
 
   // Return arrow for msc
   msclogger::return_forward(this, &ahb, &trans, tlm::TLM_ACCEPTED, delay);
+
+  v::debug << this->name() << "Release " << hex << &trans << " Ref-Count before release (nb_transport_bw) " << trans.get_ref_count() << v::endl;
+  trans.release();
+
   return tlm::TLM_ACCEPTED;
 }
 
@@ -185,6 +195,7 @@ void AHBMaster<BASE>::ahbaccess(tlm::tlm_generic_payload *trans) {
   sc_core::sc_time delay;
 
   // Increment reference counter
+  v::debug << this->name() << "Acquire " << trans << " Ref-Count before acquire (ahbaccess) " << trans->get_ref_count() << v::endl;
   trans->acquire();
 
   if (m_ambaLayer == amba::amba_LT) {
@@ -206,8 +217,6 @@ void AHBMaster<BASE>::ahbaccess(tlm::tlm_generic_payload *trans) {
     if (trans->is_read()) response_callback(trans);
 
   } else {
-
-    v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
 
     // Initial phase for AT
     phase = tlm::BEGIN_REQ;
@@ -236,6 +245,7 @@ void AHBMaster<BASE>::ahbaccess(tlm::tlm_generic_payload *trans) {
   }
 
   // Decrement reference counter
+  v::debug << this->name() << "Release " << trans << " Ref-Count before release (ahbaccess) " << trans->get_ref_count() << v::endl;
   trans->release();
 }
 
@@ -341,7 +351,7 @@ void AHBMaster<BASE>::ResponseThread() {
       // Return value must be TLM_COMPLETED or TLM_ACCEPTED
       assert((status == tlm::TLM_COMPLETED) || (status == tlm::TLM_ACCEPTED));
 
-      v::debug << name() << "Release " << trans << " Ref-Count before calling release " << trans->get_ref_count()
+      v::debug << name() << "Release " << trans << " Ref-Count before calling release (ResponseThread) " << trans->get_ref_count() << " Status: "
                << status << v::endl;
 
       // Decrement reference count
