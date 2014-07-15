@@ -7727,7 +7727,7 @@ leon3_funclt_trap::TSUBcc_reg::~TSUBcc_reg(){
 
 }
 unsigned int leon3_funclt_trap::BRANCH::behavior(){
-    this->totalInstrCycles = 0;
+    this->totalInstrCycles = 2;
     pcounter = PC;
     #ifndef ACC_MODEL
     npcounter = NPC;
