@@ -93,40 +93,40 @@ GPTimer::~GPTimer() {
 
 void GPTimer::init_generics() {
   // set name, type, default, range, hint and description for gs_configs
-  g_paddr.addProperties()
+  g_paddr.add_properties()
     ("name", "APB Base Address")
     ("range", "0..4095")
-    ("hint", "The 12bit MSB address at the APB bus");
+    ("The 12bit MSB address at the APB bus");
 
-  g_pmask.addProperties()
+  g_pmask.add_properties()
     ("name", "APB Base Mask")
     ("range", "0..4095")
-    ("hint", "The 12bit APB address mask");
+    ("The 12bit APB address mask");
 
-  g_pindex.addProperties()
+  g_pindex.add_properties()
     ("name", "Bus Index")
     ("range", "0..15")
-    ("hint", "The slave index at the APB bus");
+    ("The slave index at the APB bus");
 
-  g_sepirq.addProperties()
+  g_sepirq.add_properties()
     ("name", "Separated IRQs")
-    ("description", "1 - each timer will drive an individual interrupt line, starting with interrupt irq. \n"
-                    "0 - all timers will drive the same interrupt line (irq).");
+    ("1 - each timer will drive an individual interrupt line, starting with interrupt irq. \n"
+     "0 - all timers will drive the same interrupt line (irq).");
 
-  g_ntimers.addProperties()
+  g_ntimers.add_properties()
     ("name", "Number of Counters")
     ("range", "1..7")
-    ("hint", "Defines the number of timers in the unit.");
+    ("Defines the number of timers in the unit.");
 
-  g_sbits.addProperties()
+  g_sbits.add_properties()
     ("name", "Scaler Bits")
     ("range", "1..32")
-    ("hint", "Defines the number of bits in the scaler");
+    ("Defines the number of bits in the scaler");
 
-  g_nbits.addProperties()
+  g_nbits.add_properties()
     ("name", "Counter Bits")
     ("range", "1..32")
-    ("hint", "Defines the number of bits in the counters");
+    ("Defines the number of bits in the counters");
 }
 
 void GPTimer::init_registers() {

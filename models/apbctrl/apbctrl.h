@@ -60,13 +60,14 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
     void checkMemMap();
 
     /// Constructor
-    APBCtrl(sc_core::sc_module_name nm,  ///< SystemC name
-    uint32_t haddr_ = 0xfff,          ///< The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
-    uint32_t hmask_ = 0,              ///< The 12bit AHB area address mask
-    bool mcheck = 0,                  ///< Check if there are any intersections between APB slave memory regions
-    uint32_t hindex = 0,              ///< AHB bus index
-    bool pow_mon = 0,                 ///< Enables power monitoring
-    amba::amba_layer_ids ambaLayer = amba::amba_LT);
+    APBCtrl(
+      sc_core::sc_module_name nm,  ///< SystemC name
+      uint32_t haddr = 0xfff,      ///< The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
+      uint32_t hmask = 0,          ///< The 12bit AHB area address mask
+      bool mcheck = 0,             ///< Check if there are any intersections between APB slave memory regions
+      uint32_t hindex = 0,         ///< AHB bus index
+      bool pow_mon = 0,            ///< Enables power monitoring
+      amba::amba_layer_ids ambaLayer = amba::amba_LT);
 
     // Omitted parameters:
     // -------------------
@@ -83,6 +84,12 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
 
     /// Desctructor
     ~APBCtrl();
+
+    /// Initialisation function for model generics
+    void init_generics();
+
+    /// Systemc end of elaboration hook. Enables power monitoring.
+    void end_of_elaboration();
 
     /// Set up slave map and collect plug & play information
     void start_of_simulation();
@@ -142,17 +149,23 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
     /// 0xFF000
     const uint32_t m_pnpbase;
 
+    /// Configuration generic container
+    gs::cnf::gs_param_array g_conf;
+
     /// The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
-    unsigned int m_haddr;
+    gs::cnf::gs_config<uint32_t> g_haddr;
 
     /// The 12bit AHB area address mask
-    unsigned int m_hmask;
+    gs::cnf::gs_config<uint32_t> g_hmask;
+
+    /// The AHB Bus Slave Index
+    gs::cnf::gs_config<uint32_t> g_hindex;
 
     /// Check if there are any intersections between APB slave memory regions
-    bool m_mcheck;
+    gs::cnf::gs_config<bool> g_mcheck;
 
     /// Enable power monitoring (Only TLM)
-    bool m_pow_mon;
+    gs::cnf::gs_config<bool> g_pow_mon;
 
     /// Abstraction Layer
     amba::amba_layer_ids m_ambaLayer;

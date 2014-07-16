@@ -1162,7 +1162,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * d
   // Allocate new transaction (reference counter = 1)
   tlm::tlm_generic_payload * trans = ahb.get_transaction();
 
-  v::debug << this->name() << "Allocate new transaction (WRITE) " << hex << trans << "Acquire / Ref-Count = " << trans->get_ref_count() << v::endl;
+  v::debug << this->name() << "Allocate new transaction (mem_write) " << hex << trans << " Acquire / Ref-Count = " << trans->get_ref_count() << v::endl;
 
   // Copy payload data
   memcpy(write_buf + wb_pointer, data, length);
@@ -1183,6 +1183,7 @@ void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * d
     }
  
     v::debug << this->name() << "Schedule transaction (WRITE) " << v::hex << trans << " FIFO level: " << bus_in_fifo.used() << v::endl;
+    v::debug << this->name() << "Acquire " << trans << " Ref-Count before acquire (bus_in_fifo) " << trans->get_ref_count() << v::endl;
     trans->acquire();
     bus_in_fifo.put(trans);
     wait(SC_ZERO_TIME);
@@ -1194,6 +1195,8 @@ void mmu_cache::mem_write(unsigned int addr, unsigned int asi, unsigned char * d
     ahbaccess_dbg(trans);
 
   }
+
+  v::debug << name() << "Release " << trans << " Ref-Count before calling release (mem_write) " << trans->get_ref_count() << v::endl;
 
   // Decrement reference counter
   trans->release();
@@ -1209,7 +1212,7 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * da
   // Allocate new transaction (reference counter = 1)
   tlm::tlm_generic_payload * trans = ahb.get_transaction();
 
-  v::debug << this->name() << "Allocate new transaction (READ) " << v::hex << trans << "Acquire / Ref-Count = " << trans->get_ref_count() << v::endl;
+  v::debug << this->name() << "Allocate new transaction (mem_read) " << v::hex << trans << " Acquire / Ref-Count = " << trans->get_ref_count() << v::endl;
 
   // Initialize transaction
   trans->set_command(tlm::TLM_READ_COMMAND);
@@ -1225,13 +1228,14 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * da
     }
 
     v::debug << this->name() << "Schedule transaction (READ) " << v::hex << trans << " FIFO level: " <<  bus_in_fifo.used() << v::endl;
+    v::debug << this->name() << "Acquire " << trans << " Ref-Count before acquire (bus_in_fifo) " << trans->get_ref_count() << v::endl;
     trans->acquire();
     bus_in_fifo.put(trans);
     v::debug << this->name() << "Done scheduling transaction (READ) " << v::hex << trans << v::endl;
 
     // Read misses are blocking the cache !!
     wait(bus_read_completed);
-    v::debug << this->name() << "Done transaction (READ) / bus_read_completed event" << v::hex << trans << v::endl;
+    v::debug << this->name() << "Done transaction (READ) / bus_read_completed event " << v::hex << trans << v::endl;
 
     // Check cacheability
     if (m_cached != 0)  {
@@ -1243,6 +1247,8 @@ bool mmu_cache::mem_read(unsigned int addr, unsigned int asi, unsigned char * da
     ahbaccess_dbg(trans);
 
   }
+
+  v::debug << name() << "Release " << trans << " Ref-Count before calling release (mem_read) " << trans->get_ref_count() << v::endl;
 
   // Decrement reference counter
   trans->release();
@@ -1268,6 +1274,7 @@ void mmu_cache::mem_access() {
       if (trans->is_read()) bus_read_completed.notify();
 
       // Decrement ref counter
+      v::debug << name() << "Release " << trans << " Ref-Count before calling release (bus_in_fifo) " << trans->get_ref_count() << v::endl;
       trans->release();
     }
 

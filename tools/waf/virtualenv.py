@@ -31,22 +31,27 @@ def python_get(self, name):
     self.end_msg("ok")
 conf(python_get)
 
+@Task.always_run
 class venv_link_task(Task.Task):
   """Link a Python source directory into the site-packages dir of the venv"""
   name = 'venv_link'
   color = 'BLUE'
   before = []
   quiet = True
+
   def __str__(self):
-      return "venv: %s -> virtualenv\n" % (', '.join([n.name for n in self.inputs]))
+      return "venv: %s -> virtualenv\n" % (os.path.basename(self.generator.path.get_bld().abspath()))
     
   def run(self):
+      sdirnode = self.generator.path.get_bld()
+      sdirnode.mkdir()
       for snode in self.inputs:
         dnode = snode.get_bld()
+        if not os.path.isdir(dnode.parent.abspath()):
+            dnode.parent.mkdir()
         if not os.path.exists(dnode.abspath()):
             os.symlink(os.path.relpath(snode.abspath(), os.path.join(dnode.abspath(), "..")), dnode.abspath())
-
-      snode = self.generator.path.get_bld().abspath()
+      snode = sdirnode.abspath()
       dnode = os.path.join(self.env["VENV_PATH"], "lib", ("python%s" % self.env.PYTHON_VERSION), "site-packages", os.path.basename(snode))
       if not os.path.exists(dnode):
           os.symlink(os.path.relpath(snode, os.path.join(dnode, "..")), dnode)
@@ -57,8 +62,11 @@ class venv_link_task(Task.Task):
 def venv_package(self):
   if hasattr(self, "pysource"):
       srclist = []
-      for src in self.pysource:
-        snode = self.path.find_node(src)
+      for src in Utils.to_list(self.pysource):
+        if isinstance(src, basestring):
+          snode = self.path.find_node(src)
+        else:
+          snode = src
         srclist.append(snode)
       dst = self.bld.bldnode.find_node(".conf_check_venv")
       links = self.create_task('venv_link', src=srclist, tgt=dst)
