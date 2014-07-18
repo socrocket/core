@@ -1,3 +1,7 @@
+#include "standalone.h" // report_start(), report_end()
+#include "cache.h" // ramfill()
+#include "irqmp.h" // irqtest()
+
 int main() {
 	report_start();
 

@@ -1,4 +1,5 @@
 #include "cache.h"
+#include <stdio.h>
 
 void cache_disable(void) {
   asm(" sta %g0, [%g0] 2 ");

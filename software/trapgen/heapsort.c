@@ -81,11 +81,13 @@ long bplong,ErrorFlag;
 
 long NLoops[21];
 
+int HSORT(long m, long n, long p );
+
 
 int main()
 {
 
-long  i,j,k,p,imax;
+long  i,j,k,p/*,imax*/;
 
 bplong = sizeof(long);
 
@@ -199,7 +201,7 @@ return 0;
 /*  Heap Sort Program    */
 /*************************/
 
-HSORT(m,n,p)
+int HSORT(m,n,p)
 long m,n,p;
 {
 

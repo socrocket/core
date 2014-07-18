@@ -2454,7 +2454,7 @@ int main()
 {
     struct  test8   *t;
     unsigned char   cipher[8];
-    int i, n;
+    int i/*, n*/;
 
     for (i = 0, t = test8 ; i < NTESTS; i++, t++){
         des_set_key(t->key, (void*) keys);

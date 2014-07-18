@@ -303,26 +303,26 @@
  static SPDP loop_mops[9];
  static SPDP loop_mflops[9];
  static SPDP TimeUsed;
- static SPDP mwips;
+// static SPDP mwips;
  static char headings[9][18];
  static SPDP Check;
  static SPDP results[9];
 
 int main(int argc, char *argv[])
 {
-    int count = 1, calibrate = 1;
+    int /*count = 1,*/ calibrate = 1;
     long xtra = 1;
-    int section;
+//    int section;
     #ifdef SHORT_BENCH
     long x100 = 1;
     #else
     long x100 = 5;
     #endif
-    int duration = 100;
-    FILE *outfile;
-    char compiler[80] = " ", options[256] = " ", general[10][80] = {" "};
-    char *endit = " ";
-    char *getinput = "Yes";
+//    int duration = 100;
+//    FILE *outfile;
+//    char compiler[80] = " ", options[256] = " ", general[10][80] = {" "};
+//    char *endit = " ";
+//    char *getinput = "Yes";
 
     printf("\n");
     printf("##########################################\n");
@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
     long n1,n2,n3,n4,n5,n6,n7,n8,i,ix,n1mult;
     SPDP x,y,z;
     long j,k,l;
-    SPDP e1[4],timea,timeb;
+    SPDP e1[4]/*,timea,timeb*/;
 
     SPDP t =  0.49999975;
     SPDP t0 = t;

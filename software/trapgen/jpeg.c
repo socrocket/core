@@ -796,7 +796,7 @@ void huff_ac_dec (short *data)
 #define INT32 int
 
 
-fast_idct_8 (short *in, int stride)
+void fast_idct_8 (short *in, int stride)
 {
     INT32 tmp10, tmp11, tmp12, tmp13;
     INT32 tmp20, tmp21, tmp22, tmp23;
@@ -804,7 +804,7 @@ fast_idct_8 (short *in, int stride)
     INT32 tmp40, tmp41, tmp42, tmp43;
     INT32 tmp50, tmp51, tmp52, tmp53;
     INT32 in0, in1, in2, in3, in4, in5, in6, in7;
-    int i, j;
+//    int i, j;
 
     in0 = in[       0];
     in1 = in[stride  ];
@@ -849,9 +849,9 @@ fast_idct_8 (short *in, int stride)
 }
 
 
-j_rev_dct (short *data)
+void j_rev_dct (short *data)
 {
-    int i,j,k,id;
+    int i/*,j,k,id*/;
 
     for (i = 0; i < DCTSIZE; i++)
         fast_idct_8(data+i*DCTSIZE, 1);
@@ -869,7 +869,7 @@ unsigned char qtbl_lum[] = { 16, 11, 10, 16, 24, 40, 51, 61,
 49, 64, 78, 87, 103, 121, 120, 101,
 72, 92, 95, 98, 112, 100, 103, 99 };
 
-dquantz_lum (short *data)
+void dquantz_lum (short *data)
 {
     int i;
 
