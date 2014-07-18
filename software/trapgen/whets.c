@@ -303,7 +303,7 @@
  static SPDP loop_mops[9];
  static SPDP loop_mflops[9];
  static SPDP TimeUsed;
- static SPDP mwips;
+// static SPDP mwips;
  static char headings[9][18];
  static SPDP Check;
  static SPDP results[9];

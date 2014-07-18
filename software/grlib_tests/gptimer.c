@@ -1,5 +1,7 @@
 #include "testmod.h"
 #include "irqmp.h"
+#include "cache.h" // cache_disable()
+#include "standalone.h" // success()
 #include <stdio.h>
 
 struct timerreg {

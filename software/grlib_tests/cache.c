@@ -550,11 +550,11 @@ static int maintest() {
             *((volatile long long int *) &dw) = 0x0000001100000055LL;
             cachectrl = rsysreg(0);
             wsysreg(0, (cachectrl | CPTB_MASK) & ~DDE_MASK);
-            getdw(&dw);
+            getdw((void*)&dw);
             for(i=0;i<DSETS;i++) {
                 setddata(((int)&dw)+4,i,0x00000055);
             }
-            if(getdw(&dw) != 0x0000001100000055LL) {
+            if(getdw((void*)&dw) != 0x0000001100000055LL) {
                 fail(16);
             }
             cachectrl = rsysreg(0); 

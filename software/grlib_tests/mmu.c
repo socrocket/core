@@ -1,6 +1,7 @@
 #include "leon3.h"
 #include "testmod.h" 
 #include "mmu.h" 
+#include "cache.h" // rsysreg()
 #ifdef LEON2
 #include "leon2.h"
 #endif

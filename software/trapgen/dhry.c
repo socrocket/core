@@ -416,6 +416,8 @@ typedef struct record
       } Rec_Type, *Rec_Pointer;
 
 
+
+
 /*
  ****************************************************************************
  *
@@ -439,6 +441,14 @@ typedef struct record
         /* REG becomes defined as empty */
         /* i.e. no register variables   */
 #endif
+
+Boolean Func_3 ( Enumeration Enum_Par_Val );
+void Proc_1 (REG Rec_Pointer Ptr_Val_Par );
+void Proc_2 (One_Fifty   *Int_Par_Ref );
+void Proc_3 (Rec_Pointer *Ptr_Ref_Par );
+void Proc_4 ( void );
+void Proc_5 ( void );
+
 
 extern  int     Int_Glob;
 extern  char    Ch_1_Glob;
@@ -968,7 +978,7 @@ void Proc_4 () /* without parameters */
 } /* Proc_4 */
 
 
-Proc_5 () /* without parameters */
+void Proc_5 () /* without parameters */
 /*******/
     /* executed once */
 {
