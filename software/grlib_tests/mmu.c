@@ -49,8 +49,8 @@ int mmu_test(void) {
     pgd_t *g0 = (pgd_t *)&pg0;
     pmd_t *m0 = (pmd_t *)&pm0; 
     pte_t *p0 = (pte_t *)&pt0; 
-    unsigned long pteval,j,k,v;
-    unsigned long paddr, vaddr, val;
+    unsigned long pteval,j,k;
+    unsigned long paddr, val;
     unsigned long *pthaddr = &pth_addr1;
     functype func = mmu_func1;
     int i = 0;

@@ -1,5 +1,6 @@
 #include "testmod.h"
 #include "irqmp.h"
+#include <stdio.h>
 
 struct timerreg {
     volatile unsigned int counter;      /* 0xi0 */

@@ -65,7 +65,7 @@ unsigned short icrc(unsigned short crc, unsigned char *lin, unsigned int len,
 int main(void)
 {
     unsigned short i1,i2;
-    int n,i;
+    int i;
 
     #ifdef SHORT_BENCH
     for(i = 0; i < 100; i++){

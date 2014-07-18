@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 /* PERSONAL ALIASES */
 
@@ -1031,7 +1032,7 @@ int main()
 {
     d32 *dptr;                     /* data pointer to SPI */
     dx  msg_length;                /* length of message processed */
-    dx  i;                         /* message array index */
+//    dx  i;                         /* message array index */
     dx  j;                         /* msg process type index */
     int m = 0;
 

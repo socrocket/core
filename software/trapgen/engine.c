@@ -336,7 +336,10 @@ int *rem;
 int
 main(void)
 {
-    int i = 0, fail = 0;
+#ifndef SHORT_BENCH
+    int i = 0;
+#endif
+    int fail = 0;
     engine();
 
     if ( (debug_val != 191932) || (debug_base!= 3250) || (debug_interval != 418230) ){
