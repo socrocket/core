@@ -1,0 +1,78 @@
+--- greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/build.make.bak-ps	2014-07-19 17:41:13.000000000 +0200
++++ greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/build.make	2014-07-19 17:43:15.000000000 +0200
+@@ -73,18 +73,18 @@
+ greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/src/gsp_sc.cpp.o.provides.build: greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/src/gsp_sc.cpp.o
+ 
+ greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.o: greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/flags.make
+-greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.o: greenscript/gsp_sc_saPYTHON_wrap.cxx
++greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.o: greenscript/lib/gsp_sc_saPYTHON_wrap.cxx
+ 	$(CMAKE_COMMAND) -E cmake_progress_report /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/CMakeFiles $(CMAKE_PROGRESS_2)
+ 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.o"
+-	cd /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.o -c /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/gsp_sc_saPYTHON_wrap.cxx
++	cd /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.o -c /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/gsp_sc_saPYTHON_wrap.cxx
+ 
+ greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.i: cmake_force
+ 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.i"
+-	cd /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib && /usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/gsp_sc_saPYTHON_wrap.cxx > CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.i
++	cd /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib && /usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/gsp_sc_saPYTHON_wrap.cxx > CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.i
+ 
+ greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.s: cmake_force
+ 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.s"
+-	cd /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib && /usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/gsp_sc_saPYTHON_wrap.cxx -o CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.s
++	cd /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib && /usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/gsp_sc_saPYTHON_wrap.cxx -o CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.s
+ 
+ greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.o.requires:
+ .PHONY : greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.o.requires
+
+
+--- greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/DependInfo.cmake.bak-ps	2014-07-19 17:43:59.000000000 +0200
++++ greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/DependInfo.cmake	2014-07-19 17:44:17.000000000 +0200
+@@ -4,7 +4,7 @@
+   )
+ # The set of files for implicit dependencies of each language:
+ set(CMAKE_DEPENDS_CHECK_CXX
+-  "/lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/gsp_sc_saPYTHON_wrap.cxx" "/lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.o"
++  "/lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/gsp_sc_saPYTHON_wrap.cxx" "/lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/gsp_sc_saPYTHON_wrap.cxx.o"
+   "/lscratch/psiegl/socrocket/build/.conf_check_deps/src/greenlib-trunk/greenscript/src/gsp_sc.cpp" "/lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/CMakeFiles/_gsp_sc_sa.so.dir/__/src/gsp_sc.cpp.o"
+   )
+ set(CMAKE_CXX_COMPILER_ID "GNU")
+
+
+--- greenscript/lib/CMakeFiles/_gsp_sc.so.dir/build.make.bak-ps	2014-07-19 17:30:47.000000000 +0200
++++ greenscript/lib/CMakeFiles/_gsp_sc.so.dir/build.make	2014-07-19 17:34:15.000000000 +0200
+@@ -73,18 +73,18 @@
+ greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/src/gsp_sc.cpp.o.provides.build: greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/src/gsp_sc.cpp.o
+ 
+ greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.o: greenscript/lib/CMakeFiles/_gsp_sc.so.dir/flags.make
+-greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.o: greenscript/gsp_scPYTHON_wrap.cxx
++greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.o: greenscript/lib/gsp_scPYTHON_wrap.cxx
+ 	$(CMAKE_COMMAND) -E cmake_progress_report /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/CMakeFiles $(CMAKE_PROGRESS_2)
+ 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.o"
+-	cd /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.o -c /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/gsp_scPYTHON_wrap.cxx
++	cd /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib && /usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.o -c /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/gsp_scPYTHON_wrap.cxx
+ 
+ greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.i: cmake_force
+ 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.i"
+-	cd /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib && /usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/gsp_scPYTHON_wrap.cxx > CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.i
++	cd /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib && /usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/gsp_scPYTHON_wrap.cxx > CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.i
+ 
+ greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.s: cmake_force
+ 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.s"
+-	cd /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib && /usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/gsp_scPYTHON_wrap.cxx -o CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.s
++	cd /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib && /usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/gsp_scPYTHON_wrap.cxx -o CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.s
+ 
+ greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.o.requires:
+ .PHONY : greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.o.requires
+
+
+--- greenscript/lib/CMakeFiles/_gsp_sc.so.dir/DependInfo.cmake.bak-ps	2014-07-19 17:35:16.000000000 +0200
++++ greenscript/lib/CMakeFiles/_gsp_sc.so.dir/DependInfo.cmake	2014-07-19 17:35:56.000000000 +0200
+@@ -4,7 +4,7 @@
+   )
+ # The set of files for implicit dependencies of each language:
+ set(CMAKE_DEPENDS_CHECK_CXX
+-  "/lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/gsp_scPYTHON_wrap.cxx" "/lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.o"
++  "/lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/gsp_scPYTHON_wrap.cxx" "/lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/gsp_scPYTHON_wrap.cxx.o"
+   "/lscratch/psiegl/socrocket/build/.conf_check_deps/src/greenlib-trunk/greenscript/src/gsp_sc.cpp" "/lscratch/psiegl/socrocket/build/.conf_check_deps/build/greenlib-trunk/greenscript/lib/CMakeFiles/_gsp_sc.so.dir/__/src/gsp_sc.cpp.o"
+   )
+ set(CMAKE_CXX_COMPILER_ID "GNU")
