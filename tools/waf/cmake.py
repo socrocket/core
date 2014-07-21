@@ -4,6 +4,21 @@
 import os
 import subprocess
 
+if "check_output" not in dir( subprocess ): # duck punch it in!
+    def f(*popenargs, **kwargs):
+        if 'stdout' in kwargs:
+            raise ValueError('stdout argument not allowed, it will be overridden.')
+        process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+        output, unused_err = process.communicate()
+        retcode = process.poll()
+        if retcode:
+            cmd = kwargs.get("args")
+            if cmd is None:
+                cmd = popenargs[0]
+            raise subprocess.CalledProcessError(retcode, cmd)
+        return output
+    subprocess.check_output = f
+
 def options(self):
     self.add_option(
         '--with-cmake', 
@@ -22,6 +37,7 @@ def find(self, path = None):
     if "CMAKE" in self.env:
         self.start_msg("Checking cmake version")
         cmake_version_str = subprocess.check_output(["cmake", "--version"])
+        cmake_version_str = cmake_version_str.split('\n')[0]
         cmake_version = [int(v) for v in cmake_version_str.split(" ")[2].split(".")]
         cmake_version = cmake_version[0] * 1000000 + cmake_version[1] * 10000 + cmake_version[2] * 100
 
