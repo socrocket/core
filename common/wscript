@@ -20,24 +20,3 @@ def build(self):
     use             = 'CULT OTF',
     install_path    = '${PREFIX}/lib',
   )
-
-  self(
-    target          = 'simple.common',
-    features        = 'cxx cprogram test',
-    source          = 'tests/simple.cpp',
-    includes        = self.top_dir,
-    uselib          = 'SYSTEMC',
-    use             = 'common BOOST',
-    install_path    = None,
-  )
-
-  self(
-    target          = 'gs_config_test',
-    features        = 'cxx cprogram test',
-    source          = 'tests/gs_config_test.cpp',
-    includes        = self.top_dir,
-    uselib          = 'GREENSOCS SYSTEMC BOOST',
-    use             = 'common BOOST',
-    install_path    = None,
-  )
- 

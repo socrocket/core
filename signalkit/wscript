@@ -12,33 +12,3 @@ def build(self):
   )
   self.install_files('${PREFIX}/include', self.path.ant_glob('**/*.h', excl=['**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']), relative_trick=True)
 
-  self(
-    target       = 'signalkit.simple.test',
-    features     = 'cxx cprogram test',
-    source       = 'tests/simple.cpp',
-    includes     = '.',
-    uselib       = 'BOOST SYSTEMC',
-    use          = 'signalkit common',
-    install_path = None,
-  )
-  
-  self(
-    target       = 'signalkit.systemc.test',
-    features     = 'cxx cprogram test',
-    source       = 'tests/systemc.cpp',
-    includes     = '.',
-    uselib       = 'BOOST SYSTEMC',
-    use          = 'signalkit common',
-    install_path = None,
-  )
-  
-  self(
-    target       = 'signalkit.datatypemapping.test',
-    features     = 'cxx cprogram test',
-    source       = 'tests/datatypemapping.cpp',
-    includes     = '.',
-    uselib       = 'BOOST SYSTEMC',
-    use          = 'signalkit common',
-    install_path = None,
-  )
-   

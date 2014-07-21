@@ -74,6 +74,7 @@ def build(self):
     sys.stderr = logger
     
     self.recurse_all()
+    self.recurse_all_tests()
 
     # Install headers
     self.install_files('${PREFIX}/include', self.path.ant_glob(['**/*.h', '**/*.tpp'], excl=['build','**/signalkit/**', '**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']))

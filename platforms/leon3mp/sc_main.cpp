@@ -49,20 +49,31 @@
 #include "models/apbuart/nullio.h"
 #include "models/irqmp/irqmp.h"
 #include "models/ahbctrl/ahbctrl.h"
-#include "models/socwire/AHB2Socwire.h"
 #include "models/ahbprof/ahbprof.h"
-#include "models/greth/greth/greth.h"
 
 #include "leon3.funclt.h"
 #include "leon3.funcat.h"
-#include "pysc/pysc.h"
+
+#ifdef HAVE_SOCWIRE
+#include "models/socwire/AHB2Socwire.h"
+#endif
+#ifdef HAVE_GRETH
+#include "models/greth/greth/greth.h"
 #include "vphy/tapdev.h"
 #include "vphy/loopback.h"
+#endif
+
+#ifdef HAVE_PYSC
+#include "pysc/pysc.h"
+#endif
+
 //#include "vphy/trafgen.h"
 
 using namespace std;
 using namespace sc_core;
+#ifdef HAVE_SOCWIRE
 using namespace socw;
+#endif
 
 namespace trap {
   extern int exitValue;
@@ -114,10 +125,14 @@ int sc_main(int argc, char** argv) {
     desc.add_options()
       ("help", "Shows this message.")
       ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json.")
+#ifdef HAVE_PYSC
       ("pythonscript,p", boost::program_options::value<std::string>(), "The main python script file. Usual sc_main.py.")
+#endif
       ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options.")
       ("argument,a", boost::program_options::value<std::vector<std::string> >(), "Arguments to the software running inside the simulation.")
+#ifdef HAVE_GRETH
       ("greth,g", boost::program_options::value<std::vector<std::string> >(), "Initial Options for GREth-Core.")
+#endif
       ("listoptions,l", "Show a list of all avaliable options")
       ("interactiv,i", "Start simulation in interactiv mode")
       ("listoptionsfiltered,f", boost::program_options::value<std::string>(), "Show a list of avaliable options containing a keyword")
@@ -240,6 +255,7 @@ int sc_main(int argc, char** argv) {
 	    configlistfiltered= true;
     }
 
+#ifdef HAVE_PYSC
     // Initialize Python
     std::string pythonscript = "";
     if(vm.count("pythonscript")) {
@@ -248,6 +264,7 @@ int sc_main(int argc, char** argv) {
 
     PythonModule python("python_interpreter", pythonscript.c_str(), argc, argv);
     python.start_of_initialization();
+#endif  // HAVE_PYSC
     // Build GreenControl Configuration Namespace
     // ==========================================
     gs::gs_param_array p_conf("conf");
@@ -954,7 +971,7 @@ int sc_main(int argc, char** argv) {
       ahbctrl.ahbOUT(ahbprof->ahb);
       ahbprof->set_clk(p_system_clock,SC_NS);
     }
-
+#ifdef HAVE_SOCWIRE
     // CREATE AHB2Socwire bridge
     // =========================
     gs::gs_param_array p_socwire("socwire", p_conf);
@@ -988,6 +1005,8 @@ int sc_main(int argc, char** argv) {
       // Connect socwire ports as loopback
       ahb2socwire->socwire.master_socket(ahb2socwire->socwire.slave_socket);
     }
+#endif
+#ifdef HAVE_GRETH
   // ===========================================================
     // GREth Media Access Controller with EDCL support (AHBMaster)
     // ===========================================================
@@ -1135,7 +1154,7 @@ int sc_main(int argc, char** argv) {
       connect(irqmp.irq_in, greth->irq);
     }
   // GREth done. ==========================
-    
+#endif  // HAVE_GRETH
     // * Param Listing **************************
     paramprinter printer;
     if(paramlist) {
@@ -1174,7 +1193,9 @@ int sc_main(int argc, char** argv) {
     (void) signal(SIGTERM, stopSimFunction);
     (void) signal(10, stopSimFunction);
 
+#ifdef HAVE_PYSC
     python.end_of_initialization();
+#endif
     cstart = cend = clock();
     cstart = clock();
     sc_core::sc_start();
@@ -1184,8 +1205,10 @@ int sc_main(int argc, char** argv) {
     v::info << "Summary" << "End:   " << dec << cend << v::endl;
     v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
 
+#ifdef HAVE_PYSC
     python.start_of_evaluation();
     python.end_of_evaluation();
+#endif
 
     return trap::exitValue;
 }

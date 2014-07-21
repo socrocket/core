@@ -299,30 +299,16 @@ def fetch(self, *k, **kw):
 
     if kw.has_key("patch"):
         self.start_msg("Patching %s" % kw["name"])
-        if isinstance( kw["patch"], str ): # if there is only one patch (as a string)
-            try:
-                self.cmd_and_log(
-                    [self.env.PATCH, "-p1", "-Nsi", kw["patch"], "-d", kw["src"]],
-                    output=Context.BOTH, 
-                    cwd=kw["src"],
-                )
-                self.end_msg("Ok")
-            except:
-                self.end_msg("Failed, make sure patch %s was already applied" % kw["patch"])
-        else:
-            for patch in kw["patch"]:
-               try:
-                   self.cmd_and_log(
-                       [self.env.PATCH, "-p1", "-Nsi", patch, "-d", kw["src"]],
-                       output=Context.BOTH,
-                       cwd=kw["src"],
-                   )
-                   self.end_msg("Ok")
-               except:
-                   self.end_msg("Failed, make sure patch %s was already applied" % patch)
-
-
-
+        for patch in Utils.to_list(kw["patch"]):
+           try:
+               self.cmd_and_log(
+                   [self.env.PATCH, "-p1", "-Nsi", patch, "-d", kw["src"]],
+                   output=Context.BOTH,
+                   cwd=kw["src"],
+               )
+               self.end_msg("Ok")
+           except:
+               self.end_msg("Failed, make sure patch %s was already applied" % patch)
     return k, kw
 
 
