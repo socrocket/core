@@ -26,7 +26,7 @@ APBUART::APBUART(sc_core::sc_module_name name,
   bool console,
   bool powmon) :
   gr_device(name, gs::reg::ALIGNED_ADDRESS, 4, NULL),
-  APBDevice(pindex, 0x1, 0x00C, 0, pirq, APBIO, pmask, false, false, paddr),
+  APBDevice(pindex, 0x1, 0x00C, 1, pirq, APBIO, pmask, false, false, paddr),
   bus("bus", r, ((paddr) & pmask) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false),
   irq("IRQ"),
   m_backend(backend),
