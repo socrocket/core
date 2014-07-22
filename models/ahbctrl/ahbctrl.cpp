@@ -206,6 +206,9 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
   uint32_t result;
 
   m_total_transactions++;
+
+  if ((address >= 0xfffffff0)&&(address <= 0xfffffff3)) return 0x30100000;
+
   // Calculate address offset in configuration area (slave info starts from 0x800)
   unsigned int addr   = address - (
       ((static_cast<uint32_t>(g_ioaddr) << 20) |
