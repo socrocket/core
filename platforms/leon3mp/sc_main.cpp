@@ -864,20 +864,28 @@ int sc_main(int argc, char** argv) {
     // ==================
     gs::gs_param_array p_gptimer("gptimer", p_conf);
     gs::gs_param<bool> p_gptimer_en("en", true, p_gptimer);
-    gs::gs_param<unsigned int> p_gptimer_irq("irq", 8, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_ntimers("ntimers", 2, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_pindex("pindex", 3, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_paddr("paddr", 0x3, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_pmask("pmask", 0xfff, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_pirq("pirq", 8, p_gptimer);
+    gs::gs_param<bool> p_gptimer_sepirq("sepirq", true, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_sbits("sbits", 16, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_nbits("nbits", 32, p_gptimer);
+    gs::gs_param<unsigned int> p_gptimer_wdog("wdog", 1u, p_gptimer);
 
     if(p_gptimer_en) {
       GPTimer *gptimer = new GPTimer("gptimer",
-        7,  // ntimers
-        3,  // index
-        0x0F0,   // paddr
-        0xFFF,   // pmask
-        8,    // pirq
-        true, // sepirq
-        16,  // sbits
-        32,  // nbits
-        0u,   // wdog
-        p_report_power  // powmon
+        p_gptimer_ntimers,  // ntimers
+        p_gptimer_pindex,   // index
+        p_gptimer_paddr,    // paddr
+        p_gptimer_pmask,    // pmask
+        p_gptimer_pirq,     // pirq
+        p_gptimer_sepirq,   // sepirq
+        p_gptimer_sbits,    // sbits
+        p_gptimer_nbits,    // nbits
+        p_gptimer_wdog,     // wdog
+        p_report_power      // powmon
       );
 
       // Connect to apb and clock
@@ -886,7 +894,7 @@ int sc_main(int argc, char** argv) {
 
       // Connecting Interrupts
       for(int i=0; i < 8; i++) {
-        signalkit::connect(irqmp.irq_in, gptimer->irq, p_gptimer_irq + i);
+        signalkit::connect(irqmp.irq_in, gptimer->irq, p_gptimer_pirq + i);
       }
 
     }
@@ -1182,7 +1190,7 @@ int sc_main(int argc, char** argv) {
 
     v::info << "Summary" << "Start: " << dec << cstart << v::endl;
     v::info << "Summary" << "End:   " << dec << cend << v::endl;
-    v::info << "Summary" << "Delta: " << dec << setprecision(0) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
+    v::info << "Summary" << "Delta: " << dec << setprecision(4) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
 
     python.start_of_evaluation();
     python.end_of_evaluation();
