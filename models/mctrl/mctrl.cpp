@@ -47,7 +47,7 @@ Mctrl::Mctrl(
     hindex,
     0x04,                                        // ven: ESA
     0x0F,                                        // dev: MCTRL
-    0,
+    1,
     0,                                           // VER, IRQ
     ambaLayer,
     BAR(AHBDevice::AHBMEM, _rommask, true, true, _romaddr),
@@ -57,7 +57,7 @@ Mctrl::Mctrl(
   APBDevice(pindex,
     0x04,                                        // ven: ESA
     0x0F,                                        // dev: MCTRL
-    0, 0,                                        // VER, IRQ
+    1, 0,                                        // VER, IRQ
     APBDevice::APBIO, _pmask, 0, 0, _paddr),
   apb("apb", r,                                  // name and register container of the greenreg_socket
     APBDevice::get_base_addr_(),                 // apb base address
