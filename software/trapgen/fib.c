@@ -31,6 +31,6 @@ int main()
  value = fib(IMax);
 
  printf("\n");
- printf("The %02d'th Fibonacci Number is: %d\n",IMax,value);
+ printf("The %02ld'th Fibonacci Number is: %ld\n",IMax,value);
   return 0;
 }

@@ -67,18 +67,22 @@ double CheckSum();
 double drand48();
 int log_2(int);
 void printerr(char *);
+void Transpose(int n1,double *src,double *dest,int MyNum,int MyFirst,int MyLast,int pad_length);
+void FFT1DOnce(int direction,int M,int N,double *u,double *x);
+void TwiddleOneCol(int direction,int n1,int N,int j,double *u,double *x,int pad_length);
+void Scale(int n1,int N,double *x);
 
 
 
 void SlaveStart(int my_id)
 {
   int i;
-  int j;
+//  int j;
   int MyNum;
-  double error;
+//  double error;
   double *upriv;
-  int initdone;
-  int finish;
+//  int initdone;
+//  int finish;
   int l_transtime=0;
   int MyFirst;
   int MyLast;
@@ -167,7 +171,7 @@ double *x;
 }
 
 
-InitX(N, x)
+void InitX(N, x)
 
 int N;
 double *x;
@@ -184,7 +188,7 @@ double *x;
 }
 
 
-InitU(N, u)
+void InitU(N, u)
 
 int N;
 double *u;
@@ -211,7 +215,7 @@ double *u;
 }
 
 
-InitU2(N, u, n1)
+void InitU2(N, u, n1)
 
 int N;
 double *u;
@@ -219,7 +223,7 @@ int n1;
 
 {
   int i,j,k;
-  int base;
+//  int base;
 
   for (j=0; j<n1; j++) {
     k = j*(rootN+pad_length);
@@ -233,7 +237,7 @@ int n1;
 }
 
 
-BitReverse(M, k)
+int BitReverse(M, k)
 
 int M;
 int k;
@@ -275,13 +279,13 @@ int dostats;
 struct GlobalMemory *Global;
 
 {
-  int i;
+//  int i;
   int j;
   int m1;
   int n1;
-  int flag = 0;
-  unsigned int clocktime1;
-  unsigned int clocktime2;
+//  int flag = 0;
+//  unsigned int clocktime1;
+//  unsigned int clocktime2;
 
   m1 = M/2;
   n1 = 1<<m1;
@@ -313,7 +317,7 @@ struct GlobalMemory *Global;
 }
 
 
-TwiddleOneCol(direction, n1, N, j, u, x, pad_length)
+void TwiddleOneCol(direction, n1, N, j, u, x, pad_length)
 
 int direction;
 int n1;
@@ -329,10 +333,10 @@ int pad_length;
   double omega_c;
   double x_r;
   double x_c;
-  double r1;
-  double c1;
-  double r2;
-  double c2;
+//  double r1;
+//  double c1;
+//  double r2;
+//  double c2;
 
   for (i=0; i<n1; i++) {
     omega_r = u[2*(j*(n1+pad_length)+i)];
@@ -345,7 +349,7 @@ int pad_length;
 }
 
 
-Scale(n1, N, x)
+void Scale(n1, N, x)
 
 int n1;
 int N;
@@ -361,7 +365,7 @@ double *x;
 }
 
 
-Transpose(n1, src, dest, MyNum, MyFirst, MyLast, pad_length)
+void Transpose(n1, src, dest, MyNum, MyFirst, MyLast, pad_length)
 
 int n1;
 double *src;
@@ -453,7 +457,7 @@ int pad_length;
 }
 
 
-CopyColumn(n1, src, dest)
+void CopyColumn(n1, src, dest)
 
 int n1;
 double *src;
@@ -469,7 +473,7 @@ double *dest;
 }
 
 
-Reverse(N, M, x)
+void Reverse(N, M, x)
 
 int N;
 int M;
@@ -488,7 +492,7 @@ double *x;
 }
 
 
-FFT1DOnce(direction, M, N, u, x)
+void FFT1DOnce(direction, M, N, u, x)
 
 int direction;
 int M;
@@ -583,14 +587,14 @@ char *argv;
 
 {
     int numIter = 0;
-  int i;
-  int j;
-  int c;
-  extern char *optarg;
-  int m1;
+//  int i;
+//  int j;
+//  int c;
+//  extern char *optarg;
+//  int m1;
   int factor;
   int pages;
-  unsigned int start;
+//  unsigned int start;
 
   N = 1<<M;
   rootN = 1<<(M/2);

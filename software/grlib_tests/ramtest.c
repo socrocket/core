@@ -9,7 +9,7 @@
 
 int cramtest() {
 	volatile double mrl[8*1024 + 8];
-	int i; 
+//	int i; 
 	int ilinesz, dlinesz, dbytes, ibytes, itmask, dtmask, isets, dsets; 
 	int icconf, dcconf, cachectrl;
 

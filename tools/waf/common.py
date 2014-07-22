@@ -299,16 +299,16 @@ def fetch(self, *k, **kw):
 
     if kw.has_key("patch"):
         self.start_msg("Patching %s" % kw["name"])
-        try:
-            self.cmd_and_log(
-                [self.env.PATCH, "-p1", "-Nsi", kw["patch"], "-d", kw["src"]],
-                output=Context.BOTH, 
-                cwd=kw["src"],
-            )
-            self.end_msg("Ok")
-        except:
-            self.end_msg("Faild, make sure it was already applied")
-
+        for patch in Utils.to_list(kw["patch"]):
+           try:
+               self.cmd_and_log(
+                   [self.env.PATCH, "-p1", "-Nsi", patch, "-d", kw["src"]],
+                   output=Context.BOTH,
+                   cwd=kw["src"],
+               )
+               self.end_msg("Ok")
+           except:
+               self.end_msg("Failed, make sure patch %s was already applied" % patch)
     return k, kw
 
 
@@ -337,14 +337,17 @@ def dep_build(self, *k, **kw):
             self.cmd_and_log(
                     (config_cmd % kw).split(' '), 
                 output=Context.BOTH, 
+                shell=True,
                 cwd=kw.get("config_cwd",kw["build"]) % kw
             )
             self.end_msg("Ok")
 
             self.start_msg("  Compile %s" % kw["name"])
             self.cmd_and_log(
-                (build_cmd % kw).split(' '), 
+            #    (build_cmd % kw).split(' '), 
+                build_cmd % kw, 
                 output=Context.BOTH, 
+                shell=True,
                 cwd=kw.get("build_cwd",kw["build"]) % kw
             )
             self.end_msg("Ok")
@@ -352,8 +355,10 @@ def dep_build(self, *k, **kw):
         if not os.path.exists(kw["prefix"]):
             self.start_msg("  Install %s" % kw["name"])
             self.cmd_and_log(
-                (install_cmd % kw).split(' '), 
+                #(install_cmd % kw).split(' '), 
+                install_cmd % kw, 
                 output=Context.BOTH, 
+                shell=True,
                 cwd=kw.get("install_cwd",kw["build"]) % kw
             )
             self.end_msg("Ok")

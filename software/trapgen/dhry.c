@@ -416,6 +416,8 @@ typedef struct record
       } Rec_Type, *Rec_Pointer;
 
 
+
+
 /*
  ****************************************************************************
  *
@@ -440,11 +442,19 @@ typedef struct record
         /* i.e. no register variables   */
 #endif
 
+Boolean Func_3 ( Enumeration Enum_Par_Val );
+void Proc_1 (REG Rec_Pointer Ptr_Val_Par );
+void Proc_2 (One_Fifty   *Int_Par_Ref );
+void Proc_3 (Rec_Pointer *Ptr_Ref_Par );
+void Proc_4 ( void );
+void Proc_5 ( void );
+
+
 extern  int     Int_Glob;
 extern  char    Ch_1_Glob;
 
 
-Proc_6 (Enum_Val_Par, Enum_Ref_Par)
+void Proc_6 (Enum_Val_Par, Enum_Ref_Par)
 /*********************************/
     /* executed once */
     /* Enum_Val_Par == Ident_3, Enum_Ref_Par becomes Ident_2 */
@@ -478,7 +488,7 @@ Enumeration *Enum_Ref_Par;
 } /* Proc_6 */
 
 
-Proc_7 (Int_1_Par_Val, Int_2_Par_Val, Int_Par_Ref)
+void Proc_7 (Int_1_Par_Val, Int_2_Par_Val, Int_Par_Ref)
 /**********************************************/
     /* executed three times                                      */
     /* first call:      Int_1_Par_Val == 2, Int_2_Par_Val == 3,  */
@@ -498,7 +508,7 @@ One_Fifty      *Int_Par_Ref;
 } /* Proc_7 */
 
 
-Proc_8 (Arr_1_Par_Ref, Arr_2_Par_Ref, Int_1_Par_Val, Int_2_Par_Val)
+void Proc_8 (Arr_1_Par_Ref, Arr_2_Par_Ref, Int_1_Par_Val, Int_2_Par_Val)
 /*********************************************************************/
     /* executed once      */
     /* Int_Par_Val_1 == 3 */
@@ -884,7 +894,7 @@ int main ()
 }
 
 
-Proc_1 (Ptr_Val_Par)
+void Proc_1 (Ptr_Val_Par)
 /******************/
 
 REG Rec_Pointer Ptr_Val_Par;
@@ -918,7 +928,7 @@ REG Rec_Pointer Ptr_Val_Par;
 } /* Proc_1 */
 
 
-Proc_2 (Int_Par_Ref)
+void Proc_2 (Int_Par_Ref)
 /******************/
     /* executed once */
     /* *Int_Par_Ref == 1, becomes 4 */
@@ -941,7 +951,7 @@ One_Fifty   *Int_Par_Ref;
 } /* Proc_2 */
 
 
-Proc_3 (Ptr_Ref_Par)
+void Proc_3 (Ptr_Ref_Par)
 /******************/
     /* executed once */
     /* Ptr_Ref_Par becomes Ptr_Glob */
@@ -956,7 +966,7 @@ Rec_Pointer *Ptr_Ref_Par;
 } /* Proc_3 */
 
 
-Proc_4 () /* without parameters */
+void Proc_4 () /* without parameters */
 /*******/
     /* executed once */
 {
@@ -968,7 +978,7 @@ Proc_4 () /* without parameters */
 } /* Proc_4 */
 
 
-Proc_5 () /* without parameters */
+void Proc_5 () /* without parameters */
 /*******/
     /* executed once */
 {

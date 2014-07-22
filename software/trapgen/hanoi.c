@@ -63,9 +63,11 @@ double TimeArray[3];
 int num[4];
 long count;
 
+void mov(n,f,t);
+
 int main()
 {
-    double RunTime = 0.0, sum_mps = 0.0, TLimit, mps;
+    double RunTime = 0.0, sum_mps = 0.0, /*TLimit,*/ mps;
     int disk, Loops = 0, i = 0;
 
     printf("\n");
@@ -113,7 +115,7 @@ int main()
     return 0;
 }
 
-mov(n,f,t)
+void mov(n,f,t)
 {
    int o;
    if(n == 1)

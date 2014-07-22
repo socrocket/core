@@ -241,8 +241,7 @@ void    pboard(void);                           /* Print a solution */
 
 int main(int argc,char **argv){
     register int    i;                          /* Loop variable */
-    register char   *p;                         /* Pointer to argument */
-    double starttime, benchtime;
+//    register char   *p;                         /* Pointer to argument */
 
 #ifdef  MPW                                     /* Macintosh MPW ONLY */
     InitCursorCtl(0);                           /* Enable cursor control */

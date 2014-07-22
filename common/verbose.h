@@ -106,6 +106,7 @@ extern Number uint32;
 extern Number uint16;
 extern Number uint8;
 extern Number noint;
+extern Number uintptr;
 
 /// Standard verbosity is 3.
 /// All messages but debug.
