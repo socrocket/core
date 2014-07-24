@@ -41,7 +41,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
               hindex,
               0x01,   // vendor
               0x003,  // device
-              0,      // version
+              3,      // version
               0,      // irq
                 abstractionLayer), // LT or AT
   icio("icio"),
@@ -874,9 +874,11 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
 /// TLM blocking forward transport function for icio socket
 void mmu_cache::icio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
-  v::debug << name() << "TRANS: " << globl_count++ << " icio_b_transport received trans " << hex << &trans << " (" << v::hex << trans.get_address() << ") with delay " << delay << v::endl;
+  v::analysis << name() << "ADDR=0x" << v::hex << trans.get_address() << " TYPE=ICACHE_READ"  << v::endl;
+  
+  v::debug << name() << "TRANS: " << globl_count++ << " icio_b_transport received trans " << hex << &trans << " (0x" << v::hex << v::setfill('0') << v::setw(8) << trans.get_address() << ") with delay " << delay << v::endl;
 
-  if (trans.get_address()==0x40000000) v::info << "Boot completed - jump to main" << v::endl;
+  //if (trans.get_address()==0x40000000) v::info << "Boot completed - jump to main" << v::endl;
 
   // Call the functional part of the model
   // ---------------------------
@@ -891,15 +893,19 @@ void mmu_cache::icio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_ti
 void mmu_cache::dcio_b_transport(tlm::tlm_generic_payload& trans, sc_core::sc_time& delay) {
 
   if (trans.is_read()) {
-    v::debug << name() << "TRANS: " << globl_count++ << " dcio_b_transport (READ) received trans " << hex << &trans << " (" << v::hex << trans.get_address() << ") with delay " << delay << v::endl;
+    v::debug << name() << "TRANS: " << globl_count++ << " dcio_b_transport (READ) received trans " << hex << &trans << " (0x" << v::hex << v::setfill('0') << v::setw(8) << trans.get_address() << ") with delay " << delay << v::endl;
+    v::analysis << name() << "ADDR=0x" << v::hex << trans.get_address() << " TYPE=DCACHE_READ"  << v::endl;    
+
   } else {
-    v::debug << name() << "TRANS: " << globl_count++ << " dcio_b_transport (WRITE) received trans " << hex << &trans << " (" << v::hex << trans.get_address() << ") with delay " << delay << v::endl;
+    v::debug << name() << "TRANS: " << globl_count++ << " dcio_b_transport (WRITE) received trans " << hex << &trans << " (0x" << v::hex << v::setfill('0') << v::setw(8) << trans.get_address() << ") with delay " << delay << v::endl;
+    v::analysis << name() << "ADDR=0x" << v::hex << trans.get_address() << " TYPE=DCACHE_WRITE"  << v::endl;
   }
 
   // Call the functional part of the model
   // -----------------------
   exec_data(trans, delay, false);
   // -----------------------
+
   v::debug << name() << "Transaction " << hex << &trans << "returned from exec_data with delay " << delay << v::endl;
 
 }
@@ -914,7 +920,8 @@ tlm::tlm_sync_enum mmu_cache::icio_nb_transport_fw(tlm::tlm_generic_payload &tra
   // The master has sent BEGIN_REQ
   if (phase == tlm::BEGIN_REQ) {
 
-    //std::cout << "P" << m_master_id << ",I," << std::hex << trans.get_address() << v::endl;
+    v::debug << name() << "TRANS: " << globl_count++ << " icio_nb_transport received trans " << hex << &trans << " (0x" << v::hex << v::setfill('0') << v::setw(8) << trans.get_address() << ") with delay " << delay << v::endl;
+    v::analysis << name() << "ADDR=0x" << v::hex << trans.get_address() << " TYPE=ICACHE_READ"  << v::endl;
 
     // Put transaction in PEQ
     icio_PEQ.notify(trans, delay);
@@ -1014,11 +1021,17 @@ void mmu_cache::icio_service_thread() {
 tlm::tlm_sync_enum mmu_cache::dcio_nb_transport_fw(tlm::tlm_generic_payload &trans, tlm::tlm_phase &phase, sc_core::sc_time &delay) {
 
   v::debug << name() << "DCIO nb_transport forward received transaction: " << hex << &trans << " with  phase " << phase << " and delay: " << delay << v::endl;
-
+  
   // The master has sent BEGIN_REQ
   if (phase == tlm::BEGIN_REQ) {
 
-    //std::cout << "P" << m_master_id << ",D," << std::hex << trans.get_address() << v::endl;
+    if (trans.is_read()) {
+      v::debug << name() << "TRANS: " << globl_count++ << " dcio_nb_transport (READ) received trans " << hex << &trans << " (0x" << v::hex << v::setfill('0') << v::setw(8) << trans.get_address() << ") with delay " << delay << v::endl;
+      v::analysis << name() << "ADDR=0x" << v::hex << trans.get_address() << " TYPE=DCACHE_READ"  << v::endl;  
+    } else {
+      v::debug << name() << "TRANS: " << globl_count++ << " dcio_nb_transport (WRITE) received trans " << hex << &trans << " (0x" << v::hex << v::setfill('0') << v::setw(8) << trans.get_address() << ") with delay " << delay << v::endl;
+      v::analysis << name() << "ADDR=0x" << v::hex << trans.get_address() << " TYPE=DCACHE_WRITE"  << v::endl;
+    }
 
     // Put transaction into PEQ
     dcio_PEQ.notify(trans, delay);
@@ -1267,6 +1280,11 @@ void mmu_cache::mem_access() {
     while(bus_in_fifo.nb_get(trans)) {
 
       v::debug << this->name() << "Transaction " << v::hex << trans << " issued to AHB" << v::endl;
+      if (trans->is_read()) {
+	v::analysis << name() << "ADDR=0x" << v::hex << trans->get_address() << " TYPE=AHB_READ"  << v::endl;
+      } else {
+	v::analysis << name() << "ADDR=0x" << v::hex << trans->get_address() << " TYPE=AHB_WRITE" << v::endl;
+      }
       ahbaccess(trans);
       v::debug << this->name() << "Transaction " << v::hex << trans << " returned from AHB" << v::endl;
 

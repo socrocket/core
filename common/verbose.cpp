@@ -88,7 +88,8 @@ logstream<0> error(&logbuf);
 logstream<1> warn(&logbuf);
 logstream<2> report(&logbuf);
 logstream<3> info(&logbuf);
-logstream<4> debug(&logbuf);
+logstream<4> analysis(&logbuf);
+logstream<5> debug(&logbuf);
 
 /** Linux internal consol color pattern */
 Color bgBlack("\e[40m");

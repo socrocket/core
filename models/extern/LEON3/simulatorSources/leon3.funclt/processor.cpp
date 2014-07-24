@@ -717,8 +717,7 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt( sc_module_nam
         ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck);
     this->IRQ_irqInstr = new IRQ_IRQ_Instruction(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, \
         ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck, this->IRQ);
-    //this->quantKeeper.set_global_quantum( this->latency*100);
-    this->quantKeeper.set_global_quantum( this->latency*1);	
+    this->quantKeeper.set_global_quantum( this->latency*100);
     this->quantKeeper.reset();
     // Initialization of the standard registers
     // Initialization of the register banks
