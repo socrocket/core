@@ -31,9 +31,10 @@
 
 #include "models/utils/ahbslave.h"
 #include "models/utils/clkdevice.h"
+#include "models/memory/basememory.h"
 #include "common/msclogger.h"
 
-class AHBMem : public AHBSlave<>, public CLKDevice {
+class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
   public:
     GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(AHBMem);
@@ -62,7 +63,7 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
 
     /// @brief Delete memory content
     void clear_mem() {
-      mem.clear();
+      erase(0, get_size()-1);
     }
 
     /// @brief Method to write a byte into the memory
@@ -104,9 +105,6 @@ class AHBMem : public AHBSlave<>, public CLKDevice {
     void end_of_simulation();
 
   private:
-    /// The actual memory
-    std::map<uint32_t, uint8_t> mem;
-
     /// AHB slave base address and size
     const uint32_t ahbBaseAddress;
     // size is saved in bytes
