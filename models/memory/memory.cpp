@@ -33,7 +33,9 @@ Memory::Memory(sc_core::sc_module_name name,
   BaseMemory::implementation_type implementation,
   bool powmon) :
   MemoryPower(name, type, banks, bsize, bits, cols, implementation, powmon),
-  bus("bus") {
+  bus("bus"),
+  m_writes("bytes_written", 0ull, m_performance_counters),
+  m_reads("bytes_read", 0ull, m_performance_counters) {
   // TLM 2.0 socket configuration
   gs::socket::config<tlm::tlm_base_protocol_types> bus_cfg;
   bus_cfg.use_mandatory_phase(BEGIN_REQ);

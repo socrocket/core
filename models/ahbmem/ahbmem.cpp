@@ -39,6 +39,7 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm,  // Module name
       0,
       ambaLayer,
       BAR(AHBDevice::AHBMEM, hmask_, cacheable, 0, haddr_)),
+    BaseMemory(BaseMemory::ARRAY, get_size()),
     ahbBaseAddress(static_cast<uint32_t>((hmask_) & haddr_) << 20),
     ahbSize(~(static_cast<uint32_t>(hmask_) << 20) + 1),
     mhaddr(haddr_),
@@ -82,13 +83,12 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm,  // Module name
 }
 
 void AHBMem::dorst() {
-  mem.clear();
+  erase(0, get_size()-1);
 }
 
 /// Destructor
 AHBMem::~AHBMem() {
   // Delete memory contents
-  mem.clear();
   GC_UNREGISTER_CALLBACKS();
 }
 
@@ -109,12 +109,8 @@ uint32_t AHBMem::exec_func(
     }
 
     if (trans.is_write()) {
-      for (uint32_t i = 0; i < trans.get_data_length(); i++) {
-        v::debug << name() << "mem[" << hex << trans.get_address() + i << "] = 0x" << hex << v::setw(2) <<
-        (unsigned int)*(trans.get_data_ptr() + i) << v::endl;
-        // write simulation memory
-        mem[trans.get_address() + i] = *(trans.get_data_ptr() + i);
-      }
+      // write simulation memory
+      write_block(trans.get_address(), trans.get_data_ptr(), trans.get_data_length());
 
       // Base delay is one clock cycle per word
       words_transferred = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
@@ -127,12 +123,8 @@ uint32_t AHBMem::exec_func(
       delay += clock_cycle * (words_transferred + mwait_states);
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
     } else {
-      for (uint32_t i = 0; i < trans.get_data_length(); i++) {
-        v::debug << name() << "0x" << hex << v::setw(2) <<
-        (unsigned int)mem[trans.get_address() + i] << "= mem[" << hex << trans.get_address() + i << "]" << v::endl;
-        // read simulation memory
-        *(trans.get_data_ptr() + i) = mem[trans.get_address() + i];
-      }
+      // read simulation memory
+      read_block(trans.get_address(), trans.get_data_ptr(), trans.get_data_length());
 
       // Base delay is one clock cycle per word
       words_transferred = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
@@ -167,7 +159,7 @@ sc_core::sc_time AHBMem::get_clock() {
 }
 
 void AHBMem::writeByteDBG(const uint32_t address, const uint8_t byte) {
-  mem[address] = byte;
+  write_dbg(address, byte);
 }
 
 // Automatically called at the beginning of the simulation
