@@ -39,7 +39,7 @@ MemoryPower::MemoryPower(sc_module_name name,
   uint32_t cols,
   BaseMemory::implementation_type implementation,
   bool pow_mon) :
-//  m_performance_counters("performance_counters"),
+  m_performance_counters("performance_counters"),
 //  m_reads("bytes_read", 0ull, m_performance_counters),
 //  m_writes("bytes_writen", 0ull, m_performance_counters),
   sc_module(name),
