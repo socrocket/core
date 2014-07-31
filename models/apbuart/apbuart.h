@@ -65,6 +65,7 @@ class APBUART : public gs::reg::gr_device, public APBDevice, public CLKDevice {
 
     void status_read();
 
+    // SCTHREADS
     void send_irq();
 
     // Signal Callbacks

@@ -90,6 +90,7 @@ AHBCtrl::AHBCtrl(
   // GreenControl API
   m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
+  init_generics();
   // Initialize slave and master table
   // (Pointers to deviceinfo fields will be set in start_of_simulation)
   for (int i = 0; i < 64; i++) {
@@ -165,6 +166,66 @@ void AHBCtrl::dorst() {
 // Destructor
 AHBCtrl::~AHBCtrl() {
   GC_UNREGISTER_CALLBACKS();
+}
+
+void AHBCtrl::init_generics() {
+  g_ioaddr.add_properties()
+    ("name", "AHB IO Area Address")
+    ("range", "0..0xFFF")
+    ("The MSB address of the I/O area. Sets the 12 most significant bits in the 32-bit AHB address (e.g. 31 downto 20).");
+
+  g_iomask.add_properties()
+    ("name", "AHB IO Area Mask")
+    ("range", "0..0xFFF")
+    ("The I/O area address mask. Sets the size of the I/O area and the start address together with ioaddr.");
+
+  g_cfgaddr.add_properties()
+    ("name", "AHB CFG Area Address")
+    ("range", "0..0xFF0")
+    ("The MSB address of the confgiuration area. Sets 12 bits in the 32-bit AHB address (19 downto 8)");
+
+  g_cfgmask.add_properties()
+    ("name", "AHB CFG Area Mask")
+    ("range", "0..0xFF0")
+    ("The address mask of the configuration area. Sets the size of the configuration area and "
+     "the start address together with cfgaddr.");
+
+  g_rrobin.add_properties()
+    ("name", "Round robin arbitration.")
+    ("True  - round-robin arbitration\n"
+     "False - priority arbitration (highest master id has highest priority)\n"
+     "Arbitration is only supported in AT mode!! (no effect on LT simulation)");
+
+  g_defmast.add_properties()
+    ("name", "Default AHB Master")
+    ("range", "0..16")
+    ("The default AHB master index (bus parking). This feature is not modeled at transaction level."
+     "Parameter is only used for reporting.");
+
+  g_ioen.add_properties()
+    ("name", "AHB IO area enable")
+    ("AHB I/O area enable. Set to 0 to disable the I/O area.");
+
+  g_fixbrst.add_properties()
+    ("name", "Enable support for fixed burst length.")
+    ("Enable support for fixed-length bursts at RTL-Level. This feature is not supported at transaction-level.");
+
+  g_split.add_properties()
+    ("name", "Enable support for split transactions in AT models")
+    ("Enables support for AHB SPLIT response at RTL-Level. This feature is not supported at transaction-level.");
+
+  g_fpnpen.add_properties()
+    ("name", "Enable full decoding of the PnP configuration records")
+    ("When disabled the user-defined register in the PnP configuration records are not mapped in the configuration area.");
+
+  g_mcheck.add_properties()
+    ("name", "Intersection checking")
+    ("Check if there are any intersections between core memory areas. If two areas intersect an assert with level failure will be generated.");
+
+  g_pow_mon.add_properties()
+    ("name", "Power Monitoring")
+    ("If true enable power monitoring");
+
 }
 
 // Helper function for creating slave map decoder entries

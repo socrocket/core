@@ -32,6 +32,7 @@ APBUART::APBUART(sc_core::sc_module_name name,
   m_backend(backend),
   g_pirq(pirq),
   powermon(powmon) {
+  // TODO(all) Implement and Test interrupt thread
   // Display APB slave information
   v::info << this->name() << "APB slave @0x" << hex << v::setw(8)
           << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex

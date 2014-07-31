@@ -94,7 +94,7 @@ boost::filesystem::path find_top_path(char *start) {
   #endif
 
   boost::filesystem::path waf("waf");
-  while(!boost::filesystem::exists(path/waf)&&!path.empty()) {
+  while(!boost::filesystem::exists(path/waf) && !path.empty()) {
     path = path.parent_path();
   }
   return path;

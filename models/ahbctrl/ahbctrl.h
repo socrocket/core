@@ -125,6 +125,10 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
     /// Desctructor
     ~AHBCtrl();
 
+    /// Initialisation function for model generics
+    void init_generics();
+
+
   private:
     // Data Members
     // ------------
