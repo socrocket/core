@@ -39,13 +39,13 @@ MemoryPower::MemoryPower(sc_module_name name,
   uint32_t cols,
   BaseMemory::implementation_type implementation,
   bool pow_mon) :
-  m_performance_counters("performance_counters"),
-//  m_reads("bytes_read", 0ull, m_performance_counters),
-//  m_writes("bytes_writen", 0ull, m_performance_counters),
   sc_module(name),
   MEMDevice(type, banks, bsize, bits, cols),
   BaseMemory(implementation, bsize * ((banks < 5) ? banks : 8)),
   m_pow_mon(pow_mon),
+  m_performance_counters("performance_counters"),
+//  m_reads("bytes_read", 0ull, m_performance_counters),
+//  m_writes("bytes_writen", 0ull, m_performance_counters),
   power("power"),
   sta_power_norm("sta_power_norm", power_params[type][0], power),  // Normalized static power input
   int_power_norm("int_power_norm", power_params[type][1], power),  // Normalized internal power input (act. independ)
