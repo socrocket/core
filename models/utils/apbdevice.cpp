@@ -32,11 +32,11 @@ APBDevice::APBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
 APBDevice::~APBDevice() {
 }
 
-const uint16_t APBDevice::get_device_id() const {
+uint16_t APBDevice::get_device_id() const {
   return (m_register[0] >> 12) & 0xFFF;
 }
 
-const uint8_t APBDevice::get_vendor_id() const {
+uint8_t APBDevice::get_vendor_id() const {
   return (m_register[0] >> 24) & 0xFF;
 }
 
@@ -57,12 +57,12 @@ const APBDevice::device_type APBDevice::get_type() const {
 }
 
 // Returns the 12 bit MSB address of the device
-const uint32_t APBDevice::get_base() const {
+uint32_t APBDevice::get_base() const {
   return (m_register[1] >> 20) & 0xFFF;
 }
 
 // Returns the 12 bit address mask of the device
-const uint32_t APBDevice::get_mask() const {
+uint32_t APBDevice::get_mask() const {
   return (m_register[1] >>  4) & 0xFFF;
 }
 
@@ -75,7 +75,7 @@ sc_dt::uint64 APBDevice::get_base_addr() {
 }
 
 // The 32 bit base address of the device
-const uint32_t APBDevice::get_base_addr_() const {
+uint32_t APBDevice::get_base_addr_() const {
   uint32_t addr = get_base();
   uint32_t mask = get_mask();
   return (addr & mask) << 8;
@@ -89,17 +89,17 @@ sc_dt::uint64 APBDevice::get_size() {
 }
 
 // Size of the device address space in bytes
-const uint32_t APBDevice::get_size_() const {
+uint32_t APBDevice::get_size_() const {
   uint32_t mask = get_mask();
   return ((~mask & 0xFFF) + 1) << 8;
 }
 
-const uint32_t APBDevice::get_relative_addr(uint32_t addr) const {
+uint32_t APBDevice::get_relative_addr(uint32_t addr) const {
   return addr - get_base_addr_();
 }
 
 // Returns the bus id of the device
-const uint32_t APBDevice::get_busid() const {
+uint32_t APBDevice::get_busid() const {
   return m_busid;
 }
 /// @}

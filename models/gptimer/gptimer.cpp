@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 #include "models/gptimer/gptimer.h"
+#include "common/report.h"
 
 // Constructor: create all members, registers and Counter objects.
 // Store configuration default value in conf_defaults.
@@ -54,10 +55,15 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
   init_registers();
 
   // Display APB slave information
-  v::info << this->name() << "APB slave @0x" << hex << v::setw(8)
-          << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex
-          << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
-          << endl;
+  srWarn("/configuration/gptimer/apbslave")
+     ("addr", (uint64_t)bus.get_base_addr())
+     ("size", (uint64_t)bus.get_size())
+     ("APB Slave Configuration");
+
+  //v::info << this->name() << "APB slave @0x" << hex << v::setw(8)
+  //        << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex
+  //        << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
+  //        << endl;
 
 
   // Register power callback functions
@@ -67,19 +73,31 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
   }
 
   // Configuration report
-  v::info << this->name() << " ************************************************************************** " << v::endl;
-  v::info << this->name() << " * Created gptimer with following parameters: " << v::endl;
-  v::info << this->name() << " * ------------------------------------------ " << v::endl;
-  v::info << this->name() << " * ntimers: " << ntimers << v::endl;
-  v::info << this->name() << " * pindex: " << pindex << v::endl;
-  v::info << this->name() << " * paddr/pmask: " << hex << paddr << "/" << pmask << v::endl;
-  v::info << this->name() << " * pirq: " << pirq << v::endl;
-  v::info << this->name() << " * sepirq: " << sepirq << v::endl;
-  v::info << this->name() << " * sbits: " << sbits << v::endl;
-  v::info << this->name() << " * nbits: " << nbits << v::endl;
-  v::info << this->name() << " * wdog: " << wdog << v::endl;
-  v::info << this->name() << " * pow_mon: " << powmon << v::endl;
-  v::info << this->name() << " ************************************************************************** " << v::endl;
+  srWarn("/configuration/gptimer/generics")
+    ("ntimers", ntimers)
+    ("pindex", pindex)
+    ("paddr", paddr)
+    ("pmask", pmask)
+    ("pirq", pirq)
+    ("sepirq", sepirq)
+    ("sbits", sbits)
+    ("nbits", nbits)
+    ("wdog", wdog)
+    ("pow_mon", powmon)
+    ("A GPTimer is created with these generics");
+  // v::info << this->name() << " ************************************************************************** " << v::endl;
+  // v::info << this->name() << " * Created gptimer with following parameters: " << v::endl;
+  // v::info << this->name() << " * ------------------------------------------ " << v::endl;
+  // v::info << this->name() << " * ntimers: " << ntimers << v::endl;
+  // v::info << this->name() << " * pindex: " << pindex << v::endl;
+  // v::info << this->name() << " * paddr/pmask: " << hex << paddr << "/" << pmask << v::endl;
+  // v::info << this->name() << " * pirq: " << pirq << v::endl;
+  // v::info << this->name() << " * sepirq: " << sepirq << v::endl;
+  // v::info << this->name() << " * sbits: " << sbits << v::endl;
+  // v::info << this->name() << " * nbits: " << nbits << v::endl;
+  // v::info << this->name() << " * wdog: " << wdog << v::endl;
+  // v::info << this->name() << " * pow_mon: " << powmon << v::endl;
+  // v::info << this->name() << " ************************************************************************** " << v::endl;
 }
 
 // Destructor: Unregister Register Callbacks.

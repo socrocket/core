@@ -46,43 +46,43 @@ class APBDevice : public amba_slave_base {
     virtual ~APBDevice();
 
     /// Returns the device id.
-    virtual const uint16_t get_device_id() const;
+    virtual uint16_t get_device_id() const;
 
     /// Returns the vendor id.
-    virtual const uint8_t get_vendor_id() const;
+    virtual uint8_t get_vendor_id() const;
 
     /// Returns the device register file.
     /// A set of 8 registers as specified by the grlib manual.
     /// See section: 14.2.2 (Page 79)
-    virtual const uint32_t*get_device_info() const;
+    virtual const uint32_t *get_device_info() const;
 
     /// Returns the device type.
     /// Should be APBIO ;-)
     virtual const device_type get_type() const;
     /// Returns the Bus specific most significant 12bit of the base address
     /// Shifted to the lowest bits in the word.
-    virtual const uint32_t get_base() const;
+    virtual uint32_t get_base() const;
 
     /// Returns the Bus specific mask of the most significant 12bit of the address
     /// Shifted to the lowest bits in the word.
-    virtual const uint32_t get_mask() const;
+    virtual uint32_t get_mask() const;
 
     /// Returns the Bus specific base address of the device.
     /// @see get_bar_addr
     /// @return The device base address.
     virtual sc_dt::uint64 get_base_addr();
-    virtual const uint32_t get_base_addr_() const;
+    virtual uint32_t get_base_addr_() const;
 
     /// Returns the size of the hole device as seen from the bus.
     /// @see get_bar_size
     /// @return The device size.
     virtual sc_dt::uint64 get_size();
-    virtual const uint32_t get_size_() const;
+    virtual uint32_t get_size_() const;
 
-    virtual const uint32_t get_relative_addr(uint32_t addr) const;
+    virtual uint32_t get_relative_addr(uint32_t addr) const;
 
     /// Returns the bus id of the module (pindex)
-    const uint32_t get_busid() const;
+    uint32_t get_busid() const;
 
     /// Prints the device info of the device.
     virtual void print_device_info(char *name) const;
