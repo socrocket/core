@@ -117,6 +117,7 @@ Color Beep("\e[36m");
 
 Number uint64("0x", '0', 16, true);  // NOLINT(readability/casting)
 Number uint32("0x", '0', 8, true);   // NOLINT(readability/casting)
+Number uintptr("0x", '0', 8, true); 
 Number uint16("0x", '0', 4, true);   // NOLINT(readability/casting)
 Number uint8("0x", '0', 2, true);    // NOLINT(readability/casting)
 Number noint("", ' ', 0, false);     // NOLINT(readability/casting)
