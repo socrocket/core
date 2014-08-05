@@ -90,6 +90,7 @@ logstream<2> report(&logbuf);
 logstream<3> info(&logbuf);
 logstream<4> analysis(&logbuf);
 logstream<5> debug(&logbuf);
+logstream<99> null_log(&logbuf);
 
 /** Linux internal consol color pattern */
 Color bgBlack("\e[40m");

@@ -206,6 +206,7 @@ extern logstream<2> report;
 extern logstream<3> info;
 extern logstream<4> analysis;
 extern logstream<5> debug;
+extern logstream<99> null_log;
 
 /// This function can be used if you wish to log all verbose output in a file.
 /// The logfile gets filled with data in parallel to the screen output.
