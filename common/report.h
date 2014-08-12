@@ -148,7 +148,7 @@ class sr_report : public sc_core::sc_report {
     }
 
     inline void operator()(const std::string &name = "");
-  private:
+
     sc_core::sc_actions actions;
     std::vector<v::pair> pairs;
 };
