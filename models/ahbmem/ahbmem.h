@@ -46,17 +46,21 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
     /// @param ambaLayer Abstraction layer used (AT/LT)
     /// @param infile File name of a text file to initialize the memory from
     /// @param addr Start address for memory initilization
-    AHBMem(const sc_core::sc_module_name nm,
-    uint16_t haddr_,
-    uint16_t hmask_ = 0,
-    amba::amba_layer_ids ambaLayer = amba::amba_LT,
-    uint32_t slave_id = 0,
-    bool cacheable = 1,
-    uint32_t wait_states = 0,
-    bool pow_mon = false);
+    AHBMem(
+      const sc_core::sc_module_name nm,
+      uint16_t haddr_,
+      uint16_t hmask_ = 0,
+      amba::amba_layer_ids ambaLayer = amba::amba_LT,
+      uint32_t slave_id = 0,
+      bool cacheable = 1,
+      uint32_t wait_states = 0,
+      bool pow_mon = false);
 
     /// Destructor
     ~AHBMem();
+
+    /// Initialize generics
+    void init_generics();
 
     /// Reset callback
     void dorst();
@@ -110,18 +114,26 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
     // size is saved in bytes
     const uint32_t ahbSize;
 
-    /// 12 bit MSB address and mask (constructor parameters)
-    const uint32_t mhaddr;
-    const uint32_t mhmask;
+    /// Parent array for generics
+    gs::cnf::gs_param_array g_conf;
+
+    /// 12 bit MSB address (constructor parameters)
+    gs::cnf::gs_config<uint32_t> g_haddr;
+
+    /// 12 bit MSB mask (constructor parameters)
+    gs::cnf::gs_config<uint32_t> g_hmask;
+
+    /// AHB Slave Index (constructor parameters)
+    gs::cnf::gs_config<uint32_t> g_hindex;
 
     /// Device cacheable or not
-    const bool mcacheable;
+    gs::cnf::gs_config<bool> g_cacheable;
 
     /// Number of wait states to be inserted for each transfer
-    const uint32_t mwait_states;
+    gs::cnf::gs_config<uint32_t> g_wait_states;
 
     /// Power monitoring on/off
-    const bool m_pow_mon;
+    gs::cnf::gs_config<bool> g_pow_mon;
 
   public:
     /// Power Modeling Parameters

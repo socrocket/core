@@ -55,7 +55,7 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
   init_registers();
 
   // Display APB slave information
-  srWarn("/configuration/gptimer/apbslave")
+  srInfo("/configuration/gptimer/apbslave")
      ("addr", (uint64_t)bus.get_base_addr())
      ("size", (uint64_t)bus.get_size())
      ("APB Slave Configuration");
@@ -73,7 +73,7 @@ GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
   }
 
   // Configuration report
-  srWarn("/configuration/gptimer/generics")
+  srInfo("/configuration/gptimer/generics")
     ("ntimers", ntimers)
     ("pindex", pindex)
     ("paddr", paddr)
