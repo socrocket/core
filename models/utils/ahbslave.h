@@ -14,7 +14,7 @@
 #ifndef MODELS_UTILS_AHBSLAVE_H_
 #define MODELS_UTILS_AHBSLAVE_H_
 
-#include <systemc.h>
+#include "common/systemc.h"
 #include <tlm.h>
 #include "common/gs_config.h"
 #include <amba.h>

@@ -180,7 +180,7 @@ This example shows how to instantiate the module APBCTRL. The APBCTRL is a bridg
 #include "models/mctrl/mctrl.h"
 #include "testbench.h"
 
-#include <systemc.h>
+#include "common/systemc.h"
 
 using namespace std;
 using namespace sc_core;

@@ -14,9 +14,9 @@
 #ifndef COMMON_SHELL_H_
 #define COMMON_SHELL_H_
 
-#include <systemc.h>
+#include "common/systemc.h"
 
-void start_shell(sc_status status = SC_RUNNING);
+void start_shell(sc_core::sc_status status = SC_RUNNING);
 
 #endif  // COMMON_SHELL_H_
 /// @}

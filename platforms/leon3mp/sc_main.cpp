@@ -12,9 +12,8 @@
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
-#include <greencontrol/config.h>
-#include <systemc.h>
-#include <tlm.h>
+#include "common/gs_config.h"
+#include "common/systemc.h"
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>

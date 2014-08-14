@@ -17,7 +17,7 @@
 
 #include <amba.h>
 #include "common/gs_config.h"
-#include <systemc>
+#include "common/systemc.h"
 
 #include "models/utils/ahbslave.h"
 #include "models/utils/apbdevice.h"

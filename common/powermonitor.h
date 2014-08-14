@@ -16,17 +16,17 @@
 #define COMMON_POWERMONITOR_H_
 
 #include <stdint.h>
-#include <greencontrol/config.h>
 #include <boost/algorithm/string.hpp>
-#include <systemc>
 #include <iomanip>
 #include <string>
 #include <vector>
 
+#include "common/gs_config.h"
+#include "common/systemc.h"
 #include "common/verbose.h"
 
 // Power monitor demonstrator
-class powermonitor : public sc_module {
+class powermonitor : public sc_core::sc_module {
   public:
     // Generate report
     void gen_report();
@@ -44,7 +44,7 @@ class powermonitor : public sc_module {
     SC_HAS_PROCESS(powermonitor);
 
     // Constructor
-    powermonitor(sc_core::sc_module_name name, sc_core::sc_time m_report_time = SC_ZERO_TIME, bool exram = false);
+    powermonitor(sc_core::sc_module_name name, sc_core::sc_time m_report_time = sc_core::SC_ZERO_TIME, bool exram = false);
 
     // Local variables for constructor parameters
     sc_core::sc_time m_report_time;

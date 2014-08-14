@@ -16,7 +16,7 @@
 #define MODELS_IRQMP_IRQMP_H_
 
 #include <stdint.h>
-#include <systemc.h>
+#include "common/systemc.h"
 #include "common/gs_config.h"
 #include <greenreg_ambasockets.h>
 #include <boost/config.hpp>

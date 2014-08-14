@@ -17,7 +17,7 @@
 
 #include <greencontrol/all.h>
 #include <greenreg_ambasockets.h>
-#include <systemc>
+#include "common/systemc.h"
 #include <boost/config.hpp>
 
 #include <string>

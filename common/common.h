@@ -15,8 +15,7 @@
 #ifndef COMMON_COMMON_H_
 #define COMMON_COMMON_H_
 
-#include <systemc.h>
-
+#include "common/systemc.h"
 #include "common/vendian.h"
 #include "common/verbose.h"
 inline void vwait(sc_core::sc_time &delay) {  // NOLINT(runtime/references)
@@ -26,7 +25,7 @@ inline void vwait(sc_core::sc_time &delay) {  // NOLINT(runtime/references)
 }
 
 inline void await(sc_core::sc_time time) {
-  sc_core::wait(time - sc_time_stamp());
+  sc_core::wait(time - sc_core::sc_time_stamp());
 }
 
 #if SYSTEMC_API == 210 || SYSTEMC_API == 220

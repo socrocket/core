@@ -11,8 +11,8 @@
 #include "common/report.h"
 
 sr_report sr_report_handler::rep(sc_core::SC_INFO, sc_core::sc_report_handler::add_msg_type("/initial/msg"), "null", 
-                                 __FILE__, __LINE__, sc_core::SC_NONE, SC_UNSPECIFIED);
+                                 __FILE__, __LINE__, sc_core::SC_NONE, sc_core::SC_UNSPECIFIED);
 sr_report sr_report_handler::null(sc_core::SC_INFO, sc_core::sc_report_handler::add_msg_type("/null"), "null",
-                                  __FILE__, __LINE__, sc_core::SC_NONE, SC_UNSPECIFIED);
+                                  __FILE__, __LINE__, sc_core::SC_NONE, sc_core::SC_UNSPECIFIED);
 
 /// @}

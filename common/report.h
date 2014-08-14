@@ -157,18 +157,18 @@ class sr_report_handler : public sc_core::sc_report_handler {
   public:
     static sr_report &report(
         sc_severity severity_, 
-        const char* msg_type_, 
-        const char* msg_, 
+        const char *msg_type_, 
+        const char *msg_, 
         int verbosity_, 
-        const char* file_, 
+        const char *file_, 
         int line_) {
-        sc_msg_def * md = mdlookup(msg_type_);
+        sc_msg_def *md = mdlookup(msg_type_);
 
       // If the severity of the report is SC_INFO and the specified verbosity 
       // level is greater than the maximum verbosity level of the simulator then 
       // return without any action.
 
-      if ((severity_ == SC_INFO) && (verbosity_ > verbosity_level)) {
+      if ((severity_ == sc_core::SC_INFO) && (verbosity_ > verbosity_level)) {
         return null;
       }
 

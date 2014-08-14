@@ -20,10 +20,10 @@
 powermonitor::powermonitor(sc_core::sc_module_name name,
   sc_core::sc_time report_time,
   bool exram) :
-  sc_module(name),
+  sc_core::sc_module(name),
   m_report_time(report_time),
   m_exram(exram) {
-  if (report_time != SC_ZERO_TIME) {
+  if (report_time != sc_core::SC_ZERO_TIME) {
     SC_THREAD(report_trigger);
   }
 }
@@ -195,7 +195,7 @@ void powermonitor::gen_report() {
 
 // Collect power data at end of simulation
 void powermonitor::end_of_simulation() {
-  if (m_report_time == SC_ZERO_TIME) {
+  if (m_report_time == sc_core::SC_ZERO_TIME) {
     gen_report();
   }
 }
