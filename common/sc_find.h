@@ -19,7 +19,7 @@
 
 // Function: Find a SystemC object in the hierarchy by it's name
 
-inline sc_core::sc_object*findInSimContextByName(const char *name, sc_core::sc_object *node = 0) {
+inline sc_core::sc_object *findInSimContextByName(const char *name, sc_core::sc_object *node = 0) {
   // Base of the recursion
   if (node && (strcmp(node->name(), name) == 0)) {
     return node;
