@@ -63,6 +63,7 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm,  // Module name
     dyn_write_energy("dyn_write_energy", 0.0, power),           // Energy per write access
     dyn_reads("dyn_reads", 0ull, power),            // Read access counter for power computation
     dyn_writes("dyn_writes", 0ull, power) {         // Write access counter for power computation
+  init_generics();
   // haddr and hmask must be 12 bit
   assert(!((g_haddr | g_hmask) >> 12));
 
