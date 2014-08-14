@@ -1193,9 +1193,9 @@ int sc_main(int argc, char** argv) {
     irqmp_rst.write(1);
 
     // * Power Monitor **************************
-    if(p_report_power) {
-        new powermonitor("pow_mon");
-    }
+    //if(p_report_power) {
+    //    new powermonitor("pow_mon");
+    //}
 
     (void) signal(SIGINT, stopSimFunction);
     (void) signal(SIGTERM, stopSimFunction);
