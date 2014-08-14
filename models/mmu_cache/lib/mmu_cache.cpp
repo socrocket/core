@@ -16,6 +16,7 @@
 ///
 
 #include "mmu_cache.h"
+#include "common/report.h"
 #include "common/vendian.h"
 
 //SC_HAS_PROCESS(mmu_cache<>);
@@ -152,7 +153,8 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
 
     } else {
 
-      v::error << this->name() << "Abstraction Layer not valid!!" << v::endl;
+      srError(name)
+        ("Abstraction Layer not valid!!");
       assert(0);
 
     }
@@ -177,17 +179,15 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
     }
 
     // Module Configuration Report
-    v::info << this->name() << " ************************************************** " << v::endl;
-    v::info << this->name() << " * Created MMU_CACHE in following configuration: " << v::endl;
-    v::info << this->name() << " * --------------------------------------------- " << v::endl;
-    v::info << this->name() << " * instruction cache enable (icen): " << icen << v::endl;
-    v::info << this->name() << " * data cache enable (dcen): " << dcen << v::endl;
-    v::info << this->name() << " * mmu enable (mmu_en): " << mmu_en << v::endl;
-    v::info << this->name() << " * instruction scratchpad enable (ilram): " << ilram << v::endl;
-    v::info << this->name() << " * data scratchpad enable (dlram): " << dlram << v::endl;
-    v::info << this->name() << " * abstraction Layer (LT = 8 / AT = 4): " << abstractionLayer << v::endl;
-    v::info << this->name() << " * data cache snooping (0 = off / 1 = on): " << dsnoop << v::endl;
-    v::info << this->name() << " ************************************************** " << v::endl;
+    srInfo("/configuration/mmu_cache/generics")
+      ("icen", icen)
+      ("dcen", dcen)
+      ("mmu_en", mmu_en)
+      ("ilram", ilram)
+      ("dlram", dlram)
+      ("abstraction_layer", abstractionLayer)
+      ("dsnoop", dsnoop)
+      ("Creating MMU_CACHE with this generics");
 }
 
 mmu_cache::~mmu_cache() {
