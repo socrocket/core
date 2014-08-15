@@ -1217,6 +1217,7 @@ int sc_main(int argc, char** argv) {
     python.end_of_evaluation();
 #endif
 
+    std::cout << "End of sc_main" << std::endl << std::flush;
     return trap::exitValue;
 }
 /// @}
