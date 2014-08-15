@@ -15,11 +15,11 @@
 #ifndef COMMON_RELIABILITYMANAGER_H_
 #define COMMON_RELIABILITYMANAGER_H_
 
-#include <systemc.h>
 #include <tlm.h>
 #include <stdint.h>
 #include <string.h>
 #include <string>
+#include "common/systemc.h"
 #include "common/vmap.h"
 
 class FaultDectect_if {

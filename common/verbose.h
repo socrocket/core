@@ -15,7 +15,6 @@
 #ifndef COMMON_VERBOSE_H_
 #define COMMON_VERBOSE_H_
 
-#include <systemc.h>
 #include <cstdio>
 #include <cstring>
 #include <iomanip>
@@ -23,9 +22,10 @@
 #include <streambuf>
 
 #include "common/common.h"
+#include "common/systemc.h"
 
 namespace v {
-// Import std iostream operators
+// Import std istd::ostream operators
 using std::dec;
 using std::endl;
 using std::flush;
@@ -47,11 +47,11 @@ class Color {
     const char *m_value;
 
     /// Prints the color code
-    friend ostream &operator<<(ostream &os, const Color &cl);
+    friend std::ostream &operator<<(std::ostream &os, const Color &cl);
 };
 
-/// Display the color code on the ostream
-inline ostream &operator<<(ostream &os, const Color &cl) {
+/// Display the color code on the std::ostream
+inline std::ostream &operator<<(std::ostream &os, const Color &cl) {
   os << cl.m_value;
   return os;
 }
@@ -68,11 +68,11 @@ class Number {
     int width;
     bool hex;
 
-    friend ostream &operator<<(ostream &os, const Number &n);
+    friend std::ostream &operator<<(std::ostream &os, const Number &n);
 };
 
-/// Display the color code on the ostream
-inline ostream &operator<<(ostream &os, const Number &n) {
+/// Display the color code on the std::ostream
+inline std::ostream &operator<<(std::ostream &os, const Number &n) {
   os << (n.hex ? std::hex : std::dec) << std::setfill(n.fill) << n.prefix << std::setw(n.width);
   return os;
 }

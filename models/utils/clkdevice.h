@@ -16,7 +16,7 @@
 #ifndef MODELS_UTILS_CLKDEVICE_H_
 #define MODELS_UTILS_CLKDEVICE_H_
 
-#include <systemc.h>
+#include "common/systemc.h"
 #include "signalkit/signalkit.h"
 
 class CLKDevice {
@@ -27,7 +27,7 @@ class CLKDevice {
     signal<bool>::in rst;
 
     /// Clock input signal
-    signal<sc_time>::in clk;
+    signal<sc_core::sc_time>::in clk;
 
     CLKDevice();
     virtual ~CLKDevice();
@@ -40,7 +40,7 @@ class CLKDevice {
     /// @param value Value of the reset signal the reset is active as long the signal is false.
     ///              Therefore the reset is done on the transition from false to true.
     /// @param time  Delay to the current simulation time. Is not used in this callback.
-    virtual void onrst(const bool &value, const sc_time &time);
+    virtual void onrst(const bool &value, const sc_core::sc_time &time);
 
     /// Clock Callback
     ///
@@ -49,7 +49,7 @@ class CLKDevice {
     ///
     /// @param value Value of the clock.
     /// @param time  Delay to the current simulation time. Is not used in this callback.
-    virtual void onclk(const sc_time &value, const sc_time &time);
+    virtual void onclk(const sc_core::sc_time &value, const sc_core::sc_time &time);
 
     /// Set the clockcycle length.
     ///
@@ -80,7 +80,7 @@ class CLKDevice {
     virtual void clkcng() {}
 
   protected:
-    sc_time clock_cycle;
+    sc_core::sc_time clock_cycle;
 };
 
 #endif  // MODELS_UTILS_CLKDEVICE_H_

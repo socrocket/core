@@ -18,7 +18,7 @@
 #include <stdint.h>
 #include "common/gs_config.h"
 #include <amba.h>
-#include <systemc.h>
+#include "common/systemc.h"
 #include <tlm.h>
 
 #include "models/utils/ahbdevice.h"

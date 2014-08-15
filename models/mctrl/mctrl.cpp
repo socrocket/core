@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <set>
 #include "models/mctrl/mctrl.h"
+#include "common/report.h"
 
 // constructor
 Mctrl::Mctrl(
@@ -88,16 +89,32 @@ Mctrl::Mctrl(
   dyn_write_energy("dyn_write_energy", 0.0, power),           // Energy for write access
   dyn_reads("dyn_reads", 0ull, power),           // Number of read accesses
   dyn_writes("dyn_writes", 0ull, power),           // Number of write accesses
-  g_romasel(_romasel), g_sdrasel(_sdrasel), g_romaddr(_romaddr), g_rommask(_rommask),
-  g_ioaddr(_ioaddr), g_iomask(_iomask), g_ramaddr(_ramaddr),
-  g_rammask(_rammask), g_paddr(_paddr), g_pmask(_pmask), g_wprot(_wprot),
-  g_srbanks(_srbanks), g_ram8(_ram8), g_ram16(_ram16), g_sepbus(_sepbus),
-  g_sdbits(_sdbits), g_mobile(_mobile), g_sden(_sden), m_pow_mon(powermon) {
+  g_conf("conf"),
+  g_romasel("romasel", _romasel, g_conf),
+  g_sdrasel("sdrasel", _sdrasel, g_conf),
+  g_romaddr("romaddr", _romaddr, g_conf),
+  g_rommask("rommask", _rommask, g_conf),
+  g_ioaddr("ioaddr", _ioaddr, g_conf),
+  g_iomask("iomask", _iomask, g_conf),
+  g_ramaddr("ramaddr", _ramaddr, g_conf),
+  g_rammask("rammask", _rammask, g_conf),
+  g_paddr("paddr", _paddr, g_conf),
+  g_pmask("pmask", _pmask, g_conf),
+  g_wprot("wprot", _wprot, g_conf),
+  g_srbanks("srbanks", _srbanks, g_conf),
+  g_ram8("ram8", _ram8, g_conf),
+  g_ram16("ram16", _ram16, g_conf),
+  g_sepbus("sepbus", _sepbus, g_conf),
+  g_sdbits("sdbits", _sdbits, g_conf),
+  g_mobile("mobile", _mobile, g_conf),
+  g_sden("sden", _sden, g_conf),
+  g_pow_mon("pow_mon", powermon, g_conf) {
+  init_generics();
   // Display APB slave information
-  v::info << this->name() << "APB slave @" << v::uint32 << apb.get_base_addr()
-          << " size: " << v::uint32 << apb.get_size() << " byte" << v::endl;
-  v::info << this->name() << "(" << hex << _paddr << ":" << hex << _pmask << ")" << hex <<
-  ::APBDevice::get_device_info()[1] << v::endl;
+  srInfo("/configuration/gptimer/apbslave")
+     ("addr", (uint64_t)apb.get_base_addr())
+     ("size", (uint64_t)apb.get_size())
+     ("APB Slave Configuration");
 
   // check consistency of address space generics
   // rom space in MByte: 4GB - masked area (rommask)
@@ -202,6 +219,60 @@ Mctrl::Mctrl(
 // destructor unregisters callbacks
 Mctrl::~Mctrl() {
   GC_UNREGISTER_CALLBACKS();
+}
+
+void Mctrl::init_generics() {
+  // set name, type, default, range, hint and description for gs_configs
+  /*g_index.add_properties()
+    ("name", "Bus Index")
+    ("range", "0..15")
+    ("Slave index at the AHB bus");
+
+  g_apb.add_properties()
+    ("name", "APB Bus Interface")
+    ("APB Bus Interface");
+
+  g_prom.add_properties()
+    ("name", "PROM configuration")
+    ("true - PROM enabled");
+
+  g_io.add_properties()
+    ("name", "IO memory configuration")
+    ("true - IO memory enabled");
+
+  g_ram.add_properties()
+    ("name", "RAM configuration")
+    ("RAM configuration");
+*/
+  g_ram8.add_properties()
+    ("name", "Enable 8bit PROM and SRAM access")
+    ("true - 8bit access enabled");
+
+  g_ram16.add_properties()
+    ("name", "Enable 16bit PROM and SRAM access")
+    ("true - 16bit access enabled");
+
+  g_sden.add_properties()
+    ("name", "Enable SDRAM controller")
+    ("true - SDRAM controller enabled");
+
+  g_sepbus.add_properties()
+    ("name", "Separate bus for SDRAM access")
+    ("true - SDRAM uses separate data bus");
+
+  g_sdbits.add_properties()
+    ("name", "32 or 64bit SDRAM data bus")
+    ("range", "32..64")
+    ("Defines the width of the SDRAM data bus");
+
+  g_mobile.add_properties()
+    ("name", "Mobile SDRAM support")
+    ("range", "0..3")
+    ("Mobile SDRAM support");
+
+  g_pow_mon.add_properties()
+    ("name", "Enable power monitoring")
+    ("true - Enable default power monitor (report will be generated at the end of the simulation.");
 }
 
 // register GreenReg callback after elaboration
@@ -345,7 +416,7 @@ void Mctrl::start_of_simulation() {
   }
 
   // Initialize power model
-  if (m_pow_mon) {
+  if (g_pow_mon) {
     power_model();
   }
 }
@@ -469,7 +540,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
   " pmode: " << static_cast<uint32_t>(m_pmode) << v::endl;
 
   // Log event count for power monitoring
-  if (m_pow_mon) {
+  if (g_pow_mon) {
     if (gp.get_command() == tlm::TLM_READ_COMMAND) {
       dyn_reads += (length >> 2) + 1;
     } else {

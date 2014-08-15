@@ -20,7 +20,7 @@
 
 #include "common/gs_config.h"
 #include <greensocket/target/single_socket.h>
-#include <systemc.h>
+#include "common/systemc.h"
 #include <tlm.h>
 
 #include "models/memory/memorypower.h"

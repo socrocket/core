@@ -16,7 +16,7 @@
 #ifndef MODELS_MCTRL_MCTRL_H_
 #define MODELS_MCTRL_MCTRL_H_
 
-#include <systemc.h>
+#include "common/systemc.h"
 #include <tlm.h>
 #include <amba.h>
 #include "common/gs_config.h"
@@ -88,6 +88,9 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
 
     /// Default destructor
     ~Mctrl();
+
+    /// Initialize generics
+    void init_generics();
 
     /// APB Slave Socket
     ///
@@ -283,27 +286,28 @@ class Mctrl : public AHBSlave<gs::reg::gr_device>,
     gs::gs_config<uint64_t> dyn_writes;  // NOLINT(runtime/int)
 
     // Constructor parameters (modeling VHDL generics)
-    const int g_romasel;
-    const int g_sdrasel;
-    const int g_romaddr;
-    const int g_rommask;
-    const int g_ioaddr;
-    const int g_iomask;
-    const int g_ramaddr;
-    const int g_rammask;
-    const int g_paddr;
-    const int g_pmask;
-    const int g_wprot;
-    const int g_srbanks;
-    const int g_ram8;
-    const int g_ram16;
-    const int g_sepbus;
-    const int g_sdbits;
-    const int g_mobile;
-    const int g_sden;
+    gs::cnf::gs_param_array g_conf;
+    gs::cnf::gs_config<int> g_romasel;
+    gs::cnf::gs_config<int> g_sdrasel;
+    gs::cnf::gs_config<int> g_romaddr;
+    gs::cnf::gs_config<int> g_rommask;
+    gs::cnf::gs_config<int> g_ioaddr;
+    gs::cnf::gs_config<int> g_iomask;
+    gs::cnf::gs_config<int> g_ramaddr;
+    gs::cnf::gs_config<int> g_rammask;
+    gs::cnf::gs_config<int> g_paddr;
+    gs::cnf::gs_config<int> g_pmask;
+    gs::cnf::gs_config<int> g_wprot;
+    gs::cnf::gs_config<int> g_srbanks;
+    gs::cnf::gs_config<int> g_ram8;
+    gs::cnf::gs_config<int> g_ram16;
+    gs::cnf::gs_config<int> g_sepbus;
+    gs::cnf::gs_config<int> g_sdbits;
+    gs::cnf::gs_config<int> g_mobile;
+    gs::cnf::gs_config<int> g_sden;
 
     /// Power monitoring on/off
-    bool m_pow_mon;
+    gs::cnf::gs_config<bool> g_pow_mon;
 
   public:
     // --- Constant bit masks for APB register access

@@ -61,7 +61,7 @@ sc_core::sc_time TimingMonitor::phase_systime(const unsigned int id) {
   if (it == timing_map.end()) {
     v::error << "TimingMonitor" << "No such phase: " << id << v::endl;
 
-    return sc_core::sc_time(0, SC_NS);
+    return sc_core::sc_time(0, sc_core::SC_NS);
   }
 
   return (it->second).st_end - (it->second).st_start;

@@ -19,7 +19,7 @@
 
 #include "common/gs_config.h"
 #include <greenreg/greenreg.h>
-#include <systemc>
+#include "common/systemc.h"
 
 #include "signalkit/signalkit.h"
 
