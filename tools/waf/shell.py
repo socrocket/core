@@ -32,7 +32,7 @@ packages = [
     "numpy==1.7.1",
     "numpydoc==0.4",
     "openpyxl==1.7.0",
-    "pandas==0.12.0",
+    "pandas==0.14.1",
     "pyparsing==2.0.1",
     "python-dateutil==2.1",
     "pytz==2013.8",
@@ -43,12 +43,15 @@ packages = [
     "version==0.1.0",
     "webcolors==1.4",
     "xlrd==0.9.2",
-    "python-qt==0.50",
+    #"python-qt==0.50",
     "pyside",
     #"sip",
     "matplotlib",
     "ipython==1.1.0",
     "pyuv",
+    "numexpr==2.4",
+    "cython==0.20.2",
+    "tables==3.1.1",
 ]
 
 ACTIVATE = """
