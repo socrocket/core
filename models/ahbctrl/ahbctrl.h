@@ -92,19 +92,19 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
     /// Constructor
     AHBCtrl(
       sc_core::sc_module_name nm,  ///< SystemC name
-      unsigned int ioaddr,        ///< The MSB address of the I/O area
-      unsigned int iomask,        ///< The I/O area address mask
-      unsigned int cfgaddr,       ///< The MSB address of the configuration area (PNP)
-      unsigned int cfgmask,       ///< The address mask of the configuration area
-      bool rrobin,                ///< 1 - round robin, 0 - fixed priority arbitration (only AT)
-      bool split,                 ///< Enable support for AHB SPLIT response (only AT)
-      unsigned int defmast,       ///< ID of the default master
-      bool ioen,                  ///< AHB I/O area enable
-      bool fixbrst,               ///< Enable support for fixed-length bursts
-      bool fpnpen,                ///< Enable full decoding of PnP configuration records.
-      bool mcheck,                ///< Check if there are any intersections between core memory regions.
-      bool pow_mon,               ///< Enable power monitoring
-      amba::amba_layer_ids ambaLayer);
+      uint32_t ioaddr = 0xFFF,     ///< The MSB address of the I/O area
+      uint32_t iomask = 0xFFF,     ///< The I/O area address mask
+      uint32_t cfgaddr = 0xFF0,    ///< The MSB address of the configuration area (PNP)
+      uint32_t cfgmask = 0xFF0,    ///< The address mask of the configuration area
+      bool rrobin = false,         ///< 1 - round robin, 0 - fixed priority arbitration (only AT)
+      bool split = false,          ///< Enable support for AHB SPLIT response (only AT)
+      uint32_t defmast = 0,        ///< ID of the default master
+      bool ioen = true,            ///< AHB I/O area enable
+      bool fixbrst = false,        ///< Enable support for fixed-length bursts
+      bool fpnpen = true,          ///< Enable full decoding of PnP configuration records.
+      bool mcheck = true,          ///< Check if there are any intersections between core memory regions.
+      bool pow_mon = false,        ///< Enable power monitoring
+      amba::amba_layer_ids ambaLayer = amba::amba_LT);
 
     /// Reset Callback
     void dorst();

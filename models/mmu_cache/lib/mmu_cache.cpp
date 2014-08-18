@@ -21,21 +21,36 @@
 
 //SC_HAS_PROCESS(mmu_cache<>);
 /// Constructor
-mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
-                     unsigned int ilinesize, unsigned int isetsize,
-                     unsigned int isetlock, unsigned int dcen,
-                     unsigned int drepl, unsigned int dsets,
-                     unsigned int dlinesize, unsigned int dsetsize,
-                     unsigned int dsetlock, unsigned int dsnoop,
-                     unsigned int ilram, unsigned int ilramsize,
-                     unsigned int ilramstart, unsigned int dlram,
-                     unsigned int dlramsize, unsigned int dlramstart,
-                     unsigned int cached, unsigned int mmu_en,
-                     unsigned int itlb_num, unsigned int dtlb_num,
-                     unsigned int tlb_type, unsigned int tlb_rep,
-                     unsigned int mmupgsz, sc_core::sc_module_name name,
-                     unsigned int hindex,
-     bool pow_mon,
+mmu_cache::mmu_cache(
+      sc_core::sc_module_name name,
+      bool icen, 
+      uint32_t irepl, 
+      uint32_t isets,
+      uint32_t ilinesize, 
+      uint32_t isetsize,
+      uint32_t isetlock,
+      uint32_t dcen,
+      uint32_t drepl,
+      uint32_t dsets,
+      uint32_t dlinesize,
+      uint32_t dsetsize,
+      bool dsetlock,
+      bool dsnoop,
+      bool ilram,
+      uint32_t ilramsize,
+      uint32_t ilramstart,
+      uint32_t dlram,
+      uint32_t dlramsize,
+      uint32_t dlramstart,
+      uint32_t cached,
+      bool mmu_en,
+      uint32_t itlb_num,
+      uint32_t dtlb_num,
+      uint32_t tlb_type,
+      uint32_t tlb_rep,
+      uint32_t mmupgsz,
+      uint32_t hindex,
+      bool pow_mon,
      amba::amba_layer_ids abstractionLayer) :
 
   AHBMaster<>(name,
@@ -44,7 +59,7 @@ mmu_cache::mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
               0x003,  // device
               3,      // version
               0,      // irq
-                abstractionLayer), // LT or AT
+              abstractionLayer), // LT or AT
   icio("icio"),
   dcio("dcio"),
   snoop(&mmu_cache::snoopingCallBack,"SNOOP"),

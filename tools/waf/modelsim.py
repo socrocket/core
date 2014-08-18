@@ -247,7 +247,7 @@ sclink_task.run = sclink_task_run
 def export_hase_define(self):
   defines = getattr(self, 'export_defines', [])
   defines = Utils.to_list(defines)
-  defines += ["HAVE_" + self.target.upper()]
+  defines += ["HAVE_" + self.target.replace(".", "_").upper()]
   setattr(self, "export_defines", defines)
 
 @TaskGen.before('process_source', 'process_rule')

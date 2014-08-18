@@ -716,6 +716,7 @@ int sc_main(int argc, char** argv) {
       // Always enabled.
       // Needed for basic platform.
       mmu_cache *mmu_cache_inst = new mmu_cache(
+              sc_core::sc_gen_unique_name("mmu_cache", false), // name of sysc module
               p_mmu_cache_ic_en,         //  int icen = 1 (icache enabled)
               p_mmu_cache_ic_repl,       //  int irepl = 0 (icache LRU replacement)
               p_mmu_cache_ic_sets,       //  int isets = 4 (4 instruction cache sets)
@@ -742,7 +743,6 @@ int sc_main(int argc, char** argv) {
               p_mmu_cache_mmu_tlb_type,  //  int tlb_type = 0 (split tlb mode - not present)
               p_mmu_cache_mmu_tlb_rep,   //  int tlb_rep = 1 (random replacement)
               p_mmu_cache_mmu_mmupgsz,   //  int mmupgsz = 0 (4kB mmu page size)>
-              sc_core::sc_gen_unique_name("mmu_cache", false), // name of sysc module
               p_mmu_cache_index + i,     // Id of the AHB master
               p_report_power,            // Power Monitor,
               ambaLayer                  // TLM abstraction layer
