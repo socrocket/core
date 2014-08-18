@@ -223,12 +223,12 @@ void sr_report::operator()(const std::string &name) {
 #define srConfig_0() \
     sr_report_handler::report( \
       sc_core::SC_INFO, this->name(), "", \
-      sc_core::SC_FULL, __FILE__ , __LINE__)
+      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
 #define srConfig_1(id) \
     sr_report_handler::report( \
       sc_core::SC_INFO, id, "", \
-      sc_core::SC_FULL, __FILE__ , __LINE__)
+      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
 // STRONGLY DEPRECATED: for report after end of simulation -> will be moved to
 // Python
@@ -237,12 +237,12 @@ void sr_report::operator()(const std::string &name) {
 #define srReport_0() \
     sr_report_handler::report( \
       sc_core::SC_INFO, this->name(), "", \
-      sc_core::SC_HIGH, __FILE__ , __LINE__)
+      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
 #define srReport_1(id) \
     sr_report_handler::report( \
       sc_core::SC_INFO, id, "", \
-      sc_core::SC_HIGH, __FILE__ , __LINE__)
+      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
 // for data to be analysed by ipython
 #define srAnalyse(...) _GET_MACRO_(dummy,##__VA_ARGS__,srAnalyse_1(__VA_ARGS__),srAnalyse_0())
@@ -250,24 +250,24 @@ void sr_report::operator()(const std::string &name) {
 #define srAnalyse_0() \
     sr_report_handler::report( \
       sc_core::SC_INFO, this->name(), "", \
-      sc_core::SC_LOW, __FILE__ , __LINE__)
+      sc_core::SC_FULL, __FILE__ , __LINE__)
 
 #define srAnalyse_1(id) \
     sr_report_handler::report( \
       sc_core::SC_INFO, id, "", \
-      sc_core::SC_LOW, __FILE__ , __LINE__)
+      sc_core::SC_FULL, __FILE__ , __LINE__)
 
 #define srInfo(...) _GET_MACRO_(dummy,##__VA_ARGS__,srInfo_1(__VA_ARGS__),srInfo_0())
 
 #define srInfo_0() \
     sr_report_handler::report( \
       sc_core::SC_INFO, this->name(), "", \
-      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
+      sc_core::SC_LOW, __FILE__ , __LINE__)
 
 #define srInfo_1(id) \
     sr_report_handler::report( \
       sc_core::SC_INFO, id, "", \
-      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
+      sc_core::SC_LOW, __FILE__ , __LINE__)
 
 #define srMessage(...) _GET_MACRO_2_(dummy,##__VA_ARGS__,srMessage_2(__VA_ARGS__),srMessage_1(__VA_ARGS__))
 
@@ -298,24 +298,24 @@ void sr_report::operator()(const std::string &name) {
 #define srError_0() \
     sr_report_handler::report( \
       sc_core::SC_ERROR, this->name(), "", \
-      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
+      sc_core::SC_LOW, __FILE__ , __LINE__)
 
 #define srError_1(id) \
     sr_report_handler::report( \
       sc_core::SC_ERROR, id, "", \
-      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
+      sc_core::SC_LOW, __FILE__ , __LINE__)
 
 #define srFatal(...) _GET_MACRO_(dummy,##__VA_ARGS__,srFatal_1(__VA_ARGS__),srFatal_0())
 
 #define srFatal_0() \
     sr_report_handler::report( \
       sc_core::SC_FATAL, this->name(), "", \
-      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
+      sc_core::SC_LOW, __FILE__ , __LINE__)
 
 #define srFatal_1(id) \
     sr_report_handler::report( \
       sc_core::SC_FATAL, id, "", \
-      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
+      sc_core::SC_LOW, __FILE__ , __LINE__)
 
 
 #endif  // COMMON_REPORT_H_
