@@ -202,52 +202,117 @@ void sr_report::operator()(const std::string &name) {
   }
 }
 
-#define srDebug(id) \
+#define _GET_MACRO_(dummy,_1,NAME,...) NAME
+#define _GET_MACRO_2_(dummy,_1,_2,NAME,...) NAME
+
+#define srDebug(...) _GET_MACRO_(dummy,##__VA_ARGS__,srDebug_1(__VA_ARGS__),srDebug_0())
+
+#define srDebug_0() \
+    sr_report_handler::report( \
+      sc_core::SC_INFO, this->name(), "", \
+      sc_core::SC_DEBUG, __FILE__ , __LINE__)
+
+#define srDebug_1(id) \
     sr_report_handler::report( \
       sc_core::SC_INFO, id, "", \
       sc_core::SC_DEBUG, __FILE__ , __LINE__)
 
-#define srConfig(id) \
+// DEPRECATED: for configurations at initialization -> will be moved to Python
+#define srConfig(...) _GET_MACRO_(dummy,##__VA_ARGS__,srConfig_1(__VA_ARGS__),srConfig_0())
+
+#define srConfig_0() \
+    sr_report_handler::report( \
+      sc_core::SC_INFO, this->name(), "", \
+      sc_core::SC_FULL, __FILE__ , __LINE__)
+
+#define srConfig_1(id) \
     sr_report_handler::report( \
       sc_core::SC_INFO, id, "", \
       sc_core::SC_FULL, __FILE__ , __LINE__)
 
-#define srPower(id) \
+// STRONGLY DEPRECATED: for report after end of simulation -> will be moved to
+// Python
+#define srReport(...) _GET_MACRO_(dummy,##__VA_ARGS__,srReport_1(__VA_ARGS__),srReport_0())
+
+#define srReport_0() \
+    sr_report_handler::report( \
+      sc_core::SC_INFO, this->name(), "", \
+      sc_core::SC_HIGH, __FILE__ , __LINE__)
+
+#define srReport_1(id) \
     sr_report_handler::report( \
       sc_core::SC_INFO, id, "", \
       sc_core::SC_HIGH, __FILE__ , __LINE__)
 
-#define srReport(id) \
-    sr_report_handler::report( \
-      sc_core::SC_INFO, id, "", \
-      sc_core::SC_HIGH, __FILE__ , __LINE__)
+// for data to be analysed by ipython
+#define srAnalyse(...) _GET_MACRO_(dummy,##__VA_ARGS__,srAnalyse_1(__VA_ARGS__),srAnalyse_0())
 
-#define srAnalyse(id) \
+#define srAnalyse_0() \
+    sr_report_handler::report( \
+      sc_core::SC_INFO, this->name(), "", \
+      sc_core::SC_LOW, __FILE__ , __LINE__)
+
+#define srAnalyse_1(id) \
     sr_report_handler::report( \
       sc_core::SC_INFO, id, "", \
       sc_core::SC_LOW, __FILE__ , __LINE__)
 
-#define srInfo(id) \
+#define srInfo(...) _GET_MACRO_(dummy,##__VA_ARGS__,srInfo_1(__VA_ARGS__),srInfo_0())
+
+#define srInfo_0() \
+    sr_report_handler::report( \
+      sc_core::SC_INFO, this->name(), "", \
+      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
+
+#define srInfo_1(id) \
     sr_report_handler::report( \
       sc_core::SC_INFO, id, "", \
       sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
-#define srMessage(id, verbosity) \
+#define srMessage(...) _GET_MACRO_2_(dummy,##__VA_ARGS__,srMessage_2(__VA_ARGS__),srMessage_1(__VA_ARGS__))
+
+#define srMessage_1(verbosity) \
+    sr_report_handler::report( \
+      sc_core::SC_INFO, this->name(), "", \
+      verbosity, __FILE__ , __LINE__)
+
+#define srMessage_2(id, verbosity) \
     sr_report_handler::report( \
       sc_core::SC_INFO, id, "", \
       verbosity, __FILE__ , __LINE__)
 
-#define srWarn(id) \
+#define srWarn(...) _GET_MACRO_(dummy,##__VA_ARGS__,srWarn_1(__VA_ARGS__),srWarn_0())
+
+#define srWarn_0() \
+    sr_report_handler::report( \
+      sc_core::SC_WARNING, this->name(), "", \
+      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
+
+#define srWarn_1(id) \
     sr_report_handler::report( \
       sc_core::SC_WARNING, id, "", \
       sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
-#define srError(id) \
+#define srError(...) _GET_MACRO_(dummy,##__VA_ARGS__,srError_1(__VA_ARGS__),srError_0())
+
+#define srError_0() \
+    sr_report_handler::report( \
+      sc_core::SC_ERROR, this->name(), "", \
+      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
+
+#define srError_1(id) \
     sr_report_handler::report( \
       sc_core::SC_ERROR, id, "", \
       sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
-#define srFatal(id) \
+#define srFatal(...) _GET_MACRO_(dummy,##__VA_ARGS__,srFatal_1(__VA_ARGS__),srFatal_0())
+
+#define srFatal_0() \
+    sr_report_handler::report( \
+      sc_core::SC_FATAL, this->name(), "", \
+      sc_core::SC_MEDIUM, __FILE__ , __LINE__)
+
+#define srFatal_1(id) \
     sr_report_handler::report( \
       sc_core::SC_FATAL, id, "", \
       sc_core::SC_MEDIUM, __FILE__ , __LINE__)
