@@ -69,67 +69,37 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   signal<std::pair<uint32_t, bool> >::out irq;
 
   /// @brief Constructor of the top-level class of the memory sub-system (caches and mmu).
-  /// @icen          instruction cache enable
-  /// @irepl         instruction cache replacement strategy
-  /// @isets         number of instruction cache sets
-  /// @ilinesize     instruction cache line size (in bytes)
-  /// @isetsize      size of an instruction cache set (in kbytes)
-  /// @isetlock      enable instruction cache locking
-  /// @dcen          data cache enable
-  /// @drepl         data cache replacement strategy
-  /// @dsets         number of data cache sets
-  /// @dlinesize     data cache line size (in bytes)
-  /// @dsetsize      size of a data cache set (in kbytes)
-  /// @dsetlock      enable data cache locking
-  /// @dsnoop        enable data cache snooping
-  /// @ilram         enable instruction scratch pad
-  /// @ilramsize     size of the instruction scratch pad (in kbytes)
-  /// @ilramstart    start address of the instruction scratch pad
-  /// @dlram         enable data scratch pad
-  /// @dlramsize     size of the data scratch pad (in kbytes)
-  /// @dlramstart    start address of the data scratch pad
-  /// @cached        fixed cacheability mask
-  /// @mmu_en        mmu enable
-  /// @itlb_num      number of instruction TLBs
-  /// @dtlb_num      number of data TLBs
-  /// @tlb_type      split or shared instruction and data TLBs
-  /// @tlb_rep       TLB replacement strategy
-  /// @mmupgsz       MMU page size
-  /// @name          SystemC module name
-  /// @id            ID of the bus master
-  /// @powmon        Enable power monitoring
-  /// @ambaLayer     Select LT or AT abstraction
   mmu_cache(
-      sc_core::sc_module_name name = "",
-      bool icen = true, 
-      uint32_t irepl = 1, 
-      uint32_t isets = 4,
-      uint32_t ilinesize = 8, 
-      uint32_t isetsize = 8,
-      uint32_t isetlock = true,
-      uint32_t dcen = true,
-      uint32_t drepl = 1,
-      uint32_t dsets = 2,
-      uint32_t dlinesize = 4,
-      uint32_t dsetsize = 8,
-      bool dsetlock = true,
-      bool dsnoop = true,
-      bool ilram = false,
-      uint32_t ilramsize = 0x000,
-      uint32_t ilramstart = 0x000,
-      uint32_t dlram = false,
-      uint32_t dlramsize = 0x000,
-      uint32_t dlramstart = 0x000,
-      uint32_t cached = 0,
-      bool mmu_en = true,
-      uint32_t itlb_num = 8,
-      uint32_t dtlb_num = 8,
-      uint32_t tlb_type = 0,
-      uint32_t tlb_rep = 1,
-      uint32_t mmupgsz = 0,
-      uint32_t hindex = 0,
-      bool pow_mon = false,
-      amba::amba_layer_ids ambaLayer = amba::amba_LT);
+      sc_core::sc_module_name name = "",  ///< SystemC module name
+      bool icen = true,                   ///< instruction cache enable
+      uint32_t irepl = 1,                 ///< instruction cache replacement strategy
+      uint32_t isets = 4,                 ///< number of instruction cache sets
+      uint32_t ilinesize = 8,             ///< instruction cache line size (in bytes)
+      uint32_t isetsize = 8,              ///< size of an instruction cache set (in kbytes)
+      uint32_t isetlock = true,           ///< enable instruction cache locking
+      uint32_t dcen = true,               ///< data cache enable
+      uint32_t drepl = 1,                 ///< data cache replacement strategy
+      uint32_t dsets = 2,                 ///< number of data cache sets
+      uint32_t dlinesize = 4,             ///< data cache line size (in bytes)
+      uint32_t dsetsize = 8,              ///< size of a data cache set (in kbytes)
+      bool dsetlock = true,               ///< enable data cache locking
+      bool dsnoop = true,                 ///< enable data cache snooping
+      bool ilram = false,                 ///< enable instruction scratch pad
+      uint32_t ilramsize = 0x000,         ///< size of the instruction scratch pad (in kbytes)
+      uint32_t ilramstart = 0x000,        ///< start address of the instruction scratch pad
+      uint32_t dlram = false,             ///< enable data scratch pad
+      uint32_t dlramsize = 0x000,         ///< size of the data scratch pad (in kbytes)
+      uint32_t dlramstart = 0x000,        ///< start address of the data scratch pad
+      uint32_t cached = 0,                ///< fixed cacheability mask
+      bool mmu_en = true,                 ///< mmu enable
+      uint32_t itlb_num = 8,              ///< number of instruction TLBs
+      uint32_t dtlb_num = 8,              ///< number of data TLBs
+      uint32_t tlb_type = 0,              ///< split or shared instruction and data TLBs
+      uint32_t tlb_rep = 1,               ///< TLB replacement strategy
+      uint32_t mmupgsz = 0,               ///< MMU page size
+      uint32_t hindex = 0,                ///< ID of the bus master
+      bool pow_mon = false,               ///< Enable power monitoring
+      amba::amba_layer_ids ambaLayer = amba::amba_LT);  ///< Select LT or AT abstraction
 
   // Destructor
   ~mmu_cache();
