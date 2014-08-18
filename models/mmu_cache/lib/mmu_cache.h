@@ -19,10 +19,9 @@
 #define __MMU_CACHE_H__
 
 #include "common/gs_config.h"
+#include "common/systemc.h"
 #include <amba.h>
-#include <tlm.h>
 //#include <tlm_1/tlm_req_rsp/tlm_channels/tlm_fifo/tlm_fifo.h>
-#include <tlm_utils/simple_target_socket.h>
 
 #include <math.h>
 
@@ -100,21 +99,37 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   /// @id            ID of the bus master
   /// @powmon        Enable power monitoring
   /// @ambaLayer     Select LT or AT abstraction
-  mmu_cache(unsigned int icen, unsigned int irepl, unsigned int isets,
-            unsigned int ilinesize, unsigned int isetsize,
-            unsigned int isetlock, unsigned int dcen, unsigned int drepl,
-            unsigned int dsets, unsigned int dlinesize,
-            unsigned int dsetsize, unsigned int dsetlock,
-            unsigned int dsnoop, unsigned int ilram,
-            unsigned int ilramsize, unsigned int ilramstart,
-            unsigned int dlram, unsigned int dlramsize,
-            unsigned int dlramstart, unsigned int cached,
-            unsigned int mmu_en, unsigned int itlb_num,
-            unsigned int dtlb_num, unsigned int tlb_type,
-            unsigned int tlb_rep, unsigned int mmupgsz,
-            sc_core::sc_module_name name, unsigned int id,
-            bool powmon,
-            amba::amba_layer_ids ambaLayer);
+  mmu_cache(
+      sc_core::sc_module_name name = "",
+      bool icen = true, 
+      uint32_t irepl = 1, 
+      uint32_t isets = 4,
+      uint32_t ilinesize = 8, 
+      uint32_t isetsize = 8,
+      uint32_t isetlock = true,
+      uint32_t dcen = true,
+      uint32_t drepl = 1,
+      uint32_t dsets = 2,
+      uint32_t dlinesize = 4,
+      uint32_t dsetsize = 8,
+      bool dsetlock = true,
+      bool dsnoop = true,
+      bool ilram = false,
+      uint32_t ilramsize = 0x000,
+      uint32_t ilramstart = 0x000,
+      uint32_t dlram = false,
+      uint32_t dlramsize = 0x000,
+      uint32_t dlramstart = 0x000,
+      uint32_t cached = 0,
+      bool mmu_en = true,
+      uint32_t itlb_num = 8,
+      uint32_t dtlb_num = 8,
+      uint32_t tlb_type = 0,
+      uint32_t tlb_rep = 1,
+      uint32_t mmupgsz = 0,
+      uint32_t hindex = 0,
+      bool pow_mon = false,
+      amba::amba_layer_ids ambaLayer = amba::amba_LT);
 
   // Destructor
   ~mmu_cache();
