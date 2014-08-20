@@ -11,8 +11,8 @@
 #ifndef COMMON_REPORT_H_
 #define COMMON_REPORT_H_
 
-#include <systemc.h>
 #include <boost/any.hpp>
+#include <systemc.h>
 
 namespace v {
 
@@ -45,13 +45,13 @@ class pair {
   boost::any data;
 };
 
-}  // namespace v
+};  // namespace v
 
 class sr_report : public sc_core::sc_report {
   public:
-    sr_report(): sc_core::sc_report() {};
-    sr_report(const sr_report &copy): sc_core::sc_report(copy), actions(copy.actions), pairs(copy.pairs) {}
-    explicit sr_report(const sc_core::sc_report &copy): sc_core::sc_report(copy) {}
+    sr_report() : sc_core::sc_report() {};
+    sr_report(const sr_report &copy) : sc_core::sc_report(copy), actions(copy.actions), pairs(copy.pairs) {}
+    explicit sr_report(const sc_core::sc_report &copy) : sc_core::sc_report(copy) {}
 
     sr_report(
         sc_core::sc_severity severity,
