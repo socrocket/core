@@ -20,6 +20,7 @@
 #include "common/systemc.h"
 
 #include "models/utils/ahbslave.h"
+#include "models/utils/ahbdevice.h"
 #include "models/utils/apbdevice.h"
 #include "models/utils/clkdevice.h"
 #include "common/vmap.h"

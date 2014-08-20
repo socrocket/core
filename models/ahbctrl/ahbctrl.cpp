@@ -983,12 +983,12 @@ void AHBCtrl::start_of_simulation() {
     // Get parent object containing slave socket i
     sc_core::sc_object *obj = other_socket->get_parent();
 
-    // Valid slaves implement the AHBDevice interface
-    AHBDevice *slave = dynamic_cast<AHBDevice *>(obj);
+    // Valid slaves implement the AHBDeviceBase interface
+    AHBDeviceBase *slave = dynamic_cast<AHBDeviceBase *>(obj);
 
     v::info << name() << "* SLAVE name: " << obj->name() << v::endl;
 
-    // Slave is valid (implements AHBDevice)
+    // Slave is valid (implements AHBDeviceBase)
     if (slave) {
       // Get pointer to device information
       const uint32_t *deviceinfo = slave->get_device_info();
@@ -1021,7 +1021,7 @@ void AHBCtrl::start_of_simulation() {
         }
       }
     } else {
-      v::error << name() << "Slave bound to socket 'ahbOUT' is not a valid AHBDevice (no plug & play information)!" <<
+      v::error << name() << "Slave bound to socket 'ahbOUT' is not a valid AHBDeviceBase (no plug & play information)!" <<
         v::endl;
       assert(0);
     }
@@ -1040,12 +1040,12 @@ void AHBCtrl::start_of_simulation() {
     // get parent object containing slave socket i
     sc_core::sc_object *obj = other_socket->get_parent();
 
-    // valid masters implement the AHBDevice interface
-    AHBDevice *master = dynamic_cast<AHBDevice *>(obj);
+    // valid masters implement the AHBDeviceBase interface
+    AHBDeviceBase *master = dynamic_cast<AHBDeviceBase *>(obj);
 
     v::info << name() << "* Master name: " << obj->name() << v::endl;
 
-    // master is valid (implements AHBDevice)
+    // master is valid (implements AHBDeviceBase)
     if (master) {
       // Get pointer to device information
       const uint32_t *deviceinfo = master->get_device_info();
@@ -1075,7 +1075,7 @@ void AHBCtrl::start_of_simulation() {
         }
       }
     } else {
-      v::error << name() << "Master bound to socket 'ahbin' is not a valid AHBDevice" << v::endl;
+      v::error << name() << "Master bound to socket 'ahbin' is not a valid AHBDeviceBase" << v::endl;
       assert(0);
     }
   }

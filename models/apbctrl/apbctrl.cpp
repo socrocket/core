@@ -35,7 +35,7 @@ APBCtrl::APBCtrl(
     0,
     0,
     ambaLayer,
-    BAR(AHBDevice::AHBMEM, hmask, 0, 0, haddr)),
+    BAR(AHBMEM, hmask, 0, 0, haddr)),
   apb("apb", amba::amba_APB, amba::amba_LT, false),
   m_AcceptPEQ("AcceptPEQ"),
   m_TransactionPEQ("TransactionPEQ"),

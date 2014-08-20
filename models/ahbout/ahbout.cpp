@@ -30,7 +30,7 @@ AHBOut::AHBOut(const sc_core::sc_module_name nm,  // Module name
     0,
     0,
     ambaLayer,
-    BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr_)),
+    BAR(AHBDeviceType::AHBMEM, hmask_, 0, 0, haddr_)),
   mhaddr(haddr_),
   mhmask(hmask_) {
   // haddr and hmask must be 12 bit

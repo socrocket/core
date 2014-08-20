@@ -33,7 +33,7 @@ Irqmp::Irqmp(sc_core::sc_module_name name,
     gs::reg::ALIGNED_ADDRESS,       // address mode (options: aligned / indexed)
     0xFF,                           // dword size (of register file)
     NULL),                          // parent module
-  APBDevice(pindex, 0x01, 0x00D, 3, 0, APBDevice::APBIO, pmask, false, false, paddr),
+  APBDevice(pindex, 0x01, 0x00D, 3, 0, APBIO, pmask, false, false, paddr),
   apb_slv(
     "APB_SLAVE",                    // name
     r,                              // register container

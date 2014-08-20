@@ -32,7 +32,7 @@ AHBProf::AHBProf(const sc_core::sc_module_name nm,  // Module name
     0,
     0,
     ambaLayer,
-    BAR(AHBDevice::AHBMEM, mask, 0, 0, addr)),
+    BAR(AHBMEM, mask, 0, 0, addr)),
   m_addr(addr),
   m_mask(mask) {
   // haddr and hmask must be 12 bit

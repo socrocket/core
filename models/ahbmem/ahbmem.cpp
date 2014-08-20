@@ -39,7 +39,7 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm,  // Module name
       0,
       0,
       ambaLayer,
-      BAR(AHBDevice::AHBMEM, hmask, cacheable, 0, haddr)),
+      BAR(AHBMEM, hmask, cacheable, 0, haddr)),
     BaseMemory(BaseMemory::ARRAY, get_size()),
     ahbBaseAddress(static_cast<uint32_t>((hmask) & haddr) << 20),
     ahbSize(~(static_cast<uint32_t>(hmask) << 20) + 1),

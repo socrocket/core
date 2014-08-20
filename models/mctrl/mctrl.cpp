@@ -44,22 +44,23 @@ Mctrl::Mctrl(
     unsigned int pindex,
     bool powermon,
     amba::amba_layer_ids ambaLayer) :
-  AHBSlave<gs::reg::gr_device>(name,
+  AHBSlave<RegisterBase>(name,
     hindex,
     0x04,                                        // ven: ESA
     0x0F,                                        // dev: MCTRL
     1,
     0,                                           // VER, IRQ
     ambaLayer,
-    BAR(AHBDevice::AHBMEM, _rommask, true, true, _romaddr),
-    BAR(AHBDevice::AHBMEM, _iomask, false, false, _ioaddr),
-    BAR(AHBDevice::AHBMEM, _rammask, true, true, _ramaddr),
-    0),
+    BAR(AHBMEM, _rommask, true, true, _romaddr),
+    BAR(AHBMEM, _iomask, false, false, _ioaddr),
+    BAR(AHBMEM, _rammask, true, true, _ramaddr),
+    0,
+    4),
   APBDevice(pindex,
     0x04,                                        // ven: ESA
     0x0F,                                        // dev: MCTRL
     1, 0,                                        // VER, IRQ
-    APBDevice::APBIO, _pmask, 0, 0, _paddr),
+    APBIO, _pmask, 0, 0, _paddr),
   apb("apb", r,                                  // name and register container of the greenreg_socket
     APBDevice::get_base_addr_(),                 // apb base address
     APBDevice::get_size_(),                      // apb address space size
