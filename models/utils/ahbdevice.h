@@ -96,7 +96,7 @@ class AHBDeviceBase : public amba_slave_base {
 /// This class is a base class for grlib models. It implements the device plug and play informations.
 /// Together with the AHBCtrl class it implements the plug and play feature of the grlib.
 /// @see AHBCtrl
-template<class BASE = sc_core::sc_module>
+template<class BASE = DefaultBase>
 class AHBDevice : public BaseModule<BASE>, public AHBDeviceBase {
   public:
     /// All device informations are needed while constructing a device.

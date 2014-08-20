@@ -10,8 +10,6 @@ def build(self):
                        'apbdevice.cpp',
                        'memdevice.cpp',
                        'clkdevice.cpp',
-                       'ahbslave.cpp',
-                       'ahbmaster.cpp'
                       ],
     export_includes = self.top_dir,
     includes        = self.top_dir,

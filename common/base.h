@@ -45,11 +45,20 @@ class BaseModule : public SCBaseModule<BASE> {
       if(self) {
         m_api = gs::cnf::GCnf_Api::getApiInstance(self);
       } else {
-      srError("ConfigBaseModule")
-        ("A ConfigBaseModule instance must also inherit from srBaseModule when it gets instantiated.");
+        srError("ConfigBaseModule")
+          ("A ConfigBaseModule instance must also inherit from srBaseModule when it gets instantiated.");
       }
+      init_generics();
+      init_registers();
+      init_counters();
+      init_power();
     }
     virtual ~BaseModule() {}
+
+    virtual void init_generics() {};
+    virtual void init_registers() {};
+    virtual void init_counters() {};
+    virtual void init_power() {};
     
   protected:
     /// Internal module gs param api instance

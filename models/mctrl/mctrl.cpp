@@ -44,7 +44,8 @@ Mctrl::Mctrl(
     unsigned int pindex,
     bool powermon,
     amba::amba_layer_ids ambaLayer) :
-  AHBSlave<RegisterBase>(name,
+  AHBSlave<RegisterBase>(
+    name,
     hindex,
     0x04,                                        // ven: ESA
     0x0F,                                        // dev: MCTRL
