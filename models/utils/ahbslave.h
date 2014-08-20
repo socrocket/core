@@ -24,15 +24,15 @@
 #include "common/msclogger.h"
 #include "common/verbose.h"
 
-template<class BASE = sc_module>
-class AHBSlave : public BASE, public AHBDevice {
+template<class BASE = DefaultBase>
+class AHBSlave : public AHBDevice<BASE> {
   public:
     SC_HAS_PROCESS(AHBSlave);
 
     using BASE::name;
 
     AHBSlave(
-      sc_core::sc_module_name mn,
+      ModuleName mn,
       uint8_t hindex,
       uint8_t vendor,
       uint8_t device,
@@ -42,7 +42,8 @@ class AHBSlave : public BASE, public AHBDevice {
       uint32_t bar0 = 0,
       uint32_t bar1 = 0,
       uint32_t bar2 = 0,
-      uint32_t bar3 = 0);
+      uint32_t bar3 = 0,
+      uint32_t register_count = 0);
 
     ~AHBSlave();
 

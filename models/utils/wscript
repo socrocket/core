@@ -6,7 +6,7 @@ def build(self):
   self(
     target          = 'utils',
     features        = 'cxx cxxstlib',
-    source          = ['ahbdevice.cpp',
+    source          = [
                        'apbdevice.cpp',
                        'memdevice.cpp',
                        'clkdevice.cpp',

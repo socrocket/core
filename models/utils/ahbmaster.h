@@ -26,7 +26,7 @@
 #include "common/verbose.h"
 
 template<class BASE = sc_core::sc_module>
-class AHBMaster : public BASE, public AHBDevice {
+class AHBMaster : public AHBDevice<BASE> {
   public:
     SC_HAS_PROCESS(AHBMaster);
 

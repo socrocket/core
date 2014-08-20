@@ -19,26 +19,18 @@
 
 #include <amba.h>
 #include <stdint.h>
+#include "common/base.h"
+#include "common/amba.h"
 
 /// This class is a base class for grlib models. It implements the device plug and play informations.
 /// Together with the APBBridge class it implements the plug and play feature of the grlib.
 /// @see APBCtrl
 class APBDevice : public amba_slave_base {
   public:
-    /// Device type
-    /// See grlib manual for more information
-    /// Section 14.2.2
-    enum device_type {
-      NONE = 0,         /// Bar is not existing
-      APBIO = 1,        /// Bar is APB region
-      AHBMEM = 2,       /// Bar is memory region
-      AHBIO = 3         /// Bar is IO region
-    };
-
     /// All device informations are needed while constructing a device.
     /// The register content is formed here.
     APBDevice(uint32_t bus_id, uint8_t vendorid, uint16_t deviceid, uint8_t version,
-    uint8_t irq, APBDevice::device_type type, uint16_t mask,
+    uint8_t irq, AMBADeviceType type, uint16_t mask,
     bool cacheable, bool prefetchable, uint16_t address);
 
     APBDevice();
@@ -58,7 +50,7 @@ class APBDevice : public amba_slave_base {
 
     /// Returns the device type.
     /// Should be APBIO ;-)
-    virtual const device_type get_type() const;
+    virtual const AMBADeviceType get_type() const;
     /// Returns the Bus specific most significant 12bit of the base address
     /// Shifted to the lowest bits in the word.
     virtual uint32_t get_base() const;

@@ -18,7 +18,7 @@
 #include "common/verbose.h"
 
 APBDevice::APBDevice(uint32_t busid, uint8_t vendorid, uint16_t deviceid,
-  uint8_t version, uint8_t irq, APBDevice::device_type type,
+  uint8_t version, uint8_t irq, AMBADeviceType type,
   uint16_t mask, bool cacheable,
   bool prefetchable, uint16_t address) {
   m_register[0] = (irq & 0x1F) | ((version & 0x1F) << 5)
@@ -52,8 +52,8 @@ const uint32_t *APBDevice::get_device_info() const {
 }
 
 // Returns the device type
-const APBDevice::device_type APBDevice::get_type() const {
-  return static_cast<APBDevice::device_type>(m_register[1] & 0xf);
+const AMBADeviceType APBDevice::get_type() const {
+  return static_cast<AMBADeviceType>(m_register[1] & 0xf);
 }
 
 // Returns the 12 bit MSB address of the device
