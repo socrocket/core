@@ -18,6 +18,7 @@
 
 #include "common/gs_config.h"
 #include <greensocket/target/single_socket.h>
+#include "common/base.h"
 #include "common/systemc.h"
 #include <tlm.h>
 
@@ -26,9 +27,9 @@
 #include "models/utils/memdevice.h"
 #include "common/verbose.h"
 
-// template<class BASE = sc_core::sc_module>
+// template<class BASE = DefaultBase>
 // class MemoryPower : public BASE {
-class MemoryPower : public sc_core::sc_module, public CLKDevice, public MEMDevice, public BaseMemory {
+class MemoryPower : public DefaultBase, public CLKDevice, public MEMDevice, public BaseMemory {
   public:
     GC_HAS_CALLBACKS();
 

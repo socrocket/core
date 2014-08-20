@@ -21,7 +21,7 @@
 
 /// Constructor of class APBCtrl
 APBCtrl::APBCtrl(
-    sc_core::sc_module_name nm,  // SystemC name
+    ModuleName nm,  // SystemC name
     uint32_t haddr,              // The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
     uint32_t hmask,              // The 12bit AHB area address mask
     bool mcheck,                 // Check if there are any intersections between APB slave memory regions
@@ -313,26 +313,26 @@ void APBCtrl::start_of_simulation() {
     sc_core::sc_object *obj = other_socket->get_parent();
 
     // valid slaves implement the APBDevice interface
-    APBDevice *slave = dynamic_cast<APBDevice *>(obj);
+    APBDeviceBase *slave = dynamic_cast<APBDeviceBase *>(obj);
 
     v::info << name() << "* Slave name: " << obj->name() << v::endl;
 
     // slave is valid (implements APBDevice)
     if (slave) {
       // Get pointer to device information
-      const uint32_t *deviceinfo = slave->get_device_info();
+      const uint32_t *deviceinfo = slave->get_apb_device_info();
 
       // Get slave id (pindex)
-      const uint32_t sbusid = slave->get_busid();
+      const uint32_t sbusid = slave->get_apb_busid();
 
       // Map device information into PNP region
       mSlaves[sbusid] = deviceinfo;
 
       // check 'type'filed of bar[i] (must be != 0)
-      if (slave->get_type()) {
+      if (slave->get_apb_type()) {
         // get base address and mask from BAR
-        uint32_t addr = slave->get_base();
-        uint32_t mask = slave->get_mask();
+        uint32_t addr = slave->get_apb_base();
+        uint32_t mask = slave->get_apb_mask();
 
         v::info << name() << "* BAR with MSB addr: " << hex << addr << " and mask: " << mask << v::endl;
 

@@ -62,7 +62,7 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
 
     /// Constructor
     APBCtrl(
-      sc_core::sc_module_name nm,  ///< SystemC name
+      ModuleName nm,  ///< SystemC name
       uint32_t haddr = 0xfff,      ///< The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
       uint32_t hmask = 0,          ///< The 12bit AHB area address mask
       bool mcheck = 0,             ///< Check if there are any intersections between APB slave memory regions

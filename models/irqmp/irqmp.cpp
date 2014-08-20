@@ -22,18 +22,14 @@
 #include "common/verbose.h"
 
 /// Constructor
-Irqmp::Irqmp(sc_core::sc_module_name name,
+Irqmp::Irqmp(ModuleName name,
   int paddr,
   int pmask,
   int ncpu,
   int eirq,
   unsigned int pindex,
   bool powmon) :
-  gr_device(name,                   // sc_module name
-    gs::reg::ALIGNED_ADDRESS,       // address mode (options: aligned / indexed)
-    0xFF,                           // dword size (of register file)
-    NULL),                          // parent module
-  APBDevice(pindex, 0x01, 0x00D, 3, 0, APBIO, pmask, false, false, paddr),
+  APBDevice<RegisterBase>(name, pindex, 0x01, 0x00D, 3, 0, APBIO, pmask, false, false, paddr, 0xFF),
   apb_slv(
     "APB_SLAVE",                    // name
     r,                              // register container

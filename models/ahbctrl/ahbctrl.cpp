@@ -22,7 +22,7 @@
 
 // Constructor of class AHBCtrl
 AHBCtrl::AHBCtrl(
-    sc_core::sc_module_name nm,  // SystemC name
+    ModuleName nm,  // SystemC name
     unsigned int ioaddr,   // The MSB address of the I/O area
     unsigned int iomask,   // The I/O area address mask
     unsigned int cfgaddr,  // The MSB address of the configuration area (PNP)

@@ -24,6 +24,10 @@
 typedef sc_core::sc_module_name ModuleName;
 typedef sc_core::sc_module DefaultBase;
 typedef gs::reg::gr_device RegisterBase;
+typedef amba::amba_layer_ids AbstractionLayer;
+
+typedef gs::cnf::cnf_api ParameterAPI;
+typedef gs::cnf::gs_param_array ParameterArray;
 
 template<class BASE = DefaultBase>
 class SCBaseModule : public BASE {
@@ -62,16 +66,16 @@ class BaseModule : public SCBaseModule<BASE> {
     
   protected:
     /// Internal module gs param api instance
-     gs::cnf::cnf_api *m_api;
+    ParameterAPI *m_api;
 
     /// Configuration generic container
-    gs::cnf::gs_param_array m_generics;
+    ParameterArray m_generics;
 
     /// Performance counter container
-    gs::cnf::gs_param_array m_counters;
+    ParameterArray m_counters;
 
     /// Power counters container
-    gs::cnf::gs_param_array m_power;
+    ParameterArray m_power;
 };
 
 #endif  // COMMON_BASE_H_

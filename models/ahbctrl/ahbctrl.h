@@ -28,7 +28,7 @@
 #include "common/socrocket.h"
 #include "common/gs_config.h"
 
-class AHBCtrl : public sc_core::sc_module, public CLKDevice {
+class AHBCtrl : public DefaultBase, public CLKDevice {
   public:
     GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(AHBCtrl);
@@ -91,7 +91,7 @@ class AHBCtrl : public sc_core::sc_module, public CLKDevice {
 
     /// Constructor
     AHBCtrl(
-      sc_core::sc_module_name nm,  ///< SystemC name
+      ModuleName nm,  ///< SystemC name
       uint32_t ioaddr = 0xFFF,     ///< The MSB address of the I/O area
       uint32_t iomask = 0xFFF,     ///< The I/O area address mask
       uint32_t cfgaddr = 0xFF0,    ///< The MSB address of the configuration area (PNP)

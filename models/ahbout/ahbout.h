@@ -35,7 +35,7 @@ class AHBOut : public AHBSlave<>, public CLKDevice {
     /// @param ambaLayer Abstraction layer used (AT/LT)
     /// @param slave_id AHB Slave id
     /// @param outfile File name of a text file to initialize the memory from
-    AHBOut(const sc_core::sc_module_name nm,
+    AHBOut(const ModuleName nm,
     uint16_t haddr_,
     uint16_t hmask_ = 0,
     amba::amba_layer_ids ambaLayer = amba::amba_LT,

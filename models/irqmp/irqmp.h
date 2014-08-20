@@ -29,8 +29,7 @@
 /// @addtogroup irqmp IRQMP
 /// @{
 
-class Irqmp : public gs::reg::gr_device,
-              public APBDevice,
+class Irqmp : public APBDevice<RegisterBase>,
               public CLKDevice {
   public:
     SC_HAS_PROCESS(Irqmp);

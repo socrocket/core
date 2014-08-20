@@ -48,7 +48,7 @@ class AHBProf : public AHBSlave<>, public CLKDevice {
     /// @param ambaLayer Abstraction layer used (AT/LT)
     /// @param slave_id AHB Slave id
     /// @param outfile File name of a text file to initialize the memory from
-    AHBProf(const sc_core::sc_module_name nm,
+    AHBProf(const ModuleName nm,
     uint32_t index = 0,
     uint16_t addr = 0,
     uint16_t mask = 0,

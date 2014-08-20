@@ -22,7 +22,7 @@
 //SC_HAS_PROCESS(mmu_cache<>);
 /// Constructor
 mmu_cache::mmu_cache(
-      sc_core::sc_module_name name,
+      ModuleName name,
       bool icen, 
       uint32_t irepl, 
       uint32_t isets,

@@ -25,7 +25,7 @@
 #include "common/msclogger.h"
 #include "common/verbose.h"
 
-template<class BASE = sc_core::sc_module>
+template<class BASE = DefaultBase>
 class AHBMaster : public AHBDevice<BASE> {
   public:
     SC_HAS_PROCESS(AHBMaster);
@@ -34,7 +34,7 @@ class AHBMaster : public AHBDevice<BASE> {
 
     /// Constructor
     AHBMaster(
-      sc_core::sc_module_name nm,
+      ModuleName nm,
       uint8_t hindex,
       uint8_t vendor,
       uint8_t device,

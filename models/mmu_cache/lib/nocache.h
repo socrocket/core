@@ -16,14 +16,15 @@
 #ifndef __NOCACHE_H_
 #define __NOCACHE_H_
 
-#include <tlm.h>
+#include "common/base.h"
+#include "common/systemc.h"
 #include "signalkit/signalkit.h"
 
 #include "common/verbose.h"
 #include "cache_if.h"
 #include "mem_if.h"
 
-class nocache : public sc_core::sc_module, public cache_if {
+class nocache : public DefaultBase, public cache_if {
 
     public:
 
@@ -73,7 +74,7 @@ class nocache : public sc_core::sc_module, public cache_if {
         virtual void dbg_out(unsigned int line);
 
         // constructor
-        nocache(sc_core::sc_module_name name, mem_if * _mem_adapter);
+        nocache(ModuleName name, mem_if * _mem_adapter);
 
         // destructor
         virtual ~nocache() {

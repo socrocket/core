@@ -18,6 +18,6 @@ def build(self):
                        'waf.cpp'],
     export_includes = self.top_dir,
     includes        = self.top_dir,
-    uselib          = 'SYSTEMC TLM AMBA GREENSOCS BOOST',
+    uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     install_path    = '${PREFIX}/lib',
   )

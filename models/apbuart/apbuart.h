@@ -30,7 +30,7 @@
 
 /// @brief This class is a TLM 2.0 Model of the Aeroflex Gaisler GRLIB APBUART.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 16
-class APBUART : public gs::reg::gr_device, public APBDevice, public CLKDevice {
+class APBUART : public APBDevice<RegisterBase>, public CLKDevice {
   public:
     SC_HAS_PROCESS(APBUART);
     SK_HAS_SIGNALS(APBUART);
@@ -46,7 +46,7 @@ class APBUART : public gs::reg::gr_device, public APBDevice, public CLKDevice {
 
     uint32_t g_pirq;
 
-    APBUART(sc_core::sc_module_name name, io_if *backend, uint16_t pindex = 0,
+    APBUART(ModuleName name, io_if *backend, uint16_t pindex = 0,
     uint16_t paddr = 0, uint16_t pmask = 4095, int pirq = 0,
     bool console = false,
     // bool parity = false, bool flow = false, int fifosize = 0,

@@ -278,7 +278,7 @@ Testbench testbench;
 Irqmp irqmp;
 
 // Constructor
-Top(sc_core::sc_module_name mn) : sc_module(mn),
+Top(ModuleName mn) : sc_module(mn),
 
         // Create Testbench & IRQMP
         testbench("testbench", pindex, paddr, pmask, ncpu, eirq),

@@ -18,7 +18,7 @@
 
 // constructor
 // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in words, replacement strategy
-vectorcache::vectorcache(sc_core::sc_module_name name,
+vectorcache::vectorcache(ModuleName name,
                          mmu_cache_if * _mmu_cache, mem_if *_tlb_adaptor,
                          unsigned int mmu_en, unsigned int burst_en,
 			 bool new_linefetch_en,

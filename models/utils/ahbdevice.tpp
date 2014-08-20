@@ -41,6 +41,37 @@ AHBDevice<BASE>::AHBDevice(
   m_busid = busid;
 }
 
+// Standard constructor
+template<class BASE>
+AHBDevice<BASE>::AHBDevice(
+    ModuleName mn,
+    uint32_t register_count) :
+  BaseModule<BASE>(mn, register_count) {
+}
+
+// Standard constructor
+template<class BASE>
+void AHBDevice<BASE>::init(
+    uint32_t busid,
+    uint8_t vendorid,
+    uint16_t deviceid,
+    uint8_t version,
+    uint8_t irq,
+    uint32_t bar0,
+    uint32_t bar1,
+    uint32_t bar2,
+    uint32_t bar3) {
+  m_register[0] = (irq & 0x1F) | ((version & 0x1F) << 5)
+                  | ((deviceid & 0xFFF) << 12) | (vendorid << 24);
+  m_register[1] = m_register[2] = m_register[3] = 0;
+  m_register[4] = bar0;
+  m_register[5] = bar1;
+  m_register[6] = bar2;
+  m_register[7] = bar3;
+
+  m_busid = busid;
+}
+
 template<class BASE>
 AHBDevice<BASE>::~AHBDevice() {
 }

@@ -18,8 +18,8 @@
 #define __LOCALRAM_H__
 
 #include <stdint.h>
+#include "common/base.h"
 #include "common/gs_config.h"
-#include <tlm.h>
 
 #include "mem_if.h"
 #include "defines.h"
@@ -36,7 +36,7 @@
 // ! Address decoding and checking is done in class mmu_cache !
 
 /// @brief Local Scratchpad RAM
-class localram : public sc_core::sc_module, public mem_if {
+class localram : public DefaultBase, public mem_if {
 
  public:
 
@@ -78,7 +78,7 @@ class localram : public sc_core::sc_module, public mem_if {
   /// @param name    SystemC module name
   /// @param lrsize  Local ram size. Size in kbyte = 2^lrsize (like top-level template)
   /// @param lrstart Local ram start address. The 8 most significant bits of the address.
-  localram(sc_core::sc_module_name name,
+  localram(ModuleName name,
            unsigned int lrsize,
            unsigned int lrstart,
            bool pow_mon = false);

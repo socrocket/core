@@ -19,8 +19,9 @@
 #define __MMU_H__
 
 #include <map>
+#include "common/base.h"
+#include "common/systemc.h"
 #include "common/gs_config.h"
-#include <tlm.h>
 
 #include "mmu_if.h"
 #include "tlb_adaptor.h"
@@ -33,7 +34,7 @@
 // ------------------------------------------
 
 /// @brief Memory Management Unit (MMU) for TrapGen LEON3 simulator
-class mmu : public sc_core::sc_module, public mmu_if {
+class mmu : public DefaultBase, public mmu_if {
 
  public:
 
@@ -46,7 +47,7 @@ class mmu : public sc_core::sc_module, public mmu_if {
   /// @param tlb_type                   Type of TLB (shared or distinct)
   /// @param tlb_rep                    TLB replacement strategy
   /// @param mmupgsz                    MMU page size (default 4kB)
-  mmu(sc_core::sc_module_name name, mmu_cache_if * _mmu_cache,
+  mmu(ModuleName name, mmu_cache_if * _mmu_cache,
       unsigned int itlbnum,
       unsigned int dtlbnum, unsigned int tlb_type, unsigned int tlb_rep,
       unsigned int mmupgsz,

@@ -20,7 +20,7 @@
 #include "common/verbose.h"
 
 // / Constructor
-AHBProf::AHBProf(const sc_core::sc_module_name nm,  // Module name
+AHBProf::AHBProf(const ModuleName nm,  // Module name
   uint32_t index,
   uint16_t addr,                                    // AMBA AHB address (12 bit)
   uint16_t mask,                                    // AMBA AHB address mask (12 bit)

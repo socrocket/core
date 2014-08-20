@@ -114,6 +114,26 @@ class AHBDevice : public BaseModule<BASE>, public AHBDeviceBase {
         uint32_t bar3 = 0,
         uint32_t register_count = 0);
 
+    /// All device informations are needed while constructing a device.
+    /// The register content is formed here.
+    /// Before ending the constructor of the subclass you have to call init!
+    AHBDevice(
+        ModuleName mn,
+        uint32_t register_count = 0);
+
+    /// All device informations missing by the second constructor.
+    /// The register content is formed here.
+    void init(
+        uint32_t busid,
+        uint8_t vendorid,
+        uint16_t deviceid,
+        uint8_t version,
+        uint8_t irq,
+        uint32_t bar0,
+        uint32_t bar1 = 0,
+        uint32_t bar2 = 0,
+        uint32_t bar3 = 0);
+
     /// Empty destructor
     virtual ~AHBDevice();
 

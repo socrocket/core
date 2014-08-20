@@ -18,7 +18,7 @@
 #include "models/gptimer/gptimer.h"
 #include "common/verbose.h"
 
-GPCounter::GPCounter(GPTimer *_parent, unsigned int _nr, sc_core::sc_module_name name) :
+GPCounter::GPCounter(GPTimer *_parent, unsigned int _nr, ModuleName name) :
   gr_subdevice(name, *_parent), p(_parent), nr(_nr), stopped(true), chain_run(false),
   m_performance_counters("performance_counters"),
   m_underflows("undeflows", 0ull, m_performance_counters) {

@@ -20,6 +20,7 @@
 
 #include "common/gs_config.h"
 #include <greensocket/target/single_socket.h>
+#include "common/base.h"
 #include "common/systemc.h"
 #include <tlm.h>
 
