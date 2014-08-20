@@ -39,7 +39,7 @@ class SCBaseModule : public BASE {
 template<class BASE = DefaultBase>
 class BaseModule : public SCBaseModule<BASE> {
   public:
-    BaseModule(ModuleName mn, uint32_t register_count) :
+    BaseModule(ModuleName mn, uint32_t register_count = 0) :
         SCBaseModule<BASE>(mn, register_count),
         m_generics("generics"),
         m_counters("counters"),

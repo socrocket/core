@@ -18,6 +18,7 @@
 #include <amba.h>
 #include "common/gs_config.h"
 #include "common/systemc.h"
+#include "common/base.h"
 
 #include "models/utils/ahbslave.h"
 #include "models/utils/ahbdevice.h"
@@ -28,7 +29,7 @@
 /// @addtogroup apbctrl APBCtrl
 /// @{
 
-class APBCtrl : public AHBSlave<>, public CLKDevice {
+class APBCtrl : public AHBSlave<DefaultBase>, public CLKDevice {
   public:
     GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(APBCtrl);
@@ -150,9 +151,6 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
     /// 0xFF000
     const uint32_t m_pnpbase;
 
-    /// Configuration generic container
-    gs::cnf::gs_param_array g_conf;
-
     /// The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
     gs::cnf::gs_config<uint32_t> g_haddr;
 
@@ -197,9 +195,6 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
 
     /// Normalized write access energy
     gs::gs_config<double> dyn_write_energy_norm;
-
-    /// Parameter array for power data output
-    gs::gs_param_array power;
 
     /// Static power of module
     gs::gs_config<double> sta_power;

@@ -18,6 +18,7 @@
 #include "models/apbctrl/apbctrl.h"
 #include "common/vendian.h"
 #include "common/verbose.h"
+#include "common/report.h"
 
 /// Constructor of class APBCtrl
 APBCtrl::APBCtrl(
@@ -40,43 +41,38 @@ APBCtrl::APBCtrl(
   m_AcceptPEQ("AcceptPEQ"),
   m_TransactionPEQ("TransactionPEQ"),
   m_pnpbase(0xFF000),
-  g_conf("conf"),
-  g_haddr("haddr", haddr, g_conf),
-  g_hmask("hmask", hmask, g_conf),
-  g_hindex("hindex", hindex, g_conf),
-  g_mcheck("mcheck", mcheck, g_conf),
-  g_pow_mon("pow_mon", pow_mon, g_conf),
+  g_haddr("haddr", haddr, m_generics),
+  g_hmask("hmask", hmask, m_generics),
+  g_hindex("hindex", hindex, m_generics),
+  g_mcheck("mcheck", mcheck, m_generics),
+  g_pow_mon("pow_mon", pow_mon, m_generics),
   m_ambaLayer(ambaLayer),
   num_of_bindings(0),
-  m_total_transactions("total_transactions", 0ull, m_performance_counters),
-  m_right_transactions("successful_transactions", 0ull, m_performance_counters),
-  sta_power_norm("power.apbctrl.sta_power_norm", 2.11e+6, true),  // Normalized static power input
-  int_power_norm("power.apbctrl.int_power_norm", 0.0, true),  // Normalized internal power input (activation indep.)
-  dyn_read_energy_norm("power.apbctrl.dyn_read_energy_norm", 5.84e-11, true),  // Normalized read energy input
-  dyn_write_energy_norm("power.apbctrl.dyn_write_energy_norm", 5.84e-11, true),  // Normalized write energy input
-  power("power"),
-  sta_power("sta_power", 0.0, power),  // Static power output
-  int_power("int_power", 0.0, power),  // Internal power output
-  swi_power("swi_power", 0.0, power),  // Switching power output
-  dyn_read_energy("dyn_read_energy", 0.0, power),  // Energy per read access
-  dyn_write_energy("dyn_write_energy", 0.0, power),  // Energy per write access
-  dyn_reads("dyn_reads", 0ull, power),  // Read access counter for power computation
-  dyn_writes("dyn_writes", 0ull, power) {  // Write access counter for power computation
+  m_total_transactions("total_transactions", 0ull, m_counters),
+  m_right_transactions("successful_transactions", 0ull, m_counters),
+  sta_power_norm("sta_power_norm", 2.11e+6, m_power),  // Normalized static power input
+  int_power_norm("int_power_norm", 0.0, m_power),  // Normalized internal power input (activation indep.)
+  dyn_read_energy_norm("dyn_read_energy_norm", 5.84e-11, m_power),  // Normalized read energy input
+  dyn_write_energy_norm("dyn_write_energy_norm", 5.84e-11, m_power),  // Normalized write energy input
+  sta_power("sta_power", 0.0, m_power),  // Static power output
+  int_power("int_power", 0.0, m_power),  // Internal power output
+  swi_power("swi_power", 0.0, m_power),  // Switching power output
+  dyn_read_energy("dyn_read_energy", 0.0, m_power),  // Energy per read access
+  dyn_write_energy("dyn_write_energy", 0.0, m_power),  // Energy per write access
+  dyn_reads("dyn_reads", 0ull, m_power),  // Read access counter for power computation
+  dyn_writes("dyn_writes", 0ull, m_power) {  // Write access counter for power computation
   // Assert generics are withing allowed ranges
   assert(haddr <= 0xfff);
   assert(hmask <= 0xfff);
 
-  init_generics();
-
-  v::info << name() << " ***********************************************************************" << v::endl;
-  v::info << name() << " * Created APBCTRL with following parameters: " << v::endl;
-  v::info << name() << " * ------------------------------------------ " << v::endl;
-  v::info << name() << " * haddr/hmask: " << hex << haddr << "/" << hmask << v::endl;
-  v::info << name() << " * mcheck: " << mcheck << v::endl;
-  v::info << name() << " * hindex: " << hindex << v::endl;
-  v::info << name() << " * pow_mon: " << pow_mon << v::endl;
-  v::info << name() << " * ambaLayer (LT = 8 / AT = 4): " << ambaLayer << v::endl;
-  v::info << name() << " ***********************************************************************" << v::endl;
+  srInfo()
+    ("haddr", haddr)
+    ("hmask", hmask)
+    ("hindex", hindex)
+    ("mcheck", mcheck)
+    ("pow_mon", pow_mon)
+    ("ambaLayer", ambaLayer)
+    ("Created an APBCtrl with this parameters");
 }
 
 // Reset handler

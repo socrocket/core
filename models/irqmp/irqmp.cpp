@@ -42,24 +42,22 @@ Irqmp::Irqmp(ModuleName name,
   irq_ack(&Irqmp::acknowledged_irq, "IRQ_ACKNOWLEDGE"),
   irq_in(&Irqmp::incomming_irq, "IRQ_INPUT"),
   g_ncpu(ncpu), g_eirq(eirq),
-  m_performance_counters("performance_counters"),
-  m_irq_counter("irq_line_activity", 32, m_performance_counters),
-  m_cpu_counter("cpu_line_activity", ncpu, m_performance_counters),
+  m_irq_counter("irq_line_activity", 32, m_counters),
+  m_cpu_counter("cpu_line_activity", ncpu, m_counters),
   m_pow_mon(powmon),
-  sta_power_norm("power.irqmp.sta_power_norm", 3.07e+8, true),           // Normalized static power of controller
-  int_power_norm("power.irqmp.int_power_norm", 3.26e-10, true),           // Normalized internal power of controller
-  power("power"),
-  sta_power("sta_power", 0.0, power),           // Static power of controller
-  int_power("int_power", 0.0, power) {          // Dynamic power of controller
-  // Obtain pointer to GreenControl API
-  m_api = gs::cnf::GCnf_Api::getApiInstance(this);
+  sta_power_norm("sta_power_norm", 3.07e+8, m_power),           // Normalized static power of controller
+  int_power_norm("int_power_norm", 3.26e-10, m_power),           // Normalized internal power of controller
+  sta_power("sta_power", 0.0, m_power),           // Static power of controller
+  int_power("int_power", 0.0, m_power) {          // Dynamic power of controller
+
   forcereg = new uint32_t[g_ncpu];
 
   // Display APB slave information
-  v::info << name << "APB slave @0x" << hex << v::setw(8)
-          << v::setfill('0') << apb_slv.get_base_addr() << " size: 0x" << hex
-          << v::setw(8) << v::setfill('0') << apb_slv.get_size() << " byte"
-          << endl;
+  srInfo()
+    ("paddr", paddr)
+    ("pmask", pmask)
+    ("pindex", pindex)
+    ("APB slave");
 
   assert(ncpu < 17 && "the IRQMP can only handle up to 16 CPUs");
 
@@ -149,18 +147,14 @@ Irqmp::Irqmp(ModuleName name,
     GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, Irqmp, int_power_cb);
   }
 
-  // Configuration report
-  v::info << this->name() << " ******************************************************************************* " <<
-  v::endl;
-  v::info << this->name() << " * Created irqmp with following parameters: " << v::endl;
-  v::info << this->name() << " * ------------------------------------------------------- " << v::endl;
-  v::info << this->name() << " * paddr/pmask: " << hex << paddr << "/" << pmask << v::endl;
-  v::info << this->name() << " * ncpu: " << ncpu << v::endl;
-  v::info << this->name() << " * eirq: " << eirq << v::endl;
-  v::info << this->name() << " * pindex: " << pindex << v::endl;
-  v::info << this->name() << " * pow_mon: " << m_pow_mon << v::endl;
-  v::info << this->name() << " ******************************************************************************* " <<
-  v::endl;
+  srInfo()
+    ("paddr", paddr)
+    ("pmask", pmask)
+    ("pindex", pindex)
+    ("ncpu", ncpu)
+    ("eirq", eirq)
+    ("pow_mon", powmon)
+    ("Ceated an Irqmp with this parameters");
 }
 
 Irqmp::~Irqmp() {

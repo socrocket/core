@@ -17,6 +17,7 @@
 #define MODELS_AHBCTRL_AHBCTRL_H_
 
 #include <amba.h>
+#include "common/base.h"
 #include "common/gs_config.h"
 #include <tlm.h>
 #include <map>
@@ -28,7 +29,7 @@
 #include "common/socrocket.h"
 #include "common/gs_config.h"
 
-class AHBCtrl : public DefaultBase, public CLKDevice {
+class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
   public:
     GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(AHBCtrl);
@@ -132,9 +133,6 @@ class AHBCtrl : public DefaultBase, public CLKDevice {
   private:
     // Data Members
     // ------------
-    /// Configuration generic container
-    gs::cnf::gs_param_array g_conf;
-
     /// The MSB address of the I/O area
     gs::cnf::gs_config<uint32_t> g_ioaddr;
 
@@ -237,12 +235,6 @@ class AHBCtrl : public DefaultBase, public CLKDevice {
     /// The number of masters in the system
     unsigned int num_of_master_bindings;
 
-    /// GreenControl API container
-    gs::cnf::cnf_api *m_api;
-
-    /// Open a namespace for performance counting in the greencontrol realm
-    gs::gs_param_array m_performance_counters;
-
     /// Total waiting time in arbiter
     gs::gs_config<sc_time> m_total_wait;
 
@@ -299,9 +291,6 @@ class AHBCtrl : public DefaultBase, public CLKDevice {
 
     /// Normalized write access energy
     gs::gs_config<double> dyn_write_energy_norm;
-
-    /// Parameter array for power data output
-    gs::gs_param_array power;
 
     /// Static power of module
     gs::gs_config<double> sta_power;

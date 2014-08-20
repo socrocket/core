@@ -181,12 +181,6 @@ class Irqmp : public APBDevice<RegisterBase>,
     /// To determ the change in the status force fields.
     uint32_t *forcereg;
 
-    /// GreenControl API container
-    gs::cnf::cnf_api *m_api;
-
-    /// Open a namespace for performance counting in the greencontrol realm
-    gs::gs_param_array m_performance_counters;
-
     /// Performance Counter per IRQ Line
     /// The number of executed interrupts is stored in the variable
     gs::gs_param<unsigned long long *> m_irq_counter;  // NOLINT(runtime/int)
@@ -207,9 +201,6 @@ class Irqmp : public APBDevice<RegisterBase>,
 
     /// Normalized dynamic power of controller
     gs::gs_config<double> int_power_norm;
-
-    /// Parameter array for power data output
-    gs::gs_param_array power;
 
     /// Controller static power
     gs::gs_config<double> sta_power;

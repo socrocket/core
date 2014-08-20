@@ -36,23 +36,22 @@ AHBCtrl::AHBCtrl(
     bool mcheck,           // Check if there are any intersections between core memory regions
     bool pow_mon,          // Enable power monitoring
     amba::amba_layer_ids ambaLayer) :
-  sc_module(nm),
+  BaseModule<DefaultBase>(nm),
   ahbIN("ahbIN", amba::amba_AHB, ambaLayer, false),
   ahbOUT("ahbOUT", amba::amba_AHB, ambaLayer, false),
   snoop("snoop"),
-  g_conf("conf"),
-  g_ioaddr("ioaddr", ioaddr, g_conf),
-  g_iomask("iomask", iomask, g_conf),
-  g_cfgaddr("cfgaddr", cfgaddr, g_conf),
-  g_cfgmask("cfgmask", cfgmask, g_conf),
-  g_rrobin("rrobin", rrobin, g_conf),
-  g_split("split", split, g_conf),
-  g_defmast("defmast", defmast, g_conf),
-  g_ioen("ioen", ioen, g_conf),
-  g_fixbrst("fixbrst", fixbrst, g_conf),
-  g_fpnpen("fpnpen", fpnpen, g_conf),
-  g_mcheck("mcheck", mcheck, g_conf),
-  g_pow_mon("pow_mon",pow_mon, g_conf),
+  g_ioaddr("ioaddr", ioaddr, m_generics),
+  g_iomask("iomask", iomask, m_generics),
+  g_cfgaddr("cfgaddr", cfgaddr, m_generics),
+  g_cfgmask("cfgmask", cfgmask, m_generics),
+  g_rrobin("rrobin", rrobin, m_generics),
+  g_split("split", split, m_generics),
+  g_defmast("defmast", defmast, m_generics),
+  g_ioen("ioen", ioen, m_generics),
+  g_fixbrst("fixbrst", fixbrst, m_generics),
+  g_fpnpen("fpnpen", fpnpen, m_generics),
+  g_mcheck("mcheck", mcheck, m_generics),
+  g_pow_mon("pow_mon",pow_mon, m_generics),
   arbiter_eval_delay(1, SC_PS),
   busy(false),
   robin(0),
@@ -61,36 +60,31 @@ AHBCtrl::AHBCtrl(
   m_RequestPEQ("RequestPEQ"),
   m_ResponsePEQ("ResponsePEQ"),
   m_EndResponsePEQ("EndResponsePEQ"),
-  m_performance_counters("performance_counters"),
-  m_total_wait("total_wait", SC_ZERO_TIME, m_performance_counters),
-  m_arbitrated("arbitrated", 0ull, m_performance_counters),
-  m_max_wait("maximum_waiting_time", SC_ZERO_TIME, m_performance_counters),
-  m_max_wait_master("maximum_waiting_master_id", defmast, m_performance_counters),
-  m_idle_count("idle_cycles", 0ull, m_performance_counters),
-  m_total_transactions("total_transactions", 0ull, m_performance_counters),
-  m_right_transactions("successful_transactions", 0ull, m_performance_counters),
-  m_writes("bytes_written", 0ull, m_performance_counters),
-  m_reads("bytes_read", 0ull, m_performance_counters),
+  m_total_wait("total_wait", SC_ZERO_TIME, m_counters),
+  m_arbitrated("arbitrated", 0ull, m_counters),
+  m_max_wait("maximum_waiting_time", SC_ZERO_TIME, m_counters),
+  m_max_wait_master("maximum_waiting_master_id", defmast, m_counters),
+  m_idle_count("idle_cycles", 0ull, m_counters),
+  m_total_transactions("total_transactions", 0ull, m_counters),
+  m_right_transactions("successful_transactions", 0ull, m_counters),
+  m_writes("bytes_written", 0ull, m_counters),
+  m_reads("bytes_read", 0ull, m_counters),
   is_lock(false),
   lock_master(0),
   m_ambaLayer(ambaLayer),
-  sta_power_norm("power.ahbctrl.sta_power_norm", 10714285.71, true),     // Normalized static power input
-  int_power_norm("power.ahbctrl.int_power_norm", 0.0, true),     // Normalized dyn power input (activation indep.)
-  dyn_read_energy_norm("power.ahbctrl.dyn_read_energy_norm", 9.10714e-10, true),     // Normalized read energy input
-  dyn_write_energy_norm("power.ahbctrl.dyn_write_energy_norm", 9.10714e-10, true),     // Normalized write energy input
-  power("power"),
-  sta_power("sta_power", 0.0, power),     // Static power output
-  int_power("int_power", 0.0, power),     // Internal power of module (dyn. switching independent)
-  swi_power("swi_power", 0.0, power),     // Switching power of module
-  power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
-  dyn_read_energy("dyn_read_energy", 0.0, power),     // Energy per read access
-  dyn_write_energy("dyn_write_energy", 0.0, power),     // Energy per write access
-  dyn_reads("dyn_reads", 0ull, power),     // Read access counter for power computation
-  dyn_writes("dyn_writes", 0ull, power) {   // Write access counter for power computation
-  // GreenControl API
-  m_api = gs::cnf::GCnf_Api::getApiInstance(this);
+  sta_power_norm("sta_power_norm", 10714285.71, m_power),     // Normalized static power input
+  int_power_norm("int_power_norm", 0.0, m_power),     // Normalized dyn power input (activation indep.)
+  dyn_read_energy_norm("dyn_read_energy_norm", 9.10714e-10, m_power),     // Normalized read energy input
+  dyn_write_energy_norm("dyn_write_energy_norm", 9.10714e-10, m_power),     // Normalized write energy input
+  sta_power("sta_power", 0.0, m_power),     // Static power output
+  int_power("int_power", 0.0, m_power),     // Internal power of module (dyn. switching independent)
+  swi_power("swi_power", 0.0, m_power),     // Switching power of module
+  power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, m_power),
+  dyn_read_energy("dyn_read_energy", 0.0, m_power),     // Energy per read access
+  dyn_write_energy("dyn_write_energy", 0.0, m_power),     // Energy per write access
+  dyn_reads("dyn_reads", 0ull, m_power),     // Read access counter for power computation
+  dyn_writes("dyn_writes", 0ull, m_power) {   // Write access counter for power computation
 
-  init_generics();
   // Initialize slave and master table
   // (Pointers to deviceinfo fields will be set in start_of_simulation)
   for (int i = 0; i < 64; i++) {
@@ -140,22 +134,21 @@ AHBCtrl::AHBCtrl(
 
   requests_pending = 0;
 
-  // Module configuration report
-  v::info << name() << " ******************************************************************************* " << v::endl;
-  v::info << name() << " * Created AHBCTRL with following parameters: " << v::endl;
-  v::info << name() << " * ------------------------------------------ " << v::endl;
-  v::info << name() << " * ioaddr/iomask: " << hex << ioaddr << "/" << iomask << v::endl;
-  v::info << name() << " * cfgaddr/cfmask: " << hex << cfgaddr << "/" << cfgmask << v::endl;
-  v::info << name() << " * rrobin: " << rrobin << v::endl;
-  v::info << name() << " * split: " << split << v::endl;
-  v::info << name() << " * defmast: " << defmast << v::endl;
-  v::info << name() << " * ioen: " << ioen << v::endl;
-  v::info << name() << " * fixbrst: " << fixbrst << v::endl;
-  v::info << name() << " * fpnpen: " << fpnpen << v::endl;
-  v::info << name() << " * mcheck: " << mcheck << v::endl;
-  v::info << name() << " * pow_mon: " << pow_mon << v::endl;
-  v::info << name() << " * ambaLayer (LT = 8 / AT = 4):  " << ambaLayer << v::endl;
-  v::info << name() << " ******************************************************************************* " << v::endl;
+  srInfo()
+    ("ioaddr", ioaddr)
+    ("iomask", iomask)
+    ("cfgaddr", cfgaddr)
+    ("cfgmask", cfgmask)
+    ("rrobin", rrobin)
+    ("split", split)
+    ("defmast", defmast)
+    ("ioen", ioen)
+    ("fixbrst", fixbrst)
+    ("fpnpen", fpnpen)
+    ("mcheck", mcheck)
+    ("pow_mon", pow_mon)
+    ("ambaLayer", ambaLayer)
+    ("Created an AHBCtrl with this parameters");
 }
 
 // Reset handler
