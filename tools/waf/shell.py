@@ -52,6 +52,7 @@ packages = [
     "numexpr==2.4",
     "cython==0.20.2",
     "tables==3.1.1",
+    "termcolor",
 ]
 
 ACTIVATE = """

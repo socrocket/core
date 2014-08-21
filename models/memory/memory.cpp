@@ -141,15 +141,28 @@ void Memory::b_transport(tlm::tlm_generic_payload &gp, sc_time &delay) {
     if (cmd == tlm::TLM_READ_COMMAND) {
       read_block(addr, ptr, len);
 
-      v::debug << name() << "Read memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
+      srAnalyse()
+        ("addr", addr)
+        ("len", len)
+        ("type", "read")
+        ("Memory read transaction");
+
       gp.set_response_status(tlm::TLM_OK_RESPONSE);
     } else if (cmd == tlm::TLM_WRITE_COMMAND) {
       write_block(addr, ptr, len);
 
-      v::debug << name() << "Write memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
+      srAnalyse()
+        ("addr", addr)
+        ("len", len)
+        ("type", "write")
+        ("Memory write transaction");
+
       gp.set_response_status(tlm::TLM_OK_RESPONSE);
     } else {
-      v::warn << name() << "Command not valid / or TLM_IGNORE" << v::endl;
+      srWarn()
+        ("addr", addr)
+        ("len", len)
+        ("Command not valid / or TLM_IGNORE");
     }
   }
 }
