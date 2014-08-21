@@ -28,8 +28,8 @@ APBCtrl::APBCtrl(
     bool mcheck,                 // Check if there are any intersections between APB slave memory regions
     uint32_t hindex,             // AHB bus index
     bool pow_mon,                // Enable power monitoring
-    amba::amba_layer_ids ambaLayer) :
-  AHBSlave<>(nm,
+    AbstractionLayer ambaLayer) :
+  AHBSlave<DefaultBase>(nm,
     hindex,
     0x01,                        // vendor_id: Gaisler
     0x006,                       // device_id: APBCTRL (p. 92 GRIP)
@@ -41,9 +41,6 @@ APBCtrl::APBCtrl(
   m_AcceptPEQ("AcceptPEQ"),
   m_TransactionPEQ("TransactionPEQ"),
   m_pnpbase(0xFF000),
-  g_haddr("haddr", haddr, m_generics),
-  g_hmask("hmask", hmask, m_generics),
-  g_hindex("hindex", hindex, m_generics),
   g_mcheck("mcheck", mcheck, m_generics),
   g_pow_mon("pow_mon", pow_mon, m_generics),
   m_ambaLayer(ambaLayer),
@@ -86,21 +83,6 @@ APBCtrl::~APBCtrl() {
 }
 
 void APBCtrl::init_generics() {
-  g_haddr.add_properties()
-    ("name", "AHB Base Address")
-    ("range", "0..4095")
-    ("The 12bit MSB address at the AHB bus");
-
-  g_hmask.add_properties()
-    ("name", "AHB Base Mask")
-    ("range", "0..4095")
-    ("The 12bit AHB address mask");
-
-  g_hindex.add_properties()
-    ("name", "AHB Slave Index")
-    ("range", "0..15")
-    ("The slave index at the AHB bus");
-
   g_mcheck.add_properties()
     ("name", "Memory check")
     ("If true check slaves for memory address errors");
@@ -144,7 +126,7 @@ int APBCtrl::get_index(const uint32_t address) {
 // Returns a PNP register from the APB configuration area (upper 4kb of address space)
 uint32_t APBCtrl::getPNPReg(const uint32_t address) {
   // Calculate address offset in configuration area
-  uint32_t addr = address - (get_bar_addr(0) + m_pnpbase);
+  uint32_t addr = address - (get_ahb_bar_addr(0) + m_pnpbase);
   // Calculate index of the device in mSlaves pointer array (8 byte per device)
   uint32_t device = (addr >> 2) >> 1;
   // Calculate offset within device information
@@ -319,7 +301,7 @@ void APBCtrl::start_of_simulation() {
       const uint32_t *deviceinfo = slave->get_apb_device_info();
 
       // Get slave id (pindex)
-      const uint32_t sbusid = slave->get_apb_busid();
+      const uint32_t sbusid = slave->get_apb_pindex();
 
       // Map device information into PNP region
       mSlaves[sbusid] = deviceinfo;

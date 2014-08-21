@@ -83,7 +83,7 @@ class Mctrl : public AHBSlave<APBDevice<RegisterBase> >,
     int sdbits = 32, int mobile = 0, int sden = 0,
     unsigned int hindex = 0, unsigned int pindex = 0,
     bool powmon = false,
-    amba::amba_layer_ids ambaLayer = amba::amba_LT);
+    AbstractionLayer ambaLayer = amba::amba_LT);
 
     /// Default destructor
     ~Mctrl();
@@ -257,9 +257,6 @@ class Mctrl : public AHBSlave<APBDevice<RegisterBase> >,
     /// Normalized write energy
     gs::gs_config<double> dyn_write_energy_norm;
 
-    /// Parameter array for power data output
-    gs::gs_param_array power;
-
     /// Controller static power
     gs::gs_config<double> sta_power;
 
@@ -285,7 +282,6 @@ class Mctrl : public AHBSlave<APBDevice<RegisterBase> >,
     gs::gs_config<uint64_t> dyn_writes;  // NOLINT(runtime/int)
 
     // Constructor parameters (modeling VHDL generics)
-    gs::cnf::gs_param_array g_conf;
     gs::cnf::gs_config<int> g_romasel;
     gs::cnf::gs_config<int> g_sdrasel;
     gs::cnf::gs_config<int> g_romaddr;
@@ -294,8 +290,6 @@ class Mctrl : public AHBSlave<APBDevice<RegisterBase> >,
     gs::cnf::gs_config<int> g_iomask;
     gs::cnf::gs_config<int> g_ramaddr;
     gs::cnf::gs_config<int> g_rammask;
-    gs::cnf::gs_config<int> g_paddr;
-    gs::cnf::gs_config<int> g_pmask;
     gs::cnf::gs_config<int> g_wprot;
     gs::cnf::gs_config<int> g_srbanks;
     gs::cnf::gs_config<int> g_ram8;

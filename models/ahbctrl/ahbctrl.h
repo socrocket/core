@@ -105,7 +105,7 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
       bool fpnpen = true,          ///< Enable full decoding of PnP configuration records.
       bool mcheck = true,          ///< Check if there are any intersections between core memory regions.
       bool pow_mon = false,        ///< Enable power monitoring
-      amba::amba_layer_ids ambaLayer = amba::amba_LT);
+      AbstractionLayer ambaLayer = amba::amba_LT);
 
     /// Reset Callback
     void dorst();
@@ -275,7 +275,7 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
     uint32_t lock_master;
 
     /// The abstraction layer of the model
-    amba::amba_layer_ids m_ambaLayer;
+    AbstractionLayer m_ambaLayer;
 
     // *****************************************************
     // Power Modeling Parameters

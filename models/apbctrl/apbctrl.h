@@ -69,7 +69,7 @@ class APBCtrl : public AHBSlave<DefaultBase>, public CLKDevice {
       bool mcheck = 0,             ///< Check if there are any intersections between APB slave memory regions
       uint32_t hindex = 0,         ///< AHB bus index
       bool pow_mon = 0,            ///< Enables power monitoring
-      amba::amba_layer_ids ambaLayer = amba::amba_LT);
+      AbstractionLayer ambaLayer = amba::amba_LT);
 
     // Omitted parameters:
     // -------------------
@@ -151,15 +151,6 @@ class APBCtrl : public AHBSlave<DefaultBase>, public CLKDevice {
     /// 0xFF000
     const uint32_t m_pnpbase;
 
-    /// The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
-    gs::cnf::gs_config<uint32_t> g_haddr;
-
-    /// The 12bit AHB area address mask
-    gs::cnf::gs_config<uint32_t> g_hmask;
-
-    /// The AHB Bus Slave Index
-    gs::cnf::gs_config<uint32_t> g_hindex;
-
     /// Check if there are any intersections between APB slave memory regions
     gs::cnf::gs_config<bool> g_mcheck;
 
@@ -167,7 +158,7 @@ class APBCtrl : public AHBSlave<DefaultBase>, public CLKDevice {
     gs::cnf::gs_config<bool> g_pow_mon;
 
     /// Abstraction Layer
-    amba::amba_layer_ids m_ambaLayer;
+    AbstractionLayer m_ambaLayer;
 
     /// Number of slaves bound at the APB side
     uint32_t num_of_bindings;

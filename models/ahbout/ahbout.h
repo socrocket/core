@@ -38,7 +38,7 @@ class AHBOut : public AHBSlave<>, public CLKDevice {
     AHBOut(const ModuleName nm,
     uint16_t haddr_,
     uint16_t hmask_ = 0,
-    amba::amba_layer_ids ambaLayer = amba::amba_LT,
+    AbstractionLayer ambaLayer = amba::amba_LT,
     uint32_t slave_id = 0,
     char *outfile = NULL);
 

@@ -99,7 +99,7 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
       uint32_t mmupgsz = 0,               ///< MMU page size
       uint32_t hindex = 0,                ///< ID of the bus master
       bool pow_mon = false,               ///< Enable power monitoring
-      amba::amba_layer_ids ambaLayer = amba::amba_LT);  ///< Select LT or AT abstraction
+      AbstractionLayer ambaLayer = amba::amba_LT);  ///< Select LT or AT abstraction
 
   // Destructor
   ~mmu_cache();
@@ -261,7 +261,7 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
   bool m_pow_mon;
 
   /// amba abstraction layer
-  amba::amba_layer_ids m_abstractionLayer;
+  AbstractionLayer m_abstractionLayer;
 
   /// begin response signal for AT
   sc_event ahb_response_event;
@@ -280,9 +280,6 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
 
   /// Normalized write access energy
   gs::gs_config<double> dyn_write_energy_norm;
-
-  /// Parameter array for power data output
-  gs::gs_param_array power;
 
   /// Controller static power
   gs::gs_config<double> sta_power;

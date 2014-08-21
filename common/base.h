@@ -29,6 +29,9 @@ typedef amba::amba_layer_ids AbstractionLayer;
 typedef gs::cnf::cnf_api ParameterAPI;
 typedef gs::cnf::gs_param_array ParameterArray;
 
+//template<typename TYPE>
+//using Parameter<TYPE> = gs::cnf::gs_config<TYPE>;
+
 template<class BASE = DefaultBase>
 class SCBaseModule : public BASE {
   public:

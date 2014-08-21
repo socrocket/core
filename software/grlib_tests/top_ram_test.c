@@ -1,6 +1,8 @@
 #include "standalone.h"
 #include "cache.h"
 
+extern void cramtest();
+
 int main() {
 	report_start();
 

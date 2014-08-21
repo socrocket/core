@@ -52,7 +52,7 @@ class AHBProf : public AHBSlave<>, public CLKDevice {
     uint32_t index = 0,
     uint16_t addr = 0,
     uint16_t mask = 0,
-    amba::amba_layer_ids ambaLayer = amba::amba_LT);
+    AbstractionLayer ambaLayer = amba::amba_LT);
 
     /// Destructor
     ~AHBProf();

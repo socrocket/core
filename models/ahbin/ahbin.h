@@ -34,7 +34,7 @@
 #include "common/verbose.h"
 
 /// Definition of class AHBIn
-class AHBIn : public AHBMaster<>, public CLKDevice {
+class AHBIn : public AHBMaster<DefaultBase>, public CLKDevice {
   public:
     SC_HAS_PROCESS(AHBIn);
     SK_HAS_SIGNALS(AHBIn);
@@ -50,7 +50,7 @@ class AHBIn : public AHBMaster<>, public CLKDevice {
     unsigned int frameaddr,                     // The address the data is supposed to be copied to
     sc_core::sc_time interval,                  // The interval between data frames
     bool pow_mon,                               // Enable power monitoring
-    amba::amba_layer_ids ambaLayer);            // TLM abstraction layer
+    AbstractionLayer ambaLayer);            // TLM abstraction layer
 
     /// Thread for triggering gen_frame (generates new_frame event)
     void frame_trigger();
@@ -95,7 +95,7 @@ class AHBIn : public AHBMaster<>, public CLKDevice {
     bool m_pow_mon;
 
     /// amba abstraction layer
-    amba::amba_layer_ids m_abstractionLayer;
+    AbstractionLayer m_abstractionLayer;
 };
 
 #endif  // MODELS_AHBIN_AHBIN_H_

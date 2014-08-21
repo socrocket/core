@@ -24,7 +24,7 @@ AHBProf::AHBProf(const ModuleName nm,  // Module name
   uint32_t index,
   uint16_t addr,                                    // AMBA AHB address (12 bit)
   uint16_t mask,                                    // AMBA AHB address mask (12 bit)
-  amba::amba_layer_ids ambaLayer) :                 // abstraction layer
+  AbstractionLayer ambaLayer) :                 // abstraction layer
   AHBSlave<>(nm,
     index,
     0xce,                                           // Vendor: c3e
@@ -43,9 +43,9 @@ AHBProf::AHBProf(const ModuleName nm,  // Module name
   v::info << name() << "* Create AHB Profiling device with following parameters:            " << v::endl;
   v::info << name() << "* haddr/hmask: " << v::uint32 << m_addr << "/" << v::uint32 << m_mask << v::endl;
   v::info << name() << "* Slave base address: 0x" << std::setw(8) << std::setfill('0') << hex <<
-    get_base_addr()                     << v::endl;
+    get_ahb_base_addr()                     << v::endl;
   v::info << name() << "* Slave size (bytes): 0x" << std::setw(8) << std::setfill('0') << hex <<
-    get_size()                          << v::endl;
+    get_ahb_size()                          << v::endl;
   v::info << name() << "********************************************************************" << v::endl;
 }
 

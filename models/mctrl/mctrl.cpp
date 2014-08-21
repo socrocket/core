@@ -43,7 +43,7 @@ Mctrl::Mctrl(
     unsigned int hindex,
     unsigned int pindex,
     bool powermon,
-    amba::amba_layer_ids ambaLayer) :
+    AbstractionLayer ambaLayer) :
   AHBSlave<APBDevice<RegisterBase> >(
     name,
     hindex,
@@ -55,7 +55,7 @@ Mctrl::Mctrl(
     BAR(AHBMEM, _rommask, true, true, _romaddr),
     BAR(AHBMEM, _iomask, false, false, _ioaddr),
     BAR(AHBMEM, _rammask, true, true, _ramaddr),
-    0,
+    BAR(),
     4),
   apb("apb", r,                                  // name and register container of the greenreg_socket
     (_paddr & _pmask) << 8, // base address
@@ -65,47 +65,43 @@ Mctrl::Mctrl(
     false),                                      // socket is not used for arbitration
   mem("mem", gs::socket::GS_TXN_ONLY),
   busy(false),
-  m_total_transactions("total_transactions", 0ull, m_performance_counters),
-  m_right_transactions("successful_transactions", 0ull, m_performance_counters),
-  m_power_down_time("total_power_down", sc_core::SC_ZERO_TIME, m_performance_counters),
-  m_power_down_start("last_power_down", sc_core::SC_ZERO_TIME, m_performance_counters),
-  m_deep_power_down_time("total_deep_power_down", sc_core::SC_ZERO_TIME, m_performance_counters),
-  m_deep_power_down_start("last_deep_power_down", sc_core::SC_ZERO_TIME, m_performance_counters),
-  m_self_refresh_time("total_self_refresh", sc_core::SC_ZERO_TIME, m_performance_counters),
-  m_self_refresh_start("last_self_refresh", sc_core::SC_ZERO_TIME, m_performance_counters),
-  sta_power_norm("power.mctrl.sta_power_norm", 1.7e+8, true),           // Normalized static power of controller
-  int_power_norm("power.mctrl.int_power_norm", 1.874e-8, true),           // Normalized internal power of controller
-  dyn_read_energy_norm("power.mctrl.dyn_read_energy_norm", 1.175e-8, true),           // Normalized read energy
-  dyn_write_energy_norm("power.mctrl.dyn_write_energy_norm", 1.175e-8, true),           // Normalized write energy
-  power("power"),
-  sta_power("sta_power", 0.0, power),           // Static power
-  int_power("int_power", 0.0, power),           // Internal power
-  swi_power("swi_power", 0.0, power),           // Switching power
-  power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
-  dyn_read_energy("dyn_read_energy", 0.0, power),           // Energy for read access
-  dyn_write_energy("dyn_write_energy", 0.0, power),           // Energy for write access
-  dyn_reads("dyn_reads", 0ull, power),           // Number of read accesses
-  dyn_writes("dyn_writes", 0ull, power),           // Number of write accesses
-  g_conf("conf"),
-  g_romasel("romasel", _romasel, g_conf),
-  g_sdrasel("sdrasel", _sdrasel, g_conf),
-  g_romaddr("romaddr", _romaddr, g_conf),
-  g_rommask("rommask", _rommask, g_conf),
-  g_ioaddr("ioaddr", _ioaddr, g_conf),
-  g_iomask("iomask", _iomask, g_conf),
-  g_ramaddr("ramaddr", _ramaddr, g_conf),
-  g_rammask("rammask", _rammask, g_conf),
-  g_paddr("paddr", _paddr, g_conf),
-  g_pmask("pmask", _pmask, g_conf),
-  g_wprot("wprot", _wprot, g_conf),
-  g_srbanks("srbanks", _srbanks, g_conf),
-  g_ram8("ram8", _ram8, g_conf),
-  g_ram16("ram16", _ram16, g_conf),
-  g_sepbus("sepbus", _sepbus, g_conf),
-  g_sdbits("sdbits", _sdbits, g_conf),
-  g_mobile("mobile", _mobile, g_conf),
-  g_sden("sden", _sden, g_conf),
-  g_pow_mon("pow_mon", powermon, g_conf) {
+  m_total_transactions("total_transactions", 0ull, m_counters),
+  m_right_transactions("successful_transactions", 0ull, m_counters),
+  m_power_down_time("total_power_down", sc_core::SC_ZERO_TIME, m_counters),
+  m_power_down_start("last_power_down", sc_core::SC_ZERO_TIME, m_counters),
+  m_deep_power_down_time("total_deep_power_down", sc_core::SC_ZERO_TIME, m_counters),
+  m_deep_power_down_start("last_deep_power_down", sc_core::SC_ZERO_TIME, m_counters),
+  m_self_refresh_time("total_self_refresh", sc_core::SC_ZERO_TIME, m_counters),
+  m_self_refresh_start("last_self_refresh", sc_core::SC_ZERO_TIME, m_counters),
+  sta_power_norm("sta_power_norm", 1.7e+8, m_power),           // Normalized static power of controller
+  int_power_norm("int_power_norm", 1.874e-8, m_power),           // Normalized internal power of controller
+  dyn_read_energy_norm("dyn_read_energy_norm", 1.175e-8, m_power),           // Normalized read energy
+  dyn_write_energy_norm("dyn_write_energy_norm", 1.175e-8, m_power),           // Normalized write energy
+  sta_power("sta_power", 0.0, m_power),           // Static power
+  int_power("int_power", 0.0, m_power),           // Internal power
+  swi_power("swi_power", 0.0, m_power),           // Switching power
+  power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, m_power),
+  dyn_read_energy("dyn_read_energy", 0.0, m_power),           // Energy for read access
+  dyn_write_energy("dyn_write_energy", 0.0, m_power),           // Energy for write access
+  dyn_reads("dyn_reads", 0ull, m_power),           // Number of read accesses
+  dyn_writes("dyn_writes", 0ull, m_power),           // Number of write accesses
+  g_romasel("romasel", _romasel, m_generics),
+  g_sdrasel("sdrasel", _sdrasel, m_generics),
+  g_romaddr("romaddr", _romaddr, m_generics),
+  g_rommask("rommask", _rommask, m_generics),
+  g_ioaddr("ioaddr", _ioaddr, m_generics),
+  g_iomask("iomask", _iomask, m_generics),
+  g_ramaddr("ramaddr", _ramaddr, m_generics),
+  g_rammask("rammask", _rammask, m_generics),
+  g_wprot("wprot", _wprot, m_generics),
+  g_srbanks("srbanks", _srbanks, m_generics),
+  g_ram8("ram8", _ram8, m_generics),
+  g_ram16("ram16", _ram16, m_generics),
+  g_sepbus("sepbus", _sepbus, m_generics),
+  g_sdbits("sdbits", _sdbits, m_generics),
+  g_mobile("mobile", _mobile, m_generics),
+  g_sden("sden", _sden, m_generics),
+  g_pow_mon("pow_mon", powermon, m_generics) {
   init_apb(pindex,
     0x04,                                        // ven: ESA
     0x0F,                                        // dev: MCTRL
@@ -949,19 +945,19 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
   MEMPort result;
   // MEMPort::id of 100 means it is not in use
   // Memorytype not connected
-  if ((c_rom.id != 100) && (get_bar_addr(0) <= addr) && (addr < get_bar_addr(0) + get_bar_size(0))) {
+  if ((c_rom.id != 100) && (get_ahb_bar_addr(0) <= addr) && (addr < get_ahb_bar_addr(0) + get_ahb_bar_size(0))) {
     // ROM Bar Area
     result = c_rom;
-    result.addr = addr - get_bar_addr(0);
-    result.length = get_bar_size(0);
+    result.addr = addr - get_ahb_bar_addr(0);
+    result.length = get_ahb_bar_size(0);
     return result;
-  } else if ((c_io.id != 100) && (get_bar_addr(1) <= addr) && (addr < get_bar_addr(1) + get_bar_size(1))) {
+  } else if ((c_io.id != 100) && (get_ahb_bar_addr(1) <= addr) && (addr < get_ahb_bar_addr(1) + get_ahb_bar_size(1))) {
     // IO Bar Area
     result = c_io;
-    result.addr = addr - get_bar_addr(1);
-    result.length = get_bar_size(1);
+    result.addr = addr - get_ahb_bar_addr(1);
+    result.length = get_ahb_bar_size(1);
     return result;
-  } else if ((get_bar_addr(2) <= addr) && (addr < get_bar_addr(2) + get_bar_size(2))) {
+  } else if ((get_ahb_bar_addr(2) <= addr) && (addr < get_ahb_bar_addr(2) + get_ahb_bar_size(2))) {
     // RAM Bar Area
     if (r[MCFG2] & MCFG2_SE) {
       // SDRAM Enabled
@@ -970,9 +966,9 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
         uint32_t banks = c_sdram.dev->get_banks();
         uint32_t bsize = c_sdram.dev->get_bsize();
         uint32_t size = banks * bsize;
-        if (addr < get_bar_addr(2) + size) {
+        if (addr < get_ahb_bar_addr(2) + size) {
           result = c_sdram;
-          result.addr = addr - get_bar_addr(2);
+          result.addr = addr - get_ahb_bar_addr(2);
           result.length = size;
           return result;
         } else {
@@ -986,14 +982,14 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
         uint32_t dbanks = min(c_sdram.dev->get_banks(), 2u);
         uint32_t dbsize = c_sdram.dev->get_bsize();
         uint32_t dsize  = dbanks * dbsize;
-        if (addr < get_bar_addr(2) + ssize) {
+        if (addr < get_ahb_bar_addr(2) + ssize) {
           result = c_sram;
-          result.addr = addr - get_bar_addr(2);
+          result.addr = addr - get_ahb_bar_addr(2);
           result.length = ssize;
           return result;
-        } else if ((c_sdram.id != 100) && (addr < get_bar_addr(2) + ssize + dsize)) {
+        } else if ((c_sdram.id != 100) && (addr < get_ahb_bar_addr(2) + ssize + dsize)) {
           result = c_sdram;
-          result.addr = addr - get_bar_addr(2) - ssize;
+          result.addr = addr - get_ahb_bar_addr(2) - ssize;
           result.length = dsize;
           return result;
         } else {
@@ -1012,10 +1008,10 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
       } else {
         size = 8 * bsize;
       }
-      if (addr < get_bar_addr(2) + size) {
+      if (addr < get_ahb_bar_addr(2) + size) {
         // addres has to be shortend!
         result = c_sram;
-        result.addr = addr - get_bar_addr(2);
+        result.addr = addr - get_ahb_bar_addr(2);
         result.length = size;
         return result;
       } else {

@@ -50,7 +50,7 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
       const ModuleName nm,
       uint16_t haddr_,
       uint16_t hmask_ = 0,
-      amba::amba_layer_ids ambaLayer = amba::amba_LT,
+      AbstractionLayer ambaLayer = amba::amba_LT,
       uint32_t slave_id = 0,
       bool cacheable = 1,
       uint32_t wait_states = 0,
@@ -67,7 +67,7 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
 
     /// @brief Delete memory content
     void clear_mem() {
-      erase(0, get_size()-1);
+      erase(0, get_ahb_size()-1);
     }
 
     /// @brief Method to write a byte into the memory

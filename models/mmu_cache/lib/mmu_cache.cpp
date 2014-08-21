@@ -51,7 +51,7 @@ mmu_cache::mmu_cache(
       uint32_t mmupgsz,
       uint32_t hindex,
       bool pow_mon,
-     amba::amba_layer_ids abstractionLayer) :
+     AbstractionLayer abstractionLayer) :
 
   AHBMaster<>(name,
               hindex,
@@ -77,24 +77,23 @@ mmu_cache::mmu_cache(
   m_mmu_en(mmu_en),
   m_master_id(hindex),
   bus_in_fifo("bus_in_fifo",1),
-  m_right_transactions("successful_transactions", 0ull, m_performance_counters),
-  m_total_transactions("total_transactions", 0ull, m_performance_counters),
+  m_right_transactions("successful_transactions", 0ull, m_counters),
+  m_total_transactions("total_transactions", 0ull, m_counters),
   m_pow_mon(pow_mon),
   m_abstractionLayer(abstractionLayer),
   ahb_response_event(),
-  sta_power_norm("power.mmu_cache.sta_power_norm", 1.16e+8, true), // Normalized static power of controller
-  int_power_norm("power.mmu_cache.int_power_norm", 0.0, true), // Normalized internal power of controller
-  dyn_read_energy_norm("power.mmu_cache.dyn_read_energy_norm", 1.465e-8, true), // Normalized read energy
-  dyn_write_energy_norm("power.mmu_cache.dyn_write_energy_norm", 1.465e-8, true), // Normalized write energy
-  power("power"),
-  sta_power("sta_power", 0.0, power), // Static power
-  int_power("int_power", 0.0, power), // Dynamic power
-  swi_power("swi_power", 0.0, power), // Switching power
-  power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
-  dyn_read_energy("dyn_read_energy", 0.0, power), // Energy per read access
-  dyn_write_energy("dyn_write_energy", 0.0, power), // Energy per write access
-  dyn_reads("dyn_reads", 0ull, power), // Read access counter for power computation
-  dyn_writes("dyn_writes", 0ull, power) // Write access counter for power computation
+  sta_power_norm("sta_power_norm", 1.16e+8, m_power), // Normalized static power of controller
+  int_power_norm("int_power_norm", 0.0, m_power), // Normalized internal power of controller
+  dyn_read_energy_norm("dyn_read_energy_norm", 1.465e-8, m_power), // Normalized read energy
+  dyn_write_energy_norm("dyn_write_energy_norm", 1.465e-8, m_power), // Normalized write energy
+  sta_power("sta_power", 0.0, m_power), // Static power
+  int_power("int_power", 0.0, m_power), // Dynamic power
+  swi_power("swi_power", 0.0, m_power), // Switching power
+  power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, m_power),
+  dyn_read_energy("dyn_read_energy", 0.0, m_power), // Energy per read access
+  dyn_write_energy("dyn_write_energy", 0.0, m_power), // Energy per write access
+  dyn_reads("dyn_reads", 0ull, m_power), // Read access counter for power computation
+  dyn_writes("dyn_writes", 0ull, m_power) // Write access counter for power computation
   {
 
     wb_pointer = 0;

@@ -1,5 +1,7 @@
 #include "standalone.h"
 
+extern void regtest();
+
 int main() {
 	report_start();
 
