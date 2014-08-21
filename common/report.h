@@ -27,7 +27,6 @@ class pair {
     pair(const std::string name, int64_t value) : name(name), type(INT64), data(value) {}
     pair(const std::string name, uint64_t value) : name(name), type(UINT64), data(value) {}
     pair(const std::string name, std::string value) : name(name), type(STRING), data(value) {}
-    pair(const std::string name, char value[]) : name(name), type(STRING), data(value) {}
     pair(const std::string name, bool value) : name(name), type(BOOL), data(value) {}
     pair(const std::string name, double value) : name(name), type(DOUBLE), data(value) {}
     pair(const std::string name, sc_core::sc_time value) : name(name), type(TIME), data(value) {}
@@ -133,6 +132,11 @@ class sr_report : public sc_core::sc_report {
       return *this;
     }
     
+    inline sr_report &operator()(const std::string &name, const char value[]) {
+      pairs.push_back(v::pair(name, std::string(value)));
+      return *this;
+    }
+
     inline sr_report &operator()(const std::string &name, char value[]) {
       pairs.push_back(v::pair(name, std::string(value)));
       return *this;
