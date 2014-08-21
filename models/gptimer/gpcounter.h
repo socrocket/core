@@ -19,6 +19,7 @@
 
 #include "common/gs_config.h"
 #include <greenreg/greenreg.h>
+#include "common/base.h"
 #include "common/systemc.h"
 
 #include "signalkit/signalkit.h"
@@ -64,7 +65,7 @@ class GPCounter : public gs::reg::gr_subdevice {
   SC_HAS_PROCESS(GPCounter);
 
   /// Creates a new Counter instance. Only usfull if its called from inside of a GPTimer instance.
-  GPCounter(GPTimer *_parent, unsigned int nr, sc_core::sc_module_name name);
+  GPCounter(GPTimer *_parent, unsigned int nr, ModuleName name);
 
   /// Destroies a Counter instance
   ~GPCounter();

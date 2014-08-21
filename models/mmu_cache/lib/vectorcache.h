@@ -18,8 +18,9 @@
 #define __VECTORCACHE_H__
 
 #include <vector>
+#include "common/base.h"
+#include "common/systemc.h"
 #include "common/gs_config.h"
-#include <tlm.h>
 
 #include "math.h"
 #include "common/verbose.h"
@@ -32,7 +33,7 @@
 
 // implementation of cache memory and controller
 /// @brief virtual cache model, contain common functionality of instruction and data cache
-class vectorcache : public sc_core::sc_module, public cache_if {
+class vectorcache : public DefaultBase, public cache_if {
 
  public:
 
@@ -115,7 +116,7 @@ class vectorcache : public sc_core::sc_module, public cache_if {
   /// @param lramstart                         The 8 MSBs of the local ram start address (16MB segment)
   /// @param lramsize                          Size of local ram (size in kbyte = 2^lramsize)
   /// @param pow_mon                           Enables power monitoring
-  vectorcache(sc_core::sc_module_name name, mmu_cache_if * _mmu_cache,
+  vectorcache(ModuleName name, mmu_cache_if * _mmu_cache,
               mem_if * _tlb_adaptor, unsigned int mmu_en,
               unsigned int burst_en,
 	      bool new_linefetch_en,

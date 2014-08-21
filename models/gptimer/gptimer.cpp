@@ -21,30 +21,27 @@
 
 // Constructor: create all members, registers and Counter objects.
 // Store configuration default value in conf_defaults.
-GPTimer::GPTimer(sc_core::sc_module_name name, unsigned int ntimers,
+GPTimer::GPTimer(ModuleName name, unsigned int ntimers,
                    int pindex, int paddr, int pmask, int pirq, int sepirq,
                    int sbits, int nbits, int wdog, bool powmon) :
-    gr_device(name, gs::reg::ALIGNED_ADDRESS, 4 * (1 + ntimers), NULL),
-    APBDevice(pindex, 0x1, 0x11, 1, pirq, APBIO, pmask, false, false, paddr),
+    APBDevice<RegisterBase>(name, pindex, 0x1, 0x11, 1, pirq, APBIO, pmask, false, false, paddr, 4 * (1+ ntimers)),
     bus("bus", r, ((paddr) & (pmask)) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false),
     irq("IRQ"), wdog("WDOG"),
     conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)),
     lasttime(0, sc_core::SC_NS), lastvalue(0),
-    p_conf("conf"),
-    g_ntimers("ntimers", ntimers, p_conf),
-    g_sbits("sbit", sbits, p_conf),
-    g_nbits("nbits", nbits, p_conf),
-    g_wdog_length("wdog", wdog, p_conf),
-    powermon("powermon", powmon, p_conf),
-    g_pindex("index", pindex, p_conf),
-    g_paddr("addr", paddr, p_conf),
-    g_pmask("mask", pmask, p_conf),
-    g_sepirq("sepirq", sepirq, p_conf),
-    sta_power_norm("power.gptimer.sta_power_norm", 2.46e+6, true),   // Normalized static power input
-    int_power_norm("power.gptimer.int_power_norm", 1.093e-8, true),  // Normalized internal power input
-    power("power"),
-    sta_power("sta_power", 0.0, power),   // Static power output
-    int_power("int_power", 0.0, power) {  // Internal dynamic power output (activation independent)
+    g_ntimers("ntimers", ntimers, m_generics),
+    g_sbits("sbit", sbits, m_generics),
+    g_nbits("nbits", nbits, m_generics),
+    g_wdog_length("wdog", wdog, m_generics),
+    powermon("powermon", powmon, m_generics),
+    g_pindex("index", pindex, m_generics),
+    g_paddr("addr", paddr, m_generics),
+    g_pmask("mask", pmask, m_generics),
+    g_sepirq("sepirq", sepirq, m_generics),
+    sta_power_norm("sta_power_norm", 2.46e+6, m_power),   // Normalized static power input
+    int_power_norm("int_power_norm", 1.093e-8, m_power),  // Normalized internal power input
+    sta_power("sta_power", 0.0, m_power),   // Static power output
+    int_power("int_power", 0.0, m_power) {  // Internal dynamic power output (activation independent)
   // Parameter checking
   assert("gsbits has to be between 1 and 32" && sbits > 0 && sbits < 33);
   assert("nbits has to be between 1 and 32" && nbits > 0 && nbits < 33);

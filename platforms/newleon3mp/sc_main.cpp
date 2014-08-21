@@ -47,6 +47,7 @@ int sc_main(int argc, char** argv) {
     PythonModule python("python_interpreter", NULL, argc, argv);
 
     python.load("tools.python.arguments");
+    python.load("tools.python.console_reporter");
     python.load("tools.python.config");
     python.load("tools.python.power");
 

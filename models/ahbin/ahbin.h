@@ -43,7 +43,7 @@ class AHBIn : public AHBMaster<>, public CLKDevice {
     signal<std::pair<uint32_t, bool> >::out irq;
 
     /// Constructor
-    AHBIn(sc_core::sc_module_name name,  // The SystemC name of the component
+    AHBIn(ModuleName name,  // The SystemC name of the component
     unsigned int hindex,                    // The master index for registering with the AHB
     unsigned int hirq,                          // The number of the IRQ raised for available data
     unsigned int framesize,                     // The size of the data frame to be generated

@@ -21,7 +21,7 @@
 
 // constructor
 Mctrl::Mctrl(
-    sc_core::sc_module_name name,
+    ModuleName name,
     int _romasel,
     int _sdrasel,
     int _romaddr,
@@ -44,25 +44,22 @@ Mctrl::Mctrl(
     unsigned int pindex,
     bool powermon,
     amba::amba_layer_ids ambaLayer) :
-  AHBSlave<gs::reg::gr_device>(name,
+  AHBSlave<APBDevice<RegisterBase> >(
+    name,
     hindex,
     0x04,                                        // ven: ESA
     0x0F,                                        // dev: MCTRL
     1,
     0,                                           // VER, IRQ
     ambaLayer,
-    BAR(AHBDevice::AHBMEM, _rommask, true, true, _romaddr),
-    BAR(AHBDevice::AHBMEM, _iomask, false, false, _ioaddr),
-    BAR(AHBDevice::AHBMEM, _rammask, true, true, _ramaddr),
-    0),
-  APBDevice(pindex,
-    0x04,                                        // ven: ESA
-    0x0F,                                        // dev: MCTRL
-    1, 0,                                        // VER, IRQ
-    APBDevice::APBIO, _pmask, 0, 0, _paddr),
+    BAR(AHBMEM, _rommask, true, true, _romaddr),
+    BAR(AHBMEM, _iomask, false, false, _ioaddr),
+    BAR(AHBMEM, _rammask, true, true, _ramaddr),
+    0,
+    4),
   apb("apb", r,                                  // name and register container of the greenreg_socket
-    APBDevice::get_base_addr_(),                 // apb base address
-    APBDevice::get_size_(),                      // apb address space size
+    (_paddr & _pmask) << 8, // base address
+    (((~_pmask & 0xfff) + 1) << 8), // decode size
     ::amba::amba_APB,                            // bus type
     ::amba::amba_LT,                             // abstraction level
     false),                                      // socket is not used for arbitration
@@ -109,7 +106,12 @@ Mctrl::Mctrl(
   g_mobile("mobile", _mobile, g_conf),
   g_sden("sden", _sden, g_conf),
   g_pow_mon("pow_mon", powermon, g_conf) {
-  init_generics();
+  init_apb(pindex,
+    0x04,                                        // ven: ESA
+    0x0F,                                        // dev: MCTRL
+    1, 0,                                        // VER, IRQ
+    APBIO, _pmask, 0, 0, _paddr);
+
   // Display APB slave information
   srInfo("/configuration/gptimer/apbslave")
      ("addr", (uint64_t)apb.get_base_addr())

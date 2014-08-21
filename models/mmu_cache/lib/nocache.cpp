@@ -16,7 +16,7 @@
 #include "nocache.h"
 
 /// constructor
-nocache::nocache(sc_core::sc_module_name name, mem_if * _mem_adapter) :
+nocache::nocache(ModuleName name, mem_if * _mem_adapter) :
     sc_module(name), m_mem_adapter(_mem_adapter) {
     // nothing to do
 }

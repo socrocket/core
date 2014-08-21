@@ -24,7 +24,7 @@ using namespace std;
 using namespace tlm;
 
 // Constructor implementation
-Memory::Memory(sc_core::sc_module_name name,
+Memory::Memory(ModuleName name,
   MEMDevice::device_type type,
   uint32_t banks,
   uint32_t bsize,

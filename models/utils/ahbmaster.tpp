@@ -12,6 +12,39 @@
 /// @author Thomas Schuster
 ///
 
+// Constructor (sc_module version)
+template<class BASE>
+AHBMaster<BASE>::AHBMaster(
+    ModuleName nm,
+    uint8_t hindex,
+    uint8_t vendor,
+    uint8_t device,
+    uint8_t version,
+    uint8_t irq,
+    amba::amba_layer_ids ambaLayer,
+    uint32_t bar0,
+    uint32_t bar1,
+    uint32_t bar2,
+    uint32_t bar3,
+    uint32_t register_count) :
+  AHBDevice<BASE>(nm, hindex, vendor, device, version, irq, bar0, bar1, bar2, bar3, register_count),
+  ahb("ahb", ::amba::amba_AHB, ambaLayer, false),
+  m_ResponsePEQ("ResponsePEQ"),
+  m_ambaLayer(ambaLayer),
+  m_performance_counters("performance_counters"),
+  m_reads("bytes_read", 0llu, m_performance_counters),
+  m_writes("bytes_written", 0llu, m_performance_counters),
+  response_error(false) {
+  if (ambaLayer == amba::amba_AT) {
+    // Register backward transport function
+    ahb.register_nb_transport_bw(this, &AHBMaster::nb_transport_bw);
+
+    // Thread for response processing (read)
+    SC_THREAD(ResponseThread);
+  }
+}
+
+
 // Destructor (unregisters callbacks)
 template<class BASE>
 AHBMaster<BASE>::~AHBMaster() {

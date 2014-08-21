@@ -17,6 +17,7 @@
 
 #include <greencontrol/all.h>
 #include <greenreg_ambasockets.h>
+#include "common/base.h"
 #include "common/systemc.h"
 #include <boost/config.hpp>
 
@@ -35,7 +36,7 @@
 
 /// @brief This class is a TLM 2.0 Model of the Aeroflex Gaisler GRLIB GPTimer.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 37
-class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
+class GPTimer : public APBDevice<RegisterBase>, public CLKDevice {
  public:
   SC_HAS_PROCESS(GPTimer);
   SK_HAS_SIGNALS(GPTimer);
@@ -92,7 +93,7 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   ///                  last timer will be enabled and pre-loaded with this value
   ///                  at reset. When the timer value reaches 0, the WDOG output
   ///                  is driven active.
-  GPTimer(sc_core::sc_module_name name, unsigned int ncounters = 1,
+  GPTimer(ModuleName name, unsigned int ncounters = 1,
           int pindex = 0, int paddr = 0, int pmask = 4095, int pirq = 0,
           int sepirq = 0, int sbits = 16, int nbits = 32, int wdog = 0,
           bool powmon = false);
@@ -180,9 +181,6 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
   /// @param cycletime The length of an cycle in which the decremention of the prescalet takes place.
   int numberofticksbetween(sc_core::sc_time start, sc_core::sc_time end, int counter, sc_core::sc_time cycletime);
 
-  /// Configuration generic container
-  gs::cnf::gs_param_array p_conf;
-
   /// Number of Counter in the Timer.
   /// For compatibility to the GPTimer VHDL model this is still called "timers".
   /// But keep in mind that the ticking units of the SystemC GPTimer are called
@@ -227,9 +225,6 @@ class GPTimer : public gs::reg::gr_device, public APBDevice, public CLKDevice {
 
   /// Normalized internal power input (activation independent)
   gs::cnf::gs_config<double> int_power_norm;
-
-  /// Parameter array for power data output
-  gs::gs_param_array power;
 
   /// Static power of module
   gs::cnf::gs_config<double> sta_power;

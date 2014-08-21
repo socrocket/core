@@ -25,12 +25,12 @@
 #include "common/vendian.h"
 #include "defines.h"
 
-class tlb_adaptor : public sc_core::sc_module, public mem_if {
+class tlb_adaptor : public DefaultBase, public mem_if {
 
     public:
 
         /// constructor
-        tlb_adaptor(sc_core::sc_module_name name, mmu_cache_if * top,
+        tlb_adaptor(ModuleName name, mmu_cache_if * top,
                     mmu_if * _mmu, std::map<t_VAT, t_PTE_context> * tlb,
                     unsigned int tlbnum) :
             sc_module(name), m_mmu_cache(top), m_mmu(_mmu), m_tlb(tlb),

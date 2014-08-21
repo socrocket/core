@@ -24,7 +24,7 @@
 #include "common/verbose.h"
 
 /// Constructor
-AHBMem::AHBMem(const sc_core::sc_module_name nm,  // Module name
+AHBMem::AHBMem(const ModuleName nm,  // Module name
   uint16_t haddr,                                 // AMBA AHB address (12 bit)
   uint16_t hmask,                                 // AMBA AHB address mask (12 bit)
   amba::amba_layer_ids ambaLayer,                 // abstraction layer
@@ -39,7 +39,7 @@ AHBMem::AHBMem(const sc_core::sc_module_name nm,  // Module name
       0,
       0,
       ambaLayer,
-      BAR(AHBDevice::AHBMEM, hmask, cacheable, 0, haddr)),
+      BAR(AHBMEM, hmask, cacheable, 0, haddr)),
     BaseMemory(BaseMemory::ARRAY, get_size()),
     ahbBaseAddress(static_cast<uint32_t>((hmask) & haddr) << 20),
     ahbSize(~(static_cast<uint32_t>(hmask) << 20) + 1),

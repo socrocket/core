@@ -39,8 +39,7 @@
 
 /// @brief This class is an TLM 2.0 Model of the Aeroflex Gaisler GRLIB mctrl.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 66.
-class Mctrl : public AHBSlave<gs::reg::gr_device>,
-              public APBDevice,
+class Mctrl : public AHBSlave<APBDevice<RegisterBase> >,
               public CLKDevice {
   public:
     SC_HAS_PROCESS(Mctrl);

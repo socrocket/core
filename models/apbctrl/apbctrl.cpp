@@ -18,10 +18,11 @@
 #include "models/apbctrl/apbctrl.h"
 #include "common/vendian.h"
 #include "common/verbose.h"
+#include "common/report.h"
 
 /// Constructor of class APBCtrl
 APBCtrl::APBCtrl(
-    sc_core::sc_module_name nm,  // SystemC name
+    ModuleName nm,  // SystemC name
     uint32_t haddr,              // The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
     uint32_t hmask,              // The 12bit AHB area address mask
     bool mcheck,                 // Check if there are any intersections between APB slave memory regions
@@ -35,48 +36,43 @@ APBCtrl::APBCtrl(
     0,
     0,
     ambaLayer,
-    BAR(AHBDevice::AHBMEM, hmask, 0, 0, haddr)),
+    BAR(AHBMEM, hmask, 0, 0, haddr)),
   apb("apb", amba::amba_APB, amba::amba_LT, false),
   m_AcceptPEQ("AcceptPEQ"),
   m_TransactionPEQ("TransactionPEQ"),
   m_pnpbase(0xFF000),
-  g_conf("conf"),
-  g_haddr("haddr", haddr, g_conf),
-  g_hmask("hmask", hmask, g_conf),
-  g_hindex("hindex", hindex, g_conf),
-  g_mcheck("mcheck", mcheck, g_conf),
-  g_pow_mon("pow_mon", pow_mon, g_conf),
+  g_haddr("haddr", haddr, m_generics),
+  g_hmask("hmask", hmask, m_generics),
+  g_hindex("hindex", hindex, m_generics),
+  g_mcheck("mcheck", mcheck, m_generics),
+  g_pow_mon("pow_mon", pow_mon, m_generics),
   m_ambaLayer(ambaLayer),
   num_of_bindings(0),
-  m_total_transactions("total_transactions", 0ull, m_performance_counters),
-  m_right_transactions("successful_transactions", 0ull, m_performance_counters),
-  sta_power_norm("power.apbctrl.sta_power_norm", 2.11e+6, true),  // Normalized static power input
-  int_power_norm("power.apbctrl.int_power_norm", 0.0, true),  // Normalized internal power input (activation indep.)
-  dyn_read_energy_norm("power.apbctrl.dyn_read_energy_norm", 5.84e-11, true),  // Normalized read energy input
-  dyn_write_energy_norm("power.apbctrl.dyn_write_energy_norm", 5.84e-11, true),  // Normalized write energy input
-  power("power"),
-  sta_power("sta_power", 0.0, power),  // Static power output
-  int_power("int_power", 0.0, power),  // Internal power output
-  swi_power("swi_power", 0.0, power),  // Switching power output
-  dyn_read_energy("dyn_read_energy", 0.0, power),  // Energy per read access
-  dyn_write_energy("dyn_write_energy", 0.0, power),  // Energy per write access
-  dyn_reads("dyn_reads", 0ull, power),  // Read access counter for power computation
-  dyn_writes("dyn_writes", 0ull, power) {  // Write access counter for power computation
+  m_total_transactions("total_transactions", 0ull, m_counters),
+  m_right_transactions("successful_transactions", 0ull, m_counters),
+  sta_power_norm("sta_power_norm", 2.11e+6, m_power),  // Normalized static power input
+  int_power_norm("int_power_norm", 0.0, m_power),  // Normalized internal power input (activation indep.)
+  dyn_read_energy_norm("dyn_read_energy_norm", 5.84e-11, m_power),  // Normalized read energy input
+  dyn_write_energy_norm("dyn_write_energy_norm", 5.84e-11, m_power),  // Normalized write energy input
+  sta_power("sta_power", 0.0, m_power),  // Static power output
+  int_power("int_power", 0.0, m_power),  // Internal power output
+  swi_power("swi_power", 0.0, m_power),  // Switching power output
+  dyn_read_energy("dyn_read_energy", 0.0, m_power),  // Energy per read access
+  dyn_write_energy("dyn_write_energy", 0.0, m_power),  // Energy per write access
+  dyn_reads("dyn_reads", 0ull, m_power),  // Read access counter for power computation
+  dyn_writes("dyn_writes", 0ull, m_power) {  // Write access counter for power computation
   // Assert generics are withing allowed ranges
   assert(haddr <= 0xfff);
   assert(hmask <= 0xfff);
 
-  init_generics();
-
-  v::info << name() << " ***********************************************************************" << v::endl;
-  v::info << name() << " * Created APBCTRL with following parameters: " << v::endl;
-  v::info << name() << " * ------------------------------------------ " << v::endl;
-  v::info << name() << " * haddr/hmask: " << hex << haddr << "/" << hmask << v::endl;
-  v::info << name() << " * mcheck: " << mcheck << v::endl;
-  v::info << name() << " * hindex: " << hindex << v::endl;
-  v::info << name() << " * pow_mon: " << pow_mon << v::endl;
-  v::info << name() << " * ambaLayer (LT = 8 / AT = 4): " << ambaLayer << v::endl;
-  v::info << name() << " ***********************************************************************" << v::endl;
+  srInfo()
+    ("haddr", haddr)
+    ("hmask", hmask)
+    ("hindex", hindex)
+    ("mcheck", mcheck)
+    ("pow_mon", pow_mon)
+    ("ambaLayer", ambaLayer)
+    ("Created an APBCtrl with this parameters");
 }
 
 // Reset handler
@@ -313,26 +309,26 @@ void APBCtrl::start_of_simulation() {
     sc_core::sc_object *obj = other_socket->get_parent();
 
     // valid slaves implement the APBDevice interface
-    APBDevice *slave = dynamic_cast<APBDevice *>(obj);
+    APBDeviceBase *slave = dynamic_cast<APBDeviceBase *>(obj);
 
     v::info << name() << "* Slave name: " << obj->name() << v::endl;
 
     // slave is valid (implements APBDevice)
     if (slave) {
       // Get pointer to device information
-      const uint32_t *deviceinfo = slave->get_device_info();
+      const uint32_t *deviceinfo = slave->get_apb_device_info();
 
       // Get slave id (pindex)
-      const uint32_t sbusid = slave->get_busid();
+      const uint32_t sbusid = slave->get_apb_busid();
 
       // Map device information into PNP region
       mSlaves[sbusid] = deviceinfo;
 
       // check 'type'filed of bar[i] (must be != 0)
-      if (slave->get_type()) {
+      if (slave->get_apb_type()) {
         // get base address and mask from BAR
-        uint32_t addr = slave->get_base();
-        uint32_t mask = slave->get_mask();
+        uint32_t addr = slave->get_apb_base();
+        uint32_t mask = slave->get_apb_mask();
 
         v::info << name() << "* BAR with MSB addr: " << hex << addr << " and mask: " << mask << v::endl;
 

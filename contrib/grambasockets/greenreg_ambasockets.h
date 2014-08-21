@@ -56,13 +56,14 @@ class greenreg_socket;
 template<>
 class greenreg_socket<gs::amba::amba_slave<32> > : public gs::amba::amba_slave<32> {
     public:
-
-        greenreg_socket(sc_core::sc_module_name _name,
-                        gs::reg::I_register_container_bus_access & _reg_bind,
-                        gr_uint_t _base_address, gr_uint_t _decode_size,
-                        ::amba::amba_bus_type _type = ::amba::amba_APB,
-                        ::amba::amba_layer_ids _layer = ::amba::amba_LT,
-                        bool _arbiter = false) :
+        greenreg_socket(
+            sc_core::sc_module_name _name,
+            gs::reg::I_register_container_bus_access & _reg_bind,
+            gr_uint_t _base_address,
+            gr_uint_t _decode_size,
+            ::amba::amba_bus_type _type = ::amba::amba_APB,
+            ::amba::amba_layer_ids _layer = ::amba::amba_LT,
+            bool _arbiter = false) :
             gs::amba::amba_slave<32>(_name, _reg_bind, _base_address,
                     _decode_size, _type, _layer, _arbiter) {
         }

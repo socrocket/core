@@ -19,73 +19,124 @@
 
 #include <amba.h>
 #include <stdint.h>
+#include "common/base.h"
+#include "common/amba.h"
 
 /// This class is a base class for grlib models. It implements the device plug and play informations.
 /// Together with the APBBridge class it implements the plug and play feature of the grlib.
 /// @see APBCtrl
-class APBDevice : public amba_slave_base {
+class APBDeviceBase {
   public:
-    /// Device type
-    /// See grlib manual for more information
-    /// Section 14.2.2
-    enum device_type {
-      NONE = 0,         /// Bar is not existing
-      APBIO = 1,        /// Bar is APB region
-      AHBMEM = 2,       /// Bar is memory region
-      AHBIO = 3         /// Bar is IO region
-    };
-
-    /// All device informations are needed while constructing a device.
-    /// The register content is formed here.
-    APBDevice(uint32_t bus_id, uint8_t vendorid, uint16_t deviceid, uint8_t version,
-    uint8_t irq, APBDevice::device_type type, uint16_t mask,
-    bool cacheable, bool prefetchable, uint16_t address);
-
-    APBDevice();
     /// Empty destructor
-    virtual ~APBDevice();
+    virtual ~APBDeviceBase() {}
 
     /// Returns the device id.
-    virtual uint16_t get_device_id() const;
+    virtual uint16_t get_apb_device_id() const = 0;
 
     /// Returns the vendor id.
-    virtual uint8_t get_vendor_id() const;
+    virtual uint8_t get_apb_vendor_id() const = 0;
 
     /// Returns the device register file.
     /// A set of 8 registers as specified by the grlib manual.
     /// See section: 14.2.2 (Page 79)
-    virtual const uint32_t *get_device_info() const;
+    virtual const uint32_t *get_apb_device_info() const = 0;
 
     /// Returns the device type.
     /// Should be APBIO ;-)
-    virtual const device_type get_type() const;
+    virtual const AMBADeviceType get_apb_type() const = 0;
+
     /// Returns the Bus specific most significant 12bit of the base address
     /// Shifted to the lowest bits in the word.
-    virtual uint32_t get_base() const;
+    virtual uint32_t get_apb_base() const = 0;
 
     /// Returns the Bus specific mask of the most significant 12bit of the address
     /// Shifted to the lowest bits in the word.
-    virtual uint32_t get_mask() const;
+    virtual uint32_t get_apb_mask() const = 0;
 
     /// Returns the Bus specific base address of the device.
     /// @see get_bar_addr
     /// @return The device base address.
-    virtual sc_dt::uint64 get_base_addr();
-    virtual uint32_t get_base_addr_() const;
+    virtual sc_dt::uint64 get_apb_base_addr() = 0;
+    virtual uint32_t get_apb_base_addr_() const = 0;
 
     /// Returns the size of the hole device as seen from the bus.
     /// @see get_bar_size
     /// @return The device size.
-    virtual sc_dt::uint64 get_size();
-    virtual uint32_t get_size_() const;
+    virtual sc_dt::uint64 get_apb_size() = 0;
+    virtual uint32_t get_apb_size_() const = 0;
 
-    virtual uint32_t get_relative_addr(uint32_t addr) const;
+    virtual uint32_t get_apb_relative_addr(uint32_t addr) const = 0;
 
     /// Returns the bus id of the module (pindex)
-    uint32_t get_busid() const;
+    virtual uint32_t get_apb_busid() const = 0 ;
 
     /// Prints the device info of the device.
-    virtual void print_device_info(char *name) const;
+    virtual void print_apb_device_info(char *name) const = 0;
+};
+
+/// This class is a base class for grlib models. It implements the device plug and play informations.
+/// Together with the APBBridge class it implements the plug and play feature of the grlib.
+/// @see APBCtrl
+template<class BASE = RegisterBase>
+class APBDevice : public BaseModule<BASE> , public APBDeviceBase {
+  public:
+    /// All device informations are needed while constructing a device.
+    /// The register content is formed here.
+    APBDevice(ModuleName mn, uint32_t bus_id, uint8_t vendorid, uint16_t deviceid, uint8_t version,
+      uint8_t irq, AMBADeviceType type, uint16_t mask,
+      bool cacheable, bool prefetchable, uint16_t address, uint32_t register_count = 0);
+
+    APBDevice(ModuleName mn, uint32_t register_count = 0);
+
+    void init_apb(uint32_t busid, uint8_t vendorid, uint16_t deviceid, uint8_t version,
+      uint8_t irq, AMBADeviceType type, uint16_t mask,
+      bool cacheable, bool prefetchable, uint16_t address);
+
+    /// Empty destructor
+    virtual ~APBDevice();
+
+    /// Returns the device id.
+    virtual uint16_t get_apb_device_id() const;
+
+    /// Returns the vendor id.
+    virtual uint8_t get_apb_vendor_id() const;
+
+    /// Returns the device register file.
+    /// A set of 8 registers as specified by the grlib manual.
+    /// See section: 14.2.2 (Page 79)
+    virtual const uint32_t *get_apb_device_info() const;
+
+    /// Returns the device type.
+    /// Should be APBIO ;-)
+    virtual const AMBADeviceType get_apb_type() const;
+
+    /// Returns the Bus specific most significant 12bit of the base address
+    /// Shifted to the lowest bits in the word.
+    virtual uint32_t get_apb_base() const;
+
+    /// Returns the Bus specific mask of the most significant 12bit of the address
+    /// Shifted to the lowest bits in the word.
+    virtual uint32_t get_apb_mask() const;
+
+    /// Returns the Bus specific base address of the device.
+    /// @see get_bar_addr
+    /// @return The device base address.
+    virtual sc_dt::uint64 get_apb_base_addr();
+    virtual uint32_t get_apb_base_addr_() const;
+
+    /// Returns the size of the hole device as seen from the bus.
+    /// @see get_bar_size
+    /// @return The device size.
+    virtual sc_dt::uint64 get_apb_size();
+    virtual uint32_t get_apb_size_() const;
+
+    virtual uint32_t get_apb_relative_addr(uint32_t addr) const;
+
+    /// Returns the bus id of the module (pindex)
+    virtual uint32_t get_apb_busid() const;
+
+    /// Prints the device info of the device.
+    virtual void print_apb_device_info(char *name) const;
 
   private:
     /// Impementation of the device register file.
@@ -94,6 +145,8 @@ class APBDevice : public amba_slave_base {
     /// The slave bus id of the device (pindex)
     uint32_t m_busid;
 };
+
+#include "models/utils/apbdevice.tpp"
 
 #endif  // MODELS_UTILS_APBDEVICE_H_
 /// @}

@@ -136,7 +136,7 @@ class ivectorcache : public vectorcache {
   /// @param lram                              Local RAM configured
   /// @param lramstart                         The 8 MSBs of the local ram start address (16MB segment)
   /// @param lramsize                          Size of local ram (size in kbyte = 2^lramsize)
- ivectorcache(sc_core::sc_module_name name, mmu_cache_if * _mmu_cache,
+ ivectorcache(ModuleName name, mmu_cache_if * _mmu_cache,
               mem_if * _tlb_adaptor, unsigned int mmu_en,
               unsigned int sets, unsigned int setsize,
               unsigned int setlock, unsigned int linesize,

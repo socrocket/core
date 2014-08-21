@@ -18,8 +18,10 @@
 #include <amba.h>
 #include "common/gs_config.h"
 #include "common/systemc.h"
+#include "common/base.h"
 
 #include "models/utils/ahbslave.h"
+#include "models/utils/ahbdevice.h"
 #include "models/utils/apbdevice.h"
 #include "models/utils/clkdevice.h"
 #include "common/vmap.h"
@@ -27,7 +29,7 @@
 /// @addtogroup apbctrl APBCtrl
 /// @{
 
-class APBCtrl : public AHBSlave<>, public CLKDevice {
+class APBCtrl : public AHBSlave<DefaultBase>, public CLKDevice {
   public:
     GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(APBCtrl);
@@ -61,7 +63,7 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
 
     /// Constructor
     APBCtrl(
-      sc_core::sc_module_name nm,  ///< SystemC name
+      ModuleName nm,  ///< SystemC name
       uint32_t haddr = 0xfff,      ///< The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
       uint32_t hmask = 0,          ///< The 12bit AHB area address mask
       bool mcheck = 0,             ///< Check if there are any intersections between APB slave memory regions
@@ -149,9 +151,6 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
     /// 0xFF000
     const uint32_t m_pnpbase;
 
-    /// Configuration generic container
-    gs::cnf::gs_param_array g_conf;
-
     /// The MSB address of the AHB area. Sets the 12 MSBs in the AHB address
     gs::cnf::gs_config<uint32_t> g_haddr;
 
@@ -196,9 +195,6 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
 
     /// Normalized write access energy
     gs::gs_config<double> dyn_write_energy_norm;
-
-    /// Parameter array for power data output
-    gs::gs_param_array power;
 
     /// Static power of module
     gs::gs_config<double> sta_power;

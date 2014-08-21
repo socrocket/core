@@ -47,7 +47,7 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
     /// @param infile File name of a text file to initialize the memory from
     /// @param addr Start address for memory initilization
     AHBMem(
-      const sc_core::sc_module_name nm,
+      const ModuleName nm,
       uint16_t haddr_,
       uint16_t hmask_ = 0,
       amba::amba_layer_ids ambaLayer = amba::amba_LT,

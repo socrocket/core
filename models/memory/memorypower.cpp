@@ -39,7 +39,7 @@ MemoryPower::MemoryPower(sc_module_name name,
   uint32_t cols,
   BaseMemory::implementation_type implementation,
   bool pow_mon) :
-  sc_module(name),
+  DefaultBase(name),
   MEMDevice(type, banks, bsize, bits, cols),
   BaseMemory(implementation, bsize * ((banks < 5) ? banks : 8)),
   m_pow_mon(pow_mon),

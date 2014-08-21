@@ -16,7 +16,7 @@
 #include "models/ahbin/ahbin.h"
 
 /// Constructor
-AHBIn::AHBIn(sc_core::sc_module_name name,     // The SystemC name of the component
+AHBIn::AHBIn(ModuleName name,     // The SystemC name of the component
   unsigned int hindex,                         // The master index for registering with the AHB
   unsigned int hirq,                           // The number of the IRQ raised for available data
   unsigned int framesize,                      // The size of the data frame to be generated

@@ -17,7 +17,7 @@
 #include "common/verbose.h"
 
 /// Constructor
-AHBOut::AHBOut(const sc_core::sc_module_name nm,  // Module name
+AHBOut::AHBOut(const ModuleName nm,  // Module name
   uint16_t haddr_,                                // AMBA AHB address (12 bit)
   uint16_t hmask_,                                // AMBA AHB address mask (12 bit)
   amba::amba_layer_ids ambaLayer,                 // abstraction layer
@@ -30,7 +30,7 @@ AHBOut::AHBOut(const sc_core::sc_module_name nm,  // Module name
     0,
     0,
     ambaLayer,
-    BAR(AHBDevice::AHBMEM, hmask_, 0, 0, haddr_)),
+    BAR(AHBMEM, hmask_, 0, 0, haddr_)),
   mhaddr(haddr_),
   mhmask(hmask_) {
   // haddr and hmask must be 12 bit

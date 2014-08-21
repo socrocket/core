@@ -70,7 +70,7 @@ class mmu_cache : public AHBMaster<>, public mmu_cache_if, public CLKDevice {
 
   /// @brief Constructor of the top-level class of the memory sub-system (caches and mmu).
   mmu_cache(
-      sc_core::sc_module_name name = "",  ///< SystemC module name
+      ModuleName name = "",  ///< SystemC module name
       bool icen = true,                   ///< instruction cache enable
       uint32_t irepl = 1,                 ///< instruction cache replacement strategy
       uint32_t isets = 4,                 ///< number of instruction cache sets

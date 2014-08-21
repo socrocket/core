@@ -6,12 +6,9 @@ def build(self):
   self(
     target          = 'utils',
     features        = 'cxx cxxstlib',
-    source          = ['ahbdevice.cpp',
-                       'apbdevice.cpp',
+    source          = [
                        'memdevice.cpp',
                        'clkdevice.cpp',
-                       'ahbslave.cpp',
-                       'ahbmaster.cpp'
                       ],
     export_includes = self.top_dir,
     includes        = self.top_dir,

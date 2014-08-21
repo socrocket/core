@@ -20,7 +20,7 @@
 #include "common/verbose.h"
 
 // / Constructor
-AHBProf::AHBProf(const sc_core::sc_module_name nm,  // Module name
+AHBProf::AHBProf(const ModuleName nm,  // Module name
   uint32_t index,
   uint16_t addr,                                    // AMBA AHB address (12 bit)
   uint16_t mask,                                    // AMBA AHB address mask (12 bit)
@@ -32,7 +32,7 @@ AHBProf::AHBProf(const sc_core::sc_module_name nm,  // Module name
     0,
     0,
     ambaLayer,
-    BAR(AHBDevice::AHBMEM, mask, 0, 0, addr)),
+    BAR(AHBMEM, mask, 0, 0, addr)),
   m_addr(addr),
   m_mask(mask) {
   // haddr and hmask must be 12 bit

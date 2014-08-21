@@ -18,7 +18,7 @@
 #include "common/verbose.h"
 
 /// constructor
-localram::localram(sc_core::sc_module_name name,
+localram::localram(ModuleName name,
 		   unsigned int lrsize,
                    unsigned int lrstart,
 		   bool pow_mon) :
