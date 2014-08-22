@@ -53,6 +53,8 @@ packages = [
     "cython==0.20.2",
     "tables==3.1.1",
     "termcolor",
+    "patsy",
+    "statmodels",
 ]
 
 ACTIVATE = """
