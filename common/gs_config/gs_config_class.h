@@ -100,13 +100,11 @@ public:                                                                   \
         * All data types for which no specialization is existing, will use this class.
         */
         template<typename T>
-        class gs_config
-            : public gs_config_t<T>
-        {
+        class gs_config : public gs_config_t<T> {
             /// Typedef for the value.
             typedef T val_type;
 
-        public:
+          public:
             GS_CONFIG_HEAD;
 
             /// Overloads gs_config_t<T>::convertValueToString

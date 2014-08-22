@@ -29,23 +29,21 @@ namespace gs {
 
         /// Template specialized base class for configuration parameters.
         template <typename T>
-        class gs_config_t
-            : public gs_config_base
-        {
+        class gs_config_t : public gs_config_base {
             /// Typedef for this specialized class.
             typedef gs_config_t<T> my_type;
 
             /// Typedef for the value.
             typedef T val_type;
 
-        protected:
+          protected:
             /// Value of this parameter
             val_type my_value;
 
             /// String whose reference can be returned as string value
             mutable std::string return_string;
 
-        public:
+          public:
             using gs_param_base::set;
 
             // templated operators
@@ -79,7 +77,7 @@ namespace gs {
             /**
             */
             explicit gs_config_t()
-                : gs_config_base("", true, NULL, false)
+                : gs_config_base("", true, NULL, false), m_mirror_param(NULL), m_mirror_val(NULL)
             {  }
 
             /// Constructor with the special parameters. Name will be set in base. Avoid using it! You MUST call init() after instantiation!
@@ -91,7 +89,7 @@ namespace gs {
             *                             be carefull in using this.
             */
             explicit gs_config_t(const bool force_top_level_name, gs_param_array* parent_array, const bool register_at_db)
-                : gs_config_base("", register_at_db, parent_array, force_top_level_name)
+                : gs_config_base("", register_at_db, parent_array, force_top_level_name), m_mirror_param(NULL), m_mirror_val(NULL)
             {  }
 
             /// Constructor with (local or hierarchical) name. You MUST call init() after instantiation!
@@ -107,7 +105,7 @@ namespace gs {
             *             (local: unique inside a module, hierarchical: unique in the system).
             */
             explicit gs_config_t(const std::string &nam)
-                : gs_config_base(nam, true, NULL, false)
+                : gs_config_base(nam, true, NULL, false), m_mirror_param(NULL), m_mirror_val(NULL)
             {  }
 
             /// Constructor with (local or hierarchical) name and special parameters. You MUST call init() after instantiation!
@@ -129,7 +127,7 @@ namespace gs {
             */
             explicit gs_config_t(const std::string &nam, const bool force_top_level_name,
                 gs_param_array* parent_array, const bool register_at_db)
-                : gs_config_base(nam, register_at_db, parent_array, force_top_level_name)
+                : gs_config_base(nam, register_at_db, parent_array, force_top_level_name), m_mirror_param(NULL), m_mirror_val(NULL)
             {  }
 
             /// Init method to set the value and add the parameter to the plugin db.
@@ -297,7 +295,46 @@ namespace gs {
             //  convertValueToString(val);
             //}
 
+            void mirror(T &original) {
+              if(!m_mirror_param && !m_mirror_val) {
+                this->registerParamCallback(new ::gs::cnf::ParamTypedCallbAdapt<gs_config_t<T> >(this, &gs_config_t<T>::mirror_callback, this, this), pre_read);
+                this->registerParamCallback(new ::gs::cnf::ParamTypedCallbAdapt<gs_config_t<T> >(this, &gs_config_t<T>::mirror_callback, this, this), post_write);
+              }
+              this->setProperty("mirrors", "variable");
+              m_mirror_val = &original;
+            }
+            void mirror(gs_config_t<T> &original) {
+              if(!m_mirror_param && ! m_mirror_val) {
+                this->registerParamCallback(new ::gs::cnf::ParamTypedCallbAdapt<gs_config_t<T> >(this, &gs_config_t<T>::mirror_callback, this, this), pre_read);
+                this->registerParamCallback(new ::gs::cnf::ParamTypedCallbAdapt<gs_config_t<T> >(this, &gs_config_t<T>::mirror_callback, this, this), post_write);
+              }
+              this->setProperty("mirrors", original.getName());
+              m_mirror_param = &original;
+            }
         protected:
+            gs::cnf::callback_return_type mirror_callback(
+                gs::gs_param_base& changed_param,  // NOLINT(runtime/references)
+                gs::cnf::callback_type reason) {
+              if(m_mirror_param) {
+                if(reason == pre_read) {
+                  this->setValue(m_mirror_param->getValue());
+                } else if(reason == gs::cnf::post_write) {
+                  m_mirror_param->setValue(this->getValue());
+                }
+              }
+              if(m_mirror_val) {
+                if(reason == pre_read) {
+                  this->setValue(m_mirror_val->getValue());
+                } else if(reason == gs::cnf::post_write) {
+                  m_mirror_val->setValue(this->getValue());
+                }
+              }
+              return GC_RETURN_OK;
+            }
+
+            gs_config_t<T> *m_mirror_param;
+            T *m_mirror_val;
+
             /// Get the value the string. Needed for construction of gs_param.
             /**
             * Conversion string --> value type.
