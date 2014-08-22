@@ -228,6 +228,7 @@ int mmu_test(void) {
 #endif
 
 #ifndef LEON2
+    extern void mmu_double();
     mmu_double();
 #endif
 

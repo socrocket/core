@@ -35,7 +35,7 @@ AHBCtrl::AHBCtrl(
     bool fpnpen,           // Enable full decoding of PnP configuration records
     bool mcheck,           // Check if there are any intersections between core memory regions
     bool pow_mon,          // Enable power monitoring
-    amba::amba_layer_ids ambaLayer) :
+    AbstractionLayer ambaLayer) :
   BaseModule<DefaultBase>(nm),
   ahbIN("ahbIN", amba::amba_AHB, ambaLayer, false),
   ahbOUT("ahbOUT", amba::amba_AHB, ambaLayer, false),
@@ -984,10 +984,10 @@ void AHBCtrl::start_of_simulation() {
     // Slave is valid (implements AHBDeviceBase)
     if (slave) {
       // Get pointer to device information
-      const uint32_t *deviceinfo = slave->get_device_info();
+      const uint32_t *deviceinfo = slave->get_ahb_device_info();
 
       // Get bus id (hindex oder master id)
-      const uint32_t sbusid = slave->get_busid();
+      const uint32_t sbusid = slave->get_ahb_hindex();
       assert(sbusid < 16);
       v::info << name() << "* SLAVE id: " << sbusid << v::endl;
 
@@ -999,10 +999,10 @@ void AHBCtrl::start_of_simulation() {
       // Each slave may have up to four subdevices (BARs)
       for (uint32_t j = 0; j < 4; j++) {
         // Check 'type' field of bar[j] (must be != 0)
-        if (slave->get_bar_type(j)) {
+        if (slave->get_ahb_bar_type(j)) {
           // Get base address and maks from BAR i
-          uint32_t addr = slave->get_bar_base(j);
-          uint32_t mask = slave->get_bar_mask(j);
+          uint32_t addr = slave->get_ahb_bar_base(j);
+          uint32_t mask = slave->get_ahb_bar_mask(j);
 
           v::info << name() << "* BAR" << dec << j << " with MSB addr: 0x" << hex << addr << " and mask: 0x" << hex <<
             mask <<  v::endl;
@@ -1041,10 +1041,10 @@ void AHBCtrl::start_of_simulation() {
     // master is valid (implements AHBDeviceBase)
     if (master) {
       // Get pointer to device information
-      const uint32_t *deviceinfo = master->get_device_info();
+      const uint32_t *deviceinfo = master->get_ahb_device_info();
 
       // Get id of the master
-      const uint32_t mbusid = master->get_busid();
+      const uint32_t mbusid = master->get_ahb_hindex();
       assert(mbusid < 16);
       v::info << name() << "* Master id: " << mbusid << v::endl;
 
@@ -1056,10 +1056,10 @@ void AHBCtrl::start_of_simulation() {
       // Each master may have up to four subdevices (BARs)
       for (uint32_t j = 0; j < 4; j++) {
         // check 'type' field of bar[j] (must be != 0)
-        if (master->get_bar_type(j)) {
+        if (master->get_ahb_bar_type(j)) {
           // get base address and maks from BAR i
-          uint32_t addr = master->get_bar_base(j);
-          uint32_t mask = master->get_bar_mask(j);
+          uint32_t addr = master->get_ahb_bar_base(j);
+          uint32_t mask = master->get_ahb_bar_mask(j);
 
           v::info << name() << "* BAR" << dec << j << " with MSB addr: 0x" << hex << addr << " and mask: 0x" << hex <<
             mask <<  v::endl;

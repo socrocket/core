@@ -23,18 +23,14 @@ AHBIn::AHBIn(ModuleName name,     // The SystemC name of the component
   unsigned int frameaddr,                      // The address the data is supposed to be copied to
   sc_core::sc_time interval,                   // The interval between data frames
   bool pow_mon,                                // Enable power monitoring
-  amba::amba_layer_ids ambaLayer) :            // TLM abstraction layer
+  AbstractionLayer ambaLayer) :            // TLM abstraction layer
     AHBMaster<>(name,                            // SystemC name
       hindex,                                    // Bus master index
       0x04,                                      // Vender ID (4 = ESA)
       0x00,                                      // Device ID (undefined)
       0,                                         // Version
       hirq,                                      // IRQ of device
-      ambaLayer,                                 // AmbaLayer
-      0,                                         // BAR0
-      0,                                         // BAR1
-      0,                                         // BAR2
-      0),                                        // BAR3
+      ambaLayer),                                // AmbaLayer
     irq("irq"),                                  // Initialize interrupt output
     m_irq(0),                                    // Initialize irq number
     m_framesize(framesize),                      // Initialize framesize

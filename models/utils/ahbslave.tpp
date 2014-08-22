@@ -21,11 +21,11 @@ AHBSlave<BASE>::AHBSlave(
     uint8_t device,
     uint8_t version,
     uint8_t irq,
-    amba::amba_layer_ids ambaLayer,
-    uint32_t bar0,
-    uint32_t bar1,
-    uint32_t bar2,
-    uint32_t bar3,
+    AbstractionLayer ambaLayer,
+    BAR bar0,
+    BAR bar1,
+    BAR bar2,
+    BAR bar3,
     uint32_t register_count) :
   AHBDevice<BASE>(
     mn,
@@ -43,9 +43,8 @@ AHBSlave<BASE>::AHBSlave(
   m_RequestPEQ("RequestPEQ"),
   m_ResponsePEQ("ResponsePEQ"),
   busy(false),
-  m_performance_counters("performance_counters"),
-  m_reads("bytes_read", 0llu, m_performance_counters),
-  m_writes("bytes_written", 0llu, m_performance_counters) {
+  m_reads("bytes_read", 0llu, this->m_counters),
+  m_writes("bytes_written", 0llu, this->m_counters) {
   // Register transport functions to sockets
   ahb.register_b_transport(this, &AHBSlave::b_transport);
   ahb.register_transport_dbg(this, &AHBSlave::transport_dbg);
@@ -60,13 +59,6 @@ AHBSlave<BASE>::AHBSlave(
     // Thread for interfacing functional part of the model
     // in AT mode.
     SC_THREAD(responseThread);
-  }
-  sc_module *self = dynamic_cast<sc_module *>(this);
-  if (self) {
-    m_api = gs::cnf::GCnf_Api::getApiInstance(self);
-  } else {
-    v::error << name() << "A AHBDevice instance must also inherit from sc_module when it gets instantiated. "
-             << "To ensure the performance counter will work correctly" << v::endl;
   }
 }
 
@@ -90,7 +82,7 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
     // Increment reference counter
     trans.acquire();
     transport_statistics(trans);
-    if (this->get_bar_cachable(0)) {
+    if (this->get_ahb_bar_cachable(0)) {
       ahb.validate_extension<amba::amba_cacheable>(trans);
     }
 
@@ -230,7 +222,7 @@ void AHBSlave<BASE>::b_transport(tlm::tlm_generic_payload &trans, sc_core::sc_ti
   // Call the functional part of the model
   // -------------------------------------
   transport_statistics(trans);
-  if (this->get_bar_cachable(0)) {
+  if (this->get_ahb_bar_cachable(0)) {
     ahb.validate_extension<amba::amba_cacheable>(trans);
   }
   exec_func(trans, delay);

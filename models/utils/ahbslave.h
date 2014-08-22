@@ -38,11 +38,11 @@ class AHBSlave : public AHBDevice<BASE> {
       uint8_t device,
       uint8_t version,
       uint8_t irq,
-      amba::amba_layer_ids ambaLayer,
-      uint32_t bar0 = 0,
-      uint32_t bar1 = 0,
-      uint32_t bar2 = 0,
-      uint32_t bar3 = 0,
+      AbstractionLayer ambaLayer,
+      BAR bar0 = BAR(),
+      BAR bar1 = BAR(),
+      BAR bar2 = BAR(),
+      BAR bar3 = BAR(),
       uint32_t register_count = 0);
 
     ~AHBSlave();
@@ -97,12 +97,6 @@ class AHBSlave : public AHBDevice<BASE> {
     // sc_core::sc_time clockcycle;
 
   protected:
-    /// GreenControl API container
-    gs::cnf::cnf_api *m_api;
-
-    /// Open a namespace for performance counting in the greencontrol realm
-    gs::gs_param_array m_performance_counters;
-
     /// Stores the number of Bytes read from the device
     gs::gs_config<uint64_t> m_reads;  // NOLINT(runtime/int)
 

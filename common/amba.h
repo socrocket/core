@@ -31,17 +31,37 @@ enum AMBADeviceType {
   AHBIO = 3         ///< Bar is relative to AHBIO region
 };
 
-/// This function returns a grlib bank address register.
-/// It is needed to set the plug and play informations in each device model.
-///
-/// @return The bank address register content.
-/// @see AHBDevice
-/// @see AHBCtrl
-inline uint32_t BAR(AMBADeviceType type, uint16_t mask, bool cacheable,
-  bool prefetchable, uint16_t address) throw() {
-  return static_cast<uint8_t>(type) | (mask << 4) | (cacheable << 16)
-         | (prefetchable << 17) | (address << 20);
-}
+class BAR {
+  public:
+    BAR(
+        AMBADeviceType type = NONE,
+        uint16_t mask = 0x000,
+        bool cacheable = false,
+        bool prefetchable = false,
+        uint16_t address = 0x000) throw() :
+      type(type),
+      mask(mask),
+      cacheable(cacheable),
+      prefetchable(prefetchable),
+      address(address) {}
+
+    /// This function returns a grlib bank address register.
+    /// It is needed to set the plug and play informations in each device model.
+    ///
+    /// @return The bank address register content.
+    /// @see AHBDevice
+    /// @see AHBCtrl
+    uint32_t toRegister() throw() {
+      return static_cast<uint8_t>(type) | (mask << 4) | (cacheable << 16)
+             | (prefetchable << 17) | (address << 20);
+    }
+
+    AMBADeviceType type;
+    uint16_t mask;
+    bool cacheable;
+    bool prefetchable;
+    uint16_t address;
+};
 
 #endif  // COMMON_AMBA_H_
 /// @}

@@ -39,7 +39,7 @@ class APBDeviceBase {
     /// Returns the device register file.
     /// A set of 8 registers as specified by the grlib manual.
     /// See section: 14.2.2 (Page 79)
-    virtual const uint32_t *get_apb_device_info() const = 0;
+    virtual const uint32_t *get_apb_device_info() = 0;
 
     /// Returns the device type.
     /// Should be APBIO ;-)
@@ -68,7 +68,7 @@ class APBDeviceBase {
     virtual uint32_t get_apb_relative_addr(uint32_t addr) const = 0;
 
     /// Returns the bus id of the module (pindex)
-    virtual uint32_t get_apb_busid() const = 0 ;
+    virtual uint32_t get_apb_pindex() const = 0 ;
 
     /// Prints the device info of the device.
     virtual void print_apb_device_info(char *name) const = 0;
@@ -88,9 +88,12 @@ class APBDevice : public BaseModule<BASE> , public APBDeviceBase {
 
     APBDevice(ModuleName mn, uint32_t register_count = 0);
 
-    void init_apb(uint32_t busid, uint8_t vendorid, uint16_t deviceid, uint8_t version,
+    void init_apb(uint32_t pindex, uint8_t vendorid, uint16_t deviceid, uint8_t version,
       uint8_t irq, AMBADeviceType type, uint16_t mask,
       bool cacheable, bool prefetchable, uint16_t address);
+
+    /// Initialize the APBDevice generics
+    void init_apb_generics();
 
     /// Empty destructor
     virtual ~APBDevice();
@@ -104,7 +107,7 @@ class APBDevice : public BaseModule<BASE> , public APBDeviceBase {
     /// Returns the device register file.
     /// A set of 8 registers as specified by the grlib manual.
     /// See section: 14.2.2 (Page 79)
-    virtual const uint32_t *get_apb_device_info() const;
+    virtual const uint32_t *get_apb_device_info();
 
     /// Returns the device type.
     /// Should be APBIO ;-)
@@ -133,17 +136,25 @@ class APBDevice : public BaseModule<BASE> , public APBDeviceBase {
     virtual uint32_t get_apb_relative_addr(uint32_t addr) const;
 
     /// Returns the bus id of the module (pindex)
-    virtual uint32_t get_apb_busid() const;
+    virtual uint32_t get_apb_pindex() const;
 
     /// Prints the device info of the device.
     virtual void print_apb_device_info(char *name) const;
 
-  private:
+  protected:
     /// Impementation of the device register file.
     uint32_t m_register[2];
 
-    /// The slave bus id of the device (pindex)
-    uint32_t m_busid;
+    gs::cnf::gs_config<uint32_t> g_pindex;
+    gs::cnf::gs_config<uint8_t> g_pvendorid;
+    gs::cnf::gs_config<uint16_t> g_pdeviceid;
+    gs::cnf::gs_config<uint8_t> g_pversion;
+    gs::cnf::gs_config<uint8_t> g_pirq;
+    gs::cnf::gs_config<uint32_t> g_paddr;
+    gs::cnf::gs_config<uint32_t> g_pmask;
+    gs::cnf::gs_config<uint32_t> g_ptype;
+    gs::cnf::gs_config<bool> g_pcacheable;
+    gs::cnf::gs_config<bool> g_pprefetchable;
 };
 
 #include "models/utils/apbdevice.tpp"

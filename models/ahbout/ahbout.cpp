@@ -20,7 +20,7 @@
 AHBOut::AHBOut(const ModuleName nm,  // Module name
   uint16_t haddr_,                                // AMBA AHB address (12 bit)
   uint16_t hmask_,                                // AMBA AHB address mask (12 bit)
-  amba::amba_layer_ids ambaLayer,                 // abstraction layer
+  AbstractionLayer ambaLayer,                 // abstraction layer
   uint32_t slave_id,
   char *outfile_) :
   AHBSlave<>(nm,
@@ -42,9 +42,9 @@ AHBOut::AHBOut(const ModuleName nm,  // Module name
   v::info << name() << "* Create AHB simulation output device with following parameters:           " << v::endl;
   v::info << name() << "* haddr/hmask: " << v::uint32 << mhaddr << "/" << v::uint32 << mhmask << v::endl;
   v::info << name() << "* Slave base address: 0x" << std::setw(8) << std::setfill('0') << hex <<
-  get_base_addr()                     << v::endl;
+  get_ahb_base_addr()                     << v::endl;
   v::info << name() << "* Slave size (bytes): 0x" << std::setw(8) << std::setfill('0') << hex <<
-  get_size()                          << v::endl;
+  get_ahb_size()                          << v::endl;
   v::info << name() << "********************************************************************" << v::endl;
 }
 

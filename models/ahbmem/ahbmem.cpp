@@ -27,7 +27,7 @@
 AHBMem::AHBMem(const ModuleName nm,  // Module name
   uint16_t haddr,                                 // AMBA AHB address (12 bit)
   uint16_t hmask,                                 // AMBA AHB address mask (12 bit)
-  amba::amba_layer_ids ambaLayer,                 // abstraction layer
+  AbstractionLayer ambaLayer,                 // abstraction layer
   uint32_t hindex,
   bool cacheable,
   uint32_t wait_states,
@@ -40,30 +40,27 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
       0,
       ambaLayer,
       BAR(AHBMEM, hmask, cacheable, 0, haddr)),
-    BaseMemory(BaseMemory::ARRAY, get_size()),
+    BaseMemory(BaseMemory::ARRAY, get_ahb_size()),
     ahbBaseAddress(static_cast<uint32_t>((hmask) & haddr) << 20),
     ahbSize(~(static_cast<uint32_t>(hmask) << 20) + 1),
-    g_conf("conf"),
-    g_haddr("haddr", haddr, g_conf),
-    g_hmask("hmask", hmask, g_conf),
-    g_hindex("hindex", hindex, g_conf),
-    g_cacheable("cacheable", cacheable, g_conf),
-    g_wait_states("wait_states", wait_states, g_conf),
-    g_pow_mon("pow_mon", pow_mon, g_conf),
-    sta_power_norm("power.ahbmem.sta_power_norm", 1269.53125, true),                  // Normalized static power input
-    int_power_norm("power.ahbmem.int_power_norm", 1.61011e-12, true),                 // Normalized internal power input
-    dyn_read_energy_norm("power.ahbmem.dyn_read_energy_norm", 7.57408e-13, true),     // Normalized read energy input
-    dyn_write_energy_norm("power.ahbmem.dyn_write_energy_norm", 7.57408e-13, true),   // Normalized write energy iput
-    power("power"),
-    sta_power("sta_power", 0.0, power),           // Static power output
-    int_power("int_power", 0.0, power),           // Internal power of module (dyn. switching independent)
-    swi_power("swi_power", 0.0, power),           // Switching power of modules
-    power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
-    dyn_read_energy("dyn_read_energy", 0.0, power),             // Energy per read access
-    dyn_write_energy("dyn_write_energy", 0.0, power),           // Energy per write access
-    dyn_reads("dyn_reads", 0ull, power),            // Read access counter for power computation
-    dyn_writes("dyn_writes", 0ull, power) {         // Write access counter for power computation
-  init_generics();
+    g_haddr("haddr", haddr, m_generics),
+    g_hmask("hmask", hmask, m_generics),
+    g_hindex("hindex", hindex, m_generics),
+    g_cacheable("cacheable", cacheable, m_generics),
+    g_wait_states("wait_states", wait_states, m_generics),
+    g_pow_mon("pow_mon", pow_mon, m_generics),
+    sta_power_norm("sta_power_norm", 1269.53125, m_power),                  // Normalized static power input
+    int_power_norm("int_power_norm", 1.61011e-12, m_power),                 // Normalized internal power input
+    dyn_read_energy_norm("dyn_read_energy_norm", 7.57408e-13, m_power),     // Normalized read energy input
+    dyn_write_energy_norm("dyn_write_energy_norm", 7.57408e-13, m_power),   // Normalized write energy iput
+    sta_power("sta_power", 0.0, m_power),           // Static power output
+    int_power("int_power", 0.0, m_power),           // Internal power of module (dyn. switching independent)
+    swi_power("swi_power", 0.0, m_power),           // Switching power of modules
+    power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, m_power),
+    dyn_read_energy("dyn_read_energy", 0.0, m_power),             // Energy per read access
+    dyn_write_energy("dyn_write_energy", 0.0, m_power),           // Energy per write access
+    dyn_reads("dyn_reads", 0ull, m_power),            // Read access counter for power computation
+    dyn_writes("dyn_writes", 0ull, m_power) {         // Write access counter for power computation
   // haddr and hmask must be 12 bit
   assert(!((g_haddr | g_hmask) >> 12));
 
@@ -76,8 +73,8 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
 
   // Display AHB slave information
   srInfo("/configuration/ahbmem/ahbslave")
-     ("addr", (uint64_t)get_base_addr())
-     ("size", (uint64_t)get_size())
+     ("addr", (uint64_t)get_ahb_base_addr())
+     ("size", (uint64_t)get_ahb_size())
      ("AHB Slave Configuration");
 
   srInfo("/configuration/ahbmem/generics")
@@ -126,7 +123,7 @@ void AHBMem::init_generics() {
 }
 
 void AHBMem::dorst() {
-  erase(0, get_size()-1);
+  erase(0, get_ahb_size()-1);
 }
 
 /// Encapsulated functionality
@@ -218,16 +215,16 @@ void AHBMem::start_of_simulation() {
 // Calculate power/energy values from normalized input data
 void AHBMem::power_model() {
   // Static power calculation (pW)
-  sta_power = sta_power_norm * (get_size() << 3);
+  sta_power = sta_power_norm * (get_ahb_size() << 3);
 
   // Cell internal power (uW)
-  int_power = int_power_norm * (get_size() << 3) * 1 / (clock_cycle.to_seconds());
+  int_power = int_power_norm * (get_ahb_size() << 3) * 1 / (clock_cycle.to_seconds());
 
   // Energy per read access (uJ)
-  dyn_read_energy =  dyn_read_energy_norm * 32 * (get_size() << 3);
+  dyn_read_energy =  dyn_read_energy_norm * 32 * (get_ahb_size() << 3);
 
   // Energy per write access (uJ)
-  dyn_write_energy = dyn_write_energy_norm * 32 * (get_size() << 3);
+  dyn_write_energy = dyn_write_energy_norm * 32 * (get_ahb_size() << 3);
 }
 
 // Static power callback
