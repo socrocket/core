@@ -24,7 +24,7 @@ def configure(self):
     self.check_boost(lib=boostLibs, static=True, mandatory=True, errmsg = boostErrorMessage)
     if int(self.env.BOOST_VERSION.split('_')[1]) < 35:
         self.fatal(boostErrorMessage)
-    if not self.options.static_build:
-        self.env.append_unique('RPATH', self.env['LIBPATH_BOOST_THREAD'])
+    #if not self.options.static_build:
+    #    self.env.append_unique('RPATH', self.env['LIBPATH_BOOST_THREAD'])
 
 

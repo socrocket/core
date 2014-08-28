@@ -59,8 +59,8 @@ def find(self, path = None):
       uselib_store  = 'AMBA',
       mandatory     = True,
       includes      = [os.path.join(self.path.abspath(),'contrib', 'grambasockets'), 
-                       os.path.join(self.path.abspath(), 'common'), 
-                       os.path.join(self.path.abspath(), 'include')],
+                       os.path.join(self.path.abspath(), 'include'),
+                       self.path.abspath()],
       fragment     = """
                      #include "greenreg_ambasockets.h"
                      int sc_main(int argc, char *argv[]) {

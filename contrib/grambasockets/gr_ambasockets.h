@@ -41,12 +41,12 @@
 #ifndef GR_AMBASOCKETS_H
 #define GR_AMBASOCKETS_H
 
-#include "greenreg/greenreg.h"
-#include "greensocket/utils/greensocketaddress_base.h"
-#include "greenreg/greenreg_socket/transactor_if.h"
-#include "greenreg/framework/core/gr_common.h"
-#include "amba.h"
-#include "vendian.h"
+#include <greenreg/greenreg.h>
+#include <greensocket/utils/greensocketaddress_base.h>
+#include <greenreg/greenreg_socket/transactor_if.h>
+#include <greenreg/framework/core/gr_common.h>
+#include <amba.h>
+#include "common/vendian.h"
 
 #include <systemc>
 #include <iostream>
