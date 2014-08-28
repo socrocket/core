@@ -3,6 +3,7 @@
 top = '..'
 
 def build(self):
+  self.recurse('trapgen')
   self(
     target          = 'common',
     features        = 'cxx cxxstlib pyembed',

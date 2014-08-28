@@ -31,7 +31,7 @@ TOOLS = [
     'systemc',
     'cmake',
     'winsocks',
-    'trap',
+#    'trap',
 #    'sdl',
 #    'mpeg3',
     'lua',

@@ -15,8 +15,8 @@
 #ifndef __CACHE_IF_H__
 #define __CACHE_IF_H__
 
-#include "tlm.h"
-#include "socrocket.h"
+#include "common/systemc.h"
+#include "common/socrocket.h"
 #include "mem_if.h"
 
 class cache_if : public mem_if {

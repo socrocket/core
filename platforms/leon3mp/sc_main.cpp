@@ -19,9 +19,9 @@
 #include <time.h>
 #include <string.h>
 #include <amba.h>
-#include <GDBStub.hpp>
-#include <execLoader.hpp>
-#include <osEmulator.hpp>
+#include "debugger/GDBStub.hpp"
+#include "elfloader/execLoader.hpp"
+#include "osEmulator/osEmulator.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/errors.hpp>
