@@ -18,6 +18,7 @@ LOAD = [
 
 TOOLS = [
     'common',
+    'repo',
     'swig',
     'flags',
     'virtualenv',
