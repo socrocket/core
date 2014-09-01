@@ -37,8 +37,6 @@ class repo(ConfigurationContext):
         self.work()
         self.write_repos(REPOS)
         self.store()
-        Context.top_dir=self.srcnode.abspath()
-        Context.out_dir=self.bldnode.abspath()
 
     def read_repos(self):
         if os.path.isfile(Context.out_dir+os.sep+".conf_check_repos.json"):
