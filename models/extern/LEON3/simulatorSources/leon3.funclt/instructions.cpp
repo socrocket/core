@@ -42,7 +42,7 @@
 #include <trap_utils.hpp>
 #include <leon3.funclt/registers.hpp>
 #include <leon3.funclt/alias.hpp>
-#include <leon3.funclt/externalPorts.hpp>
+#include <leon3.funclt/memory.hpp>
 #include <leon3.funclt/externalPins.hpp>
 #include <leon3.funclt/instructions.hpp>
 #include <sstream>
@@ -319,7 +319,7 @@ bool leon3_funclt_trap::Instruction::checkDecrementWin() const throw(){
 leon3_funclt_trap::Instruction::Instruction( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : PSR(PSR), \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : PSR(PSR), \
     WIM(WIM), TBR(TBR), Y(Y), PC(PC), NPC(NPC), GLOBAL(GLOBAL), WINREGS(WINREGS), ASR(ASR), \
     FP(FP), LR(LR), SP(SP), PCR(PCR), REGS(REGS), instrMem(instrMem), dataMem(dataMem), \
     irqAck(irqAck), NUM_REG_WIN(8), PIPELINED_MULT(false){
@@ -335,7 +335,7 @@ leon3_funclt_trap::WB_plain_op::~WB_plain_op(){
 leon3_funclt_trap::WB_plain_op::WB_plain_op( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -347,7 +347,7 @@ leon3_funclt_trap::ICC_writeLogic_op::~ICC_writeLogic_op(){
 leon3_funclt_trap::ICC_writeLogic_op::ICC_writeLogic_op( Reg32_0 & PSR, Reg32_1 & \
     WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & \
     GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias \
-    & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck \
+    & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck \
     ) : Instruction(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, \
     REGS, instrMem, dataMem, irqAck){
 
@@ -359,7 +359,7 @@ leon3_funclt_trap::ICC_writeTSub_op::~ICC_writeTSub_op(){
 leon3_funclt_trap::ICC_writeTSub_op::ICC_writeTSub_op( Reg32_0 & PSR, Reg32_1 & WIM, \
     Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, \
     Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, \
-    Alias * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) \
+    Alias * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) \
     : Instruction(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, \
     instrMem, dataMem, irqAck){
 
@@ -371,7 +371,7 @@ leon3_funclt_trap::ICC_writeDiv_op::~ICC_writeDiv_op(){
 leon3_funclt_trap::ICC_writeDiv_op::ICC_writeDiv_op( Reg32_0 & PSR, Reg32_1 & WIM, \
     Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, \
     Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, \
-    Alias * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) \
+    Alias * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) \
     : Instruction(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, \
     instrMem, dataMem, irqAck){
 
@@ -383,7 +383,7 @@ leon3_funclt_trap::ICC_writeAdd_op::~ICC_writeAdd_op(){
 leon3_funclt_trap::ICC_writeAdd_op::ICC_writeAdd_op( Reg32_0 & PSR, Reg32_1 & WIM, \
     Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, \
     Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, \
-    Alias * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) \
+    Alias * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) \
     : Instruction(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, \
     instrMem, dataMem, irqAck){
 
@@ -395,7 +395,7 @@ leon3_funclt_trap::ICC_writeSub_op::~ICC_writeSub_op(){
 leon3_funclt_trap::ICC_writeSub_op::ICC_writeSub_op( Reg32_0 & PSR, Reg32_1 & WIM, \
     Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, \
     Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, \
-    Alias * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) \
+    Alias * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) \
     : Instruction(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, \
     instrMem, dataMem, irqAck){
 
@@ -407,7 +407,7 @@ leon3_funclt_trap::ICC_writeTAdd_op::~ICC_writeTAdd_op(){
 leon3_funclt_trap::ICC_writeTAdd_op::ICC_writeTAdd_op( Reg32_0 & PSR, Reg32_1 & WIM, \
     Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, \
     Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, \
-    Alias * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) \
+    Alias * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) \
     : Instruction(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, \
     instrMem, dataMem, irqAck){
 
@@ -419,7 +419,7 @@ leon3_funclt_trap::ICC_writeTVSub_op::~ICC_writeTVSub_op(){
 leon3_funclt_trap::ICC_writeTVSub_op::ICC_writeTVSub_op( Reg32_0 & PSR, Reg32_1 & \
     WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & \
     GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias \
-    & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck \
+    & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck \
     ) : Instruction(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, \
     REGS, instrMem, dataMem, irqAck){
 
@@ -430,8 +430,8 @@ leon3_funclt_trap::WB_tv_op::~WB_tv_op(){
 }
 leon3_funclt_trap::WB_tv_op::WB_tv_op( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -442,7 +442,7 @@ leon3_funclt_trap::ICC_writeTVAdd_op::~ICC_writeTVAdd_op(){
 leon3_funclt_trap::ICC_writeTVAdd_op::ICC_writeTVAdd_op( Reg32_0 & PSR, Reg32_1 & \
     WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & \
     GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias \
-    & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck \
+    & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck \
     ) : Instruction(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, \
     REGS, instrMem, dataMem, irqAck){
 
@@ -478,7 +478,7 @@ unsigned int leon3_funclt_trap::InvalidInstr::getId() const throw(){
 leon3_funclt_trap::InvalidInstr::InvalidInstr( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -527,8 +527,8 @@ std::string leon3_funclt_trap::READasr::getMnemonic() const throw(){
 
 leon3_funclt_trap::READasr::READasr( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -579,7 +579,7 @@ std::string leon3_funclt_trap::WRITEY_reg::getMnemonic() const throw(){
 leon3_funclt_trap::WRITEY_reg::WRITEY_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -635,8 +635,8 @@ std::string leon3_funclt_trap::XNOR_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::XNOR_reg::XNOR_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -695,7 +695,7 @@ std::string leon3_funclt_trap::ANDNcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::ANDNcc_reg::ANDNcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -752,8 +752,8 @@ std::string leon3_funclt_trap::LDSB_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::LDSB_imm::LDSB_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -841,7 +841,7 @@ std::string leon3_funclt_trap::WRITEpsr_imm::getMnemonic() const throw(){
 leon3_funclt_trap::WRITEpsr_imm::WRITEpsr_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -889,8 +889,8 @@ std::string leon3_funclt_trap::READy::getMnemonic() const throw(){
 
 leon3_funclt_trap::READy::READy( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 \
     & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -947,7 +947,7 @@ std::string leon3_funclt_trap::XNORcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::XNORcc_reg::XNORcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -1013,8 +1013,8 @@ std::string leon3_funclt_trap::READpsr::getMnemonic() const throw(){
 
 leon3_funclt_trap::READpsr::READpsr( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -1067,8 +1067,8 @@ std::string leon3_funclt_trap::ANDN_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::ANDN_imm::ANDN_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -1127,7 +1127,7 @@ std::string leon3_funclt_trap::ANDcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::ANDcc_reg::ANDcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -1191,7 +1191,7 @@ std::string leon3_funclt_trap::TSUBcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::TSUBcc_imm::TSUBcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeTSub_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -1280,7 +1280,7 @@ std::string leon3_funclt_trap::LDSBA_reg::getMnemonic() const throw(){
 leon3_funclt_trap::LDSBA_reg::LDSBA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -1353,8 +1353,8 @@ std::string leon3_funclt_trap::LDUH_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::LDUH_imm::LDUH_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -1439,8 +1439,8 @@ std::string leon3_funclt_trap::STA_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::STA_reg::STA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -1495,8 +1495,8 @@ std::string leon3_funclt_trap::ORN_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::ORN_reg::ORN_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -1588,7 +1588,7 @@ std::string leon3_funclt_trap::LDSHA_reg::getMnemonic() const throw(){
 leon3_funclt_trap::LDSHA_reg::LDSHA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -1670,8 +1670,8 @@ std::string leon3_funclt_trap::STBA_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::STBA_reg::STBA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -1748,8 +1748,8 @@ std::string leon3_funclt_trap::ST_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::ST_imm::ST_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 \
     & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -1808,8 +1808,8 @@ std::string leon3_funclt_trap::READtbr::getMnemonic() const throw(){
 
 leon3_funclt_trap::READtbr::READtbr( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -1893,7 +1893,7 @@ std::string leon3_funclt_trap::UDIVcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::UDIVcc_imm::UDIVcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeDiv_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -1985,7 +1985,7 @@ std::string leon3_funclt_trap::SWAPA_reg::getMnemonic() const throw(){
 leon3_funclt_trap::SWAPA_reg::SWAPA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -2048,7 +2048,7 @@ std::string leon3_funclt_trap::ADDXcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::ADDXcc_imm::ADDXcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeAdd_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -2105,8 +2105,8 @@ std::string leon3_funclt_trap::STB_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::STB_imm::STB_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -2166,7 +2166,7 @@ std::string leon3_funclt_trap::SUBXcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::SUBXcc_imm::SUBXcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeSub_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -2248,8 +2248,8 @@ std::string leon3_funclt_trap::STH_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::STH_reg::STH_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -2302,8 +2302,8 @@ std::string leon3_funclt_trap::SRL_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::SRL_imm::SRL_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -2360,7 +2360,7 @@ std::string leon3_funclt_trap::WRITEasr_imm::getMnemonic() const throw(){
 leon3_funclt_trap::WRITEasr_imm::WRITEasr_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -2424,7 +2424,7 @@ std::string leon3_funclt_trap::UMULcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::UMULcc_reg::UMULcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -2486,7 +2486,7 @@ std::string leon3_funclt_trap::LDSTUB_reg::getMnemonic() const throw(){
 leon3_funclt_trap::LDSTUB_reg::LDSTUB_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -2540,8 +2540,8 @@ std::string leon3_funclt_trap::XOR_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::XOR_imm::XOR_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -2604,8 +2604,8 @@ std::string leon3_funclt_trap::SMAC_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::SMAC_reg::SMAC_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -2663,7 +2663,7 @@ std::string leon3_funclt_trap::WRITEasr_reg::getMnemonic() const throw(){
 leon3_funclt_trap::WRITEasr_reg::WRITEasr_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -2738,8 +2738,8 @@ std::string leon3_funclt_trap::LD_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::LD_reg::LD_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 \
     & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -2818,8 +2818,8 @@ std::string leon3_funclt_trap::ST_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::ST_reg::ST_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 \
     & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -2876,7 +2876,7 @@ std::string leon3_funclt_trap::SUBcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::SUBcc_reg::SUBcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeSub_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -2978,8 +2978,8 @@ std::string leon3_funclt_trap::LDD_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::LDD_reg::LDD_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -3035,7 +3035,7 @@ std::string leon3_funclt_trap::ADDcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::ADDcc_imm::ADDcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeAdd_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -3112,8 +3112,8 @@ std::string leon3_funclt_trap::LDUH_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::LDUH_reg::LDUH_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -3168,8 +3168,8 @@ std::string leon3_funclt_trap::SRL_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::SRL_reg::SRL_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -3267,8 +3267,8 @@ std::string leon3_funclt_trap::SAVE_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::SAVE_imm::SAVE_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -3343,7 +3343,7 @@ std::string leon3_funclt_trap::MULScc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::MULScc_reg::MULScc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeAdd_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -3399,8 +3399,8 @@ std::string leon3_funclt_trap::OR_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::OR_imm::OR_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 \
     & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -3483,8 +3483,8 @@ std::string leon3_funclt_trap::STD_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::STD_imm::STD_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -3545,7 +3545,7 @@ std::string leon3_funclt_trap::SUBXcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::SUBXcc_reg::SUBXcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeSub_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -3608,8 +3608,8 @@ std::string leon3_funclt_trap::ADDX_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::ADDX_imm::ADDX_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -3691,8 +3691,8 @@ std::string leon3_funclt_trap::SWAP_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::SWAP_imm::SWAP_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -3753,8 +3753,8 @@ std::string leon3_funclt_trap::UMUL_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::UMUL_reg::UMUL_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -3806,7 +3806,7 @@ std::string leon3_funclt_trap::WRITEY_imm::getMnemonic() const throw(){
 leon3_funclt_trap::WRITEY_imm::WRITEY_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -3862,8 +3862,8 @@ std::string leon3_funclt_trap::AND_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::AND_reg::AND_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -3913,7 +3913,7 @@ std::string leon3_funclt_trap::FLUSH_imm::getMnemonic() const throw(){
 leon3_funclt_trap::FLUSH_imm::FLUSH_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -3969,8 +3969,8 @@ std::string leon3_funclt_trap::SRA_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::SRA_reg::SRA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -4049,8 +4049,8 @@ std::string leon3_funclt_trap::STH_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::STH_imm::STH_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -4116,7 +4116,7 @@ std::string leon3_funclt_trap::WRITEwim_imm::getMnemonic() const throw(){
 leon3_funclt_trap::WRITEwim_imm::WRITEwim_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -4214,8 +4214,8 @@ std::string leon3_funclt_trap::LDD_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::LDD_imm::LDD_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -4268,8 +4268,8 @@ std::string leon3_funclt_trap::SLL_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::SLL_imm::SLL_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -4361,7 +4361,7 @@ std::string leon3_funclt_trap::LDUHA_reg::getMnemonic() const throw(){
 leon3_funclt_trap::LDUHA_reg::LDUHA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -4424,7 +4424,7 @@ std::string leon3_funclt_trap::TADDcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::TADDcc_reg::TADDcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeTAdd_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -4488,7 +4488,7 @@ std::string leon3_funclt_trap::TADDcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::TADDcc_imm::TADDcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeTAdd_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -4579,8 +4579,8 @@ std::string leon3_funclt_trap::SDIV_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::SDIV_imm::SDIV_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -4655,7 +4655,7 @@ std::string leon3_funclt_trap::TSUBccTV_imm::getMnemonic() const throw(){
 leon3_funclt_trap::TSUBccTV_imm::TSUBccTV_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeTVSub_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_tv_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, \
@@ -4707,7 +4707,7 @@ std::string leon3_funclt_trap::FLUSH_reg::getMnemonic() const throw(){
 leon3_funclt_trap::FLUSH_reg::FLUSH_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -4765,7 +4765,7 @@ std::string leon3_funclt_trap::ORNcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::ORNcc_reg::ORNcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -4896,8 +4896,8 @@ std::string leon3_funclt_trap::RETT_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::RETT_imm::RETT_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -4988,7 +4988,7 @@ std::string leon3_funclt_trap::SDIVcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::SDIVcc_reg::SDIVcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeDiv_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -5046,8 +5046,8 @@ std::string leon3_funclt_trap::ADD_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::ADD_reg::ADD_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -5204,8 +5204,8 @@ std::string leon3_funclt_trap::TRAP_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::TRAP_imm::TRAP_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -5271,7 +5271,7 @@ std::string leon3_funclt_trap::WRITEtbr_imm::getMnemonic() const throw(){
 leon3_funclt_trap::WRITEtbr_imm::WRITEtbr_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -5328,8 +5328,8 @@ std::string leon3_funclt_trap::LDUB_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::LDUB_reg::LDUB_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -5427,7 +5427,7 @@ std::string leon3_funclt_trap::RESTORE_reg::getMnemonic() const throw(){
 leon3_funclt_trap::RESTORE_reg::RESTORE_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -5491,7 +5491,7 @@ std::string leon3_funclt_trap::ADDXcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::ADDXcc_reg::ADDXcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeAdd_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -5550,8 +5550,8 @@ std::string leon3_funclt_trap::STB_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::STB_reg::STB_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -5604,8 +5604,8 @@ std::string leon3_funclt_trap::AND_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::AND_imm::AND_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -5666,8 +5666,8 @@ std::string leon3_funclt_trap::SMUL_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::SMUL_imm::SMUL_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -5723,8 +5723,8 @@ std::string leon3_funclt_trap::ADD_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::ADD_imm::ADD_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -5786,8 +5786,8 @@ std::string leon3_funclt_trap::UMUL_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::UMUL_imm::UMUL_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -5848,8 +5848,8 @@ std::string leon3_funclt_trap::READwim::getMnemonic() const throw(){
 
 leon3_funclt_trap::READwim::READwim( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -5906,7 +5906,7 @@ std::string leon3_funclt_trap::LDSTUB_imm::getMnemonic() const throw(){
 leon3_funclt_trap::LDSTUB_imm::LDSTUB_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -5967,8 +5967,8 @@ std::string leon3_funclt_trap::SMAC_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::SMAC_imm::SMAC_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -6026,8 +6026,8 @@ std::string leon3_funclt_trap::LDSB_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::LDSB_reg::LDSB_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -6082,8 +6082,8 @@ std::string leon3_funclt_trap::ANDN_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::ANDN_reg::ANDN_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -6159,7 +6159,7 @@ std::string leon3_funclt_trap::TSUBccTV_reg::getMnemonic() const throw(){
 leon3_funclt_trap::TSUBccTV_reg::TSUBccTV_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeTVSub_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_tv_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, \
@@ -6209,8 +6209,8 @@ std::string leon3_funclt_trap::SETHI::getMnemonic() const throw(){
 
 leon3_funclt_trap::SETHI::SETHI( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 \
     & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -6265,8 +6265,8 @@ std::string leon3_funclt_trap::SRA_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::SRA_imm::SRA_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -6349,8 +6349,8 @@ std::string leon3_funclt_trap::LDSH_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::LDSH_reg::LDSH_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -6435,7 +6435,7 @@ std::string leon3_funclt_trap::UDIVcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::UDIVcc_reg::UDIVcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeDiv_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -6491,8 +6491,8 @@ std::string leon3_funclt_trap::ORN_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::ORN_imm::ORN_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -6577,8 +6577,8 @@ std::string leon3_funclt_trap::STD_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::STD_reg::STD_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -6633,7 +6633,7 @@ std::string leon3_funclt_trap::ANDNcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::ANDNcc_imm::ANDNcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -6709,7 +6709,7 @@ std::string leon3_funclt_trap::TADDccTV_imm::getMnemonic() const throw(){
 leon3_funclt_trap::TADDccTV_imm::TADDccTV_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeTVAdd_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_tv_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, \
@@ -6779,7 +6779,7 @@ std::string leon3_funclt_trap::WRITEtbr_reg::getMnemonic() const throw(){
 leon3_funclt_trap::WRITEtbr_reg::WRITEtbr_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -6839,8 +6839,8 @@ std::string leon3_funclt_trap::SUBX_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::SUBX_reg::SUBX_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -6895,8 +6895,8 @@ std::string leon3_funclt_trap::XNOR_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::XNOR_imm::XNOR_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -6981,8 +6981,8 @@ std::string leon3_funclt_trap::UDIV_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::UDIV_imm::UDIV_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -7063,8 +7063,8 @@ std::string leon3_funclt_trap::LDSH_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::LDSH_imm::LDSH_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -7115,8 +7115,8 @@ std::string leon3_funclt_trap::UNIMP::getMnemonic() const throw(){
 
 leon3_funclt_trap::UNIMP::UNIMP( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 \
     & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -7200,7 +7200,7 @@ std::string leon3_funclt_trap::LDSTUBA_reg::getMnemonic() const throw(){
 leon3_funclt_trap::LDSTUBA_reg::LDSTUBA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -7263,7 +7263,7 @@ std::string leon3_funclt_trap::UMULcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::UMULcc_imm::UMULcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -7322,8 +7322,8 @@ std::string leon3_funclt_trap::ORcc_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::ORcc_reg::ORcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -7400,7 +7400,7 @@ std::string leon3_funclt_trap::MULScc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::MULScc_imm::MULScc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeAdd_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -7460,7 +7460,7 @@ std::string leon3_funclt_trap::XORcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::XORcc_reg::XORcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -7518,8 +7518,8 @@ std::string leon3_funclt_trap::SUB_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::SUB_reg::SUB_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -7588,7 +7588,7 @@ std::string leon3_funclt_trap::WRITEwim_reg::getMnemonic() const throw(){
 leon3_funclt_trap::WRITEwim_reg::WRITEwim_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -7650,8 +7650,8 @@ std::string leon3_funclt_trap::UMAC_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::UMAC_imm::UMAC_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -7715,7 +7715,7 @@ std::string leon3_funclt_trap::TSUBcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::TSUBcc_reg::TSUBcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeTSub_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -7917,8 +7917,8 @@ std::string leon3_funclt_trap::BRANCH::getMnemonic() const throw(){
 
 leon3_funclt_trap::BRANCH::BRANCH( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 \
     & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -7980,7 +7980,7 @@ std::string leon3_funclt_trap::SMULcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::SMULcc_reg::SMULcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -8037,8 +8037,8 @@ std::string leon3_funclt_trap::SUB_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::SUB_imm::SUB_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -8097,7 +8097,7 @@ std::string leon3_funclt_trap::ADDcc_reg::getMnemonic() const throw(){
 leon3_funclt_trap::ADDcc_reg::ADDcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeAdd_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -8155,8 +8155,8 @@ std::string leon3_funclt_trap::XOR_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::XOR_reg::XOR_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -8214,7 +8214,7 @@ std::string leon3_funclt_trap::SUBcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::SUBcc_imm::SUBcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeSub_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -8291,7 +8291,7 @@ std::string leon3_funclt_trap::TADDccTV_reg::getMnemonic() const throw(){
 leon3_funclt_trap::TADDccTV_reg::TADDccTV_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeTVAdd_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_tv_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, \
@@ -8383,8 +8383,8 @@ std::string leon3_funclt_trap::SDIV_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::SDIV_reg::SDIV_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -8447,7 +8447,7 @@ std::string leon3_funclt_trap::SMULcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::SMULcc_imm::SMULcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -8532,8 +8532,8 @@ std::string leon3_funclt_trap::SWAP_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::SWAP_reg::SWAP_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -8591,8 +8591,8 @@ std::string leon3_funclt_trap::SUBX_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::SUBX_imm::SUBX_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -8684,8 +8684,8 @@ std::string leon3_funclt_trap::STDA_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::STDA_reg::STDA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -8747,8 +8747,8 @@ std::string leon3_funclt_trap::UMAC_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::UMAC_reg::UMAC_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -8830,8 +8830,8 @@ std::string leon3_funclt_trap::JUMP_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::JUMP_imm::JUMP_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -8891,8 +8891,8 @@ std::string leon3_funclt_trap::SMUL_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::SMUL_reg::SMUL_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -8949,7 +8949,7 @@ std::string leon3_funclt_trap::XORcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::XORcc_imm::XORcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -9007,7 +9007,7 @@ std::string leon3_funclt_trap::ORNcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::ORNcc_imm::ORNcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -9096,7 +9096,7 @@ std::string leon3_funclt_trap::LDUBA_reg::getMnemonic() const throw(){
 leon3_funclt_trap::LDUBA_reg::LDUBA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -9178,8 +9178,8 @@ std::string leon3_funclt_trap::JUMP_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::JUMP_reg::JUMP_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -9240,8 +9240,8 @@ std::string leon3_funclt_trap::ADDX_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::ADDX_reg::ADDX_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -9327,8 +9327,8 @@ std::string leon3_funclt_trap::UDIV_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::UDIV_reg::UDIV_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -9385,7 +9385,7 @@ std::string leon3_funclt_trap::XNORcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::XNORcc_imm::XNORcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -9432,8 +9432,8 @@ std::string leon3_funclt_trap::STBAR::getMnemonic() const throw(){
 
 leon3_funclt_trap::STBAR::STBAR( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 \
     & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -9522,8 +9522,8 @@ std::string leon3_funclt_trap::LDA_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::LDA_reg::LDA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -9608,8 +9608,8 @@ std::string leon3_funclt_trap::STHA_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::STHA_reg::STHA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -9712,8 +9712,8 @@ std::string leon3_funclt_trap::LDDA_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::LDDA_reg::LDDA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -9768,8 +9768,8 @@ std::string leon3_funclt_trap::SLL_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::SLL_reg::SLL_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -9868,7 +9868,7 @@ std::string leon3_funclt_trap::RESTORE_imm::getMnemonic() const throw(){
 leon3_funclt_trap::RESTORE_imm::RESTORE_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -9941,8 +9941,8 @@ std::string leon3_funclt_trap::LD_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::LD_imm::LD_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 \
     & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -10097,8 +10097,8 @@ std::string leon3_funclt_trap::TRAP_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::TRAP_reg::TRAP_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -10152,8 +10152,8 @@ std::string leon3_funclt_trap::LDUB_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::LDUB_imm::LDUB_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -10282,8 +10282,8 @@ std::string leon3_funclt_trap::RETT_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::RETT_reg::RETT_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -10373,7 +10373,7 @@ std::string leon3_funclt_trap::SDIVcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::SDIVcc_imm::SDIVcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeDiv_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -10473,8 +10473,8 @@ std::string leon3_funclt_trap::SAVE_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::SAVE_reg::SAVE_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -10529,8 +10529,8 @@ std::string leon3_funclt_trap::OR_reg::getMnemonic() const throw(){
 
 leon3_funclt_trap::OR_reg::OR_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 \
     & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, \
     PCR, REGS, instrMem, dataMem, irqAck){
@@ -10586,8 +10586,8 @@ std::string leon3_funclt_trap::ORcc_imm::getMnemonic() const throw(){
 
 leon3_funclt_trap::ORcc_imm::ORcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, \
     Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -10647,8 +10647,8 @@ std::string leon3_funclt_trap::CALL::getMnemonic() const throw(){
 
 leon3_funclt_trap::CALL::CALL( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 \
     & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, \
-    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory \
-    & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
+    Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface \
+    & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, WIM, \
     TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck){
 
 }
@@ -10737,7 +10737,7 @@ std::string leon3_funclt_trap::WRITEpsr_reg::getMnemonic() const throw(){
 leon3_funclt_trap::WRITEpsr_reg::WRITEpsr_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 \
     & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck){
 
@@ -10793,7 +10793,7 @@ std::string leon3_funclt_trap::ANDcc_imm::getMnemonic() const throw(){
 leon3_funclt_trap::ANDcc_imm::ANDcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & \
     TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 \
     * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias \
-    * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
+    * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck ) : Instruction(PSR, \
     WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, SP, PCR, REGS, instrMem, dataMem, \
     irqAck), ICC_writeLogic_op(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, FP, LR, \
     SP, PCR, REGS, instrMem, dataMem, irqAck), WB_plain_op(PSR, WIM, TBR, Y, PC, NPC, \
@@ -10853,7 +10853,7 @@ unsigned int leon3_funclt_trap::IRQ_IRQ_Instruction::getId() const throw(){
 leon3_funclt_trap::IRQ_IRQ_Instruction::IRQ_IRQ_Instruction( Reg32_0 & PSR, Reg32_1 \
     & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass \
     & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias \
-    & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory & dataMem, PinTLM_out_32 & irqAck, \
+    & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface & dataMem, PinTLM_out_32 & irqAck, \
     unsigned int & IRQ ) : Instruction(PSR, WIM, TBR, Y, PC, NPC, GLOBAL, WINREGS, ASR, \
     FP, LR, SP, PCR, REGS, instrMem, dataMem, irqAck), IRQ(IRQ){
 

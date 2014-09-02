@@ -47,7 +47,7 @@
 #include <tlm_utils/tlm_quantumkeeper.h>
 #include <leon3.funclt/registers.hpp>
 #include <leon3.funclt/alias.hpp>
-#include <leon3.funclt/externalPorts.hpp>
+#include <leon3.funclt/memory.hpp>
 #include <iostream>
 #include <fstream>
 #include <boost/circular_buffer.hpp>
@@ -86,31 +86,31 @@ using namespace trap;
 namespace leon3_funclt_trap{
 
     class Processor_leon3_funclt : public sc_module{
-        private:
+      private:
         bool resetCalled;
         void beginOp();
         Decoder decoder;
-        tlm_utils::tlm_quantumkeeper quantKeeper;
         unsigned int profStartAddr;
         unsigned int profEndAddr;
         std::ofstream histFile;
         bool historyEnabled;
         bool instrExecuting;
         sc_event instrEndEvent;
-        Instruction * * INSTRUCTIONS;
-        template_map< unsigned int, CacheElem > instrCache;
+        Instruction **INSTRUCTIONS;
+        template_map<unsigned int, CacheElem> instrCache;
         static int numInstances;
         unsigned int IRQ;
 
-        public:
+      public:
         GC_HAS_CALLBACKS();
-        SC_HAS_PROCESS( Processor_leon3_funclt );
-        Processor_leon3_funclt( sc_module_name name, sc_time latency, bool pow_mon = false);
+        SC_HAS_PROCESS(Processor_leon3_funclt);
+        Processor_leon3_funclt(sc_module_name name, MemoryInterface *memory = NULL, sc_time latency = sc_time(10, sc_core::SC_NS), bool pow_mon = false);
         void mainLoop();
         void resetOp();
         void start_of_simulation();
         void end_of_simulation();
         void power_model();
+        tlm_utils::tlm_quantumkeeper quantKeeper;
         gs::cnf::callback_return_type sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
         gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
         gs::cnf::callback_return_type swi_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
@@ -133,8 +133,9 @@ namespace leon3_funclt_trap{
         Alias SP;
         Alias PCR;
         Alias REGS[32];
-        TLMMemory instrMem;
-        TLMMemory dataMem;
+        MemoryInterface *mem;
+        MemoryInterface &instrMem;
+        MemoryInterface &dataMem;
         sc_time latency;
         sc_time profTimeStart;
         sc_time profTimeEnd;

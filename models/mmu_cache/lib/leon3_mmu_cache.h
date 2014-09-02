@@ -15,18 +15,15 @@
 /// @author Thomas Schuster
 ///
 
-#ifndef __MMU_CACHE_H__
-#define __MMU_CACHE_H__
+#ifndef LEON3_MMU_CACHE_H_
+#define LEON3_MMU_CACHE_H_
 
-#include "common/gs_config.h"
 #include "common/systemc.h"
+#include "common/gs_config.h"
 #include <amba.h>
 //#include <tlm_1/tlm_req_rsp/tlm_channels/tlm_fifo/tlm_fifo.h>
 
 #include <math.h>
-
-#include "icio_payload_extension.h"
-#include "dcio_payload_extension.h"
 
 #include "common/socrocket.h"
 #include "signalkit/signalkit.h"
@@ -35,33 +32,34 @@
 
 #include "common/verbose.h"
 #include "mmu_cache_base.h"
+#include "localram.h"
+
+// LEON3
+#include "leon3.funclt.h"
+#include "debugger/GDBStub.hpp"
+#include "osEmulator/osEmulator.hpp"
+
+/// @addtogroup mmu_cache MMU_Cache
+/// @{
+
 
 /// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
-class mmu_cache :
-  public mmu_cache_base {
+class leon3_mmu_cache :
+  public mmu_cache_base,
+  public leon3_funclt_trap::MemoryInterface {
+
+  typedef leon3_funclt_trap::Processor_leon3_funclt LEON3;
 
  public:
 
   GC_HAS_CALLBACKS();
-  SC_HAS_PROCESS(mmu_cache);
-  SK_HAS_SIGNALS(mmu_cache);
+  SC_HAS_PROCESS(leon3_mmu_cache);
+  SK_HAS_SIGNALS(leon3_mmu_cache);
   // TLM sockets
   // -----------
 
-  // iu3 instruction cache in/out
-  tlm_utils::simple_target_socket<mmu_cache> icio;
-
-  // iu3 data cache in/out
-  tlm_utils::simple_target_socket<mmu_cache> dcio;
-
-  // snooping port
-  signal<t_snoop>::in snoop;
-
-  // Signalkit IRQ output
-  signal<std::pair<uint32_t, bool> >::out irq;
-
   /// @brief Constructor of the top-level class of the memory sub-system (caches and mmu).
-  mmu_cache(
+  leon3_mmu_cache(
       ModuleName name = "",  ///< SystemC module name
       bool icen = true,                   ///< instruction cache enable
       uint32_t irepl = 1,                 ///< instruction cache replacement strategy
@@ -93,46 +91,42 @@ class mmu_cache :
       bool pow_mon = false,               ///< Enable power monitoring
       AbstractionLayer ambaLayer = amba::amba_LT);  ///< Select LT or AT abstraction
 
-  // Destructor
-  ~mmu_cache();
+      // Destructor
+      ~leon3_mmu_cache();
+      virtual void clkcng();
+      gs::cnf::callback_return_type g_gdb_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+      gs::cnf::callback_return_type g_history_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
+      gs::cnf::callback_return_type g_osemu_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) ;
+      gs::cnf::callback_return_type g_args_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
 
-  // Member functions
-  // ----------------
-  /// Instruction interface to functional part of the model
-  void exec_instr(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay, bool is_dbg);
-  /// Data interface to functional part of the model
-  void exec_data(tlm::tlm_generic_payload &trans, sc_core::sc_time &delay, bool is_dbg);
+      virtual sc_dt::uint64 read_dword( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
+      virtual unsigned int read_word( const unsigned int & address , const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
+      virtual unsigned short int read_half( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
+      virtual unsigned char read_byte( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
+      virtual unsigned int read_instr( const unsigned int & address, const unsigned int flush) throw();
+      virtual sc_dt::uint64 read_dword_dbg( const unsigned int & address ) throw();
+      virtual unsigned int read_word_dbg( const unsigned int & address ) throw();
+      virtual unsigned short int read_half_dbg( const unsigned int & address ) throw();
+      virtual unsigned char read_byte_dbg( const unsigned int & address ) throw();
+      virtual void write_dword( const unsigned int & address, sc_dt::uint64 datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
+      virtual void write_word( const unsigned int & address, unsigned int datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
+      virtual void write_half( const unsigned int & address, unsigned short int datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
+      virtual void write_byte( const unsigned int & address, unsigned char datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
+      virtual void write_dword_dbg( const unsigned int & address, sc_dt::uint64 datum ) throw();
+      virtual void write_word_dbg( const unsigned int & address, unsigned int datum ) throw();
+      virtual void write_half_dbg( const unsigned int & address, unsigned short int datum ) throw();
+      virtual void write_byte_dbg( const unsigned int & address, unsigned char datum ) throw();
+      virtual void lock();
+      virtual void unlock();
 
-  /// TLM blocking forward transport function for icio socket
-  void icio_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay);
-  /// TLM blocking forward transport function for dcio socket
-  void dcio_b_transport(tlm::tlm_generic_payload &payload, sc_core::sc_time &delay);
+    LEON3 cpu;
+    GDBStub<uint32_t> *debugger;
+    OSEmulator<uint32_t> *osEmu;
 
-  /// TLM non-blocking forward transport function for icio socket
-  tlm::tlm_sync_enum icio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
-  /// TLM non-blocking forward transport function for dcio socket
-  tlm::tlm_sync_enum dcio_nb_transport_fw(tlm::tlm_generic_payload &payload, tlm::tlm_phase &phase, sc_core::sc_time &delay);
-
-  /// TLM instruction debug transport
-  unsigned int icio_transport_dbg(tlm::tlm_generic_payload &trans);
-
-  /// TLM data debug transport
-  unsigned int dcio_transport_dbg(tlm::tlm_generic_payload &trans);
-
-  /// Instruction service thread for AT
-  void icio_service_thread();
-
-  /// Data service thread for AT
-  void dcio_service_thread();
-
-  // data members
-  // ------------
-
-  // icio payload event queue (for AT)
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> icio_PEQ;
-
-  // dcio payload event queue (for AT)
-  tlm_utils::peq_with_get<tlm::tlm_generic_payload> dcio_PEQ;
+    gs::cnf::gs_config<int> g_gdb;
+    gs::cnf::gs_config<std::string> g_history;
+    gs::cnf::gs_config<std::string> g_osemu;
+    gs::cnf::gs_config<std::vector<std::string> > g_args;
 };
 
 #endif //__MMU_CACHE_H__

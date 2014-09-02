@@ -45,7 +45,8 @@
 #include <tlm_utils/tlm_quantumkeeper.h>
 #include <leon3.funclt/registers.hpp>
 #include <leon3.funclt/alias.hpp>
-#include <leon3.funclt/externalPorts.hpp>
+#include <leon3.funclt/memory.hpp>
+//#include <leon3.funclt/externalPorts.hpp>
 #include <iostream>
 #include <fstream>
 #include <boost/circular_buffer.hpp>
@@ -401,25 +402,30 @@ void leon3_funclt_trap::Processor_leon3_funclt::enableHistory( std::string fileN
     this->histFile.open(fileName.c_str(), ios::out | ios::ate);
 }
 
-leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt( sc_module_name \
-    name, sc_time latency, bool pow_mon ) : sc_module(name), 
-                                            instrMem("instrMem", this->quantKeeper), 
-                                            dataMem("dataMem", this->quantKeeper), 
-                                            latency(latency), 
-                                            IRQ_port("IRQ_IRQ", IRQ),
-                                            irqAck("irqAck_PIN"),
-                                            m_pow_mon(pow_mon),
-                                            sta_power_norm("power.leon3.sta_power_norm", 5.27e+8, true), // norm. static power
-                                            int_power_norm("power.leon3.int_power_norm", 5.497e-6, true), // norm. dynamic power
-                                            dyn_instr_energy_norm("power.leon3.dyn_instr_energy_norm", 3.95e-5, true), // norm. average energy per instruction
-                                            power("power"),
-                                            sta_power("sta_power", 0.0, power), // Static power output
-                                            int_power("int_power", 0.0, power), // Internal power of module
-                                            swi_power("swi_power", 0.0, power), // Switching power of module
-                                            power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
-                                            dyn_instr_energy("dyn_instr_energy", 0.0, power), // average instruction energy
-                                            dyn_instr("dyn_instr", 0ull, power) // number of instructions
-                                            
+leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
+    sc_module_name name,
+    MemoryInterface *memory,
+    sc_time latency,
+    bool pow_mon ) :
+      sc_module(name), 
+      mem(memory),
+      instrMem(*mem), 
+      dataMem(*mem), 
+      latency(latency), 
+      IRQ_port("IRQ_IRQ", IRQ),
+      irqAck("irqAck_PIN"),
+      m_pow_mon(pow_mon),
+      sta_power_norm("power.leon3.sta_power_norm", 5.27e+8, true), // norm. static power
+      int_power_norm("power.leon3.int_power_norm", 5.497e-6, true), // norm. dynamic power
+      dyn_instr_energy_norm("power.leon3.dyn_instr_energy_norm", 3.95e-5, true), // norm. average energy per instruction
+      power("power"),
+      sta_power("sta_power", 0.0, power), // Static power output
+      int_power("int_power", 0.0, power), // Internal power of module
+      swi_power("swi_power", 0.0, power), // Switching power of module
+      power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
+      dyn_instr_energy("dyn_instr_energy", 0.0, power), // average instruction energy
+      dyn_instr("dyn_instr", 0ull, power) // number of instructions
+      
 {
     this->resetCalled = false;
     Processor_leon3_funclt::numInstances++;

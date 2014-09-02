@@ -35,7 +35,7 @@
 #include "common/paramprinter.h"
 #include "common/verbose.h"
 #include "common/powermonitor.h"
-#include "models/mmu_cache/lib/mmu_cache.h"
+#include "models/mmu_cache/lib/leon3_mmu_cache.h"
 #include "models/ahbin/ahbin.h"
 #include "models/memory/memory.h"
 #include "models/apbctrl/apbctrl.h"
@@ -715,8 +715,8 @@ int sc_main(int argc, char** argv) {
       // =====================
       // Always enabled.
       // Needed for basic platform.
-      mmu_cache *mmu_cache_inst = new mmu_cache(
-              sc_core::sc_gen_unique_name("mmu_cache", false), // name of sysc module
+      leon3_mmu_cache *leon3 = new leon3_mmu_cache(
+              sc_core::sc_gen_unique_name("leon3_mmu_cache", false), // name of sysc module
               p_mmu_cache_ic_en,         //  int icen = 1 (icache enabled)
               p_mmu_cache_ic_repl,       //  int irepl = 0 (icache LRU replacement)
               p_mmu_cache_ic_sets,       //  int isets = 4 (4 instruction cache sets)
@@ -749,130 +749,35 @@ int sc_main(int argc, char** argv) {
       );
 
       // Connecting AHB Master
-      mmu_cache_inst->ahb(ahbctrl.ahbIN);
-
+      leon3->ahb(ahbctrl.ahbIN);
       // Set clock
-      mmu_cache_inst->set_clk(p_system_clock, SC_NS);
-      connect(mmu_cache_inst->snoop, ahbctrl.snoop);
+      leon3->set_clk(p_system_clock, SC_NS);
+      connect(leon3->snoop, ahbctrl.snoop);
 
-      // For each Abstraction is another model needed
-      if(p_system_at) {
-        // LEON3 AT Processor
-        // ==================
-        v::info << "main" << "Instantiating AT Processor" << i << v::endl;
-        leon3_funcat_trap::Processor_leon3_funcat *leon3 = new leon3_funcat_trap::Processor_leon3_funcat(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS), p_report_power);
-        leon3->ENTRY_POINT   = 0x0;
-        leon3->MPROC_ID      = (p_mmu_cache_index + i) << 28;
+      // History logging
+      std::string history = p_proc_history;
+      if(!history.empty()) {
+        leon3->g_history = history;
+      }
 
-        // Connect cpu to mmu-cache
-        leon3->instrMem.initSocket(mmu_cache_inst->icio);
-        leon3->dataMem.initSocket(mmu_cache_inst->dcio);
+      connect(irqmp.irq_req, leon3->cpu.IRQ_port.irq_signal, i);
+      connect(leon3->cpu.irqAck.initSignal, irqmp.irq_ack, i);
+      connect(leon3->cpu.irqAck.run, irqmp.cpu_rst, i);
+      connect(leon3->cpu.irqAck.status, irqmp.cpu_stat, i);
 
-        // History logging
-        std::string history = p_proc_history;
-        if(!history.empty()) {
-          leon3->enableHistory(history + boost::lexical_cast<std::string>(i));
-        }
-
-        connect(irqmp.irq_req, leon3->IRQ_port.irq_signal, i);
-        connect(leon3->irqAck.initSignal, irqmp.irq_ack, i);
-        connect(leon3->irqAck.run, irqmp.cpu_rst, i);
-        connect(leon3->irqAck.status, irqmp.cpu_stat, i);
-
-        // GDBStubs
-        //if(p_gdb_en && p_gdb_proc == i) {
-        if(p_gdb_en) {
-          GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3->abiIf));
-          leon3->toolManager.addTool(*gdbStub);
-          gdbStub->initialize(p_gdb_port + i);
-          //leon3->instrMem.setDebugger(gdbStub);
-          //leon3->dataMem.setDebugger(gdbStub);
-        }
-        // OS Emulator
-        // ===========
-        // is activating the leon traps to map basic io functions to the host system
-        // set_brk, open, read, ...
-        if(!((std::string)p_system_osemu).empty()) {
-          v::warn << "OSEmu" << "content " << p_system_osemu << v::endl;
-
-          if(boost::filesystem::exists(boost::filesystem::path((std::string)p_system_osemu))) {
-            v::warn << "OSEmu" << "Enabled" << v::endl;
-            OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
-            osEmu->initSysCalls(p_system_osemu);
-            std::vector<std::string> options;
-            options.push_back(p_system_osemu);
-            if(vm.count("argument")) {
-              std::vector<std::string> argvec = vm["argument"].as<std::vector<std::string> >();
-              for(std::vector<std::string>::iterator iter = argvec.begin(); iter != argvec.end(); iter++) {
-                options.push_back(*iter);
-              }
-            }
-            osEmu->set_program_args(options);
-            //OSEmulator<unsigned int>::set_program_args(options);
-            leon3->toolManager.addTool(*osEmu);
-          } else {
-            v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;
-            exit(1);
-          }
-        }
-      } else {
-        // LEON3 LT Processor
-        // ==================
-        v::info << "main" << "Instantiating LT Processor" << i << v::endl;
-        leon3_funclt_trap::Processor_leon3_funclt *leon3 = new leon3_funclt_trap::Processor_leon3_funclt(sc_core::sc_gen_unique_name("leon3", false), sc_core::sc_time(p_system_clock, SC_NS), p_report_power);
-        leon3->ENTRY_POINT   = 0x0;
-        leon3->MPROC_ID      = (p_mmu_cache_index + i) << 28;
-
-        // Connect cpu to mmu-cache
-        leon3->instrMem.initSocket(mmu_cache_inst->icio);
-        leon3->dataMem.initSocket(mmu_cache_inst->dcio);
-
-        // History logging
-        std::string history = p_proc_history;
-        if(!history.empty()) {
-          leon3->enableHistory(history + boost::lexical_cast<std::string>(i));
-        }
-
-        connect(irqmp.irq_req, leon3->IRQ_port.irq_signal, i);
-        connect(leon3->irqAck.initSignal, irqmp.irq_ack, i);
-        connect(leon3->irqAck.run, irqmp.cpu_rst, i);
-        connect(leon3->irqAck.status, irqmp.cpu_stat, i);
-
-        // GDBStubs
-        //if(p_gdb_en && p_gdb_proc == i) {
-        if(p_gdb_en) {
-          GDBStub<uint32_t> *gdbStub = new GDBStub<uint32_t>(*(leon3->abiIf));
-          leon3->toolManager.addTool(*gdbStub);
-          gdbStub->initialize(p_gdb_port + i);
-          //leon3->instrMem.setDebugger(gdbStub);
-          //leon3->dataMem.setDebugger(gdbStub);
-        }
-        // OS Emulator
-        // ===========
-        // is activating the leon traps to map basic io functions to the host system
-        // set_brk, open, read, ...
-        if(!((std::string)p_system_osemu).empty()) {
-          v::warn << "OSEmu" << "content " << p_system_osemu << v::endl;
-          if(boost::filesystem::exists(boost::filesystem::path((std::string)p_system_osemu))) {
-            v::warn << "OSEmu" << "Enabled" << v::endl;
-            OSEmulator< unsigned int> *osEmu = new OSEmulator<unsigned int>(*(leon3->abiIf));
-            osEmu->initSysCalls(p_system_osemu);
-            std::vector<std::string> options;
-            options.push_back(p_system_osemu);
-            if(vm.count("argument")) {
-              std::vector<std::string> argvec = vm["argument"].as<std::vector<std::string> >();
-              for(std::vector<std::string>::iterator iter = argvec.begin(); iter != argvec.end(); iter++) {
-                options.push_back(*iter);
-              }
-            }
-            //OSEmulator<unsigned int>::set_program_args(options);
-            osEmu->set_program_args(options);
-            leon3->toolManager.addTool(*osEmu);
-          } else {
-            v::warn << "main" << "File " << p_system_osemu << " not found!" << v::endl;
-            exit(1);
-          }
-        }
+      // GDBStubs
+      if(p_gdb_en) {
+        leon3->g_gdb = p_gdb_port;
+      }
+      // OS Emulator
+      // ===========
+      // is activating the leon traps to map basic io functions to the host system
+      // set_brk, open, read, ...
+      if(!((std::string)p_system_osemu).empty()) {
+        leon3->g_osemu = p_system_osemu;
+      }
+      if(vm.count("argument")) {
+        leon3->g_args = vm["arguments"].as<std::vector<std::string> >();
       }
     }
 

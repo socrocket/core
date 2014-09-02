@@ -12,13 +12,13 @@ def build(bld):
         interface.cpp
         decoder.cpp
         memory.cpp
-        externalPorts.cpp
         irqPorts.cpp
         externalPins.cpp
     """
+    #    externalPorts.cpp
 
     uselib = 'GREENSOCS ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
-    use = 'mmu_cache utils signalkit common trap'
+    use = 'utils signalkit common trap'
 
     bld.install_files('${PREFIX}/include/', bld.path.parent.ant_glob(['leon3.funclt.h','leon3.funclt/*.hpp']), cwd=bld.path.parent, relative_trick=True)
 
@@ -33,7 +33,7 @@ def build(bld):
         install_path    = '${PREFIX}/lib',
         defines         = 'ENABLE_HISTORY', 
     )
-
+"""
     sources = sources + 'main.cpp'
     bld.program(
         target = 'leon3.funclt.platform',
@@ -43,3 +43,4 @@ def build(bld):
         uselib = uselib, 
         use = use, 
     )
+"""

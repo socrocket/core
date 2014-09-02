@@ -47,9 +47,8 @@
 using namespace trap;
 namespace leon3_funclt_trap{
 
-    class MemoryInterface{
-
-        public:
+    class MemoryInterface {
+      public:
         virtual sc_dt::uint64 read_dword( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
         virtual unsigned int read_word( const unsigned int & address , const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
         virtual unsigned short int read_half( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;

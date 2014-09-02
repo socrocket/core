@@ -44,7 +44,7 @@
 #include <trap_utils.hpp>
 #include <leon3.funclt/registers.hpp>
 #include <leon3.funclt/alias.hpp>
-#include <leon3.funclt/externalPorts.hpp>
+#include <leon3.funclt/memory.hpp>
 #include <leon3.funclt/externalPins.hpp>
 #include <sstream>
 #include <systemc.h>
@@ -118,8 +118,8 @@ namespace leon3_funclt_trap{
         Alias & SP;
         Alias & PCR;
         Alias * REGS;
-        TLMMemory & instrMem;
-        TLMMemory & dataMem;
+        MemoryInterface & instrMem;
+        MemoryInterface & dataMem;
         PinTLM_out_32 & irqAck;
         const unsigned int NUM_REG_WIN;
         const bool PIPELINED_MULT;
@@ -127,8 +127,8 @@ namespace leon3_funclt_trap{
         public:
         Instruction( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         virtual unsigned int behavior() = 0;
         virtual Instruction * replicate() const throw() = 0;
         virtual void setParams( const unsigned int & bitString ) throw() = 0;
@@ -170,8 +170,8 @@ namespace leon3_funclt_trap{
         public:
         WB_plain_op( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         virtual ~WB_plain_op();
     };
 
@@ -193,8 +193,8 @@ namespace leon3_funclt_trap{
         public:
         ICC_writeLogic_op( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 \
             & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         virtual ~ICC_writeLogic_op();
     };
 
@@ -218,8 +218,8 @@ namespace leon3_funclt_trap{
         public:
         ICC_writeTSub_op( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 \
             & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         virtual ~ICC_writeTSub_op();
     };
 
@@ -244,8 +244,8 @@ namespace leon3_funclt_trap{
         public:
         ICC_writeDiv_op( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 \
             & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         virtual ~ICC_writeDiv_op();
     };
 
@@ -270,8 +270,8 @@ namespace leon3_funclt_trap{
         public:
         ICC_writeAdd_op( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 \
             & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         virtual ~ICC_writeAdd_op();
     };
 
@@ -296,8 +296,8 @@ namespace leon3_funclt_trap{
         public:
         ICC_writeSub_op( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 \
             & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         virtual ~ICC_writeSub_op();
     };
 
@@ -321,8 +321,8 @@ namespace leon3_funclt_trap{
         public:
         ICC_writeTAdd_op( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 \
             & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         virtual ~ICC_writeTAdd_op();
     };
 
@@ -348,8 +348,8 @@ namespace leon3_funclt_trap{
         public:
         ICC_writeTVSub_op( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 \
             & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         virtual ~ICC_writeTVSub_op();
     };
 
@@ -371,7 +371,7 @@ namespace leon3_funclt_trap{
         public:
         WB_tv_op( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         virtual ~WB_tv_op();
     };
@@ -398,8 +398,8 @@ namespace leon3_funclt_trap{
         public:
         ICC_writeTVAdd_op( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 \
             & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         virtual ~ICC_writeTVAdd_op();
     };
 
@@ -412,8 +412,8 @@ namespace leon3_funclt_trap{
         public:
         InvalidInstr( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         void setParams( const unsigned int & bitString ) throw();
@@ -439,7 +439,7 @@ namespace leon3_funclt_trap{
         public:
         READasr( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -467,7 +467,7 @@ namespace leon3_funclt_trap{
         public:
         WRITEY_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -499,7 +499,7 @@ namespace leon3_funclt_trap{
         public:
         XNOR_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -531,7 +531,7 @@ namespace leon3_funclt_trap{
         public:
         ANDNcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -561,7 +561,7 @@ namespace leon3_funclt_trap{
         public:
         LDSB_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -593,8 +593,8 @@ namespace leon3_funclt_trap{
         public:
         WRITEpsr_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -619,7 +619,7 @@ namespace leon3_funclt_trap{
         public:
         READy( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 \
             & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, \
-            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -651,7 +651,7 @@ namespace leon3_funclt_trap{
         public:
         XNORcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -681,7 +681,7 @@ namespace leon3_funclt_trap{
         public:
         READpsr( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -711,7 +711,7 @@ namespace leon3_funclt_trap{
         public:
         ANDN_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -743,7 +743,7 @@ namespace leon3_funclt_trap{
         public:
         ANDcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -775,7 +775,7 @@ namespace leon3_funclt_trap{
         public:
         TSUBcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -810,7 +810,7 @@ namespace leon3_funclt_trap{
         public:
         LDSBA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -843,7 +843,7 @@ namespace leon3_funclt_trap{
         public:
         LDUH_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -879,7 +879,7 @@ namespace leon3_funclt_trap{
         public:
         STA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -911,7 +911,7 @@ namespace leon3_funclt_trap{
         public:
         ORN_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -947,7 +947,7 @@ namespace leon3_funclt_trap{
         public:
         LDSHA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -982,7 +982,7 @@ namespace leon3_funclt_trap{
         public:
         STBA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1015,7 +1015,7 @@ namespace leon3_funclt_trap{
         public:
         ST_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 \
             & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, \
-            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1045,7 +1045,7 @@ namespace leon3_funclt_trap{
         public:
         READtbr( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1080,7 +1080,7 @@ namespace leon3_funclt_trap{
         public:
         UDIVcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1117,7 +1117,7 @@ namespace leon3_funclt_trap{
         public:
         SWAPA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1148,7 +1148,7 @@ namespace leon3_funclt_trap{
         public:
         ADDXcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1178,7 +1178,7 @@ namespace leon3_funclt_trap{
         public:
         STB_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1209,7 +1209,7 @@ namespace leon3_funclt_trap{
         public:
         SUBXcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1244,7 +1244,7 @@ namespace leon3_funclt_trap{
         public:
         STH_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1274,7 +1274,7 @@ namespace leon3_funclt_trap{
         public:
         SRL_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1302,8 +1302,8 @@ namespace leon3_funclt_trap{
         public:
         WRITEasr_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -1334,7 +1334,7 @@ namespace leon3_funclt_trap{
         public:
         UMULcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1366,7 +1366,7 @@ namespace leon3_funclt_trap{
         public:
         LDSTUB_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1396,7 +1396,7 @@ namespace leon3_funclt_trap{
         public:
         XOR_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1428,7 +1428,7 @@ namespace leon3_funclt_trap{
         public:
         SMAC_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1457,8 +1457,8 @@ namespace leon3_funclt_trap{
         public:
         WRITEasr_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -1492,7 +1492,7 @@ namespace leon3_funclt_trap{
         public:
         LD_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 \
             & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, \
-            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1527,7 +1527,7 @@ namespace leon3_funclt_trap{
         public:
         ST_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 \
             & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, \
-            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1559,7 +1559,7 @@ namespace leon3_funclt_trap{
         public:
         SUBcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1594,7 +1594,7 @@ namespace leon3_funclt_trap{
         public:
         LDD_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1625,7 +1625,7 @@ namespace leon3_funclt_trap{
         public:
         ADDcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1660,7 +1660,7 @@ namespace leon3_funclt_trap{
         public:
         LDUH_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1692,7 +1692,7 @@ namespace leon3_funclt_trap{
         public:
         SRL_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1727,7 +1727,7 @@ namespace leon3_funclt_trap{
         public:
         SAVE_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1759,7 +1759,7 @@ namespace leon3_funclt_trap{
         public:
         MULScc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1789,7 +1789,7 @@ namespace leon3_funclt_trap{
         public:
         OR_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 \
             & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, \
-            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1822,7 +1822,7 @@ namespace leon3_funclt_trap{
         public:
         STD_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1854,7 +1854,7 @@ namespace leon3_funclt_trap{
         public:
         SUBXcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1885,7 +1885,7 @@ namespace leon3_funclt_trap{
         public:
         ADDX_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1919,7 +1919,7 @@ namespace leon3_funclt_trap{
         public:
         SWAP_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1951,7 +1951,7 @@ namespace leon3_funclt_trap{
         public:
         UMUL_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -1978,7 +1978,7 @@ namespace leon3_funclt_trap{
         public:
         WRITEY_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2010,7 +2010,7 @@ namespace leon3_funclt_trap{
         public:
         AND_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2036,7 +2036,7 @@ namespace leon3_funclt_trap{
         public:
         FLUSH_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2068,7 +2068,7 @@ namespace leon3_funclt_trap{
         public:
         SRA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2101,7 +2101,7 @@ namespace leon3_funclt_trap{
         public:
         STH_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2132,8 +2132,8 @@ namespace leon3_funclt_trap{
         public:
         WRITEwim_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -2165,7 +2165,7 @@ namespace leon3_funclt_trap{
         public:
         LDD_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2195,7 +2195,7 @@ namespace leon3_funclt_trap{
         public:
         SLL_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2231,7 +2231,7 @@ namespace leon3_funclt_trap{
         public:
         LDUHA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2264,7 +2264,7 @@ namespace leon3_funclt_trap{
         public:
         TADDcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2296,7 +2296,7 @@ namespace leon3_funclt_trap{
         public:
         TADDcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2331,7 +2331,7 @@ namespace leon3_funclt_trap{
         public:
         SDIV_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2365,8 +2365,8 @@ namespace leon3_funclt_trap{
         public:
         TSUBccTV_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -2392,7 +2392,7 @@ namespace leon3_funclt_trap{
         public:
         FLUSH_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2424,7 +2424,7 @@ namespace leon3_funclt_trap{
         public:
         ORNcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2462,7 +2462,7 @@ namespace leon3_funclt_trap{
         public:
         RETT_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2498,7 +2498,7 @@ namespace leon3_funclt_trap{
         public:
         SDIVcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2530,7 +2530,7 @@ namespace leon3_funclt_trap{
         public:
         ADD_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2562,7 +2562,7 @@ namespace leon3_funclt_trap{
         public:
         TRAP_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2593,8 +2593,8 @@ namespace leon3_funclt_trap{
         public:
         WRITEtbr_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -2625,7 +2625,7 @@ namespace leon3_funclt_trap{
         public:
         LDUB_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2661,8 +2661,8 @@ namespace leon3_funclt_trap{
         public:
         RESTORE_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -2693,7 +2693,7 @@ namespace leon3_funclt_trap{
         public:
         ADDXcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2725,7 +2725,7 @@ namespace leon3_funclt_trap{
         public:
         STB_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2755,7 +2755,7 @@ namespace leon3_funclt_trap{
         public:
         AND_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2786,7 +2786,7 @@ namespace leon3_funclt_trap{
         public:
         SMUL_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2817,7 +2817,7 @@ namespace leon3_funclt_trap{
         public:
         ADD_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2848,7 +2848,7 @@ namespace leon3_funclt_trap{
         public:
         UMUL_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2878,7 +2878,7 @@ namespace leon3_funclt_trap{
         public:
         READwim( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2908,7 +2908,7 @@ namespace leon3_funclt_trap{
         public:
         LDSTUB_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2939,7 +2939,7 @@ namespace leon3_funclt_trap{
         public:
         SMAC_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -2971,7 +2971,7 @@ namespace leon3_funclt_trap{
         public:
         LDSB_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3003,7 +3003,7 @@ namespace leon3_funclt_trap{
         public:
         ANDN_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3038,8 +3038,8 @@ namespace leon3_funclt_trap{
         public:
         TSUBccTV_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -3065,7 +3065,7 @@ namespace leon3_funclt_trap{
         public:
         SETHI( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 \
             & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, \
-            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3095,7 +3095,7 @@ namespace leon3_funclt_trap{
         public:
         SRA_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3130,7 +3130,7 @@ namespace leon3_funclt_trap{
         public:
         LDSH_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3166,7 +3166,7 @@ namespace leon3_funclt_trap{
         public:
         UDIVcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3196,7 +3196,7 @@ namespace leon3_funclt_trap{
         public:
         ORN_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3231,7 +3231,7 @@ namespace leon3_funclt_trap{
         public:
         STD_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3261,7 +3261,7 @@ namespace leon3_funclt_trap{
         public:
         ANDNcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3295,8 +3295,8 @@ namespace leon3_funclt_trap{
         public:
         TADDccTV_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -3327,8 +3327,8 @@ namespace leon3_funclt_trap{
         public:
         WRITEtbr_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -3359,7 +3359,7 @@ namespace leon3_funclt_trap{
         public:
         SUBX_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3389,7 +3389,7 @@ namespace leon3_funclt_trap{
         public:
         XNOR_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3424,7 +3424,7 @@ namespace leon3_funclt_trap{
         public:
         UDIV_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3457,7 +3457,7 @@ namespace leon3_funclt_trap{
         public:
         LDSH_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3485,7 +3485,7 @@ namespace leon3_funclt_trap{
         public:
         UNIMP( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 \
             & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, \
-            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3520,8 +3520,8 @@ namespace leon3_funclt_trap{
         public:
         LDSTUBA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -3551,7 +3551,7 @@ namespace leon3_funclt_trap{
         public:
         UMULcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3583,7 +3583,7 @@ namespace leon3_funclt_trap{
         public:
         ORcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3614,7 +3614,7 @@ namespace leon3_funclt_trap{
         public:
         MULScc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3646,7 +3646,7 @@ namespace leon3_funclt_trap{
         public:
         XORcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3678,7 +3678,7 @@ namespace leon3_funclt_trap{
         public:
         SUB_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3710,8 +3710,8 @@ namespace leon3_funclt_trap{
         public:
         WRITEwim_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -3741,7 +3741,7 @@ namespace leon3_funclt_trap{
         public:
         UMAC_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3774,7 +3774,7 @@ namespace leon3_funclt_trap{
         public:
         TSUBcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3802,7 +3802,7 @@ namespace leon3_funclt_trap{
         public:
         BRANCH( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 \
             & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, \
-            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3834,7 +3834,7 @@ namespace leon3_funclt_trap{
         public:
         SMULcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3865,7 +3865,7 @@ namespace leon3_funclt_trap{
         public:
         SUB_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3897,7 +3897,7 @@ namespace leon3_funclt_trap{
         public:
         ADDcc_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3929,7 +3929,7 @@ namespace leon3_funclt_trap{
         public:
         XOR_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3960,7 +3960,7 @@ namespace leon3_funclt_trap{
         public:
         SUBcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -3995,8 +3995,8 @@ namespace leon3_funclt_trap{
         public:
         TADDccTV_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -4031,7 +4031,7 @@ namespace leon3_funclt_trap{
         public:
         SDIV_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4062,7 +4062,7 @@ namespace leon3_funclt_trap{
         public:
         SMULcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4098,7 +4098,7 @@ namespace leon3_funclt_trap{
         public:
         SWAP_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4129,7 +4129,7 @@ namespace leon3_funclt_trap{
         public:
         SUBX_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4165,7 +4165,7 @@ namespace leon3_funclt_trap{
         public:
         STDA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4197,7 +4197,7 @@ namespace leon3_funclt_trap{
         public:
         UMAC_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4228,7 +4228,7 @@ namespace leon3_funclt_trap{
         public:
         JUMP_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4260,7 +4260,7 @@ namespace leon3_funclt_trap{
         public:
         SMUL_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4290,7 +4290,7 @@ namespace leon3_funclt_trap{
         public:
         XORcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4320,7 +4320,7 @@ namespace leon3_funclt_trap{
         public:
         ORNcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4355,7 +4355,7 @@ namespace leon3_funclt_trap{
         public:
         LDUBA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4387,7 +4387,7 @@ namespace leon3_funclt_trap{
         public:
         JUMP_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4419,7 +4419,7 @@ namespace leon3_funclt_trap{
         public:
         ADDX_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4455,7 +4455,7 @@ namespace leon3_funclt_trap{
         public:
         UDIV_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4485,7 +4485,7 @@ namespace leon3_funclt_trap{
         public:
         XNORcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4505,7 +4505,7 @@ namespace leon3_funclt_trap{
         public:
         STBAR( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 \
             & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, \
-            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4541,7 +4541,7 @@ namespace leon3_funclt_trap{
         public:
         LDA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4577,7 +4577,7 @@ namespace leon3_funclt_trap{
         public:
         STHA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4613,7 +4613,7 @@ namespace leon3_funclt_trap{
         public:
         LDDA_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4645,7 +4645,7 @@ namespace leon3_funclt_trap{
         public:
         SLL_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4680,8 +4680,8 @@ namespace leon3_funclt_trap{
         public:
         RESTORE_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -4713,7 +4713,7 @@ namespace leon3_funclt_trap{
         public:
         LD_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 \
             & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, \
-            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4746,7 +4746,7 @@ namespace leon3_funclt_trap{
         public:
         TRAP_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4776,7 +4776,7 @@ namespace leon3_funclt_trap{
         public:
         LDUB_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4815,7 +4815,7 @@ namespace leon3_funclt_trap{
         public:
         RETT_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4850,7 +4850,7 @@ namespace leon3_funclt_trap{
         public:
         SDIVcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4886,7 +4886,7 @@ namespace leon3_funclt_trap{
         public:
         SAVE_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4918,7 +4918,7 @@ namespace leon3_funclt_trap{
         public:
         OR_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 \
             & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, \
-            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4948,7 +4948,7 @@ namespace leon3_funclt_trap{
         public:
         ORcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -4975,7 +4975,7 @@ namespace leon3_funclt_trap{
         public:
         CALL( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 \
             & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, \
-            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -5008,8 +5008,8 @@ namespace leon3_funclt_trap{
         public:
         WRITEpsr_reg( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & \
             PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
         std::string getInstructionName() const throw();
@@ -5038,7 +5038,7 @@ namespace leon3_funclt_trap{
         public:
         ANDcc_imm( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, \
             Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias \
-            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, TLMMemory \
+            & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, MemoryInterface \
             & dataMem, PinTLM_out_32 & irqAck );
         unsigned int behavior();
         Instruction * replicate() const throw();
@@ -5062,8 +5062,8 @@ namespace leon3_funclt_trap{
         public:
         IRQ_IRQ_Instruction( Reg32_0 & PSR, Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 \
             & PC, Reg32_3 & NPC, RegisterBankClass & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, \
-            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, TLMMemory & instrMem, \
-            TLMMemory & dataMem, PinTLM_out_32 & irqAck, unsigned int & IRQ );
+            Alias & FP, Alias & LR, Alias & SP, Alias & PCR, Alias * REGS, MemoryInterface & instrMem, \
+            MemoryInterface & dataMem, PinTLM_out_32 & irqAck, unsigned int & IRQ );
         unsigned int behavior();
         Instruction * replicate() const throw();
         void setParams( const unsigned int & bitString ) throw();
