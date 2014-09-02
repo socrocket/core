@@ -190,6 +190,7 @@ class sr_report_handler : public sc_core::sc_report_handler {
 
       sc_actions actions = execute(md, severity_);
       rep = sr_report(severity_, md, msg_, file_, line_, verbosity_, actions);
+      rep.pairs.clear();
 
       //if (actions & SC_CACHE_REPORT) {
       //  cache_report(rep);
