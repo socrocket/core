@@ -25,6 +25,7 @@ typedef sc_core::sc_module_name ModuleName;
 typedef sc_core::sc_module DefaultBase;
 typedef gs::reg::gr_device RegisterBase;
 typedef amba::amba_layer_ids AbstractionLayer;
+typedef gs::reg::greenreg_socket<gs::amba::amba_slave<32> > RegisterSocket;
 
 typedef gs::cnf::cnf_api ParameterAPI;
 typedef gs::cnf::gs_param_array ParameterArray;
