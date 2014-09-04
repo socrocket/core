@@ -32,7 +32,7 @@
 #include "core/models/memory/ext_erase.h"
 #include "core/common/vendian.h"
 #include "core/common/verbose.h"
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 
 /// @addtogroup mctrl MCtrl
 /// @{

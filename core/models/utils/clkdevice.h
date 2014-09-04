@@ -17,7 +17,7 @@
 #define MODELS_UTILS_CLKDEVICE_H_
 
 #include "core/common/systemc.h"
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 
 class CLKDevice {
   public:

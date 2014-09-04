@@ -16,7 +16,7 @@
 #define SCIN_TLMOUT_ADAPTER_H
 
 #include <systemc>
-#include "signalkit/signalkit_h/module.h"
+#include "core/common/signalkit_h/module.h"
 
 namespace signalkit {
 

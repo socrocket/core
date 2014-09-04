@@ -17,8 +17,8 @@
 #define SIGNALKIT_CONNECT_H
 
 #include <stdint.h>
-#include "signalkit/signalkit_h/ifs.h"
-#include "signalkit/signalkit_h/adapter.h"
+#include "core/common/signalkit_h/ifs.h"
+#include "core/common/signalkit_h/adapter.h"
 namespace signalkit {
 
 /// Connects an input signal with an output signal

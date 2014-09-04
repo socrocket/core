@@ -39,7 +39,7 @@
 #include "core/models/extern/LEON3/simulatorSources/leon3.funcat/irqPorts.hpp"
 #include "core/common/trapgen/utils/trap_utils.hpp"
 
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 
 
 using namespace leon3_funcat_trap;

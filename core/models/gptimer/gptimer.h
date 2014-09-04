@@ -28,7 +28,7 @@
 #include "core/models/utils/apbdevice.h"
 #include "core/models/utils/clkdevice.h"
 
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 #include "core/common/verbose.h"
 #include "core/common/gs_config.h"
 

@@ -18,7 +18,7 @@
 
 #include "core/common/base.h"
 #include "core/common/systemc.h"
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 
 #include "core/common/verbose.h"
 #include "core/models/mmu_cache/lib/cache_if.h"

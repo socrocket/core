@@ -10,6 +10,22 @@ from core.waf.common import conf
 WAF_CONFIG_LOG='repo.log'
 REPOS = {}
 
+def read_repos():
+    if os.path.isfile(Context.out_dir+os.sep+".conf_check_repos.json"):
+        with open(Context.out_dir+os.sep+".conf_check_repos.json", "r") as jsonfile:
+            obj = json.load(jsonfile)
+            jsonfile.close()
+            return obj
+    else:
+        core = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
+        return {"core": core}
+
+def write_repos(repos):
+    with open(Context.out_dir+os.sep+".conf_check_repos.json", "w") as jsonfile:
+        json.dump(repos, jsonfile)
+        jsonfile.close()
+
+
 def get_repo_vals(directory):
     prefix = "repository_"
     keys = ["name", "desc", "tools", "path"]
@@ -64,25 +80,12 @@ class repo(ConfigurationContext):
           if self.srcnode.is_child_of(self.path):
             Logs.warn('Are you certain that you do not want to set top="." ?')
         global REPOS
-        REPOS = self.read_repos()
+        Context.top_dir=self.srcnode.abspath()
+        Context.out_dir=self.bldnode.abspath()
+        REPOS = read_repos()
         self.work()
-        self.write_repos(REPOS)
+        write_repos(REPOS)
         self.store()
-
-    def read_repos(self):
-        if os.path.isfile(Context.out_dir+os.sep+".conf_check_repos.json"):
-            with open(Context.out_dir+os.sep+".conf_check_repos.json", "r") as jsonfile:
-                obj = json.load(jsonfile)
-                jsonfile.close()
-                return obj
-        else:
-            core = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
-            return {"core": core}
-
-    def write_repos(self, repos):
-        with open(Context.out_dir+os.sep+".conf_check_repos.json", "w") as jsonfile:
-            json.dump(repos, jsonfile)
-            jsonfile.close()
 
     def git_cmd(self, cmd, params):
         global REPOS
@@ -134,7 +137,7 @@ class repo(ConfigurationContext):
             print "    name: %s" % vals["name"]
             print "    default path: %s" % vals["path"]
             print "    tools: %s" % ', '.join(vals["tools"])
-            print "    description: %s" % vals["description"]
+            print "    description: %s" % vals["desc"]
             print ""
 
     def show_help(self, cmd, params):
@@ -181,20 +184,24 @@ setattr(Context.g_module, 'repo', repo)
 def export_have_define(self):
     defines = getattr(self, 'defines', [])
     defines = Utils.to_list(defines)
+    REPOS = read_repos()
     for repo in REPOS:
         defines += ['HAVE_REPO_' + repo.replace('.', '_').upper()]
     setattr(self, 'defines', defines)
 
 def loadrepos(self):
+    REPOS = read_repos()
     for d, repo in REPOS.iteritems():
-        directory = os.path.join(self.root.abspath(),d)
+        directory = os.path.join(os.getcwd(),d)
         vals = get_repo_vals(directory)
         waf = os.path.join(directory, "waf")
-        self.load(vals["tools"], waf)
+        print "Load", d, directory, waf, isinstance(waf, list)
+        self.load(vals["tools"], tooldir=[waf])
 
 conf(loadrepos)
 
 def iterrepos(self):
+    REPOS = read_repos()
     for d, repo in REPOS.iteritems():
         self.recurse(os.path.join(self.root.abspath(),d))
 

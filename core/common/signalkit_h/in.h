@@ -16,8 +16,8 @@
 #define TLM_SIGNAL_IN_H
 
 #include <stdint.h>
-#include "signalkit/signalkit_h/base.h"
-#include "signalkit/signalkit_h/ifs.h"
+#include "core/common/signalkit_h/base.h"
+#include "core/common/signalkit_h/ifs.h"
 
 namespace signalkit {
 

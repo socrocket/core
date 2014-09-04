@@ -26,7 +26,7 @@
 #include <math.h>
 
 #include "core/common/socrocket.h"
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 #include "core/models/utils/ahbmaster.h"
 #include "core/models/utils/clkdevice.h"
 

@@ -25,7 +25,7 @@
 #include "core/models/apbuart/io_if.h"
 #include "core/models/utils/apbdevice.h"
 #include "core/models/utils/clkdevice.h"
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 #include "core/common/verbose.h"
 
 /// @brief This class is a TLM 2.0 Model of the Aeroflex Gaisler GRLIB APBUART.

@@ -43,7 +43,7 @@
 #include <tlm_utils/multi_passthrough_target_socket.h>
 #include "core/common/systemc.h"
 
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 
 #define FUNC_MODEL
 #define AT_IF
