@@ -24,7 +24,7 @@
 
 #include "core/models/utils/apbdevice.h"
 #include "core/models/utils/clkdevice.h"
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 
 /// @addtogroup irqmp IRQMP
 /// @{

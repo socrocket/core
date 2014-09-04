@@ -24,7 +24,7 @@
 
 #include "core/models/utils/ahbdevice.h"
 #include "core/models/utils/clkdevice.h"
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 #include "core/common/msclogger.h"
 #include "core/common/socrocket.h"
 #include "core/common/gs_config.h"

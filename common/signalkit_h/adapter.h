@@ -15,9 +15,9 @@
 #ifndef SIGNALKIT_ADAPTER_H
 #define SIGNALKIT_ADAPTER_H
 
-#include "signalkit/signalkit_h/adapter_h/tlmin_scout_adapter.h"
-#include "signalkit/signalkit_h/adapter_h/scin_tlmout_adapter.h"
-#include "signalkit/signalkit_h/adapter_h/tlmsc_inout_adapter.h"
+#include "core/common/signalkit_h/adapter_h/tlmin_scout_adapter.h"
+#include "core/common/signalkit_h/adapter_h/scin_tlmout_adapter.h"
+#include "core/common/signalkit_h/adapter_h/tlmsc_inout_adapter.h"
 
 #endif
 /// @}

@@ -16,11 +16,11 @@
 #ifndef SIGNALKIT_MODULE_H
 #define SIGNALKIT_MODULE_H
 
-#include "signalkit/signalkit_h/in.h"
-#include "signalkit/signalkit_h/out.h"
-#include "signalkit/signalkit_h/inout.h"
-#include "signalkit/signalkit_h/selector.h"
-#include "signalkit/signalkit_h/infield.h"
+#include "core/common/signalkit_h/in.h"
+#include "core/common/signalkit_h/out.h"
+#include "core/common/signalkit_h/inout.h"
+#include "core/common/signalkit_h/selector.h"
+#include "core/common/signalkit_h/infield.h"
 
 namespace signalkit {
 

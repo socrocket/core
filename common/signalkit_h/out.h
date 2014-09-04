@@ -15,8 +15,8 @@
 #ifndef SIGNALKIT_OUT_H
 #define SIGNALKIT_OUT_H
 
-#include "signalkit/signalkit_h/base.h"
-#include "signalkit/signalkit_h/ifs.h"
+#include "core/common/signalkit_h/base.h"
+#include "core/common/signalkit_h/ifs.h"
 #include <stdint.h>
 
 namespace signalkit {

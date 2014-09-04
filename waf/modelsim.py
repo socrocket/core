@@ -495,11 +495,6 @@ def modelsim_sccom(self, node):
         test.ut_exec = ['sh', self.link_task.outputs[0].abspath()]
     #tsk.dep_nodes += self.mdeps
 
-# ASM hooks for the gcc compiler
-def s_hook(self,node):
-	return self.create_compiled_task('c',node)
-TaskGen.extension('.S')(s_hook)
-
 # Compiler distribution function
 def create_compiled_task(self, name, node):
   if 'modelsim' in self.features:

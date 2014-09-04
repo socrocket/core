@@ -175,6 +175,12 @@ from waflib.TaskGen import feature, after_method, before_method, task_gen
 feature('systest')(make_systest)
 after_method('apply_link')(make_systest)
 
+# ASM hooks for the gcc compiler
+def s_hook(self,node):
+	return self.create_compiled_task('c',node)
+TaskGen.extension('.S')(s_hook)
+
+
 MKPROM = Task.task_factory( 'MKPROM',
     func  = '${MKPROM} ${_MKPROMFLAGS} -o ${TGT} ${SRC}',
     color = 'YELLOW')

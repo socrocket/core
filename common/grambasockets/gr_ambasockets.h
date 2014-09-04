@@ -45,7 +45,7 @@
 #include <greensocket/utils/greensocketaddress_base.h>
 #include <greenreg/greenreg_socket/transactor_if.h>
 #include <greenreg/framework/core/gr_common.h>
-#include "core/common/amba.h"
+#include <amba.h>
 #include "core/common/vendian.h"
 
 #include <systemc>

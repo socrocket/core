@@ -40,7 +40,7 @@
 #include "core/models/extern/LEON3/simulatorSources/leon3.funclt/irqPorts.hpp"
 #include "core/common/trapgen/utils/trap_utils.hpp"
 
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 #include "core/common/verbose.h"
 
 

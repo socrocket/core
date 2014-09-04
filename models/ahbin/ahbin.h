@@ -28,7 +28,7 @@
 #include "core/models/utils/clkdevice.h"
 
 // Signal definitions for IRQ communication
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 
 // Verbosity kit - for output formatting and filtering
 #include "core/common/verbose.h"

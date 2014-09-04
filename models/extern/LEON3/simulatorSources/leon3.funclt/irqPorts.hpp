@@ -42,7 +42,7 @@
 
 #include "core/common/trapgen/utils/trap_utils.hpp"
 
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 
 #define FUNC_MODEL
 #define LT_IF

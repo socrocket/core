@@ -16,8 +16,8 @@
 #define SIGNALKIT_INFIELD_H
 
 #include <stdint.h>
-#include "signalkit/signalkit_h/base.h"
-#include "signalkit/signalkit_h/ifs.h"
+#include "core/common/signalkit_h/base.h"
+#include "core/common/signalkit_h/ifs.h"
 
 #ifdef EN_HASH
 #define SIGNALKIT_MAP__ SIGNALKIT_MAP__

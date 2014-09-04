@@ -7,6 +7,23 @@ REPOSITORY_DESC = """
 SoCRocket Main Repository
 """
 REPOSITORY_TOOLS = [
+    'pthreads',
+    'boosting',
+    'endian',
+    'systools',
+    'libelf',
+    'systemc',
+    'cmake',
+    'winsocks',
+    'lua',
+    'greenlib',
+    'ambakit',
+    'socrocket',
+    'wizard',
+    'docs',
+    'cpplint',
+    'oclint',
+    'clang_compilation_database',
     "sparcelf"
 ]
 

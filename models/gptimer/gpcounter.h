@@ -22,7 +22,7 @@
 #include "core/common/base.h"
 #include "core/common/systemc.h"
 
-#include "signalkit/signalkit.h"
+#include "core/common/signalkit.h"
 
 class GPTimer;
 

@@ -16,8 +16,8 @@
 #define SIGNALKIT_INOUT_H
 
 #include <stdint.h>
-#include "signalkit/signalkit_h/out.h"
-#include "signalkit/signalkit_h/in.h"
+#include "core/common/signalkit_h/out.h"
+#include "core/common/signalkit_h/in.h"
 
 namespace signalkit {
 

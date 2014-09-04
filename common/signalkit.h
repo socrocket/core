@@ -27,9 +27,9 @@
 
 #ifndef SIGNALKIT_H
 #define SIGNALKIT_H
-#include "signalkit/signalkit_h/module.h"
-#include "signalkit/signalkit_h/adapter.h"
-#include "signalkit/signalkit_h/connect.h"
+#include "core/common/signalkit_h/module.h"
+#include "core/common/signalkit_h/adapter.h"
+#include "core/common/signalkit_h/connect.h"
 
 #endif  // SIGNALKIT_H
 /// @}
