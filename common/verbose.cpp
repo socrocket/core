@@ -13,7 +13,7 @@
 ///
 
 #include <string>
-#include "common/verbose.h"
+#include "core/common/verbose.h"
 
 namespace v {
 template<typename char_type, typename traits = std::char_traits<char_type> >

@@ -39,7 +39,7 @@
 #define REGISTERS_HPP
 
 #include <ostream>
-#include <trap_utils.hpp>
+#include "core/common/trapgen/utils/trap_utils.hpp"
 
 #define FUNC_MODEL
 #define AT_IF

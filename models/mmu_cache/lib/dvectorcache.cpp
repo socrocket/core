@@ -14,7 +14,7 @@
 /// @author Thomas Schuster
 ///
 
-#include "dvectorcache.h"
+#include "core/models/mmu_cache/lib/dvectorcache.h"
 
 // Implement ccr check
 unsigned int dvectorcache::check_mode() {

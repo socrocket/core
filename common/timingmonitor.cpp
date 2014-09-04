@@ -13,7 +13,7 @@
 /// @author Thomas Schuster
 ///
 
-#include "common/timingmonitor.h"
+#include "core/common/timingmonitor.h"
 
 // Initialize timing map (static - must be done outside class def)
 TimingMonitor::t_timing_map TimingMonitor::timing_map;

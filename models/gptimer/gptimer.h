@@ -16,21 +16,21 @@
 #define MODELS_GPTIMER_GPTIMER_H_
 
 #include <greencontrol/all.h>
-#include <greenreg_ambasockets.h>
-#include "common/base.h"
-#include "common/systemc.h"
+#include "core/common/grambasockets/greenreg_ambasockets.h"
+#include "core/common/base.h"
+#include "core/common/systemc.h"
 #include <boost/config.hpp>
 
 #include <string>
 #include <vector>
 
-#include "models/gptimer/gpcounter.h"
-#include "models/utils/apbdevice.h"
-#include "models/utils/clkdevice.h"
+#include "core/models/gptimer/gpcounter.h"
+#include "core/models/utils/apbdevice.h"
+#include "core/models/utils/clkdevice.h"
 
 #include "signalkit/signalkit.h"
-#include "common/verbose.h"
-#include "common/gs_config.h"
+#include "core/common/verbose.h"
+#include "core/common/gs_config.h"
 
 #undef CTRL
 

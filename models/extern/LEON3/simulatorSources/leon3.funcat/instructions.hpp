@@ -38,16 +38,16 @@
 #ifndef INSTRUCTIONS_HPP
 #define INSTRUCTIONS_HPP
 
-#include <instructionBase.hpp>
+#include "core/common/trapgen/instructionBase.hpp"
 #include <string>
-#include <customExceptions.hpp>
-#include <trap_utils.hpp>
-#include <leon3.funcat/registers.hpp>
-#include <leon3.funcat/alias.hpp>
-#include <leon3.funcat/externalPorts.hpp>
-#include <leon3.funcat/externalPins.hpp>
+#include "core/common/trapgen/utils/customExceptions.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/registers.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/alias.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/externalPorts.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/externalPins.hpp"
 #include <sstream>
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 #define FUNC_MODEL
 #define AT_IF

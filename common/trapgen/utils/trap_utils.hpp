@@ -33,7 +33,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "customExceptions.hpp"
+#include "core/common/trapgen/utils/customExceptions.hpp"
 
 #ifndef __GNUC__
 #ifndef __PRETTY_FUNCTION__

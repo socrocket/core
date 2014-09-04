@@ -39,9 +39,9 @@
 #define IRQPORTS_HPP
 
 #include <tlm.h>
-#include <trap_utils.hpp>
+#include "core/common/trapgen/utils/trap_utils.hpp"
 #include <tlm_utils/multi_passthrough_target_socket.h>
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 #include "signalkit/signalkit.h"
 

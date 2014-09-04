@@ -15,7 +15,7 @@
 #ifndef MODELS_MEMORY_ARRAYSTORAGE_H_
 #define MODELS_MEMORY_ARRAYSTORAGE_H_
 
-#include "models/memory/storage.h"
+#include "core/models/memory/storage.h"
 
 class ArrayStorage : public Storage {
   public:

@@ -16,9 +16,9 @@
 #include <string>
 #include <map>
 #include <utility>
-#include "models/ahbctrl/ahbctrl.h"
-#include "common/vendian.h"
-#include "common/verbose.h"
+#include "core/models/ahbctrl/ahbctrl.h"
+#include "core/common/vendian.h"
+#include "core/common/verbose.h"
 
 // Constructor of class AHBCtrl
 AHBCtrl::AHBCtrl(

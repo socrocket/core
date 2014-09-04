@@ -12,11 +12,11 @@
 /// @author Timo Veit
 ///
 
-#include <memory.h>
+#include "core/models/memory/memory.h"
 #include <string>
 #include <utility>
 #include <vector>
-#include "common/json_parser.h"
+#include "core/common/json_parser.h"
 
 // true if character represent a digit
 #define IS_DIGIT(c) (c >= '0' && c <= '9')

@@ -14,7 +14,7 @@
 /// @author Thomas Schuster
 ///
 
-#include "vectorcache.h"
+#include "core/models/mmu_cache/lib/vectorcache.h"
 
 // constructor
 // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in words, replacement strategy

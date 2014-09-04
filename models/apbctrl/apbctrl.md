@@ -172,15 +172,15 @@ To utilize APBCtrl in simulations with other components, add APBCtrl the use lis
 This example shows how to instantiate the module APBCTRL. The APBCTRL is a bridge between the AHB and the APB portion of the AMBA bus system. The component is created in lines 36-41. In line 46 the module is bound to the master socket of the AHBCTRL. Line 49 binds a slave, here the control interface of the MCTRL, to the master socket of the APBCTRL. Similar to the AHBCTRL the APBCTRL needs a notion of time. Hence, it inherits the clock interface of class CLKDevice. In this examples the clock cycle time is set in line 55.
 
 ~~~{.cpp}
-#include "amba.h"
+#include "core/common/amba.h"
 
-#include "models/ahbctrl/ahbctrl.h"
-#include "models/apbctrl/apbctrl.h"
+#include "core/models/ahbctrl/ahbctrl.h"
+#include "core/models/apbctrl/apbctrl.h"
 #include "genericmemory.h"
-#include "models/mctrl/mctrl.h"
+#include "core/models/mctrl/mctrl.h"
 #include "testbench.h"
 
-#include "common/systemc.h"
+#include "core/common/systemc.h"
 
 using namespace std;
 using namespace sc_core;

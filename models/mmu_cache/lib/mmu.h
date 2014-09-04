@@ -19,16 +19,16 @@
 #define __MMU_H__
 
 #include <map>
-#include "common/base.h"
-#include "common/systemc.h"
-#include "common/gs_config.h"
+#include "core/common/base.h"
+#include "core/common/systemc.h"
+#include "core/common/gs_config.h"
 
-#include "mmu_if.h"
-#include "tlb_adaptor.h"
-#include "mmu_cache_if.h"
+#include "core/models/mmu_cache/lib/mmu_if.h"
+#include "core/models/mmu_cache/lib/tlb_adaptor.h"
+#include "core/models/mmu_cache/lib/mmu_cache_if.h"
 
-#include "common/vendian.h"
-#include "defines.h"
+#include "core/common/vendian.h"
+#include "core/models/mmu_cache/lib/defines.h"
 
 // implementation of a memory management unit
 // ------------------------------------------

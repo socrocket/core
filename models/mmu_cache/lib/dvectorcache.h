@@ -17,11 +17,11 @@
 #ifndef __DVECTORCACHE_H__
 #define __DVECTORCACHE_H__
 
-#include "vectorcache.h"
-#include "defines.h"
+#include "core/models/mmu_cache/lib/vectorcache.h"
+#include "core/models/mmu_cache/lib/defines.h"
 
-#include "common/base.h"
-#include "common/systemc.h"
+#include "core/common/base.h"
+#include "core/common/systemc.h"
 
 // Implementation of data cache memory and controller
 // --------------------------------------------------

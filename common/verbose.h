@@ -21,8 +21,8 @@
 #include <iostream>  // NOLINT(readability/streams)
 #include <streambuf>
 
-#include "common/common.h"
-#include "common/systemc.h"
+#include "core/common/common.h"
+#include "core/common/systemc.h"
 
 namespace v {
 // Import std istd::ostream operators

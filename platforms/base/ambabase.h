@@ -13,10 +13,10 @@
 
 #include <systemc>
 
-#include "models/utils/clkdevice.h"
-#include "models/ahbctrl/ahbctrl.h"
-#include "models/apbctrl/apbctrl.h"
-#include "models/irqmp/irqmp.h"
+#include "core/models/utils/clkdevice.h"
+#include "core/models/ahbctrl/ahbctrl.h"
+#include "core/models/apbctrl/apbctrl.h"
+#include "core/models/irqmp/irqmp.h"
 
 class AMBABasePlatform : public sc_core::sc_module, public CLKDevice {
   public:

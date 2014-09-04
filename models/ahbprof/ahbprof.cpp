@@ -15,9 +15,9 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
-#include "models/ahbprof/ahbprof.h"
-#include "common/vendian.h"
-#include "common/verbose.h"
+#include "core/models/ahbprof/ahbprof.h"
+#include "core/common/vendian.h"
+#include "core/common/verbose.h"
 
 // / Constructor
 AHBProf::AHBProf(const ModuleName nm,  // Module name

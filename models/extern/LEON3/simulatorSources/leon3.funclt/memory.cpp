@@ -36,10 +36,10 @@
 
 
 
-#include <leon3.funclt/memory.hpp>
-#include <ToolsIf.hpp>
-#include <trap_utils.hpp>
-#include <systemc.h>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/memory.hpp"
+#include "core/common/trapgen/ToolsIf.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
+#include "core/common/systemc.h"
 
 using namespace leon3_funclt_trap;
 using namespace trap;

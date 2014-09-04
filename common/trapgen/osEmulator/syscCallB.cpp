@@ -24,8 +24,8 @@
  *
 \***************************************************************************/
 
-#include "elfloader/elfFrontend.hpp"
-#include "osEmulator/syscCallB.hpp"
+#include "core/common/trapgen/elfloader/elfFrontend.hpp"
+#include "core/common/trapgen/osEmulator/syscCallB.hpp"
 
 #include <map>
 #include <string>

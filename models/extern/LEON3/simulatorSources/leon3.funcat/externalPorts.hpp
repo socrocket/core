@@ -38,16 +38,16 @@
 #ifndef EXTERNALPORTS_HPP
 #define EXTERNALPORTS_HPP
 
-#include <leon3.funcat/memory.hpp>
-#include <systemc.h>
-#include <ToolsIf.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/memory.hpp"
+#include "core/common/systemc.h"
+#include "core/common/trapgen/ToolsIf.hpp"
 #include <tlm.h>
-#include <trap_utils.hpp>
+#include "core/common/trapgen/utils/trap_utils.hpp"
 #include <tlm_utils/simple_initiator_socket.h>
 #include <tlm_utils/peq_with_cb_and_phase.h>
-#include "icio_payload_extension.h"
-#include "dcio_payload_extension.h"
-#include "common/verbose.h"
+#include "core/models/mmu_cache/lib/icio_payload_extension.h"
+#include "core/models/mmu_cache/lib/dcio_payload_extension.h"
+#include "core/common/verbose.h"
 
 #define FUNC_MODEL
 #define AT_IF

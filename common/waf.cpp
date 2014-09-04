@@ -14,7 +14,7 @@
 #include <string>
 #include <utility>
 #include <map>
-#include "common/waf.h"
+#include "core/common/waf.h"
 
 #ifdef __linux__
 #define SYS_PLATFORM "linux2"

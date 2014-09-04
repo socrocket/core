@@ -18,8 +18,8 @@
 #include <string>
 #include <utility>
 
-#include "models/irqmp/irqmp.h"
-#include "common/verbose.h"
+#include "core/models/irqmp/irqmp.h"
+#include "core/common/verbose.h"
 
 /// Constructor
 Irqmp::Irqmp(ModuleName name,

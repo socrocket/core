@@ -16,7 +16,7 @@
 #define EXT_ERASE
 
 #include <tlm.h>
-#include "common/systemc.h"
+#include "core/common/systemc.h"
 
 //simple payload extension for erasing memory
 struct ext_erase : public tlm::tlm_extension<ext_erase> {

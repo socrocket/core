@@ -16,18 +16,18 @@
 #ifndef MODELS_AHBCTRL_AHBCTRL_H_
 #define MODELS_AHBCTRL_AHBCTRL_H_
 
-#include <amba.h>
-#include "common/base.h"
-#include "common/gs_config.h"
+#include "core/common/amba.h"
+#include "core/common/base.h"
+#include "core/common/gs_config.h"
 #include <tlm.h>
 #include <map>
 
-#include "models/utils/ahbdevice.h"
-#include "models/utils/clkdevice.h"
+#include "core/models/utils/ahbdevice.h"
+#include "core/models/utils/clkdevice.h"
 #include "signalkit/signalkit.h"
-#include "common/msclogger.h"
-#include "common/socrocket.h"
-#include "common/gs_config.h"
+#include "core/common/msclogger.h"
+#include "core/common/socrocket.h"
+#include "core/common/gs_config.h"
 
 class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
   public:

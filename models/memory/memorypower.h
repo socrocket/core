@@ -16,16 +16,16 @@
 #ifndef MODELS_MEMORY_MEMORYPOWER_H_
 #define MODELS_MEMORY_MEMORYPOWER_H_
 
-#include "common/gs_config.h"
+#include "core/common/gs_config.h"
 #include <greensocket/target/single_socket.h>
-#include "common/base.h"
-#include "common/systemc.h"
+#include "core/common/base.h"
+#include "core/common/systemc.h"
 #include <tlm.h>
 
-#include "models/memory/basememory.h"
-#include "models/utils/clkdevice.h"
-#include "models/utils/memdevice.h"
-#include "common/verbose.h"
+#include "core/models/memory/basememory.h"
+#include "core/models/utils/clkdevice.h"
+#include "core/models/utils/memdevice.h"
+#include "core/common/verbose.h"
 
 // template<class BASE = DefaultBase>
 // class MemoryPower : public BASE {

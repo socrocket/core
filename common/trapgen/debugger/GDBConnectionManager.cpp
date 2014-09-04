@@ -50,9 +50,9 @@
 #include <boost/thread/condition.hpp>
 #include <boost/thread/mutex.hpp>
 
-#include "trap_utils.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
 
-#include "GDBConnectionManager.hpp"
+#include "core/common/trapgen/debugger/GDBConnectionManager.hpp"
 
 trap::GDBConnectionManager::GDBConnectionManager(bool endianess) : endianess(endianess), killed(false){
     this->socket = NULL;

@@ -11,14 +11,14 @@
 #ifndef COMMON_BASE_H_
 #define COMMON_BASE_H_
 
-#include "common/systemc.h"
-#include "common/gs_config.h"
-#include "common/report.h"
+#include "core/common/systemc.h"
+#include "core/common/gs_config.h"
+#include "core/common/report.h"
 
 #ifndef MTI_SYSTEMC
 // #include <greensocket/initiator/multi_socket.h>
 #include <greenreg/greenreg.h>
-#include <greenreg_ambasockets.h>
+#include "core/common/grambasockets/greenreg_ambasockets.h"
 #endif
 
 typedef sc_core::sc_module_name ModuleName;

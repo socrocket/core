@@ -16,22 +16,22 @@
 #ifndef MODELS_MCTRL_MCTRL_H_
 #define MODELS_MCTRL_MCTRL_H_
 
-#include "common/systemc.h"
+#include "core/common/systemc.h"
 #include <tlm.h>
-#include <amba.h>
-#include "common/gs_config.h"
-#include <greenreg_ambasockets.h>
+#include "core/common/amba.h"
+#include "core/common/gs_config.h"
+#include "core/common/grambasockets/greenreg_ambasockets.h"
 #include <greensocket/initiator/multi_socket.h>
 #include <boost/config.hpp>
 #include <algorithm>
 
-#include "models/utils/ahbslave.h"
-#include "models/utils/apbdevice.h"
-#include "models/utils/clkdevice.h"
-#include "models/utils/memdevice.h"
-#include "models/memory/ext_erase.h"
-#include "common/vendian.h"
-#include "common/verbose.h"
+#include "core/models/utils/ahbslave.h"
+#include "core/models/utils/apbdevice.h"
+#include "core/models/utils/clkdevice.h"
+#include "core/models/utils/memdevice.h"
+#include "core/models/memory/ext_erase.h"
+#include "core/common/vendian.h"
+#include "core/common/verbose.h"
 #include "signalkit/signalkit.h"
 
 /// @addtogroup mctrl MCtrl

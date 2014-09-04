@@ -17,7 +17,7 @@
 #ifndef __MMU_CACHE_IF_H__
 #define __MMU_CACHE_IF_H__
 
-#include "mem_if.h"
+#include "core/models/mmu_cache/lib/mem_if.h"
 
 #include <stdint.h>
 

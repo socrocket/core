@@ -15,16 +15,16 @@
 #ifndef MODELS_APBCTRL_APBCTRL_H_
 #define MODELS_APBCTRL_APBCTRL_H_
 
-#include <amba.h>
-#include "common/gs_config.h"
-#include "common/systemc.h"
-#include "common/base.h"
+#include "core/common/amba.h"
+#include "core/common/gs_config.h"
+#include "core/common/systemc.h"
+#include "core/common/base.h"
 
-#include "models/utils/ahbslave.h"
-#include "models/utils/ahbdevice.h"
-#include "models/utils/apbdevice.h"
-#include "models/utils/clkdevice.h"
-#include "common/vmap.h"
+#include "core/models/utils/ahbslave.h"
+#include "core/models/utils/ahbdevice.h"
+#include "core/models/utils/apbdevice.h"
+#include "core/models/utils/clkdevice.h"
+#include "core/common/vmap.h"
 
 /// @addtogroup apbctrl APBCtrl
 /// @{

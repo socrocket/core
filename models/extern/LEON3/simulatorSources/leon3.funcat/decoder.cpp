@@ -36,8 +36,8 @@
 
 
 
-#include <leon3.funcat/decoder.hpp>
-#include <leon3.funcat/instructions.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/decoder.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/instructions.hpp"
 
 using namespace leon3_funcat_trap;
 leon3_funcat_trap::CacheElem::CacheElem( Instruction * instr, unsigned int count \

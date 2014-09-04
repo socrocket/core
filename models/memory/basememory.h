@@ -17,9 +17,9 @@
 #ifndef MODELS_MEMORY_BASEMEMORY_H_
 #define MODELS_MEMORY_BASEMEMORY_H_
 
-#include "models/memory/arraystorage.h"
-#include "models/memory/mapstorage.h"
-#include "models/memory/storage.h"
+#include "core/models/memory/arraystorage.h"
+#include "core/models/memory/mapstorage.h"
+#include "core/models/memory/storage.h"
 
 class BaseMemory {
   public:

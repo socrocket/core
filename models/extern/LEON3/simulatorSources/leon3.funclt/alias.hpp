@@ -38,7 +38,7 @@
 #ifndef LT_ALIAS_HPP
 #define LT_ALIAS_HPP
 
-#include <leon3.funclt/registers.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/registers.hpp"
 #include <ostream>
 #include <list>
 

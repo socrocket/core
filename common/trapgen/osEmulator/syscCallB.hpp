@@ -31,10 +31,10 @@
 #pragma warning( disable : 4244 )
 #endif
 
-#include "trap_utils.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
 
-#include "ABIIf.hpp"
-#include <systemc.h>
+#include "core/common/trapgen/ABIIf.hpp"
+#include "core/common/systemc.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -43,7 +43,7 @@
 #include <map>
 #include <set>
 #include <string>
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -70,7 +70,7 @@ extern int errno;
 #endif
 #include <ctime>
 
-#include "elfloader/elfFrontend.hpp"
+#include "core/common/trapgen/elfloader/elfFrontend.hpp"
 
 namespace trap {
 class OSEmulatorBase {

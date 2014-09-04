@@ -29,14 +29,14 @@
 #include <iostream>
 #include <fstream>
 
-#include "trap_utils.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
 
 extern "C" {
 #include <gelf.h>
 }
 
-#include "elfFrontend.hpp"
-#include "execLoader.hpp"
+#include "core/common/trapgen/elfloader/elfFrontend.hpp"
+#include "core/common/trapgen/elfloader/execLoader.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>

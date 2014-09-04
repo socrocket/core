@@ -15,9 +15,9 @@
 #ifndef __CACHE_IF_H__
 #define __CACHE_IF_H__
 
-#include "common/systemc.h"
-#include "common/socrocket.h"
-#include "mem_if.h"
+#include "core/common/systemc.h"
+#include "core/common/socrocket.h"
+#include "core/models/mmu_cache/lib/mem_if.h"
 
 class cache_if : public mem_if {
 

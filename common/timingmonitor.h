@@ -20,7 +20,7 @@
 #include <ctime>
 #include <map>
 
-#include "common/verbose.h"
+#include "core/common/verbose.h"
 
 class TimingMonitor {
   public:

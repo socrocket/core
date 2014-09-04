@@ -38,7 +38,7 @@
 #ifndef LT_DECODER_HPP
 #define LT_DECODER_HPP
 
-#include <leon3.funclt/instructions.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/instructions.hpp"
 
 #define FUNC_MODEL
 #define LT_IF

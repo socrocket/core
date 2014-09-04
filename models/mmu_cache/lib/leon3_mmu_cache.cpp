@@ -16,9 +16,9 @@
 ///
 
 #include <boost/filesystem.hpp>
-#include "leon3_mmu_cache.h"
-#include "common/report.h"
-#include "common/vendian.h"
+#include "core/models/mmu_cache/lib/leon3_mmu_cache.h"
+#include "core/common/report.h"
+#include "core/common/vendian.h"
 
 //SC_HAS_PROCESS(leon3_mmu_cache<>);
 /// Constructor

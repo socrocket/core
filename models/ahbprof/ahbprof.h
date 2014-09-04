@@ -15,15 +15,15 @@
 #ifndef MODELS_AHBPROF_AHBPROF_H_
 #define MODELS_AHBPROF_AHBPROF_H_
 
-#include <amba.h>
+#include "core/common/amba.h"
 #include <stdint.h>
 #include <tlm.h>
 #include <fstream>
 #include <map>
 
-#include "models/utils/ahbslave.h"
-#include "models/utils/clkdevice.h"
-#include "common/msclogger.h"
+#include "core/models/utils/ahbslave.h"
+#include "core/models/utils/clkdevice.h"
+#include "core/common/msclogger.h"
 
 struct prof_info {
   prof_info() : state(0), real_start(0), real_end(0), sim_start(sc_core::SC_ZERO_TIME), sim_end(sc_core::SC_ZERO_TIME),

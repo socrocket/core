@@ -36,9 +36,9 @@
 
 
 
-#include <leon3.funclt/registers.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/registers.hpp"
 #include <ostream>
-#include <trap_utils.hpp>
+#include "core/common/trapgen/utils/trap_utils.hpp"
 
 using namespace leon3_funclt_trap;
 InnerField & leon3_funclt_trap::InnerField::operator =( const InnerField & other \

@@ -16,14 +16,14 @@
 #define MODELS_UTILS_AHBMASTER_H_
 
 #include <stdint.h>
-#include "common/gs_config.h"
-#include <amba.h>
-#include "common/systemc.h"
+#include "core/common/gs_config.h"
+#include "core/common/amba.h"
+#include "core/common/systemc.h"
 #include <tlm.h>
 
-#include "models/utils/ahbdevice.h"
-#include "common/msclogger.h"
-#include "common/verbose.h"
+#include "core/models/utils/ahbdevice.h"
+#include "core/common/msclogger.h"
+#include "core/common/verbose.h"
 
 template<class BASE = DefaultBase>
 class AHBMaster : public AHBDevice<BASE> {
@@ -151,7 +151,7 @@ class AHBMaster : public AHBDevice<BASE> {
     bool response_error;
 };
 
-#include "ahbmaster.tpp"
+#include "core/models/utils/ahbmaster.tpp"
 
 #endif  // MODELS_UTILS_AHBMASTER_H_
 /// @}

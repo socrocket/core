@@ -18,26 +18,26 @@
 #ifndef LEON3_MMU_CACHE_H_
 #define LEON3_MMU_CACHE_H_
 
-#include "common/systemc.h"
-#include "common/gs_config.h"
-#include <amba.h>
+#include "core/common/systemc.h"
+#include "core/common/gs_config.h"
+#include "core/common/amba.h"
 //#include <tlm_1/tlm_req_rsp/tlm_channels/tlm_fifo/tlm_fifo.h>
 
 #include <math.h>
 
-#include "common/socrocket.h"
+#include "core/common/socrocket.h"
 #include "signalkit/signalkit.h"
-#include "models/utils/ahbmaster.h"
-#include "models/utils/clkdevice.h"
+#include "core/models/utils/ahbmaster.h"
+#include "core/models/utils/clkdevice.h"
 
-#include "common/verbose.h"
-#include "mmu_cache_base.h"
-#include "localram.h"
+#include "core/common/verbose.h"
+#include "core/models/mmu_cache/lib/mmu_cache_base.h"
+#include "core/models/mmu_cache/lib/localram.h"
 
 // LEON3
-#include "leon3.funclt.h"
-#include "debugger/GDBStub.hpp"
-#include "osEmulator/osEmulator.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt.h"
+#include "core/common/trapgen/debugger/GDBStub.hpp"
+#include "core/common/trapgen/osEmulator/osEmulator.hpp"
 
 /// @addtogroup mmu_cache MMU_Cache
 /// @{

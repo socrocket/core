@@ -14,7 +14,7 @@
 
 #include <vector>
 #include <string>
-#include "common/powermonitor.h"
+#include "core/common/powermonitor.h"
 
 // Constructor
 powermonitor::powermonitor(sc_core::sc_module_name name,

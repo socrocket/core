@@ -68,7 +68,7 @@ def find(self, scpath = None, tlmpath = None):
 
     self.check_cxx(
         fragment = '''
-            #include <systemc.h>
+            #include "core/common/systemc.h"
 
             extern "C" {
                 int sc_main(int argc, char** argv) {
@@ -85,7 +85,7 @@ def find(self, scpath = None, tlmpath = None):
 
     self.check_cxx(
         fragment = '''
-            #include <systemc.h>
+            #include "core/common/systemc.h"
 
             #ifndef SYSTEMC_VERSION
             #error SYSTEMC_VERSION not defined in file sc_ver.h
@@ -111,7 +111,7 @@ def find(self, scpath = None, tlmpath = None):
 
     self.check_cxx(
         fragment = '''
-            #include <systemc.h>
+            #include "core/common/systemc.h"
 
             #ifndef SYSTEMC_VERSION
             #error SYSTEMC_VERSION not defined in file sc_ver.h
@@ -146,7 +146,7 @@ def find(self, scpath = None, tlmpath = None):
 
     self.check_cxx(
         fragment='''
-            #include <systemc.h>
+            #include "core/common/systemc.h"
             #include <tlm.h>
 
             extern "C" {
@@ -165,7 +165,7 @@ def find(self, scpath = None, tlmpath = None):
 
     self.check_cxx(
         fragment='''
-            #include <systemc.h>
+            #include "core/common/systemc.h"
             #include <tlm.h>
 
             #ifndef TLM_VERSION_MAJOR

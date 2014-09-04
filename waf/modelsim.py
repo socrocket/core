@@ -60,7 +60,7 @@ def targetdir(target):
   return target.replace('.', '_')+"_work"
 
 FIND_SC_DIR_CODE = """
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 int main(int argc, char *argv[]) {
   return 0;

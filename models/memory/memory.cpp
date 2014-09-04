@@ -15,7 +15,7 @@
 /// @author Dennis Bode
 ///
 
-#include "models/memory/memory.h"
+#include "core/models/memory/memory.h"
 
 #include <tlm.h>
 

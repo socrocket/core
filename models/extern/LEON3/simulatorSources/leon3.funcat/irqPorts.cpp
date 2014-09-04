@@ -36,8 +36,8 @@
 
 
 #include <tlm.h>
-#include <leon3.funcat/irqPorts.hpp>
-#include <trap_utils.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/irqPorts.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
 
 #include "signalkit/signalkit.h"
 

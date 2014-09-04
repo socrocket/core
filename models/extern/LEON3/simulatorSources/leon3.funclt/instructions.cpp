@@ -36,17 +36,17 @@
 
 
 
-#include <instructionBase.hpp>
+#include "core/common/trapgen/instructionBase.hpp"
 #include <string>
-#include <customExceptions.hpp>
-#include <trap_utils.hpp>
-#include <leon3.funclt/registers.hpp>
-#include <leon3.funclt/alias.hpp>
-#include <leon3.funclt/memory.hpp>
-#include <leon3.funclt/externalPins.hpp>
-#include <leon3.funclt/instructions.hpp>
+#include "core/common/trapgen/utils/customExceptions.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/registers.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/alias.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/memory.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/externalPins.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/instructions.hpp"
 #include <sstream>
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 using namespace leon3_funclt_trap;
 bool leon3_funclt_trap::Instruction::IncrementRegWindow() throw(){

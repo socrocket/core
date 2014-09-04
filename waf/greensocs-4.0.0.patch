@@ -43,7 +43,7 @@ diff -Nur greensocs-4.0.0/greenreg/greenreg_socket/gr_ambasocket.h greensocs-hws
 +#include "greenreg.h"
 +#include "greensocket/utils/greensocketaddress_base.h"
 +#include "transactor_if.h"
-+#include "amba.h"
++#include "core/common/amba.h"
 +#include "framework/core/gr_common.h"
 +
 +#include <iostream>

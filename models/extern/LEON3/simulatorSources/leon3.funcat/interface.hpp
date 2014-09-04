@@ -38,16 +38,16 @@
 #ifndef INTERFACE_HPP
 #define INTERFACE_HPP
 
-#include <ABIIf.hpp>
-#include <leon3.funcat/memory.hpp>
-#include <leon3.funcat/registers.hpp>
-#include <leon3.funcat/alias.hpp>
+#include "core/common/trapgen/ABIIf.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/memory.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/registers.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/alias.hpp"
 #include <boost/circular_buffer.hpp>
-#include <instructionBase.hpp>
+#include "core/common/trapgen/instructionBase.hpp"
 #include <vector>
 #include <string>
-#include <trap_utils.hpp>
-#include <systemc.h>
+#include "core/common/trapgen/utils/trap_utils.hpp"
+#include "core/common/systemc.h"
 
 #define FUNC_MODEL
 #define AT_IF

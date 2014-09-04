@@ -42,7 +42,7 @@
 #define GREENREG_AMBASOCKETS_H_
 
 #include <greenreg/greenreg.h>
-#include "gr_ambasockets.h"
+#include "core/common/grambasockets/gr_ambasockets.h"
 
 namespace gs {
 namespace reg {

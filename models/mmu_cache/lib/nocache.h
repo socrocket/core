@@ -16,13 +16,13 @@
 #ifndef __NOCACHE_H_
 #define __NOCACHE_H_
 
-#include "common/base.h"
-#include "common/systemc.h"
+#include "core/common/base.h"
+#include "core/common/systemc.h"
 #include "signalkit/signalkit.h"
 
-#include "common/verbose.h"
-#include "cache_if.h"
-#include "mem_if.h"
+#include "core/common/verbose.h"
+#include "core/models/mmu_cache/lib/cache_if.h"
+#include "core/models/mmu_cache/lib/mem_if.h"
 
 class nocache : public DefaultBase, public cache_if {
 

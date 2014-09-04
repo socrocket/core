@@ -19,8 +19,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <string>
-#include "common/systemc.h"
-#include "common/vmap.h"
+#include "core/common/systemc.h"
+#include "core/common/vmap.h"
 
 class FaultDectect_if {
   public:

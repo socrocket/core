@@ -16,17 +16,17 @@
 #define MODELS_APBUART_APBUART_H_
 
 #include <greencontrol/all.h>
-#include <greenreg_ambasockets.h>
+#include "core/common/grambasockets/greenreg_ambasockets.h"
 #include <boost/config.hpp>
-#include "common/systemc.h"
+#include "core/common/systemc.h"
 #include <string>
 #include <vector>
 
-#include "models/apbuart/io_if.h"
-#include "models/utils/apbdevice.h"
-#include "models/utils/clkdevice.h"
+#include "core/models/apbuart/io_if.h"
+#include "core/models/utils/apbdevice.h"
+#include "core/models/utils/clkdevice.h"
 #include "signalkit/signalkit.h"
-#include "common/verbose.h"
+#include "core/common/verbose.h"
 
 /// @brief This class is a TLM 2.0 Model of the Aeroflex Gaisler GRLIB APBUART.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 16

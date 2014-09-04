@@ -17,11 +17,11 @@
 #define COMMON_MSCLOGGER_H_
 
 #include <tlm.h>
-#include <amba.h>
+#include "core/common/amba.h"
 #include <fstream>   // NOLINT(readability/streams)
 #include <iostream>  // NOLINT(readability/streams)
 
-#include "common/verbose.h"
+#include "core/common/verbose.h"
 
 extern std::ofstream msc;
 extern sc_core::sc_time msclogger_start;

@@ -14,7 +14,7 @@
 
 #ifndef  MODELS_MEMORY_STORAGE_H_
 #define MODELS_MEMORY_STORAGE_H_
-#include "common/systemc.h"
+#include "core/common/systemc.h"
 
 class Storage {
   public:

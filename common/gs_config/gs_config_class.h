@@ -22,10 +22,10 @@
 #include <sstream>
 #include <boost/tokenizer.hpp> // for parameter array!
 
-#include "common/common.h"
-#include "common/gs_config/gs_config_t.h"
-#include "common/gs_config/gs_config_operator_macros.h"
-#include "common/gs_config/gs_config_delegate.h"
+#include "core/common/common.h"
+#include "core/common/gs_config/gs_config_t.h"
+#include "core/common/gs_config/gs_config_operator_macros.h"
+#include "core/common/gs_config/gs_config_delegate.h"
 
 namespace gs {
 namespace cnf {
@@ -156,9 +156,9 @@ public:                                                                   \
         // for compatibility
 //#define gcnf_param gs_config;
 
-#include "common/gs_config/gs_config_native.hpp"
-#include "common/gs_config/gs_config_stdint.hpp"
-#include "common/gs_config/gs_config_systemc.hpp"
+#include "core/common/gs_config/gs_config_native.hpp"
+#include "core/common/gs_config/gs_config_stdint.hpp"
+#include "core/common/gs_config/gs_config_systemc.hpp"
 
 }  // namespace cnf
 using cnf::gs_config; // make gs_config available in gs namespace

@@ -12,8 +12,8 @@
 /// @author Thomas Schuster
 ///
 
-#include "models/apbuart/nullio.h"
-#include "common/verbose.h"
+#include "core/models/apbuart/nullio.h"
+#include "core/common/verbose.h"
 
 /// Creates a connection
 void NullIO::makeConnection() {

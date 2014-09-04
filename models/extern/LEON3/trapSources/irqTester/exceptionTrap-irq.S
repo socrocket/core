@@ -1,5 +1,5 @@
 /* Window size */
-#include "asm.h"
+#include "core/models/extern/LEON3/trapSources/irqTester/asm.h"
 
     .text
 

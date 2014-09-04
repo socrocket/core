@@ -17,8 +17,8 @@
 #ifndef __IVECTORCACHE_H__
 #define __IVECTORCACHE_H__
 
-#include "vectorcache.h"
-#include "defines.h"
+#include "core/models/mmu_cache/lib/vectorcache.h"
+#include "core/models/mmu_cache/lib/defines.h"
 
 #include "tlm.h"
 

@@ -13,7 +13,7 @@
 /// @author Thomas Schuster
 ///
 
-#include "models/ahbin/ahbin.h"
+#include "core/models/ahbin/ahbin.h"
 
 /// Constructor
 AHBIn::AHBIn(ModuleName name,     // The SystemC name of the component

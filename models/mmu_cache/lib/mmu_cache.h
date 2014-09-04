@@ -18,23 +18,23 @@
 #ifndef __MMU_CACHE_H__
 #define __MMU_CACHE_H__
 
-#include "common/gs_config.h"
-#include "common/systemc.h"
-#include <amba.h>
+#include "core/common/gs_config.h"
+#include "core/common/systemc.h"
+#include "core/common/amba.h"
 //#include <tlm_1/tlm_req_rsp/tlm_channels/tlm_fifo/tlm_fifo.h>
 
 #include <math.h>
 
-#include "icio_payload_extension.h"
-#include "dcio_payload_extension.h"
+#include "core/models/mmu_cache/lib/icio_payload_extension.h"
+#include "core/models/mmu_cache/lib/dcio_payload_extension.h"
 
-#include "common/socrocket.h"
+#include "core/common/socrocket.h"
 #include "signalkit/signalkit.h"
-#include "models/utils/ahbmaster.h"
-#include "models/utils/clkdevice.h"
+#include "core/models/utils/ahbmaster.h"
+#include "core/models/utils/clkdevice.h"
 
-#include "common/verbose.h"
-#include "mmu_cache_base.h"
+#include "core/common/verbose.h"
+#include "core/models/mmu_cache/lib/mmu_cache_base.h"
 
 /// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
 class mmu_cache :

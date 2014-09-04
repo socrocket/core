@@ -13,7 +13,7 @@
  * the new terms are clearly indicated on the first page of each file where
  * they apply.
  */
-#include "asm.h"
+#include "core/models/extern/LEON3/trapSources/irqTester/asm.h"
 
     .text
     .align 8

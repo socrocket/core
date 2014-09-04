@@ -31,8 +31,8 @@
 
 #include <boost/circular_buffer.hpp>
 
-#include "instructionBase.hpp"
-#include "trap_utils.hpp"
+#include "core/common/trapgen/instructionBase.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
 
 namespace trap {
 template<class regWidth>

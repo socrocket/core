@@ -18,17 +18,17 @@
 #ifndef MODELS_MEMORY_MEMORY_H_
 #define MODELS_MEMORY_MEMORY_H_
 
-#include "common/gs_config.h"
+#include "core/common/gs_config.h"
 #include <greensocket/target/single_socket.h>
-#include "common/base.h"
-#include "common/systemc.h"
+#include "core/common/base.h"
+#include "core/common/systemc.h"
 #include <tlm.h>
 
-#include "models/memory/memorypower.h"
-#include "common/verbose.h"
-#include "common/report.h"
-#include "models/utils/clkdevice.h"
-#include "models/memory/ext_erase.h"
+#include "core/models/memory/memorypower.h"
+#include "core/common/verbose.h"
+#include "core/common/report.h"
+#include "core/models/utils/clkdevice.h"
+#include "core/models/memory/ext_erase.h"
 
 /// @brief This class models a generic memory. Depending on the configuration
 /// it can be used as ROM, IO, SRAM or SDRAM, in conjunction with the SoCRocket MCTRL.

@@ -14,8 +14,8 @@
 /// @author Thomas Schuster
 ///
 
-#include "localram.h"
-#include "common/verbose.h"
+#include "core/models/mmu_cache/lib/localram.h"
+#include "core/common/verbose.h"
 
 /// constructor
 localram::localram(ModuleName name,

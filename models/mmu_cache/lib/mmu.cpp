@@ -15,8 +15,8 @@
 /// @author Thomas Schuster
 ///
 
-#include "mmu.h"
-#include "common/verbose.h"
+#include "core/models/mmu_cache/lib/mmu.h"
+#include "core/common/verbose.h"
 
 mmu::mmu(ModuleName name, // sysc module name,
          mmu_cache_if * _mmu_cache,    // pointer to memory interface

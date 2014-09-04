@@ -12,7 +12,7 @@
 /// @author Rolf Meyer
 ///
 
-#include "models/apbuart/apbuart.h"
+#include "core/models/apbuart/apbuart.h"
 #include <string>
 
 // Constructor: create all members, registers and Counter objects.
