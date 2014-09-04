@@ -5,11 +5,11 @@ import os
 
 def options(self):
     """Present boost options here"""
-    self.load("boost")
+    self.load("boost", "core/waf")
 
 def configure(self):
     """Check for boost libraries"""
-    self.load('boost', 'tools/waf')
+    self.load('boost', 'core/waf')
     # Try to load options from env if not given
     if not self.options.boost_includes or self.options.boost_includes == "":
       self.options.boost_includes = os.environ.get("BOOST_DIR",None)

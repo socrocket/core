@@ -7,7 +7,7 @@ out = 'build'
 
 import sys
 from waflib.Tools import waf_unit_test  
-from tools.waf.logger import Logger
+from core.waf.logger import Logger
 
 LOAD = [
     'compiler_c',
@@ -18,15 +18,17 @@ LOAD = [
 
 TOOLS = [
     'common',
-    'repo',
-    'swig',
+    'repo'
+]
+"""
+#    'swig',
     'flags',
-    'virtualenv',
+#    'virtualenv',
     'pthreads',
     'boosting',
     'endian',
-    'grlib',
-    'modelsim',
+#    'grlib',
+#    'modelsim',
     'systools',
     'libelf',
     'systemc',
@@ -49,17 +51,20 @@ TOOLS = [
     'clang_compilation_database',
     'sparcelf',
 ]
+"""
 
 def options(self): 
     self.load(LOAD)
-    self.load(TOOLS, tooldir='tools/waf')
+    self.load(TOOLS, tooldir='core/waf')
+    self.loadrepos()
 
 def configure(self):
     self.load(LOAD)
     self.check_waf_version(mini='1.6.0')
     self.check_python_version((2,4,0))
     self.check_python_headers()
-    self.load(TOOLS, tooldir='tools/waf')
+    self.load(TOOLS, tooldir='core/waf')
+    self.loadrepos()
     self.env.CPPLINT_FILTERS = ','.join((
     #    '-whitespace/newline',      # c++11 lambda
     #    '-readability/braces',      # c++11 constructor
