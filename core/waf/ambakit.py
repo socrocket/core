@@ -25,9 +25,9 @@ def find(self, path = None):
       okmsg         = "ok",
       errmsg        = 'AMBAKit not found please give the location with --amba=',
       fragment      = '''
-           #include "core/common/systemc.h"
+           #include <systemc.h>
            #include <tlm.h>
-           #include "core/common/amba.h"
+           #include <amba.h>
 
            extern "C" {
                int sc_main(int argc, char** argv) {
@@ -44,7 +44,7 @@ def find(self, path = None):
       execute      = True,
       rpath        = self.env.LIBPATH_SYSTEMC,
       fragment     = """
-                     #include "core/common/amba.h"
+                     #include <amba.h>
                      int sc_main(int argc, char *argv[]) {
                        return !((AMBA_TLM_VERSION_MAJOR >= 1) && (AMBA_TLM_VERSION_MINOR >= 0) && (AMBA_TLM_VERSION_REVISION >= 6));
                      }
