@@ -1,0 +1,23 @@
+=This folder contains all data of the module AHBPROF.=
+
+=Overview=
+The AHBPROF model provides profiling functionality for the simulator. This class inherits from the classes AHBSlave and CLKDevice. Like AHBIN and AHBOUT it has no VHDL reference inthe GRLIB hardware library.
+
+The model creates several registers which are accessible from the simulator by software. The registers are used to control an internal mechanism for measuring SystemC time and real execution time.  The registers can be written with following control values:
+
+1 – start measureing time (simulation time and real time)
+2 – stop measureing time
+3 – print timing report
+
+All control registers are considered to be 32bit wide. Register 255 has a special purpose and is reserved for shutting down the simulation. 
+
+=File structure=
+
+ahbprof.cpp
+implements the profiling functionality for the simulator
+
+ahbprof.h
+class header file
+
+wscript
+waf build script

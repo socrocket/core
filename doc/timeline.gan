@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="SoCRocket" company="TU-Braunschweig" webLink="" view-date="2012-01-30" view-index="0" gantt-divider-location="462" resource-divider-location="302" version="2.0">
+    <description/>
+    <view zooming-state="default:7" id="gantt-chart"/>
+    <view id="resource-table">
+        <field id="0" name="Ressource" width="50" order="0"/>
+        <field id="1" name="Rolle" width="49" order="1"/>
+    </view>
+    <!-- -->
+    <calendars>
+        <day-types>
+            <day-type id="0"/>
+            <day-type id="1"/>
+            <calendar id="1" name="default">
+                <default-week sun="1" mon="0" tue="0" wed="0" thu="0" fri="0" sat="1"/>
+                <only-show-weekends value="false"/>
+                <overriden-day-types/>
+                <days/>
+            </calendar>
+        </day-types>
+    </calendars>
+    <tasks color="#8cb6ce">
+        <taskproperties>
+            <taskproperty id="tpd0" name="type" type="default" valuetype="icon"/>
+            <taskproperty id="tpd1" name="priority" type="default" valuetype="icon"/>
+            <taskproperty id="tpd2" name="info" type="default" valuetype="icon"/>
+            <taskproperty id="tpd3" name="name" type="default" valuetype="text"/>
+            <taskproperty id="tpd4" name="begindate" type="default" valuetype="date"/>
+            <taskproperty id="tpd5" name="enddate" type="default" valuetype="date"/>
+            <taskproperty id="tpd6" name="duration" type="default" valuetype="int"/>
+            <taskproperty id="tpd7" name="completion" type="default" valuetype="int"/>
+            <taskproperty id="tpd8" name="coordinator" type="default" valuetype="text"/>
+            <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
+        </taskproperties>
+        <task id="22" name="Update Development Plan / Decide AXI" color="#8cb6ce" meeting="false" start="2012-03-05" duration="1" complete="0" expand="true"/>
+        <task id="1" name="Analysis Capability Report" color="#8cb6ce" meeting="false" start="2012-03-06" duration="1" complete="50" expand="true"/>
+        <task id="10" name="Memory Controller SI bit verify/describe" color="#8cb6ce" meeting="false" start="2012-03-07" duration="1" complete="0" expand="true"/>
+        <task id="15" name="Processor Status Register" color="#8cb6ce" meeting="false" start="2012-03-07" duration="1" complete="50" expand="true"/>
+        <task id="18" name="Burst Fetch with Icache disabled" color="#8cb6ce" meeting="false" start="2012-03-07" duration="1" complete="0" expand="true"/>
+        <task id="20" name="Cache lock vs. cache freeze" color="#8cb6ce" meeting="false" start="2012-03-07" duration="1" complete="0" expand="true"/>
+        <task id="33" name="AHBCTRL data split" color="#8cb6ce" meeting="false" start="2012-03-07" duration="1" complete="0" expand="true"/>
+        <task id="59" name="MCTRL power events" color="#8cb6ce" meeting="false" start="2012-03-07" duration="1" complete="50" expand="true"/>
+        <task id="3" name="PM Concept Documentation UM" color="#8cb6ce" meeting="false" start="2012-03-08" duration="1" complete="0" expand="true"/>
+        <task id="4" name="SpaceWire Integration" color="#8cb6ce" meeting="false" start="2012-03-08" duration="1" complete="80" expand="true"/>
+        <task id="13" name="Scratchpad region with LR disabled" color="#8cb6ce" meeting="false" start="2012-03-08" duration="1" complete="0" expand="true"/>
+        <task id="38" name="MCTRL RMW timing fix" color="#8cb6ce" meeting="false" start="2012-03-09" duration="1" complete="0" expand="true">
+            <depend id="6" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="24" name="Fix mmu_cache co-simulation" color="#8cb6ce" meeting="false" start="2012-03-09" duration="3" complete="20" expand="true">
+            <depend id="6" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="6" name="Update Verific Doc" color="#8cb6ce" meeting="false" start="2012-03-14" duration="1" complete="0" expand="true"/>
+        <task id="8" name="Draft DF Document" color="#8cb6ce" meeting="false" start="2012-03-15" duration="3" complete="0" expand="true"/>
+        <task id="36" name="Debug/Map Software Tests" color="#8cb6ce" meeting="false" start="2012-03-12" duration="7" complete="20" expand="true">
+            <depend id="79" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="57" name="UM or DF - transactor documentation" color="#8cb6ce" meeting="false" start="2012-03-20" duration="1" complete="0" expand="true"/>
+        <task id="79" name="Verific. Doc - Update SW test section" color="#8cb6ce" meeting="false" start="2012-03-21" duration="1" complete="0" expand="true"/>
+        <task id="40" name="Update User Manual: Guidlines for creation of new models + list of required packages" color="#8cb6ce" meeting="false" start="2012-03-21" duration="1" complete="0" expand="true"/>
+        <task id="52" name="Prepare Follow Up Telco + Send Documents" color="#ff3333" meeting="false" start="2012-03-22" duration="1" complete="0" expand="true"/>
+        <task id="25" name="MMU_CACHE - raise coverage" color="#8cb6ce" meeting="false" start="2012-03-23" duration="1" complete="50" expand="true"/>
+        <task id="17" name="MMU - Error case behaviour" color="#8cb6ce" meeting="false" start="2012-03-26" duration="2" complete="0" expand="true"/>
+        <task id="70" name="Library clean up (waf, compat, coding style)" color="#8cb6ce" meeting="false" start="2012-03-09" duration="8" complete="70" expand="true"/>
+        <task id="31" name="Follow-Up Telco (MDR/DFR)" color="#ff3333" meeting="true" start="2012-03-27" duration="1" complete="0" expand="true"/>
+        <task id="77" name="Multi-proc template for DSE" color="#33cc00" meeting="false" start="2012-03-21" duration="5" complete="40" expand="true"/>
+        <task id="90" name="Clean UP for MDR/DFR closure" color="#33cc00" meeting="false" start="2012-03-28" duration="3" complete="0" expand="true"/>
+        <task id="93" name="Prepare Application for DSE" color="#33cc00" meeting="false" start="2012-04-11" duration="3" complete="0" expand="true">
+            <depend id="95" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="131" name="Prepare SoCRocket Publication(s)" color="#33cc00" meeting="false" start="2012-04-16" duration="8" complete="0" expand="true"/>
+        <task id="87" name="RTEMS mapping" color="#33cc00" meeting="false" start="2012-04-09" duration="10" complete="20" expand="true">
+            <depend id="95" type="2" difference="0" hardness="Strong"/>
+            <depend id="98" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="98" name="Upgrade build system for RTEMS and DSE" color="#33cc00" meeting="false" start="2012-04-23" duration="3" complete="0" expand="true">
+            <depend id="95" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="95" name="Multi-Proc HL DSE" color="#33cc00" meeting="false" start="2012-04-26" duration="7" complete="0" expand="true">
+            <depend id="107" type="2" difference="0" hardness="Strong"/>
+        </task>
+        <task id="119" name="High-Level DSE Report" color="#33cc00" meeting="false" start="2012-04-26" duration="7" complete="0" expand="true"/>
+        <task id="0" name="SoCWire AT mode" color="#33cc00" meeting="false" start="2012-03-05" duration="40" complete="0" expand="true"/>
+        <task id="107" name="Update VPI and library from lessons learned" color="#33cc00" meeting="false" start="2012-05-07" duration="5" complete="0" expand="true">
+            <depend id="105" type="2" difference="0" hardness="Strong"/>
+            <depend id="106" type="2" difference="3" hardness="Strong"/>
+        </task>
+        <task id="105" name="Update DF Document (final)" color="#33cc00" meeting="false" start="2012-05-14" duration="3" complete="0" expand="true"/>
+        <task id="106" name="Update UM, Analysis Report" color="#33cc00" meeting="false" start="2012-05-17" duration="2" complete="0" expand="true"/>
+        <task id="118" name="Implement AXI model" color="#33cc00" meeting="false" start="2012-05-14" duration="25" complete="0" expand="true"/>
+        <task id="2" name="PM Validation/Verification" color="#33cc00" meeting="false" start="2012-05-21" duration="20" complete="0" expand="true"/>
+        <task id="127" name="Update UM &amp; Verif. Doc" color="#33cc00" meeting="false" start="2012-06-18" duration="2" complete="0" expand="true"/>
+        <task id="122" name="Final Report" color="#33cc00" meeting="false" start="2012-06-20" duration="3" complete="0" expand="true"/>
+        <task id="123" name="Executive Summary" color="#33cc00" meeting="false" start="2012-06-20" duration="3" complete="0" expand="true"/>
+        <task id="102" name="Acceptance Review (AR)" color="#ff3333" meeting="true" start="2012-06-29" duration="1" complete="0" expand="true"/>
+    </tasks>
+    <resources>
+        <resource id="0" name="Norman Dankert" function="SoftwareDevelopment:2" contacts="" phone=""/>
+        <resource id="1" name="Thomas Schuster" function="SoftwareDevelopment:2" contacts="" phone=""/>
+        <resource id="2" name="Rolf Meyer" function="SoftwareDevelopment:2" contacts="" phone=""/>
+    </resources>
+    <allocations>
+        <allocation task-id="0" resource-id="0" function="SoftwareDevelopment:2" responsible="false" load="100.0"/>
+        <allocation task-id="1" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="2" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="3" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="90.0"/>
+        <allocation task-id="6" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="8" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="13" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="10.0"/>
+        <allocation task-id="15" resource-id="1" function="SoftwareDevelopment:2" responsible="false" load="25.0"/>
+        <allocation task-id="18" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="25.0"/>
+        <allocation task-id="20" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="25.0"/>
+        <allocation task-id="22" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="25" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="90.0"/>
+        <allocation task-id="24" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="17" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="33" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="25.0"/>
+        <allocation task-id="52" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="40" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="80.0"/>
+        <allocation task-id="57" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="79" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="20.0"/>
+        <allocation task-id="90" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="93" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="95" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="80.0"/>
+        <allocation task-id="105" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="106" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="119" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="20.0"/>
+        <allocation task-id="122" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="127" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="131" resource-id="1" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="107" resource-id="1" function="SoftwareDevelopment:2" responsible="false" load="100.0"/>
+        <allocation task-id="4" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="10" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="25.0"/>
+        <allocation task-id="15" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="50.0"/>
+        <allocation task-id="36" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="80.0"/>
+        <allocation task-id="38" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="50.0"/>
+        <allocation task-id="59" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="25.0"/>
+        <allocation task-id="6" resource-id="2" function="SoftwareDevelopment:2" responsible="false" load="10.0"/>
+        <allocation task-id="70" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="20.0"/>
+        <allocation task-id="77" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="87" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="95" resource-id="2" function="SoftwareDevelopment:2" responsible="false" load="100.0"/>
+        <allocation task-id="90" resource-id="2" function="SoftwareDevelopment:2" responsible="false" load="100.0"/>
+        <allocation task-id="107" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="98" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+        <allocation task-id="118" resource-id="2" function="SoftwareDevelopment:2" responsible="true" load="100.0"/>
+    </allocations>
+    <vacations>
+        <vacation start="2012-04-02" end="2012-04-11" resourceid="1"/>
+        <vacation start="2012-04-02" end="2012-04-07" resourceid="2"/>
+    </vacations>
+    <taskdisplaycolumns>
+        <displaycolumn property-id="tpd6" order="-1" width="75" visible="false"/>
+        <displaycolumn property-id="tpd7" order="-1" width="75" visible="false"/>
+        <displaycolumn property-id="tpd10" order="-1" width="75" visible="false"/>
+        <displaycolumn property-id="tpd1" order="-1" width="75" visible="false"/>
+        <displaycolumn property-id="tpd0" order="-1" width="75" visible="false"/>
+        <displaycolumn property-id="tpd8" order="-1" width="75" visible="false"/>
+        <displaycolumn property-id="tpd9" order="-1" width="75" visible="false"/>
+        <displaycolumn property-id="tpd2" order="-1" width="75" visible="false"/>
+        <displaycolumn property-id="tpd3" order="0" width="298" visible="true"/>
+        <displaycolumn property-id="tpd4" order="1" width="56" visible="true"/>
+        <displaycolumn property-id="tpd5" order="2" width="102" visible="true"/>
+    </taskdisplaycolumns>
+    <previous/>
+    <roles roleset-name="Default"/>
+    <roles roleset-name="SoftwareDevelopment"/>
+</project>

@@ -1,0 +1,25 @@
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '../..'
+
+def build(bld):
+
+  bld(
+    target         = 'mmu_cache',
+    features       = 'cxx cxxstlib',
+    source         = [ 'lib/icio_payload_extension.cpp', 
+                       'lib/dcio_payload_extension.cpp',
+                       'lib/localram.cpp',
+                       'lib/nocache.cpp',
+                       'lib/vectorcache.cpp',
+                       'lib/ivectorcache.cpp',
+                       'lib/dvectorcache.cpp',
+                       'lib/mmu.cpp', 
+                       'lib/mmu_cache.cpp',
+                       'lib/leon3_mmu_cache.cpp',
+                       'lib/mmu_cache_base.cpp'],
+    export_includes = 'lib',
+    uselib         = 'SYSTEMC TLM AMBA AMBAMEM GREENSOCS',
+    use            = 'leon3.funclt common utils',
+    install_path   = '${PREFIX}/lib',
+  )

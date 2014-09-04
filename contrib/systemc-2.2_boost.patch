@@ -1,0 +1,111 @@
+Only in systemc-2.2.0_noboost/: autom4te.cache
+diff -crB systemc-2.2.0/configure.in systemc-2.2.0_noboost//configure.in
+*** systemc-2.2.0/configure.in  2006-12-15 21:31:28.000000000 +0100
+--- systemc-2.2.0_noboost//configure.in 2012-03-21 11:05:39.238013627 +0100
+***************
+*** 116,122 ****
+              c++ | g++)
+                  EXTRA_CXXFLAGS="-Wall"
+                  DEBUG_CXXFLAGS="-g"
+!                 OPT_CXXFLAGS="-O3"
+                  TARGET_ARCH="linux64"
+            CC="$CXX"
+            CFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
+--- 116,122 ----
+              c++ | g++)
+                  EXTRA_CXXFLAGS="-Wall"
+                  DEBUG_CXXFLAGS="-g"
+!                 OPT_CXXFLAGS="-O3 -fpermissive"
+                  TARGET_ARCH="linux64"
+            CC="$CXX"
+            CFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
+***************
+*** 133,139 ****
+              c++ | g++)
+                  EXTRA_CXXFLAGS="-Wall"
+                  DEBUG_CXXFLAGS="-g"
+!                 OPT_CXXFLAGS="-O3"
+                  TARGET_ARCH="linux"
+            CC="$CXX"
+            CFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
+--- 133,139 ----
+              c++ | g++)
+                  EXTRA_CXXFLAGS="-Wall"
+                  DEBUG_CXXFLAGS="-g"
+!                 OPT_CXXFLAGS="-O3 -fpermissive"
+                  TARGET_ARCH="linux"
+            CC="$CXX"
+            CFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
+***************
+*** 237,254 ****
+   src/sysc/qt/Makefile 
+   src/sysc/utils/Makefile 
+   src/sysc/packages/Makefile 
+-  src/sysc/packages/boost/Makefile 
+-  src/sysc/packages/boost/bind/Makefile 
+-  src/sysc/packages/boost/config/Makefile 
+-  src/sysc/packages/boost/config/compiler/Makefile 
+-  src/sysc/packages/boost/config/platform/Makefile 
+-  src/sysc/packages/boost/config/stdlib/Makefile 
+-  src/sysc/packages/boost/mpl/Makefile 
+-  src/sysc/packages/boost/mpl/aux_/Makefile 
+-  src/sysc/packages/boost/mpl/aux_/config/Makefile 
+-  src/sysc/packages/boost/detail/Makefile 
+-  src/sysc/packages/boost/utility/Makefile 
+-  src/sysc/packages/boost/utility/detail/Makefile 
+   examples/Makefile 
+   examples/sysc/Makefile 
+   examples/sysc/fir/Makefile 
+--- 237,242 ----
+Only in systemc-2.2.0_noboost/: configure.in~
+diff -crB systemc-2.2.0/src/sysc/kernel/sc_boost.h systemc-2.2.0_noboost//src/sysc/kernel/sc_boost.h
+*** systemc-2.2.0/src/sysc/kernel/sc_boost.h  2006-12-15 21:31:36.000000000 +0100
+--- systemc-2.2.0_noboost//src/sysc/kernel/sc_boost.h 2012-03-21 10:59:00.134021711 +0100
+***************
+*** 54,61 ****
+  #   pragma warning(disable: 4514)  // unreferenced inline removed
+  #endif
+  
+! #include "sysc/packages/boost/bind.hpp"
+! #include "sysc/packages/boost/ref.hpp"
+  
+  #if defined(BOOST_MSVC) && (BOOST_MSVC < 1300)
+  #   pragma warning(push, 3)
+--- 54,61 ----
+  #   pragma warning(disable: 4514)  // unreferenced inline removed
+  #endif
+  
+! #include <boost/bind.hpp>
+! #include <boost/ref.hpp>
+  
+  #if defined(BOOST_MSVC) && (BOOST_MSVC < 1300)
+  #   pragma warning(push, 3)
+Only in systemc-2.2.0_noboost//src/sysc/kernel: sc_boost.h~
+diff -crB systemc-2.2.0/src/sysc/packages/Makefile.am systemc-2.2.0_noboost//src/sysc/packages/Makefile.am
+*** systemc-2.2.0/src/sysc/packages/Makefile.am 2006-12-15 21:31:37.000000000 +0100
+--- systemc-2.2.0_noboost//src/sysc/packages/Makefile.am  2012-03-21 11:01:21.278018849 +0100
+***************
+*** 33,39 ****
+  include $(top_srcdir)/config/Make-rules
+  
+  SUBDIRS = \
+-   boost \
+    .
+  
+  INCLUDE_DIR = $(prefix)/include/sysc/packages
+--- 33,38 ----
+Only in systemc-2.2.0_noboost//src/sysc/packages: Makefile.am~
+diff -crB systemc-2.2.0/src/sysc/utils/sc_utils_ids.cpp systemc-2.2.0_noboost//src/sysc/utils/sc_utils_ids.cpp
+*** systemc-2.2.0/src/sysc/utils/sc_utils_ids.cpp 2006-12-15 21:31:39.000000000 +0100
+--- systemc-2.2.0_noboost//src/sysc/utils/sc_utils_ids.cpp  2012-03-21 11:07:05.262011884 +0100
+***************
+*** 58,63 ****
+--- 58,66 ----
+  // the source.
+  //
+  
++ #include <cstdlib>
++ #include <cstring>
++ 
+  #include "sysc/utils/sc_report.h"
+

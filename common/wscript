@@ -1,0 +1,24 @@
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '..'
+
+def build(self):
+  self.recurse('trapgen')
+  self(
+    target          = 'common',
+    features        = 'cxx cxxstlib pyembed',
+    source          = ['base.cpp',
+                       'verbose.cpp',
+                       'powermonitor.cpp',
+                       'timingmonitor.cpp',
+                       'msclogger.cpp',
+                       'json_parser.cpp',
+                       'block_allocator.cpp',
+                       'paramprinter.cpp',
+                       'report.cpp',
+                       'waf.cpp'],
+    export_includes = self.top_dir,
+    includes        = self.top_dir,
+    uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
+    install_path    = '${PREFIX}/lib',
+  )

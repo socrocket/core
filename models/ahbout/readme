@@ -1,0 +1,16 @@
+=This folder contains all data regarding the module ahbout.=
+
+=Overview=
+The AHBOUT model is a AHB slave that writes all incoming data to a file. The class inherits from the classes AHBSlave and CLKDevice. 
+The model can be seen as a reference implementation for an AHB Slave because of its simplicity. It has no VHDL reference in the GRLIB hardware library. The name of the output file can be specified in the constructor. 
+
+=File structure=
+
+ahbout.cpp
+implements the the AHB slave writer
+
+ahbout.h
+class header file
+
+wscript
+waf build script

@@ -1,0 +1,31 @@
+= This directory contains a SystemC/TL model of the GRLIB IRQMP interrupt controller =
+== TLM Model ==
+ irqmp.h                     - The IRQMP TLM Header
+ irqmp.cpp                   - The IRQMP TLM Implementation
+
+== RTL Wrapper ==
+ tests/irqmp_wrapper.vhd     - For RTL Model co-simulation purpose: 
+                               A wrapper for the GRLIB Model of the IRQMP
+ tests/irqmp_adapter.h       - Contains an adapter to connect the GRLIB IRQMP RTL Model to the LT testbenches
+
+== Tests ==
+ tests/test1                 - Pending registers and masking test
+ tests/test2                 - Broadcasting irqs and force registers test
+ tests/test3                 - Deactivated eirq settings test
+
+== Test Structure ==
+Every testcase will contain the following files:
+ testbench.h                 - The test definition
+ testbench.cpp               - The test implementation
+ top_lt.cpp                  - Top-level classes for tests of the TL model
+ top_rtl.cpp                 - Top-level classes for co-simulation of the RTL reference implementation
+  
+== Others ==
+wscript                      - Build instructions for waf
+readme                       - This file
+
+= How to build =
+The best way to build and execute everything is to use the top-level waf build system:
+>>> ./waf configure
+>>> ./waf
+

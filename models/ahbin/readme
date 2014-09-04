@@ -1,0 +1,23 @@
+This folder contains all data for the ahbin model.
+
+Overview
+The AHBIN model generates input data for the AHB bus. The input data consists of fixed size random data frames, which are written to a certain address in a certain interval. 
+The class inherits from the AHBMaster and CLKDevice classes. The model can be seen as a reference implementation of an AHB Master, since it is very simple. 
+It has no VHDL reference in the Gaisler Library.
+
+File structure:
+
+ahbin.cpp
+implements the AHB bus input generator.
+
+ahbin.h 
+class header
+
+ahbin_pruned.cpp
+implements a cache-subsystem
+
+ahbin_pruned.h
+class header
+
+wscript
+waf build script

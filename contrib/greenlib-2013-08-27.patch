@@ -1,0 +1,136 @@
+diff --git a/greencontrol/include/greencontrol/core/controladdressmap.h b/greencontrol/include/greencontrol/core/controladdressmap.h
+index 8c555db..8a6b551 100644
+--- a/greencontrol/include/greencontrol/core/controladdressmap.h
++++ b/greencontrol/include/greencontrol/core/controladdressmap.h
+@@ -110,7 +110,9 @@ public:
+    */
+   void removePort(gc_port_T* pPort)
+   {
++#ifdef GCNF_VERBOSE
+     const char* target_name = NULL;
++#endif
+     cport_address_type target_address;
+     ControlService service = NO_SERVICE;
+     std::string target_string;
+@@ -119,7 +121,9 @@ public:
+     {
+       target_address = pPort->getParent();
+       target_string = pPort->getParentName(); // a temp var is used due to limitations caused by forward template declaration of gc_port
++#ifdef GCNF_VERBOSE
+       target_name = target_string.c_str();    // otherwise target_name won't be filled
++#endif
+       service = pPort->getSupportedControlService();
+ 
+       if(pPort->isPlugin())
+diff --git a/greencontrol/include/greencontrol/gcnf/apis/GCnf_Api/GCnf_Api_t.h b/greencontrol/include/greencontrol/gcnf/apis/GCnf_Api/GCnf_Api_t.h
+index 20e0565..40b078c 100644
+--- a/greencontrol/include/greencontrol/gcnf/apis/GCnf_Api/GCnf_Api_t.h
++++ b/greencontrol/include/greencontrol/gcnf/apis/GCnf_Api/GCnf_Api_t.h
+@@ -461,13 +461,11 @@ public:
+     // show received Transaction
+     GCNF_DUMP_N(name(), "  received transaction: "<<(tr->toString()).c_str());      
+ 
+-    bool success = false;
+     // According to the command fill the transaction or make actions
+     switch (tr->get_mCmd()) {
+ 
+     case CMD_NOTIFY_NEW_PARAM_OBSERVER:
+       {
+-        success = true;
+         const std::string dummyParName = DUMMY_NAME;
+ 
+         // Notify the oberserver events
+@@ -497,7 +495,6 @@ public:
+ 
+     default:
+       SC_REPORT_WARNING(name(), "Unknown command in transaction");
+-      success = false;
+     }
+   }
+ 
+diff --git a/greencontrol/include/greencontrol/gcnf/apis/commandLineConfigParserApi/commandLineConfigParser.h b/greencontrol/include/greencontrol/gcnf/apis/commandLineConfigParserApi/commandLineConfigParser.h
+index 562ba11..505936f 100644
+--- a/greencontrol/include/greencontrol/gcnf/apis/commandLineConfigParserApi/commandLineConfigParser.h
++++ b/greencontrol/include/greencontrol/gcnf/apis/commandLineConfigParserApi/commandLineConfigParser.h
+@@ -235,11 +235,11 @@ private:
+     optind = 0; // reset of getopt!!
+     while (1)
+       {
+-        int this_option_optind = optind ? optind : 1;
++        //int this_option_optind = optind ? optind : 1;
+         int option_index = 0;
+         // avoid compiler warning
+-        int a = option_index;
+-        a = this_option_optind;
++        //int a = option_index;
++        //a = this_option_optind;
+         static struct option long_options[] =
+           {
+             {"gs_param", 1, 0, 'p'},   // '--param value' = '-p value', expected value: '<parname>=<parvalue>'
+diff --git a/greencontrol/include/greencontrol/gcnf/apis/configFileApi/configfile_tool.h b/greencontrol/include/greencontrol/gcnf/apis/configFileApi/configfile_tool.h
+index bfef6d2..2a81c91 100644
+--- a/greencontrol/include/greencontrol/gcnf/apis/configFileApi/configfile_tool.h
++++ b/greencontrol/include/greencontrol/gcnf/apis/configFileApi/configfile_tool.h
+@@ -343,11 +343,11 @@ protected:
+     optind = 0; // reset of getopt!!
+     while (1)
+       {
+-        int this_option_optind = optind ? optind : 1;
++        //int this_option_optind = optind ? optind : 1;
+         int option_index = 0;
+         // avoid compiler warning
+-        int a = option_index;
+-        a = this_option_optind;
++        //int a = option_index;
++        //a = this_option_optind;
+         static struct option long_options[] =
+           {
+             {"gs_configfile", 1, 0, 'c'},   // '--configfile filename' = '-c filename', expected value: '<filename>'
+diff --git a/greenreg/include/greenreg/sysc_ext/communication/gr_file_in.h b/greenreg/include/greenreg/sysc_ext/communication/gr_file_in.h
+index c6ba245..2a40e3a 100644
+--- a/greenreg/include/greenreg/sysc_ext/communication/gr_file_in.h
++++ b/greenreg/include/greenreg/sysc_ext/communication/gr_file_in.h
+@@ -152,8 +152,10 @@ public:
+ 			// fill up the fifo
+ 			while( !feof( m_file_handle) && m_fifo_out.num_free() > 0)
+ 			{
+-				fread( &val, 4, 1, m_file_handle);
+-				m_fifo_out.nb_write( val);
++				size_t size = fread( &val, 4, 1, m_file_handle);
++                if(size) {
++                    m_fifo_out.nb_write( val);
++                }
+ 			}
+ 		}
+ 		next_trigger( m_fifo_out.data_read_event());
+diff --git a/greenreg/src/internal/registers/register_data/primary_register_data.cpp b/greenreg/src/internal/registers/register_data/primary_register_data.cpp
+index bdb7253..66c86d1 100644
+--- a/greenreg/src/internal/registers/register_data/primary_register_data.cpp
++++ b/greenreg/src/internal/registers/register_data/primary_register_data.cpp
+@@ -141,10 +141,10 @@ void primary_register_data::on_received_write_request( uint_gr_t _value, transac
+       }
+   }
+     
+-  m_parent_register->i.set( _value);
++  m_parent_register->i.set(new_value);
+ 
+-  m_parent_register->get_post_write_rules().process_active_rules( old_value, _value, _transaction, _delayed);
+-  m_parent_register->br.process_tlm_post_write_rules( old_value, _value, _transaction, _delayed);
++  m_parent_register->get_post_write_rules().process_active_rules( old_value, new_value, _transaction, _delayed);
++  m_parent_register->br.process_tlm_post_write_rules( old_value, new_value, _transaction, _delayed);
+   
+   // potentially call wait, dependent on switch and current context
+   if (m_parent_register->get_events_enabled() || _delayed) {
+diff --git a/greensocket/include/greensocket/generic/green_socket_mm_base.tpp b/greensocket/include/greensocket/generic/green_socket_mm_base.tpp
+index 22a08a1..f20db62 100644
+--- a/greensocket/include/greensocket/generic/green_socket_mm_base.tpp
++++ b/greensocket/include/greensocket/generic/green_socket_mm_base.tpp
+@@ -83,7 +83,7 @@ void gs::socket::mm_base<TRAITS,MM_INTERFACE>::reserve_data_size(payload_type& t
+ //see reserve_data_size. works in the same way
+ template <typename TRAITS, typename MM_INTERFACE>
+ void gs::socket::mm_base<TRAITS,MM_INTERFACE>::reserve_be_size(payload_type& txn, unsigned int size){
+-  assert(m_scheme==GS_TXN_WITH_BE | m_scheme==GS_TXN_WITH_BE_AND_DATA);
++  assert((m_scheme==GS_TXN_WITH_BE) | (m_scheme==GS_TXN_WITH_BE_AND_DATA));
+   per_txn_data_and_be* tmp;
+   txn.get_extension(tmp);
+   assert(tmp);

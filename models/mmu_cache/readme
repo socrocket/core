@@ -1,0 +1,34 @@
+=This directory contains the mmu_cache TLM implementation. Tests can be found in the folder 'tests'.=
+
+=Overview=
+The MMU_CACHE SystemC IP models behaviour and timing of the Gaisler GRLIB Harvard L1 Cache and GRLIB Memory Management Unit (MMU). It is therefore related to the mmu_cache entity of the GRLIB hardware library. 
+The structure of the Cache Sub-System is depicted in Figure . The top-level class mmu_cache provides two TLM 2.0 simple_target_sockets (icio, dcio) for communication with the LEON ISS and one Carbon/GreenSocs amba_master_socket for the connection to the AHBCTRL. All the sub-components, such as the mmu, the caches and the localrams are implemented in plain C++.
+Equivalent to the hardware model the caches can be directly mapped, 2-way, 3-way or 4-way set associative. For multi-set configurations LRU, LRR and pseudo-random replacement are supported. The size of the cache sets can be beween 1 and 64 kBytes, with up to 32 bytes per line. The caches can be flushed, frozen or locked on a line-by-line basis. The write policy of the data cache is write-through with no-allocate on write miss. The caches can be separately disabled. In that case requests from the ISS are directly forwarded to the AHB master or the MMU (if enabled).
+The localrams can be optionally enabled. They provide 0-waitstate access to up to 512 kByte of memory, starting from a segment address, which can be freely chosen.
+The MMU can also be optionally enabled. The MMU page size is 4, 8, 16 or 32 kByte. The TLBs can hold between 2 and 32 page descriptors. In case of a page miss a 3-level table walk is carried out on main memory. Similarily to the localrams, instantiation of the mmu is done by late binding depending on configuration parameters. The caches connect to the mmu through tlb_adaptor objects. The tlb_adaptors present a unified memory interface towards the caches (mem_if). The same memory interface is used to provide access to the AHB master socket on top-level. This way it can be dynamically decided whether a request from one of the caches shall be forwarded to a shared or common TLB (virtual addressing), or directly go to the AHB interface (physical addressing). 
+
+=Data structure=
+
+lib 		- Source code of the mmu_cache implementation.
+test1		- Co-Sim test for 'SMALL' cache configuration. Icache and dcache are enabled. MMU and localrams are disabled.
+		  Both caches are direct mapped (1 set). The setsize is 1kb (min) and the linesize is 4 words (min).
+		  The testbench is used for TLM and SystemC/RTL co-simulation.
+test2		- Co-Sim test for 'LARGE' cache configuration. Icache and dcache are enabled. MMU and localrams are disabled.
+		  Both caches have 4 sets (max). The setsize is 256kb (max) and the linesize is 8 words (max).
+		  The testbench is used for TLM and SystemC/RTL co-simulation
+test3		- TLM test of various cache features on a standard cache configuration (default). 
+		  The MMU and the localrams are disabled. Both caches have 4 sets. The setsize is 1kb and 
+		  the linesize 4 words.
+test4		- TLM test with focus on testing instruction and data scratchpads (LOCALRAM).
+		  MMU is disabled. Both caches have 2 sets. The setsize is 256kb and the linesize 4 words.
+		  The scratchpads have the maximum size of 512 kb.
+test5		- TLM test for instruction and data cache (LOCKING). Main purpose is the testing of cache line locking, 
+		  as well as LRR and LRU replacement. MMU and localrams are disabled.
+	          The instruction cache has 2 sets of 8kb with 4 words per line. The data cache consists 
+		  of 3 sets of 8kb with 4 words per line. The icache features LRR replacement, the dcache LRU replacement.
+test6		- TLM test for the memory management unit (MMU). The localrams are disabled. Both caches have
+		  4 sets of 1kb and 4 words per line. The MMU contains 8 instruction and 8 data tlbs. 
+		  The MMU page size is 4KB.
+wscript		- Waf script
+
+

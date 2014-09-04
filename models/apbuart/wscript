@@ -1,0 +1,15 @@
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '../..'
+
+def build(self):
+  self(
+    target          = 'apbuart',
+    features        = 'cxx cxxstlib',
+    source          = 'apbuart.cpp tcpio.cpp nullio.cpp', 
+    export_includes = self.top_dir,
+    includes        = self.top_dir,
+    uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
+    use             = 'common signalkit utils',
+    install_path    = '${PREFIX}/lib',
+  )

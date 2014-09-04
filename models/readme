@@ -1,0 +1,20 @@
+/**
+@addtogroup models Models
+The SoCRocket Library contains a set of Models designed to be functional equivalent with models from the Gaisler grlib.
+@{
+/**
+------
+
+ahbctrl	  - AHBCtrl AHB bus SystemC simulation model
+apbctrl   - APBCtrl AHB/APB bridge SystemC simulation model
+gptimer   - GPTimer SystemC simulation model
+irqmp     - IRQMP SystemC simulation model
+mctrl     - MCTRL Memory Controller SystemC simulation model
+mmu_cache - MMU_CACHE Combined Memory Management and Cache SystemC simulation model
+socwire   - SOCWire SystemC simulation model
+
+extern    - External IP (e.g. ESA)
+*/
+/**
+@}
+*/

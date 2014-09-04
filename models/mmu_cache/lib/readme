@@ -1,0 +1,23 @@
+This directory contains the source code of the Cache-Subsystem.
+Following files are currently checked in:
+
+mmu_cache.{h,tpp}     		- SystemC Top-Level class containing
+				icache, dcache, mmu and bus interfaces.
+				Mmu_cache is a template class. The template
+				arguments correspond to the generics of the
+				VHDL model.
+
+mmu_cache_if.h        		- Abstraction of mmu_cache. Used to pass pointers
+				of the bus interface functions to caches and mmu.
+
+ivectorcache.{h,cpp}  		- C++ implementation of the instruction cache
+dvectorcache.{h,cpp}  		- C++ inplementation of the data cache
+
+mmu.{h,cpp}           		- C++ implementation of the memory management unit
+mmu_if.h	      		- Abstraction of the mmu. Used to pass pointers
+				of the mmu interface functions to the caches.
+
+dcio_payload_extension.{h,cpp} - data cache in/out payload extensions
+icio_payload_extension.{h,cpp} - instruction cache in/out payload extensions
+
+defines.h		       - Macros and global type definitions

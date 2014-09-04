@@ -1,0 +1,34 @@
+Library common files
+--------------------
+
+power_monitor.h/cpp:	
+--------------------
+
+The power monitor of the library, with database for event recording and analysis engine.
+Power monitoring can be separately enabled for every IP of the library, by setting the 'pow_mon' constructor parameter.
+
+timingmonitor.h/cpp:
+--------------------
+
+Class with static functions for tracking SystemC time and real execution time of tests.
+Used by most of the unit tests.
+
+vendian.h / msb_lsb.h
+---------------------
+
+Functions for endianess conversion - depending on host system.
+
+socrocket.h
+-----------
+
+Collection of important header files. Meant to ease extension of the library.
+
+vendian.h
+---------
+
+Implementation of verbosity levels for the library.
+Used by all IPs and most testbenches.
+
+
+
+
