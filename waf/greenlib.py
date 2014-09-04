@@ -24,7 +24,7 @@ def find(self, path = None):
       uselib        = 'BOOST SYSTEMC TLM',
       okmsg         = "ok",
       fragment      = '''
-           #include "core/common/systemc.h"
+           #include <systemc.h>
            #include <tlm.h>
            #include <greensocket/initiator/single_socket.h>
 
@@ -43,7 +43,7 @@ def find(self, path = None):
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
       okmsg         = "ok",
       fragment      = '''
-           #include "core/common/systemc.h"
+           #include <systemc.h>
            #include <tlm.h>
            #include <greensocket/target/single_socket.h>
 
@@ -64,7 +64,7 @@ def find(self, path = None):
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
       okmsg         = "ok",
       fragment      = '''
-           #include "core/common/systemc.h"
+           #include <systemc.h>
            #include <tlm.h>
            #include <greencontrol/config.h>
 
@@ -97,7 +97,7 @@ def find(self, path = None):
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
       okmsg        = "ok",
       fragment='''
-           #include "core/common/systemc.h"
+           #include <systemc.h>
            #include <tlm.h>
            #include <greenreg/greenreg.h>
 

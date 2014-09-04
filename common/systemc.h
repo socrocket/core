@@ -13,7 +13,7 @@
 #ifndef COMMON_SYSTEMC_H_
 #define COMMON_SYSTEMC_H_
 
-#include "core/common/systemc.h"
+#include <systemc.h>
 #include <tlm.h>
 #include <tlm_utils/simple_target_socket.h>
 #include <tlm_utils/simple_initiator_socket.h>
