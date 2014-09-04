@@ -22,3 +22,12 @@ def build(self):
     uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     install_path    = '${PREFIX}/lib',
   )
+  self(
+    name            = 'signalkit',
+    export_includes = self.top_dir,
+    uselib          = 'BOOST SYSTEMC',
+    use             = 'common',
+    install_path    = '${PREFIX}/lib',
+  )
+  self.install_files('${PREFIX}/include', self.path.ant_glob('**/*.h', excl=['**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']), relative_trick=True)
+

@@ -16,7 +16,7 @@ def configure(self):
 def docs(bld):
     """build source code documentation in 'build/docs' if doxygen is installed"""
     if bld.env.DOXYGEN and bld.env.DOXYGEN != "":
-        subprocess.call(["doxygen", "Doxyfile"]) 
+        subprocess.call(["doxygen", "core/waf/docs.conf"]) 
     else:
         print "To use the ./waf docs comand please install doxygen"
         sys.exit(0)
