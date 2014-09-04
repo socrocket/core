@@ -1,0 +1,11 @@
+This folder contains modified and reduced versions of the main benchmark applications
+where the I/O operations and the calls to the operating system and to external libraries
+has been minimized as much as possible.
+
+The benchmarks are particularly built for the TSIM LEON in the sense that, at the
+beginning, they contain instruction for disabling the processor's cache; such
+caches are disabled if the pre-processor directive TSIM_DISABLE_CACHE is defined.
+For using such benchmarks with TSIM the following compilation flags were used:
+CFLAGS="-msoft-float -mcpu=v8 -DTSIM_DISABLE_CACHE -fno-inline" (note that the -mv8 flag does not
+exists anymore in gcc 4.4 and it has to be replaced by -mcpu=v8); -fno-inline
+is used because sometimes with -O3 wrong code was generated.

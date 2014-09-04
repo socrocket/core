@@ -1,0 +1,25 @@
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '../..'
+
+def build(bld):
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'fft64.sparc',
+     cflags       = '-static -g -O1',
+     linkflags    = '-static -g -O1',
+     lib          = 'm',
+     source       = ['radix4_nofile.c'],
+     install_path = None,
+  )
+
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'fft64_input_gen.sparc',
+     cflags       = '-static -g -O1',
+     linkflags    = '-static -g -O1',
+     lib          = 'm',
+     source       = ['radix4_input_gen.c'],
+     install_path = None,
+  )
+

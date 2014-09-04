@@ -1,0 +1,39 @@
+#!/bin/bash
+model=${1}
+testno=${2}
+
+ext='csv'
+base="${model}.${testno}"
+dir="build/timingreports/"
+mkdir -p ${dir}
+
+for level in 'lt' 'at' 'rtl' ; do
+  logfile="build/models/${model}/tests/${base}.${level}.test.log"
+  if [ ! -r $logfile ] ; then
+    continue
+  fi
+  offset='6-'
+  if [ $level == "rtl" ] ; then
+    offset='7-'
+  fi
+
+  if [ -z "$FIRST_PASSED" ] ; then
+    # generate names file
+    echo "phase, name" > ${dir}${base}.name.${ext}
+    tr -dc '[:print:]\n' < $logfile | sed 's/\[0m//g' | sed 's/\[32m//g' | grep TimingMonitor | grep -v \* | cut -d' ' -f${offset} | sed '1d' | cut -d',' -f1,2 >> ${dir}${base}.name.${ext}
+  fi
+  echo "phase, ${level} systemc duration (ps), ${level} realtime duration (sec)" > ${dir}${base}.${level}.${ext}
+  tr -dc '[:print:]\n' < $logfile | sed 's/\[0m//g' | sed 's/\[32m//g' | grep TimingMonitor |grep -v \* | cut -d' ' -f${offset} | sed '1d' | sed 's/ ns,/000,/g' | sed 's/ ps,/,/g' | sed 's/ us,/000000,/g' | sed 's/ ms,/000000000,/g' | sed 's/ s,/000000000000,/g' | cut -d',' -f1,3,6 >> ${dir}${base}.${level}.${ext}
+
+  if [ -z "$FIRST_PASSED" ] ; then
+    export FIRST_PASSED=true
+    join -t',' -j1 ${dir}${base}.name.${ext} ${dir}${base}.${level}.${ext} > ${dir}${base}.outtmp.${ext}
+  else
+    mv ${dir}${base}.outtmp.${ext} ${dir}${base}.intmp.${ext}
+    join -t',' -j1 ${dir}${base}.intmp.${ext} ${dir}${base}.${level}.${ext} > ${dir}${base}.outtmp.${ext}
+  fi
+done
+
+rm ${dir}${base}.intmp.${ext}
+mv ${dir}${base}.outtmp.${ext} ${dir}${base}.report.${ext}
+

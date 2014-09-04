@@ -1,0 +1,4 @@
+#/usr/bin/env bash
+
+${0}.py --extensions=h,cpp,tpp --linelength=120 $@
+

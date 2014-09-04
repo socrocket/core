@@ -1,0 +1,9 @@
+#!/bin/bash
+
+#./waf -j1 --target=$1.$2.lt.test
+#./waf -j1 --target=$1.$2.at.test
+#./waf -j1 --target=$1.$2.rtl.test
+
+./tools/timingreport $1 $2
+
+cat build/timingreports/$1.$2.report.csv;

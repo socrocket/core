@@ -1,0 +1,15 @@
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '..'
+
+def build(bld):
+    ldscript = bld.path.find_resource('prom.ld')
+    bld(
+        target       = 'sdram.prom',
+        features     = 'c cprogram sparc',
+        cflags       = '-g',
+        linkflags    = '-g -Ttext=0 -nostartfiles -nostdlib -T%s -N' % (ldscript.abspath()),
+        source       = 'prom.S',
+        includes     = '.',
+        install_path = '${PREFIX}/prom/',
+    )

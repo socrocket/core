@@ -1,0 +1,110 @@
+#!env python
+import re
+import sys
+import os
+import os.path
+from os import environ
+
+debug = True
+if environ.get("DEBUG", "True") == "False":
+  debug = False
+
+license = """//*********************************************************************
+// Copyright 2010, Institute of Computer and Network Engineering,
+//                 TU-Braunschweig
+// All rights reserved
+// Any reproduction, use, distribution or disclosure of this program,
+// without the express, prior written consent of the authors is 
+// strictly prohibited.
+//
+// University of Technology Braunschweig
+// Institute of Computer and Network Engineering
+// Hans-Sommer-Str. 66
+// 38118 Braunschweig, Germany
+//
+// ESA SPECIAL LICENSE
+//
+// This program may be freely used, copied, modified, and redistributed
+// by the European Space Agency for the Agency's own requirements.
+//
+// The program is provided "as is", there is no warranty that
+// the program is correct or suitable for any purpose,
+// neither implicit nor explicit. The program and the information in it
+// contained do not necessarily reflect the policy of the 
+// European Space Agency or of TU-Braunschweig.
+"""
+
+ext = ".bak"
+files = sys.argv[1:]
+for name in files:
+  iscpp = name.endswith(".cpp") or name.endswith(".tpp")
+  if not debug:
+    os.rename(name, name+ext)
+    input = open(name+ext, "r")
+    output = open(name, "w")
+  else:
+    input = open(name, "r")
+    output = None
+  header = []
+  n_title = None
+  n_origin = None
+  n_purpose = None
+  line = input.readline()
+  if not line.startswith("// LICENSETEXT"):
+    while line.startswith("/*") or line.startswith("// *"):
+      if line.startswith("/*"):
+        newline = line.replace("/*", "//").replace("*/\n","").replace("// File: ", "// Title:").replace("// Project:", "// Origin: ")
+      else:
+        newline = line.replace("// *", "//").replace("* \n","").replace("*\n","").replace("// File: ", "// Title:").replace("// Project:", "// Origin: ") 
+      if newline.startswith("// Modified on $") and iscpp:
+        header.append("// Method:")
+        header.append("//")
+      if newline.startswith("// Title:"):
+        newlines = newline.rstrip().rstrip(":").split(' - ')
+        if len(newlines)==1:
+          newline = newlines[0]
+        else:
+          header.append(newlines[0])
+          n_title = len(header) -1
+          n_purpose = len(header) +1
+          header.append("//")
+          newline = "//             " + newlines[1]
+        
+      header.append(newline)
+      if newline.startswith("// Origin:"):
+        n_origin = len(header) -1
+        header.append("//")
+        header.append("// ScssId:")
+      if newline.startswith("// Title:"):
+        n_title = len(header) -1
+        n_purpose = len(header) +1
+        header.append("//")
+      if newline.startswith("// Maintainer:"):
+        header.append("// Reviewed:")
+      if newline.startswith("//          at $"):
+        header.append("//          by $Author$")
+      line = input.readline()
+
+    if n_title and n_origin:
+      header[n_title], header[n_origin] = header[n_origin], header[n_title]
+
+    if n_purpose:
+      header[n_purpose] = header[n_purpose].replace("//         ", "// Purpose:")
+
+    if debug:
+      print license.rstrip()
+    else:
+      output.write(license.rstrip() + "\n")
+    
+    for h in header:
+      if debug:
+        print h.rstrip()
+      else:
+        output.write(h.rstrip() + "\n")
+
+  while line:
+    if debug:
+      print line.rstrip()
+    else:
+      output.write(line.rstrip() + "\n")
+    line = input.readline()

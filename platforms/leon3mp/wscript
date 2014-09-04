@@ -1,0 +1,15 @@
+top = '../..'
+
+def build(bld):
+    use   = 'BOOST ahbctrl ahbmem irqmp gptimer apbctrl apbuart socwire socw_socket mmu_cache mctrl ahbin ahbprof greth utils signalkit pysc common'
+    use  += ' leon3.funclt leon3.funcat trap ELF_LIB AMBA TLM GREENSOCS SYSTEMC BOOST'
+      
+    bld(
+        target       = 'leon3mp.platform',
+        features     = 'cxx cprogram pyembed',
+        source       = 'sc_main.cpp',
+        includes     = '.',
+        use          = use,
+        #ut_param     = ['singlecore.lt.prom', 'irqmp.sparc'],
+    )
+

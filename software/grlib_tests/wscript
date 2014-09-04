@@ -1,0 +1,308 @@
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '../..'
+
+def build(bld):
+  # hello.sparc
+  #bld(
+  #   features     = 'cxx cxxprogram sparc',
+  #   target       = 'hello.sparc',
+  #   cflags       = '-static -g -O1 -lm -Ttext=0x60000000',
+  #   linkflags    = '-static -g -O1 -lm -Ttext=0x60000000',
+  #   source       = ['hello.c'],
+  #   install_path = None,
+  #)
+
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'hello.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['hello.c'],
+     install_path = None,
+  )
+
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'hello.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'hello.sparc',
+      at          = True,
+  )
+  
+  # cache.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'cache.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['top_cache_test.c',
+                     'ramfill.c', 
+                     'standalone.c', 
+                     'standaloneasm.S', 
+                     'cacheasm.S', 
+                     'cache.c'],
+     install_path = None,
+  )
+  """
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'cache.sparc',
+  )
+  """
+
+  # gptimer.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'gptimer.sparc',
+     source       = ['top_gptimer_test.c',
+                     'ramfill.c', 
+                     'standalone.c', 
+                     'standaloneasm.S',
+                     'irqmp.c',
+                     'gptimer.c',
+                     'cacheasm.S', 
+                     'cache.c'],
+     install_path = None,
+  )
+  """
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'gptimer.sparc',
+  )
+  """
+
+  
+  # irqmp.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'irqmp.sparc',
+     source       = ['top_irqmp_test.c',
+                     'ramfill.c', 
+                     'standalone.c', 
+                     'standaloneasm.S',
+                     'irqmp.c', 
+                     'cacheasm.S', 
+                     'cache.c'],
+     install_path = None,
+  )
+  """ 
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'irqmp.sparc',
+  )
+  """
+  #bld(
+  #    features    = 'systest',
+  #    system      = 'leon3mp.platform',
+  #    rom         = 'sdram.prom',
+  #    ram         = 'irqmp.sparc',
+  #    at          = True,
+  #)
+
+  # ram.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'ram.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['top_ram_test.c',
+                     'ramfill.c', 
+                     'standaloneasm.S', 
+                     'standalone.c', 
+                     'ramtest.c',
+                     'cacheasm.S',
+                     'cache.c'],
+     install_path = None,
+  )
+  """
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'ram.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'ram.sparc',
+      args       = ['--option', 'conf.system.at=true'],
+  )
+  """
+  # reg.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'reg.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['top_reg_test.c',
+                     'ramfill.c', 
+                     'standaloneasm.S', 
+                     'standalone.c', 
+                     'regtest.S',
+                     'cacheasm.S',
+                     'cache.c'],
+     install_path = None,
+  )
+  """
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'reg.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'reg.sparc',
+      at          = True,
+  )
+  """
+  # mmu.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'mmu.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['top_mmu_test.c',
+                     'ramfill.c', 
+                     'standalone.c', 
+                     'standaloneasm.S', 
+                     'mmu.c',
+                     'mmu_asm.S',
+                     'cacheasm.S',
+                     'cache.c'],
+     install_path = None,
+  )
+  """
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'mmu.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'mmu.sparc',
+      at          = True,
+  )
+  """
+  # readpnp.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     target       = 'readpnp.sparc',
+     source       = [
+       'readpnp.c',
+       'standalone.c',
+       'standaloneasm.S',
+       'ramfill.c',
+       'cache.c',
+       'cacheasm.S',
+     ],
+     install_path = None,
+  )
+  """ 
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'readpnp.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'readpnp.sparc',
+      at          = True,
+  )
+  """
+  # argstests.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     target       = 'argstest.sparc',
+     source       = ['top_args_test.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'argstest.sparc',
+      args        = 'one two three four'
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'argstest.sparc',
+      at          = True,
+      args        = 'one two three four'
+  )
+  
+  # amba.sparc
+  #bld(
+  #   features     = 'c cprogram sparc',
+  #   cflags       = '-static -g -O1 -mno-fpu',
+  #   linkflags    = '-static -g -O1 -mno-fpu',
+  #   lib          = 'm',
+  #   target       = 'amba.sparc',
+  #   source       = ['amba.c'],
+  #   install_path = None,
+  #)
+
+  # ambalist.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     cflags       = '-static -g -O1 -mno-fpu -lleonbare',
+     linkflags    = '-static -g -O1 -mno-fpu -lleonbare',
+     lib          = 'm',
+     target       = 'ambalist.sparc',
+     source       = ['ambalist.c'],
+     install_path = None,
+  )
+  
+  # mphello.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     cflags       = '-static -g -O1 -mno-fpu -lleonbare',
+     linkflags    = '-static -g -O1 -mno-fpu -lleonbare',
+     lib          = 'm',
+     target       = 'mphello.sparc',
+     source       = ['mp-hello.c'],
+     install_path = None,
+  )
+   

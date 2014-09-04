@@ -1,0 +1,93 @@
+#!env python
+import re
+import sys
+import os
+import os.path
+from os import environ
+import textwrap
+debug = True
+if environ.get("DEBUG", "True") == "False":
+  debug = False
+
+license = """// vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
+/// @addtogroup %(group)s
+/// @{
+/// @file %(file)s
+/// %(purpose)s
+///
+/// @date %(date)s-2014
+/// @copyright All rights reserved.
+///            Any reproduction, use, distribution or disclosure of this
+///            program, without the express, prior written consent of the 
+///            authors is strictly prohibited.
+/// @author %(author)s
+/// 
+"""
+ext = ".bak"
+files = sys.argv[1:]
+for name in files:
+  print name, ":"
+  if not debug:
+    os.rename(name, name+ext)
+    input = open(name+ext, "r")
+    output = open(name, "w")
+  else:
+    input = open(name, "r")
+    output = None
+  header = None
+  n_date = None
+  n_file = os.path.basename(name)
+  n_group = environ.get("GROUP", os.path.basename(os.path.dirname(name)))
+  n_author = None
+  n_purpose = None
+  line = input.readline()
+  if not line.startswith("// LICENSETEXT"):
+    while line.startswith("//"):
+      if line.startswith("//"):
+        newline = line.replace("\n","")
+
+      if newline.startswith("// Copyright "):
+        newlines = newline.rstrip().split()
+        if len(newlines) > 2 and newlines[2].strip(','):
+          n_date = newlines[2].strip(',')
+      elif newline.startswith("// Purpose:"):
+        newlines = newline.rstrip().rstrip(":").split(':')
+        if len(newlines)>1:
+          n_purpose = [newlines[1].strip()]
+      elif newline.startswith("//         ") and n_purpose and not n_author:
+        newline = newline.lstrip('/').strip(' ')
+        n_purpose.append(newline)
+        
+      elif newline.startswith("// Maintainer:"):
+        newlines = newline.rstrip().rstrip(":").split(':')
+        if len(newlines)>1:
+          n_author = newlines[1].strip()
+
+      line = input.readline()
+
+    if not n_purpose:
+      n_purpose = ""
+    if not n_author:
+      n_author = environ.get("AUTHOR", "")
+    if not n_date:
+      n_date = "2013"
+    if not n_group:
+      n_group = "none"
+    n_purpose = textwrap.wrap(' '.join(n_purpose), 76)
+    n_purpose = '\n/// '.join(n_purpose)
+    header = license % {'file': n_file, 'date': n_date, 'group': n_group, 'author': n_author, 'purpose': n_purpose}
+    if debug:
+      print header.rstrip()
+    else:
+      output.write(header.rstrip() + "\n")
+    
+  while line:
+    if debug:
+      print line.rstrip()
+    else:
+      output.write(line.rstrip() + "\n")
+    line = input.readline()
+  if debug:
+    print "/// @}"
+  else:
+    output.write("/// @}")

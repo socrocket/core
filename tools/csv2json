@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+import csv
+import sys
+import md5
+import os.path
+from jsontools import set_json_attr
+
+def csv2json(csvfile, basefile, outputdir):
+  title = None
+  cols = 0
+  num = 0
+  reader = csv.reader(open(csvfile, 'rv'), delimiter=',', quotechar='"')
+  try:
+    for row in reader:
+      num = num + 1
+      if not title:
+        title = row
+        cols = len(title)
+      else:
+        attrs = []
+        name = row[0].strip()
+        for idx in range(1, cols):
+          attrs.append("%s=%s" % (title[idx].strip(), row[idx].strip()))
+        attrs.append("conf.uart.0.port=%d" % (2000+num))
+        jsonoutfile = set_json_attr(basefile, attrs)
+        filename = os.path.join(outputdir, '%s.json' % (name))
+        if os.path.exists(filename):
+          md5new = md5.new(jsonoutfile).digest()
+          old = open(filename, 'rv')
+          md5old = md5.new(old.read()).digest()
+          old.close()
+          if md5new == md5old:
+            continue
+        fd = open(filename, "w")
+        fd.write(jsonoutfile)
+        fd.close()
+  except csv.Error, e:
+    sys.exit('file %s, line %d: %s' % (csvfile, reader.line_num, e))
+
+if __name__ == "__main__":
+  if len(sys.argv) < 3:
+    sys.exit("Usage: csv2json <csvfile> <jsonbasefile> [outputdir]")
+  else:
+    csvfile = sys.argv[1]
+    jsonfile = sys.argv[2]
+    if len(sys.argv)==4:
+      outputdir = sys.argv[3]
+    else:
+      outputdir = os.getcwd()
+    csv2json(csvfile, jsonfile, outputdir)

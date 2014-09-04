@@ -1,0 +1,7 @@
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '..'
+
+def build(self):
+  self.recurse_all()
+

@@ -1,0 +1,62 @@
+#//*********************************************************************
+#// Copyright 2010, Institute of Computer and Network Engineering,
+#//                 TU-Braunschweig
+#// All rights reserved
+#// Any reproduction, use, distribution or disclosure of this program,
+#// without the express, prior written consent of the authors is 
+#// strictly prohibited.
+#//
+#// University of Technology Braunschweig
+#// Institute of Computer and Network Engineering
+#// Hans-Sommer-Str. 66
+#// 38118 Braunschweig, Germany
+#//
+#// ESA SPECIAL LICENSE
+#//
+#// This program may be freely used, copied, modified, and redistributed
+#// by the European Space Agency for the Agency's own requirements.
+#//
+#// The program is provided "as is", there is no warranty that
+#// the program is correct or suitable for any purpose,
+#// neither implicit nor explicit. The program and the information in it
+#// contained do not necessarily reflect the policy of the 
+#// European Space Agency or of TU-Braunschweig.
+#//*********************************************************************
+#// Title:      mmu_cache.h
+#//
+#// ScssId:
+#//
+#// Origin:     HW-SW SystemC Co-Simulation SoC Validation Platform
+#//
+#// Purpose:    64 Point Radix-4 FFT Implementation
+#//             Reference Makefile for compiling on host computer
+#//
+#// Modified on $Date$
+#//          at $Revision$
+#//          by $Author$
+#//
+#// Principal:  European Space Agency
+#// Author:     VLSI working group @ IDA @ TUBS
+#// Maintainer: Thomas Schuster
+#// Reviewed:
+#//*********************************************************************
+
+# define PROJECT
+PROJECT=radix4
+
+# linux compiler for testing
+CC=/usr/bin/gcc
+
+# newlib headers automatically included
+CFLAGS= -g -m32 -DLINUX_TEST -Wall
+
+# link 
+$(PROJECT) : $(PROJECT).obj 
+	$(CC) -g -m32 -DLINUX_TEST -o $(PROJECT) $(PROJECT).obj
+
+# compile program
+$(PROJECT).obj : $(PROJECT).c
+	$(CC) -c $(CFLAGS) $< -o $@ | tee compile.log
+
+clean :
+	rm -rf $(PROJECT) *.txt *.obj *.s *.dasm *.log *.srec

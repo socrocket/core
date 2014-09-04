@@ -1,0 +1,712 @@
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '../..'
+
+def build(bld):
+  # AES.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'aes.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['AES.c'],
+     install_path = None,
+  )
+
+  ahbmemtgen = bld.get_tgen_by_name("aes.sparc")
+  ahbmem     = ahbmemtgen.path.find_or_declare("aes.sparc")
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'aes.sparc',
+      args        = '--option conf.ahbmem.elf=%s' % (ahbmem.abspath())
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'aes.sparc',
+      at       = True,
+  )
+  
+  # bcnt.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'bcnt.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['bcnt.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'bcnt.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'bcnt.sparc',
+      at          = True,
+  )
+
+  # blit.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'blit.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['blit.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'blit.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'blit.sparc',
+      at          = True,
+  )
+
+  # crc.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'crc.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['crc.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'crc.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'crc.sparc',
+      at          = True,
+  )
+
+  # des.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'des.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['des.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'des.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'des.sparc',
+      at          = True,
+  )
+
+  # dhry.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'dhry.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['dhry.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'dhry.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'dhry.sparc',
+      at          = True,
+  )
+
+  # engine.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'engine.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['engine.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'engine.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'engine.sparc',
+      at          = True,
+  )
+
+  # fft.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'fft.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['fft.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'fft.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'fft.sparc',
+      at          = True,
+  )
+
+  # fib.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'fib.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['fib.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'fib.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'fib.sparc',
+      at          = True,
+  )
+
+  # fir2.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'fir2.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['fir2.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'fir2.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'fir2.sparc',
+      at          = True,
+  )
+
+  # gamma.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'gamma.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['gamma.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'gamma.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'gamma.sparc',
+      at          = True,
+  )
+
+  # hanoi.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'hanoi.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['hanoi.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'hanoi.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'hanoi.sparc',
+      at          = True,
+  )
+
+  # heapsort.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'heapsort.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['heapsort.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'heapsort.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'heapsort.sparc',
+      at          = True,
+  )
+
+  # jpeg.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'jpeg.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['jpeg.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'jpeg.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'jpeg.sparc',
+      at          = True,
+  )
+
+  # lms.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'lms.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['lms.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'lms.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'lms.sparc',
+      at          = True,
+  )
+
+  # matrix.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'matrix.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['matrix.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'matrix.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'matrix.sparc',
+      at          = True,
+  )
+
+  # mdrall.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'mdrall.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['mdrAll.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'mdrall.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'mdrall.sparc',
+      at          = True,
+  )
+
+  # pocsag.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'pocsag.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['pocsag.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'pocsag.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'pocsag.sparc',
+      at          = True,
+  )
+
+  # queens.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'queens.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['queens.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'queens.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'queens.sparc',
+      args        = ['--option', 'conf.mmu_cache.ic.en=false', 
+                     '--option', 'conf.mmu_cache.dc.en=false',
+                    ],
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'queens.sparc',
+      args        = ['--option', 'conf.mmu_cache.ic.en=true', 
+                     '--option', 'conf.mmu_cache.ic.sets=1',
+                     '--option', 'conf.mmu_cache.ic.repl=0',
+                     '--option', 'conf.mmu_cache.dc.en=true',
+                     '--option', 'conf.mmu_cache.dc.sets=1',
+                     '--option', 'conf.mmu_cache.dc.repl=0',
+                    ],
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'queens.sparc',
+      args        = ['--option', 'conf.mmu_cache.ic.en=true', 
+                     '--option', 'conf.mmu_cache.ic.sets=1',
+                     '--option', 'conf.mmu_cache.ic.repl=1',
+                     '--option', 'conf.mmu_cache.dc.en=true',
+                     '--option', 'conf.mmu_cache.dc.sets=1',
+                     '--option', 'conf.mmu_cache.dc.repl=1',
+                    ],
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'queens.sparc',
+      args        = ['--option', 'conf.mmu_cache.ic.en=true', 
+                     '--option', 'conf.mmu_cache.ic.sets=2',
+                     '--option', 'conf.mmu_cache.ic.repl=1',
+                     '--option', 'conf.mmu_cache.dc.en=true',
+                     '--option', 'conf.mmu_cache.dc.sets=2',
+                     '--option', 'conf.mmu_cache.dc.repl=1',
+                    ],
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'queens.sparc',
+      args        = ['--option', 'conf.mmu_cache.ic.en=true', 
+                     '--option', 'conf.mmu_cache.ic.sets=2',
+                     '--option', 'conf.mmu_cache.ic.repl=2',
+                     '--option', 'conf.mmu_cache.dc.en=true',
+                     '--option', 'conf.mmu_cache.dc.sets=2',
+                     '--option', 'conf.mmu_cache.dc.repl=2',
+                    ],
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'queens.sparc',
+      args        = ['--option', 'conf.mmu_cache.ic.en=true', 
+                     '--option', 'conf.mmu_cache.ic.sets=3',
+                     '--option', 'conf.mmu_cache.ic.linesize=4',
+                     '--option', 'conf.mmu_cache.dc.en=true',
+                     '--option', 'conf.mmu_cache.dc.sets=3',
+                     '--option', 'conf.mmu_cache.dc.linesize=4',
+                    ],
+  )
+   
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'queens.sparc',
+      at          = True,
+  )
+
+  # quicksort.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'quicksort.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['quicksort.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'quicksort.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'quicksort.sparc',
+      at          = True,
+  )
+  """
+  # tolstoy.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'tolstoy.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['tolstoy.c'],
+     install_path = None,
+  )
+
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'tolstoy.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'tolstoy.sparc',
+      at          = True,
+  )
+  """
+  # v42.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'v42.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['v42.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'v42.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'v42.sparc',
+      at          = True,
+  )
+
+  # wavelt.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'wavelt.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['wavelt.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'wavelt.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'wavelt.sparc',
+      at          = True,
+  )
+
+  # whets.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'whets.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['whets.c'],
+     install_path = None,
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'whets.sparc',
+  )
+  
+  bld(
+      features    = 'systest',
+      system      = 'leon3mp.platform',
+      rom         = 'sdram.prom',
+      ram         = 'whets.sparc',
+      at          = True,
+  )
+
