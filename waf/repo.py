@@ -1,13 +1,44 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # vim: set expandtab:ts=4:sw=4:setfiletype python
-import os,shlex,sys,time,json
+import os,shlex,sys,time,json,subprocess
 from waflib import Context,Scripting,TaskGen
 from waflib.Configure import ConfigurationContext
 from waflib import ConfigSet,Utils,Options,Logs,Context,Build,Errors
+from core.waf.common import conf
 
 WAF_CONFIG_LOG='repo.log'
 REPOS = {}
+
+def get_repo_vals(directory):
+    prefix = "repository_"
+    keys = ["name", "desc", "tools", "path"]
+    result = {}
+    obj = {}
+    wscript = os.path.join(directory, "wscript")
+    if os.path.isfile(wscript):
+        execfile(wscript, {}, obj)
+    for key in keys:
+        name = (prefix + key).upper()
+        result[key] = obj.get(name, "")
+    return result
+
+
+if "check_output" not in dir( subprocess ): # duck punch it in!
+    def f(*popenargs, **kwargs):
+        if 'stdout' in kwargs:
+            raise ValueError('stdout argument not allowed, it will be overridden.')
+        process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+        output, unused_err = process.communicate()
+        retcode = process.poll()
+        if retcode:
+            cmd = kwargs.get("args")
+            if cmd is None:
+                cmd = popenargs[0]
+            raise subprocess.CalledProcessError(retcode, cmd)
+        return output
+    subprocess.check_output = f
+
 
 def init(self):
   if Options.commands[0] == "repo":
@@ -45,7 +76,8 @@ class repo(ConfigurationContext):
                 jsonfile.close()
                 return obj
         else:
-            return {}
+            core = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
+            return {"core": core}
 
     def write_repos(self, repos):
         with open(Context.out_dir+os.sep+".conf_check_repos.json", "w") as jsonfile:
@@ -55,6 +87,8 @@ class repo(ConfigurationContext):
     def git_cmd(self, cmd, params):
         global REPOS
         for directory, repository in REPOS.iteritems():
+            if directory == "core":
+                directory = "."
             print "%s:" % (directory)
             import subprocess
             subprocess.call(("%(git)s %(cmd)s %(parameter)s" % {
@@ -71,6 +105,8 @@ class repo(ConfigurationContext):
             return
         directory = params[0]
         repository = params[1]
+        if directory == "core":
+            directory = "."
 
         REPOS[directory] = repository
         import subprocess
@@ -84,13 +120,22 @@ class repo(ConfigurationContext):
     def del_repo(self, cmd, params):
         import shutil
         for directory in params:
+            if directory == "core":
+                print "You cannot delete the core repository"
+                continue
             del(REPOS[directory])
             shutil.rmtree(directory)
 
     def show_repo(self, cmd, params):
         global REPOS
         for directory, repository in REPOS.iteritems():
+            vals = get_repo_vals(os.path.join(self.path.abspath(), directory))
             print "%s <= %s" % (directory, repository)
+            print "    name: %s" % vals["name"]
+            print "    default path: %s" % vals["path"]
+            print "    tools: %s" % ', '.join(vals["tools"])
+            print "    description: %s" % vals["description"]
+            print ""
 
     def show_help(self, cmd, params):
         print "usage: %s <comands> <parameters...>" % (' '.join(sys.argv[0:2]))
@@ -140,12 +185,24 @@ def export_have_define(self):
         defines += ['HAVE_REPO_' + repo.replace('.', '_').upper()]
     setattr(self, 'defines', defines)
 
-def options(self):
+def loadrepos(self):
     for d, repo in REPOS.iteritems():
-        self.recurse(self.root.abspath()+d)
+        directory = os.path.join(self.root.abspath(),d)
+        vals = get_repo_vals(directory)
+        waf = os.path.join(directory, "waf")
+        self.load(vals["tools"], waf)
+
+conf(loadrepos)
+
+def iterrepos(self):
+    for d, repo in REPOS.iteritems():
+        self.recurse(os.path.join(self.root.abspath(),d))
+
+conf(iterrepos)
+def options(self):
+    pass
 
 def configure(self):
-    for d, repo in REPOS.iteritems():
-        self.recurse(self.root.abspath()+d)
+    pass
         
     
