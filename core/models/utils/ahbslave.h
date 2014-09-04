@@ -14,15 +14,15 @@
 #ifndef MODELS_UTILS_AHBSLAVE_H_
 #define MODELS_UTILS_AHBSLAVE_H_
 
-#include "common/systemc.h"
+#include "core/common/systemc.h"
 #include <tlm.h>
-#include "common/gs_config.h"
-#include <amba.h>
+#include "core/common/gs_config.h"
+#include "core/common/amba.h"
 #include <stdint.h>
 
-#include "models/utils/ahbdevice.h"
-#include "common/msclogger.h"
-#include "common/verbose.h"
+#include "core/models/utils/ahbdevice.h"
+#include "core/common/msclogger.h"
+#include "core/common/verbose.h"
 
 template<class BASE = DefaultBase>
 class AHBSlave : public AHBDevice<BASE> {
@@ -104,7 +104,7 @@ class AHBSlave : public AHBDevice<BASE> {
     gs::gs_config<uint64_t> m_writes;  // NOLINT(runtime/int)
 };
 
-#include "ahbslave.tpp"
+#include "core/models/utils/ahbslave.tpp"
 
 #endif  // MODELS_UTILS_AHBSLAVE_H_
 /// @}

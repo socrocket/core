@@ -38,20 +38,20 @@
 #ifndef LT_PROCESSOR_HPP
 #define LT_PROCESSOR_HPP
 
-#include "common/gs_config.h"
-#include <customExceptions.hpp>
-#include <leon3.funclt/instructions.hpp>
-#include <leon3.funclt/decoder.hpp>
-#include <leon3.funclt/interface.hpp>
-#include <ToolsIf.hpp>
+#include "core/common/gs_config.h"
+#include "core/common/trapgen/utils/customExceptions.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/instructions.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/decoder.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/interface.hpp"
+#include "core/common/trapgen/ToolsIf.hpp"
 #include <tlm_utils/tlm_quantumkeeper.h>
-#include <leon3.funclt/registers.hpp>
-#include <leon3.funclt/alias.hpp>
-#include <leon3.funclt/memory.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/registers.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/alias.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/memory.hpp"
 #include <iostream>
 #include <fstream>
 #include <boost/circular_buffer.hpp>
-#include <instructionBase.hpp>
+#include "core/common/trapgen/instructionBase.hpp"
 #ifdef __GNUC__
 #ifdef __GNUC_MINOR__
 #if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
@@ -75,10 +75,10 @@
 #endif
 #endif
 
-#include <leon3.funclt/irqPorts.hpp>
-#include <leon3.funclt/externalPins.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/irqPorts.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/externalPins.hpp"
 #include <string>
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 #define FUNC_MODEL
 #define LT_IF

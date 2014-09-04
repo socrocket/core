@@ -45,8 +45,8 @@
 
 #include <iostream>
 
-#include <systemc.h>
-#include <trap_utils.hpp>
+#include "core/common/systemc.h"
+#include "core/common/trapgen/utils/trap_utils.hpp"
 #include <boost/lexical_cast.hpp>
 
 #include "signalkit/signalkit.h"

@@ -18,18 +18,18 @@
 #define __VECTORCACHE_H__
 
 #include <vector>
-#include "common/base.h"
-#include "common/systemc.h"
-#include "common/gs_config.h"
+#include "core/common/base.h"
+#include "core/common/systemc.h"
+#include "core/common/gs_config.h"
 
 #include "math.h"
-#include "common/verbose.h"
-#include "defines.h"
-#include "cache_if.h"
-#include "mmu_cache_if.h"
-#include "tlb_adaptor.h"
-#include "mem_if.h"
-#include "common/vendian.h"
+#include "core/common/verbose.h"
+#include "core/models/mmu_cache/lib/defines.h"
+#include "core/models/mmu_cache/lib/cache_if.h"
+#include "core/models/mmu_cache/lib/mmu_cache_if.h"
+#include "core/models/mmu_cache/lib/tlb_adaptor.h"
+#include "core/models/mmu_cache/lib/mem_if.h"
+#include "core/common/vendian.h"
 
 // implementation of cache memory and controller
 /// @brief virtual cache model, contain common functionality of instruction and data cache

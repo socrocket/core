@@ -34,9 +34,9 @@
  *
 \***************************************************************************/
 
-#include <leon3.funclt/externalPins.hpp>
-#include <trap_utils.hpp>
-#include "common/verbose.h"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/externalPins.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
+#include "core/common/verbose.h"
 
 using namespace leon3_funclt_trap;
 

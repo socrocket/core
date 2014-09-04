@@ -15,10 +15,10 @@
 #include <map>
 #include <utility>
 
-#include "models/apbctrl/apbctrl.h"
-#include "common/vendian.h"
-#include "common/verbose.h"
-#include "common/report.h"
+#include "core/models/apbctrl/apbctrl.h"
+#include "core/common/vendian.h"
+#include "core/common/verbose.h"
+#include "core/common/report.h"
 
 /// Constructor of class APBCtrl
 APBCtrl::APBCtrl(

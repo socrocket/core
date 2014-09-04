@@ -48,19 +48,19 @@
 #define SIGQUIT 3
 #endif
 
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 #include <vector>
 
-#include "trap_utils.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
 
-#include "ABIIf.hpp"
-#include "ToolsIf.hpp"
-#include "instructionBase.hpp"
+#include "core/common/trapgen/ABIIf.hpp"
+#include "core/common/trapgen/ToolsIf.hpp"
+#include "core/common/trapgen/instructionBase.hpp"
 
-#include "BreakpointManager.hpp"
-#include "GDBConnectionManager.hpp"
-#include "WatchpointManager.hpp"
+#include "core/common/trapgen/debugger/BreakpointManager.hpp"
+#include "core/common/trapgen/debugger/GDBConnectionManager.hpp"
+#include "core/common/trapgen/debugger/WatchpointManager.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/circular_buffer.hpp>

@@ -38,7 +38,7 @@
 #ifndef ALIAS_HPP
 #define ALIAS_HPP
 
-#include <leon3.funcat/registers.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/registers.hpp"
 #include <ostream>
 #include <list>
 

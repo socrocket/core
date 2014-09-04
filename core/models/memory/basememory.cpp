@@ -12,7 +12,7 @@
 /// @author Jan Wagner
 ///
 
-#include "models/memory/basememory.h"
+#include "core/models/memory/basememory.h"
 
 BaseMemory::BaseMemory(const implementation_type &type, const uint32_t &size) {
   reads = 0;

@@ -48,17 +48,17 @@
 #include <boost/program_options.hpp>
 #include <boost/timer.hpp>
 #include <boost/filesystem.hpp>
-#include <SparseMemoryAT.hpp>
-#include <leon3.funcat/processor.hpp>
-#include <leon3.funcat/instructions.hpp>
-#include <trap_utils.hpp>
-#include <elfFrontend.hpp>
-#include <execLoader.hpp>
+#include "core/common/trapgen/misc/SparseMemoryAT.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/processor.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/instructions.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
+#include "core/common/trapgen/elfloader/elfFrontend.hpp"
+#include "core/common/trapgen/elfloader/execLoader.hpp"
 #include <stdexcept>
-#include <GDBStub.hpp>
-#include <profiler.hpp>
-#include <osEmulator.hpp>
-#include <systemc.h>
+#include "core/common/trapgen/debugger/GDBStub.hpp"
+#include "core/common/trapgen/profiler/profiler.hpp"
+#include "core/common/trapgen/osEmulator/osEmulator.hpp"
+#include "core/common/systemc.h"
 
 std::string banner = std::string("\n\
 \t\n\

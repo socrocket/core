@@ -12,11 +12,11 @@
 #include <sys/time.h>
 #include <time.h>
 
-#include "common/gs_config.h"
-#include "common/systemc.h"
-#include "common/report.h"
+#include "core/common/gs_config.h"
+#include "core/common/systemc.h"
+#include "core/common/report.h"
 
-#include "platforms/newleon3mp/leon3mp.h"
+#include "core/platforms/newleon3mp/leon3mp.h"
 
 namespace trap {
   extern int exitValue;

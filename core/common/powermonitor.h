@@ -21,9 +21,9 @@
 #include <string>
 #include <vector>
 
-#include "common/gs_config.h"
-#include "common/systemc.h"
-#include "common/verbose.h"
+#include "core/common/gs_config.h"
+#include "core/common/systemc.h"
+#include "core/common/verbose.h"
 
 // Power monitor demonstrator
 class powermonitor : public sc_core::sc_module {

@@ -16,7 +16,7 @@
 #ifndef MODELS_APBUART_NULLIO_H_
 #define MODELS_APBUART_NULLIO_H_
 
-#include "models/apbuart/io_if.h"
+#include "core/models/apbuart/io_if.h"
 
 class NullIO : public io_if {
   public:

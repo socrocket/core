@@ -12,9 +12,9 @@
 /// @author Timo Veit
 ///
 
-#include <memory.h>
+#include "core/models/memory/memory.h"
 #include <algorithm>
-#include "common/block_allocator.h"
+#include "core/common/block_allocator.h"
 
 block_allocator::block_allocator(size_t blocksize) : m_head(0), m_blocksize(blocksize) {
 }

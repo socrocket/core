@@ -16,14 +16,14 @@
 #define MODELS_IRQMP_IRQMP_H_
 
 #include <stdint.h>
-#include "common/systemc.h"
-#include "common/gs_config.h"
-#include <greenreg_ambasockets.h>
+#include "core/common/systemc.h"
+#include "core/common/gs_config.h"
+#include "core/common/grambasockets/greenreg_ambasockets.h"
 #include <boost/config.hpp>
 #include <utility>
 
-#include "models/utils/apbdevice.h"
-#include "models/utils/clkdevice.h"
+#include "core/models/utils/apbdevice.h"
+#include "core/models/utils/clkdevice.h"
 #include "signalkit/signalkit.h"
 
 /// @addtogroup irqmp IRQMP

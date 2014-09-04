@@ -38,9 +38,9 @@
 #ifndef AT_MEMORY_HPP
 #define AT_MEMORY_HPP
 
-#include <ToolsIf.hpp>
-#include <trap_utils.hpp>
-#include <systemc.h>
+#include "core/common/trapgen/ToolsIf.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
+#include "core/common/systemc.h"
 
 #define FUNC_MODEL
 #define AT_IF

@@ -13,8 +13,8 @@
 
 #include <fstream>
 #include <iostream>
-#include "models/ahbout/ahbout.h"
-#include "common/verbose.h"
+#include "core/models/ahbout/ahbout.h"
+#include "core/common/verbose.h"
 
 /// Constructor
 AHBOut::AHBOut(const ModuleName nm,  // Module name

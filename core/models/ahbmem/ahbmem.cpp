@@ -19,9 +19,9 @@
 
 #include <fstream>
 
-#include "models/ahbmem/ahbmem.h"
-#include "common/report.h"
-#include "common/verbose.h"
+#include "core/models/ahbmem/ahbmem.h"
+#include "core/common/report.h"
+#include "core/common/verbose.h"
 
 /// Constructor
 AHBMem::AHBMem(const ModuleName nm,  // Module name

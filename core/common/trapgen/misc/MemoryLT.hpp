@@ -29,11 +29,11 @@
 
 #include <boost/lexical_cast.hpp>
 #include <string>
-#include <systemc.h>
+#include "core/common/systemc.h"
 #include <tlm.h>
 #include <tlm_utils/simple_target_socket.h>
 
-#include <trap_utils.hpp>
+#include "core/common/trapgen/utils/trap_utils.hpp"
 
 namespace trap {
 template<unsigned int N_INITIATORS, unsigned int sockSize>

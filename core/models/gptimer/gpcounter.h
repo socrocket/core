@@ -17,10 +17,10 @@
 #ifndef MODELS_GPTIMER_GPCOUNTER_H_
 #define MODELS_GPTIMER_GPCOUNTER_H_
 
-#include "common/gs_config.h"
+#include "core/common/gs_config.h"
 #include <greenreg/greenreg.h>
-#include "common/base.h"
-#include "common/systemc.h"
+#include "core/common/base.h"
+#include "core/common/systemc.h"
 
 #include "signalkit/signalkit.h"
 

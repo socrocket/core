@@ -14,7 +14,7 @@
 /// @author Rolf Meyer
 ///
 
-#include "common/verbose.h"
+#include "core/common/verbose.h"
 
 template<class BASE>
 APBDevice<BASE>::APBDevice(

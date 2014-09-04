@@ -27,7 +27,7 @@
 #ifndef TOOLSIF_HPP
 #define TOOLSIF_HPP
 
-#include "instructionBase.hpp"
+#include "core/common/trapgen/instructionBase.hpp"
 #include <cstdlib>
 
 namespace trap {

@@ -36,7 +36,7 @@
 //}
 //#endif
 
-#include "trap_utils.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
 
 void trap::throw_error_helper(std::string message){
     std::cerr << message << std::endl;

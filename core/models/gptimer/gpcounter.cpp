@@ -14,9 +14,9 @@
 /// @author Rolf Meyer
 ///
 
-#include "models/gptimer/gpcounter.h"
-#include "models/gptimer/gptimer.h"
-#include "common/verbose.h"
+#include "core/models/gptimer/gpcounter.h"
+#include "core/models/gptimer/gptimer.h"
+#include "core/common/verbose.h"
 
 GPCounter::GPCounter(GPTimer *_parent, unsigned int _nr, ModuleName name) :
   gr_subdevice(name, *_parent), p(_parent), nr(_nr), stopped(true), chain_run(false),

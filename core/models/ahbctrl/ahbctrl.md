@@ -232,14 +232,14 @@ Have a look at class `CLKDevice` to learn more (3.2).
 
 ~~~{.cpp}
 #include "tlm.h"
-#include "amba.h"
-#include "socrocket.h"
+#include "core/common/amba.h"
+#include "core/common/socrocket.h"
 #include "power_monitor.h"
 
 #include "signalkit/signalkit.h"
 #include "testbench.h"
-#include "models/ahbctrl/ahbctrl.h"
-#include "models/ahbmem/ahbmem.h"
+#include "core/models/ahbctrl/ahbctrl.h"
+#include "core/models/ahbmem/ahbmem.h"
 
 int sc_main(int argc, char** argv) {
 

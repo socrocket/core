@@ -12,16 +12,16 @@
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
-#include "common/gs_config.h"
-#include "common/systemc.h"
+#include "core/common/gs_config.h"
+#include "core/common/systemc.h"
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
 #include <string.h>
-#include <amba.h>
-#include "debugger/GDBStub.hpp"
-#include "elfloader/execLoader.hpp"
-#include "osEmulator/osEmulator.hpp"
+#include "core/common/amba.h"
+#include "core/common/trapgen/debugger/GDBStub.hpp"
+#include "core/common/trapgen/elfloader/execLoader.hpp"
+#include "core/common/trapgen/osEmulator/osEmulator.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/errors.hpp>
@@ -31,27 +31,27 @@
 #include <cstdlib>
 #include <stdexcept>
 
-#include "common/json_parser.h"
-#include "common/paramprinter.h"
-#include "common/verbose.h"
-#include "common/powermonitor.h"
-#include "models/mmu_cache/lib/leon3_mmu_cache.h"
-#include "models/ahbin/ahbin.h"
-#include "models/memory/memory.h"
-#include "models/apbctrl/apbctrl.h"
-#include "models/ahbmem/ahbmem.h"
-#include "models/mctrl/mctrl.h"
-#include "defines.h"
-#include "models/gptimer/gptimer.h"
-#include "models/apbuart/apbuart.h"
-#include "models/apbuart/tcpio.h"
-#include "models/apbuart/nullio.h"
-#include "models/irqmp/irqmp.h"
-#include "models/ahbctrl/ahbctrl.h"
-#include "models/ahbprof/ahbprof.h"
+#include "core/common/json_parser.h"
+#include "core/common/paramprinter.h"
+#include "core/common/verbose.h"
+#include "core/common/powermonitor.h"
+#include "core/models/mmu_cache/lib/leon3_mmu_cache.h"
+#include "core/models/ahbin/ahbin.h"
+#include "core/models/memory/memory.h"
+#include "core/models/apbctrl/apbctrl.h"
+#include "core/models/ahbmem/ahbmem.h"
+#include "core/models/mctrl/mctrl.h"
+#include "core/models/mmu_cache/lib/defines.h"
+#include "core/models/gptimer/gptimer.h"
+#include "core/models/apbuart/apbuart.h"
+#include "core/models/apbuart/tcpio.h"
+#include "core/models/apbuart/nullio.h"
+#include "core/models/irqmp/irqmp.h"
+#include "core/models/ahbctrl/ahbctrl.h"
+#include "core/models/ahbprof/ahbprof.h"
 
-#include "leon3.funclt.h"
-#include "leon3.funcat.h"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt.h"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat.h"
 
 #ifdef HAVE_SOCWIRE
 #include "models/socwire/AHB2Socwire.h"

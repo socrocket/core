@@ -12,7 +12,7 @@
 /// @author Jan Wagner
 ///
 
-#include "models/memory/mapstorage.h"
+#include "core/models/memory/mapstorage.h"
 
 MapStorage::MapStorage(const uint32_t &size) {
 }

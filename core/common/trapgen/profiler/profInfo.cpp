@@ -24,9 +24,9 @@
  *
 \***************************************************************************/
 
-#include "profInfo.hpp"
+#include "core/common/trapgen/profiler/profInfo.hpp"
 
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 #include <string>
 

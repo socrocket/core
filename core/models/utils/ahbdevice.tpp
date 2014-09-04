@@ -13,8 +13,8 @@
 /// @author Rolf Meyer
 #include <math.h>
 #include <algorithm>
-#include "common/verbose.h"
-#include "common/amba.h"
+#include "core/common/verbose.h"
+#include "core/common/amba.h"
 
 // Standard constructor
 template<class BASE>

@@ -18,12 +18,12 @@
 
 #include <tlm.h>
 
-#include "mmu_cache_if.h"
-#include "mmu_if.h"
-#include "mem_if.h"
-#include "common/verbose.h"
-#include "common/vendian.h"
-#include "defines.h"
+#include "core/models/mmu_cache/lib/mmu_cache_if.h"
+#include "core/models/mmu_cache/lib/mmu_if.h"
+#include "core/models/mmu_cache/lib/mem_if.h"
+#include "core/common/verbose.h"
+#include "core/common/vendian.h"
+#include "core/models/mmu_cache/lib/defines.h"
 
 class tlb_adaptor : public DefaultBase, public mem_if {
 

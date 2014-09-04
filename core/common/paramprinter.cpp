@@ -16,7 +16,7 @@
 #include <vector>
 #include <string>
 #include <map>
-#include "common/paramprinter.h"
+#include "core/common/paramprinter.h"
 
 paramprinter::paramprinter() {
   mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);

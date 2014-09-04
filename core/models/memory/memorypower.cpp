@@ -14,7 +14,7 @@
 
 // Calculate power/energy values from normalized input data
 
-#include "models/memory/memorypower.h"
+#include "core/models/memory/memorypower.h"
 
 static const char *power_params[4][4] = {
   // ROM

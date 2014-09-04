@@ -15,7 +15,7 @@
 /// @author Thomas Schuster
 ///
 
-#include "mmu_cache.h"
+#include "core/models/mmu_cache/lib/mmu_cache.h"
 
 //SC_HAS_PROCESS(mmu_cache<>);
 /// Constructor

@@ -16,8 +16,8 @@
 
 #include <greencontrol/config.h>
 
-#include "common/gs_config/gs_config.h"
-#include "common/gs_config/gs_config_class.h"
+#include "core/common/gs_config/gs_config.h"
+#include "core/common/gs_config/gs_config_class.h"
 
 #endif  // COMMON_GS_CONFIG_H_
 /// @}

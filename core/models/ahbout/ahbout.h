@@ -15,14 +15,14 @@
 #ifndef MODELS_AHBOUT_AHBOUT_H_
 #define MODELS_AHBOUT_AHBOUT_H_
 
-#include <amba.h>
+#include "core/common/amba.h"
 #include <tlm.h>
 #include <fstream>
 #include <map>
 
-#include "models/utils/ahbslave.h"
-#include "models/utils/clkdevice.h"
-#include "common/msclogger.h"
+#include "core/models/utils/ahbslave.h"
+#include "core/models/utils/clkdevice.h"
+#include "core/common/msclogger.h"
 
 class AHBOut : public AHBSlave<>, public CLKDevice {
   public:

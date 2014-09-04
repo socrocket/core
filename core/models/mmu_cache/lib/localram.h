@@ -18,11 +18,11 @@
 #define __LOCALRAM_H__
 
 #include <stdint.h>
-#include "common/base.h"
-#include "common/gs_config.h"
+#include "core/common/base.h"
+#include "core/common/gs_config.h"
 
-#include "mem_if.h"
-#include "defines.h"
+#include "core/models/mmu_cache/lib/mem_if.h"
+#include "core/models/mmu_cache/lib/defines.h"
 
 // Local scratchpad ram can optionally be attached to both instruction and data cache controllers.
 // The scratch pad ram provides fast 0-waitstates ram memories for instructions and data.

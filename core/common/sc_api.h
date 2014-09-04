@@ -45,7 +45,7 @@
 #endif
 
 // Extend SystemC with our custom functions.
-#include "common/sc_find.h"
+#include "core/common/sc_find.h"
 
 #endif  // COMMON_SC_API_H_
 /// @}

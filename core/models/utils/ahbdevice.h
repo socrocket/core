@@ -15,12 +15,12 @@
 #ifndef MODELS_UTILS_AHBDEVICE_H_
 #define MODELS_UTILS_AHBDEVICE_H_
 
-#include <amba.h>
+#include "core/common/amba.h"
 #include <stdint.h>
 #include <tlm.h>
-#include "common/base.h"
-#include "common/amba.h"
-#include "common/gs_config.h"
+#include "core/common/base.h"
+#include "core/common/amba.h"
+#include "core/common/gs_config.h"
 
 class AHBDeviceBase {
   public:
@@ -249,7 +249,7 @@ class AHBDevice : public BaseModule<BASE>, public AHBDeviceBase {
     gs::cnf::gs_config<bool> g_bar3hprefetchable;
 };
 
-#include "ahbdevice.tpp"
+#include "core/models/utils/ahbdevice.tpp"
 
 #endif  // MODELS_UTILS_AHBDEVICE_H_
 /// @}

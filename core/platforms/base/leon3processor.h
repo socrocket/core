@@ -11,13 +11,13 @@
 /// @author Rolf Meyer
 #ifndef PLATFORM_BASE_LEON3PROCESSOR_H_
 #define PLATFORM_BASE_LEON3PROCESSOR_H_
-#include "platforms/base/ambabase.h"
-#include "models/utils/clkdevice.h"
-#include "common/systemc.h"
+#include "core/platforms/base/ambabase.h"
+#include "core/models/utils/clkdevice.h"
+#include "core/common/systemc.h"
 
-#include "models/mmu_cache/lib/mmu_cache.h"
-#include "leon3.funclt.h"
-#include "leon3.funcat.h"
+#include "core/models/mmu_cache/lib/mmu_cache.h"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt.h"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat.h"
 
 class Leon3Processor : public sc_core::sc_module, public CLKDevice {
   public:

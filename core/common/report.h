@@ -12,7 +12,7 @@
 #define COMMON_REPORT_H_
 
 #include <boost/any.hpp>
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 namespace v {
 

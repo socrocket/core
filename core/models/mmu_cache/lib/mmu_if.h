@@ -20,7 +20,7 @@
 #include <tlm.h>
 #include <map>
 
-#include "defines.h"
+#include "core/models/mmu_cache/lib/defines.h"
 
 class mmu_if {
 

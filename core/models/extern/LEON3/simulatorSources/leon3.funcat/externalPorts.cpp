@@ -36,14 +36,14 @@
 
 
 
-#include <leon3.funcat/externalPorts.hpp>
-#include <leon3.funcat/memory.hpp>
-#include <ToolsIf.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/externalPorts.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/memory.hpp"
+#include "core/common/trapgen/ToolsIf.hpp"
 #include <tlm.h>
-#include <trap_utils.hpp>
+#include "core/common/trapgen/utils/trap_utils.hpp"
 #include <tlm_utils/simple_initiator_socket.h>
 #include <tlm_utils/peq_with_cb_and_phase.h>
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 using namespace leon3_funcat_trap;
 void leon3_funcat_trap::TLMMemory::setDebugger( MemoryToolsIf< unsigned int > * debugger \

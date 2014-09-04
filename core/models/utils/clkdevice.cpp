@@ -12,8 +12,8 @@
 /// @author Rolf Meyer
 ///
 
-#include "models/utils/clkdevice.h"
-#include "common/verbose.h"
+#include "core/models/utils/clkdevice.h"
+#include "core/common/verbose.h"
 
 CLKDevice::CLKDevice() :
   rst(&CLKDevice::onrst, "Reset"),

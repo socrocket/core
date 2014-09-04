@@ -56,13 +56,13 @@
 #include <string>
 #include <vector>
 
-#include <systemc.h>
+#include "core/common/systemc.h"
 
-#include "ABIIf.hpp"
-#include "ToolsIf.hpp"
-#include "elfFrontend.hpp"
-#include "instructionBase.hpp"
-#include "profInfo.hpp"
+#include "core/common/trapgen/ABIIf.hpp"
+#include "core/common/trapgen/ToolsIf.hpp"
+#include "core/common/trapgen/elfloader/elfFrontend.hpp"
+#include "core/common/trapgen/instructionBase.hpp"
+#include "core/common/trapgen/profiler/profInfo.hpp"
 
 namespace trap {
 /// Profiler: it keeps track of many runtime statistics on:

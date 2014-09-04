@@ -15,9 +15,9 @@
 /// @author Thomas Schuster
 ///
 
-#include "mmu_cache_base.h"
-#include "common/report.h"
-#include "common/vendian.h"
+#include "core/models/mmu_cache/lib/mmu_cache_base.h"
+#include "core/common/report.h"
+#include "core/common/vendian.h"
 
 //SC_HAS_PROCESS(mmu_cache_base<>);
 /// Constructor

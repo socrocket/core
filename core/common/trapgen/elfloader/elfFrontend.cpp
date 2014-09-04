@@ -74,9 +74,9 @@ extern "C" {
 #include <list>
 #include <iostream>
 
-#include "trap_utils.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
 
-#include "elfFrontend.hpp"
+#include "core/common/trapgen/elfloader/elfFrontend.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>

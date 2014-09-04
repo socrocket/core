@@ -15,7 +15,7 @@
 #define COMMON_SC_FIND_H_
 
 #include <vector>
-#include "common/sc_api.h"
+#include "core/common/sc_api.h"
 
 // Function: Find a SystemC object in the hierarchy by it's name
 

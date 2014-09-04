@@ -15,9 +15,9 @@
 #ifndef MODELS_MEMORY_MAPSTORAGE_H_
 #define MODELS_MEMORY_MAPSTORAGE_H_
 
-#include "common/vmap.h"
+#include "core/common/vmap.h"
 
-#include "models/memory/storage.h"
+#include "core/models/memory/storage.h"
 
 class MapStorage : public Storage {
   public:

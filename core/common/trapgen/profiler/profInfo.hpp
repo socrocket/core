@@ -28,7 +28,7 @@
 #define PROFINFO_HPP
 
 #include <string>
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 namespace trap {
 ///Represents all the profiling data which can be

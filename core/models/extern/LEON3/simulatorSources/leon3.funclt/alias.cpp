@@ -36,8 +36,8 @@
 
 
 
-#include <leon3.funclt/alias.hpp>
-#include <leon3.funclt/registers.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/alias.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/registers.hpp"
 #include <ostream>
 #include <list>
 

@@ -36,19 +36,19 @@
 
 
 
-#include <leon3.funcat/processor.hpp>
-#include <customExceptions.hpp>
-#include <leon3.funcat/instructions.hpp>
-#include <leon3.funcat/decoder.hpp>
-#include <leon3.funcat/interface.hpp>
-#include <ToolsIf.hpp>
-#include <leon3.funcat/registers.hpp>
-#include <leon3.funcat/alias.hpp>
-#include <leon3.funcat/externalPorts.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/processor.hpp"
+#include "core/common/trapgen/utils/customExceptions.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/instructions.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/decoder.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/interface.hpp"
+#include "core/common/trapgen/ToolsIf.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/registers.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/alias.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/externalPorts.hpp"
 #include <iostream>
 #include <fstream>
 #include <boost/circular_buffer.hpp>
-#include <instructionBase.hpp>
+#include "core/common/trapgen/instructionBase.hpp"
 #ifdef __GNUC__
 #ifdef __GNUC_MINOR__
 #if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
@@ -72,10 +72,10 @@
 #endif
 #endif
 
-#include <leon3.funcat/irqPorts.hpp>
-#include <leon3.funcat/externalPins.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/irqPorts.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/externalPins.hpp"
 #include <string>
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 using namespace leon3_funcat_trap;
 using namespace trap;

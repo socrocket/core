@@ -18,29 +18,29 @@
 #ifndef __MMU_CACHE_BASE_H__
 #define __MMU_CACHE_BASE_H__
 
-#include "common/gs_config.h"
-#include "common/systemc.h"
-#include <amba.h>
+#include "core/common/gs_config.h"
+#include "core/common/systemc.h"
+#include "core/common/amba.h"
 //#include <tlm_1/tlm_req_rsp/tlm_channels/tlm_fifo/tlm_fifo.h>
 
 #include <math.h>
 
-#include "icio_payload_extension.h"
-#include "dcio_payload_extension.h"
+#include "core/models/mmu_cache/lib/icio_payload_extension.h"
+#include "core/models/mmu_cache/lib/dcio_payload_extension.h"
 
-#include "common/socrocket.h"
+#include "core/common/socrocket.h"
 #include "signalkit/signalkit.h"
-#include "models/utils/ahbmaster.h"
-#include "models/utils/clkdevice.h"
+#include "core/models/utils/ahbmaster.h"
+#include "core/models/utils/clkdevice.h"
 
-#include "common/verbose.h"
-#include "cache_if.h"
-#include "ivectorcache.h"
-#include "dvectorcache.h"
-#include "nocache.h"
-#include "mmu_cache_if.h"
-#include "mmu.h"
-#include "localram.h"
+#include "core/common/verbose.h"
+#include "core/models/mmu_cache/lib/cache_if.h"
+#include "core/models/mmu_cache/lib/ivectorcache.h"
+#include "core/models/mmu_cache/lib/dvectorcache.h"
+#include "core/models/mmu_cache/lib/nocache.h"
+#include "core/models/mmu_cache/lib/mmu_cache_if.h"
+#include "core/models/mmu_cache/lib/mmu.h"
+#include "core/models/mmu_cache/lib/localram.h"
 
 /// @addtogroup mmu_cache MMU_Cache
 /// @{

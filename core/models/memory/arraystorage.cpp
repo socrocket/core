@@ -12,7 +12,7 @@
 /// @author Jan Wagner
 ///
 
-#include "models/memory/arraystorage.h"
+#include "core/models/memory/arraystorage.h"
 
 ArrayStorage::ArrayStorage(const uint32_t &size) {
   data = new uint8_t[size];

@@ -13,7 +13,7 @@
 /// @author Thomas Schuster
 ///
 
-#include "icio_payload_extension.h"
+#include "core/models/mmu_cache/lib/icio_payload_extension.h"
 
 // constructor
 icio_payload_extension::icio_payload_extension(void) :

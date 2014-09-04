@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include "common/block_allocator.h"
+#include "core/common/block_allocator.h"
 
 enum json_type {
   JSON_NULL,

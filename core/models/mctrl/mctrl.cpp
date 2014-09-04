@@ -16,8 +16,8 @@
 #include <tlm.h>
 #include <algorithm>
 #include <set>
-#include "models/mctrl/mctrl.h"
-#include "common/report.h"
+#include "core/models/mctrl/mctrl.h"
+#include "core/common/report.h"
 
 // constructor
 Mctrl::Mctrl(

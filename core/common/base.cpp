@@ -9,8 +9,8 @@
 ///            authors is strictly prohibited.
 /// @author Rolf Meyer
 
-#include "common/base.h"
-#include "models/utils/apbdevice.h"
+#include "core/common/base.h"
+#include "core/models/utils/apbdevice.h"
 
 template<>
 SCBaseModule<DefaultBase>::SCBaseModule(ModuleName mn, uint32_t register_count) :

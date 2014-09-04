@@ -90,9 +90,9 @@ The example below demonstrates the instantiation of the GM as PROM, IO, SRAM and
 MapStorage). The modules are declared in lines 13-16 and created, within the constructor, in lines 30-36. Lines
 44-47 show how to bind the bus target socket of the GM to the mem initiator socket of the MCTRL.
  
-    #include "common/systemc.h"
+    #include "core/common/systemc.h"
     #include "memory.h"
-    #include "models/mctrl/mctrl.h"
+    #include "core/models/mctrl/mctrl.h"
     
     class Top : public sc_module {
       public:

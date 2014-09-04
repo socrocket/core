@@ -463,7 +463,7 @@ def configure(ctx):
         systemCerrmsg='Error, at least version 2.2.0 required.\nSystemC also needs patching under cygwin:\nplease controll that lines 175 and 177 of header systemc.h are commented;\nfor more details refer to http://www.ht-lab.com/howto/sccygwin/sccygwin.html\nhttp://www.dti.dk/_root/media/27325_SystemC_Getting_Started_artikel.pdf'
     ctx.check_cxx(header_name='systemc.h', use='SYSTEMC', uselib_store='SYSTEMC', mandatory=1, includes=syscpath)
     ctx.check_cxx(fragment='''
-        #include <systemc.h>
+        #include "core/common/systemc.h"
 
         #ifndef SYSTEMC_VERSION
         #error SYSTEMC_VERSION not defined in file sc_ver.h
@@ -496,7 +496,7 @@ def configure(ctx):
 
     ctx.check_cxx(header_name='tlm.h', use='SYSTEMC', uselib_store='TLM', mandatory=1, includes=tlmPath, errmsg='not found, use --with-tlm option')
     ctx.check_cxx(fragment='''
-        #include <systemc.h>
+        #include "core/common/systemc.h"
         #include <tlm.h>
 
         #ifndef TLM_VERSION_MAJOR

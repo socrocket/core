@@ -36,7 +36,7 @@ extern "C" {
 #include <gelf.h>
 }
 
-#include "elfFrontend.hpp"
+#include "core/common/trapgen/elfloader/elfFrontend.hpp"
 
 namespace trap {
 class ExecLoader {

@@ -30,7 +30,7 @@
 #include <map>
 #include <string>
 
-#include <systemc.h>
+#include "core/common/systemc.h"
 
 #ifdef __GNUC__
 #ifdef __GNUC_MINOR__
@@ -55,18 +55,18 @@
 #endif
 #endif
 
-#include "ABIIf.hpp"
-#include "ToolsIf.hpp"
+#include "core/common/trapgen/ABIIf.hpp"
+#include "core/common/trapgen/ToolsIf.hpp"
 
 #ifndef EXTERNAL_BFD
-#include "elfloader/elfFrontend.hpp"
+#include "core/common/trapgen/elfloader/elfFrontend.hpp"
 #else
 #include "bfdWrapper.hpp"
 #define BFDFrontend BFDWrapper
 #endif
 
-#include "instructionBase.hpp"
-#include "osEmulator/syscCallB.hpp"
+#include "core/common/trapgen/instructionBase.hpp"
+#include "core/common/trapgen/osEmulator/syscCallB.hpp"
 
 namespace trap {
 template<class issueWidth>

@@ -16,8 +16,8 @@
 
 #include <string>
 #include <vector>
-#include "models/gptimer/gptimer.h"
-#include "common/report.h"
+#include "core/models/gptimer/gptimer.h"
+#include "core/common/report.h"
 
 // Constructor: create all members, registers and Counter objects.
 // Store configuration default value in conf_defaults.

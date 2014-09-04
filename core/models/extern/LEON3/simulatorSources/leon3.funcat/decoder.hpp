@@ -38,7 +38,7 @@
 #ifndef DECODER_HPP
 #define DECODER_HPP
 
-#include <leon3.funcat/instructions.hpp>
+#include "core/models/extern/LEON3/simulatorSources/leon3.funcat/instructions.hpp"
 
 #define FUNC_MODEL
 #define AT_IF

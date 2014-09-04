@@ -48,19 +48,19 @@
 #include <boost/program_options.hpp>
 #include <boost/timer.hpp>
 #include <boost/filesystem.hpp>
-#include <SparseMemoryLT.hpp>
-#include <leon3.funclt/processor.hpp>
-#include <leon3.funclt/instructions.hpp>
-#include <trap_utils.hpp>
-#include <elfFrontend.hpp>
-#include <execLoader.hpp>
+#include "core/common/trapgen/misc/SparseMemoryLT.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/processor.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/instructions.hpp"
+#include "core/common/trapgen/utils/trap_utils.hpp"
+#include "core/common/trapgen/elfloader/elfFrontend.hpp"
+#include "core/common/trapgen/elfloader/execLoader.hpp"
 #include <stdexcept>
-#include <GDBStub.hpp>
-#include <profiler.hpp>
-#include <osEmulator.hpp>
-#include <systemc.h>
+#include "core/common/trapgen/debugger/GDBStub.hpp"
+#include "core/common/trapgen/profiler/profiler.hpp"
+#include "core/common/trapgen/osEmulator/osEmulator.hpp"
+#include "core/common/systemc.h"
 
-#include "leon3.funclt/irqGenerator.hpp"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/irqGenerator.hpp"
 
 #define LEON3_STANDALONE
 

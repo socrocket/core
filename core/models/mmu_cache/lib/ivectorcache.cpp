@@ -14,8 +14,8 @@
 /// @author Thomas Schuster
 ///
 
-#include "ivectorcache.h"
-#include "common/verbose.h"
+#include "core/models/mmu_cache/lib/ivectorcache.h"
+#include "core/common/verbose.h"
 
 // Overwrite write function
 void ivectorcache::mem_write(unsigned int address, unsigned char * data,

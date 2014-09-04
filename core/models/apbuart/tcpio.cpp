@@ -16,8 +16,8 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/thread.hpp>
 
-#include "models/apbuart/tcpio.h"
-#include "common/verbose.h"
+#include "core/models/apbuart/tcpio.h"
+#include "core/common/verbose.h"
 
 /// Creates a connection
 void TcpIo::makeConnection() {

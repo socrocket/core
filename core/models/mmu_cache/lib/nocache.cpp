@@ -13,7 +13,7 @@
 /// @author Thomas Schuster
 ///
 
-#include "nocache.h"
+#include "core/models/mmu_cache/lib/nocache.h"
 
 /// constructor
 nocache::nocache(ModuleName name, mem_if * _mem_adapter) :
