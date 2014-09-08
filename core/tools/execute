@@ -6,7 +6,7 @@ if [ $# -lt 3 ] ; then
 fi
 
 toolsdir=$(dirname $0)
-topdir=$(dirname ${toolsdir})
+topdir=$(dirname $(dirname ${toolsdir}))
 
 lockfile=${topdir}/.lock-waf_linux2_build
 if [ ! -f ${lockfile} ] ; then
@@ -23,10 +23,9 @@ shift
 shift
 shift
 
-ppath="${builddir}/platforms/$template"
-platform="$ppath/$template.platform"
-prom="${builddir}/software/prom/$prom/$prom.prom"
-ram=$(find ${builddir}/software -name "$app.sparc")
+platform=$(find ${builddir} -name "$template.platform")
+prom=$(find ${builddir} -name "$prom.prom")
+ram=$(find ${builddir} -name "$app.sparc")
 
 echo $platform --option conf.mctrl.prom.elf=$prom --option conf.mctrl.ram.sdram.elf=$ram --option conf.system.osemu=$ram $@
 time $platform --option conf.mctrl.prom.elf=$prom --option conf.mctrl.ram.sdram.elf=$ram --option conf.system.osemu=$ram $@
