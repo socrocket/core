@@ -5,7 +5,7 @@ import os
 import shutil
 import fnmatch
 import subprocess
-from waflib import Errors, Context, Utils, Options, Build, Configure
+from waflib import Errors, Context, Utils, Options, Build, Configure, TaskGen
 
 def options(self): 
     """Setting default waf options right for SoCRocket"""

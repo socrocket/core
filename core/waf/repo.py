@@ -85,7 +85,7 @@ class repo(ConfigurationContext):
         REPOS = read_repos()
         self.work()
         write_repos(REPOS)
-        self.store()
+        #self.store()
 
     def git_cmd(self, cmd, params):
         global REPOS
