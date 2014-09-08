@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # vim: set expandtab:ts=4:sw=4:setfiletype python
-import os,shlex,sys,time,json,subprocess
+import os,shlex,sys,time,json,subprocess,shutil
 from waflib import Context,Scripting,TaskGen
 from waflib.Configure import ConfigurationContext
 from waflib import ConfigSet,Utils,Options,Logs,Context,Build,Errors
@@ -18,7 +18,7 @@ def read_repos():
             return obj
     else:
         core = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
-        return {"core": core}
+        return {"core": core.strip()}
 
 def write_repos(repos):
     with open(Context.out_dir+os.sep+".conf_check_repos.json", "w") as jsonfile:
@@ -102,23 +102,38 @@ class repo(ConfigurationContext):
             }).split(), cwd=directory )
 
     def add_repo(self, cmd, params):
-        if len(params) != 2:
+        if len(params) < 1:
             print "add takes 2 parameters:"
             print "usage: %s <directory> <repository>" % (' '.join(sys.argv[0:3]))
             return
-        directory = params[0]
-        repository = params[1]
-        if directory == "core":
-            directory = "."
 
-        REPOS[directory] = repository
+        elif len(params) == 1:
+            directory = None
+            repository = params[0]
+
+        elif len(params) == 2:
+            directory = params[0]
+            repository = params[1]
+
+        tempdir = "build/repo-tmp"
+
         import subprocess
         subprocess.call(("%(git)s clone %(repository)s %(directory)s" % {
             "git": "git",
-            "directory": directory,
+            "directory": tempdir,
             "repository": repository,
             "parameter": params
         }).split())
+        
+        vals = get_repo_vals(tempdir)
+        if not directory:
+            directory = vals["path"]
+
+        if directory == "core":
+            directory = "."
+
+        shutil.move(tempdir, directory)
+        REPOS[directory] = repository
 
     def del_repo(self, cmd, params):
         import shutil
@@ -195,7 +210,6 @@ def loadrepos(self):
         directory = os.path.join(os.getcwd(),d)
         vals = get_repo_vals(directory)
         waf = os.path.join(directory, "waf")
-        print "Load", d, directory, waf, isinstance(waf, list)
         self.load(vals["tools"], tooldir=[waf])
 
 conf(loadrepos)
@@ -203,7 +217,10 @@ conf(loadrepos)
 def iterrepos(self):
     REPOS = read_repos()
     for d, repo in REPOS.iteritems():
-        self.recurse(os.path.join(self.root.abspath(),d))
+        if d == "core":
+            continue
+        self.repository_root = self.srcnode.find_node(str(d))
+        self.recurse([self.repository_root.abspath()])
 
 conf(iterrepos)
 def options(self):
