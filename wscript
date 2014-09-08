@@ -3,9 +3,7 @@
 top = '..'
 REPOSITORY_PATH = "core"
 REPOSITORY_NAME = "SoCRocket Main Repository"
-REPOSITORY_DESC = """
-SoCRocket Main Repository
-"""
+REPOSITORY_DESC = """SoCRocket Main Repository"""
 REPOSITORY_TOOLS = [
     'pthreads',
     'boosting',
@@ -21,6 +19,7 @@ REPOSITORY_TOOLS = [
     'socrocket',
     'wizard',
     'docs',
+    'swig',
     'cpplint',
     'oclint',
     'clang_compilation_database',
