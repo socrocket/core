@@ -143,15 +143,16 @@ class Macclean(Build.BuildContext):
     cmd = 'macclean'
     fun = 'macclean'
 
-def get_subdirs(path='.'):
+def get_subdirs(self,path='.'):
     """Return a list of all subdirectories from path"""
     return [name 
             for name in os.listdir(path) 
-                if os.path.isfile(os.path.join(path, name, "wscript"))]
+                if os.path.isfile(os.path.join(path, name, "wscript")) and not os.path.isdir(os.path.join(path, name, ".git"))]
+conf(get_subdirs)
 
 def recurse_all(self):
     """Extend the Configuration to recurse all subdirectories"""
-    self.recurse(get_subdirs(self.path.abspath()))
+    self.recurse(self.get_subdirs(self.path.abspath()))
 conf(recurse_all)
 
 def recurse_all_tests(self):
@@ -283,16 +284,16 @@ def fetch(self, *k, **kw):
         self.fatal("You need to specify git_url, tar_url or tar")
 
     if kw.has_key("patch"):
-        self.start_msg("Patching %s" % kw["name"])
         for patch in Utils.to_list(kw["patch"]):
            try:
+               self.start_msg("Patching %s with %s" % (kw["name"], patch))
                self.cmd_and_log(
                    [self.env.PATCH, "-p1", "-Nsi", patch, "-d", kw["src"]],
                    output=Context.BOTH,
                    cwd=kw["src"],
                )
                self.end_msg("Ok")
-           except:
+           except Errors.WafError, e:
                self.end_msg("Failed, make sure patch %s was already applied" % patch)
     return k, kw
 
@@ -360,4 +361,13 @@ def dep_path(self, name, version, *k, **kw):
     k, kw = base(self, *k, **kw)
     return kw["prefix"]
 conf(dep_path)
+
+@TaskGen.before('process_source', 'process_rule')
+@TaskGen.feature('cxxstlib')
+def export_hase_define(self):
+  defines = getattr(self, 'export_defines', [])
+  defines = Utils.to_list(defines)
+  defines += ["HAVE_" + self.target.replace(".", "_").upper()]
+  setattr(self, "export_defines", defines)
+
 
