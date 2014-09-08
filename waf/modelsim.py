@@ -243,14 +243,6 @@ def sclink_task_run(self):
 sclink_task.run = sclink_task_run
 
 @TaskGen.before('process_source', 'process_rule')
-@TaskGen.feature('cxxstlib')
-def export_hase_define(self):
-  defines = getattr(self, 'export_defines', [])
-  defines = Utils.to_list(defines)
-  defines += ["HAVE_" + self.target.replace(".", "_").upper()]
-  setattr(self, "export_defines", defines)
-
-@TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('modelsim')
 def modelsim(self):
   """Apply Variables for the Target create vlib task and 
