@@ -63,11 +63,11 @@ double TimeArray[3];
 int num[4];
 long count;
 
-void mov(n,f,t);
+void mov(int n, int f, int t);
 
 int main()
 {
-    double RunTime = 0.0, sum_mps = 0.0, /*TLimit,*/ mps;
+    double RunTime = 0.0, sum_mps = 0.0, /*TLimit,*/ mps = 0.0;
     int disk, Loops = 0, i = 0;
 
     printf("\n");
@@ -101,7 +101,7 @@ int main()
         sum_mps = sum_mps + mps;
         }
 
-        printf("%3ld  %10ld  %12.5lf  %10.4lf\n",disk,count,RunTime,mps);
+        printf("%3ld  %10ld  %12.5lf  %10.4lf\n",(long)disk,count,RunTime,mps);
 
         if ( disk == 6 ) break;
         }
@@ -115,7 +115,7 @@ int main()
     return 0;
 }
 
-void mov(n,f,t)
+void mov(int n, int f, int t)
 {
    int o;
    if(n == 1)
