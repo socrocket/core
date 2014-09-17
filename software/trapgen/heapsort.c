@@ -94,7 +94,7 @@ bplong = sizeof(long);
 printf("\n   Heap Sort C Program\n");
 printf("   Version 1.0, 04 Oct 1992\n\n");
 
-printf("   Size of long (bytes): %d\n\n",bplong);
+printf("   Size of long (bytes): %ld\n\n",bplong);
 
 printf("   Array Size    RunTime      Scale    MIPS\n");
 printf("    (bytes)       (sec)\n");
@@ -211,6 +211,7 @@ register long size;
 
 long  iter,msize,iran,ia,ic,im,ih,ir;
 long  count,ca,cb,cc,cd,ce,cf;
+    ca=cb=cc=cd=ce=cf=0;
 
 msize = m * bplong;
 size  = m - 1;
