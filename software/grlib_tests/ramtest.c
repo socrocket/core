@@ -7,6 +7,12 @@
 #define CCTRL_IFP (1<<15)
 #define CCTRL_DFP (1<<14)
 
+extern int ddramtest1( int, volatile double*, int );
+extern int ddramtest2( int, volatile double*, int );
+extern int dtramtest( int, int, int, int, int );
+extern int idramtest( int, int );
+extern int itramtest( int, int, int, int );
+
 int cramtest() {
 	volatile double mrl[8*1024 + 8];
 //	int i; 

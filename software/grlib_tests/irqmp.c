@@ -29,7 +29,7 @@ int irqtest(int addr) {
     init_irqmp(lr);
 
     for(i=1; i<16; i++) {
-        catch_interrupt(irqhandler_f, i);
+        catch_interrupt((int)irqhandler_f, i);
     }
 
     /* test that interrupts are properly prioritised */
