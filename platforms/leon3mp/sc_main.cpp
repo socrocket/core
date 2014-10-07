@@ -18,6 +18,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <string.h>
+#include <mcheck.h>
 #include "core/common/amba.h"
 #include "core/common/trapgen/debugger/GDBStub.hpp"
 #include "core/common/trapgen/elfloader/execLoader.hpp"
@@ -1105,7 +1106,9 @@ int sc_main(int argc, char** argv) {
 #endif
     cstart = cend = clock();
     cstart = clock();
+    //mtrace();
     sc_core::sc_start();
+    //muntrace();
     cend = clock();
 
     v::info << "Summary" << "Start: " << dec << cstart << v::endl;
