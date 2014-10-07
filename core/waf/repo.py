@@ -8,11 +8,12 @@ from waflib import ConfigSet,Utils,Options,Logs,Context,Build,Errors
 from core.waf.common import conf
 
 WAF_CONFIG_LOG='repo.log'
+WAF_REPO_LOCK='.lock_repo.json'
 REPOS = {}
 
 def read_repos():
-    if os.path.isfile(Context.out_dir+os.sep+".conf_check_repos.json"):
-        with open(Context.out_dir+os.sep+".conf_check_repos.json", "r") as jsonfile:
+    if os.path.isfile(Context.out_dir+os.sep+WAF_REPO_LOCK):
+        with open(Context.out_dir+os.sep+WAF_REPO_LOCK, "r") as jsonfile:
             obj = json.load(jsonfile)
             jsonfile.close()
             return obj
@@ -21,7 +22,7 @@ def read_repos():
         return {"core": core.strip()}
 
 def write_repos(repos):
-    with open(Context.out_dir+os.sep+".conf_check_repos.json", "w") as jsonfile:
+    with open(Context.out_dir+os.sep+WAF_REPO_LOCK, "w") as jsonfile:
         json.dump(repos, jsonfile, sort_keys=True, indent=2, separators=(',', ': '))
         jsonfile.close()
 
@@ -55,6 +56,34 @@ if "check_output" not in dir( subprocess ): # duck punch it in!
         return output
     subprocess.check_output = f
 
+import re
+
+def replace(oldstr, newstr, infile):
+    '''
+       Sed-like Replace function..
+    '''
+    linelist = []
+    with open(infile) as f:
+        for item in f:
+            newitem = re.sub(oldstr, newstr, item)
+            linelist.append(newitem)
+        with open(infile, "w") as f:
+            f.truncate()
+            for line in linelist: f.writelines(line)
+
+def rmlinematch(oldstr, infile):
+    '''
+       Sed-like line deletion function based on given string..
+    '''
+    linelist = []
+    with open(infile) as f:
+        for item in f:
+            rmitem = re.match(oldstr, item)
+            if type(rmitem) == type(None):
+                linelist.append(item)
+        with open(infile, "w") as f:
+            f.truncate()
+            for line in linelist: f.writelines(line)
 
 def init(self):
   if Options.commands[0] == "repo":
@@ -135,6 +164,46 @@ class repo(ConfigurationContext):
         shutil.move(tempdir, directory)
         REPOS[directory] = repository
 
+    def mv_cmd(self, cmd, params):
+        if len(params) != 2:
+            print "mv takes 2 parameters:"
+            print "File history will not integrated"
+            print "usage: %s <from> <to>" % (' '.join(sys.argv[0:3]))
+            return
+        else:
+            from_abs = os.path.abspath(params[0])
+            from_repo = None
+            to_abs = os.path.abspath(params[0])
+            if os.path.exists(to_abs):
+                to_abs = os.path.join(to_abs, os.path.basepath(from_abs))
+
+            to_repo = None
+            for directory, repository in REPOS.iteritems():
+                repo_abs = None
+                if directory == "core":
+                    repo_abs = self.path.abspath()
+                else:
+                    repo_abs = os.path.join(self.path.abspath(), directory)
+                if from_abs.startswith(repo_abs):
+                    from_repo = directory
+                if to_abs.startswith(repo_abs):
+                    to_repo = directory
+                if from_repo and to_repo:
+                    break
+
+            if not from_repo or not to_repo:
+                print "%s <from> <to> can only be used in socrocket repos" % (' '.join(sys.argv[0:3]))
+                return
+
+            if from_repo == to_repo:
+                git_cmd(self, "mv", [from_abs[len(from_repo):], to_abs[len(to_repo):]])
+            else:
+                shutil.move(from_abs, to_abs)
+                git_cmd(self, "rm", ["-rf", from_abs[len(from_repo):]])
+                git_cmd(self, "add", [to_abs[len(to_repo):]])
+
+        
+
     def del_repo(self, cmd, params):
         import shutil
         for directory in params:
@@ -175,6 +244,7 @@ class repo(ConfigurationContext):
             'status': self.git_cmd,
             'add': self.add_repo, 
             'del': self.del_repo, 
+            'mv': self.mv_cmd,
             'show': self.show_repo,
             'help': self.show_help
         }
