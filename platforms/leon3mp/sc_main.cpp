@@ -822,46 +822,41 @@ int sc_main(int argc, char** argv) {
 
     // APBSlave - APBUart
     // ==================
-    std::string n_uart = "conf.uart";
-    /*gs::gs_param_array *p_uart = */new gs::gs_param_array(n_uart);
-    int i = 0;
-    while(mApi->getParamList(n_uart + "." + boost::lexical_cast<std::string>(i), false).size()!=0) {
-      std::string n_inst = n_uart + "." + boost::lexical_cast<std::string>(i);
-      io_if *io = NULL;
-      int port = 2000, type = 0, index = 1, addr = 0x001, mask = 0xFFF, irq = 2;
-      mApi->getValue(std::string(n_inst + ".type"), type);
-      mApi->getValue(std::string(n_inst + ".index"), index);
-      mApi->getValue(std::string(n_inst + ".addr"), addr);
-      mApi->getValue(std::string(n_inst + ".mask"), mask);
-      mApi->getValue(std::string(n_inst + ".irq"), irq);
-
-      switch(type) {
+    gs::gs_param_array p_apbuart("apbuart", p_conf);
+    gs::gs_param<bool> p_apbuart_en("en", false, p_apbuart);
+    gs::gs_param<unsigned int> p_apbuart_index("index", 1, p_apbuart);
+    gs::gs_param<unsigned int> p_apbuart_addr("addr", 0x001, p_apbuart);
+    gs::gs_param<unsigned int> p_apbuart_mask("mask", 0xFFF, p_apbuart);
+    gs::gs_param<unsigned int> p_apbuart_irq("irq", 2, p_apbuart);
+    gs::gs_param<unsigned int> p_apbuart_type("type", 1, p_apbuart);
+    gs::gs_param<unsigned int> p_apbuart_port("port", 2000, p_apbuart);
+    int port = (unsigned int)p_apbuart_port;
+    io_if *uart_io = NULL;
+    if(p_apbuart_en) {
+      switch(p_apbuart_type) {
         case 1:
-          mApi->getValue(std::string(n_inst + ".port"), port);
-          io = new TcpIo(port);
+          uart_io = new TcpIo(port);
           break;
         default:
-          io = new NullIO();
+          uart_io = new NullIO();
           break;
       }
 
-      APBUART *apbuart = new APBUART(sc_core::sc_gen_unique_name("apbuart", false), io,
-        index,           // index
-        addr,            // paddr
-        mask,            // pmask
-        irq,             // pirq
+      APBUART *apbuart = new APBUART(sc_core::sc_gen_unique_name("apbuart", true), uart_io,
+        p_apbuart_index,           // index
+        p_apbuart_addr,            // paddr
+        p_apbuart_mask,            // pmask
+        p_apbuart_irq,             // pirq
         p_report_power   // powmon
       );
 
       // Connecting APB Slave
       apbctrl.apb(apbuart->bus);
       // Connecting Interrupts
-      signalkit::connect(irqmp.irq_in, apbuart->irq, irq);
+      signalkit::connect(irqmp.irq_in, apbuart->irq, p_apbuart_irq);
       // Set clock
       apbuart->set_clk(p_system_clock,SC_NS);
       // ******************************************
-
-      i++;
     }
 
     // AHBSlave - AHBProf
