@@ -88,72 +88,72 @@ class sr_report : public sc_core::sc_report {
     }
 
     inline sr_report &operator()(const std::string &name, int8_t value) {
-      pairs.push_back(v::pair(name, value));
+      //pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, int16_t value) {
-      pairs.push_back(v::pair(name, value));
+      //pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, int32_t value) {
-      pairs.push_back(v::pair(name, value));
+      //pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, uint8_t value) {
-      pairs.push_back(v::pair(name, value));
+      //pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, uint16_t value) {
-      pairs.push_back(v::pair(name, value));
+      //pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, uint32_t value) {
-      pairs.push_back(v::pair(name, value));
+      //pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, int64_t value) {
-      pairs.push_back(v::pair(name, value));
+      //pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, uint64_t value) {
-      pairs.push_back(v::pair(name, value));
+      //pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, std::string value) {
-      pairs.push_back(v::pair(name, value));
+      //pairs.push_back(v::pair(name, value));
       return *this;
     }
     
     inline sr_report &operator()(const std::string &name, const char value[]) {
-      pairs.push_back(v::pair(name, std::string(value)));
+      //pairs.push_back(v::pair(name, std::string(value)));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, char value[]) {
-      pairs.push_back(v::pair(name, std::string(value)));
+      //pairs.push_back(v::pair(name, std::string(value)));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, bool value) {
-      pairs.push_back(v::pair(name, value));
+      //pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, double value) {
-      pairs.push_back(v::pair(name, value));
+      //pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, sc_core::sc_time value) {
-      pairs.push_back(v::pair(name, value));
+      //pairs.push_back(v::pair(name, value));
       return *this;
     }
 
