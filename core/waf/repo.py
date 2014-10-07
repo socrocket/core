@@ -22,7 +22,7 @@ def read_repos():
 
 def write_repos(repos):
     with open(Context.out_dir+os.sep+".conf_check_repos.json", "w") as jsonfile:
-        json.dump(repos, jsonfile)
+        json.dump(repos, jsonfile, sort_keys=True, indent=2, separators=(',', ': '))
         jsonfile.close()
 
 
