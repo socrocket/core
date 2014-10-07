@@ -12,25 +12,55 @@
 #define COMMON_REPORT_H_
 
 #include <boost/any.hpp>
-#include "core/common/systemc.h"
+#include <systemc.h>
 
 namespace v {
 
 class pair {
   public:
-    pair(const std::string name, int8_t value) : name(name), type(INT32), data(value) {}
-    pair(const std::string name, int16_t value) : name(name), type(INT32), data(value) {}
-    pair(const std::string name, int32_t value) : name(name), type(INT32), data(value) {}
-    pair(const std::string name, uint8_t value) : name(name), type(UINT32), data(value) {}
-    pair(const std::string name, uint16_t value) : name(name), type(UINT32), data(value) {}
-    pair(const std::string name, uint32_t value) : name(name), type(UINT32), data(value) {}
-    pair(const std::string name, int64_t value) : name(name), type(INT64), data(value) {}
-    pair(const std::string name, uint64_t value) : name(name), type(UINT64), data(value) {}
-    pair(const std::string name, std::string value) : name(name), type(STRING), data(value) {}
-    pair(const std::string name, bool value) : name(name), type(BOOL), data(value) {}
-    pair(const std::string name, double value) : name(name), type(DOUBLE), data(value) {}
-    pair(const std::string name, sc_core::sc_time value) : name(name), type(TIME), data(value) {}
+    pair(const std::string name, int8_t value) : name(name), type(INT32), data(value) {
+      // std::cout << "+ P" << this << " " << name << std::endl;
+    }
+    pair(const std::string name, int16_t value) : name(name), type(INT32), data(value) {
+      // std::cout << "+ P" << this << " " << name << std::endl;
+    }
+    pair(const std::string name, int32_t value) : name(name), type(INT32), data(value) {
+      // std::cout << "+ P" << this << " " << name << std::endl;
+    }
+    pair(const std::string name, uint8_t value) : name(name), type(UINT32), data(value) {
+      // std::cout << "+ P" << this << " " << name << std::endl;
+    }
+    pair(const std::string name, uint16_t value) : name(name), type(UINT32), data(value) {
+      // std::cout << "+ P" << this << " " << name << std::endl;
+    }
+    pair(const std::string name, uint32_t value) : name(name), type(UINT32), data(value) {
+      // std::cout << "+ P" << this << " " << name << std::endl;
+    }
+    pair(const std::string name, int64_t value) : name(name), type(INT64), data(value) {
+      // std::cout << "+ P" << this << " " << name << std::endl;
+    }
+    pair(const std::string name, uint64_t value) : name(name), type(UINT64), data(value) {
+      // std::cout << "+ P" << this << " " << name << std::endl;
+    }
+    pair(const std::string name, std::string value) : name(name), type(STRING), data(value) {
+      // std::cout << "+ P" << this << " " << name << std::endl;
+    }
+    pair(const std::string name, bool value) : name(name), type(BOOL), data(value) {
+      // std::cout << "+ P" << this << " " << name << std::endl;
+    }
+    pair(const std::string name, double value) : name(name), type(DOUBLE), data(value) {
+      // std::cout << "+ P" << this << " " << name << std::endl;
+    }
+    pair(const std::string name, sc_core::sc_time value) : name(name), type(TIME), data(value) {
+      // std::cout << "+ P" << this << " " << name << std::endl;
+    }
+    pair(const pair &copy) : name(copy.name), type(copy.type), data(copy.data) {
+      // std::cout << "+ P" << this << " C " << &copy << " " << name << std::endl;
+    }
 
+    ~pair() {
+      // std::cout << "- P " << this << " " << name << std::endl;
+    }
   std::string name;
   enum type {
     INT32,
@@ -49,9 +79,17 @@ class pair {
 
 class sr_report : public sc_core::sc_report {
   public:
-    sr_report() : sc_core::sc_report() {};
-    sr_report(const sr_report &copy) : sc_core::sc_report(copy), actions(copy.actions), pairs(copy.pairs) {}
-    explicit sr_report(const sc_core::sc_report &copy) : sc_core::sc_report(copy) {}
+    sr_report() : sc_core::sc_report() {
+        // std::cout << "+ R " << this << " E " << msg << std::endl;
+    };
+
+    sr_report(const sr_report &copy) : sc_core::sc_report(copy), actions(copy.actions), pairs(copy.pairs) {
+        // std::cout << "+ R " << this << " C " << &copy << std::endl;
+    }
+
+    explicit sr_report(const sc_core::sc_report &copy) : sc_core::sc_report(copy) {
+        // std::cout << "+ R " << this << " CY " << &copy << std::endl;
+    }
 
     sr_report(
         sc_core::sc_severity severity,
@@ -64,10 +102,17 @@ class sr_report : public sc_core::sc_report {
       sc_core::sc_report(
         severity, msg_def, msg,
 	      file, line, verbosity_level),
-      actions(actions) {};
+      actions(actions) {
+        // std::cout << "+ R " << this << " P " << msg << std::endl;
+    };
 
-    ~sr_report() throw() {}
+    ~sr_report() throw() {
+        pairs.clear();
+        // std::cout << "- R " << this << std::endl;
+    }
+
     sr_report &operator=(const sr_report& other) {
+        // std::cout << "= R " << this << std::endl;
         sr_report copy(other);
         swap(copy);
         return *this;
@@ -82,78 +127,82 @@ class sr_report : public sc_core::sc_report {
 
     inline void set_msg(const char *msg) {
         char* result;
-        result = (char*)malloc(strlen(msg)+1);
+        result = (char *)new char[strlen(msg)+1];
         strcpy(result, msg);
-      this->msg = result;
+        if(this->msg && *this->msg) {
+            delete this->msg;
+        }
+
+        this->msg = result;
     }
 
     inline sr_report &operator()(const std::string &name, int8_t value) {
-      //pairs.push_back(v::pair(name, value));
+      pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, int16_t value) {
-      //pairs.push_back(v::pair(name, value));
+      pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, int32_t value) {
-      //pairs.push_back(v::pair(name, value));
+      pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, uint8_t value) {
-      //pairs.push_back(v::pair(name, value));
+      pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, uint16_t value) {
-      //pairs.push_back(v::pair(name, value));
+      pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, uint32_t value) {
-      //pairs.push_back(v::pair(name, value));
+      pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, int64_t value) {
-      //pairs.push_back(v::pair(name, value));
+      pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, uint64_t value) {
-      //pairs.push_back(v::pair(name, value));
+      pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, std::string value) {
-      //pairs.push_back(v::pair(name, value));
+      pairs.push_back(v::pair(name, value));
       return *this;
     }
     
     inline sr_report &operator()(const std::string &name, const char value[]) {
-      //pairs.push_back(v::pair(name, std::string(value)));
+      pairs.push_back(v::pair(name, std::string(value)));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, char value[]) {
-      //pairs.push_back(v::pair(name, std::string(value)));
+      pairs.push_back(v::pair(name, std::string(value)));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, bool value) {
-      //pairs.push_back(v::pair(name, value));
+      pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, double value) {
-      //pairs.push_back(v::pair(name, value));
+      pairs.push_back(v::pair(name, value));
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, sc_core::sc_time value) {
-      //pairs.push_back(v::pair(name, value));
+      pairs.push_back(v::pair(name, value));
       return *this;
     }
 
@@ -165,7 +214,7 @@ class sr_report : public sc_core::sc_report {
 
 class sr_report_handler : public sc_core::sc_report_handler {
   public:
-    static sr_report &report(
+    static sr_report report(
         sc_severity severity_, 
         const char *msg_type_, 
         const char *msg_, 
@@ -189,7 +238,7 @@ class sr_report_handler : public sc_core::sc_report_handler {
       }
 
       sc_actions actions = execute(md, severity_);
-      rep = sr_report(severity_, md, msg_, file_, line_, verbosity_, actions);
+      sr_report rep = sr_report(severity_, md, msg_, file_, line_, verbosity_, actions);
       rep.pairs.clear();
 
       //if (actions & SC_CACHE_REPORT) {
@@ -207,8 +256,8 @@ class sr_report_handler : public sc_core::sc_report_handler {
 };
 
 void sr_report::operator()(const std::string &name) {
-  set_msg(name.c_str());
   if (this != &sr_report_handler::null) {
+    set_msg(name.c_str());
     sr_report_handler::handler(*this, actions);
   }
 }
