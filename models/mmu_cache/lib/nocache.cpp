@@ -24,18 +24,18 @@ nocache::nocache(ModuleName name, mem_if * _mem_adapter) :
 /// memory interface write function: forwards calls to mmu or bus interface
 void nocache::mem_write(unsigned int addr, unsigned int asi, unsigned char *data,
                         unsigned int length, sc_core::sc_time *t,
-                        unsigned int * debug, bool is_dbg, bool is_lock) {
+                        unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
 
-    m_mem_adapter->mem_write(addr, asi, data, length, t, debug, is_dbg, is_lock);
+    m_mem_adapter->mem_write(addr, asi, data, length, t, debug, is_dbg, is_lock, cacheable);
 
 }
 
 /// memory interface read functions: forwards calls to mmu or bus interface
 bool nocache::mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
                        unsigned int length, sc_core::sc_time *t,
-                       unsigned int * debug, bool is_dbg, bool is_lock) {
+                       unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
 
-    return(m_mem_adapter->mem_read(addr, asi, data, length, t, debug, is_dbg, is_lock));
+    return(m_mem_adapter->mem_read(addr, asi, data, length, t, debug, is_dbg, is_lock, cacheable));
 
 }
 

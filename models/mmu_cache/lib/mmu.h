@@ -19,6 +19,7 @@
 #define __MMU_H__
 
 #include <map>
+#include <math.h>
 #include "core/common/base.h"
 #include "core/common/systemc.h"
 #include "core/common/gs_config.h"
@@ -62,7 +63,7 @@ class mmu : public DefaultBase, public mmu_if {
   /// Page descriptor cache (PDC) lookup
   unsigned int tlb_lookup(unsigned int addr, std::map<t_VAT,
                           t_PTE_context> * tlb, unsigned int tlb_size,
-                          sc_core::sc_time * t, unsigned int * debug, bool is_dbg);
+                          sc_core::sc_time * t, unsigned int * debug, bool is_dbg, bool &cacheable);
   /// Read mmu control register (ASI 0x19)
   unsigned int read_mcr();
   /// Read mmu context pointer register (ASI 0x19)
@@ -108,6 +109,12 @@ class mmu : public DefaultBase, public mmu_if {
 
   /// Calculate power/energy values from normalized input data
   void power_model();
+  
+  /// TLB flush complete
+  void tlb_flush();
+
+  /// TLB flush certain entry
+  void tlb_flush(uint32_t vpn);
 
   /// Static power callback
   gs::cnf::callback_return_type sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);

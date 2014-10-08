@@ -66,7 +66,8 @@ typedef struct {
   unsigned int tlb_no;
   unsigned int context;
   unsigned int pte;
-  unsigned int lru;
+  uint64_t lru;
+  unsigned int offset_mask;
 } t_PTE_context;
 
 // virtual address tag

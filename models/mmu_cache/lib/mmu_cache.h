@@ -125,6 +125,12 @@ class mmu_cache :
   /// Data service thread for AT
   void dcio_service_thread();
 
+  /// TLB flush complete
+  virtual void tlb_flush();
+
+  /// TLB flush certain entry
+  virtual void tlb_flush(uint32_t vpn);
+
   // data members
   // ------------
 
