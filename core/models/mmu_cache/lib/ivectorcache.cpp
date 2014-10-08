@@ -20,7 +20,7 @@
 // Overwrite write function
 void ivectorcache::mem_write(unsigned int address, unsigned char * data,
                              unsigned int len, sc_core::sc_time * t,
-                             unsigned int * debug, bool is_dbg) {
+                             unsigned int * debug, bool is_dbg, bool &cacheable) {
 
     v::info << this->name() << "Forbidden to write icache!" << v::endl;
     assert(false);
