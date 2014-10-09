@@ -267,7 +267,8 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
             v::debug << this->name() << "CONTEXT hit " << hex << MMU_CONTEXT_REG << v::endl;
 
             // Build physical address from PTE and offset, and return
-            paddr = (((tmp.pte >> 8) << (32 - m_vtag_width)) | (addr & tmp.offset_mask));
+            //paddr = (((tmp.pte >> 8) << (32 - m_vtag_width)) | (addr & tmp.offset_mask));
+            paddr = ((tmp.pte & ~0xff) << 4 | (addr & tmp.offset_mask));
             if ((tmp.pte & (1<<7)) == 0) {
               v::debug << this->name() << "data not cacheable!" << v::endl;
               cacheable = false;
@@ -421,7 +422,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         tmp.context = MMU_CONTEXT_REG;
         tmp.pte = data;
         tmp.lru = 0xffffffffffffffff - 1;
-        tmp.offset_mask = 0x00fffffff;
+        tmp.offset_mask = 0x00ffffff;
 
         // Log TLB writes for power monitoring
         if (m_pow_mon) {
@@ -490,7 +491,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     v::debug << this->name() << "base address: "  << std::hex << ((data >> 4) << 8) << v::endl;
     v::debug << this->name() << "idx2 address: "  << std::hex << (idx2 << 2) << v::endl;
     // 2. load from 2nd-level page table
-    m_mmu_cache->mem_read((((data >> 4) << 8) + (idx2 << 2)), 0x8, (unsigned char *)&data,
+    m_mmu_cache->mem_read((((data & ~0x3) << 4) + (idx2 << 2)), 0x8, (unsigned char *)&data,
                           4, t, debug, is_dbg, cacheable, false);
 
     #ifdef LITTLE_ENDIAN_BO
@@ -526,7 +527,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         tmp.context = MMU_CONTEXT_REG;
         tmp.pte = data;
       	tmp.lru = 0xffffffffffffffff - 1;
-        tmp.offset_mask = 0x003fffff;
+        tmp.offset_mask = 0x0003ffff;
 
         (*tlb)[vpn] = tmp;
 
@@ -593,7 +594,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     }
 
     // 3. load from 3rd-level page table
-    m_mmu_cache->mem_read((((data >> 2) << 6) + (idx3<<2)), 0x8, (unsigned char *)&data,
+    m_mmu_cache->mem_read((((data & ~0x3) << 4) + (idx3<<2)), 0x8, (unsigned char *)&data,
                           4, t, debug, is_dbg, cacheable, false);
 
     #ifdef LITTLE_ENDIAN_BO
