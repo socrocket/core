@@ -1,38 +1,39 @@
-User Manual {#mainpage}
-===========
+SoCRocket {#mainpage}
+=========
 
-@section Introduction
-@subsection purpose Purpose and Scope
-This document is a user manual (UM) of the SystemC transaction level models developed in the HW-SW SystemC Co-Simulation SoC Validation Platform project. 
+Increasingly large portions of electronic systems are being implemented
+in software, and its development cost starts dominating the overall
+system's cost. Software is also becoming the critical part of the
+development schedule, mainly because deploying and testing it on the
+real target hardware is complicated.
 
-In compliance with the SoW, the „UM describes the IP interface and functions and its use from the perspective of the system architect and the programmer, including examples.“
+![Logo](core/waf/docs/html/socrocket-logo.png")
 
-@subsection referencedocuments Reference Documents
-The following table will be updated during the development of the UM.
+TLM can be used to describe both, timing and functionality, of system
+components and their communication interfaces at a high abstraction
+level. Embedded in a virtual platform, these models are sufficiently
+accurate to not only allow early software development and verification
+in a realistic environment but also functional verification of the
+modeled hardware. The capability of early design-space exploration is
+therefore a vital building block of full hardware/software co-design.
 
-Reference | Document Number    | Document Title, Author                                                   
---------- | ------------------ | -------------------------------------------------------------------------
-RD01      | TEC-EDM/2008.27/BG | Statement of Work to ITT- AO/1-6025/09/NL/JK, ESA                        
-RD02      | IDA-PPS-0309-2     | HW-SW Co-Simulation SystemC SoC Validation Platform – Technical Proposal 
-RD03      | IDA-PPS 0309-3     | HW-SW Co-Simulation SystemC SoC Validation Platform – Management Proposal
-RD04      |                    | GRLIB IP Core User’s Manual                                              
-RD05      |                    | GRLIB IP Library User’s Manual                                           
-RD06      |                    | GreenSocs AMBA LT/AT concepts                                            
-RD07      |                    | GreenSocs AMBA TLM 2.0 Extensions                                        
-RD08      |                    | SPARC V8 Reference Manual                                                
+To archive these goals, we designed the _SoCRocket Framework_. Written in
+_SystemC/TLM_, it is fitted to serve the space industry'sspecial needs and
+builds the foundation of space-domain ESL design. For enabling the
+construction virtual platforms, we tied together the following features:
 
-@subsubsection revisions Revisions
-Version | Date     | Description                    
-------- | -------- | --------------------------------
-1.0     | 01/09/10 | Initial submission             
-1.1     | 17/09/10 | Version prior to the MDR meeting
-1.2     | 03/05/11 |                                
+ - **Models** - All models are designed to simulate their coresponding counterparts from the [Aeroflex Gaisler GRLib](http://www.gaisler.com/index.php/downloads/leongrlib)
+ - **Analysis Tools** - Dump to Log, DB or Waveform
+   - **Performance Counter** - Various counters are implemented in the modules for throughput and other activity monitoring
+   - **Power Modeling** - The models feature dedicated power-consumption measuring
+ - **Co-Simulation** - Direct comparrison to RTL is possible and was used in verification
+ - **Platform Generator** - Easy configuration via GUI or from the command line
+ - **Automation Tools** - To run big batches of design-space explorations
+ - **Infrastructure** - Reusable components for building new components at ease
+ - **Build System** - Extended build system for compiling models, platforms, target software, RTL co-simulations, and regression tests topic is also available at the Accellera page.
+ - **Operating Systems** - Boots various Operating Systems like FreeRTOS, RTEMS, uC/OS II without recompilation
 
-* @subpage requirements "Requirements"
-* @subpage codingstyle_p "Coding Style Guide"
-* @subpage install "Installation"
-* @subpage structure "Library Structure"
-* @subpage firstrun "Run Software"
-* @subpage wizard "Generator Wizard"
-* @subpage models_p "A list of all models"
-* @subpage utils_p "Utils"
+An intrduction about TLM can be found at [Doulos](http://www.doulos.com/knowhow/systemc/tlm2/). 
+More informations are always available at the [Accellera](http://www.accellera.org/home/) page.
+Read further for more information. 
+

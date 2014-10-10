@@ -90,7 +90,7 @@ public:
         if (!ss.eof() || ss.fail() || ss.bad()) {
             GS_PARAM_DUMP_WITHNAME("gs_param", "stream fail or not eof, try hex");
             ss.~istringstream();
-            new ( (void *) &ss ) std::istringstream(str); // TODO: changed m_api->getParam(m_par_name) to str; correct??
+            new ( (void *) &ss ) std::istringstream(str); /// @TODO: changed m_api->getParam(m_par_name) to str; correct??
             ss >> (std::hex) >> tmp;
         }
         // no conversion error
@@ -185,7 +185,7 @@ public:
         // if error try hex
         if (!ss.eof() || ss.fail() || ss.bad()) {
             ss.~istringstream();
-            new ( (void *) &ss ) std::istringstream(str); // TODO: changed m_api->getParam(m_par_name) to str; correct??
+            new ( (void *) &ss ) std::istringstream(str); /// @TODO(all): changed m_api->getParam(m_par_name) to str; correct??
             ss >> (std::hex) >> tmp;
         }
         // no conversion error
@@ -533,7 +533,7 @@ public:
 
     /// To resolve the correct = operator
     using gs_config_t<val_type>::operator =;
-    // TODO: other operators??
+    /// @TODO(all): other operators??
 
     //using gs_config::name;
     using gs_config_t<val_type>::setString;
@@ -631,7 +631,7 @@ CNSC_STRING_OPERATOR_IMPLEMENTATIONS(==)
     return os;
 }
 
-// TODO: check if works!
+/// @TODO(all): check if works!
 inline std::istream& operator>>(std::istream& is, gs_config<std::string>& str)
 {
     string ret_str(const_cast<gs_config<std::string>& >(str).getValue());
@@ -670,10 +670,8 @@ inline std::string operator+ (const char *lhs, const gs_config<std::string>& rhs
 ///////////////////////////////////////////////////////////////////////////////// //
 
 /// Template specialization for gs_param< std::vector<std::string> >.
-/**
- * Default value = empty vector.
- */
-// TODO: maybe template<typename T>
+/// Default value = empty vector.
+/// @TODO(all): maybe template<typename T>
 // class gs_param< std::vector<T> >
 // issue: (de)serialization of T
 template<>
@@ -688,7 +686,7 @@ class gs_config<std::vector<std::string> >
     // additional functions
 
     bool empty() const {return my_value.empty(); }
-    // TODO optional: More of the vector functions
+    /// @TODO(all) optional: More of the vector functions
 
     /////////////////////////
     // overloaded functions
@@ -1391,7 +1389,7 @@ public:
         if (!ss.eof() || ss.fail() || ss.bad()) {
             GS_PARAM_DUMP_WITHNAME("gs_config", "stream fail or not eof, try hex");
             ss.~istringstream();
-            new ( (void *) &ss ) std::istringstream(str); // TODO: changed m_api->getParam(m_par_name) to str; correct??
+            new ( (void *) &ss ) std::istringstream(str); /// @TODO(all): changed m_api->getParam(m_par_name) to str; correct??
             ss >> (std::hex) >> tmp;
         }
         // no conversion error
