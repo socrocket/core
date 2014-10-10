@@ -560,16 +560,16 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
       v::endl;
       // Get defined mem bit width from registers.
       switch (port.dev->get_type()) {
-      case MEMDevice::ROM:
-        mem_width = (r[MCFG1].get() >> 8) & 0x3;
-        break;
-      case MEMDevice::IO:
-        mem_width = (r[MCFG1].get() >> 27) & 0x3;
-        break;
-      case MEMDevice::SRAM:
-      case MEMDevice::SDRAM:
-        mem_width = (r[MCFG2].get() >> 4) & 0x3;
-        break;
+        case MEMDevice::ROM:
+          mem_width = (r[MCFG1].get() >> 8) & 0x3;
+          break;
+        case MEMDevice::IO:
+          mem_width = (r[MCFG1].get() >> 27) & 0x3;
+          break;
+        case MEMDevice::SRAM:
+        case MEMDevice::SDRAM:
+          mem_width = (r[MCFG2].get() >> 4) & 0x3;
+          break;
       }
 
       // Set mem_width in byte from bitmask
@@ -961,7 +961,7 @@ Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
     // RAM Bar Area
     if (r[MCFG2] & MCFG2_SE) {
       // SDRAM Enabled
-      if ((c_sdram.id != 100) && (r[MCFG2] & MCFG2_SI)) {
+      if ((c_sdram.id != 100) && ((r[MCFG2] & MCFG2_SI) || (c_sram.id == 100))) {
         // And SRAM Disabled
         uint32_t banks = c_sdram.dev->get_banks();
         uint32_t bsize = c_sdram.dev->get_bsize();

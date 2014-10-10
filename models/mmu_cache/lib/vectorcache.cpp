@@ -123,22 +123,22 @@ vectorcache::vectorcache(ModuleName name,
     }
 
     // Configuration report
-    v::info << this->name() << " ******************************************************************************* " << v::endl;
-    v::info << this->name() << " * Created cache memory with following parameters:                               " << v::endl;
-    v::info << this->name() << " * ----------------------------------------------- " << v::endl;
-    v::info << this->name() << " * mmu_en: " << mmu_en << v::endl;
-    v::info << this->name() << " * burst_en: " << burst_en << v::endl;
-    v::info << this->name() << " * sets: " << sets << v::endl;
-    v::info << this->name() << " * setsize: " << setsize << v::endl;
-    v::info << this->name() << " * setlock: " << m_setlock << v::endl;
-    v::info << this->name() << " * linesize: " << linesize << v::endl;
-    v::info << this->name() << " * repl (0-Direct Mapped, 1-LRU, 2-LRR, 3-RANDOM): " << m_repl << v::endl;
-    v::info << this->name() << " * ---------------------------------------------------------- " << v::endl;
-    v::info << this->name() << " * Size of each cache set " << (unsigned int)pow(2, (double)m_setsize) << " kb" << v::endl;
-    v::info << this->name() << " * Bytes per line " << m_bytesperline << " (offset bits: " << m_offset_bits << ")" << v::endl;
-    v::info << this->name() << " * Number of cache lines per set " << m_number_of_vectors << " (index bits: " << m_idx_bits <<" )" << v::endl;
-    v::info << this->name() << " * Width of cache tag in bits " << m_tagwidth << v::endl;
-    v::info << this->name() << " ******************************************************************************* "  << v::endl;
+    v::debug << this->name() << " ******************************************************************************* " << v::endl;
+    v::debug << this->name() << " * Created cache memory with following parameters:                               " << v::endl;
+    v::debug << this->name() << " * ----------------------------------------------- " << v::endl;
+    v::debug << this->name() << " * mmu_en: " << mmu_en << v::endl;
+    v::debug << this->name() << " * burst_en: " << burst_en << v::endl;
+    v::debug << this->name() << " * sets: " << sets << v::endl;
+    v::debug << this->name() << " * setsize: " << setsize << v::endl;
+    v::debug << this->name() << " * setlock: " << m_setlock << v::endl;
+    v::debug << this->name() << " * linesize: " << linesize << v::endl;
+    v::debug << this->name() << " * repl (0-Direct Mapped, 1-LRU, 2-LRR, 3-RANDOM): " << m_repl << v::endl;
+    v::debug << this->name() << " * ---------------------------------------------------------- " << v::endl;
+    v::debug << this->name() << " * Size of each cache set " << (unsigned int)pow(2, (double)m_setsize) << " kb" << v::endl;
+    v::debug << this->name() << " * Bytes per line " << m_bytesperline << " (offset bits: " << m_offset_bits << ")" << v::endl;
+    v::debug << this->name() << " * Number of cache lines per set " << m_number_of_vectors << " (index bits: " << m_idx_bits <<" )" << v::endl;
+    v::debug << this->name() << " * Width of cache tag in bits " << m_tagwidth << v::endl;
+    v::debug << this->name() << " ******************************************************************************* "  << v::endl;
 
     // lru counter saturation
     switch (m_sets) {
@@ -215,7 +215,7 @@ vectorcache::~vectorcache() {
 /// read from cache
 bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char *data,
                            unsigned int len, sc_core::sc_time *delay,
-                           unsigned int * debug, bool is_dbg, bool is_lock) {
+                           unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
 
   int set_select = -1;
   int cache_hit = -1;
@@ -225,7 +225,9 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
   unsigned int replacer_limit = 0;
     
   // Is the cache enabled (0b11) or frozen (0b01) ?
-  if ((!is_dbg) && (check_mode() & 0x1)) {
+  v::debug << this->name() << "read cacheable: " << cacheable << v::endl;
+  if (((!is_dbg) && (check_mode() & 0x1)) && asi != 0x1c) {
+  //if (1==2) {
 
     // extract index and tag from address
     unsigned int tag = (address >> (m_idx_bits + m_offset_bits));
@@ -314,7 +316,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
     // In case no matching tag was found or data is not valid:
     // -------------------------------------------------------
-    // read miss - On a data cache read miss to a cachable location 4 bytes of data
+    // read miss - On a data cache read miss to a cacheable location 4 bytes of data
     // are loaded into the cache from main memory.
     if (cache_hit == -1) {
 
@@ -357,7 +359,8 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       v::debug << name() << "Actual address: 0x" << v::hex << address << " Burst address: 0x" << burst_address << " Burst length: 0x" << burst_len << v::endl;
 
       // Access ahb interface or mmu - return true if data is cacheable
-      if (m_tlb_adaptor->mem_read(burst_address, asi, ahb_data, burst_len, delay, debug, is_dbg, is_lock)) {
+      if (m_tlb_adaptor->mem_read(burst_address, asi, ahb_data, burst_len, delay, debug, is_dbg, is_lock, cacheable)) {
+        v::debug << this->name() << "vectorcache read cacheable" << v::endl;
 
         // Check for unvalid data which can be replaced without harm
         for (unsigned int i = 0; i <= m_sets; i++) {
@@ -490,6 +493,8 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
           }
         }
+      } else {
+        v::debug << this->name() << "vectorcache: read not cacheable" << v::endl;
       }
 
       // update debug information
@@ -513,7 +518,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
     // Cache is disabled
     // Forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
-    m_mmu_cache->mem_read(address, asi, data, len, delay, debug, is_dbg, is_lock);
+    m_mmu_cache->mem_read(address, asi, data, len, delay, debug, is_dbg, is_lock, cacheable);
 
     // update debug information
     CACHEBYPASS_SET(*debug);
@@ -537,10 +542,12 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
 void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned char * data,
                             unsigned int len, sc_core::sc_time * delay,
-                            unsigned int * debug, bool is_dbg, bool is_lock) {
+                            unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
 
     // is the cache enabled (0x11) or frozen (0x01)
-    if (check_mode() & 0x1) {
+    v::debug << "write cacheable: " << cacheable << v::endl;
+    if (((check_mode() & 0x1) && asi != 0x1c)) {
+    //if (1==2) {
 
         // extract index and tag from address
         unsigned int tag    = (address >> (m_idx_bits + m_offset_bits));
@@ -647,7 +654,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
         // or byte stores, the data has to be properly aligned for writing to word-
         // addressed device, before writing the WRB.
 
-        m_tlb_adaptor->mem_write(address, asi, data, len, delay, debug, is_dbg, is_lock);
+        m_tlb_adaptor->mem_write(address, asi, data, len, delay, debug, is_dbg, is_lock, cacheable);
 
     } else {
 
@@ -659,7 +666,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
         // cache is disabled
         // forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
-        m_mmu_cache->mem_write(address, asi, data, len, delay, debug, is_dbg, is_lock);
+        m_mmu_cache->mem_write(address, asi, data, len, delay, debug, is_dbg, is_lock, cacheable);
 
         // update debug information
         CACHEBYPASS_SET(*debug);
@@ -672,8 +679,9 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) {
 
     unsigned int addr;
+    bool cacheable = false;
 
-    v::info << name() << "Cache flush!" << v::endl;
+    v::debug << name() << "Cache flush!" << v::endl;
 
     // for all cache sets
     for (unsigned int set = 0; set <= m_sets; set++) {
@@ -702,7 +710,7 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) 
                             << v::endl;
 
                     m_tlb_adaptor->mem_write(addr, 0x8,(unsigned char *)&(*m_current_cacheline[set]).entry[entry],
-                                             4, t, debug, is_dbg, false);
+                                             4, t, debug, is_dbg, cacheable, false);
 
                 }
             }
@@ -712,7 +720,7 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) 
     // Update debug information
     CACHEFLUSH_SET(*debug);
 
-    v::info << name() << "FLUSH SET DEBUG: " << hex << *debug << v::endl;
+    v::debug << name() << "FLUSH SET DEBUG: " << hex << *debug << v::endl;
 }
 
 // ------------------------------
@@ -750,7 +758,7 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
     // find the required cache line
     m_current_cacheline[set] = lookup(set, idx);
 
-    v::info << name() << "ATAG: " << hex << (*m_current_cacheline[set]).tag.atag << v::endl;
+    v::debug << name() << "ATAG: " << hex << (*m_current_cacheline[set]).tag.atag << v::endl;
 
     // build bitmask from tag fields
     // (! The atag field starts bit 10. It is not MSB aligned as in the actual tag layout.)
@@ -759,7 +767,7 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
     tmp |= (*m_current_cacheline[set]).tag.lock << 8;
     tmp |= (*m_current_cacheline[set]).tag.valid;
 
-    v::info << this->name() << "Diagnostic tag read set: " << hex << set
+    v::debug << this->name() << "Diagnostic tag read set: " << hex << set
 	     << " idx: " << hex << idx << " - tag: " << hex << v::setw(8) << tmp
              << v::endl;
 

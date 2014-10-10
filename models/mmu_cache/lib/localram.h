@@ -46,10 +46,10 @@ class localram : public DefaultBase, public mem_if {
   // -----------------------------
   /// Read from scratchpad
   virtual bool mem_read(unsigned int address, unsigned int asi, unsigned char *data, unsigned int len,
-                        sc_core::sc_time *t, unsigned int *debug, bool is_dbg);
+                        sc_core::sc_time *t, unsigned int *debug, bool is_dbg, bool &cacheable);
   /// Write to scratchpad
   virtual void mem_write(unsigned int address, unsigned int asi, unsigned char *data, unsigned int len,
-                         sc_core::sc_time *t, unsigned int *debug, bool is_dbg);
+                         sc_core::sc_time *t, unsigned int *debug, bool is_dbg, bool &cacheable);
 
   /// Helper functions for definition of clock cycle
   void clkcng(sc_core::sc_time &clk);

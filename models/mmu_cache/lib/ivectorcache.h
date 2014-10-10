@@ -34,7 +34,7 @@ class ivectorcache : public vectorcache {
   // Overwrite write function
   void mem_write(unsigned int address, unsigned char * data,
                  unsigned int len, sc_core::sc_time * t,
-                 unsigned int * debug, bool is_dbg);
+                 unsigned int * debug, bool is_dbg, bool &cacheable);
 
   // Implement ccr check
   unsigned int check_mode();

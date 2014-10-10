@@ -174,20 +174,23 @@ void mmu_cache_base::dorst() {
 }
 
 void mmu_cache_base::exec_instr(const unsigned int &addr, unsigned char *ptr, unsigned int *debug, const unsigned int &flush, sc_core::sc_time& delay, bool is_dbg) {
+  v::debug << name() << "instr exec" << v::endl;
   // Instruction scratchpad enabled && address points into selected 16MB region
+  bool cacheable = true;
   if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-    ilocalram->mem_read((unsigned int)addr, 0, ptr, 4, &delay, debug, is_dbg);
+    ilocalram->mem_read((unsigned int)addr, 0, ptr, 4, &delay, debug, is_dbg, cacheable);
 
   // Instruction cache access
   } else {
 
-    icache->mem_read((unsigned int)addr, 0x8, ptr, 4, &delay, debug, is_dbg, false);
+    icache->mem_read((unsigned int)addr, 0x8, ptr, 4, &delay, debug, is_dbg, cacheable, false);
 
   }
 }
 
 void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &addr, unsigned char *ptr, unsigned int len, unsigned int asi, unsigned int *debug, unsigned int flush, unsigned int lock, sc_core::sc_time& delay, bool is_dbg, tlm::tlm_response_status &response) {
+  v::debug << name() << "data exec" << v::endl;
   // Flush instruction
   if (flush) {
 
@@ -203,6 +206,7 @@ void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &a
 
   }
 
+  bool cacheable = true;
   // ************************************************
   // * TLM_READ_COMMAND
   // ************************************************
@@ -211,6 +215,7 @@ void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &a
     // ************************************************
     // * TLM_READ_COMMAND - MAIN ASI SWITCH
     // ************************************************
+    v::debug << name() << "read with ASI 0x2 - addr:" << hex << addr << v::endl;
 
     switch (asi) {
 
@@ -425,35 +430,38 @@ void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &a
     case 0x9:
     case 0xa:
     case 0xb:
+    case 0x1c:
+      
+      v::debug << name() << "ASI 0x" << hex << asi << " read with address 0x" << hex << addr << v::endl;
 
       // Instruction scratchpad enabled && address points into selected 16 MB region
       if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-        ilocalram->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
+        ilocalram->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, cacheable);
         // Set TLM response
         response = (tlm::TLM_OK_RESPONSE);
 
       // Data scratchpad enabled && address points into selected 16MB region
       } else if (m_dlram && (((addr >> 24) & 0xff) == m_dlramstart)) {
 
-        dlocalram->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
+        dlocalram->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, cacheable);
         // Set TLM response
         response = (tlm::TLM_OK_RESPONSE);
 
       // Cache access || bypass || direct mmu
       } else {
 
-        dcache->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, lock);
+        dcache->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, cacheable, lock);
         // Set TLM response
         response = (tlm::TLM_OK_RESPONSE);
 
       }
 
       break;
-
+      
     default:
 
-      v::error << name() << "ASI not recognized: " << hex << asi << v::endl;
+      v::error << name() << "ASI at read not recognized: " << hex << asi << v::endl;
       // Setting TLM response
       response = (tlm::TLM_ADDRESS_ERROR_RESPONSE);
 
@@ -467,6 +475,8 @@ void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &a
     // ************************************************
     // * TLM_WRITE_COMMAND - MAIN ASI SWITCH
     // ************************************************
+    //
+    v::debug << name() << "write with ASI 0x2 - addr:" << hex << addr << v::endl;
     switch (asi) {
 
     case 2:
@@ -600,6 +610,18 @@ void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &a
 
       break;
 
+    case 0x11: // is this correct?
+
+      // All write operations with ASI 0x11 flush the instruction and data cache
+      v::debug << name() << "ASI flush instruction and data cache" << v::endl;
+
+      icache->flush(&delay, debug, is_dbg);
+      dcache->flush(&delay, debug, is_dbg);
+      // Set TLM response
+      response = (tlm::TLM_OK_RESPONSE);
+
+      break;
+    
     case 0x15:
 
       // All write operations with ASI 0x15 flush the instruction cache
@@ -617,6 +639,17 @@ void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &a
       v::debug << name() << "ASI flush data cache" << v::endl;
 
       dcache->flush(&delay, debug, is_dbg);
+      // Set TLM response
+      response = (tlm::TLM_OK_RESPONSE);
+
+      break;
+
+    case 0x18: // is this correct?
+
+      // All write operations with ASI 0x18 flush the TLB
+      v::debug << name() << "ASI flush TLB" << v::endl;
+
+      m_mmu->tlb_flush();
       // Set TLM response
       response = (tlm::TLM_OK_RESPONSE);
 
@@ -687,35 +720,38 @@ void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &a
     case 0x9:
     case 0xa:
     case 0xb:
+    case 0x1c:
+      
+      v::debug << name() << "ASI 0x" << hex << asi << " write with address 0x" << hex << addr << v::endl;
 
       // Instruction scratchpad enabled && address points into selected 16 MB region
       if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-        ilocalram->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
+        ilocalram->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, cacheable);
         // set TLM response
         response = (tlm::TLM_OK_RESPONSE);
 
       // Data scratchpad enabled && address points into selected 16MB region
       } else if (m_dlram && (((addr >> 24) & 0xff) == m_dlramstart)) {
 
-        dlocalram->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg);
+        dlocalram->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, cacheable);
         // Set TLM response
         response = (tlm::TLM_OK_RESPONSE);
 
       // Cache access (write through) || bypass || direct mmu
       } else {
 
-        dcache->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, lock);
+        dcache->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, cacheable, lock);
         // Set TLM response
         response = (tlm::TLM_OK_RESPONSE);
 
       }
 
       break;
-
+    
     default:
 
-      v::error << name() << "ASI not recognized: " << hex << asi << v::endl;
+      v::error << name() << "ASI at write not recognized: " << hex << asi << v::endl;
       // Setting TLM response
       response = (tlm::TLM_ADDRESS_ERROR_RESPONSE);
 
@@ -747,7 +783,7 @@ void mmu_cache_base::response_callback(tlm::tlm_generic_payload * trans) {
 /// Function for write access to AHB master socket
 void mmu_cache_base::mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
                           unsigned int length, sc_core::sc_time * delay,
-                          unsigned int * debug, bool is_dbg, bool is_lock) {
+                          unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
 
   // Allocate new transaction (reference counter = 1)
   tlm::tlm_generic_payload * trans = ahb.get_transaction();
@@ -796,9 +832,9 @@ void mmu_cache_base::mem_write(unsigned int addr, unsigned int asi, unsigned cha
 // Function for read access to AHB master socket
 bool mmu_cache_base::mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
                          unsigned int length, sc_core::sc_time * delay,
-                         unsigned int * debug, bool is_dbg, bool is_lock) {
+                         unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
 
-  bool cacheable = false;
+  bool cacheable_local = false;
   // Allocate new transaction (reference counter = 1)
   tlm::tlm_generic_payload * trans = ahb.get_transaction();
 
@@ -828,8 +864,9 @@ bool mmu_cache_base::mem_read(unsigned int addr, unsigned int asi, unsigned char
     v::debug << this->name() << "Done transaction (READ) / bus_read_completed event " << v::hex << trans << v::endl;
 
     // Check cacheability
-    if (m_cached != 0)  {
-      cacheable = (m_cached & (1 << (addr >> 28))) ? true : false;
+    //if ((m_cached != 0) && (cacheable))  {
+    if ((m_cached != 0))  {
+      cacheable_local = (m_cached & (1 << (addr >> 28))) ? true : false;
     }
 
   } else {
@@ -842,8 +879,8 @@ bool mmu_cache_base::mem_read(unsigned int addr, unsigned int asi, unsigned char
 
   // Decrement reference counter
   trans->release();
-
-  return cacheable;
+  v::debug << this->name() << "local_cacheable: " << cacheable_local << " cacheable " << cacheable << v::endl;
+  return cacheable_local && cacheable;
 
 }
 
