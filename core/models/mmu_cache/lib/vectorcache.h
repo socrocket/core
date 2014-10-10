@@ -42,11 +42,11 @@ class vectorcache : public DefaultBase, public cache_if {
   /// Read from cache
   virtual bool mem_read(unsigned int address, unsigned int asi, unsigned char * data,
                         unsigned int len, sc_core::sc_time * t,
-                        unsigned int * debug, bool is_dbg, bool is_lock);
+                        unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock);
   /// Write through cache
   virtual void mem_write(unsigned int address, unsigned int asi, unsigned char * data,
                          unsigned int len, sc_core::sc_time * t,
-                         unsigned int * debug, bool is_dbg, bool is_lock);
+                         unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock);
   /// Flush cache
   virtual void flush(sc_core::sc_time * t, unsigned int * debug, bool is_dbg);
 

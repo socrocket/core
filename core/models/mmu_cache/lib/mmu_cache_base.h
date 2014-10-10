@@ -132,11 +132,11 @@ class mmu_cache_base :
   /// MemIF implementation - writes data to AHB master
   virtual void mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
                          unsigned int length, sc_core::sc_time * t,
-                         unsigned int * debug, bool is_dbg, bool is_lock);
+                         unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock);
   /// MemIF implementation - reads data from AHB master
   virtual bool mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
                         unsigned int length, sc_core::sc_time * t,
-                        unsigned int * debug, bool is_dbg, bool is_lock);
+                        unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock);
 
   /// Send an interrupt over the central IRQ interface
   virtual void set_irq(uint32_t tt);

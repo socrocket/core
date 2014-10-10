@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /*
+
+Sitemap: http://socrocket.org/sitemap.xml
