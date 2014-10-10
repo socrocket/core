@@ -63,24 +63,13 @@ Irqmp::Irqmp(ModuleName name,
 
   // create register | name + description
   r.create_register("level", "Interrupt Level Register",
-    // offset
-    0x00,
-
-    // config
+    0x00,                   // offset
     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-    | gs::reg::FULL_WIDTH,
-
-    // init value
-    0x00000000,
-
-    // write mask
-    Irqmp::IR_LEVEL_IL,
-
-    // reg width (maximum 32 bit)
-    32,
-
-    // lock mask: Not implementet, has to be zero.
-    0x00);
+    | gs::reg::FULL_WIDTH,  // config
+    0x00000000,             // init value
+    Irqmp::IR_LEVEL_IL,     // write mask
+    32,                     // reg width (maximum 32 bit)
+    0x00);                  // lock mask: Not implementet, has to be zero.
 
   r.create_register("pending", "Interrupt Pending Register", 0x04,
     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |
@@ -107,7 +96,16 @@ Irqmp::Irqmp(ModuleName name,
     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
     | gs::reg::FULL_WIDTH, 0x00000000, BROADCAST_BM, 32,
     0x00);
+  // 3 IRQ(A)MP Registers pinned to 0 to indecate that we are a single IRQMP
   r.create_register("asymctrl", "Asymetric Multicore Control Register", 0x20,
+    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
+    | gs::reg::FULL_WIDTH, 0x00000000, 0x00000000, 32,
+    0x00);
+  r.create_register("irqctrlsel0", "Interrupt Controller Select Register for Processors 0 - 7", 0x24,
+    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
+    | gs::reg::FULL_WIDTH, 0x00000000, 0x00000000, 32,
+    0x00);
+  r.create_register("irqctrlsel1", "Interrupt Controller Select Register for Processors 8 - 15", 0x28,
     gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
     | gs::reg::FULL_WIDTH, 0x00000000, 0x00000000, 32,
     0x00);
