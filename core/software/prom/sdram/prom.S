@@ -145,6 +145,13 @@ _fsrxx:
 !	set 0x0ffff, %g2
 !	st  %g2, [%g1+0x10]
 
+! GPTIMER for 100 MHz
+  set 0x80000300, %g1
+  set 0x00000009, %g2
+  st  %g2, [%g1]
+  set 0x00000063, %g2
+  st  %g2, [%g1+4]
+
 	set 0xFFFFF860, %g1
 	ld  [%g1], %g2
 	srl %g2, 12, %g2
