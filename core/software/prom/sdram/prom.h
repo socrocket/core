@@ -21,5 +21,5 @@
 #define RAMSTART  0x40000000
 
 // RAM Size (Used to set the stack pointer)
-#define RAMSIZE   0x00100000
+#define RAMSIZE   0x002000000
 
