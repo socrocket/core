@@ -430,7 +430,7 @@ void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &a
     case 0x9:
     case 0xa:
     case 0xb:
-    case 0x1c:
+//    case 0x1c:
       
       v::debug << name() << "ASI 0x" << hex << asi << " read with address 0x" << hex << addr << v::endl;
 
@@ -458,6 +458,11 @@ void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &a
       }
 
       break;
+    
+    case 0x1c:
+        v::debug << name() << "ASI 0x" << hex << asi << " read throug with address 0x" << hex << addr << v::endl;
+        this->mem_read((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, cacheable, lock);
+        break;
       
     default:
 
@@ -720,7 +725,7 @@ void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &a
     case 0x9:
     case 0xa:
     case 0xb:
-    case 0x1c:
+//    case 0x1c:
       
       v::debug << name() << "ASI 0x" << hex << asi << " write with address 0x" << hex << addr << v::endl;
 
@@ -749,6 +754,11 @@ void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &a
 
       break;
     
+    case 0x1c:
+        v::debug << name() << "ASI 0x" << hex << asi << " write through with address 0x" << hex << addr << v::endl;
+        this->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, cacheable, lock);
+        break;
+
     default:
 
       v::error << name() << "ASI at write not recognized: " << hex << asi << v::endl;
@@ -835,6 +845,7 @@ bool mmu_cache_base::mem_read(unsigned int addr, unsigned int asi, unsigned char
                          unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
 
   bool cacheable_local = false;
+
   // Allocate new transaction (reference counter = 1)
   tlm::tlm_generic_payload * trans = ahb.get_transaction();
 
@@ -879,7 +890,6 @@ bool mmu_cache_base::mem_read(unsigned int addr, unsigned int asi, unsigned char
 
   // Decrement reference counter
   trans->release();
-  v::debug << this->name() << "local_cacheable: " << cacheable_local << " cacheable " << cacheable << v::endl;
   return cacheable_local && cacheable;
 
 }
@@ -968,13 +978,14 @@ void mmu_cache_base::write_ccr(unsigned char * data, unsigned int len,
     // read only masking: 1111 1111 1001 1111 0011 1111 1111 1111
     CACHE_CONTROL_REG = (tmp & 0xff9f3fff);
 
-    v::debug << name() << "CACHE_CONTROL_REG: " << hex << v::setw(8) << CACHE_CONTROL_REG << v::endl;
+    v::debug << name() << "CACHE_CONTROL_REG write: " << hex << v::setw(8) << CACHE_CONTROL_REG << v::endl;
 }
 
 // Read the cache control register from processor interface
 unsigned int mmu_cache_base::read_ccr(bool internal) {
 
   unsigned int tmp = CACHE_CONTROL_REG;
+  v::debug << name() << "CACHE_CONTROL_REG read: " << hex << v::setw(8) << CACHE_CONTROL_REG << v::endl;
 
   if (!internal) {
 
