@@ -356,23 +356,23 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     // [1-0] ET - Entry type. (0 - reserved, 1 - PTD, 2 - PTE, 3 - reserved)
 
     // tlb miss processing
-    v::debug << this->name()
+    v::info << this->name()
             << "START TLB MISS PROCESSING FOR VIRTUAL ADDRESS: " << std::hex
-            << addr << " with indices 1/2/3: " << idx1 << "/" << idx2 << "/" << idx3 << v::endl;
+            << addr << " with indices 1/2/3: " << idx1 << "/" << idx2 << "/" << idx3 << " for context: " << MMU_CONTEXT_REG << v::endl;
 
     // **************************************
     // Context-Table lookup
     // **************************************
 
-    //m_mmu_cache->mem_read(((MMU_CONTEXT_TABLE_POINTER_REG >> 2) << 6) + (MMU_CONTEXT_REG << 2), 0x8,
-    m_mmu_cache->mem_read(((MMU_CONTEXT_TABLE_POINTER_REG) << 4) + (MMU_CONTEXT_REG << 2), 0x8,
+    m_mmu_cache->mem_read(((MMU_CONTEXT_TABLE_POINTER_REG >> 2) << 6) + (MMU_CONTEXT_REG << 2), 0x8,
+    //m_mmu_cache->mem_read(((MMU_CONTEXT_TABLE_POINTER_REG) << 4) + (MMU_CONTEXT_REG << 2), 0x8,
                           (unsigned char *)&data, 4, t, debug, is_dbg, cacheable,  false);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);
     #endif
 
-    v::debug << this->name() << "CONTEXT TABLE LOOKUP returns page table address: " << std::hex << data << v::endl;
+    v::info << this->name() << "CONTEXT TABLE LOOKUP returns page table address: " << std::hex << data << v::endl;
 
     // ***************************************
     // 3-Level TLB table walk
@@ -390,7 +390,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     swap_Endianess(data);
     #endif
 
-    v::debug << this->name() << "Back from 1st-level page table: "  << std::hex << data << v::endl;
+    v::info << this->name() << "Back from 1st-level page table: "  << std::hex << data << v::endl;
 
     // page table entry (PTE) or page table descriptor (PTD) (to level 2)
     if ((data & 0x3) == 0x2) {
@@ -732,6 +732,8 @@ unsigned int mmu::read_mctpr() {
   #ifdef LITTLE_ENDIAN_BO
   swap_Endianess(tmp);
   #endif
+  
+  v::info << name() << "Read to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << tmp << v::endl;
 
   return (tmp);
 
@@ -749,7 +751,7 @@ void mmu::write_mctpr(unsigned int * data) {
   // [1-0] reserved, must read as zero
   MMU_CONTEXT_TABLE_POINTER_REG = (tmp & 0xfffffffc);
 
-  v::debug << name() << "Write to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << MMU_CONTEXT_TABLE_POINTER_REG << v::endl;
+  v::info << name() << "Write to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << tmp << v::endl;
 
 }
 
