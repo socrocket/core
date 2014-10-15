@@ -37,5 +37,11 @@ In this case open another terminal and enter (Linux):
 ~~~
 telnet localhost <PORT NUMBER>.
 ~~~
+
+If you want to see the output of hello.sparc in the same terminal as the output of the simulation you can use the following command:
+~~~
+./build/core/platforms/leon3mp/leon3mp.platform --option conf.mctrl.prom.elf=build/core/software/prom/sdram/sdram.prom --option conf.mctrl.ram.sdram.elf=build/core/software/grlib_tests/hello.sparc --option conf.system.osemu=build/core/software/grlib_tests/hello.sparc
+~~~
+
 *Hint: Call leon3mp --help to see all available command line options.*
 
