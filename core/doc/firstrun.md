@@ -19,31 +19,20 @@ To compile this program using the BCC compiler enter (at top-level):
 
 The generated SPARC binary will be written to:
 ~~~
-./build/software/grlib_tests/hello.sparc
+./build/core/software/grlib_tests/hello.sparc
 ~~~
 
 This binary is independent of the system configuration. 
-Obtaining an executable file requires additional settings. 
-Just as for GRLIB hardware simulations this is achieved using the `mkprom` tool (part of the BCC distribution). 
-The tool inserts boot code and generates a compressed image of the application. 
-For a leon3 single core system in default configuration call:
-~~~
-mkprom2 –v –freq 50 –nocomp –nosram –rmw –sdram 16 –msoftfloat –o hello.sparc.prom hello.sparc
-~~~
-
 To execute the program the generated image must be loaded into ROM at the beginning of the simulation. 
 Therefore, the name and the location of the application must be entered in the system configuration file. 
-This can be done by manually editing the configuration (JSON file) or by using the set_json_attr utility:
+Furthermore some bootcode is needed to start up the system and execute the program in RAM.
+This can be achieved via setting of commandline options.
+The simulation can then be started as follows:
 ~~~
-./tools/set_json_attr myconf.json conf.mctrl.prom.elf="hello.sparc.prom" > myhelloconf.json
-~~~
-
-Now the simulation can be started as follows:
-~~~
-./build/platforms/leon3mp/leon3mp.platform –s {LUASCRIPT} –j myhelloconf.json
+./build/core/platforms/leon3mp/leon3mp.platform --option conf.mctrl.prom.elf=build/core/software/prom/sdram/sdram.prom --option conf.mctrl.ram.sdram.elf=build/core/software/grlib_tests/hello.sparc --option conf.apbuart.en=1
 ~~~
 
-Depending on the configuration you are eventually asked to connect a terminal a startup. 
+You are eventually asked to connect a terminal a startup. 
 In this case open another terminal and enter (Linux):
 ~~~
 telnet localhost <PORT NUMBER>.
