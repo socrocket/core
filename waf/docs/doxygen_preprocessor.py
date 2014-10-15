@@ -26,6 +26,9 @@ ProcessOrder.append(StateMachineHandler)
 from register import RegisterHandler
 ProcessOrder.append(RegisterHandler)
 
+from comments import CommentsHandler
+ProcessOrder.append(CommentsHandler)
+
 def CommandLineHandler():
 	"""Option parser interface."""
 
