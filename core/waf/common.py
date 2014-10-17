@@ -208,6 +208,7 @@ def base(self, *k, **kw):
     kw["BASE_PATH_BUILD"] = kw.get("BASE_PATH_BUILD", "%(BASE_PATH)s/build") % kw
     kw["BASE_PATH_DIST"] = kw.get("BASE_PATH_DIST", "%(BASE_PATH)s/dist") % kw
 
+    kw["fdeps"] = kw.get("fallback", os.path.join(self.srcnode.abspath(), "deps"))
     kw["src"] = kw.get("src", os.path.join(kw["BASE_PATH_SRC"], kw["base"]))
     kw["build"] = kw.get("build", os.path.join(kw["BASE_PATH_BUILD"], kw["base"]))
     kw["prefix"] = kw.get("prefix", os.path.join(kw["BASE_PATH_DIST"], kw["base"]))
@@ -223,7 +224,13 @@ def base(self, *k, **kw):
     return k, kw
 
 def fetch(self, *k, **kw):
-    if kw.has_key("git_url"):
+    """Fetch Dependency Sourcen"""
+    if kw.has_key("tar") and os.path.isfile(os.path.join(kw['fdeps'], kw['tar'] % kw)):
+        """First try the fallback ./deps folder"""
+        fallback_file = os.path.join(kw['fdeps'], kw['tar'] % kw)
+        shutil.copytree(fallback_file, os.path.join(kw["BASE_PATH_FETCH"], kw['tar'] % kw))
+    elif kw.has_key("git_url"):
+        """Then search for a git repo"""
         self.start_msg("Cloning %(name)s" % kw)
         git_url = kw.get("git_url")
         fetch_path = os.path.join(kw["BASE_PATH_FETCH"], kw["base"])
@@ -247,6 +254,7 @@ def fetch(self, *k, **kw):
             shutil.copytree(fetch_path, kw["src"])
 
     elif kw.has_key("tar_url"):
+        """Finaly try to download a tar file yourself"""
         kw["tar"] = kw.get("tar", "%(base)s.tar.gz") % kw
         tar_url = kw.get("tar_url", "") % kw
         self.start_msg("Fetching %s" % kw["name"])
@@ -260,7 +268,8 @@ def fetch(self, *k, **kw):
         else:
             self.end_msg("Already done")
 
-    if kw.has_key("tar") or kw.has_key("tar_url"):
+    if (kw.has_key("tar") or kw.has_key("tar_url")) and not kw.has_key('git_url'):
+        """If there was a tar file (Either block 1 or 3) extract it"""
         kw["tar"] = kw.get("tar", "%(base)s.tar.gz") % kw
         fetch_path = os.path.join(kw["BASE_PATH_FETCH"], kw["tar"])
         self.start_msg("Extracting %s" % kw["name"])
@@ -281,9 +290,11 @@ def fetch(self, *k, **kw):
             self.end_msg("Already done")
 
     elif not kw.has_key("git_url"):
+        """If nothing of the above applied we are doomed"""
         self.fatal("You need to specify git_url, tar_url or tar")
 
     if kw.has_key("patch"):
+        """Try to patch the source if neccecary (patch is defined in the parameters)"""
         for patch in Utils.to_list(kw["patch"]):
            try:
                self.start_msg("Patching %s with %s" % (kw["name"], patch))
@@ -299,12 +310,14 @@ def fetch(self, *k, **kw):
 
 
 def dep_fetch(self, *k, **kw):
+    """Only fetch a dependency"""
     k, kw = base(self, *k, **kw)
     kw["src"] = kw["prefix"]
     k, kw = fetch(self, *k, **kw)
 conf(dep_fetch)
 
 def dep_build(self, *k, **kw):
+    """Fetch and build a dependency"""
     k, kw = base(self, *k, **kw)
     k, kw = fetch(self, *k, **kw)
 
