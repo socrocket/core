@@ -84,6 +84,7 @@ def configure(self):
         self.dep_fetch(
             name    = name, 
             version = version,
-            git_url = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/ambakit.git"
+            git_url = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/ambakit.git",
+            tar     = "ambakit-1.1.0.tar.gz"
         )
         find(self, self.dep_path(name, version))

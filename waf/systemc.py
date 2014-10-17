@@ -208,6 +208,7 @@ def configure(self):
             name    = name, 
             version = version,
             git_url = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/systemc.git",
+            tar     = "systemc-2.3.1.tar.gz",
             install_cmd = "ln -sf %(src)s %(prefix)s"
         )
         find(self, self.dep_path(name, version))
