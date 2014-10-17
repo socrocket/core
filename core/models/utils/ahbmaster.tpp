@@ -239,14 +239,18 @@ void AHBMaster<BASE>::ahbaccess(tlm::tlm_generic_payload *trans) {
     // Start blocking transport
     ahb->b_transport(*trans, delay);
 
-    if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) response_error = true;
+    if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
+        response_error = true;
+    }
  
     // Consume transfer delay
     wait(delay);
     delay=SC_ZERO_TIME;
 
     // For read-data checking
-    if (trans->is_read()) response_callback(trans);
+    if (trans->is_read()) {
+        response_callback(trans);
+    }
 
   } else {
 
