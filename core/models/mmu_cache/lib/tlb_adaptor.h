@@ -54,6 +54,7 @@ class tlb_adaptor : public DefaultBase, public mem_if {
 
             unsigned int paddr;
 	    unsigned int mmu_ctrl = m_mmu->read_mcr();
+      unsigned int tmp_data;
       //bool cacheable = true;
 
 	    #ifdef LITTLE_ENDIAN_BO
@@ -79,6 +80,9 @@ class tlb_adaptor : public DefaultBase, public mem_if {
 
             // forward request to amba interface - return cacheability
             v::debug << name() << "tlb_adaptor cacheable: " << cacheable << v::endl;
+            tmp_data = (unsigned int)(*data);
+            swap_Endianess(tmp_data);
+            v::debug << name() << "mem read data: 0x"<< hex << tmp_data << " vaddr: 0x" << hex << addr << " paddr: 0x" << hex << paddr << " mmu: " << (mmu_ctrl & 0x1) << v::endl;
             return (m_mmu_cache->mem_read(paddr, asi, data, len, t, debug, is_dbg, cacheable, is_lock) && cacheable);
 
 
@@ -92,6 +96,7 @@ class tlb_adaptor : public DefaultBase, public mem_if {
 
             unsigned int paddr;
 	    unsigned int mmu_ctrl = m_mmu->read_mcr();
+      unsigned int tmp_data;
 
 	    #ifdef LITTLE_ENDIAN_BO
 	    swap_Endianess(mmu_ctrl);
@@ -117,6 +122,9 @@ class tlb_adaptor : public DefaultBase, public mem_if {
             }
 
             // forward request to mmu amba interface
+            tmp_data = (unsigned int)(*data);
+            swap_Endianess(tmp_data);
+            v::debug << name() << "mem write data: 0x"<< hex << tmp_data << " vaddr: 0x" << hex << addr << " paddr: 0x" << hex << paddr << " mmu: " << (mmu_ctrl & 0x1) << v::endl;
             m_mmu_cache->mem_write(paddr, asi, data, len, t, debug, is_dbg, is_lock, cacheable);
 
         }
