@@ -882,6 +882,7 @@ void vectorcache::write_cache_entry(unsigned int address, unsigned int * data,
 unsigned int vectorcache::read_config_reg(sc_core::sc_time *t) {
 
   unsigned int tmp = CACHE_CONFIG_REG;
+  v::info << this->name() << "read_config_reg 0x" << tmp <<  v::endl;
 
   *t += clockcycle;
 

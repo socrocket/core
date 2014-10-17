@@ -9,7 +9,7 @@ For manual compilation follow the flow described in the Gaisler BCC – Bare-C C
 A simple “Hello World” program in C language is given in:
 ~~~
 ./software/grlib_tests/hello.c
-~~~~
+~~~
 
 To compile this program using the BCC compiler enter (at top-level):
 ~~~
@@ -29,7 +29,10 @@ Furthermore some bootcode is needed to start up the system and execute the progr
 This can be achieved via setting of commandline options.
 The simulation can then be started as follows:
 ~~~
-./build/core/platforms/leon3mp/leon3mp.platform --option conf.mctrl.prom.elf=build/core/software/prom/sdram/sdram.prom --option conf.mctrl.ram.sdram.elf=build/core/software/grlib_tests/hello.sparc --option conf.apbuart.en=1
+./build/core/platforms/leon3mp/leon3mp.platform \
+--option conf.mctrl.prom.elf=build/core/software/prom/sdram/sdram.prom \
+--option conf.mctrl.ram.sdram.elf=build/core/software/grlib_tests/hello.sparc \
+--option conf.apbuart.en=1
 ~~~
 
 You are eventually asked to connect a terminal a startup. 
@@ -37,5 +40,14 @@ In this case open another terminal and enter (Linux):
 ~~~
 telnet localhost <PORT NUMBER>.
 ~~~
-*Hint: Call leon3mp --help to see all available command line options.*
+
+If you want to see the output of hello.sparc in the same terminal as the output of the simulation you can use the following command:
+~~~
+./build/core/platforms/leon3mp/leon3mp.platform \
+--option conf.mctrl.prom.elf=build/core/software/prom/sdram/sdram.prom \
+--option conf.mctrl.ram.sdram.elf=build/core/software/grlib_tests/hello.sparc \
+--option conf.system.osemu=build/core/software/grlib_tests/hello.sparc
+~~~
+
+*Hint: Call `leon3mp --help` to see all available command line options.*
 

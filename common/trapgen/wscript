@@ -17,6 +17,6 @@ def build(self):
         ],
         export_includes = '. utils',
         includes = '. utils',
-        uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
+        uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS ELF_LIB',
         install_path    = '${PREFIX}/lib',
     )
