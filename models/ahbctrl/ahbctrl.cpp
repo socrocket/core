@@ -149,6 +149,14 @@ AHBCtrl::AHBCtrl(
     ("pow_mon", pow_mon)
     ("ambaLayer", ambaLayer)
     ("Created an AHBCtrl with this parameters");
+    
+  // initialize the slave_map_cache with some bogus numbers
+  slave_info_t tmp;
+  tmp.hindex = 0;
+  tmp.haddr  = ~0;
+  tmp.hmask  = ~0;
+  slave_map_cache = std::pair<uint32_t, slave_info_t>(~0, tmp);
+
 }
 
 // Reset handler
@@ -228,7 +236,7 @@ void AHBCtrl::setAddressMap(const uint32_t binding, const uint32_t hindex, const
   tmp.hindex = hindex;
   tmp.haddr  = haddr;
   tmp.hmask  = hmask;
-
+  
   // Create slave map entry from slave ID and address range descriptor (slave_info_t)
   slave_map.insert(std::pair<uint32_t, slave_info_t>(binding, tmp));
 }
@@ -240,10 +248,20 @@ int AHBCtrl::get_index(const uint32_t address) {
   // Use 12 bit segment address for decoding
   uint32_t addr = address >> 20;
 
+  // try map cache for hit ...
+  slave_info_t info = slave_map_cache.second;
+  if( ((addr ^info.haddr) & info.hmask) == 0 ) {
+      m_right_transactions++;
+      return (slave_map_cache.first) >> 2;
+  }
+
   for (it = slave_map.begin(); it != slave_map.end(); it++) {
     slave_info_t info = it->second;
 
     if (((addr ^ info.haddr) & info.hmask) == 0) {
+      // update map cache which has been mispredicted
+      slave_map_cache = *it;
+
       // There may be up to four BARs per device.
       // Only return device ID.
       m_right_transactions++;
