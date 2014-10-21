@@ -13,7 +13,6 @@ REPOSITORY_TOOLS = [
     'systemc',
     'cmake',
     'winsocks',
-    'lua',
     'greenlib',
     'ambakit',
     'socrocket',

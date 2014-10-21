@@ -1,0 +1,167 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ca8f557..7414eeb 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -44,30 +44,13 @@ if(Boost_FOUND)
+ endif()
+ 
+ # Require Python
+-
+-if(DEFINED ENV{PYTHON_ROOT})
+-  include_directories($ENV{PYTHON_ROOT})
+-else()
+-  find_package(PythonLibs REQUIRED)
+-  include_directories(${PYTHON_INCLUDE_DIRS})
+-endif()
++# Removed
+ 
+ # Require Lua
+-
+-find_package( Lua )
+-if(LUA_FOUND)
+-  include_directories(${LUA_INCLUDE_DIR})
+-  link_directories(${LUA_LIBRARIES})
+-elseif(DEFINED ENV{LUA_INCLUDE_HOME} && DEFINED ENV{LUA_LIBRARY_HOME})
+-  include_directories($ENV{LUA_INCLUDE_HOME})
+-  link_directories($ENV{LUA_LIBRARY_HOME})
+-else()
+-  message( STATUS "Lua library not found." )
+-endif()
++# Removed
+ 
+ # Require SWIG
+-find_package(SWIG REQUIRED)
+-include(${SWIG_USE_FILE})
++# Removed
+ 
+ # GreenSocs library
+ 
+@@ -162,50 +145,10 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/Makefile.defs
+ 
+ 
+ # GreenRouter
+-
+-set (GreenSocs_INCLUDE_DIRS ${GreenSocs_INCLUDE_DIRS} greenrouter/include/)
+-
+-install(DIRECTORY greenrouter/include/
+-        DESTINATION include
+-        PATTERN ".svn" EXCLUDE
+-)
+-
+-install(DIRECTORY greenrouter/examples/
+-        DESTINATION examples/greenrouter
+-        PATTERN ".svn" EXCLUDE
+-)
+-
+-install(DIRECTORY greenrouter/docs/     # TODO: doc or docs?
+-        DESTINATION docs/greenrouter
+-        PATTERN ".svn" EXCLUDE
+-)
+-
+-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/Makefile.defs
+-        DESTINATION examples/greenrouter
+-)
++# Removed
+ 
+ # GreenSignalSocket
+-
+-set (GreenSocs_INCLUDE_DIRS ${GreenSocs_INCLUDE_DIRS} greensignalsocket/include/)
+-
+-install(DIRECTORY greensignalsocket/include/
+-        DESTINATION include
+-        PATTERN ".svn" EXCLUDE
+-)
+-
+-install(DIRECTORY greensignalsocket/examples/
+-        DESTINATION examples/greensignalsocket
+-        PATTERN ".svn" EXCLUDE
+-)
+-
+-install(DIRECTORY greensignalsocket/docs/     # TODO: doc or docs?
+-        DESTINATION docs/greensignalsocket
+-        PATTERN ".svn" EXCLUDE
+-)
+-
+-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/Makefile.defs
+-        DESTINATION examples/greensignalsocket
+-)
++# Removed
+ 
+ # Greenreg
+ 
+@@ -228,52 +171,13 @@ install(DIRECTORY greenreg/doc/     # TODO: doc or docs?
+ )
+ 
+ # Greenmessage
+-
+-set (GreenSocs_INCLUDE_DIRS ${GreenSocs_INCLUDE_DIRS} greenmessage/include/)
+-
+-install(DIRECTORY greenmessage/include/
+-	DESTINATION include
+-)
+-
+-install(DIRECTORY greenmessage/examples/
+-	DESTINATION examples/greenmessage
+-)
+-
+-install(DIRECTORY greenmessage/docs/
+-	DESTINATION docs/greenmessage
+-)
++# Removed
+ 
+ # Greenscript
+-
+-set (GreenSocs_INCLUDE_DIRS ${GreenSocs_INCLUDE_DIRS} greenscript/include/)
+-
+-install(DIRECTORY greenscript/include/
+-        DESTINATION include
+-)
+-
+-install(DIRECTORY greenscript/examples/
+-        DESTINATION examples/greenscript
+-)
+-
+-install(DIRECTORY greenscript/docs/
+-        DESTINATION docs/greenscript
+-)
++# Removed
+ 
+ # Greenmemory
+-
+-set (GreenSocs_INCLUDE_DIRS ${GreenSocs_INCLUDE_DIRS} greenmemory/include/)
+-
+-install(DIRECTORY greenmemory/include/
+-        DESTINATION include
+-)
+-
+-install(DIRECTORY greenmemory/examples/
+-        DESTINATION examples/memory
+-)
+-
+-install(DIRECTORY greenmemory/docs/
+-        DESTINATION docs/greenmemory
+-)
++# Removed
+ 
+ # Greensocs Library include directory (for example).
+ include_directories(${GreenSocs_INCLUDE_DIRS})
+@@ -282,15 +186,15 @@ link_directories(${GreenSocs_LIB_DIRS})
+ # CXX flags for example or library compilation.
+ set(CMAKE_CXX_FLAGS "-g -Wall -DSC_INCLUDE_DYNAMIC_PROCESSES -D_REENTRANT")
+ 
+-add_subdirectory(greensignalsocket EXCLUDE_FROM_ALL)
+-add_subdirectory(greenrouter EXCLUDE_FROM_ALL)
+-add_subdirectory(greenmemory EXCLUDE_FROM_ALL)
++#add_subdirectory(greensignalsocket EXCLUDE_FROM_ALL)
++#add_subdirectory(greenrouter EXCLUDE_FROM_ALL)
++#add_subdirectory(greenmemory EXCLUDE_FROM_ALL)
+ 
+ # Compile greenreg library.
+ add_subdirectory(greenreg)
+ 
+ # Compile greenscript library
+-add_subdirectory(greenscript)
++# Removed
+ 
+ # build a CPack driven installer package
+ include (InstallRequiredSystemLibraries)
