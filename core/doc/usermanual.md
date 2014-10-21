@@ -2,6 +2,9 @@ User Manual {#usermanual}
 ===========
 
 @section Introduction
+We should have a small overview here and explain how the manual is organized.
+
+@startcomment
 @subsection purpose Purpose and Scope
 This document is a user manual (UM) of the SystemC transaction level models developed in the HW-SW SystemC Co-Simulation SoC Validation Platform project. 
 
@@ -27,7 +30,9 @@ Version | Date     | Description
 1.0     | 01/09/10 | Initial submission             
 1.1     | 17/09/10 | Version prior to the MDR meeting
 1.2     | 03/05/11 |                                
+@endcomment
 
+This user manual is comprised of the following chapters:
 * @subpage requirements "Requirements"
 * @subpage codingstyle_p "Coding Style Guide"
 * @subpage install "Installation"
