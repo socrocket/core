@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index ca8f557..ab14fd6 100644
+index ca8f557..7414eeb 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -44,30 +44,13 @@ if(Boost_FOUND)
@@ -89,7 +89,7 @@ index ca8f557..ab14fd6 100644
  
  # Greenreg
  
-@@ -228,69 +171,30 @@ install(DIRECTORY greenreg/doc/     # TODO: doc or docs?
+@@ -228,52 +171,13 @@ install(DIRECTORY greenreg/doc/     # TODO: doc or docs?
  )
  
  # Greenmessage
@@ -143,6 +143,9 @@ index ca8f557..ab14fd6 100644
 -)
 +# Removed
  
+ # Greensocs Library include directory (for example).
+ include_directories(${GreenSocs_INCLUDE_DIRS})
+@@ -282,15 +186,15 @@ link_directories(${GreenSocs_LIB_DIRS})
  # CXX flags for example or library compilation.
  set(CMAKE_CXX_FLAGS "-g -Wall -DSC_INCLUDE_DYNAMIC_PROCESSES -D_REENTRANT")
  
