@@ -299,12 +299,14 @@ def fetch(self, *k, **kw):
 
 
 def dep_fetch(self, *k, **kw):
+    """Fetches and extracts the source to dist"""
     k, kw = base(self, *k, **kw)
     kw["src"] = kw["prefix"]
     k, kw = fetch(self, *k, **kw)
 conf(dep_fetch)
 
 def dep_build(self, *k, **kw):
+    """Configure/Make/Make install to the dist directory"""
     k, kw = base(self, *k, **kw)
     k, kw = fetch(self, *k, **kw)
 
