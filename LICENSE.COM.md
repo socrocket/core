@@ -36,8 +36,6 @@ If you have any questions regarding our licensing policy, please
 contact us:
 
 * Tel.: +49 531 391 2376
-* Tel.: +49 531 391 2378
-* Tel.: +49 531 391 2387
 * Fax:  +49 531 391 2375
 * Email: meyer@c3e.cs.tu-bs.de
 * Email: wagner@c3e.cs.tu-bs.de
