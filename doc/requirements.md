@@ -122,7 +122,6 @@ Like the biggest share of GreenSocs, the Carbon AMBA Sockets are header-only and
 After exporting the location of the source files the software is ready to be used:
 
     $ export AMBA_HOME=<THE FOLDER WHERE YOU EXTRACTED THE AMBAKIT>
-@endcomment
 
 @section requirements4 Aeroflex Gaisler GRLIB and Mentor Modelsim Simulator
 
@@ -156,3 +155,4 @@ Set the following environment variables to enable co-simulation:
 Co-simulation can be explicitly disabled in the library configuration. To exclude all co-simulation targets from compilation configure as follows:
 
     $ ./waf configure --nomodelsim
+@endcomment
