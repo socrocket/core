@@ -97,6 +97,7 @@ namespace leon3_funclt_trap{
         bool instrExecuting;
         sc_event instrEndEvent;
         Instruction **INSTRUCTIONS;
+        Instruction *curInstrPtr;
         template_map<unsigned int, CacheElem> instrCache;
         static int numInstances;
         unsigned int IRQ;
@@ -110,6 +111,7 @@ namespace leon3_funclt_trap{
         void start_of_simulation();
         void end_of_simulation();
         void power_model();
+        void triggerException(unsigned int exception);
         tlm_utils::tlm_quantumkeeper quantKeeper;
         gs::cnf::callback_return_type sta_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
         gs::cnf::callback_return_type int_power_cb(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
@@ -145,6 +147,7 @@ namespace leon3_funclt_trap{
         unsigned int MPROC_ID;
         unsigned int PROGRAM_LIMIT;
         unsigned int PROGRAM_START;
+        unsigned int curPC;
         IntrTLMPort_32 IRQ_port;
         PinTLM_out_32 irqAck;
         bool m_pow_mon;

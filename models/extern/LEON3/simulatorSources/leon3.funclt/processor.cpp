@@ -107,7 +107,9 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
         }
 
         // Log instruction count for power monitoring
-        if (m_pow_mon) dyn_instr++;
+        if (m_pow_mon) {
+            dyn_instr++;
+        }
 
         if((IRQ != 0xFFFFFFFF) && (PSR[key_ET] && (IRQ == 15 || IRQ > PSR[key_PIL]))){
             this->IRQ_irqInstr->setInterruptValue(IRQ);
@@ -120,7 +122,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
             }
 
         } else{
-            unsigned int curPC = this->PC + 0;
+            curPC = this->PC + 0;
             if(!startMet && curPC == this->profStartAddr){
                 this->profTimeStart = sc_time_stamp();
             }
@@ -136,10 +138,10 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
             #endif
             unsigned int bitString = this->instrMem.read_instr(curPC,0);
             template_map< unsigned int, CacheElem >::iterator cachedInstr = this->instrCache.find(bitString);
-            if(cachedInstr != instrCacheEnd){
-                Instruction * curInstrPtr = cachedInstr->second.instr;
+            if(cachedInstr != instrCacheEnd) {
+                curInstrPtr = cachedInstr->second.instr;
                 // I can call the instruction, I have found it
-                if(curInstrPtr != NULL){
+                if(curInstrPtr != NULL) {
                     #ifdef ENABLE_HISTORY
                     if(this->historyEnabled){
                         instrQueueElem.name = curInstrPtr->getInstructionName();
@@ -159,24 +161,24 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
                     catch(annull_exception &etc){
                         numCycles = 0;
                     }
-                }
-                else{
+                } else {
                     unsigned int & curCount = cachedInstr->second.count;
                     int instrId = this->decoder.decode(bitString);
-                    Instruction * instr = this->INSTRUCTIONS[instrId];
-                    instr->setParams(bitString);
+                    curInstrPtr = this->INSTRUCTIONS[instrId];
+                    curInstrPtr->setParams(bitString);
+
                     #ifdef ENABLE_HISTORY
                     if(this->historyEnabled){
-                        instrQueueElem.name = instr->getInstructionName();
-                        instrQueueElem.mnemonic = instr->getMnemonic();
+                        instrQueueElem.name = curInstrPtr->getInstructionName();
+                        instrQueueElem.mnemonic = curInstrPtr->getMnemonic();
                     }
                     #endif
                     try{
                         #ifndef DISABLE_TOOLS
-                        if(!(this->toolManager.newIssue(curPC, instr))){
+                        if(!(this->toolManager.newIssue(curPC, curInstrPtr))){
                             #endif
-                            numCycles = instr->behavior();
-                            //instr->behavior(); // Replacement for ^^
+                            numCycles = curInstrPtr->behavior();
+                            //curInstrPtr->behavior(); // Replacement for ^^
                             #ifndef DISABLE_TOOLS
                         }
                         #endif
@@ -189,28 +191,28 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
                     }
                     else{
                         // ... and then add the instruction to the cache
-                        cachedInstr->second.instr = instr;
-                        this->INSTRUCTIONS[instrId] = instr->replicate();
+                        cachedInstr->second.instr = curInstrPtr;
+                        this->INSTRUCTIONS[instrId] = curInstrPtr->replicate();
                     }
                 }
-            } else{
+            } else {
                 // The current instruction is not present in the cache:
                 // I have to perform the normal decoding phase ...
                 int instrId = this->decoder.decode(bitString);
-                Instruction * instr = this->INSTRUCTIONS[instrId];
-                instr->setParams(bitString);
+                curInstrPtr = this->INSTRUCTIONS[instrId];
+                curInstrPtr->setParams(bitString);
                 #ifdef ENABLE_HISTORY
                 if(this->historyEnabled){
-                    instrQueueElem.name = instr->getInstructionName();
-                    instrQueueElem.mnemonic = instr->getMnemonic();
+                    instrQueueElem.name = curInstrPtr->getInstructionName();
+                    instrQueueElem.mnemonic = curInstrPtr->getMnemonic();
                 }
                 #endif
                 try{
                     #ifndef DISABLE_TOOLS
-                    if(!(this->toolManager.newIssue(curPC, instr))){
+                    if(!(this->toolManager.newIssue(curPC, curInstrPtr))){
                         #endif
-                        numCycles = instr->behavior();
-                        //instr->behavior(); // Replacement for ^^
+                        numCycles = curInstrPtr->behavior();
+                        //curInstrPtr->behavior(); // Replacement for ^^
                         #ifndef DISABLE_TOOLS
                     }
                     #endif
@@ -251,6 +253,10 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
         this->numInstructions++;
 
     }
+}
+
+void leon3_funclt_trap::Processor_leon3_funclt::triggerException(unsigned int exception) {
+    curInstrPtr->RaiseException(this->curPC, this->PC, exception);
 }
 
 void leon3_funclt_trap::Processor_leon3_funclt::beginOp(){

@@ -122,8 +122,7 @@ void leon3_funclt_trap::Instruction::RaiseException( unsigned int pcounter, unsi
                             << " Exception " << exceptionId << " happened while the PSR[ET] = 0; \
                 PC = " << std::hex << std::showbase << PC << std::endl << "Instruction " << getMnemonic());
         }
-    }
-    else{
+    } else {
         unsigned int curPSR = PSR;
         curPSR = (curPSR & 0xffffffbf) | (PSR[key_S] << 6);
         curPSR = (curPSR & 0xffffff7f) | 0x00000080;
