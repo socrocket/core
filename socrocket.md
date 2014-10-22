@@ -7,7 +7,7 @@ system's cost. Software is also becoming the critical part of the
 development schedule, mainly because deploying and testing it on the
 real target hardware is complicated.
 
-![Logo](socrocket-logo.png")
+![](socrocket-logo.png")
 
 TLM can be used to describe both, timing and functionality, of system
 components and their communication interfaces at a high abstraction
