@@ -34,8 +34,6 @@ update   : updates the plugins from the *waflib/extras* directory
 generate : opens the configuration 
 ~~~
 
-*Doxygen support is currently under development. The generated documents may be incomplete.*
-
 @section install2 Building the library
 
 Building the project requires following steps:
@@ -69,21 +67,3 @@ Building the project requires following steps:
 
 Moreover, to enable coverage calculation the system must be configure with the `–G` option. 
 Compile the library and execute all unit tests in order to achieve meaningful results.
-
-@section install3 Models separate compilation
-
-The models of the library can be compiled separately and independently of each other. 
-The following minimum set of source files is required for successful compilation:
-
-~~~
-./common
-./contrib
-./Doxyfile
-./models/<selected_model>
-./models/utils
-./models/wscript
-./signalkit
-./tools
-wscript
-waf 
-~~~
