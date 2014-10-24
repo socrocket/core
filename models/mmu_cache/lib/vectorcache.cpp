@@ -506,6 +506,20 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       } else {
 	memcpy(data, ahb_data + offset, len);
       }
+
+      bool equal = true;
+      m_tlb_adaptor->mem_read(address, asi, ahb_data, len, delay, debug, true, is_lock, cacheable);
+      for (int i = 0; i < len; i++) {
+        if (ahb_data[i] != data[i]) {
+          equal = false;
+        }
+      }
+      if (equal == false) {
+        v::warn << name() << "cache and direct read deliver non equal data! addr: " << hex << address << v::endl;
+      } else {
+        v::debug << name() << "cache und direct read equal" << v::endl;
+      }
+
     }
 
   } else {
@@ -518,7 +532,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
     // Cache is disabled
     // Forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
-    m_mmu_cache->mem_read(address, asi, data, len, delay, debug, is_dbg, is_lock, cacheable);
+    m_tlb_adaptor->mem_read(address, asi, data, len, delay, debug, is_dbg, is_lock, cacheable);
 
     // update debug information
     CACHEBYPASS_SET(*debug);
@@ -666,7 +680,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
         // cache is disabled
         // forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
-        m_mmu_cache->mem_write(address, asi, data, len, delay, debug, is_dbg, is_lock, cacheable);
+        m_tlb_adaptor->mem_write(address, asi, data, len, delay, debug, is_dbg, is_lock, cacheable);
 
         // update debug information
         CACHEBYPASS_SET(*debug);

@@ -141,6 +141,9 @@ class mmu_cache_base :
   /// Send an interrupt over the central IRQ interface
   virtual void set_irq(uint32_t tt);
 
+  /// Sent an exception to the CPU
+  virtual void trigger_exception(unsigned int exception) = 0;
+
   /// Writes the cache control register
   void write_ccr(unsigned char * data, unsigned int len, sc_core::sc_time *delay, unsigned int * debug, bool is_dbg);
   /// Read the cache control register

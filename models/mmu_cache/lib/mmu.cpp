@@ -230,7 +230,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     bool context_miss = false;
 
-    //cacheable = true;
+    bool cacheable_mem;
 
     // Search virtual address tag in ipdc (associative)
     v::debug << this->name() << "Access with ADDR: " << std::hex << addr << " VPN: " << std::hex << vpn
@@ -272,6 +272,8 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
             if ((tmp.pte & (1<<7)) == 0) {
               v::debug << this->name() << "data not cacheable!" << v::endl;
               cacheable = false;
+            } else {
+              cacheable = true;
             }
 
             // Update debug information
@@ -366,7 +368,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
     m_mmu_cache->mem_read(((MMU_CONTEXT_TABLE_POINTER_REG >> 2) << 6) + (MMU_CONTEXT_REG << 2), 0x8,
     //m_mmu_cache->mem_read(((MMU_CONTEXT_TABLE_POINTER_REG) << 4) + (MMU_CONTEXT_REG << 2), 0x8,
-                          (unsigned char *)&data, 4, t, debug, is_dbg, cacheable,  false);
+                          (unsigned char *)&data, 4, t, debug, is_dbg, cacheable_mem,  false);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);
@@ -384,7 +386,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     v::debug << this->name() << "base address: "  << std::hex << ((data & ~3) << 4) << v::endl;
     v::debug << this->name() << "idx1 address: "  << std::hex << (idx1 << 2) << v::endl;
     m_mmu_cache->mem_read(((data & ~3) << 4)+(idx1 << 2), 0x8,
-                          (unsigned char *)&data, 4, t, debug, is_dbg, cacheable, false);
+                          (unsigned char *)&data, 4, t, debug, is_dbg, cacheable_mem, false);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);
@@ -445,6 +447,8 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         if ((data & (1<<7)) == 0) {
           v::debug << this->name() << "data not cacheable!" << v::endl;
           cacheable = false;
+        } else {
+          cacheable = true;
         }
 
         v::debug << this->name() << "Mapping complete - Virtual Addr: "
@@ -474,16 +478,16 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         if (tlb == itlb) {
 
           v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
-          m_mmu_cache->set_irq(0x3c);
+          m_mmu_cache->trigger_exception(2);
 
         } else {
 
           v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
-          m_mmu_cache->set_irq(0x2c);
+          m_mmu_cache->trigger_exception(18);
 
         }
 
-        sc_stop();
+        //sc_stop();
 
         return (0);
     }
@@ -492,7 +496,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     v::debug << this->name() << "idx2 address: "  << std::hex << (idx2 << 2) << v::endl;
     // 2. load from 2nd-level page table
     m_mmu_cache->mem_read((((data & ~0x3) << 4) + (idx2 << 2)), 0x8, (unsigned char *)&data,
-                          4, t, debug, is_dbg, cacheable, false);
+                          4, t, debug, is_dbg, cacheable_mem, false);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);
@@ -550,6 +554,8 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         if ((data & (1<<7)) == 0) {
           v::debug << this->name() << "data not cacheable!" << v::endl;
           cacheable = false;
+        } else {
+          cacheable = true;
         }
 
         v::debug << this->name() << "Mapping complete - Virtual Addr: "
@@ -579,23 +585,23 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         if (tlb == itlb) {
 
           v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
-          m_mmu_cache->set_irq(0x3c);
+          m_mmu_cache->trigger_exception(2);
 
         } else {
 
           v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
-          m_mmu_cache->set_irq(0x2c);
+          m_mmu_cache->trigger_exception(18);
 
         }
 
-        sc_stop();
+        //sc_stop();
 
         return (0);
     }
 
     // 3. load from 3rd-level page table
     m_mmu_cache->mem_read((((data & ~0x3) << 4) + (idx3<<2)), 0x8, (unsigned char *)&data,
-                          4, t, debug, is_dbg, cacheable, false);
+                          4, t, debug, is_dbg, cacheable_mem, false);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);
@@ -653,6 +659,8 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         if ((data & (1<<7)) == 0) {
           v::debug << this->name() << "data not cacheable!" << v::endl;
           cacheable = false;
+        } else {
+          cacheable = true;
         }
 
         v::debug << this->name() << "Mapping complete - Virtual Addr: "
@@ -676,16 +684,16 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         if (tlb == itlb) {
 
           v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
-          m_mmu_cache->set_irq(0x3c);
+          m_mmu_cache->trigger_exception(2);
 
         } else {
 
           v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
-          m_mmu_cache->set_irq(0x2c);
+          m_mmu_cache->trigger_exception(18);
 
         }
 
-        sc_stop();
+        //sc_stop();
 
         return (0);
     }
