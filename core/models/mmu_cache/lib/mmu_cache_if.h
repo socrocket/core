@@ -29,6 +29,11 @@ class mmu_cache_if : public mem_if {
   virtual void set_irq(uint32_t tt) {
 
   };
+  
+  // Send an exception to the CPU
+  virtual void trigger_exception(unsigned int exception) {
+
+  };
 
   // Reads the cache control register
   virtual unsigned int read_ccr(bool internal) {
