@@ -51,9 +51,6 @@
 #include "core/models/ahbctrl/ahbctrl.h"
 #include "core/models/ahbprof/ahbprof.h"
 
-#include "core/models/extern/LEON3/simulatorSources/leon3.funclt.h"
-#include "core/models/extern/LEON3/simulatorSources/leon3.funcat.h"
-
 #ifdef HAVE_SOCWIRE
 #include "models/socwire/AHB2Socwire.h"
 #endif
