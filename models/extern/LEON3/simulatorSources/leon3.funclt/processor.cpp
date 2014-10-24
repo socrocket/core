@@ -137,6 +137,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
             #endif
 
             try {
+                int instrId = 0;
                 unsigned int bitString = this->instrMem.read_instr(curPC,0);
 
                 template_map< unsigned int, CacheElem >::iterator cachedInstr = this->instrCache.find(bitString);
@@ -146,14 +147,14 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                     // I can call the instruction, I have found it
                     if(curInstrPtr == NULL) {
                         curCount = &cachedInstr->second.count; 
-                        int instrId = this->decoder.decode(bitString);
+                        instrId = this->decoder.decode(bitString);
                         curInstrPtr = this->INSTRUCTIONS[instrId];
                         curInstrPtr->setParams(bitString);
                     }
                 } else {
                     // The current instruction is not present in the cache:
                     // I have to perform the normal decoding phase ...
-                    int instrId = this->decoder.decode(bitString);
+                    instrId = this->decoder.decode(bitString);
                     curInstrPtr = this->INSTRUCTIONS[instrId];
                     curInstrPtr->setParams(bitString);
                 }
@@ -175,7 +176,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                 } catch (annull_exception &etc) {
                     numCycles = 0;
                 }
-                if (cacheInstr != instrCacheEnd) {
+                if (cachedInstr != instrCacheEnd) {
                     if (curCount && *curCount < 256) {
                         *curCount++;
                     } else if (curCount) {
