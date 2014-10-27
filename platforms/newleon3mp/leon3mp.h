@@ -15,6 +15,7 @@
 #include "core/models/utils/clkdevice.h"
 #include "core/common/systemc.h"
 
+#include "core/models/mmu_cache/lib/leon3_mmu_cache.h"
 #include "core/models/mmu_cache/lib/mmu_cache.h"
 #include "core/models/ahbin/ahbin.h"
 #include "core/models/memory/memory.h"
@@ -31,7 +32,7 @@
 #include "core/models/ahbprof/ahbprof.h"
 
 #include "core/models/extern/LEON3/simulatorSources/leon3.funclt.h"
-#include "core/models/extern/LEON3/simulatorSources/leon3.funcat.h"
+//#include "core/models/extern/LEON3/simulatorSources/leon3.funcat.h"
 
 #ifdef HAVE_SOCWIRE
 #include "models/socwire/AHB2Socwire.h"
