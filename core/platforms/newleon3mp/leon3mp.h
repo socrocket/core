@@ -32,7 +32,6 @@
 #include "core/models/ahbprof/ahbprof.h"
 
 #include "core/models/extern/LEON3/simulatorSources/leon3.funclt.h"
-//#include "core/models/extern/LEON3/simulatorSources/leon3.funcat.h"
 
 #ifdef HAVE_SOCWIRE
 #include "models/socwire/AHB2Socwire.h"
@@ -129,7 +128,7 @@ class Leon3mpPlatform : public AMBABasePlatform {
       connect(irqmp.irq_req, leon3.cpu.IRQ_port.irq_signal);
       connect(leon3.cpu.irqAck.initSignal, irqmp.irq_ack);
       connect(leon3.cpu.irqAck.run, irqmp.cpu_rst);
-      connect(leon3.cpu.irqAck.status, irqmp.cpu_s::tat);
+      connect(leon3.cpu.irqAck.status, irqmp.cpu_stat);
     }
     ~Leon3mpPlatform() {}
 
