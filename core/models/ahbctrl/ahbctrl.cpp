@@ -149,14 +149,6 @@ AHBCtrl::AHBCtrl(
     ("pow_mon", pow_mon)
     ("ambaLayer", ambaLayer)
     ("Created an AHBCtrl with this parameters");
-    
-  // initialize the slave_map_cache with some bogus numbers
-  slave_info_t tmp;
-  tmp.hindex = 0;
-  tmp.haddr  = ~0;
-  tmp.hmask  = ~0;
-  slave_map_cache = std::pair<uint32_t, slave_info_t>(~0, tmp);
-
 }
 
 // Reset handler
@@ -234,11 +226,11 @@ void AHBCtrl::setAddressMap(const uint32_t binding, const uint32_t hindex, const
   slave_info_t tmp;
 
   tmp.hindex = hindex;
-  tmp.haddr  = haddr;
   tmp.hmask  = hmask;
+  tmp.binding = binding;
   
   // Create slave map entry from slave ID and address range descriptor (slave_info_t)
-  slave_map.insert(std::pair<uint32_t, slave_info_t>(binding, tmp));
+  slave_map.insert(std::pair<uint32_t, slave_info_t>(haddr, tmp));
 }
 
 // Find slave index by address
@@ -248,26 +240,27 @@ int AHBCtrl::get_index(const uint32_t address) {
   // Use 12 bit segment address for decoding
   uint32_t addr = address >> 20;
 
-  // try map cache for hit ...
-  slave_info_t info = slave_map_cache.second;
-  if( ((addr ^info.haddr) & info.hmask) == 0 ) {
-      m_right_transactions++;
-      return (slave_map_cache.first) >> 2;
+  // upper_bound could be also improved via a cache ... 
+  std::map<uint32_t, slave_info_t>::iterator it = --(slave_map.upper_bound( addr ));
+  slave_info_t info = it->second;
+  if ( ! ((addr ^ it->first) & info.hmask) ) {
+    // There may be up to four BARs per device.
+    // Only return device ID.
+    m_right_transactions++;
+    return (info.binding) >> 2;
   }
 
-  for (it = slave_map.begin(); it != slave_map.end(); it++) {
-    slave_info_t info = it->second;
-
-    if (((addr ^ info.haddr) & info.hmask) == 0) {
-      // update map cache which has been mispredicted
-      slave_map_cache = *it;
-
-      // There may be up to four BARs per device.
-      // Only return device ID.
-      m_right_transactions++;
-      return (it->first) >> 2;
-    }
-  }
+//  // should never reach this point!!
+//  for (it = slave_map.begin(); it != slave_map.end(); it++) {
+//    slave_info_t info = it->second;
+//
+//    if (((addr ^ it->first) & info.hmask) == 0) {
+//      // There may be up to four BARs per device.
+//      // Only return device ID.
+//      m_right_transactions++;
+//      return (info.binding) >> 2;
+//    }
+//  }
 
   // no slave found
   return -1;
@@ -1195,13 +1188,13 @@ void AHBCtrl::checkMemMap() {
   last.end = 0;
   last.index = ~0;
 
-  for (slave_iter iter = slave_map.begin(); iter != slave_map.end(); iter++) {
-    uint32_t start_addr = (iter->second.haddr & iter->second.hmask) << 20;
+  for (std::map<uint32_t, slave_info_t>::iterator iter = slave_map.begin(); iter != slave_map.end(); iter++) {
+    uint32_t start_addr = (iter->first & iter->second.hmask) << 20;
     uint32_t size = (((~iter->second.hmask) & 0xFFF) + 1) << 20;
     struct ahb_check_slave_type obj;
     obj.start = start_addr;
     obj.end = start_addr + size - 1;
-    obj.index = iter->first >> 2;
+    obj.index = iter->second.binding >> 2;
     slaves.insert(std::make_pair(start_addr, obj));
   }
   for (iter_t iter = slaves.begin(); iter != slaves.end(); iter++) {
