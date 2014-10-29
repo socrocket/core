@@ -55,7 +55,7 @@ class tlb_adaptor : public DefaultBase, public mem_if {
             unsigned int paddr;
 	    unsigned int mmu_ctrl = m_mmu->read_mcr();
       unsigned int tmp_data;
-      //bool cacheable = true;
+      bool cacheable_tlb = true;
 
 	    #ifdef LITTLE_ENDIAN_BO
 	    swap_Endianess(mmu_ctrl);
@@ -66,7 +66,7 @@ class tlb_adaptor : public DefaultBase, public mem_if {
             if ((mmu_ctrl & 0x1) == 1) {
 
 	      v::debug << name() << "MMU enabled - lookup TLB" << hex << (mmu_ctrl & 0x1) << v::endl;
-              paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug, is_dbg, cacheable);
+              paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug, is_dbg, cacheable_tlb);
 
             }
             // mmu in bypass mode
@@ -83,7 +83,7 @@ class tlb_adaptor : public DefaultBase, public mem_if {
             tmp_data = (unsigned int)(*data);
             swap_Endianess(tmp_data);
             v::debug << name() << "mem read data: 0x"<< hex << tmp_data << " vaddr: 0x" << hex << addr << " paddr: 0x" << hex << paddr << " mmu: " << (mmu_ctrl & 0x1) << v::endl;
-            return (m_mmu_cache->mem_read(paddr, asi, data, len, t, debug, is_dbg, cacheable, is_lock) && cacheable);
+            return (m_mmu_cache->mem_read(paddr, asi, data, len, t, debug, is_dbg, cacheable, is_lock) && cacheable_tlb);
 
 
 

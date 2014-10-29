@@ -98,6 +98,7 @@ namespace leon3_funclt_trap{
         sc_event instrEndEvent;
         Instruction **INSTRUCTIONS;
         Instruction *curInstrPtr;
+        unsigned int raisedException;
         template_map<unsigned int, CacheElem> instrCache;
         static int numInstances;
         unsigned int IRQ;
