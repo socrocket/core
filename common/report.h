@@ -13,6 +13,7 @@
 
 #include <boost/any.hpp>
 #include <systemc.h>
+#include "core/common/vmap.h"
 
 namespace v {
 
@@ -79,15 +80,15 @@ class pair {
 
 class sr_report : public sc_core::sc_report {
   public:
-    sr_report() : sc_core::sc_report() {
+    sr_report() : sc_core::sc_report(), enabled(true) {
         // std::cout << "+ R " << this << " E " << msg << std::endl;
     };
 
-    sr_report(const sr_report &copy) : sc_core::sc_report(copy), actions(copy.actions), pairs(copy.pairs) {
+    sr_report(const sr_report &copy) : sc_core::sc_report(copy), enabled(true), actions(copy.actions), pairs(copy.pairs) {
         // std::cout << "+ R " << this << " C " << &copy << std::endl;
     }
 
-    explicit sr_report(const sc_core::sc_report &copy) : sc_core::sc_report(copy) {
+    explicit sr_report(const sc_core::sc_report &copy) : sc_core::sc_report(copy), enabled(true) {
         // std::cout << "+ R " << this << " CY " << &copy << std::endl;
     }
 
@@ -102,6 +103,7 @@ class sr_report : public sc_core::sc_report {
       sc_core::sc_report(
         severity, msg_def, msg,
 	      file, line, verbosity_level),
+      enabled(true),
       actions(actions) {
         // std::cout << "+ R " << this << " P " << msg << std::endl;
     };
@@ -137,77 +139,106 @@ class sr_report : public sc_core::sc_report {
     }
 
     inline sr_report &operator()(const std::string &name, int8_t value) {
-      pairs.push_back(v::pair(name, value));
+      if(enabled) {
+        pairs.push_back(v::pair(name, value));
+      }
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, int16_t value) {
-      pairs.push_back(v::pair(name, value));
+      if(enabled) {
+        pairs.push_back(v::pair(name, value));
+      }
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, int32_t value) {
-      pairs.push_back(v::pair(name, value));
+      if(enabled) {
+        pairs.push_back(v::pair(name, value));
+      }
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, uint8_t value) {
-      pairs.push_back(v::pair(name, value));
+      if(enabled) {
+        pairs.push_back(v::pair(name, value));
+      }
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, uint16_t value) {
-      pairs.push_back(v::pair(name, value));
+      if(enabled) {
+        pairs.push_back(v::pair(name, value));
+      }
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, uint32_t value) {
-      pairs.push_back(v::pair(name, value));
+      if(enabled) {
+        pairs.push_back(v::pair(name, value));
+      }
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, int64_t value) {
-      pairs.push_back(v::pair(name, value));
+      if(enabled) {
+        pairs.push_back(v::pair(name, value));
+      }
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, uint64_t value) {
-      pairs.push_back(v::pair(name, value));
+      if(enabled) {
+        pairs.push_back(v::pair(name, value));
+      }
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, std::string value) {
-      pairs.push_back(v::pair(name, value));
+      if(enabled) {
+        pairs.push_back(v::pair(name, value));
+      }
       return *this;
     }
     
     inline sr_report &operator()(const std::string &name, const char value[]) {
-      pairs.push_back(v::pair(name, std::string(value)));
+      if(enabled) {
+        pairs.push_back(v::pair(name, std::string(value)));
+      }
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, char value[]) {
-      pairs.push_back(v::pair(name, std::string(value)));
+      if(enabled) {
+        pairs.push_back(v::pair(name, std::string(value)));
+      }
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, bool value) {
-      pairs.push_back(v::pair(name, value));
+      if(enabled) {
+        pairs.push_back(v::pair(name, value));
+      }
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, double value) {
-      pairs.push_back(v::pair(name, value));
+      if(enabled) {
+        pairs.push_back(v::pair(name, value));
+      }
       return *this;
     }
 
     inline sr_report &operator()(const std::string &name, sc_core::sc_time value) {
-      pairs.push_back(v::pair(name, value));
+      if(enabled) {
+        pairs.push_back(v::pair(name, value));
+      }
       return *this;
     }
 
     inline void operator()(const std::string &name = "");
 
+    bool enabled;
     sc_core::sc_actions actions;
     std::vector<v::pair> pairs;
 };
@@ -216,12 +247,29 @@ class sr_report_handler : public sc_core::sc_report_handler {
   public:
     static sr_report report(
         sc_severity severity_, 
+        const sc_core::sc_object *obj,
         const char *msg_type_, 
         const char *msg_, 
         int verbosity_, 
         const char *file_, 
         int line_) {
-        sc_msg_def *md = mdlookup(msg_type_);
+
+      bool enabled = true;
+      if(obj) {
+        if(sr_report_handler::blacklist) {
+          // Blacklist
+          if(!sr_report_handler::filter.empty()) {
+            sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj);
+            enabled = !(iter != sr_report_handler::filter.end() && (severity_ <= iter->second.first && verbosity_ >= iter->second.second));
+          }
+        } else {
+          // Whitelist
+          sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj);
+          enabled = (iter != sr_report_handler::filter.end() && (severity_ <= iter->second.first && verbosity_ >= iter->second.second));
+        }
+      }
+
+      sc_msg_def *md = mdlookup(msg_type_);
 
       // If the severity of the report is SC_INFO and the specified verbosity 
       // level is greater than the maximum verbosity level of the simulator then 
@@ -240,23 +288,38 @@ class sr_report_handler : public sc_core::sc_report_handler {
       sc_actions actions = execute(md, severity_);
       sr_report rep = sr_report(severity_, md, msg_, file_, line_, verbosity_, actions);
       rep.pairs.clear();
+      rep.enabled = enabled;
 
-      //if (actions & SC_CACHE_REPORT) {
-      //  cache_report(rep);
-      //}
-
-      //handler(rep, actions);
       return rep;
     }
+
+    void set_filter_is_whitelist(bool value) {
+      sr_report_handler::blacklist = !value;
+    }
+
+    void add_sc_object_filter(sc_core::sc_object *obj, sc_severity severity, int verbosity) {
+      sr_report_handler::filter.insert(std::make_pair(obj, std::make_pair(severity, verbosity)));
+    }
+
+    void remove_sc_object_filter(sc_core::sc_object *obj) {
+      sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj);
+      if(iter != sr_report_handler::filter.end()) {
+          sr_report_handler::filter.erase(iter);
+      }
+    }
+
     using sc_core::sc_report_handler::handler;
+    typedef vmap<const sc_core::sc_object *, std::pair<sc_core::sc_severity, int> > filter_t;
   friend void sr_report::operator()(const std::string &name);
   private:
     static sr_report rep;
     static sr_report null;
+    static bool blacklist;
+    static filter_t filter;
 };
 
 void sr_report::operator()(const std::string &name) {
-  if (this != &sr_report_handler::null) {
+  if (this != &sr_report_handler::null && enabled) {
     set_msg(name.c_str());
     sr_report_handler::handler(*this, actions);
   }
@@ -269,12 +332,12 @@ void sr_report::operator()(const std::string &name) {
 
 #define srDebug_0() \
     sr_report_handler::report( \
-      sc_core::SC_INFO, this->name(), "", \
+      sc_core::SC_INFO, this, this->name(), "", \
       sc_core::SC_DEBUG, __FILE__ , __LINE__)
 
 #define srDebug_1(id) \
     sr_report_handler::report( \
-      sc_core::SC_INFO, id, "", \
+      sc_core::SC_INFO, NULL, id, "", \
       sc_core::SC_DEBUG, __FILE__ , __LINE__)
 
 // DEPRECATED: for configurations at initialization -> will be moved to Python
@@ -282,12 +345,12 @@ void sr_report::operator()(const std::string &name) {
 
 #define srConfig_0() \
     sr_report_handler::report( \
-      sc_core::SC_INFO, this->name(), "", \
+      sc_core::SC_INFO, this, this->name(), "", \
       sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
 #define srConfig_1(id) \
     sr_report_handler::report( \
-      sc_core::SC_INFO, id, "", \
+      sc_core::SC_INFO, NULL, id, "", \
       sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
 // STRONGLY DEPRECATED: for report after end of simulation -> will be moved to
@@ -296,12 +359,12 @@ void sr_report::operator()(const std::string &name) {
 
 #define srReport_0() \
     sr_report_handler::report( \
-      sc_core::SC_INFO, this->name(), "", \
+      sc_core::SC_INFO, this, this->name(), "", \
       sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
 #define srReport_1(id) \
     sr_report_handler::report( \
-      sc_core::SC_INFO, id, "", \
+      sc_core::SC_INFO, NULL, id, "", \
       sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
 // for data to be analysed by ipython
@@ -309,72 +372,72 @@ void sr_report::operator()(const std::string &name) {
 
 #define srAnalyse_0() \
     sr_report_handler::report( \
-      sc_core::SC_INFO, this->name(), "", \
+      sc_core::SC_INFO, this, this->name(), "", \
       sc_core::SC_FULL, __FILE__ , __LINE__)
 
 #define srAnalyse_1(id) \
     sr_report_handler::report( \
-      sc_core::SC_INFO, id, "", \
+      sc_core::SC_INFO, NULL, id, "", \
       sc_core::SC_FULL, __FILE__ , __LINE__)
 
 #define srInfo(...) _GET_MACRO_(dummy,##__VA_ARGS__,srInfo_1(__VA_ARGS__),srInfo_0())
 
 #define srInfo_0() \
     sr_report_handler::report( \
-      sc_core::SC_INFO, this->name(), "", \
+      sc_core::SC_INFO, this, this->name(), "", \
       sc_core::SC_LOW, __FILE__ , __LINE__)
 
 #define srInfo_1(id) \
     sr_report_handler::report( \
-      sc_core::SC_INFO, id, "", \
+      sc_core::SC_INFO, NULL, id, "", \
       sc_core::SC_LOW, __FILE__ , __LINE__)
 
 #define srMessage(...) _GET_MACRO_2_(dummy,##__VA_ARGS__,srMessage_2(__VA_ARGS__),srMessage_1(__VA_ARGS__))
 
 #define srMessage_1(verbosity) \
     sr_report_handler::report( \
-      sc_core::SC_INFO, this->name(), "", \
+      sc_core::SC_INFO, this, this->name(), "", \
       verbosity, __FILE__ , __LINE__)
 
 #define srMessage_2(id, verbosity) \
     sr_report_handler::report( \
-      sc_core::SC_INFO, id, "", \
+      sc_core::SC_INFO, NULL, id, "", \
       verbosity, __FILE__ , __LINE__)
 
 #define srWarn(...) _GET_MACRO_(dummy,##__VA_ARGS__,srWarn_1(__VA_ARGS__),srWarn_0())
 
 #define srWarn_0() \
     sr_report_handler::report( \
-      sc_core::SC_WARNING, this->name(), "", \
+      sc_core::SC_WARNING, this, this->name(), "", \
       sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
 #define srWarn_1(id) \
     sr_report_handler::report( \
-      sc_core::SC_WARNING, id, "", \
+      sc_core::SC_WARNING, NULL, id, "", \
       sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
 #define srError(...) _GET_MACRO_(dummy,##__VA_ARGS__,srError_1(__VA_ARGS__),srError_0())
 
 #define srError_0() \
     sr_report_handler::report( \
-      sc_core::SC_ERROR, this->name(), "", \
+      sc_core::SC_ERROR, this, this->name(), "", \
       sc_core::SC_LOW, __FILE__ , __LINE__)
 
 #define srError_1(id) \
     sr_report_handler::report( \
-      sc_core::SC_ERROR, id, "", \
+      sc_core::SC_ERROR, NULL, id, "", \
       sc_core::SC_LOW, __FILE__ , __LINE__)
 
 #define srFatal(...) _GET_MACRO_(dummy,##__VA_ARGS__,srFatal_1(__VA_ARGS__),srFatal_0())
 
 #define srFatal_0() \
     sr_report_handler::report( \
-      sc_core::SC_FATAL, this->name(), "", \
+      sc_core::SC_FATAL, this, this->name(), "", \
       sc_core::SC_LOW, __FILE__ , __LINE__)
 
 #define srFatal_1(id) \
     sr_report_handler::report( \
-      sc_core::SC_FATAL, id, "", \
+      sc_core::SC_FATAL, NULL, id, "", \
       sc_core::SC_LOW, __FILE__ , __LINE__)
 
 
