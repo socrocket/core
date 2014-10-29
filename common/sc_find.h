@@ -19,7 +19,7 @@
 
 // Function: Find a SystemC object in the hierarchy by it's name
 
-inline sc_core::sc_object *findInSimContextByName(const char *name, sc_core::sc_object *node = 0) {
+inline sc_core::sc_object *sc_find_by_name(const char *name, sc_core::sc_object *node = 0) {
   // Base of the recursion
   if (node && (strcmp(node->name(), name) == 0)) {
     return node;
@@ -51,30 +51,12 @@ inline sc_core::sc_object *findInSimContextByName(const char *name, sc_core::sc_
   // go through childs
   for (unsigned int i = 0; i < childs_stack->size(); i++) {
     sc_core::sc_object *chnode = childs_stack->at(i);
-    sc_core::sc_object *found = findInSimContextByName(name, chnode);
+    sc_core::sc_object *found = sc_find_by_name(name, chnode);
     if (found) {
       return found;
     }
   }
   return 0;
 }
-
-// Function: Get system-wide SystemC objects
-
-template<class T>
-inline void find_or_create_new(T * &obj, const char *name) {  // NOLINT(runtime/references)
-  obj = dynamic_cast<T *>(findInSimContextByName(name));
-  if (!obj) {
-    obj = new T(name);
-  }
-}
-template<class T, class ARG1>
-inline void find_or_create_new(T * &obj, const char *name, ARG1 * &arg1) {  // NOLINT(runtime/references)
-  obj = dynamic_cast<T *>(findInSimContextByName(name));
-  if (!obj) {
-    obj = new T(name, arg1);
-  }
-}
-
 #endif  // COMMON_SC_FIND_H_
 /// @}
