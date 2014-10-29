@@ -90,6 +90,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
     unsigned int firstbitString = this->instrMem.read_instr(firstPC,0);
     int firstinstrId = this->decoder.decode(firstbitString);
     Instruction *firstinstr = this->INSTRUCTIONS[firstinstrId];
+    raisedException = 0;
     while(true) {
         unsigned int numCycles = 0;
         this->instrExecuting = true;
@@ -122,24 +123,28 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
             }
 
         } else {
-            curPC = this->PC + 0;
-            if(!startMet && curPC == this->profStartAddr){
-                this->profTimeStart = sc_time_stamp();
-            } else if(startMet && curPC == this->profEndAddr){
-                this->profTimeEnd = sc_time_stamp();
-            }
-            #ifdef ENABLE_HISTORY
-            HistoryInstrType instrQueueElem;
-            if (this->historyEnabled){
-                instrQueueElem.cycle = (unsigned int)(this->quantKeeper.get_current_time()/this->latency);
-                instrQueueElem.address = curPC;
-            }
-            #endif
-
             try {
+                curPC = this->PC + 0;
+                if(!startMet && curPC == this->profStartAddr){
+                    this->profTimeStart = sc_time_stamp();
+                } else if(startMet && curPC == this->profEndAddr){
+                    this->profTimeEnd = sc_time_stamp();
+                }
+                #ifdef ENABLE_HISTORY
+                HistoryInstrType instrQueueElem;
+                if (this->historyEnabled){
+                    instrQueueElem.cycle = (unsigned int)(this->quantKeeper.get_current_time()/this->latency);
+                    instrQueueElem.address = curPC;
+                }
+                #endif
+
                 int instrId = 0;
                 unsigned int bitString = this->instrMem.read_instr(curPC,0);
-
+                if(raisedException) {
+                    unsigned int exception = raisedException;
+                    raisedException = 0;
+                    curInstrPtr->RaiseException(this->curPC, this->PC, exception);
+                }
                 template_map< unsigned int, CacheElem >::iterator cachedInstr = this->instrCache.find(bitString);
                 unsigned int *curCount = NULL;
                 if(cachedInstr != instrCacheEnd) {
@@ -222,7 +227,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
 }
 
 void leon3_funclt_trap::Processor_leon3_funclt::triggerException(unsigned int exception) {
-    curInstrPtr->RaiseException(this->curPC, this->PC, exception);
+    raisedException = exception;
 }
 
 void leon3_funclt_trap::Processor_leon3_funclt::beginOp(){
