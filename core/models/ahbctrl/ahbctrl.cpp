@@ -149,6 +149,13 @@ AHBCtrl::AHBCtrl(
     ("pow_mon", pow_mon)
     ("ambaLayer", ambaLayer)
     ("Created an AHBCtrl with this parameters");
+
+  // initialize the slave_map_cache with some bogus numbers which will trigger MISS
+  slave_info_t tmp;
+  tmp.hindex = 0;
+  tmp.hmask  = ~0;
+  tmp.binding = ~0;
+  slave_map_cache = std::pair<uint32_t, slave_info_t>(~0, tmp);
 }
 
 // Reset handler
@@ -240,27 +247,26 @@ int AHBCtrl::get_index(const uint32_t address) {
   // Use 12 bit segment address for decoding
   uint32_t addr = address >> 20;
 
-  // upper_bound could be also improved via a cache ... 
-  std::map<uint32_t, slave_info_t>::iterator it = --(slave_map.upper_bound( addr ));
-  slave_info_t info = it->second;
-  if ( ! ((addr ^ it->first) & info.hmask) ) {
+  // check cache, otherwise search within map
+  slave_info_t info = slave_map_cache.second;
+  if ( ! ((addr ^ slave_map_cache.first) & info.hmask) ) {
     // There may be up to four BARs per device.
     // Only return device ID.
     m_right_transactions++;
     return (info.binding) >> 2;
   }
 
-//  // should never reach this point!!
-//  for (it = slave_map.begin(); it != slave_map.end(); it++) {
-//    slave_info_t info = it->second;
-//
-//    if (((addr ^ it->first) & info.hmask) == 0) {
-//      // There may be up to four BARs per device.
-//      // Only return device ID.
-//      m_right_transactions++;
-//      return (info.binding) >> 2;
-//    }
-//  }
+  std::map<uint32_t, slave_info_t>::iterator it = --(slave_map.upper_bound( addr ));
+  info = it->second;
+  if ( ! ((addr ^ it->first) & info.hmask) ) {
+    // MISS in the cache: update cache
+    slave_map_cache = *it;
+  
+    // There may be up to four BARs per device.
+    // Only return device ID.
+    m_right_transactions++;
+    return (info.binding) >> 2;
+  }
 
   // no slave found
   return -1;
