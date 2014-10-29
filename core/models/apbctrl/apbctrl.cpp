@@ -70,6 +70,13 @@ APBCtrl::APBCtrl(
     ("pow_mon", pow_mon)
     ("ambaLayer", ambaLayer)
     ("Created an APBCtrl with this parameters");
+
+  // initialize the slave_map_cache with some bogus numbers which will trigger MISS
+  slave_info_t tmp;
+  tmp.pindex = 0;
+  tmp.pmask  = ~0;
+  tmp.binding = ~0;
+  slave_map_cache = std::pair<uint32_t, slave_info_t>(~0, tmp);
 }
 
 // Reset handler
@@ -98,10 +105,10 @@ void APBCtrl::setAddressMap(const uint32_t binding, const uint32_t pindex, const
   slave_info_t tmp;
 
   tmp.pindex = pindex;
-  tmp.paddr = paddr;
   tmp.pmask  = pmask;
+  tmp.binding = binding;
 
-  slave_map.insert(std::pair<uint32_t, slave_info_t>(binding, tmp));
+  slave_map.insert(std::pair<uint32_t, slave_info_t>(paddr, tmp));
 }
 
 /// Find slave index by address
@@ -109,14 +116,22 @@ int APBCtrl::get_index(const uint32_t address) {
   // Use 12 bit segment address for decoding
   uint32_t addr = (address >> 8) & 0xfff;
 
-  for (it = slave_map.begin(); it != slave_map.end(); it++) {
-    slave_info_t info = it->second;
+  slave_info_t info = slave_map_cache.second;
+  if ( ! ((addr ^ slave_map_cache.first) & info.pmask) ) {
+    // APB: Device == BAR)
+    m_right_transactions++;
+    return slave_map_cache.second.binding;
+  }
 
-    if (((addr ^ info.paddr) & info.pmask) == 0) {
-      // APB: Device == BAR)
-      m_right_transactions++;
-      return it->first;
-    }
+  std::map<uint32_t, slave_info_t>::iterator it = --(slave_map.upper_bound( addr ));
+  info = it->second;
+  if ( ! ((addr ^ it->first) & info.pmask) ) {
+    // MISS in the cache: update cache
+    slave_map_cache = *it;
+    
+    // APB: Device == BAR)
+    m_right_transactions++;
+    return it->second.binding;
   }
 
   // no slave found
@@ -412,8 +427,8 @@ void APBCtrl::checkMemMap() {
   last.end = 0;
   last.index = ~0;
 
-  for (slave_iter iter = slave_map.begin(); iter != slave_map.end(); iter++) {
-    uint32_t start_addr = (iter->second.paddr & iter->second.pmask) << 12;
+  for (std::map<uint32_t, slave_info_t>::iterator iter = slave_map.begin(); iter != slave_map.end(); iter++) {
+    uint32_t start_addr = (iter->first & iter->second.pmask) << 12;
     uint32_t size = ((~iter->second.pmask & 0xFFF) + 1) << 12;
     struct apb_check_slave_type obj;
     obj.start = start_addr;
