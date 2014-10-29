@@ -80,11 +80,11 @@ class pair {
 
 class sr_report : public sc_core::sc_report {
   public:
-    sr_report() : sc_core::sc_report(), enabled(true) {
+    sr_report() : sc_core::sc_report(), enabled(false) {
         // std::cout << "+ R " << this << " E " << msg << std::endl;
     };
 
-    sr_report(const sr_report &copy) : sc_core::sc_report(copy), enabled(true), actions(copy.actions), pairs(copy.pairs) {
+    sr_report(const sr_report &copy) : sc_core::sc_report(copy), enabled(copy.enabled), actions(copy.actions), pairs(copy.pairs) {
         // std::cout << "+ R " << this << " C " << &copy << std::endl;
     }
 
@@ -103,7 +103,7 @@ class sr_report : public sc_core::sc_report {
       sc_core::sc_report(
         severity, msg_def, msg,
 	      file, line, verbosity_level),
-      enabled(true),
+      enabled(false),
       actions(actions) {
         // std::cout << "+ R " << this << " P " << msg << std::endl;
     };
@@ -123,6 +123,7 @@ class sr_report : public sc_core::sc_report {
     void swap(sr_report & that) {
         using std::swap;
         sc_core::sc_report::swap(that);
+        swap(enabled, that.enabled);
         swap(actions, that.actions);
         swap(pairs,   that.pairs);
     } 
@@ -260,12 +261,16 @@ class sr_report_handler : public sc_core::sc_report_handler {
           // Blacklist
           if(!sr_report_handler::filter.empty()) {
             sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj);
-            enabled = !(iter != sr_report_handler::filter.end() && (severity_ <= iter->second.first && verbosity_ >= iter->second.second));
+            if(iter != sr_report_handler::filter.end()) {
+              if(severity_ <= iter->second.first && verbosity_ >= iter->second.second) {
+                enabled = false;
+              }
+            }
           }
         } else {
           // Whitelist
           sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj);
-          enabled = (iter != sr_report_handler::filter.end() && (severity_ <= iter->second.first && verbosity_ >= iter->second.second));
+          enabled = (iter == sr_report_handler::filter.end() || (severity_ > iter->second.first && verbosity_ >= iter->second.second));
         }
       }
 
@@ -293,15 +298,15 @@ class sr_report_handler : public sc_core::sc_report_handler {
       return rep;
     }
 
-    void set_filter_is_whitelist(bool value) {
+    static void set_filter_to_whitelist(bool value) {
       sr_report_handler::blacklist = !value;
     }
 
-    void add_sc_object_filter(sc_core::sc_object *obj, sc_severity severity, int verbosity) {
+    static void add_sc_object_to_filter(sc_core::sc_object *obj, sc_severity severity, int verbosity) {
       sr_report_handler::filter.insert(std::make_pair(obj, std::make_pair(severity, verbosity)));
     }
 
-    void remove_sc_object_filter(sc_core::sc_object *obj) {
+    static void remove_sc_object_from_filter(sc_core::sc_object *obj) {
       sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj);
       if(iter != sr_report_handler::filter.end()) {
           sr_report_handler::filter.erase(iter);
