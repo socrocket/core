@@ -1,4 +1,4 @@
-GNU Affero General Public License
+GNU Affero General Public License {#license_agpl}
 =================================
 
 Version 3, 19 November 2007
