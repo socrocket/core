@@ -9,8 +9,7 @@ AHBCtrl - AHB Controler {#ahbctrl_p}
 
 The AHBCTRL TLM model can be used to simulate behavior and timing of the GRLIB AHB Controller VHDL IP. 
 The model is available at two levels of abstractions (LT and AT). 
-For modeling the AHBCTRL we mostly follow the recommendations given in RD06.
-All details regarding AHB protocol modeling at transaction level (payload structure, TLM phase mapping) can be found in the SoCRocket Interconnect Methodology RD9.
+All details regarding AHB protocol modeling at transaction level (payload structure, TLM phase mapping) can be found in the @ref interconnect_methodology_ahb "SoCRocket Interconnect Methodology".
 
 @subsection ahbctrl_p1_2 Address Decoding
 
