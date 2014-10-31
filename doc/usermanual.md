@@ -2,7 +2,9 @@ User Manual {#usermanual}
 ===========
 
 @section Introduction
-We should have a small overview here and explain how the manual is organized.
+This manual will try to give you all the necessary information you need to get the simulator running and provide you with the necessary documents to understand its inner workings and how to work with it.
+
+You should start with the chapter @subpage requirements "Requirements" followed by @subpage install "Installation" and @subpage firstrun "Run Software" to get the "Hello World" example running.
 
 @startcomment
 @subsection purpose Purpose and Scope
@@ -32,7 +34,7 @@ Version | Date     | Description
 1.2     | 03/05/11 |                                
 @endcomment
 
-This user manual is comprised of the following chapters:
+Here is a list of the main chapters of this manual:
 * @subpage requirements "Requirements"
 * @subpage codingstyle_p "Coding Style Guide"
 * @subpage install "Installation"

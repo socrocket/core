@@ -82,7 +82,7 @@
 
 using namespace leon3_funclt_trap;
 using namespace trap;
-void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
+void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
     bool startMet = false;
     template_map< unsigned int, CacheElem >::iterator instrCacheEnd = this->instrCache.end();
 
@@ -90,7 +90,8 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
     unsigned int firstbitString = this->instrMem.read_instr(firstPC,0);
     int firstinstrId = this->decoder.decode(firstbitString);
     Instruction *firstinstr = this->INSTRUCTIONS[firstinstrId];
-    while(true){
+    raisedException = 0;
+    while(true) {
         unsigned int numCycles = 0;
         this->instrExecuting = true;
 
@@ -107,7 +108,9 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
         }
 
         // Log instruction count for power monitoring
-        if (m_pow_mon) dyn_instr++;
+        if (m_pow_mon) {
+            dyn_instr++;
+        }
 
         if((IRQ != 0xFFFFFFFF) && (PSR[key_ET] && (IRQ == 15 || IRQ > PSR[key_PIL]))){
             this->IRQ_irqInstr->setInterruptValue(IRQ);
@@ -119,138 +122,112 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop(){
               numCycles = 0;
             }
 
-        } else{
-            unsigned int curPC = this->PC + 0;
-            if(!startMet && curPC == this->profStartAddr){
-                this->profTimeStart = sc_time_stamp();
-            }
-            if(startMet && curPC == this->profEndAddr){
-                this->profTimeEnd = sc_time_stamp();
-            }
-            #ifdef ENABLE_HISTORY
-            HistoryInstrType instrQueueElem;
-            if(this->historyEnabled){
-                instrQueueElem.cycle = (unsigned int)(this->quantKeeper.get_current_time()/this->latency);
-                instrQueueElem.address = curPC;
-            }
-            #endif
-            unsigned int bitString = this->instrMem.read_instr(curPC,0);
-            template_map< unsigned int, CacheElem >::iterator cachedInstr = this->instrCache.find(bitString);
-            if(cachedInstr != instrCacheEnd){
-                Instruction * curInstrPtr = cachedInstr->second.instr;
-                // I can call the instruction, I have found it
-                if(curInstrPtr != NULL){
-                    #ifdef ENABLE_HISTORY
-                    if(this->historyEnabled){
-                        instrQueueElem.name = curInstrPtr->getInstructionName();
-                        instrQueueElem.mnemonic = curInstrPtr->getMnemonic();
-                    }
-                    #endif
-                    try{
-                        #ifndef DISABLE_TOOLS
-                        if(!(this->toolManager.newIssue(curPC, curInstrPtr))){
-                            #endif
-                            numCycles = curInstrPtr->behavior();
-                            //curInstrPtr->behavior(); // Replacement for ^^
-                            #ifndef DISABLE_TOOLS
-                        }
-                        #endif
-                    }
-                    catch(annull_exception &etc){
-                        numCycles = 0;
-                    }
+        } else {
+            try {
+                curPC = this->PC + 0;
+                if(!startMet && curPC == this->profStartAddr){
+                    this->profTimeStart = sc_time_stamp();
+                } else if(startMet && curPC == this->profEndAddr){
+                    this->profTimeEnd = sc_time_stamp();
                 }
-                else{
-                    unsigned int & curCount = cachedInstr->second.count;
-                    int instrId = this->decoder.decode(bitString);
-                    Instruction * instr = this->INSTRUCTIONS[instrId];
-                    instr->setParams(bitString);
-                    #ifdef ENABLE_HISTORY
-                    if(this->historyEnabled){
-                        instrQueueElem.name = instr->getInstructionName();
-                        instrQueueElem.mnemonic = instr->getMnemonic();
-                    }
-                    #endif
-                    try{
-                        #ifndef DISABLE_TOOLS
-                        if(!(this->toolManager.newIssue(curPC, instr))){
-                            #endif
-                            numCycles = instr->behavior();
-                            //instr->behavior(); // Replacement for ^^
-                            #ifndef DISABLE_TOOLS
-                        }
-                        #endif
-                    }
-                    catch(annull_exception &etc){
-                        numCycles = 0;
-                    }
-                    if(curCount < 256){
-                        curCount++;
-                    }
-                    else{
-                        // ... and then add the instruction to the cache
-                        cachedInstr->second.instr = instr;
-                        this->INSTRUCTIONS[instrId] = instr->replicate();
-                    }
-                }
-            } else{
-                // The current instruction is not present in the cache:
-                // I have to perform the normal decoding phase ...
-                int instrId = this->decoder.decode(bitString);
-                Instruction * instr = this->INSTRUCTIONS[instrId];
-                instr->setParams(bitString);
                 #ifdef ENABLE_HISTORY
-                if(this->historyEnabled){
-                    instrQueueElem.name = instr->getInstructionName();
-                    instrQueueElem.mnemonic = instr->getMnemonic();
+                HistoryInstrType instrQueueElem;
+                if (this->historyEnabled){
+                    instrQueueElem.cycle = (unsigned int)(this->quantKeeper.get_current_time()/this->latency);
+                    instrQueueElem.address = curPC;
                 }
                 #endif
-                try{
+
+                int instrId = 0;
+                unsigned int bitString = this->instrMem.read_instr(curPC,0);
+                if(raisedException) {
+                    unsigned int exception = raisedException;
+                    raisedException = 0;
+                    curInstrPtr->RaiseException(this->curPC, this->PC, exception);
+                }
+                template_map< unsigned int, CacheElem >::iterator cachedInstr = this->instrCache.find(bitString);
+                unsigned int *curCount = NULL;
+                if(cachedInstr != instrCacheEnd) {
+                    curInstrPtr = cachedInstr->second.instr;
+                    // I can call the instruction, I have found it
+                    if(curInstrPtr == NULL) {
+                        curCount = &cachedInstr->second.count; 
+                        instrId = this->decoder.decode(bitString);
+                        curInstrPtr = this->INSTRUCTIONS[instrId];
+                        curInstrPtr->setParams(bitString);
+                    }
+                } else {
+                    // The current instruction is not present in the cache:
+                    // I have to perform the normal decoding phase ...
+                    instrId = this->decoder.decode(bitString);
+                    curInstrPtr = this->INSTRUCTIONS[instrId];
+                    curInstrPtr->setParams(bitString);
+                }
+                #ifdef ENABLE_HISTORY
+                if (this->historyEnabled) {
+                    instrQueueElem.name = curInstrPtr->getInstructionName();
+                    instrQueueElem.mnemonic = curInstrPtr->getMnemonic();
+                }
+                #endif
+                try {
                     #ifndef DISABLE_TOOLS
-                    if(!(this->toolManager.newIssue(curPC, instr))){
+                    if (!(this->toolManager.newIssue(curPC, curInstrPtr))) {
                         #endif
-                        numCycles = instr->behavior();
-                        //instr->behavior(); // Replacement for ^^
+                        numCycles = curInstrPtr->behavior();
+                        //curInstrPtr->behavior(); // Replacement for ^^
                         #ifndef DISABLE_TOOLS
                     }
                     #endif
-                }
-                catch(annull_exception &etc){
+                } catch (annull_exception &etc) {
                     numCycles = 0;
                 }
-                this->instrCache.insert(std::pair< unsigned int, CacheElem >(bitString, CacheElem()));
-                instrCacheEnd = this->instrCache.end();
-            }
-            #ifdef ENABLE_HISTORY
-            if(this->historyEnabled){
-                // First I add the new element to the queue
-                this->instHistoryQueue.push_back(instrQueueElem);
-                //Now, in case the queue dump file has been specified, I have to check if I need
-                //to save it
-                if(this->histFile){
-                    this->undumpedHistElems++;
-                    if(undumpedHistElems == this->instHistoryQueue.capacity()){
-                        boost::circular_buffer<HistoryInstrType>::const_iterator beg, end;
-                        for(beg = this->instHistoryQueue.begin(), end = this->instHistoryQueue.end(); beg \
-                            != end; beg++){
-                            this->histFile << beg->toStr() << std::endl;
+                if (cachedInstr != instrCacheEnd) {
+                    if (curCount && *curCount < 256) {
+                        *curCount++;
+                    } else if (curCount) {
+                        // ... and then add the instruction to the cache
+                        cachedInstr->second.instr = curInstrPtr;
+                        this->INSTRUCTIONS[instrId] = curInstrPtr->replicate();
+                    }
+                } else {
+                    this->instrCache.insert(std::pair< unsigned int, CacheElem >(bitString, CacheElem()));
+                    instrCacheEnd = this->instrCache.end();
+                }
+                #ifdef ENABLE_HISTORY
+                if (this->historyEnabled) {
+                    // First I add the new element to the queue
+                    this->instHistoryQueue.push_back(instrQueueElem);
+                    //Now, in case the queue dump file has been specified, I have to check if I need
+                    //to save it
+                    if (this->histFile){
+                        this->undumpedHistElems++;
+                        if (undumpedHistElems == this->instHistoryQueue.capacity()) {
+                            boost::circular_buffer<HistoryInstrType>::const_iterator beg, end;
+                            for(beg = this->instHistoryQueue.begin(), end = this->instHistoryQueue.end(); beg \
+                                != end; beg++){
+                                this->histFile << beg->toStr() << std::endl;
+                            }
+                            this->undumpedHistElems = 0;
                         }
-                        this->undumpedHistElems = 0;
                     }
                 }
+                #endif
+            } catch (annull_exception &etc) {
+                numCycles = 0;
             }
-            #endif
         }
         this->quantKeeper.inc((numCycles + 1)*this->latency);
-        if(this->quantKeeper.need_sync()){
-          //std::cout << "Quantum Keeper (processor) sync." << std::endl;
+        if (this->quantKeeper.need_sync()){
             this->quantKeeper.sync();
         }
         this->instrExecuting = false;
         this->instrEndEvent.notify();
         this->numInstructions++;
-
     }
+}
+
+void leon3_funclt_trap::Processor_leon3_funclt::triggerException(unsigned int exception) {
+    raisedException = exception;
 }
 
 void leon3_funclt_trap::Processor_leon3_funclt::beginOp(){

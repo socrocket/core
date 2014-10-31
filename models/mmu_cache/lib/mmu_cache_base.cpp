@@ -844,7 +844,7 @@ bool mmu_cache_base::mem_read(unsigned int addr, unsigned int asi, unsigned char
                          unsigned int length, sc_core::sc_time * delay,
                          unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
 
-  bool cacheable_local = false;
+  bool cacheable_local = true;
 
   // Allocate new transaction (reference counter = 1)
   tlm::tlm_generic_payload * trans = ahb.get_transaction();
@@ -873,6 +873,8 @@ bool mmu_cache_base::mem_read(unsigned int addr, unsigned int asi, unsigned char
     // Read misses are blocking the cache !!
     wait(bus_read_completed);
     v::debug << this->name() << "Done transaction (READ) / bus_read_completed event " << v::hex << trans << v::endl;
+    // cacheable handling!!!
+    cacheable = (ahb.get_extension<amba::amba_cacheable>(*trans)) ? true : false;
 
     // Check cacheability
     //if ((m_cached != 0) && (cacheable))  {

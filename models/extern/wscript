@@ -5,11 +5,6 @@ top = '../..'
 
 def build(bld):
   extern = [
-    'LEON3/simulatorSources/leon3.funcat',
     'LEON3/simulatorSources/leon3.funclt',
   ]
-
-  if os.path.exists(os.path.join(bld.path.abspath(), "SpaceWire")):
-    extern += ['SpaceWire']
-
   bld.recurse(extern)

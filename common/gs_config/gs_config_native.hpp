@@ -706,7 +706,7 @@ class gs_config<std::vector<std::string> >
     }
 
     size_t size() {
-      my_value.size();
+      return my_value.size();
     }
 
     /// Overloads gs_param_t<T>::serialize

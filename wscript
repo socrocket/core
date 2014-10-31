@@ -6,6 +6,7 @@ REPOSITORY_NAME = "SoCRocket Main Repository"
 REPOSITORY_DESC = """SoCRocket Main Repository"""
 REPOSITORY_TOOLS = [
     'pthreads',
+    'flags',
     'boosting',
     'endian',
     'systools',

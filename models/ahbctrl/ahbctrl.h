@@ -179,8 +179,8 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
 
     struct slave_info_t {
       uint32_t hindex;
-      uint32_t haddr;
       uint32_t hmask;
+      uint32_t binding;
     };
 
     /// The round robin pointer
@@ -189,9 +189,6 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
     /// Address decoder table (slave index, (bar addr, mask))
     std::map<uint32_t, slave_info_t> slave_map;
     std::pair<uint32_t, slave_info_t> slave_map_cache;
-    /// Iterator for slave map
-    std::map<uint32_t, slave_info_t>::iterator it;
-    typedef std::map<uint32_t, slave_info_t>::iterator slave_iter;
 
     /// Connection state:
     //  -----------------

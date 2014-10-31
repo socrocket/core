@@ -126,16 +126,13 @@ class APBCtrl : public AHBSlave<DefaultBase>, public CLKDevice {
 
     typedef struct {
       uint32_t pindex;
-      uint32_t paddr;
       uint32_t pmask;
+      uint32_t binding;
     } slave_info_t;
 
     /// Address decoder table (slave index, (bar addr, mask))
-    vmap<uint32_t, slave_info_t> slave_map;
-    /// iterator for slave map
-    vmap<uint32_t, slave_info_t>::iterator it;
-    /// iterator for slave map
-    typedef vmap<uint32_t, slave_info_t>::iterator slave_iter;
+    std::map<uint32_t, slave_info_t> slave_map;
+    std::pair<uint32_t, slave_info_t> slave_map_cache;
 
     // Event queue for AT mode
     tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_AcceptPEQ;
