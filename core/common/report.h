@@ -445,6 +445,10 @@ void sr_report::operator()(const std::string &name) {
       sc_core::SC_FATAL, NULL, id, "", \
       sc_core::SC_LOW, __FILE__ , __LINE__)
 
+#define srCommand() \
+    sr_report_handler::report( \
+      sc_core::SC_MAX_SEVERITY, NULL, this->name(), "command", \
+      0x0FFFFFFF, __FILE__, __LINE__)
 
 #endif  // COMMON_REPORT_H_
 /// @}

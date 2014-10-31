@@ -76,9 +76,19 @@ namespace trap {
   extern int exitValue;
 };
 
-void stopSimFunction( int sig ){
+void stopSimFunction(int sig) {
+  #ifdef HAVE_PYSC
+  if (sig == SIGINT) {
+    sc_core::sc_status status = sc_core::sc_get_status();
+    if (status == sc_core::SC_RUNNING) {
+      sc_core::sc_pause();
+    } else if(status == sc_core::SC_PAUSED) {
+    }
+    return;
+  }
+  #endif
   v::warn << "main" << "Simulation interrupted by user" << std::endl;
-  sc_stop();
+  sc_core::sc_stop();
   wait(SC_ZERO_TIME);
 }
 
@@ -260,6 +270,13 @@ int sc_main(int argc, char** argv) {
     }
 
     PythonModule python("python_interpreter", pythonscript.c_str(), argc, argv);
+
+    //python.load("tools.python.arguments");
+    python.load("tools.python.console_reporter");
+    //python.load("tools.python.config");
+    //python.load("tools.python.power");
+    python.load("tools.python.shell");
+
     python.start_of_initialization();
 #endif  // HAVE_PYSC
     // Build GreenControl Configuration Namespace
@@ -1104,7 +1121,21 @@ int sc_main(int argc, char** argv) {
     cstart = cend = clock();
     cstart = clock();
     //mtrace();
+#ifdef HAVE_PYSC
+    sc_core::sc_status status = sc_core::SC_RUNNING;
+    while(1) {
+      if (status == sc_core::SC_RUNNING) {
+        sc_core::sc_start();
+      } else if (status == sc_core::SC_PAUSED) {
+        python.pause_of_simulation();
+      } else {
+        break;
+      }
+      status = sc_core::sc_get_status();
+    }
+#else
     sc_core::sc_start();
+#endif
     //muntrace();
     cend = clock();
 
