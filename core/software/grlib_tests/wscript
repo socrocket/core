@@ -38,6 +38,17 @@ def build(bld):
       at          = True,
   )
   
+  # forever.sparc
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'forever.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['forever.c'],
+     install_path = None,
+  )
+
   # cache.sparc
   bld(
      features     = 'c cprogram sparc',

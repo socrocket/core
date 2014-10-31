@@ -118,6 +118,7 @@ class leon3_mmu_cache :
       virtual void write_byte_dbg( const unsigned int & address, unsigned char datum ) throw();
       virtual void lock();
       virtual void unlock();
+      virtual void trigger_exception(unsigned int exception);
 
     LEON3 cpu;
     GDBStub<uint32_t> *debugger;

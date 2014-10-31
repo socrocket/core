@@ -7,7 +7,7 @@ system's cost. Software is also becoming the critical part of the
 development schedule, mainly because deploying and testing it on the
 real target hardware is complicated.
 
-![Logo](socrocket-logo.png")
+![](socrocket-logo.png")
 
 TLM can be used to describe both, timing and functionality, of system
 components and their communication interfaces at a high abstraction
@@ -33,7 +33,7 @@ construction virtual platforms, we tied together the following features:
  - **Build System** - Extended build system for compiling models, platforms, target software, RTL co-simulations, and regression tests topic is also available at the Accellera page.
  - **Operating Systems** - Boots various Operating Systems like FreeRTOS, RTEMS, uC/OS II without recompilation
 
-An intrduction about TLM can be found at [Doulos](http://www.doulos.com/knowhow/systemc/tlm2/). 
+An introduction about TLM can be found at [Doulos](http://www.doulos.com/knowhow/systemc/tlm2/). 
 More informations are always available at the [Accellera](http://www.accellera.org/home/) page.
 Read further for more information. 
 

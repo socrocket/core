@@ -1,4 +1,4 @@
-Dual Licensing Scheme
+Dual Licensing Scheme {#license_com}
 =====================
 
 SoCRocket is distributed under the GNU Affero General Public License
@@ -6,7 +6,7 @@ Version 3 and is also available under alternative licenses negotiated
 directly with TU-Braunschweig, c3e. If you obtained SoCRocket under
 the AGPL, then the AGPL applies to all loadable SoCRocket repositories
 used on your system as well, except as defined below. The AGPL (version 3)
-is included in this source tree in the file LICENSE.AGPL.md.
+is included in this source tree in the file @ref license_agpl "LICENSE.AGPL.md".
 
 This repository also includes various components that are not part of
 SoCRocket itself; these components are in the 'contrib' directories
@@ -36,8 +36,6 @@ If you have any questions regarding our licensing policy, please
 contact us:
 
 * Tel.: +49 531 391 2376
-* Tel.: +49 531 391 2378
-* Tel.: +49 531 391 2387
 * Fax:  +49 531 391 2375
 * Email: meyer@c3e.cs.tu-bs.de
 * Email: wagner@c3e.cs.tu-bs.de

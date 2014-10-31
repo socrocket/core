@@ -709,5 +709,13 @@ void leon3_mmu_cache::unlock() {
 
 }
 
+void leon3_mmu_cache::trigger_exception(unsigned int exception) {
+  // somehow trigger the exception in the CPU
+  v::info << name() << "Going to trigger exception " << exception << v::endl;
+  cpu.triggerException(exception);
+  v::info << name() << "Returned from trigger exception " << v::endl;
+  
+}
+
 
 /// @}
