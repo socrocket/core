@@ -187,10 +187,12 @@ static  void srmmu_set_pte(pte_t *ptep, pte_t pteval) {
 	srmmu_swap((unsigned long *)ptep, pte_val(pteval));
 }
 
+#if 0
 /* The very generic SRMMU page table operations. */
 static  int srmmu_device_memory(unsigned long x) {
 	return ((x & 0xF0000000) != 0);
 }
+#endif
 
 int srmmu_cache_pagetables;
 
@@ -209,6 +211,7 @@ int srmmu_nocache_used;
 #define __nocache_va(PADDR) PADDR // (__va((unsigned long)PADDR) - (unsigned long)srmmu_nocache_pool + SRMMU_NOCACHE_VADDR)
 #define __nocache_fix(VADDR) VADDR // __va(__nocache_pa(VADDR))
 
+#if 0
 static unsigned long srmmu_pgd_page(pgd_t pgd) { 
     return srmmu_device_memory(pgd_val(pgd))?~0:(unsigned long)__nocache_va((pgd_val(pgd) & SRMMU_PTD_PMASK) << 4);
 }
@@ -216,6 +219,7 @@ static unsigned long srmmu_pgd_page(pgd_t pgd) {
 static unsigned long srmmu_pmd_page(pmd_t pmd) {
     return srmmu_device_memory(pmd_val(pmd))?~0:(unsigned long)__nocache_va((pmd_val(pmd) & SRMMU_PTD_PMASK) << 4);
 }
+#endif
 
 #if 0
 static struct page *srmmu_pte_page(pte_t pte) {
@@ -223,6 +227,7 @@ static struct page *srmmu_pte_page(pte_t pte) {
 }
 #endif
 
+#if 0
 static int srmmu_pte_none(pte_t pte) {
     return !(pte_val(pte) & 0xFFFFFFF);
 }
@@ -270,6 +275,7 @@ static void srmmu_pgd_clear(pgd_t * pgdp) {
 static int srmmu_pte_write(pte_t pte) {
     return pte_val(pte) & SRMMU_WRITE;
 }
+#endif
 
 static int srmmu_pte_dirty(pte_t pte) {
     return pte_val(pte) & SRMMU_DIRTY;
@@ -279,6 +285,7 @@ static int srmmu_pte_young(pte_t pte) {
     return pte_val(pte) & SRMMU_REF;
 }
 
+#if 0
 static pte_t srmmu_pte_wrprotect(pte_t pte) {
     return __pte(pte_val(pte) & ~SRMMU_WRITE);
 }
@@ -302,6 +309,7 @@ static pte_t srmmu_pte_mkdirty(pte_t pte) {
 static pte_t srmmu_pte_mkyoung(pte_t pte) {
    return __pte(pte_val(pte) | SRMMU_REF);
 }
+#endif
 
 /*
  * Conversion functions: convert a page and protection to a page entry,
@@ -313,6 +321,7 @@ static pte_t srmmu_mk_pte(struct page *page, pgprot_t pgprot) {
 }
 #endif
 
+#if 0
 static pte_t srmmu_mk_pte_phys(unsigned long page, pgprot_t pgprot) {
     return __pte(((page) >> 4) | pgprot_val(pgprot));
 }
@@ -320,6 +329,7 @@ static pte_t srmmu_mk_pte_phys(unsigned long page, pgprot_t pgprot) {
 static pte_t srmmu_mk_pte_io(unsigned long page, pgprot_t pgprot, int space) {
     return __pte(((page) >> 4) | (space << 28) | pgprot_val(pgprot));
 }
+#endif
 
 /* XXX should we hyper_flush_whole_icache here - Anton */
 static void srmmu_ctxd_set(ctxd_t *ctxp, pgd_t *pgdp) {
@@ -334,9 +344,11 @@ static void srmmu_pmd_set(pmd_t * pmdp, pte_t * ptep) {
     srmmu_set_pte((pte_t *)pmdp, (SRMMU_ET_PTD | (__nocache_pa((unsigned long) ptep) >> 4)));
 }
 
+#if 0
 static pte_t srmmu_pte_modify(pte_t pte, pgprot_t newprot) {
     return __pte((pte_val(pte) & SRMMU_CHG_MASK) | pgprot_val(newprot));
 }
+#endif
 
 /* to find an entry in a top-level page table... */
 #if 0
@@ -345,6 +357,7 @@ extern pgd_t *srmmu_pgd_offset(struct mm_struct * mm, unsigned long address) {
 }
 #endif
 
+#if 0
 /* Find an entry in the second-level page table.. */
 static pmd_t *srmmu_pmd_offset(pgd_t * dir, unsigned long address) {
     return (pmd_t *) srmmu_pgd_page(*dir) + ((address >> SRMMU_PMD_SHIFT) & (SRMMU_PTRS_PER_PMD - 1));
@@ -354,6 +367,7 @@ static pmd_t *srmmu_pmd_offset(pgd_t * dir, unsigned long address) {
 static pte_t *srmmu_pte_offset(pmd_t * dir, unsigned long address) {
     return (pte_t *) srmmu_pmd_page(*dir) + ((address >> PAGE_SHIFT) & (SRMMU_PTRS_PER_PTE - 1));
 }
+#endif
 
 /* do a physical address bypass write, i.e. for 0x80000000 */
 static __inline__ void leon_store_bp(unsigned long paddr,unsigned long value) {
