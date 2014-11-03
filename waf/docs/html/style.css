@@ -446,6 +446,8 @@ h2 + .row {
   text-align: center;
   border: 1px solid #bbb;
   background-color: #f9f9f9;
+  padding-left: 5px;
+  padding-right: 5px;
 }
 .register_table_bits {
   width: 5%;
