@@ -96,7 +96,7 @@ def ProcessRegister(lineArray, registerPosition, CommentBlocks):
         if index != -1:
           lines.append(start+"""<td colspan="%d" class="empty">&nbsp;</td>""" % (index+1))
 
-        lines.append(start+"</tr></table><br>")
+        lines.append(start+"</tr></table>")
 
         lines.append(start+'<table class="register_list">')
         lines.append(start+"<caption>%s Description</caption>" % (curr.title))
@@ -107,7 +107,7 @@ def ProcessRegister(lineArray, registerPosition, CommentBlocks):
           else:
             bits = "%s" % (item.bit)
           lines.append(start+"""<tr><td>%s</td><td>%s</td><td>%s</td></tr>""" % (bits, item.name, item.desc))
-        lines.append(start+"</table><br>")
+        lines.append(start+"</table>")
         # Put Table into lines
         curr = None
       elif res(bitfollow_ex.match(line)):
