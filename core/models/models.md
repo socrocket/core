@@ -28,7 +28,8 @@ Name                                 | Description
 ------------------------------------ | ----------------------------------------------------------------
 @subpage ahbin_p "AHBIn"             | %A simple AHB Inut Device to demonstrate how to build a AHB Master
 @subpage ahbout_p "AHBOut"           | %A Device that demonstrates how to build a simple AHB Slave
+@startcomment
 @subpage ahbcamera_p "AHBCamera"     | %A Video Input Device for Lecture purpose
 @subpage ahbdisplay_p "AHBDisplay"   | %A Vidoe Output Device for Lectures
 @subpage ahbshuffler_p "AHBShuffler" | %A Picture Shuffler for Lectures
-
+@endcomment
