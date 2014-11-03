@@ -26,7 +26,7 @@ The top-level of the library is structured as follows:
 
   * @ref core/models "/models"
     
-    The central folder containing all simulation models and unit tests. 
+    The central folder containing all simulation models and unit tests. You can find documentation for the models linked in the @ref models_p "IP Models list". 
     Each model is located in a separate sub-directory. 
     The directory @ref core/models/extern "extern" contains external libraries which have been included in the models.
 
