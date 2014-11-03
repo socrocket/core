@@ -12,7 +12,7 @@
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
-/// @author Dennis Bode, Jan Wagner
+/// @author Jan Wagner
 ///
 
 #ifndef MODELS_MEMORY_MEMORY_H_

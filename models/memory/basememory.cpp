@@ -65,7 +65,7 @@ void BaseMemory::write_block(const uint32_t &addr, uint8_t *data, const uint32_t
   write_block_dbg(addr, data, len);
 }
 
-void BaseMemory::write_block_dbg(const uint32_t &addr, uint8_t *data, const uint32_t &len) {
+void BaseMemory::write_block_dbg(const uint32_t &addr, const uint8_t *data, const uint32_t &len) {
   storage->write_block(addr, data, len);
 }
 
@@ -75,7 +75,7 @@ void BaseMemory::read_block(const uint32_t &addr, uint8_t *data, const uint32_t 
   read_block_dbg(addr, data, len);
 }
 
-void BaseMemory::read_block_dbg(const uint32_t &addr, uint8_t *data, const uint32_t &len) {
+void BaseMemory::read_block_dbg(const uint32_t &addr, uint8_t *data, const uint32_t &len) const {
   storage->read_block(addr, data, len);
 }
 /// @}
