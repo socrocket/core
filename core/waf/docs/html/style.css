@@ -466,3 +466,9 @@ h2 + .row {
   border: 1px solid #bbb;
   background-color: #f9f9f9;
 }
+
+/* automatic sclaing for svg images */
+
+.col-md-6 .image img {
+  width: 100%;
+}
