@@ -1,9 +1,11 @@
 Memory Models {#memory_p} 
 =========================
 
-##   Functionality and Features
+[TOC]
 
-### Overview
+@section memory_function Functionality and Features
+
+@subsection memory_overview Overview
 
 The Generic Memory (GM) model is not based on any reference design from the Gaisler GRLIB. It was developed from
 scratch to complement the SoCRocket MCTRL unit.  The GM comes in two implementation flavors: Map
@@ -19,7 +21,7 @@ memory controller needs to know all the timing information of the attached memor
 added in the memory controller to keep the memory itself universally applicable. Respectively, the GM is merely
 used to store data and to identify the device on system level.
 
-### Power Modeling
+@subsection memory_power Power Modeling
 
 Power monitoring can be enabled by setting the constructor parameter pow_mon to true. The model is annotated with
 default power information that has been gathered using a generic 90nm Standard-Cell Library and statistical power
@@ -28,9 +30,9 @@ cannot be guaranteed. In order to achieve the best possible results the user is 
 with custom target-technology dependent power information.  The power model of the Generic Memory, all required
 parameters, and default settings are explained in the SoCRocket Power Modeling Report [RD11].
 
-##   Interface
+@section memory_interface Interface
 
-Both implementations of the Generic Memory can be configured using the same set of constructor parameters.
+Both implementations of the Generic Memory can be configured using the same set of constructor parameters listed in table 1.
 
 | Parameter      | Description                                                              |
 | -------------- | ------------------------------------------------------------------------ |
@@ -42,14 +44,14 @@ Both implementations of the Generic Memory can be configured using the same set 
 | cols           | Number of SDRAM cols                                                     |
 | implementation | BaseMemory::MAP or BaseMemory::ARRAY                                     |
 | pow_mon        | Enable power monitoring                                                  |
-Generic Memory Constructor Parameters
+**Table 1 - Generic Memory Constructor Parameters**
 
 The system-level interface consists of a TLM 2.0 target socket (GreenSocket). The TLM payload comprises an
 extension for clearing memory regions (ext_erase). In the current version of the model this feature is only used
 by the SDRAM controller.  Since the GM is a plain functional model the communication with the MCTRL is based on
 blocking transport (LT).
 
-##   Internal Structure
+@section memory_internal Internal Structure
 
 This section describes the internal structure of both Generic Memories. All TLM
 functionality is comprised in class Memory. The power estimation functionality is described in MemoryPower, whereas
@@ -57,7 +59,7 @@ the base functionality is described in BaseMemory. The storage implementation is
 is instatiated according to the constructor parameter in BaseMemory. File ext_erase.h provides an additional
 payload extension, which is used by both implementations to organize the clearing of memory regions in SDRAM mode.
 
-### Interface MemDevice
+@subsection memory_interface_memdevice Interface MemDevice
 
 The Generic Memory implements the interface MEMDevice. The MEMDevice interface enables the MCTRL to identify the
 type of the memory (PROM, IO, SRAM, SDRAM) and its main configuration parameters. For access to this parameters
@@ -66,7 +68,7 @@ default implementation of the access functions.  get_type  – Returns the memor
 get_banks   – Returns the number of parallel memory banks get_bsize   – Returns the size of one memory banks
 in bytes get_bits  – Returns the width of the memory get_cols  – Returns the number of SDRAM cols
 
-### Functional Memory
+@subsection memory_functional_memory Functional Memory
 
 The storage handling of the GM is implementation dependent. The MapStorage uses a vmap, which can be either a
 std::map or a hash map with 32bit wide keys (addresses) and 8bit data entries. The ArrayStorage uses a flat data
@@ -77,64 +79,65 @@ b_transport method of the model. In case the ext_erase payload extension is set,
 (start – end) is cleared using the erase (erase_dbg) function. This happens when switching SDRAM to 
 Deep-Power-Down-Mode or Partial-Self-Refresh.
 
-## Compilation
+@section memory_compilation Compilation
 
 The compilation of the GM is integrated in the build system of the library. An appropriate WAF wscript can be
 found next to the source files in the ./models/memory directory.  All required objects for simulating the GM and
 the MCTRL are compiled in a sub-library named memory using following command: ./waf –target=memory To utilize
 the GM in simulations with other components, add memory to the use list of your wscript.
 
-## Example Instantiation
+@section memory_example_instantiation Example Instantiation
 
 The example below demonstrates the instantiation of the GM as PROM, IO, SRAM and SDRAM (with ArrayStorage and
 MapStorage). The modules are declared in lines 13-16 and created, within the constructor, in lines 30-36. Lines
 44-47 show how to bind the bus target socket of the GM to the mem initiator socket of the MCTRL.
  
-    #include "core/common/systemc.h"
-    #include "memory.h"
-    #include "core/models/mctrl/mctrl.h"
-    
-    class Top : public sc_module {
-      public:
-     
-        // Memory controller 
-        Mctrl mctrl;
-     
-        // Generic memories
-        Memory  rom;
-        Memory  io;
-        Memory  sram;
-        Memory  sdram;
-     
-        ...
-     
-        // Constructor
-        Top(sc_module_name mn) : sc_module(mn),
-     
-                ...
-     
-                // Initialize MCTRL
-                mctrl("mctrl", romasel, sdrasel, romaddr, rommask, ioaddr, iomask,
-                               ramaddr, rammask, paddr,   pmask,   wprot,  srbanks,
-                               ram8,    ram16,   sepbus,  sdbits,  mobile, sden, 
-                        0, 0, 0, amba::amba_LT),
-                // Initialize PROM
-                rom("rom", MEMDevice::ROM, 2, 512 * 1024 * 1024 / 2, 32, 0, BaseMemory::MAP, false),
-                // Initialize IO
-                io("io", MEMDevice::IO, 1, 512 * 1024 * 1024, 32, 0, BaseMemory:MAP, false),
-                // Initialize SRAM
-                sram("sram", MEMDevice::SRAM, 4, 512 * 1024 * 1024 / 4, 32, 16, BaseMemory:ARRAYfalse),
-                // Initialize SDRAM
-                sdram("sdram", MEMDevice::SDRAM, 2, 512 * 1024 * 1024 / 2, 32, 16, BaseMemory::ARRAY, false) {
-     
-            ...
-     
-            // Set MCTRL timing for delay calculation
-            mctrl.set_clk(10, SC_NS);
-     
-            // Connect MCTRL to Generic Memories
-            mctrl.mem(rom.bus);
-            mctrl.mem(io.bus);
-            mctrl.mem(sram.bus);
-            mctrl.mem(sdram.bus);
+~~~{.cpp}
+#include "core/common/systemc.h"
+#include "memory.h"
+#include "core/models/mctrl/mctrl.h"
 
+class Top : public sc_module {
+  public:
+ 
+    // Memory controller 
+    Mctrl mctrl;
+ 
+    // Generic memories
+    Memory  rom;
+    Memory  io;
+    Memory  sram;
+    Memory  sdram;
+ 
+    ...
+ 
+    // Constructor
+    Top(sc_module_name mn) : sc_module(mn),
+ 
+            ...
+ 
+            // Initialize MCTRL
+            mctrl("mctrl", romasel, sdrasel, romaddr, rommask, ioaddr, iomask,
+                           ramaddr, rammask, paddr,   pmask,   wprot,  srbanks,
+                           ram8,    ram16,   sepbus,  sdbits,  mobile, sden, 
+                    0, 0, 0, amba::amba_LT),
+            // Initialize PROM
+            rom("rom", MEMDevice::ROM, 2, 512 * 1024 * 1024 / 2, 32, 0, BaseMemory::MAP, false),
+            // Initialize IO
+            io("io", MEMDevice::IO, 1, 512 * 1024 * 1024, 32, 0, BaseMemory:MAP, false),
+            // Initialize SRAM
+            sram("sram", MEMDevice::SRAM, 4, 512 * 1024 * 1024 / 4, 32, 16, BaseMemory:ARRAYfalse),
+            // Initialize SDRAM
+            sdram("sdram", MEMDevice::SDRAM, 2, 512 * 1024 * 1024 / 2, 32, 16, BaseMemory::ARRAY, false) {
+            
+        ...
+ 
+        // Set MCTRL timing for delay calculation
+        mctrl.set_clk(10, SC_NS);
+ 
+        // Connect MCTRL to Generic Memories
+        mctrl.mem(rom.bus);
+        mctrl.mem(io.bus);
+        mctrl.mem(sram.bus);
+        mctrl.mem(sdram.bus);
+~~~
