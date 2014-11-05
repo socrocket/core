@@ -1,0 +1,18 @@
+\input{standalone_header}
+
+\begin{document}
+\begin{tikztimingtable}
+  HCLK    & L 4{2C} C \\
+  HADDR   & U 4D{A} 5U \\
+  Control & U 4D{Control} 5U \\
+  HWDATA  & 7U 2D{D(A)} U \\
+  HREADY  & L 8H L \\
+  HRDATA  & U 6U 2D{D(A)} U \\
+\extracode
+  \vertlines{1,9}
+  \node [anchor=north,inner sep=0pt]
+   	at (1,-11) {\tiny LT start};
+  \node [anchor=north,inner sep=0pt]
+    	at (9,-11) {\tiny LT end (return)};  		
+\end{tikztimingtable}
+\end{document}
