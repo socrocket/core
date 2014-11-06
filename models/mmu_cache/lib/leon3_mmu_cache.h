@@ -39,10 +39,6 @@
 #include "core/common/trapgen/debugger/GDBStub.hpp"
 #include "core/common/trapgen/osEmulator/osEmulator.hpp"
 
-/// @addtogroup mmu_cache MMU_Cache
-/// @{
-
-
 /// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
 class leon3_mmu_cache :
   public mmu_cache_base,
