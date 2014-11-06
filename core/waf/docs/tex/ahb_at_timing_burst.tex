@@ -1,0 +1,22 @@
+\input{standalone_header}
+
+\begin{document}
+\begin{tikztimingtable}
+  HCLK    & L 4{2C} 6{2C} 2{2C} 1{2C} \\
+  HADDR   & U 4D{0x0} 8D{0x4} 4D{0x8} 4D{0xC} 6U \\
+  Control & U 4D{NONSEQ} 8D{SEQ} 4D{SEQ} 4D{SEQ} 6U \\
+  HWDATA  & 7U 6D{D(0x0)} 4D{D(0x4)} 4D{D(0x8)} 4D{D(0xC)} 2U \\
+  HREADY  & L 4H 4L 16H 2L \\
+  HRDATA  & U 8U 4D{D(0x0)} 4D{D(0x4)} 4D{D(0x8)} 4D{D(0xC)} 2U \\
+\extracode
+  \vertlines{1,9,21,25}
+  \node [anchor=north,inner sep=0pt]
+	at (1,-11) {\tiny BEGIN\_REQ};
+  \node [anchor=north,inner sep=0pt]
+	at (9,-11) {\tiny BEGIN\_RESP};
+  \node [anchor=north,inner sep=0pt]
+	at (21,-11) {\tiny END\_REQ};
+  \node [anchor=north,inner sep=0pt]
+	at (25,-11) {\tiny END\_RESP};
+\end{tikztimingtable}
+\end{document}

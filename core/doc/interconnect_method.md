@@ -46,6 +46,11 @@ At AT abstraction AHB transfers are modeling using four timing points. The timin
 
 **AHB write/read transfer (single)**
 
+@htmlonly
+<DIV class="row">
+<DIV class="col-md-6">
+@endhtmlonly
+
 Figure 1 shows the TLM phase assignment for a single-beat write transfer:
 
 - Initiator sends BEGIN_REQ at beginning of AHB address phase
@@ -53,36 +58,55 @@ Figure 1 shows the TLM phase assignment for a single-beat write transfer:
 - Target sends BEGIN_RESP at the beginning of the AHB data phase; corresponds to HREADY becoming high (slave ready - wait states over). The delay of BEGIN_RESP should also reflect the wait states produced by the target during the data phase (not just the once before accepting the first data item).
 - Initiator sends END_RESP at the end of the AHB data phase. END_RESP must be delayed by the number of cycles VALID was low (transmission delayed by master).
 
-@todo include graphic from word document
+@htmlonly
+</DIV>
+<DIV class="col-md-6">
+@endhtmlonly
 
-**Figure 1 - AHB write transfer (single)**
+@image html ahb_at_timing_single.svg "Figure 1 - AHB write transfer (single)"
+
+@htmlonly
+</DIV>
+</DIV>
+@endhtmlonly
 
 **AHB read burst**
+
+@htmlonly
+<DIV class="row">
+<DIV class="col-md-6">
+@endhtmlonly
 
 Figure 2 shows the phase protocol mapping for an AHB read burst:
 
 - The initiator sends BEGIN_REQ at the beginning of the AHB address phase
-
 - The target will send BEGIN_RESP at the beginning of the AHB data phase. BEGIN_RESP is delayed by the number of wait states. This includes both: the wait states before delivering the first data item and the intermediate wait states inserted during transfer (target blocking).
 - Because address phase and data phase overlap during an AHB burst transfer, END_REQ will usually be send after BEGIN_RESP. END_REQ marks the end of the AHB address phase. It relates to the time when the target samples the last address of the burst.
 - The initiator sends END_RESP at the end of the AHB data phase. END_RESP will be delayed by the number of initiator stall cycles (VALID low).
 
-@todo include graphic from word document
+@htmlonly
+</DIV>
+<DIV class="col-md-6">
+@endhtmlonly
 
-**Figure 2 - AHB read burst**
+@image html ahb_at_timing_burst.svg "Figure 2 - AHB read/write burst"
+
+@htmlonly
+</DIV>
+</DIV>
+@endhtmlonly
+
+
+@todo maybe split up the graphic in read and write?
 
 **AHB write burst**
 
-The synchronization points of AHB write bursts are similar to AHB read bursts. The full mapping is shown in Figure 3:
+The synchronization points of AHB write bursts are similar to AHB read bursts. So writing can also bee seen in Figure 2:
 
 - The initiator sends BEGIN_REQ at the beginning of the AHB address phase.
-
 - The target sends BEGIN_RESP at the time the first data item is sampled, delayed by the total number of wait states involved in the transactions (cycles HREADY is low). This includes both: the wait states before delivering the first data item and the intermediate wait states inserted during transfer (target blocking).
 - Because address phase and data phase overlap during an AHB burst transfer, END_REQ will usually be send after BEGIN_RESP. END_REQ marks the end of the AHB address phase. It relates to the time when the target samples the last address of the burst.
-
 - The initiator sends END_RESP at the end of the AHB data phase. END_RESP will be delayed by the number of initiator stall cycles (VALID low).
-
-@todo include graphic from word document
 
 @subsection im_ahb_features Not supported or partially supported features
 
@@ -171,16 +195,29 @@ For modeling APB bus communication transfer information is either mapped to fiel
 
 The APB protocol is intended for low-bandwidth communication with I/O components or memory mapped control registers. In contrast to AHB or AXI, APB is not pipelined and can therefore be sufficiently modeled using blocking communication.
 
+@htmlonly
+<DIV class="row">
+<DIV class="col-md-6">
+@endhtmlonly
+
 Figure 4 shows a simple APB write transfer and its abstraction using a blocking transport call:
 
-- The initiator calls b_transport at T2. 
+- The initiator calls b_transport at TLM start. 
 - The target will instantly return the aggregated component and setup delays (2 cycles). 
 - The initiator receives the delay a blocks the bus. 
-- The next transaction may not be issued before T4.
+- The next transaction may not be issued before TLM end.
 
-@todo missing graphic
+@htmlonly
+</DIV>
+<DIV class="col-md-6">
+@endhtmlonly
 
-**Figure 4 - APB blocking transport delay**
+@image html ahb_apb_timing.svg "Figure 4 - APB blocking transport delay"
+
+@htmlonly
+</DIV>
+</DIV>
+@endhtmlonly
 
 @subsection im_apb_creating Creating/Binding APB sockets
 
