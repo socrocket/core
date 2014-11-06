@@ -1,5 +1,5 @@
 // vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
-/// @addtogroup leon3_leon3_mmu_cache
+/// @addtogroup mmu_cache
 /// @{
 /// @file leon3_leon3_mmu_cache.cpp
 /// Implementation of LEON2/3 cache-subsystem consisting of instruction cache,
