@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #####################################################################
-# Doxygen Preprocessor - State Machine Handler                      #
-# Author  : A. S. Budden                                            #
+# Doxygen Preprocessor - Table Handler                              #
+# Author  : Anonymous :D                                            #
 #####################################################################
 
 # Core modules:
@@ -28,8 +28,8 @@ def ProcessTable(lineArray, TablePositions, CommentBlocks):
 	# blocks containing @table and @endtable
 
 	# CommentBlocks is details of where the comment blocks are
-	TableHRRE = re.compile(r'^-+$')
-	TableEntryRE = re.compile(r'^(\|.*\|)$')
+	TableHRRE = re.compile(r'^(?:\|?-+\|)+$')   # this just matches the split from the header row
+	TableEntryRE = re.compile(r'^(\|.*\|)$')    # this should match every table row, also the header split thing
 	CrossRefRE = re.compile('^@ref\s+(?P<crossreference>\S+)\s+(?P<remainder>.*)')
 
 	FoundTable = False
@@ -37,6 +37,7 @@ def ProcessTable(lineArray, TablePositions, CommentBlocks):
 	TableParts = []
 	DelayedLines = []
 	TableRow = ""
+        TableRowPartCount = 0
 
 	for LineNumber in range(TablePositions['Start'], TablePositions['End']+1):
 		ThisLine = lineArray[LineNumber]
@@ -46,7 +47,7 @@ def ProcessTable(lineArray, TablePositions, CommentBlocks):
 			TableParts = [ThisLine[:index] + '<table class="table table-striped table-hover">']
 			index = index + len('@table')
 			if index+len("@table") != len(ThisLine.strip()):
-				TableParts.append('<caption>' + ThisLine[index:] + '</caption>')
+				TableParts.append('<caption align="bottom">' + ThisLine[index:] + '</caption>')
 			TableRow = ""
 			FoundTable = True
 			continue
@@ -130,9 +131,15 @@ def ProcessTable(lineArray, TablePositions, CommentBlocks):
 					else:
 						ID = "MiddleColumn"
 
-					TableRow += "<td" + Alignment \
+                                        if TableRowPartCount >= len(RowParts):
+                                                TableRow += "<td" + Alignment \
 							+ CrossReference \
 							+ ' id="' + ID + '">' + RowPart + "</td>"
+                                        else:
+                                                TableRow += "<th" + Alignment \
+							+ CrossReference \
+							+ ' id="' + ID + '">' + RowPart + "</th>"
+                                        TableRowPartCount += 1                               
 
 		if Code is not None:
 			DelayedLines.append(Code)

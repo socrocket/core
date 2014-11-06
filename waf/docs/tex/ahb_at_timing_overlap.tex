@@ -1,0 +1,26 @@
+\input{standalone_header}
+
+\begin{document}
+\begin{tikztimingtable}
+  HCLK    & L 2{2C} 2{2C} 2{2C} 2{2C} 2{2C} C \\
+  HADDR   & U 4D{A1} 8D{A2} 9U \\
+  Control & U 4D{Control1} 8D{Control2} 9U \\
+  HWDATA  & 7U 6D{D1} 2U 6D{D2} U \\
+  HREADY  & L 4H 4L 4H 4L 5H \\
+  HRDATA  & U 4U 4U 4D{D1} 4U 4D{D2} U \\
+\extracode
+  \vertlines{1,5,9,13,17,21}  
+  \node [anchor=north,inner sep=0pt]
+    	at (1,-11) {\tiny BR1};
+  \node [anchor=north,inner sep=0pt]
+    	at (5,-11) {\tiny ER1 \& BR2};
+  \node [anchor=north,inner sep=0pt]
+    	at (9,-11) {\tiny BRSP1};
+  \node [anchor=north,inner sep=0pt]
+  	at (13,-11) {\tiny ERSP1 \& ER2};
+  \node [anchor=north,inner sep=0pt]
+  	at (17,-11) {\tiny BRSP2};
+  \node [anchor=north,inner sep=0pt]
+  	at (21,-11) {\tiny ERSP2};  		
+\end{tikztimingtable}
+\end{document}
