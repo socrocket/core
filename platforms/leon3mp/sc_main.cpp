@@ -1,9 +1,7 @@
 // vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
-/// @addtogroup platforms
+/// @addtogroup platform
 /// @{
 /// @file sc_main.cpp
-/// Top level file (sc_main) for system test. THIS FILE IS AUTOMATIC GENERATED.
-/// CHANGES MIGHT GET LOST!!
 ///
 /// @date 2010-2014
 /// @copyright All rights reserved.
@@ -76,6 +74,10 @@ namespace trap {
   extern int exitValue;
 };
 
+#ifdef HAVE_PYSC
+void (*old_sigint)(int) = NULL;
+void (*old_sigterm)(int) = NULL;
+#endif
 void stopSimFunction(int sig) {
   #ifdef HAVE_PYSC
   if (sig == SIGINT) {
@@ -83,13 +85,17 @@ void stopSimFunction(int sig) {
     if (status == sc_core::SC_RUNNING) {
       sc_core::sc_pause();
     } else if(status == sc_core::SC_PAUSED) {
+      old_sigint(sig);
     }
     return;
-  }
+  } 
   #endif
   v::warn << "main" << "Simulation interrupted by user" << std::endl;
   sc_core::sc_stop();
   wait(SC_ZERO_TIME);
+  if (sig == SIGTERM) {
+    old_sigterm(sig);
+  }
 }
 
 boost::filesystem::path find_top_path(char *start) {
@@ -1111,12 +1117,13 @@ int sc_main(int argc, char** argv) {
     //    new powermonitor("pow_mon");
     //}
 
-    (void) signal(SIGINT, stopSimFunction);
-    (void) signal(SIGTERM, stopSimFunction);
-    (void) signal(10, stopSimFunction);
-
 #ifdef HAVE_PYSC
     python.end_of_initialization();
+    old_sigint = python.signal(SIGINT, stopSimFunction);
+    old_sigterm = python.signal(SIGTERM, stopSimFunction);
+#else
+    (void) signal(SIGINT, stopSimFunction);
+    (void) signal(SIGTERM, stopSimFunction);
 #endif
     cstart = cend = clock();
     cstart = clock();
