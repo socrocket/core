@@ -12,7 +12,7 @@ from doxycomment import ExtractCommentBlocks,\
 
 def ProcessRegister(lineArray, registerPosition, CommentBlocks):
   startreg_ex = re.compile("^(?P<start>\W*(\*|///)?\W*)(@|\\|/)register (?P<id>\w+)(\W*(?P<title>.*))$")
-  bits_ex = re.compile("^(?P<start>\W*(\*|///)?\W*)\[(?P<bit>\d+)(:(?P<endbit>\d+))?\]\W*\((?P<name>\w+)\)(?P<desc>.*)$")
+  bits_ex = re.compile("^(?P<start>\W*(\*|///)?\W*)\[(?P<bit>\d+)(:(?P<endbit>\d+))?\]\W*\((?P<name>[^)]+)\)(?P<desc>.*)$")
   bitfollow_ex = re.compile("^(?P<start>\W*(\*|///)?\W*)(?P<desc>.*)$")
   endreg_ex = re.compile("^(?P<start>\W*(\*|///)?\W*)(@|\\|/)endregister\W*$")
 
@@ -45,7 +45,7 @@ def ProcessRegister(lineArray, registerPosition, CommentBlocks):
     else:
       if res(bits_ex.match(line)):
         field = Empty()
-        field.bit = res.group('bit')
+        field.bit = int(res.group('bit'))
         field.endbit = res.group('endbit')
         field.name = res.group('name')
         field.desc = res.group('desc').strip() + ' '
@@ -90,15 +90,17 @@ def ProcessRegister(lineArray, registerPosition, CommentBlocks):
           span = bit - (int(item.endbit or bit)-1)
           offset = index - bit
           if offset:
-            lines.append(start+"""<td colspan="%d" class="empty">R</td>""" % (offset))
+            lines.append(start+"""<td colspan="%d" class="empty">&nbsp;</td>""" % (offset))
           index = int(item.endbit or bit) -1
           lines.append(start+"""<td colspan="%d">%s</td>""" % (span, item.name))
         if index != -1:
-          lines.append(start+"""<td colspan="%d" class="empty">R</td>""" % (index+1))
+          lines.append(start+"""<td colspan="%d" class="empty">&nbsp;</td>""" % (index+1))
 
         lines.append(start+"</tr></table>")
 
-        lines.append(start+'<table class="register_list"><tr><th>Bits</th><th>Id</th><th>Description</th></tr>')
+        lines.append(start+'<table class="register_list">')
+        lines.append(start+"<caption>%s Description</caption>" % (curr.title))
+        lines.append(start+'<tr class="register_list_header"><th class="register_table_bits">Bits</th><th>Id</th><th>Description</th></tr>')
         for item in ordered:
           if item.endbit:
             bits = "%s - %s" % (item.bit, item.endbit)

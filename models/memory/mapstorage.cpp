@@ -24,8 +24,12 @@ void MapStorage::write(const uint32_t &addr, const uint8_t &byte) {
   data[addr] = byte;
 }
 
-uint8_t MapStorage::read(const uint32_t &addr) {
-  return data[addr];
+uint8_t MapStorage::read(const uint32_t &addr) const {
+  map_mem::const_iterator iter = data.find(addr);
+  if(iter != data.end()) {
+    return iter->second;
+  }
+  return 0;
 }
 
 void MapStorage::erase(const uint32_t &start, const uint32_t &end) {
@@ -47,13 +51,13 @@ void MapStorage::erase(const uint32_t &start, const uint32_t &end) {
   data.erase(start_iter, end_iter);
 }
 
-void MapStorage::read_block(const uint32_t &addr, uint8_t *ptr, const uint32_t &len) {
+void MapStorage::read_block(const uint32_t &addr, uint8_t *ptr, const uint32_t &len) const {
   for (size_t i = 0; i < len; i++) {
     ptr[i] = read(addr + i);
   }
 }
 
-void MapStorage::write_block(const uint32_t &addr, uint8_t *ptr, const uint32_t &len) {
+void MapStorage::write_block(const uint32_t &addr, const uint8_t *ptr, const uint32_t &len) {
   for (size_t i = 0; i < len; i++) {
     write(addr + i, ptr[i]);
   }

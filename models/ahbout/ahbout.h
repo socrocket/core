@@ -1,5 +1,5 @@
 // vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
-/// @addtogroup ahbout Output Device
+/// @addtogroup ahbout AHB Demonstration Output Device
 /// @{
 /// @file ahbout.h
 ///

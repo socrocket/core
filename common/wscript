@@ -16,7 +16,9 @@ def build(self):
                        'block_allocator.cpp',
                        'paramprinter.cpp',
                        'report.cpp',
-                       'waf.cpp'],
+                       'waf.cpp',
+                       'scireg.cpp'
+                       ],
     export_includes = self.top_dir,
     includes        = self.top_dir,
     uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',

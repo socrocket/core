@@ -9,8 +9,7 @@ AHBCtrl - AHB Controler {#ahbctrl_p}
 
 The AHBCTRL TLM model can be used to simulate behavior and timing of the GRLIB AHB Controller VHDL IP. 
 The model is available at two levels of abstractions (LT and AT). 
-For modeling the AHBCTRL we mostly follow the recommendations given in RD06.
-All details regarding AHB protocol modeling at transaction level (payload structure, TLM phase mapping) can be found in the SoCRocket Interconnect Methodology RD9.
+All details regarding AHB protocol modeling at transaction level (payload structure, TLM phase mapping) can be found in the @ref interconnect_methodology_ahb "SoCRocket Interconnect Methodology".
 
 @subsection ahbctrl_p1_2 Address Decoding
 
@@ -21,7 +20,9 @@ The `haddr` parameter represents the 12bit MSB base address of the device.
 The `hmask` parameter indicates the size of the address range. 
 If `addr` is the 12 bit MSB address of a transaction following logic equation must be solved:
 
-    select = (addr ^ haddr) & hmask
+~~~
+select = (addr ^ haddr) & hmask
+~~~
 
 Address `addr` falls in the address range of the slave if `select` equals zero.
 
@@ -36,10 +37,10 @@ This is implemented as a modulo counter, which can be found in function `AHBCtrl
 
 @subsection ahbctrl_p1_4 Plug & Play Support
 
-The TLM AHBCTRL supports the Plug & Play (PNP) mechanism described in RD04. 
+The TLM AHBCTRL supports the Plug & Play (PNP) mechanism described in [GRLIB IP Core User’s Manual](http://gaisler.com/products/grlib/grip.pdf). 
 AHB configuration records and access functions are implemented in class `AHBDevice`. 
 Each master and slave to be connected to the bus model must be derived from this class. 
-The PNP information of the slaves is collected at `AHBCtrl::start_of_simulation` (4.3.1). 
+The PNP information of the slaves is collected at `AHBCtrl::start_of_simulation` (@ref ahbctrl_p1_3 "Arbitration"). 
 The combined information is mapped to the address range defined by the constructor parameters `cfgaddr` and `cfgmask`. 
 By default, this relates to addresses `0xfffff000 – 0xffffffff`. 
 The master information is placed in the first 2kB block and the slave information in the second 2kB block of the device. 
@@ -71,6 +72,8 @@ The model is annotated with default power information that has been gathered
 using a generic 90nm Standard-Cell Library and statistical power estimation at Gate-Level.
 The accuracy of the built-in power models and the default switching energy settings cannot be guaranteed. 
 In order to achieve the best possible results the user is recommended to annotate the design with custom target-technology dependent power information.
+
+@todo is this power modeling report still accurate?
 
 The power model of the AHBCTRL, all required parameters, and default settings are explained in the SoCRocket Power Modeling Report (RD11).
 
@@ -125,7 +128,7 @@ The function iterates through all slaves bound to socket `AHBCtrl::ahbOUT`.
 If the slave is a valid AHB Device (must be derived from class `AHBDevice`) the module creates one address entry in slave_map per base address register (BAR). 
 There can be at most four sub-devices/BARs per slave. 
 If the constructor parameter fpenen is enabled, the start_of_simulation function also copies the PNP information of any connected module (masters and slaves) into two 32bit wide arrays (mSlaves / mMasters). 
-These arrays are mapped into the configuration area of the AHBCTRL (as described in RD04), where they can be accessed by any bus master.
+These arrays are mapped into the configuration area of the AHBCTRL (as described in [GRLIB IP Core User’s Manual](http://gaisler.com/products/grlib/grip.pdf)), where they can be accessed by any bus master.
 
 @subsection ahbctrl_p3_2 LT behaviour
 
@@ -200,16 +203,14 @@ In the first case the thread will wait for END_RESP to be send on the forward pa
 This is indicated by event mEndResponseEvent. 
 In all other cases the transaction is considered completed and removed from the pending_map.
 
-For more information on the AHB AT implementation please see RD09.
+For more information on the AHB AT implementation please see @ref interconnect_methodology_ahb "Interconnect Methodology".
 
 @section ahbctrl_p4 Compilation
 
 For the compilation of the AHBCTRL unit, a WAF wscript file is provided and integrated in the superordinate build mechanism of the library.
 All required objects for simulating the AHBCTRL on platform level are compiled in a sub-library named ahbctrl using following build command:
 
-~~~{.sh}
-./waf -–target=ahbctrl
-~~~
+    $ ./waf -–target=ahbctrl
 
 To utilize ahbctrl in simulations with other components, add ahbctrl to the use list of your wscript.
 
@@ -228,7 +229,7 @@ Since the AHBCTRL has some internal storage (config area),
 it needs a notion of time. 
 In this example the clock cycle time is set in line 49. 
 For the set_clk function multiple prototypes exist. 
-Have a look at class `CLKDevice` to learn more (3.2).
+Have a look at class `CLKDevice` to learn more.
 
 ~~~{.cpp}
 #include "tlm.h"
