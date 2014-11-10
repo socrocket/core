@@ -261,14 +261,18 @@ void GPTimer::end_of_elaboration() {
 // Calback for scaler register. Updates register value before reads.
 void GPTimer::scaler_read() {
     sc_core::sc_time now = sc_core::sc_time_stamp();
-    int reload = r[SCRELOAD] + 1;
-    int value = valueof(now, 0, clock_cycle) - (reload);
+    int64_t reload = r[SCRELOAD] + 1;
+    int64_t value = valueof(now, 0, clock_cycle) - (reload);
 
-    if (reload) {
-        value = value % (reload);
+    //if (reload) {
+    value = value % (reload);
+    //}
+    if (value < 0) {
+      r[SCALER] = reload + value - 1;
+    } else {
+      r[SCALER] = reload - value;
     }
-    r[SCALER] = reload + value - 1;
-    v::debug << name() << "Scaler: " << v::uint32 << value << " Reload: " << v::uint32 << reload << v::endl;
+    v::info << name() << "Scaler read: " << v::uint32 << ((uint32_t)r[SCALER]) << " Reload: " << v::uint32 << reload << v::endl;
 }
 
 // Callback for scaler relaod register. Updates Prescaler Ticks and all Counters on write.
@@ -276,13 +280,14 @@ void GPTimer::screload_write() {
     uint32_t reload = r[SCRELOAD];
     r[SCALER] = reload;
     scaler_write();
+    v::info << name() << "Scalerreload write: " << v::uint32 << reload << v::endl;
 }
 
 // Callback for scaler value register. Updates Prescaler Ticks and all Counters on write.
 void GPTimer::scaler_write() {
     lasttime = sc_core::sc_time_stamp();
     lastvalue = r[SCALER];
-    v::debug << name() << "Scaler: " << lastvalue << v::endl;
+    v::info << name() << "Scaler write: " << lastvalue << v::endl;
     for (std::vector<GPCounter *>::iterator iter = counter.begin(); iter != counter.end(); iter++) {
         (*iter)->calculate();  // Recalculate
     }
@@ -290,7 +295,7 @@ void GPTimer::scaler_write() {
 
 // Callback for configuration register. Updates the content before reads.
 void GPTimer::conf_read() {
-  r[CONF] = (r[CONF] & 0x0000200) | (conf_defaults & 0x000000FF);
+  r[CONF] = (r[CONF] & 0x0000200) | (conf_defaults & 0x000001FF);
 }
 
 // Calback for the rst signal. Resets the module on true.
@@ -319,17 +324,18 @@ void GPTimer::dorst() {
 }
 
 // Prescaler value relative to the current value.
-int GPTimer::valueof(sc_core::sc_time t, int offset, sc_core::sc_time cycletime) const {
-    return static_cast<int>(lastvalue - ((t - lasttime - (1 + offset) * cycletime) / cycletime) + 1);
+int64_t GPTimer::valueof(sc_core::sc_time t, int64_t offset, sc_core::sc_time cycletime) const {
+    return static_cast<int64_t>(lastvalue - int64_t(sc_core::sc_time(t - lasttime - (1 + offset) * cycletime) / cycletime) + 1);
 }
 
 // Number of zero crosses between two prescaler values.
-int GPTimer::numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime) {
-    int reload = r[SCRELOAD] + 1;
-    int val_a = valueof(a, 0, cycletime);
-    int val_b = valueof(b, counter, cycletime);
-    int num_a = val_a / reload + (val_a > 0 && val_b < 0);
-    int num_b = val_b / reload;
+int64_t GPTimer::numberofticksbetween(sc_core::sc_time a, sc_core::sc_time b, int counter, sc_core::sc_time cycletime) {
+    int64_t reload = r[SCRELOAD] + 1;
+    int64_t val_a = valueof(a, 0, cycletime);
+    //int val_b = valueof(b, 0, cycletime);
+    int64_t val_b = valueof(b, counter, cycletime);
+    int64_t num_a = val_a / reload + (val_a > 0 && val_b < 0);
+    int64_t num_b = val_b / reload;
     return std::abs(num_a - num_b);
 }
 
