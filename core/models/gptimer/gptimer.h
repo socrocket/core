@@ -60,7 +60,7 @@ class GPTimer : public APBDevice<RegisterBase>, public CLKDevice {
   ///
   /// It gets always set with the lasttime. Both define the prescaler function
   /// implemented in valueof.
-  unsigned int lastvalue;
+  uint64_t lastvalue;
 
   /// The tick event.
   ///
@@ -169,7 +169,7 @@ class GPTimer : public APBDevice<RegisterBase>, public CLKDevice {
   /// @see lasttime
   /// @see numberofticksbetween()
   ///
-  int32_t valueof(sc_core::sc_time t, int32_t offset, sc_core::sc_time cycletime) const;
+  int64_t valueof(sc_core::sc_time t, int64_t offset, sc_core::sc_time cycletime) const;
 
   /// Calculates the number of ticks (prescaler underflows) in between two certain time points.
   ///
@@ -179,7 +179,7 @@ class GPTimer : public APBDevice<RegisterBase>, public CLKDevice {
   /// @param end End time as sc_core::sc_time
   /// @param counter Number of a gpcounter to respect the counter delay (round robin decrement).
   /// @param cycletime The length of an cycle in which the decremention of the prescalet takes place.
-  int numberofticksbetween(sc_core::sc_time start, sc_core::sc_time end, int counter, sc_core::sc_time cycletime);
+  int64_t numberofticksbetween(sc_core::sc_time start, sc_core::sc_time end, int counter, sc_core::sc_time cycletime);
 
   /// Number of Counter in the Timer.
   /// For compatibility to the GPTimer VHDL model this is still called "timers".
