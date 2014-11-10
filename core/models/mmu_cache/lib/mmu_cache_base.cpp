@@ -757,6 +757,9 @@ void mmu_cache_base::exec_data(const tlm::tlm_command cmd, const unsigned int &a
     case 0x1c:
         v::debug << name() << "ASI 0x" << hex << asi << " write through with address 0x" << hex << addr << v::endl;
         this->mem_write((unsigned int)addr, asi, ptr, len, &delay, debug, is_dbg, cacheable, lock);
+        icache->flush(&delay, debug, is_dbg);
+        dcache->flush(&delay, debug, is_dbg);
+        
         break;
 
     default:
@@ -795,6 +798,11 @@ void mmu_cache_base::mem_write(unsigned int addr, unsigned int asi, unsigned cha
                           unsigned int length, sc_core::sc_time * delay,
                           unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
 
+  srAnalyse()
+    ("ADDR", addr)
+    ("TYPE", "write")
+    ("physical write access");
+  //v::info << name() << "mem write data: vaddr: 0x" << hex << addr << " paddr: 0x" << hex << addr << v::endl;
   // Allocate new transaction (reference counter = 1)
   tlm::tlm_generic_payload * trans = ahb.get_transaction();
 
@@ -845,6 +853,11 @@ bool mmu_cache_base::mem_read(unsigned int addr, unsigned int asi, unsigned char
                          unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
 
   bool cacheable_local = true;
+  srAnalyse()
+    ("ADDR", addr)
+    ("TYPE", "read")
+    ("physical read access");
+  //v::info << name() << "mem read data: vaddr: 0x" << hex << addr << " paddr: 0x" << hex << addr << v::endl;
 
   // Allocate new transaction (reference counter = 1)
   tlm::tlm_generic_payload * trans = ahb.get_transaction();
@@ -889,6 +902,24 @@ bool mmu_cache_base::mem_read(unsigned int addr, unsigned int asi, unsigned char
   }
 
   v::debug << name() << "Release " << trans << " Ref-Count before calling release (mem_read) " << trans->get_ref_count() << v::endl;
+  if (addr >= 0x800FF000 & addr < 0x800FFFFF) {
+    uint32_t tmp = uint32_t(*reinterpret_cast<uint32_t *>(trans->get_data_ptr()));
+    swap_Endianess(tmp);
+    v::info << name() << "APB register addr: " << v::uint32 << addr << " data " << v::uint32 << tmp << v::endl;
+
+  }
+  if (addr >= 0xFFFFF000 & addr < 0xFFFFFFFF) {
+    uint32_t tmp = uint32_t(*reinterpret_cast<uint32_t *>(trans->get_data_ptr()));
+    swap_Endianess(tmp);
+    v::info << name() << "AHB register addr: " << v::uint32 << addr << " data " << v::uint32 << tmp << v::endl;
+
+  }
+  if (sc_time_stamp().value() > 4836056140000) {
+    uint32_t tmp = uint32_t(*reinterpret_cast<uint32_t *>(trans->get_data_ptr()));
+    swap_Endianess(tmp);
+   // v::info << name() << "debug register addr: " << v::uint32 << addr << " data " << v::uint32 << tmp << v::endl;
+
+  }
 
   // Decrement reference counter
   trans->release();

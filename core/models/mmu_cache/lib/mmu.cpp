@@ -175,16 +175,16 @@ mmu::mmu(ModuleName name, // sysc module name,
     }
 
     // Configuration report
-    v::debug << this->name() << " ******************************************************************************* " << v::endl;
-    v::debug << this->name() << " * Created mmu with following parameters: " << v::endl;
-    v::debug << this->name() << " * -------------------------------------- " << v::endl;
-    v::debug << this->name() << " * itlbnum: " << m_itlbnum << v::endl;
-    v::debug << this->name() << " * dtlbnum: " << m_dtlbnum << v::endl;
-    v::debug << this->name() << " * tlb_type (0 - split, 1 - shared): " << m_tlb_type << v::endl;
-    v::debug << this->name() << " * tlb_rep: " << tlb_rep << v::endl;
-    v::debug << this->name() << " * mmupgsz (0, 2 - 4kb, 3 - 8kb, 4 - 16kb, 5 - 32kb): " << mmupgsz << v::endl;
-    v::debug << this->name() << " * pow_mon: " << m_pow_mon << v::endl;
-    v::debug << this->name() << " * ***************************************************************************** " << v::endl;
+    v::info << this->name() << " ******************************************************************************* " << v::endl;
+    v::info << this->name() << " * Created mmu with following parameters: " << v::endl;
+    v::info << this->name() << " * -------------------------------------- " << v::endl;
+    v::info << this->name() << " * itlbnum: " << m_itlbnum << v::endl;
+    v::info << this->name() << " * dtlbnum: " << m_dtlbnum << v::endl;
+    v::info << this->name() << " * tlb_type (0 - split, 1 - shared): " << m_tlb_type << v::endl;
+    v::info << this->name() << " * tlb_rep: " << tlb_rep << v::endl;
+    v::info << this->name() << " * mmupgsz (0, 2 - 4kb, 3 - 8kb, 4 - 16kb, 5 - 32kb): " << mmupgsz << v::endl;
+    v::info << this->name() << " * pow_mon: " << m_pow_mon << v::endl;
+    v::info << this->name() << " * ***************************************************************************** " << v::endl;
 }
 
 // Destructor
@@ -358,7 +358,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     // [1-0] ET - Entry type. (0 - reserved, 1 - PTD, 2 - PTE, 3 - reserved)
 
     // tlb miss processing
-    v::info << this->name()
+    v::debug << this->name()
             << "START TLB MISS PROCESSING FOR VIRTUAL ADDRESS: " << std::hex
             << addr << " with indices 1/2/3: " << idx1 << "/" << idx2 << "/" << idx3 << " for context: " << MMU_CONTEXT_REG << v::endl;
 
@@ -366,15 +366,16 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     // Context-Table lookup
     // **************************************
 
-    m_mmu_cache->mem_read(((MMU_CONTEXT_TABLE_POINTER_REG >> 2) << 6) + (MMU_CONTEXT_REG << 2), 0x8,
-    //m_mmu_cache->mem_read(((MMU_CONTEXT_TABLE_POINTER_REG) << 4) + (MMU_CONTEXT_REG << 2), 0x8,
+    //m_mmu_cache->mem_read(((MMU_CONTEXT_TABLE_POINTER_REG >> 2) << 6) + (MMU_CONTEXT_REG << 2), 0x8,
+    unsigned int context_table_address = ((MMU_CONTEXT_TABLE_POINTER_REG) << 4) + (MMU_CONTEXT_REG << 2);
+    m_mmu_cache->mem_read(context_table_address, 0x8,
                           (unsigned char *)&data, 4, t, debug, is_dbg, cacheable_mem,  false);
 
     #ifdef LITTLE_ENDIAN_BO
     swap_Endianess(data);
     #endif
 
-    v::info << this->name() << "CONTEXT TABLE LOOKUP returns page table address: " << std::hex << data << v::endl;
+    v::debug << this->name() << "CONTEXT TABLE LOOKUP returns page table address: " << std::hex << data << v::endl;
 
     // ***************************************
     // 3-Level TLB table walk
@@ -392,7 +393,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     swap_Endianess(data);
     #endif
 
-    v::info << this->name() << "Back from 1st-level page table: "  << std::hex << data << v::endl;
+    v::debug << this->name() << "Back from 1st-level page table: "  << std::hex << data << v::endl;
 
     // page table entry (PTE) or page table descriptor (PTD) (to level 2)
     if ((data & 0x3) == 0x2) {
@@ -465,7 +466,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
         v::error << this->name()
                 << "Error in 1st-Level Page Table / Entry type not valid"
-                << v::endl;
+                << " VAddress: " << v::uint32 << addr <<::endl;
 
         // Set fault status and fault address
         MMU_FAULT_STATUS_REG = 0;
@@ -477,13 +478,17 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
         if (tlb == itlb) {
 
-          v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
-          m_mmu_cache->trigger_exception(2);
+          //v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
+          //m_mmu_cache->trigger_exception(2);
+          v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
+          m_mmu_cache->trigger_exception(19);
 
         } else {
 
-          v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
-          m_mmu_cache->trigger_exception(18);
+          //v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
+          //m_mmu_cache->trigger_exception(18);
+          v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
+          m_mmu_cache->trigger_exception(19);
 
         }
 
@@ -572,7 +577,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
         v::error << this->name()
                  << "Error in 2-Level Page Table / Entry type not valid: "
-                 << std::hex << data << v::endl;
+                 << std::hex << data << " VAddress: " << v::uint32 << addr << v::endl;
 
         // Set fault status and fault address
         MMU_FAULT_STATUS_REG = 0;
@@ -584,13 +589,17 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
         if (tlb == itlb) {
 
-          v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
-          m_mmu_cache->trigger_exception(2);
+          //v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
+          //m_mmu_cache->trigger_exception(2);
+          v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
+          m_mmu_cache->trigger_exception(19);
 
         } else {
 
-          v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
-          m_mmu_cache->trigger_exception(18);
+          //v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
+          //m_mmu_cache->trigger_exception(18);
+          v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
+          m_mmu_cache->trigger_exception(19);
 
         }
 
@@ -670,7 +679,7 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     } else {
 
         v::error << this->name()
-                 << "Error in 3-Level Page Table / Entry type not valid"
+                 << "Error in 3-Level Page Table / Entry type not valid. VAddress: " << v::uint32 << addr
                  << v::endl;
 
         // Set fault status and fault address
@@ -683,13 +692,17 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
 
         if (tlb == itlb) {
 
-          v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
-          m_mmu_cache->trigger_exception(2);
+          //v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
+          //m_mmu_cache->trigger_exception(2);
+          v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
+          m_mmu_cache->trigger_exception(19);
 
         } else {
 
-          v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
-          m_mmu_cache->trigger_exception(18);
+          //v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
+          //m_mmu_cache->trigger_exception(18);
+          v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
+          m_mmu_cache->trigger_exception(19);
 
         }
 
@@ -741,7 +754,7 @@ unsigned int mmu::read_mctpr() {
   swap_Endianess(tmp);
   #endif
   
-  v::info << name() << "Read to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << tmp << v::endl;
+  v::debug << name() << "Read to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << tmp << v::endl;
 
   return (tmp);
 
@@ -757,9 +770,9 @@ void mmu::write_mctpr(unsigned int * data) {
   #endif
 
   // [1-0] reserved, must read as zero
-  MMU_CONTEXT_TABLE_POINTER_REG = (tmp & 0xfffffffc);
+  MMU_CONTEXT_TABLE_POINTER_REG = (tmp & ~0x3);
 
-  v::info << name() << "Write to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << tmp << v::endl;
+  v::debug << name() << "Write to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << MMU_CONTEXT_TABLE_POINTER_REG << v::endl;
 
 }
 
@@ -1171,11 +1184,13 @@ void mmu::clkcng(sc_core::sc_time &clk) {
 void mmu::tlb_flush() {
   itlb->clear();  
   dtlb->clear();  
+  v::debug << name() << "TLB flush" << v::endl;
 };
 
 /// TLB flush certain entry
 void mmu::tlb_flush(uint32_t vpn) {
   itlb->clear();  
   dtlb->clear();  
+  v::debug << name() << "TLB flush" << v::endl;
 }
 /// @}
