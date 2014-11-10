@@ -105,7 +105,7 @@ Mctrl::Mctrl(
   init_apb(pindex,
     0x04,                                        // ven: ESA
     0x0F,                                        // dev: MCTRL
-    1, 0,                                        // VER, IRQ
+    0, 0,                                        // VER, IRQ
     APBIO, _pmask, 0, 0, _paddr);
 
   // Display APB slave information

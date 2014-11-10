@@ -270,7 +270,7 @@ int sc_main(int argc, char** argv) {
     // Decide whether LT or AT
     gs::gs_param<bool> p_system_at("at", false, p_system);
     gs::gs_param<unsigned int> p_system_ncpu("ncpu", 1, p_system);
-    gs::gs_param<unsigned int> p_system_clock("clk", 20.0, p_system);
+    gs::gs_param<unsigned int> p_system_clock("clk", 10.0, p_system);
     gs::gs_param<std::string> p_system_osemu("osemu", "", p_system);
     gs::gs_param<std::string> p_system_log("log", "", p_system);
 
@@ -358,7 +358,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_irqmp_addr("addr", 0x1F0, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_mask("mask", 0xFFF, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_index("index", 2, p_irqmp);
-    gs::gs_param<unsigned int> p_irqmp_eirq("eirq", 4, p_irqmp);
+    gs::gs_param<unsigned int> p_irqmp_eirq("eirq", 0u, p_irqmp);
 
     Irqmp irqmp("irqmp",
                 p_irqmp_addr,  // paddr
@@ -671,17 +671,17 @@ int sc_main(int argc, char** argv) {
     gs::gs_param_array p_mmu_cache("mmu_cache", p_conf);
     gs::gs_param_array p_mmu_cache_ic("ic", p_mmu_cache);
     gs::gs_param<bool> p_mmu_cache_ic_en("en", true, p_mmu_cache_ic);
-    gs::gs_param<int> p_mmu_cache_ic_repl("repl", 1, p_mmu_cache_ic);
-    gs::gs_param<int> p_mmu_cache_ic_sets("sets", 4, p_mmu_cache_ic);
+    gs::gs_param<int> p_mmu_cache_ic_repl("repl", 0, p_mmu_cache_ic);
+    gs::gs_param<int> p_mmu_cache_ic_sets("sets", 1, p_mmu_cache_ic);
     gs::gs_param<int> p_mmu_cache_ic_linesize("linesize", 8, p_mmu_cache_ic);
-    gs::gs_param<int> p_mmu_cache_ic_setsize("setsize", 8, p_mmu_cache_ic);
+    gs::gs_param<int> p_mmu_cache_ic_setsize("setsize", 4, p_mmu_cache_ic);
     gs::gs_param<bool> p_mmu_cache_ic_setlock("setlock", 1, p_mmu_cache_ic);
     gs::gs_param_array p_mmu_cache_dc("dc", p_mmu_cache);
     gs::gs_param<bool> p_mmu_cache_dc_en("en", true, p_mmu_cache_dc);
-    gs::gs_param<int> p_mmu_cache_dc_repl("repl", 1, p_mmu_cache_dc);
-    gs::gs_param<int> p_mmu_cache_dc_sets("sets", 2, p_mmu_cache_dc);
+    gs::gs_param<int> p_mmu_cache_dc_repl("repl", 0, p_mmu_cache_dc);
+    gs::gs_param<int> p_mmu_cache_dc_sets("sets", 1, p_mmu_cache_dc);
     gs::gs_param<int> p_mmu_cache_dc_linesize("linesize", 4, p_mmu_cache_dc);
-    gs::gs_param<int> p_mmu_cache_dc_setsize("setsize", 8, p_mmu_cache_dc);
+    gs::gs_param<int> p_mmu_cache_dc_setsize("setsize", 4, p_mmu_cache_dc);
     gs::gs_param<bool> p_mmu_cache_dc_setlock("setlock", 1, p_mmu_cache_dc);
     gs::gs_param<bool> p_mmu_cache_dc_snoop("snoop", 1, p_mmu_cache_dc);
     gs::gs_param_array p_mmu_cache_ilram("ilram", p_mmu_cache);
@@ -698,7 +698,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_mmu_cache_mmu_en("en", true, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_itlb_num("itlb_num", 8, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_dtlb_num("dtlb_num", 8, p_mmu_cache_mmu);
-    gs::gs_param<unsigned int> p_mmu_cache_mmu_tlb_type("tlb_type", 0u, p_mmu_cache_mmu);
+    gs::gs_param<unsigned int> p_mmu_cache_mmu_tlb_type("tlb_type", 1u, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_tlb_rep("tlb_rep", 1, p_mmu_cache_mmu);
     gs::gs_param<unsigned int> p_mmu_cache_mmu_mmupgsz("mmupgsz", 0u, p_mmu_cache_mmu);
 
@@ -825,7 +825,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_apbuart_index("index", 1, p_apbuart);
     gs::gs_param<unsigned int> p_apbuart_addr("addr", 0x001, p_apbuart);
     gs::gs_param<unsigned int> p_apbuart_mask("mask", 0xFFF, p_apbuart);
-    gs::gs_param<unsigned int> p_apbuart_irq("irq", 2, p_apbuart);
+    gs::gs_param<unsigned int> p_apbuart_irq("irq", 2u, p_apbuart);
     gs::gs_param<unsigned int> p_apbuart_type("type", 1, p_apbuart);
     gs::gs_param<unsigned int> p_apbuart_port("port", 2000, p_apbuart);
     int port = (unsigned int)p_apbuart_port;
@@ -854,6 +854,45 @@ int sc_main(int argc, char** argv) {
       signalkit::connect(irqmp.irq_in, apbuart->irq, p_apbuart_irq);
       // Set clock
       apbuart->set_clk(p_system_clock,SC_NS);
+      // ******************************************
+    }
+
+    // APBSlave - APBUart
+    // ==================
+    gs::gs_param_array p_apbuart1("apbuart1", p_conf);
+    gs::gs_param<bool> p_apbuart1_en("en", true, p_apbuart1);
+    gs::gs_param<unsigned int> p_apbuart1_index("index", 9, p_apbuart1);
+    gs::gs_param<unsigned int> p_apbuart1_addr("addr", 0x009, p_apbuart1);
+    gs::gs_param<unsigned int> p_apbuart1_mask("mask", 0xFFF, p_apbuart1);
+    gs::gs_param<unsigned int> p_apbuart1_irq("irq", 3, p_apbuart1);
+    gs::gs_param<unsigned int> p_apbuart1_type("type", 0u, p_apbuart1);
+    gs::gs_param<unsigned int> p_apbuart1_port("port", 3000, p_apbuart1);
+    int port1 = (unsigned int)p_apbuart1_port;
+    io_if *uart1_io = NULL;
+    if(p_apbuart1_en) {
+      switch(p_apbuart1_type) {
+        case 1:
+          uart1_io = new TcpIo(port1);
+          break;
+        default:
+          uart1_io = new NullIO();
+          break;
+      }
+
+      APBUART *apbuart1 = new APBUART(sc_core::sc_gen_unique_name("apbuart1", true), uart1_io,
+        p_apbuart1_index,           // index
+        p_apbuart1_addr,            // paddr
+        p_apbuart1_mask,            // pmask
+        p_apbuart1_irq,             // pirq
+        p_report_power   // powmon
+      );
+
+      // Connecting APB Slave
+      apbctrl.apb(apbuart1->bus);
+      // Connecting Interrupts
+      signalkit::connect(irqmp.irq_in, apbuart1->irq, p_apbuart1_irq);
+      // Set clock
+      apbuart1->set_clk(p_system_clock,SC_NS);
       // ******************************************
     }
 

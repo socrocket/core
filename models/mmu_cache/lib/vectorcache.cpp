@@ -123,22 +123,22 @@ vectorcache::vectorcache(ModuleName name,
     }
 
     // Configuration report
-    v::debug << this->name() << " ******************************************************************************* " << v::endl;
-    v::debug << this->name() << " * Created cache memory with following parameters:                               " << v::endl;
-    v::debug << this->name() << " * ----------------------------------------------- " << v::endl;
-    v::debug << this->name() << " * mmu_en: " << mmu_en << v::endl;
-    v::debug << this->name() << " * burst_en: " << burst_en << v::endl;
-    v::debug << this->name() << " * sets: " << sets << v::endl;
-    v::debug << this->name() << " * setsize: " << setsize << v::endl;
-    v::debug << this->name() << " * setlock: " << m_setlock << v::endl;
-    v::debug << this->name() << " * linesize: " << linesize << v::endl;
-    v::debug << this->name() << " * repl (0-Direct Mapped, 1-LRU, 2-LRR, 3-RANDOM): " << m_repl << v::endl;
-    v::debug << this->name() << " * ---------------------------------------------------------- " << v::endl;
-    v::debug << this->name() << " * Size of each cache set " << (unsigned int)pow(2, (double)m_setsize) << " kb" << v::endl;
-    v::debug << this->name() << " * Bytes per line " << m_bytesperline << " (offset bits: " << m_offset_bits << ")" << v::endl;
-    v::debug << this->name() << " * Number of cache lines per set " << m_number_of_vectors << " (index bits: " << m_idx_bits <<" )" << v::endl;
-    v::debug << this->name() << " * Width of cache tag in bits " << m_tagwidth << v::endl;
-    v::debug << this->name() << " ******************************************************************************* "  << v::endl;
+    v::info << this->name() << " ******************************************************************************* " << v::endl;
+    v::info << this->name() << " * Created cache memory with following parameters:                               " << v::endl;
+    v::info << this->name() << " * ----------------------------------------------- " << v::endl;
+    v::info << this->name() << " * mmu_en: " << mmu_en << v::endl;
+    v::info << this->name() << " * burst_en: " << burst_en << v::endl;
+    v::info << this->name() << " * sets: " << sets << v::endl;
+    v::info << this->name() << " * setsize: " << setsize << v::endl;
+    v::info << this->name() << " * setlock: " << m_setlock << v::endl;
+    v::info << this->name() << " * linesize: " << linesize << v::endl;
+    v::info << this->name() << " * repl (0-Direct Mapped, 1-LRU, 2-LRR, 3-RANDOM): " << m_repl << v::endl;
+    v::info << this->name() << " * ---------------------------------------------------------- " << v::endl;
+    v::info << this->name() << " * Size of each cache set " << (unsigned int)pow(2, (double)m_setsize) << " kb" << v::endl;
+    v::info << this->name() << " * Bytes per line " << m_bytesperline << " (offset bits: " << m_offset_bits << ")" << v::endl;
+    v::info << this->name() << " * Number of cache lines per set " << m_number_of_vectors << " (index bits: " << m_idx_bits <<" )" << v::endl;
+    v::info << this->name() << " * Width of cache tag in bits " << m_tagwidth << v::endl;
+    v::info << this->name() << " ******************************************************************************* "  << v::endl;
 
     // lru counter saturation
     switch (m_sets) {
@@ -223,6 +223,10 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
   unsigned int burst_len = 0;
   unsigned int burst_address = 0;
   unsigned int replacer_limit = 0;
+    
+  unsigned char correct_data[32];
+//  m_tlb_adaptor->mem_read(address, asi, correct_data, len, delay, debug, is_dbg, is_lock, cacheable);
+//  return true;
     
   // Is the cache enabled (0b11) or frozen (0b01) ?
   v::debug << this->name() << "read cacheable: " << cacheable << v::endl;
@@ -506,21 +510,20 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       } else {
 	memcpy(data, ahb_data + offset, len);
       }
-
-      bool equal = true;
-      m_tlb_adaptor->mem_read(address, asi, ahb_data, len, delay, debug, true, is_lock, cacheable);
-      for (int i = 0; i < len; i++) {
-        if (ahb_data[i] != data[i]) {
-          equal = false;
-        }
-      }
-      if (equal == false) {
-        v::warn << name() << "cache and direct read deliver non equal data! addr: " << hex << address << v::endl;
-      } else {
-        v::debug << name() << "cache und direct read equal" << v::endl;
-      }
-
     }
+
+/*    bool equal = true;
+    for (int i = 0; i < len; i++) {
+      if (correct_data[i] != data[i]) {
+        //data[i] = ahb_data[i];
+        equal = false;
+      }
+    }
+    if (equal == false) {
+      v::warn << name() << "cache and direct read deliver non equal data! addr: " << hex << address << v::endl;
+    } else {
+      v::debug << name() << "cache und direct read equal" << v::endl;
+    }*/
 
   } else {
 
@@ -539,6 +542,18 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
     // increment time
     *delay += clockcycle;
+    /*bool equal = true;
+    for (int i = 0; i < len; i++) {
+      if (correct_data[i] != data[i]) {
+        //data[i] = ahb_data[i];
+        equal = false;
+      }
+    }
+    if (equal == false) {
+      v::warn << name() << "bypass cache and direct read deliver non equal data! addr: " << hex << address << v::endl;
+    } else {
+      v::debug << name() << "cache und direct read equal" << v::endl;
+    }*/
 
   }
 
@@ -705,7 +720,8 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) 
 
             m_current_cacheline[set] = lookup(set, line);
 
-            // and all cache line entries
+            // it's a write-through cache. we should never need the following code
+/*            // and all cache line entries
             for (unsigned int entry = 0; entry < m_wordsperline; entry++) {
 
                 // check for valid data
@@ -727,7 +743,9 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) 
                                              4, t, debug, is_dbg, cacheable, false);
 
                 }
-            }
+            } */
+            // invalidate all entries
+            (*m_current_cacheline[set]).tag.valid = 0;   
         }
     }
 
@@ -735,6 +753,7 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) 
     CACHEFLUSH_SET(*debug);
 
     v::debug << name() << "FLUSH SET DEBUG: " << hex << *debug << v::endl;
+    v::debug << name() << "cache flush" << v::endl;
 }
 
 // ------------------------------
@@ -896,7 +915,7 @@ void vectorcache::write_cache_entry(unsigned int address, unsigned int * data,
 unsigned int vectorcache::read_config_reg(sc_core::sc_time *t) {
 
   unsigned int tmp = CACHE_CONFIG_REG;
-  v::info << this->name() << "read_config_reg 0x" << tmp <<  v::endl;
+  v::debug << this->name() << "read_config_reg 0x" << tmp <<  v::endl;
 
   *t += clockcycle;
 

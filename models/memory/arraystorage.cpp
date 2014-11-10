@@ -16,7 +16,7 @@
 
 ArrayStorage::ArrayStorage(const uint32_t &size) {
   data = new uint8_t[size];
-  erase(0, size);
+//  erase(0, size);
 }
 
 ArrayStorage::~ArrayStorage() {
