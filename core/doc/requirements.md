@@ -136,7 +136,7 @@ To obtain a pre-compiled version of the GRLIB library we recommend compiling the
     $ cd ($GRLIB_HOME/designs/leon3-gr-xc3s-1500) 
     $ make vsim
 
-A description of this design and all its components can be found in the Quick-Start section of the GRLIB IP Library User’s Manual (`$GRLIB_HOME/doc/grlib.pdf`).
+A description of this design and all its components can be found in the Quick-Start section of the [GRLIB IP Library User’s Manual](http://gaisler.com/products/grlib/grlib.pdf).
 
 Please additionally compile the following files from within the leon3-gr-xc3s-1500 library:
 

@@ -42,9 +42,6 @@
 #include "core/models/mmu_cache/lib/mmu.h"
 #include "core/models/mmu_cache/lib/localram.h"
 
-/// @addtogroup mmu_cache MMU_Cache
-/// @{
-
 /// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
 class mmu_cache_base :
   public AHBMaster<>,
@@ -298,8 +295,6 @@ class mmu_cache_base :
   uint64_t globl_count;
   
 };
-
-/// @}
 
 #endif //__MMU_CACHE_H__
 /// @}

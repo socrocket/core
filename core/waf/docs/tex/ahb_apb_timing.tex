@@ -1,0 +1,18 @@
+\input{standalone_header}
+
+\begin{document}
+\begin{tikztimingtable}
+  PCLK    & 1{2C} 1{2C} 3{2C} 2{2C} \\
+  PADDR   & 2U 8D{A} 4U \\
+  PWRITE  & 2L 8H 4L \\
+  PSEL    & 2L 8H 4L \\
+  PENABLE & 2L 4L 4H 4L \\
+  PWDATA  & 2U 8D{D} 4U \\
+\extracode
+  \vertlines[blue,thick,dotted]{2,10}
+  \node [anchor=north,inner sep=0pt] 
+    at (2,-11) {TLM start};
+  \node [anchor=north,inner sep=0pt]
+    at (10,-11) {TLM end (return)};  		
+\end{tikztimingtable}
+\end{document}

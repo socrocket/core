@@ -422,3 +422,53 @@ h2 + .row {
   body {
   }
 }
+
+/* make pretty register tables */
+
+.register_view {
+  width: 100%
+}
+.end {
+  text-align: right;
+  padding-right: 5px;
+}
+.begin {
+  text-align: left;
+  padding-left: 5px;
+}
+.bit {
+  text-align: center;
+}
+.register_view th {
+  width: 3%;
+}
+.register_view td {
+  text-align: center;
+  border: 1px solid #bbb;
+  background-color: #f9f9f9;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+.register_table_bits {
+  width: 5%;
+}
+.register_list {
+  width: 100%;
+}
+
+.register_list th {
+  padding-left: 5px;
+}
+.register_list td {
+  padding-left: 5px;
+}
+.register_list_header {
+  border: 1px solid #bbb;
+  background-color: #f9f9f9;
+}
+
+/* automatic sclaing for svg images */
+
+.col-md-6 .image img {
+  width: 100%;
+}

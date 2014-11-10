@@ -1,0 +1,17 @@
+\documentclass[tikz]{standalone}
+
+\usepackage[utf8]{inputenc}
+\usepackage{color}
+\usepackage{tikz,pgf}
+\usepackage{tikz-timing}
+
+\definecolor{lightgray}{RGB}{153,153,153}
+\definecolor{blue}{RGB}{66,139,206}
+\definecolor{unknownbg}{RGB}{228,228,228}
+
+\tikzset{timing/u/background/.append style=unknownbg}
+\tikzset{timing/table/lines/.append style={blue,thick,dotted}}
+\tikzset{timing/d/text/.append style={font=\small}}
+\tikzset{every node/.style={black,font=\tiny}} % style for text
+\tikzset{timing/name/.append style={anchor=south east,xshift=3pt}} % style for row names
+\tikzset{every path/.style={lightgray,line width=0.6pt}} % style for every line drawn

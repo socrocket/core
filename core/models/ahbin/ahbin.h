@@ -1,5 +1,5 @@
 // vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
-/// @addtogroup ahbin Input Device
+/// @addtogroup ahbin AHB Demonstration Input Device
 /// @{
 /// @file ahbin.h
 /// Class definition for input device. Provides frames of data samples in regual

@@ -1,5 +1,5 @@
 // vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
-/// @addtogroup platforms
+/// @addtogroup platform
 /// @{
 /// @file leon3mp.h
 ///

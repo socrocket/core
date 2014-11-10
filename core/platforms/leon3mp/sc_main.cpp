@@ -1,9 +1,7 @@
 // vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
-/// @addtogroup platforms
+/// @addtogroup platform
 /// @{
 /// @file sc_main.cpp
-/// Top level file (sc_main) for system test. THIS FILE IS AUTOMATIC GENERATED.
-/// CHANGES MIGHT GET LOST!!
 ///
 /// @date 2010-2014
 /// @copyright All rights reserved.
@@ -76,10 +74,28 @@ namespace trap {
   extern int exitValue;
 };
 
-void stopSimFunction( int sig ){
+#ifdef HAVE_PYSC
+void (*old_sigint)(int) = NULL;
+void (*old_sigterm)(int) = NULL;
+#endif
+void stopSimFunction(int sig) {
+  #ifdef HAVE_PYSC
+  if (sig == SIGINT) {
+    sc_core::sc_status status = sc_core::sc_get_status();
+    if (status == sc_core::SC_RUNNING) {
+      sc_core::sc_pause();
+    } else if(status == sc_core::SC_PAUSED) {
+      old_sigint(sig);
+    }
+    return;
+  } 
+  #endif
   v::warn << "main" << "Simulation interrupted by user" << std::endl;
-  sc_stop();
+  sc_core::sc_stop();
   wait(SC_ZERO_TIME);
+  if (sig == SIGTERM) {
+    old_sigterm(sig);
+  }
 }
 
 boost::filesystem::path find_top_path(char *start) {
@@ -260,6 +276,13 @@ int sc_main(int argc, char** argv) {
     }
 
     PythonModule python("python_interpreter", pythonscript.c_str(), argc, argv);
+
+    //python.load("tools.python.arguments");
+    python.load("tools.python.console_reporter");
+    //python.load("tools.python.config");
+    //python.load("tools.python.power");
+    python.load("tools.python.shell");
+
     python.start_of_initialization();
 #endif  // HAVE_PYSC
     // Build GreenControl Configuration Namespace
@@ -1133,17 +1156,32 @@ int sc_main(int argc, char** argv) {
     //    new powermonitor("pow_mon");
     //}
 
-    (void) signal(SIGINT, stopSimFunction);
-    (void) signal(SIGTERM, stopSimFunction);
-    (void) signal(10, stopSimFunction);
-
 #ifdef HAVE_PYSC
     python.end_of_initialization();
+    old_sigint = python.signal(SIGINT, stopSimFunction);
+    old_sigterm = python.signal(SIGTERM, stopSimFunction);
+#else
+    (void) signal(SIGINT, stopSimFunction);
+    (void) signal(SIGTERM, stopSimFunction);
 #endif
     cstart = cend = clock();
     cstart = clock();
     //mtrace();
+#ifdef HAVE_PYSC
+    sc_core::sc_status status = sc_core::SC_RUNNING;
+    while(1) {
+      if (status == sc_core::SC_RUNNING) {
+        sc_core::sc_start();
+      } else if (status == sc_core::SC_PAUSED) {
+        python.pause_of_simulation();
+      } else {
+        break;
+      }
+      status = sc_core::sc_get_status();
+    }
+#else
     sc_core::sc_start();
+#endif
     //muntrace();
     cend = clock();
 
