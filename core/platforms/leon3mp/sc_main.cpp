@@ -93,9 +93,11 @@ void stopSimFunction(int sig) {
   v::warn << "main" << "Simulation interrupted by user" << std::endl;
   sc_core::sc_stop();
   wait(SC_ZERO_TIME);
+  #ifdef HAVE_PYSC
   if (sig == SIGTERM) {
     old_sigterm(sig);
   }
+  #endif
 }
 
 boost::filesystem::path find_top_path(char *start) {
