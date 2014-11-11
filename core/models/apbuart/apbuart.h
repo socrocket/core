@@ -41,6 +41,7 @@ class APBUART : public APBDevice<RegisterBase>, public CLKDevice {
     signal<std::pair<uint32_t, bool> >::out irq;
 
     sc_event e_irq;
+    sc_event s_irq; // trigger interrupt when send buffer empty
 
     io_if *m_backend;
 
@@ -62,11 +63,20 @@ class APBUART : public APBDevice<RegisterBase>, public CLKDevice {
     void data_read();
 
     void data_write();
+    
+    void control_read();
+
+    void control_write();
 
     void status_read();
+    
+    void update_level_int();
 
     // SCTHREADS
     void send_irq();
+    void uart_ticks();
+
+    void inc_fifo_level(uint32_t *counter);
 
     // Signal Callbacks
     virtual void dorst();
@@ -79,14 +89,26 @@ class APBUART : public APBDevice<RegisterBase>, public CLKDevice {
     static const uint32_t SCALER          = 0x0000000C;
 
     static const uint32_t DATA_DEFAULT    = 0x0;
-    static const uint32_t STATUS_DEFAULT  = 0x00000006;
+    static const uint32_t STATUS_DEFAULT  = 0x00000086;
     static const uint32_t CONTROL_DEFAULT = 0x80000000;
     static const uint32_t SCALER_DEFAULT  = 0x0;
 
     static const uint32_t DATA_MASK       = 0x000000FF;
     static const uint32_t STATUS_MASK     = 0x00000000;
-    static const uint32_t CONTROL_MASK    = 0x00007FFF;
+    //static const uint32_t CONTROL_MASK    = 0x00007FFF;
+    static const uint32_t CONTROL_MASK    = 0x7FFFFFFF;
     static const uint32_t SCALER_MASK     = 0x00000FFF;
+
+    static const uint32_t fifosize = 32; // 1, 2, 4, 8, 16, 32
+
+    bool overrun;
+    bool level_int;
+
+    uint32_t send_buffer;
+    uint32_t recv_buffer_level;
+    char recv_buffer[32];
+    uint32_t recv_buffer_start;
+    uint32_t recv_buffer_end;
 };
 
 #endif  // MODELS_APBUART_APBUART_H_
