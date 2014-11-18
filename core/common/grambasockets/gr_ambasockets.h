@@ -55,64 +55,63 @@ namespace gs {
 namespace amba {
 
 class generic_slave_base {
-    public:
-        generic_slave_base(
-                           gs::reg::I_register_container_bus_access * _registers,
-                           gr_uint_t _base_addr, gr_uint_t _decode_size) :
-            m_registers(_registers), m_decode_size(_decode_size), m_base_addr(
-                    _base_addr), m_delay_enabled(true) // enabled by default
-        {
-        }
+  public:
+    generic_slave_base(
+                       gs::reg::I_register_container_bus_access * _registers,
+                       gr_uint_t _base_addr, gr_uint_t _decode_size) :
+        m_registers(_registers), m_decode_size(_decode_size), m_base_addr(
+          _base_addr), m_delay_enabled(true) // enabled by default
+    {
+    }
 
-        virtual ~generic_slave_base() {
-        }
+    virtual ~generic_slave_base() {
+    }
 
-        inline gr_uint_t get_decode_size() {
-            return m_decode_size;
-        }
+    inline gr_uint_t get_decode_size() {
+      return m_decode_size;
+    }
 
-        /// Disables the delay for all notification rule callbacks caused by this socket
-        void disable_delay() {
-            m_delay_enabled = false;
-        }
+    /// Disables the delay for all notification rule callbacks caused by this socket
+    void disable_delay() {
+      m_delay_enabled = false;
+    }
 
-        /// Enables the delay for all notification rule callbacks caused by this socket
-        void enable_delay() {
-            m_delay_enabled = true;
-        }
+    /// Enables the delay for all notification rule callbacks caused by this socket
+    void enable_delay() {
+      m_delay_enabled = true;
+    }
 
-        /// Returns if the delay is enabled
-        bool delay_enabled() {
-            return m_delay_enabled;
-        }
+    /// Returns if the delay is enabled
+    bool delay_enabled() {
+      return m_delay_enabled;
+    }
 
-    protected:
-        bool write_to_module(unsigned int _data, unsigned int _address,
-                             unsigned int _byte_enable,
-                             gs::reg::transaction_type* _transaction,
-                             bool _delayed) {
-            return (m_registers->bus_write(_data, _address, _byte_enable,
-                    _transaction, _delayed));
-        }
+  protected:
+    bool write_to_module(unsigned int _data, unsigned int _address,
+                         unsigned int _byte_enable,
+                         gs::reg::transaction_type* _transaction,
+                         bool _delayed) {
+      return (m_registers->bus_write(_data, _address, _byte_enable,
+              _transaction, _delayed));
+    }
 
-        unsigned int read_from_module(unsigned int& _data,
-                                      unsigned int _address,
-                                      unsigned int _byte_enable,
-                                      gs::reg::transaction_type* _transaction,
-                                      bool _delayed) {
-            return (m_registers->bus_read(_data, _address, _byte_enable,
-                    _transaction, _delayed));
-        }
+    unsigned int read_from_module(unsigned int& _data,
+                                  unsigned int _address,
+                                  unsigned int _byte_enable,
+                                  gs::reg::transaction_type* _transaction,
+                                  bool _delayed) {
+        return (m_registers->bus_read(_data, _address, _byte_enable,
+                _transaction, _delayed));
+    }
 
-        gs::reg::I_register_container_bus_access * m_registers;
-        gr_uint_t m_decode_size;
+    gs::reg::I_register_container_bus_access * m_registers;
+    gr_uint_t m_decode_size;
 
-    protected:
-        gr_uint_t m_base_addr;
+protected:
+  gr_uint_t m_base_addr;
 
-        /// If this socket let the caused notification rule callbacks be delayed
-        bool m_delay_enabled;
-
+  /// If this socket let the caused notification rule callbacks be delayed
+  bool m_delay_enabled;
 };
 
 template<unsigned int BUSWIDTH = 32>
