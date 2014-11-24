@@ -146,13 +146,18 @@ class repo(ConfigurationContext):
 
         tempdir = "build/repo-tmp"
 
-        import subprocess
-        subprocess.call(("%(git)s clone %(repository)s %(directory)s" % {
-            "git": "git",
-            "directory": tempdir,
-            "repository": repository,
-            "parameter": params
-        }).split())
+        try:
+            import subprocess
+            subprocess.call(("%(git)s clone %(repository)s %(directory)s" % {
+                "git": "git",
+                "directory": tempdir,
+                "repository": repository,
+                "parameter": params
+            }).split())
+        except CalledProcessError:
+            import shutil
+            shutil.rmtree(directory)
+
         
         vals = get_repo_vals(tempdir)
         if not directory:
@@ -286,6 +291,7 @@ conf(loadrepos)
 
 def iterrepos(self):
     REPOS = read_repos()
+    self.repositories = REPOS
     for d, repo in REPOS.iteritems():
         if d == "core":
             continue
