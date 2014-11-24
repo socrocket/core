@@ -833,7 +833,7 @@ int sc_main(int argc, char** argv) {
       );
 
       // Connect to apb and clock
-      apbctrl.apb(gptimer->bus);
+      apbctrl.apb(gptimer->apb);
       gptimer->set_clk(p_system_clock,SC_NS);
 
       // Connecting Interrupts
