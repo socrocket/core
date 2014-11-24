@@ -19,6 +19,7 @@
 #include "core/common/grambasockets/greenreg_ambasockets.h"
 #include "core/common/base.h"
 #include "core/common/systemc.h"
+#include "core/common/apbslave.h"
 #include <boost/config.hpp>
 
 #include <string>
@@ -36,13 +37,11 @@
 
 /// @brief This class is a TLM 2.0 Model of the Aeroflex Gaisler GRLIB GPTimer.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 37
-class GPTimer : public APBDevice<RegisterBase>, public CLKDevice {
+class GPTimer : public APBSlave, public CLKDevice {
  public:
   SC_HAS_PROCESS(GPTimer);
   SK_HAS_SIGNALS(GPTimer);
   GC_HAS_CALLBACKS();
-  /// APB Slave socket for all bus communication
-  gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;
 
   signal<std::pair<uint32_t, bool> >::out irq;
   signal<bool>::out wdog;

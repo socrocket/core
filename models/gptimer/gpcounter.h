@@ -18,7 +18,7 @@
 #define MODELS_GPTIMER_GPCOUNTER_H_
 
 #include "core/common/gs_config.h"
-#include <greenreg/greenreg.h>
+//#include <greenreg/greenreg.h>
 #include "core/common/base.h"
 #include "core/common/systemc.h"
 
@@ -27,7 +27,7 @@
 class GPTimer;
 
 /// @brief This class implements an internal counter of a gptimer.
-class GPCounter : public gs::reg::gr_subdevice {
+class GPCounter : public DefaultBase {
  public:
   /// A pointer to the parent GPTimer. This is needed to acces common functions and register.
   GPTimer *p;
