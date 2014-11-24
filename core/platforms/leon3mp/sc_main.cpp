@@ -889,7 +889,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_apbuart1_index("index", 9, p_apbuart1);
     gs::gs_param<unsigned int> p_apbuart1_addr("addr", 0x009, p_apbuart1);
     gs::gs_param<unsigned int> p_apbuart1_mask("mask", 0xFFF, p_apbuart1);
-    gs::gs_param<unsigned int> p_apbuart1_irq("irq", 3, p_apbuart1);
+    gs::gs_param<unsigned int> p_apbuart1_irq("irq", 3, p_apbuart1); // 4???
     gs::gs_param<unsigned int> p_apbuart1_type("type", 0u, p_apbuart1);
     gs::gs_param<unsigned int> p_apbuart1_port("port", 3000, p_apbuart1);
     int port1 = (unsigned int)p_apbuart1_port;

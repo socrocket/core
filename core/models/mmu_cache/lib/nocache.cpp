@@ -89,7 +89,6 @@ unsigned int nocache::read_config_reg(sc_core::sc_time *t) {
 
     v::warn << name()
             << "Can not read config register of non-existing cache!" << v::endl;
-    uint32_t tmp;
     return 0;
 }
 
