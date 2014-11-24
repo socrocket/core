@@ -6,7 +6,7 @@ Irqmp - Interrupt Controler for multiple Processors {#irqmp_p}
 
 @subsection irqmp_p1_1 Overview
 
-The SystemC IRQMP unit models behaviour and timing of the IRQMP VHDL model from the Aeroflex/Gaisler GRLIB (RD04). 
+The SystemC IRQMP unit models behaviour and timing of the IRQMP VHDL model from the Aeroflex/Gaisler GRLIB ([GRLIB IP Core User’s Manual](http://gaisler.com/products/grlib/grip.pdf)). 
 Purpose of the IP is the priorization and masking of the interrupts from all AHB and APB devices in the system. 
 The interrupt with the highest priority is propagated to one or multiple processors. 
 Up to 16 LEON3 cores are supported. Two different modes of IR distribution are implemented:
@@ -23,6 +23,8 @@ which is routed in parallel to the AMBA bus signals.
 The 16 LSBs of the IR bus are associated to regular IRs and the 16 MSBs to extended IRs (EIR). 
 In the SoCRocket library IRs are modeled using the TLM SignalKit.
 Interrupts from any simulation model can be bound to the IRQMP using the connect method.
+
+@todo is this still correct?
 
 The following command connects the GPTimer interrupt output number 3 (`SignalKit::selector`) with the IRQMP interrupt input number 5.:
 ~~~{.cpp}
@@ -43,35 +45,36 @@ All control registers are 32 bit wide and implemented in form of a GreenReg regi
 Therefore, as described in 3.4, class `Irqmp` is a chield of class `gr_device`. 
 An overview about the available registers is given in Table 32.
 
-APB Address Offset | Register
------------------- | --------
-0x00               | Interrupt Level Register
-0x04               | Interrupt Pending Register
-0x08               | Interrupt Force Register (NCPU = 0)
-0x0C               | Interrupt Clear Register
-0x10               | Multiprocessor Status Register
-0c14               | Broadcast Register
-0x40 + 4 * n       |  Processor n Interrupt Mask Register
-0x80 + 4 * n       | Processor n Interrupt Force Register
-0xC0 + 4 * n       | Processor n Extended Interrupt Identification Register
-*Table 32 – IRQMP Registers*
+@table Table 32 – IRQMP Registers
+| APB Address Offset | Register                                               |
+|--------------------|--------------------------------------------------------|
+| 0x00               | Interrupt Level Register                               |
+| 0x04               | Interrupt Pending Register                             |
+| 0x08               | Interrupt Force Register (NCPU = 0)                    |
+| 0x0C               | Interrupt Clear Register                               |
+| 0x10               | Multiprocessor Status Register                         |
+| 0c14               | Broadcast Register                                     |
+| 0x40 + 4 * n       |  Processor n Interrupt Mask Register                   |
+| 0x80 + 4 * n       | Processor n Interrupt Force Register                   |
+| 0xC0 + 4 * n       | Processor n Extended Interrupt Identification Register |
+@endtable
 
 All registers can be written to configure or operate the IRQMP unit. 
 Only the Extended Interrupt Identification Register is read-only. 
-The function and configuration options of the registers are described in full detail in section 54.3 of RD04. 
-However, two differences between RD04 and the SystemC implementation have to be noted:
+The function and configuration options of the registers are described in full detail in section 66 of [GRLIB IP Core User’s Manual](http://gaisler.com/products/grlib/grip.pdf). 
+However, two differences between [GRLIB IP Core User’s Manual](http://gaisler.com/products/grlib/grip.pdf) and the SystemC implementation have to be noted:
 
 1. The Interrupt Force Register for NCPU = 0 has been left out in the SystemC implementation. 
    In a single-processor system the function of the Interrupt Force Register is identical to that of the Interrupt Pending Register.
 
-2. In RD04 it is stated that the bits [31..17] of the Interrupt Clear Register are all constantly pulled down to ‘0’. 
+2. In [GRLIB IP Core User’s Manual](http://gaisler.com/products/grlib/grip.pdf) it is stated that the bits [31..17] of the Interrupt Clear Register are all constantly pulled down to ‘0’. 
    This differs from the VHDL implementation, in which these bits are used for extended interrupt clearance. 
    Respectively, an EIR can also be cleared by software. The SystemC implementation follows the VHDL implementation rather than the manual.
 
 @subsection irqmp_p1_3 Interrupt Prioritization and Forwarding
 
 The IRs are prioritized in a two-dimensional prioritization scheme. 
-Both dimensions are referred to as “interrupt level” in RD04. 
+Both dimensions are referred to as “interrupt level” in [GRLIB IP Core User’s Manual](http://gaisler.com/products/grlib/grip.pdf). 
 For clarification purposes, terms will be redefined in this document.
 
 The Interrupt Level Register determines the first dimension of prioritization. 
@@ -86,7 +89,9 @@ IR0 is reserved. This second dimension of prioritization will be referred to as 
 When several IRs are pending, the highest priority IR will be calculated according to the scheme described above. 
 Which core receives the interrupt request (IRQ) depends on the settings in the Broadcast Register and the Interrupt Mask Registers of the individual cores. 
 As shown in Figure 6, the use of the IR Pending or IR Force Registers is determined by the Broadcast Register.
- 
+
+@todo add figure here from word file
+
 Figure 6 – Interrupt Distribution Scheme
 
 The Interrupt Broadcast Register can be set for each IR line individually. 
@@ -148,6 +153,8 @@ using a generic 90nm Standard-Cell Library and statistical power estimation at G
 The accuracy of the build-in power models and the default switching energy settings cannot be guaranteed. 
 In order to achieve the best possible results the user is recommended to annotate the design with custom target-technology dependent power information.
 
+@todo verify this section and find out about the power modeling report
+
 The power model of the `Irqmp`, all required parameters, and default settings are explained in the SoCRocket Power Modeling Report [RD11].
 
 @section irqmp_p2 Interface
@@ -156,29 +163,31 @@ The GRLIB VHDL model of the IRQMP is configured using Generics.
 For the implementation of the TLM model most of these Generics were refactored to constructor parameters of class Irqmp. 
 An overview about the available parameters is given in Table 33.
 
-Parameter | Function                                                                     | Allowed Range   | Default
---------- | ---------------------------------------------------------------------------- | --------------- | -------
-name      | SystemC name of the module                                                   |                 |
-pindex    | Selects which APB select signal (PSEL) will be used to access the IRQMP unit | 0 to NAPBMAX– 1 | 0
-paddr     | The 12-bit MSB APB address                                                   | 0 to 4095       | 0
-pmask     | The APB address mask                                                         | 0 to 4095       | 4095
-ncpu      | Number of processors in multicore systems                                    | 1 to 16         | 1
-eirq      | The cascade line of EIRs                                                     | 0 to 15         | 0
-pow_mon   | Enable power monitoring                                                      | 0 to 1          | 0
-*Table 33 - Template Parameters*
+@table Table 33 - Template Parameters
+| Parameter | Function                                                                     | Allowed Range   | Default|
+|-----------|------------------------------------------------------------------------------|-----------------|--------|
+| name      | SystemC name of the module                                                   |                 |        |
+| pindex    | Selects which APB select signal (PSEL) will be used to access the IRQMP unit | 0 to NAPBMAX– 1 | 0      |
+| paddr     | The 12-bit MSB APB address                                                   | 0 to 4095       | 0      |
+| pmask     | The APB address mask                                                         | 0 to 4095       | 4095   |
+| ncpu      | Number of processors in multicore systems                                    | 1 to 16         | 1      |
+| eirq      | The cascade line of EIRs                                                     | 0 to 15         | 0      |
+| pow_mon   | Enable power monitoring                                                      | 0 to 1          | 0      |
+@endtable
 
 The system-level interface of the module comprises an GreenSocs/Carbon APB slave socket and multiple SoCRocket SignalKit ports (Table 34). 
 
-Name     | Type     | In/Out   | Description
--------- | -------- | -------- | -----------
-rst      | bool     | in       | Reset prescaler and all counters
-clk      | sc_time  | in       | Annotates clock period
-cpu_rst  | bool     | selector | Generate reset for the processor(s)
-cpu_stat | bool     | infield  | Receive status inf. (halt/running) from processor(s)
-irq_req  | uint32_t | selector | Interrupt requests for the processors(s)
-irq_ack  | uint32_t | infield  | Interrupt ackknowledge signals from processors(s)
-irq_in   | uint32_t | infield  | Muxed interrupts from IRQ sources
-*Table 34 - IRQMP SignalKit sockets*
+@table Table 34 - IRQMP SignalKit sockets
+| Name     | Type     | In/Out   | Description                                          |
+|----------|----------|----------|------------------------------------------------------|
+| rst      | bool     | in       | Reset prescaler and all counters                     |
+| clk      | sc_time  | in       | Annotates clock period                               |
+| cpu_rst  | bool     | selector | Generate reset for the processor(s)                  |
+| cpu_stat | bool     | infield  | Receive status inf. (halt/running) from processor(s) |
+| irq_req  | uint32_t | selector | Interrupt requests for the processors(s)             |
+| irq_ack  | uint32_t | infield  | Interrupt ackknowledge signals from processors(s)    |
+| irq_in   | uint32_t | infield  | Muxed interrupts from IRQ sources                    |
+@endtable
 
 @section irqmp_3 Internal Structure
 
@@ -225,11 +234,11 @@ In addition to building the interface, the constructor registers the `SC_THREAD`
 The `Irqmp::launch_irq` thread is sensitive to the SystemC event `e_signals` and contains the behavioral core of the model. 
 The `e_signals` event is triggered from three locations:
 
-incoming_irq      -   Handler bound to irq_in socket, receiving the interrupts                    from all interrupt sources in the system.
-ackknowledge_irq  - Handler bound to irq_ack socket, receiving the                            ackknowledge  signals from the processors.
-clear_write       -   Callback bound to Interrupt Clear register
-force_write       -   Callback bound to Interrupt Force register
-pending_write     -   Callback bound to Interrupt Pending register
+* incoming_irq: Handler bound to irq_in socket, receiving the interrupts from all interrupt sources in the system.
+* ackknowledge_irq: Handler bound to irq_ack socket, receiving the ackknowledge  signals from the processors.
+* clear_write: Callback bound to Interrupt Clear register
+* force_write: Callback bound to Interrupt Force register
+* pending_write: Callback bound to Interrupt Pending register
 
 For every state change in one of the observed registers or sockets, 
 the launch_irq function recalculates the IR lines for all connected processors. 
@@ -255,9 +264,7 @@ For plain TLM simulation transmission of the IR number would be sufficient.
 For the compilation of the IRQMP unit, a WAF wscript file is provided and integrated in the superordinate build mechanism of the library.
 All required objects for simulating the IRQMP are compiled in a sub-library named irqmp using following command:
 
-~~~{.sh}
-./waf –target=irqmp
-~~~
+    $ ./waf –target=irqmp
 
 To utilize the IRQMP in simulations with other components, add irqmp to the use list of your wscript.
 
@@ -270,7 +277,7 @@ Lines 18 – 21 show how to bind the SignalKit sockets directed to the processor
 The Interrupt sources (irq_in) are connected in line 26. 
 The timing is annotated in line 30. 
 
-~~~
+~~~{.cpp}
 // Define Testbench
 Testbench testbench;
 

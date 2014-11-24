@@ -31,6 +31,14 @@ APBUART::APBUART(ModuleName name,
   m_backend(backend),
   g_pirq(pirq),
   powermon(powmon) {
+  SC_THREAD(send_irq);
+  SC_THREAD(uart_ticks);
+  send_buffer = 0;
+  recv_buffer_start = 0;
+  recv_buffer_end = 0;
+  recv_buffer_level = 0;
+  overrun = false;
+  level_int = false;
   // TODO(all) Implement and Test interrupt thread
   // Display APB slave information
   v::info << this->name() << "APB slave @0x" << hex << v::setw(8)
@@ -100,19 +108,26 @@ void APBUART::end_of_elaboration() {
   GR_SENSITIVE(r[DATA].add_rule(gs::reg::POST_WRITE, "data_write", gs::reg::NOTIFY));
 
   GR_FUNCTION(APBUART, status_read);
-  GR_SENSITIVE(r[STATUS].add_rule(gs::reg::PRE_READ, "data_read", gs::reg::NOTIFY));
+  GR_SENSITIVE(r[STATUS].add_rule(gs::reg::PRE_READ, "status_read", gs::reg::NOTIFY));
+  
+  GR_FUNCTION(APBUART, control_read);
+  GR_SENSITIVE(r[CONTROL].add_rule(gs::reg::PRE_READ, "control_read", gs::reg::NOTIFY));
+  
+  GR_FUNCTION(APBUART, control_write);
+  GR_SENSITIVE(r[CONTROL].add_rule(gs::reg::POST_WRITE, "control_write", gs::reg::NOTIFY));
 }
 
 void APBUART::data_read() {
-  char c;
   uint32_t reg = 0;
-  if (m_backend->receivedChars() && r[STATUS].bit_get(0)) {  // CONTROL receiver enable
-    m_backend->getReceivedChar(&c);
-    reg = (uint32_t)c;
+  if ((recv_buffer_level > 0) && ((r[CONTROL] & 1) == 1)) {  // CONTROL receiver enable
+    recv_buffer_level -= 1;
+    reg = (uint32_t)recv_buffer[recv_buffer_end];
+    inc_fifo_level(&recv_buffer_end);
     r[DATA] = reg;
-    v::debug << name() << "Received chars: " << reg << v::endl;
-    if (r[STATUS].bit_get(2)) {    // CONTROL receiver interrupt enable
+    v::info << name() << "Received char: " << reg << v::endl;
+    if (((r[CONTROL] & (1<<2)) != 0) && (recv_buffer_level > 0)) {    // CONTROL receiver interrupt enable
       e_irq.notify(clock_cycle * 100);
+      v::info << name() << "Triggered interrupt, still data in fifo" << v::endl;
     }
   }
 }
@@ -122,31 +137,123 @@ void APBUART::data_write() {
   uint32_t reg = 0;
   reg = r[DATA];
   c = static_cast<char>(reg & 0xFF);
-  if (r[STATUS].bit_get(1)) {
-    m_backend->sendChar(c);
-  }
-  if (r[STATUS].bit_get(3)) {
-    e_irq.notify(clock_cycle * 100);
+  v::info << name() << "write to data: " << c << v::endl;
+  if (((r[CONTROL] & (1<<1)) != 0)) {
+    if (send_buffer >= fifosize) {
+      overrun = true;
+      v::info << name() << "missed char due to overrun" << v::endl;
+    } else {
+      m_backend->sendChar(c);
+      send_buffer += 1;
+      update_level_int();
+      v::info << name() << "sent char to backend" << v::endl;
+    }
+  } else {
+      // print even if transmitter disabled
+      m_backend->sendChar(c);
   }
 }
 
 void APBUART::status_read() {
-  uint32_t received = m_backend->receivedChars();
-  if (received >= 0xEF) {
-    received = 0xEF;
+  uint32_t received = recv_buffer_level;
+  uint32_t to_transmit = send_buffer;
+  if (received >= fifosize) {
+    received = fifosize;
   }
-  uint32_t reg = (received) ? 0x7 : 0x6;
+  if (send_buffer >= fifosize) {
+    to_transmit = fifosize;
+  }
+  uint32_t reg = (received) ? 0x01 : 0x00;
   reg |= (received << 26);
-  v::debug << name() << "Status Read, Received chars: " << received << v::endl;
+  reg |= (to_transmit << 20);
+  reg |= ((received >= fifosize) << 10);
+  reg |= ((to_transmit >= fifosize) << 9);
+  reg |= ((received >= (fifosize >> 1)) << 8);
+  reg |= ((to_transmit < (fifosize >> 1)) << 7);
+  reg |= overrun << 4;
+  reg |= (send_buffer <= 1) << 2;
+  reg |= (send_buffer == 0) << 1;
+  v::info << name() << "Status Read, Received chars: " << received << " to send: " << to_transmit << " status: " << v::uint32 << reg << v::endl;
   r[STATUS] = reg;
+  overrun = false;
+}
+
+void APBUART::control_write() {
+  v::info << name() << "Control write: " << v::uint32 << uint32_t(r[CONTROL]) << v::endl;
+}
+
+void APBUART::control_read() {
+  v::info << name() << "Control read: " << v::uint32 << uint32_t(r[CONTROL]) << v::endl;
 }
 
 void APBUART::send_irq() {
   while (true) {
     wait(e_irq);
     irq.write(std::pair<uint32_t, bool>(1<< g_pirq, true));
+    v::info << name() << "Triggered IRQ " << g_pirq << v::endl;
     wait(clock_cycle);
-    irq.write(std::pair<uint32_t, bool>(1<< g_pirq, false));
+    if (!level_int) {
+      irq.write(std::pair<uint32_t, bool>(1<< g_pirq, false));
+    }
+  }
+}
+
+void APBUART::uart_ticks() {
+  bool trigger_irq = false;
+  while (true) {
+    uint32_t wait_value = 10000;
+    if (r[SCALER] != 0) {
+      wait_value = r[SCALER] * 8;
+    }
+    wait(clock_cycle * wait_value);
+    trigger_irq = false;
+    if (send_buffer > 0) {
+      if (((r[CONTROL] & (1<<3)) != 0) && (send_buffer == 1)) {
+        trigger_irq = true;
+        v::info << name() << "trigger interrupt because send and fifo empty" << v::endl;
+      }
+      send_buffer -= 1;
+      v::info << name() << "virtually sent char" << v::endl;
+      update_level_int();
+    }
+    if ((m_backend->receivedChars() > 0) && (recv_buffer_level < fifosize) && ((r[CONTROL] & (1<<2)) != 0)) {
+      if (recv_buffer_level == 0) {
+        trigger_irq = true;
+        v::info << name() << "trigger interrupt, received char and fifo was empty" << v::endl;
+      }
+      recv_buffer_level += 1;
+      m_backend->getReceivedChar(&(recv_buffer[recv_buffer_end]));
+      inc_fifo_level(&recv_buffer_end);
+      v::info << name() << "put char in recv-fifo" << v::endl;
+    }
+    if (trigger_irq) {
+      e_irq.notify();
+      v::info << name() << "triggered interrupt"  << v::endl;
+    }
+  }
+
+}
+
+void APBUART::update_level_int() {
+  if ((r[CONTROL] & (1<<9)) != 0) {
+    // if transmitter level interrupt enabled
+    if (send_buffer < (fifosize >> 1)) {
+      level_int = true;
+    } else {
+      level_int = false;
+    }
+    irq.write(std::pair<uint32_t, bool>(1<< g_pirq, level_int));
+  } else {
+    level_int = false;
+  }
+  
+}
+
+void APBUART::inc_fifo_level(uint32_t *counter) {
+  if (*counter < fifosize) {
+    *counter += 1;
+  } else {
+    *counter = 0;
   }
 }
 
