@@ -10,6 +10,10 @@
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
+#ifdef HAVE_PYSC
+#include "pysc/usi.h"
+#endif
+
 #include "core/common/gs_config.h"
 #include "core/common/systemc.h"
 #include <string.h>
@@ -58,10 +62,6 @@
 #include "vphy/loopback.h"
 #endif
 
-#ifdef HAVE_PYSC
-#include "pysc/pysc.h"
-#endif
-
 //#include "vphy/trafgen.h"
 
 using namespace std;
@@ -74,30 +74,10 @@ namespace trap {
   extern int exitValue;
 };
 
-#ifdef HAVE_PYSC
-void (*old_sigint)(int) = NULL;
-void (*old_sigterm)(int) = NULL;
-#endif
 void stopSimFunction(int sig) {
-  #ifdef HAVE_PYSC
-  if (sig == SIGINT) {
-    sc_core::sc_status status = sc_core::sc_get_status();
-    if (status == sc_core::SC_RUNNING) {
-      sc_core::sc_pause();
-    } else if(status == sc_core::SC_PAUSED) {
-      old_sigint(sig);
-    }
-    return;
-  } 
-  #endif
   v::warn << "main" << "Simulation interrupted by user" << std::endl;
   sc_core::sc_stop();
   wait(SC_ZERO_TIME);
-  #ifdef HAVE_PYSC
-  if (sig == SIGTERM) {
-    old_sigterm(sig);
-  }
-  #endif
 }
 
 boost::filesystem::path find_top_path(char *start) {
@@ -140,9 +120,6 @@ int sc_main(int argc, char** argv) {
     desc.add_options()
       ("help", "Shows this message.")
       ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json.")
-#ifdef HAVE_PYSC
-      ("pythonscript,p", boost::program_options::value<std::string>(), "The main python script file. Usual sc_main.py.")
-#endif
       ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options.")
       ("argument,a", boost::program_options::value<std::vector<std::string> >(), "Arguments to the software running inside the simulation.")
 #ifdef HAVE_GRETH
@@ -271,21 +248,22 @@ int sc_main(int argc, char** argv) {
     }
 
 #ifdef HAVE_PYSC
+    usi_init(argc, argv);
     // Initialize Python
-    std::string pythonscript = "";
-    if(vm.count("pythonscript")) {
-      pythonscript = vm["pythonscript"].as<std::string>();
-    }
+    USI_HAS_MODULE(_systemc);
+    USI_HAS_MODULE(_report);
+    USI_HAS_MODULE(_parameter);
+    USI_HAS_MODULE(_mtrace);
+    USI_HAS_MODULE(_amba);
+    USI_INIT_MODULES();
 
-    PythonModule python("python_interpreter", pythonscript.c_str(), argc, argv);
+    //usi_load("tools.python.arguments");
+    usi_load("tools.python.console_reporter");
+    //usi_load("tools.python.config");
+    //usi_load("tools.python.power");
+    usi_load("tools.python.shell");
 
-    //python.load("tools.python.arguments");
-    python.load("tools.python.console_reporter");
-    //python.load("tools.python.config");
-    //python.load("tools.python.power");
-    python.load("tools.python.shell");
-
-    python.start_of_initialization();
+    usi_start_of_initialization();
 #endif  // HAVE_PYSC
     // Build GreenControl Configuration Namespace
     // ==========================================
@@ -1158,11 +1136,7 @@ int sc_main(int argc, char** argv) {
     //    new powermonitor("pow_mon");
     //}
 
-#ifdef HAVE_PYSC
-    python.end_of_initialization();
-    old_sigint = python.signal(SIGINT, stopSimFunction);
-    old_sigterm = python.signal(SIGTERM, stopSimFunction);
-#else
+#ifndef HAVE_PYSC
     (void) signal(SIGINT, stopSimFunction);
     (void) signal(SIGTERM, stopSimFunction);
 #endif
@@ -1170,17 +1144,7 @@ int sc_main(int argc, char** argv) {
     cstart = clock();
     //mtrace();
 #ifdef HAVE_PYSC
-    sc_core::sc_status status = sc_core::SC_RUNNING;
-    while(1) {
-      if (status == sc_core::SC_RUNNING) {
-        sc_core::sc_start();
-      } else if (status == sc_core::SC_PAUSED) {
-        python.pause_of_simulation();
-      } else {
-        break;
-      }
-      status = sc_core::sc_get_status();
-    }
+    usi_start();
 #else
     sc_core::sc_start();
 #endif
@@ -1190,11 +1154,6 @@ int sc_main(int argc, char** argv) {
     v::info << "Summary" << "Start: " << dec << cstart << v::endl;
     v::info << "Summary" << "End:   " << dec << cend << v::endl;
     v::info << "Summary" << "Delta: " << dec << setprecision(4) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
-
-#ifdef HAVE_PYSC
-    python.start_of_evaluation();
-    python.end_of_evaluation();
-#endif
 
     std::cout << "End of sc_main" << std::endl << std::flush;
     return trap::exitValue;
