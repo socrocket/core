@@ -224,7 +224,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
   unsigned int burst_address = 0;
   unsigned int replacer_limit = 0;
     
-  unsigned char correct_data[32];
+//  unsigned char correct_data[32];
 //  m_tlb_adaptor->mem_read(address, asi, correct_data, len, delay, debug, is_dbg, is_lock, cacheable);
 //  return true;
     
@@ -707,8 +707,8 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 // call to flush cache
 void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) {
 
-    unsigned int addr;
-    bool cacheable = false;
+//    unsigned int addr;
+//    bool cacheable = false;
 
     v::debug << name() << "Cache flush!" << v::endl;
 
