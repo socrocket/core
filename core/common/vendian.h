@@ -3,6 +3,16 @@
 /// @{
 /// @file vendian.h
 ///
+/// @details The header vendian.h provides endianess conversion functions 
+/// for data types of different lengths. If the host system is little endian, 
+/// CPU and unit tests must swap byte order. The latter is defined by the 
+/// macro LITTLE_ENDIAN_BO. 
+///
+/// It has to be kept in mind that the LEON processor is a big endian CPU. 
+/// Hence, memory images generated with the SPARC compiler (e.g. BCC) are 
+/// also big endian. If the host system simulates the CPU, or testbench, in 
+/// little endian byte order, all data items going to/from memory must be 
+/// reordered!
 ///
 /// @date 2010-2014
 /// @copyright All rights reserved.

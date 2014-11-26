@@ -21,6 +21,7 @@ CLKDevice::CLKDevice() :
   clock_cycle(10, sc_core::SC_NS) {
 }
 
+
 CLKDevice::~CLKDevice() {
 }
 

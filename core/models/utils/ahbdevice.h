@@ -18,9 +18,20 @@
 #include "core/models/utils/ahbdevicebase.h"
 #include "core/common/gs_config.h"
 
-/// This class is a base class for grlib models. It implements the device plug and play informations.
+/// @brief This class is a base class for grlib models. It implements the device plug and play informations.
 /// Together with the AHBCtrl class it implements the plug and play feature of the grlib.
+///
+/// All simulation models that are supposed to be connected to the TLM AHBCTRL must be derived from 
+/// the class AHBDevice. Usually, this is indirectly done by inheriting from the AHBMaster or AHBSlave 
+/// classes. The Aeroflex Gaisler AHBCTRL implements a Plug & Play mechanism, which 
+/// relies on configuration information that is collected from the attached masters and slaves. 
+/// AHBDevice models the respective configuration data records. The structure of these records is 
+/// described in [GRLIB IP Core User’s Manual](http://gaisler.com/products/grlib/grip.pdf). At 
+/// start_of_simulation the TLM AHBCTRL iterates through all connected modules 
+/// to retrieve AHB bar & mask and build up its internal routing table.
+///
 /// @see AHBCtrl
+///
 template<class BASE = DefaultBase>
 class AHBDevice : public BaseModule<BASE>, public AHBDeviceBase {
   public:

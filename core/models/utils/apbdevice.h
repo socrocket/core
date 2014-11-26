@@ -19,8 +19,16 @@
 
 #include "core/models/utils/apbdevicebase.h"
 
-/// This class is a base class for grlib models. It implements the device plug and play informations.
+/// @brief This class is a base class for grlib models. It implements the device plug and play informations.
 /// Together with the APBBridge class it implements the plug and play feature of the grlib.
+/// 
+/// @details All simulation models that are supposed to be connected to the TLM APBCTRL must be derived from 
+/// class APBDevice. Similar to the concept of AHBDevice, the child inherits Plug & Play configuration records 
+/// representing its device type and address. At start_of_simulation the APBCTRL iterates through the 
+/// connected slaves collecting all APB bar and mask settings for building up its routing table.
+///
+/// Modules, like the MCTRL, which posses an AHB as well as an APB interface must be derived from AHBDevice and APBDevice.
+///
 /// @see APBCtrl
 template<class BASE = RegisterBase>
 class APBDevice : public BaseModule<BASE> , public APBDeviceBase {

@@ -20,7 +20,12 @@
 #include <stdint.h>
 #include <string>
 
-/// This class is a base class for memory models. It implements the device plug and play informations.
+/// @brief This class is a base class for memory models. It implements the device plug and play informations.
+/// 
+/// @details The class MEMDevice is the base class of all memories to be connected to the MCTRL. The library 
+/// provides a Generic Memory, which implements the given interface. The included functions are required to 
+/// determine the features of the attached component for correct access and delay calculation.
+///
 /// @see mctrl
 class MEMDevice {
   public:

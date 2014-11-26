@@ -22,6 +22,16 @@
 
 #include "core/common/verbose.h"
 
+/// @details Timingmonitor is a support class for timing verification. Within the library 
+/// it is used in almost all testbench classes. During simulation it records the SystemC 
+/// simulation time and the real execution time of test phases. For this purpose it provides 
+/// a set of static control functions. A test phase starts with a call to phase_start_timing. 
+/// The function expects a phase ID and a phase description as inputs. This will create a new 
+/// entry in the internal timing map. After completion of the test phase, the testbench calls 
+/// phase_end_timing to close the record. At the end of the test, the testbench may now call 
+/// report_timing to generate a report showing the timing of all test phases. This is 
+/// especially useful for comparing simulations at different levels of abstraction.
+///
 class TimingMonitor {
   public:
     /// Content of a timing_map entry
