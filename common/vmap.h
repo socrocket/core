@@ -3,6 +3,16 @@
 /// @{
 /// @file vmap.h
 ///
+/// @details To save system memory and optimize simulation performance large, 
+/// sparse memories should be implemented as maps. In this case the memory 
+/// address represents the key and the actual data the entry. Because the 
+/// performance of the various existing map implementation strongly depends 
+/// on the system environment, the SoCRocket library provides the flexible 
+/// type vmap. The vmap.h header contains a macro defining vmap as either 
+/// std::map, hash_map or std::tr1::unordered_map.
+///
+/// An example for the usage of vmap is given by the MapMemory implementation 
+/// of the Generic Memory (@ref memory_p "Generic Memory SystemC Model").
 ///
 /// @date 2010-2014
 /// @copyright All rights reserved.

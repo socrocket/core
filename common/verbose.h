@@ -2,7 +2,29 @@
 /// @addtogroup common
 /// @{
 /// @file verbose.h
-/// Implements a unified output system for messages and debunging.
+/// @brief Implements a unified output system for messages and debunging.
+///
+/// @details The operators defined in verbose.h can be used to filter output 
+/// messages respecting their severity. As explained in @ref install2 "Bulding the Library" the verbosity 
+/// level of the simulations must be defined during configuration of the library:
+/// 
+///     $ ./waf configure –verbosity=1..5 
+///
+/// Five levels may be chosen: error, 
+/// warning, report, info and debug.
+/// 
+/// The operators are used in a similar way to C++ stdout:
+/// 
+/// ~~~{.cpp}
+/// std::cout   << value << std::endl;  // Regular C++ stdout		
+/// 
+/// v::error    << value << v::endl;    // Verbosity error stream
+/// v::warn     << value << v::endl;    // Verbosity warn stream
+/// v::report   << value << v::endl;    // Verbosity report stream
+/// v::info     << value << v::endl;    // Verbosity info stream
+/// v::debug    << value << v::endl;    // Verbosity debug stream
+/// ~~~
+/// Defining the verbosity at configuration time has the advantage that undesired output is optimized way (compared to runtime switching).
 ///
 /// @date 2010-2014
 /// @copyright All rights reserved.
