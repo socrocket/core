@@ -37,7 +37,7 @@ The additions are that it you specify a git folder as a SoCRocket Repository waf
 That means that in your code you can check for the availability of repositories:
 
 Either in the `wscript`:
-~~~{.py}
+~~~
 def build(self):
     if "media" in self.repositories:                              # Check if we have the media repository
         self(
@@ -54,7 +54,7 @@ Or in your SystemC Code:
 ~~~
 
 To declare a SoCRocket Repository out of a git repository add a toplevel wscript with the following constant definitions at the top:
-~~~{.py}
+~~~
 top='..'
 REPOSITORY_PATH='media'                       # Default location inside the SoCRocket Working Folder
 REPOSITORY_NAME='SoCRocket Media Repository'  # A human readable tile to identify the repository
