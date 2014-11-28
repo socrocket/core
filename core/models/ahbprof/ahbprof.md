@@ -12,9 +12,9 @@ The model creates several registers which are accessible from the simulator by s
 The registers are used to control an internal mechanism for measuring SystemC time and real execution time.
 The registers can be written with following control values:
 
-1 – start measureing time (simulation time and real time)
-2 – stop measureing time
-3 – print timing report
+* 1: start measureing time (simulation time and real time)
+* 2: stop measureing time
+* 3: print timing report
 
 All control registers are considered to be 32bit wide. 
 Register 255 has a special purpose and is reserved for shutting down the simulation. 
