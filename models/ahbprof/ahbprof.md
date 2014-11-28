@@ -24,14 +24,15 @@ Register 255 has a special purpose and is reserved for shutting down the simulat
 This component provides the typical AHB Slave generics refactored as constructor parameters of the class AHBProf. 
 An overview about the available parameters is given in table 44.
 
-Parameter | Description
---------- | -----------
-nm        | SystemC name of the module
-index     | The AHB slave bus index
-addr      | The 12bit MSB address at the AHB bus
-mask      | The 12bit address mask for the AHB bus
-ambaLayer | Coding style/abstraction of the model (LT or AT)
-*Table 44 - AHBOUT Constructor Parameters*
+@table Table 44 - AHBOUT Constructor Parameters
+| Parameter | Description                                      |
+|-----------|--------------------------------------------------|
+| nm        | SystemC name of the module                       |
+| index     | The AHB slave bus index                          |
+| addr      | The 12bit MSB address at the AHB bus             |
+| mask      | The 12bit address mask for the AHB bus           |
+| ambaLayer | Coding style/abstraction of the model (LT or AT) |
+@endtable
 
 @section ahbprof_p3 Example Instantiation
 
