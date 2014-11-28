@@ -40,6 +40,7 @@ Here is a list of the main chapters of this manual:
 * @subpage install "Installation"
 * @subpage structure "Library Structure"
 * @subpage firstrun "Run Software"
+* @subpage repository_p "Repository Manager"
 * @subpage wizard "Generator Wizard"
 * @subpage models_p "A list of all models"
 * @subpage utils_p "Utils"
