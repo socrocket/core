@@ -10,17 +10,18 @@ The class inherits from the AHBSlave and CLKDevice classes.
 In the manner of the GRLIB VHDL models this component provides the typical AHB Slave Generics refactored as Constructor parameters of the class AHBMem. 
 An overview about the available parameters is given in table 42.
 
-Parameter   | Description
------------ | -----------
-nm          | SystemC name of the module
-haddr       | AHB address of the AHB slave socket (12 bit)
-hmask       | AHB address mask (12 bit)
-ambaLayer   | Abstraction layer used (AT/LT)
-slave_id    | The AHB slave bus index
-cachable    | Device cacheable or not
-wait_states | Number of wait states to be inserted for each transfer
-pow_mon     | Enable power monitoring
-*Table 42 - AHBMEM Constructor Parameters*
+@table Table 42 - AHBMEM Constructor Parameters
+| Parameter   | Description                                            |
+|-------------|--------------------------------------------------------|
+| nm          | SystemC name of the module                             |
+| haddr       | AHB address of the AHB slave socket (12 bit)           |
+| hmask       | AHB address mask (12 bit)                              |
+| ambaLayer   | Abstraction layer used (AT/LT)                         |
+| slave_id    | The AHB slave bus index                                |
+| cachable    | Device cacheable or not                                |
+| wait_states | Number of wait states to be inserted for each transfer |
+| pow_mon     | Enable power monitoring                                |
+@endtable
 
 @section ahbmem_p3 Example Instantiation
 
