@@ -30,6 +30,18 @@ Germany
 #### Website
 [www.tu-braunschweig.de/c3e](http://www.tu-braunschweig.de/c3e)
 
+Projects
+--------
+
+* [ESA HW-SW-SIM Study](http://www.esa.int/Our_Activities/Space_Engineering/Microelectronics/SoCROCKET_Virtual_Platform_-_SystemC)
+
+* [EMC2 WP4](http://www.artemis-emc2.eu/project_overview/wp4_multi_core_hardware_architectures_and_concepts/)
+  The research leading to these results has received funding from the
+  ARTEMIS Joint Undertaking under grant agreement n 621429 and from
+  the German Federal Ministry of Education and Research (BMBF), funding
+  contract 01IS14002O.
+
+
 Disclaimer
 ----------
 

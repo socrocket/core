@@ -472,3 +472,12 @@ h2 + .row {
 .col-md-6 .image img {
   width: 100%;
 }
+
+/* pretty terminal pres */
+
+pre.fragment.well {
+  color: #FFFFFF;
+  background-image: none;
+  background-color: #454545;
+  border: 1px solid #A1A1A1;
+}
