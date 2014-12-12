@@ -325,7 +325,9 @@ class sr_report_handler : public sc_core::sc_report_handler {
 
 void sr_report::operator()(const std::string &name) {
   if (this != &sr_report_handler::null && enabled) {
-    set_msg(name.c_str());
+    if(name != "") {
+      set_msg(name.c_str());
+    }
     sr_report_handler::handler(*this, actions);
   }
 }
@@ -445,17 +447,17 @@ void sr_report::operator()(const std::string &name) {
       sc_core::SC_FATAL, NULL, id, "", \
       sc_core::SC_LOW, __FILE__ , __LINE__)
 
-#define srCommand(...) _GET_MACRO_(dummy,##__VA_ARGS__,srCommand_1(__VA_ARGS__),srCommand_0())
+#define srCommand(...) _GET_MACRO_2_(dummy,##__VA_ARGS__,srCommand_2(__VA_ARGS__),srCommand_1(__VA_ARGS__))
 
-#define srCommand_1(id) \
-    sr_report_handler::report( \
-      sc_core::SC_MAX_SEVERITY, NULL, id, "command", \
-      0x0FFFFFFF, __FILE__, __LINE__)
-
-#define srCommand_() \
+#define srCommand_1(type) \
     sr_report_handler::report( \
       sc_core::SC_MAX_SEVERITY, NULL, this->name(), "command", \
-      0x0FFFFFFF, __FILE__, __LINE__)
+      0x0FFFFFFF, __FILE__, __LINE__)("typename", type)
+
+#define srCommand_2(id, type) \
+    sr_report_handler::report( \
+      sc_core::SC_MAX_SEVERITY, NULL, id, "command", \
+      0x0FFFFFFF, __FILE__, __LINE__)("typename", type)
 
 #endif  // COMMON_REPORT_H_
 /// @}

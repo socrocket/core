@@ -21,7 +21,7 @@
 
 #include "core/models/apbuart/io_if.h"
 
-class TcpIo : public io_if {
+class TcpIo : public sc_core::sc_object, public io_if {
   private:
     /// Represents the currently open connection
     boost::asio::ip::tcp::socket *socket;
@@ -31,7 +31,7 @@ class TcpIo : public io_if {
 
   public:
     /// Opens a new socket connection on the specified port
-    TcpIo(unsigned int port = 2000, bool test = false);
+    TcpIo(ModuleName mn, unsigned int port = 2000, bool test = false);
 
     ~TcpIo();
 
