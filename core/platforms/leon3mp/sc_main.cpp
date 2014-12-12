@@ -10,7 +10,7 @@
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
-#ifdef HAVE_PYSC
+#ifdef HAVE_USI
 #include "pysc/usi.h"
 #endif
 
@@ -25,19 +25,13 @@
 #include "core/common/trapgen/debugger/GDBStub.hpp"
 #include "core/common/trapgen/elfloader/execLoader.hpp"
 #include "core/common/trapgen/osEmulator/osEmulator.hpp"
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
-#include <boost/program_options/errors.hpp>
 #include <iostream>
 #include <vector>
 #include <cstring>
 #include <cstdlib>
 #include <stdexcept>
 
-#include "core/common/json_parser.h"
-#include "core/common/paramprinter.h"
 #include "core/common/verbose.h"
-#include "core/common/powermonitor.h"
 #include "core/models/mmu_cache/lib/leon3_mmu_cache.h"
 #include "core/models/ahbin/ahbin.h"
 #include "core/models/memory/memory.h"
@@ -52,6 +46,7 @@
 #include "core/models/irqmp/irqmp.h"
 #include "core/models/ahbctrl/ahbctrl.h"
 #include "core/models/ahbprof/ahbprof.h"
+#include <boost/filesystem.hpp>
 
 #ifdef HAVE_SOCWIRE
 #include "models/socwire/AHB2Socwire.h"
@@ -80,22 +75,6 @@ void stopSimFunction(int sig) {
   wait(SC_ZERO_TIME);
 }
 
-boost::filesystem::path find_top_path(char *start) {
-
-  #if (BOOST_VERSION < 104600)
-    boost::filesystem::path path = boost::filesystem::path(start).parent_path();
-  #else
-    boost::filesystem::path path = boost::filesystem::absolute(boost::filesystem::path(start).parent_path());
-  #endif
-
-  boost::filesystem::path waf("waf");
-  while(!boost::filesystem::exists(path/waf) && !path.empty()) {
-    path = path.parent_path();
-  }
-  return path;
-
-}
-
 string greth_script_path;
 void grethVPHYHook(char* dev_name)
 {
@@ -116,155 +95,37 @@ void grethVPHYHook(char* dev_name)
 }
 
 int sc_main(int argc, char** argv) {
-    boost::program_options::options_description desc("Options");
-    desc.add_options()
-      ("help", "Shows this message.")
-      ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json.")
-      ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options.")
-      ("argument,a", boost::program_options::value<std::vector<std::string> >(), "Arguments to the software running inside the simulation.")
-#ifdef HAVE_GRETH
-      ("greth,g", boost::program_options::value<std::vector<std::string> >(), "Initial Options for GREth-Core.")
-#endif
-      ("listoptions,l", "Show a list of all avaliable options")
-      ("interactiv,i", "Start simulation in interactiv mode")
-      ("listoptionsfiltered,f", boost::program_options::value<std::string>(), "Show a list of avaliable options containing a keyword")
-      ("listgsconfig,c", "Show a list of all avaliable gs_config options")
-      ("listgsconfigfiltered,g", boost::program_options::value<std::string>(), "Show a list of avaliable options containing a keyword")
-      ("saveoptions,s", boost::program_options::value<std::string>(), "Save options to json file. Default: saved_config.json");
-
-    boost::program_options::positional_options_description p;
-    p.add("argument", -1);
-
-    boost::program_options::variables_map vm;
-    try {
-      boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
-      boost::program_options::notify(vm);
-    } catch(boost::program_options::unknown_option o) {
-      #if (BOOST_VERSION > 104600)
-      std::cout << "Comand line argument '" << o.get_option_name() << "' unknown. Please use -a,[argument] to add it to the software arguments or correct it." << std::endl;
-      #endif
-      exit(1);
-    }
-
-    if(vm.count("help")) {
-        std::cout << std::endl << "SoCRocket -- LEON3 Multi-Processor Platform" << std::endl;
-        std::cout << std::endl << "Usage: " << argv[0] << " [options]" << std::endl;
-        std::cout << std::endl << desc << std::endl;
-        return 0;
-    }
-
     clock_t cstart, cend;
     std::string prom_app;
-
-    bool paramlist = false, paramlistfiltered = false, configlist = false, configlistfiltered = false;//, saveoptions = false;
 
     gs::ctr::GC_Core       core;
     gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
     gs::cnf::ConfigPlugin configPlugin(&cnfdatabase);
 
-    json_parser* jsonreader = new json_parser();
-
-    if(vm.count("jsonconfig")) {
-        setenv("JSONCONFIG", vm["jsonconfig"].as<std::string>().c_str(), true);
-    }
-
-    // Find *.json
-    // - First search on the comandline
-    // - Then search environment variable
-    // - Then search in current dir
-    // - and finaly in the application directory
-    // - searches in the source directory
-    // Print an error if it is not found!
-    boost::filesystem::path topdir = find_top_path(argv[0]);
-    boost::filesystem::path appdir = (boost::filesystem::path(argv[0]).parent_path());
-    boost::filesystem::path srcdir = (topdir / boost::filesystem::path("build") / boost::filesystem::path(__FILE__).parent_path());
-    boost::filesystem::path json("leon3mp.json");
-    char *json_env = std::getenv("JSONCONFIG");
-    if(json_env) {
-        json = boost::filesystem::path(json_env);
-    } else if(boost::filesystem::exists(json)) {
-        json = json;
-    } else if(boost::filesystem::exists(appdir / json)) {
-        json = appdir / json;
-    } else if(boost::filesystem::exists(srcdir / json)) {
-        json = srcdir / json;
-    }
-    if(boost::filesystem::exists(boost::filesystem::path(json))) {
-        v::info << "main" << "Open Configuration " << json << v::endl;
-        jsonreader->config(json.string().c_str());
-    } else {
-        v::warn << "main" << "No *.json found. Please put it in the current work directory, application directory or put the path to the file in the JSONCONFIG environment variable" << v::endl;
-    }
-
-    gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
-    if(vm.count("option")) {
-        std::vector<std::string> vec = vm["option"].as< std::vector<std::string> >();
-        for(std::vector<std::string>::iterator iter = vec.begin(); iter!=vec.end(); iter++) {
-           std::string parname;
-           std::string parvalue;
-
-           // *** Check right format (parname=value)
-           // of no space
-           if(iter->find_first_of("=") == std::string::npos) {
-               v::warn << "main" << "Option value in command line option has no '='. Type '--help' for help. " << *iter;
-           }
-           // if not space before equal sign
-           if(iter->find_first_of(" ") < iter->find_first_of("=")) {
-               v::warn << "main" << "Option value in command line option may not contain a space before '='. " << *iter;
-           }
-
-           // Parse parameter name
-           parname = iter->substr(0,iter->find_first_of("="));
-           // Parse parameter value
-           parvalue = iter->substr(iter->find_first_of("=")+1);
-
-           // Set parameter
-           mApi->setInitValue(parname, parvalue);
-        }
-    }
-
-
-    if(vm.count("listoptions")) {
-       paramlist = true;
-    }
-
-    if(vm.count("listgsconfig")) {
-       configlist = true;
-    }
-    //if(vm.count("saveoptions")) {
-    //   saveoptions = true;
-    //}
-
-	std::string optionssearchkey = "";
-	if(vm.count("listoptionsfiltered")) {
-        optionssearchkey = vm["listoptionsfiltered"].as<std::string>();
-	    paramlistfiltered = true;
-    }
-
-	std::string configssearchkey = "";
-	if(vm.count("listgsconfigfiltered")) {
-        configssearchkey = vm["listgsconfigfiltered"].as<std::string>();
-	    configlistfiltered= true;
-    }
-
-#ifdef HAVE_PYSC
-    usi_init(argc, argv);
+#ifdef HAVE_USI
     // Initialize Python
-    USI_HAS_MODULE(_systemc);
-    USI_HAS_MODULE(_report);
-    USI_HAS_MODULE(_parameter);
-    USI_HAS_MODULE(_mtrace);
-    USI_HAS_MODULE(_amba);
-    USI_INIT_MODULES();
+    USI_HAS_MODULE(systemc_);
+    USI_HAS_MODULE(usiobject);
+    USI_HAS_MODULE(scireg);
+    USI_HAS_MODULE(amba);
+    USI_HAS_MODULE(report);
+    USI_HAS_MODULE(parameter_);
+    USI_HAS_MODULE(mtrace);
+    usi_init(argc, argv);
 
-    //usi_load("tools.python.arguments");
-    usi_load("tools.python.console_reporter");
-    //usi_load("tools.python.config");
+    usi_load("usi.api.systemc");
+    usi_load("usi.api.usiobject");
+    usi_load("usi.api.scireg");
+    usi_load("usi.api.amba");
+
+    usi_load("usi.log.console_reporter");
+    usi_load("usi.tools.args");
+    usi_load("usi.cci");
     //usi_load("tools.python.power");
-    usi_load("tools.python.shell");
+    usi_load("usi.shell");
 
     usi_start_of_initialization();
-#endif  // HAVE_PYSC
+#endif  // HAVE_USI
     // Build GreenControl Configuration Namespace
     // ==========================================
     gs::gs_param_array p_conf("conf");
@@ -777,9 +638,6 @@ int sc_main(int argc, char** argv) {
       if(!((std::string)p_system_osemu).empty()) {
         leon3->g_osemu = p_system_osemu;
       }
-      if(vm.count("argument")) {
-        leon3->g_args = vm["arguments"].as<std::vector<std::string> >();
-      }
     }
 
     // APBSlave - GPTimer
@@ -836,7 +694,7 @@ int sc_main(int argc, char** argv) {
     if(p_apbuart_en) {
       switch(p_apbuart_type) {
         case 1:
-          uart_io = new TcpIo(port);
+          uart_io = new TcpIo("TcpIo", port);
           break;
         default:
           uart_io = new NullIO();
@@ -875,7 +733,7 @@ int sc_main(int argc, char** argv) {
     if(p_apbuart1_en) {
       switch(p_apbuart1_type) {
         case 1:
-          uart1_io = new TcpIo(port1);
+          uart1_io = new TcpIo("TcpIo2", port1);
           break;
         default:
           uart1_io = new NullIO();
@@ -1027,7 +885,7 @@ int sc_main(int argc, char** argv) {
     greth_config->mdiohold = p_greth_mdiohold;
     greth_config->maxsize = p_greth_maxsize;
     // Optional params for tap offset and post script
-    if(vm.count("greth")) {
+    /*if(vm.count("greth")) {
         std::vector<std::string> vec = vm["greth"].as< std::vector<std::string> >();
         for(std::vector<std::string>::iterator iter = vec.begin(); iter!=vec.end(); iter++) {
            std::string parname;
@@ -1059,7 +917,7 @@ int sc_main(int argc, char** argv) {
                greth_script_path = parvalue.c_str();
            }
         }
-    }
+    }*/
 
     GREth *greth;
     if(p_greth_en)  {
@@ -1102,28 +960,6 @@ int sc_main(int argc, char** argv) {
     }
   // GREth done. ==========================
 #endif  // HAVE_GRETH
-    // * Param Listing **************************
-    paramprinter printer;
-    if(paramlist) {
-    	printer.printParams();
-    	exit(0);
-    }
-
-    if(configlist){
-      printer.printConfigs();
-    	exit(0);
-    }
-
-    if(paramlistfiltered ){
-      printer.printParams(optionssearchkey);
-    	exit(0);
-    }
-
-    if(configlistfiltered ){
-      printer.printConfigs(configssearchkey);
-    	exit(0);
-    }
-
     // ******************************************
 
     signalkit::signal_out<bool, Irqmp> irqmp_rst;
@@ -1131,19 +967,14 @@ int sc_main(int argc, char** argv) {
     irqmp_rst.write(0);
     irqmp_rst.write(1);
 
-    // * Power Monitor **************************
-    //if(p_report_power) {
-    //    new powermonitor("pow_mon");
-    //}
-
-#ifndef HAVE_PYSC
+#ifndef HAVE_USI
     (void) signal(SIGINT, stopSimFunction);
     (void) signal(SIGTERM, stopSimFunction);
 #endif
     cstart = cend = clock();
     cstart = clock();
     //mtrace();
-#ifdef HAVE_PYSC
+#ifdef HAVE_USI
     usi_start();
 #else
     sc_core::sc_start();
