@@ -217,27 +217,39 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
 
     bool bus_read(ADDR_TYPE offset, DATA_TYPE& i) const {
       const sr_register<DATA_TYPE> *reg = get_sr_register(offset);
-      reg->bus_read(i);
+      if(reg) {
+        reg->bus_read(i);
+      } else {
+        i = 0;
+      }
       srInfo()("offset", offset)("value", i)(__PRETTY_FUNCTION__);
       return true;
     }
     bool bus_write(ADDR_TYPE offset, DATA_TYPE val) {
       sr_register<DATA_TYPE> *reg = get_sr_register(offset);
-      reg->bus_write(val);
+      if(reg) {
+        reg->bus_write(val);
+      }
       srInfo()("offset", offset)("value", val)(__PRETTY_FUNCTION__);
       return true;
     }
     
     bool bus_read_dbg(ADDR_TYPE offset, DATA_TYPE& i) const {
       const sr_register<DATA_TYPE> *reg = get_sr_register(offset);
-      reg->bus_read(i);
+      if(reg) {
+        reg->bus_read(i);
+      } else {
+        i = 0;
+      }
       srInfo()("offset", offset)("value", i)(__PRETTY_FUNCTION__);
       return true;
     }
     
     bool bus_write_dbg(ADDR_TYPE offset, DATA_TYPE val) {
       sr_register<DATA_TYPE> *reg = get_sr_register(offset);
-      reg->bus_write(val);
+      if(reg) {
+        reg->bus_write(val);
+      } 
       srInfo()("offset", offset)("value", val)(__PRETTY_FUNCTION__);
       return true;
     }
@@ -303,6 +315,50 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       }
       return false;
     }
+
+    sc_dt::uint64 scireg_get_bit_width() const {
+      return this->size() * sizeof(DATA_TYPE) * 8;
+    }
+
+    /// Read a vector of "size" bytes at given offset in this region:
+    scireg_ns::scireg_response scireg_read(scireg_ns::vector_byte& v, sc_dt::uint64 size, sc_dt::uint64 offset=0) const {
+      uint64_t idx = 0;
+      for(idx = 0; idx < size; idx += sizeof(DATA_TYPE)) {
+        DATA_TYPE data = 0;
+        if(bus_read_dbg(offset+idx, data)) {
+          memcpy(&v[idx], &data, std::min(sizeof(DATA_TYPE), size_t(size-idx)));
+        } else {
+          break;
+        }
+      }
+      if(idx>=size) {
+        return scireg_ns::SCIREG_SUCCESS;
+      } else {
+        return scireg_ns::SCIREG_FAILURE;
+      }
+    }
+
+    /// Write a vector of "size" bytes at given offset in this region:
+    scireg_ns::scireg_response scireg_write(const scireg_ns::vector_byte& v, sc_dt::uint64 size, sc_dt::uint64 offset=0) {
+      uint64_t idx = 0;
+      for(idx = 0; idx < size; idx += sizeof(DATA_TYPE)) {
+        DATA_TYPE data = 0;
+        if(bus_read_dbg(offset+idx, data)) {
+          memcpy(&data, &v[idx], std::min(sizeof(DATA_TYPE), size_t(size-idx)));
+          if(!bus_write_dbg(offset+idx, data)) {
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+      if(idx>=size) {
+        return scireg_ns::SCIREG_SUCCESS;
+      } else {
+        return scireg_ns::SCIREG_FAILURE;
+      }
+    }
+
 
   protected:
     sc_register_vec m_registers;

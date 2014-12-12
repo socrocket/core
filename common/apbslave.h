@@ -98,7 +98,7 @@ class sr_register_amba_socket : public ::amba::amba_slave_socket<BUSWIDTH>, publ
 template<int BUSWIDTH = 32, typename ADDR_TYPE = unsigned int, typename DATA_TYPE = unsigned int>
 class APBSlaveSocket : public sr_register_amba_socket<BUSWIDTH, ADDR_TYPE, DATA_TYPE> {
   public:
-    APBSlaveSocket(sc_core::sc_module_name mn, sc_register_bank<ADDR_TYPE, DATA_TYPE> *bank) :
+    APBSlaveSocket(sc_core::sc_module_name mn, sr_register_bank<ADDR_TYPE, DATA_TYPE> *bank) :
         sr_register_amba_socket<BUSWIDTH, ADDR_TYPE, DATA_TYPE>(mn, bank, ::amba::amba_APB, ::amba::amba_LT, false) {
     }
     sc_dt::uint64 get_base_addr() {
@@ -124,12 +124,14 @@ class APBSlave : public APBDevice<DefaultBase> {
           bus_id, vendorid, deviceid, version, irq, type, mask, cacheable, prefetchable, address, register_count),
       r("register", register_count),
       apb("apb", &r) {
+      r.add_associate_busport(&apb);
     }
 
     APBSlave(ModuleName mn, uint32_t register_count = 0) :
       APBDevice<DefaultBase>(mn, register_count), 
       r("register", register_count),
       apb("apb", &r) {
+      r.add_associate_busport(&apb);
     }
 
     ~APBSlave() {}

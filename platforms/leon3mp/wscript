@@ -1,7 +1,7 @@
 top = '../..'
 
 def build(bld):
-    use   = 'BOOST ahbctrl ahbmem irqmp gptimer apbctrl apbuart socwire socw_socket mmu_cache mctrl ahbin ahbprof greth utils signalkit usi common'
+    use   = 'BOOST ahbctrl ahbmem irqmp gptimer apbctrl apbuart socwire socw_socket mmu_cache mctrl ahbin ahbprof greth utils signalkit usi common pytools'
     use  += ' leon3.funclt leon3.funcat trap ELF_LIB AMBA TLM GREENSOCS SYSTEMC BOOST'
       
     bld(
