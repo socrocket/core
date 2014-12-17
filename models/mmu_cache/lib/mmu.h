@@ -59,11 +59,13 @@ class mmu : public DefaultBase, public mmu_if {
 
   // Member functions
   // ----------------
-
+  unsigned MYdebug;
   /// Page descriptor cache (PDC) lookup
-  unsigned int tlb_lookup(unsigned int addr, std::map<t_VAT,
-                          t_PTE_context> * tlb, unsigned int tlb_size,
-                          sc_core::sc_time * t, unsigned int * debug, bool is_dbg, bool &cacheable);
+  signed tlb_lookup(unsigned int addr, unsigned asi,
+                             std::map<t_VAT, t_PTE_context> * tlb,
+                             unsigned int tlb_size, sc_core::sc_time * t,
+                             unsigned int * debug, bool is_dbg, bool &cacheable,
+                             unsigned is_write /* LOAD / STORE? */, uint64_t * paddr );
   /// Read mmu control register (ASI 0x19)
   unsigned int read_mcr();
   /// Read mmu context pointer register (ASI 0x19)
@@ -296,6 +298,8 @@ class mmu : public DefaultBase, public mmu_if {
 
   /// Power Monitoring enabled?
   bool m_pow_mon;
+
+  unsigned access_table[8][8];
 
   // *****************************************************
   // Performance Counters
