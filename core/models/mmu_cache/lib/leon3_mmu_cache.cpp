@@ -161,7 +161,7 @@ gs::cnf::callback_return_type leon3_mmu_cache::g_args_callback(gs::gs_param_base
   return GC_RETURN_OK;
 }
 // Read instruction
-unsigned int leon3_mmu_cache::read_instr(const unsigned int & address, const unsigned int flush) throw() {
+unsigned int leon3_mmu_cache::read_instr(const unsigned int & address, const unsigned int asi, const unsigned int flush) throw() {
 
     unsigned int datum = 0;
     sc_time delay = this->cpu.quantKeeper.get_local_time();
@@ -169,6 +169,7 @@ unsigned int leon3_mmu_cache::read_instr(const unsigned int & address, const uns
     exec_instr(
         address,
         reinterpret_cast<uint8_t *>(&datum),
+        asi,
         &debug,
         flush,
         delay,
