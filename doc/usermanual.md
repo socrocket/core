@@ -36,10 +36,10 @@ Version | Date     | Description
 
 Here is a list of the main chapters of this manual:
 * @subpage requirements "Requirements"
-* @subpage codingstyle_p "Coding Style Guide"
 * @subpage install "Installation"
-* @subpage structure "Library Structure"
 * @subpage firstrun "Run Software"
-* @subpage wizard "Generator Wizard"
+* @subpage repository_p "Repository Manager"
+* @subpage structure "Library Structure"
+* @subpage codingstyle_p "Coding Style Guide"
+* @subpage modeling "Modeling Concepts"
 * @subpage models_p "A list of all models"
-* @subpage utils_p "Utils"
