@@ -40,7 +40,7 @@ class mmu : public DefaultBase, public mmu_if {
  private:
   signed get_physical_address( uint64_t * paddr, signed * prot, unsigned * access_index,
                                   uint64_t vaddr, int asi, uint64_t * page_size,
-                                  unsigned * debug, bool is_dbg, sc_core::sc_time * t, unsigned is_write, unsigned * pde_REMOVE, unsigned * mask_REMOVE );
+                                  unsigned * debug, bool is_dbg, sc_core::sc_time * t, unsigned is_write, unsigned * pde_REMOVE );
 
  public:
 
