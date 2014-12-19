@@ -33,7 +33,7 @@ def configure(self):
       To compile SoCRocket you need to have installed a basic Unix system.
       Atleast it needs to contain: 
 
-        nm, git, patch, make, wget, tar, ln, bash ans swig, python.
+        nm, git, patch, make, wget / curl, tar, ln, bash ans swig, python.
 
       Moreover you will need the development packages from readline:
 
@@ -49,7 +49,9 @@ def configure(self):
     self.find_program('git', var='GIT', mandatory=True, okmsg="ok")
     self.find_program('patch', var='PATCH', mandatory=True, okmsg="ok")
     self.find_program('make', var='MAKE', mandatory=True, okmsg="ok")
-    self.find_program('wget', var='WGET', mandatory=True, okmsg="ok")
+    self.find_program('wget', var='WGET', mandatory=False, okmsg="ok")
+    if 'WGET' not in self.env: # fallback to 'curl'
+        self.find_program('curl', var='CURL', mandatory=True, okmsg="ok" )
     self.find_program('tar', var='TAR', mandatory=True, okmsg="ok")
     self.find_program('ln', var='LN', mandatory=True, okmsg="ok")
     self.find_program('bash', var='BASH', mandatory=True, okmsg="ok")
@@ -259,11 +261,18 @@ def fetch(self, *k, **kw):
         tar_url = kw.get("tar_url", "") % kw
         self.start_msg("Fetching %s" % kw["name"])
         if not os.path.exists(os.path.join(kw["BASE_PATH_FETCH"], kw["tar"])):
-            self.cmd_and_log(
-                [self.env.WGET, tar_url, "-q", "-O", kw["tar"]], 
-                output=Context.BOTH, 
-                cwd=kw["BASE_PATH_FETCH"]
-            )
+            if self.env.WGET:
+                self.cmd_and_log(
+                    [self.env.WGET, tar_url, "-q", "-O", kw["tar"]], 
+                    output=Context.BOTH, 
+                    cwd=kw["BASE_PATH_FETCH"]
+                )
+            else:
+                self.cmd_and_log(
+                    [self.env.CURL, "-O", tar_url, "-o", kw["tar"]],
+                    output=Context.BOTH,
+                    cwd=kw["BASE_PATH_FETCH"]
+                )
             self.end_msg("Ok")
         else:
             self.end_msg("Already done")

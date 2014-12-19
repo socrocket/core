@@ -13,15 +13,16 @@ The name of the output file can be specified in the constructor.
 This component provides the typical AHB slave generics refactored as constructor parameters of the class AHBOut. 
 An overview about the available parameters is given in table 43.
 
-Parameter | Description
---------- | -----------
-nm        | SystemC name of the module
-haddr     | The 12bit MSB address at the AHB bus
-hmask     | The 12bit address mask for the AHB bus
-ambaLayer | Coding style/abstraction of the model (LT or AT)
-slave_id  | The AHB slave bus index.
-outfile   | File name of a text file to initialize the memory from
-*Table 43 - AHBOUT Constructor Parameters*
+@table Table 43 - AHBOUT Constructor Parameters
+| Parameter | Description                                            |
+|-----------|--------------------------------------------------------|
+| nm        | SystemC name of the module                             |
+| haddr     | The 12bit MSB address at the AHB bus                   |
+| hmask     | The 12bit address mask for the AHB bus                 |
+| ambaLayer | Coding style/abstraction of the model (LT or AT)       |
+| slave_id  | The AHB slave bus index.                               |
+| outfile   | File name of a text file to initialize the memory from |
+@endtable
 
 @section ahbout_p3 Example Instantiation
 

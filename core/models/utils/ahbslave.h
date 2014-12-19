@@ -24,6 +24,14 @@
 #include "core/common/msclogger.h"
 #include "core/common/verbose.h"
 
+/// @details Almost all models implementing an AHB slave interface (except busses) are 
+/// derived from class AHBSlave. AHBSlave is a convenience class providing an AHB slave 
+/// socket and callback functions for hooking up with the behaviour of user models. 
+/// AHBSlave inherits AHBDevice and can be configured for loosely timed (LT) or 
+/// approximately timed (AT) level of abstraction.
+///
+/// An overview about how to build own components based on AHBSlave is given in @ref modeling7 "Extending the Library".
+///
 template<class BASE = DefaultBase>
 class AHBSlave : public AHBDevice<BASE> {
   public:

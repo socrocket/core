@@ -15,17 +15,18 @@ It has no VHDL reference in the Gaisler Library.
 This component provides the typical AHB master generics refactored as constructor parameters of the class `AHBOut`. 
 An overview about the available parameters is given in table 41.
 
-Parameter | Description
---------- | -----------
-name      | SystemC name of the module
-hindex    | The master index for registering with the AHB
-hirq      | The number of the IRQ raised for available data
-framesize | The size of the data frame to be generated
-frameaddr | The address the data is supposed to be copied 
-interval  | The interval between data frames
-pow_mon   | Enable power monitoring
-ambaLayer | TLM abstraction layer
-*Table 41 - AHBIN Constructor Parameters*
+@table Table 41 - AHBIN Constructor Parameters
+| Parameter | Description                                     |
+|-----------|-------------------------------------------------|
+| name      | SystemC name of the module                      |
+| hindex    | The master index for registering with the AHB   |
+| hirq      | The number of the IRQ raised for available data |
+| framesize | The size of the data frame to be generated      |
+| frameaddr | The address the data is supposed to be copied   |
+| interval  | The interval between data frames                |
+| pow_mon   | Enable power monitoring                         |
+| ambaLayer | TLM abstraction layer                           |
+@endtable
 
 @section ahbin_p3 Example Instantiation
 

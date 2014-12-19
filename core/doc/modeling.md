@@ -3,7 +3,7 @@ Modeling Concepts {#modeling}
 
 [TOC]
 
-@todo check, verify and beautify this document
+@todo check and verify this document
 
 In this chapter we describe the underlying modeling concepts of the library. 
 This comprises coding style/abstraction, as well as common base classes and modeling techniques. 

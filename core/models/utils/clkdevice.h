@@ -19,6 +19,17 @@
 #include "core/common/systemc.h"
 #include "core/common/signalkit.h"
 
+
+/// @details The class CLKDevice is used to consistently distribute 
+/// clock/timing and reset amongst all IPs of the library. Devices that 
+/// inherit from CLKDevice receive two SignalKit inputs: clk and rst. 
+/// If the child requires reset behavior, it may implement the virtual 
+/// function dorst(), which is triggered by the rst input. Moreover, 
+/// CLKDevice provides a data member „clock_cycle“, which can be used by 
+/// the child to determine the clock period for delay calculations. The 
+/// value of clock_cycle is set by connecting a sc_time SignalKit signal 
+/// to the clk input or by calling one of the various set_clk functions 
+/// of the class.
 class CLKDevice {
   public:
     SK_HAS_SIGNALS(CLKDevice);

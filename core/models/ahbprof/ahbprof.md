@@ -12,9 +12,9 @@ The model creates several registers which are accessible from the simulator by s
 The registers are used to control an internal mechanism for measuring SystemC time and real execution time.
 The registers can be written with following control values:
 
-1 – start measureing time (simulation time and real time)
-2 – stop measureing time
-3 – print timing report
+* 1: start measureing time (simulation time and real time)
+* 2: stop measureing time
+* 3: print timing report
 
 All control registers are considered to be 32bit wide. 
 Register 255 has a special purpose and is reserved for shutting down the simulation. 
@@ -24,14 +24,15 @@ Register 255 has a special purpose and is reserved for shutting down the simulat
 This component provides the typical AHB Slave generics refactored as constructor parameters of the class AHBProf. 
 An overview about the available parameters is given in table 44.
 
-Parameter | Description
---------- | -----------
-nm        | SystemC name of the module
-index     | The AHB slave bus index
-addr      | The 12bit MSB address at the AHB bus
-mask      | The 12bit address mask for the AHB bus
-ambaLayer | Coding style/abstraction of the model (LT or AT)
-*Table 44 - AHBOUT Constructor Parameters*
+@table Table 44 - AHBOUT Constructor Parameters
+| Parameter | Description                                      |
+|-----------|--------------------------------------------------|
+| nm        | SystemC name of the module                       |
+| index     | The AHB slave bus index                          |
+| addr      | The 12bit MSB address at the AHB bus             |
+| mask      | The 12bit address mask for the AHB bus           |
+| ambaLayer | Coding style/abstraction of the model (LT or AT) |
+@endtable
 
 @section ahbprof_p3 Example Instantiation
 

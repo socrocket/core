@@ -25,6 +25,14 @@
 #include "core/common/msclogger.h"
 #include "core/common/verbose.h"
 
+/// @details Almost all models implementing an AHB master interface (except busses) 
+/// are derived from class AHBMaster. AHBMaster is a convenience class providing an 
+/// AHB master socket and implementations of various access functions for reading/writing 
+/// data over the bus. AHBMaster inherits AHBDevice and can be configured for loosely 
+/// timed (LT) or approximately timed (AT) level of abstraction.
+///
+/// An overview about how to build own components based on AHBMaster is given in @ref modeling7 "Extending the Library".
+/// 
 template<class BASE = DefaultBase>
 class AHBMaster : public AHBDevice<BASE> {
   public:
