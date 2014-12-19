@@ -87,7 +87,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
     template_map< unsigned int, CacheElem >::iterator instrCacheEnd = this->instrCache.end();
 
     unsigned int firstPC = this->PC + 0;
-    unsigned int firstbitString = this->instrMem.read_instr(firstPC,0);
+    unsigned int firstbitString = this->instrMem.read_instr(firstPC, 0x8 | (PSR[key_S]? 1 : 0), 0);
     int firstinstrId = this->decoder.decode(firstbitString);
     Instruction *firstinstr = this->INSTRUCTIONS[firstinstrId];
     raisedException = 0;
@@ -139,7 +139,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                 #endif
 
                 int instrId = 0;
-                unsigned int bitString = this->instrMem.read_instr(curPC,0);
+                unsigned int bitString = this->instrMem.read_instr(curPC, 0x8 | (PSR[key_S]? 1 : 0),0);
                 if(raisedException) {
                     unsigned int exception = raisedException;
                     raisedException = 0;

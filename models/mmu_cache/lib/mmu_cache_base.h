@@ -104,6 +104,7 @@ class mmu_cache_base :
   virtual void exec_instr(
       const unsigned int &addr,
       unsigned char *ptr,
+      unsigned int asi,
       unsigned int *debug,
       const unsigned int &flush,
       sc_core::sc_time& delay,

@@ -180,7 +180,9 @@ void mmu_cache::exec_instr(tlm::tlm_generic_payload& trans, sc_core::sc_time& de
 
   if (cmd == tlm::TLM_READ_COMMAND) {
 
-    mmu_cache_base::exec_instr(addr, ptr, debug, flush, delay, is_dbg);
+    assert( 1 ); // fix asi -> priv / unpriv
+
+    mmu_cache_base::exec_instr(addr, ptr, 0x8, debug, flush, delay, is_dbg); // ToDo: fix ASI! 0x8 -> unprivileged instruction
 
     // Set response status
     trans.set_response_status(tlm::TLM_OK_RESPONSE);
@@ -239,14 +241,16 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
   } else {
       // No dext extension
       // assuming normal access
-      asi    = 0x8;
+      asi    = 0xA;
       debug  = NULL;
       flush  = 0;
       //flushl = 0;
       lock   = 0;
 
-      v::error << name() << "DEXT Payload extension missing - assume ASI 0x8" << v::endl;
+      v::error << name() << "DEXT Payload extension missing - assume ASI 0xA for unprivileged data" << v::endl;
   }
+
+  assert( 1 ); // fix asi -> priv / unpriv
 
   tlm::tlm_response_status response = tlm::TLM_COMMAND_ERROR_RESPONSE;
   mmu_cache_base::exec_data(cmd, addr, ptr, len, asi, debug, flush, lock, delay, is_dbg, response);
