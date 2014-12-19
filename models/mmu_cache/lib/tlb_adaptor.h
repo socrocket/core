@@ -64,11 +64,6 @@ class tlb_adaptor : public DefaultBase, public mem_if {
             // mmu enabled≈
             if ((mmu_ctrl & 0x1) == 1) {
 
-// tlb lookup
-// if( TLB MISS )
-//     mmu fault handle
-//     tlb lookup
-
 	      v::debug << name() << "MMU enabled - lookup TLB" << hex << (mmu_ctrl & 0x1) << v::endl;
               uint64_t t_paddr;
               m_mmu->tlb_lookup(addr, asi, m_tlb, m_tlbnum, t, debug, is_dbg, cacheable_tlb, 0, &t_paddr );
