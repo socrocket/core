@@ -501,7 +501,7 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
 
     if( error_code ) {
         v::error << this->name()
-                 << "Error in " << ((error_code >> 8) & 0x3) << "-Level Page Table / Entry type not valid: "
+                 << "In " << ((error_code >> 8) & 0x3) << "-Level Page Table / Entry type not valid: "
                  << " VA: " << v::uint32 << addr << v::endl;
 
        sleep(1);
