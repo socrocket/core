@@ -431,8 +431,8 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
             v::debug << this->name() << "CONTEXT hit " << hex << MMU_CONTEXT_REG << v::endl;
 
             // Build physical address from PTE and offset, and return
-            //paddr = (((tmp.pte >> 8) << (32 - m_vtag_width)) | (addr & tmp.offset_mask));
-            *paddr = ((tmp.pte & ~0xff) << 4 | (addr & tmp.offset_mask));
+            //paddr = (((tmp.pte >> 8) << (32 - m_vtag_width)) | (addr & (tmp.page_size -1)));
+            *paddr = ((tmp.pte & ~0xff) << 4 | (addr & (tmp.page_size - 1)));
             *paddr &= ((0x1ull << 36) - 1);
             if ((tmp.pte & (1<<7)) == 0) {
               v::debug << this->name() << "data not cacheable!" << v::endl;
@@ -487,7 +487,7 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
 
 
     
-    uint64_t page_size = 0;
+    uint64_t page_size;
     unsigned access_index;
     signed error_code = get_physical_address( paddr, NULL, &access_index,
                                   addr, asi, &page_size,
@@ -496,7 +496,7 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
     if( error_code ) {
         v::error << this->name()
                  << "Error in " << ((error_code >> 8) & 0x3) << "-Level Page Table / Entry type not valid: "
-                 << v::hex << pde << " VAddress: " << v::uint32 << addr << v::endl;
+                 << " VA: " << v::uint32 << addr << v::endl;
 
        sleep(1);
 
@@ -538,6 +538,12 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
             v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
             m_mmu_cache->trigger_exception(19);
             return -1;
+        // TFAULT 0x01
+        // TFAULT 0x09
+//          v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
+//          m_mmu_cache->trigger_exception(1/*2*/);
+//          v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
+//          m_mmu_cache->trigger_exception(9/*18*/);
         }
     }
 
@@ -563,7 +569,7 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
         tmp.context = MMU_CONTEXT_REG;
         tmp.pte = pde;
         tmp.lru = 0xffffffffffffffff - 1;
-        tmp.offset_mask = (page_size - 1);
+        tmp.page_size = page_size;
 
         (*tlb)[vpn] = tmp;
 
@@ -594,38 +600,11 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
 
     case 0x1:
         if( ((error_code >> 8) & 0x3) == 3 ) // if level 3 goto DEFAULT
-            goto DEFAULT;
+            break;
         // can otherwise only happen in level 1 or 2
         v::debug << this->name() << ((error_code >> 8) & 0x3) << "-Level Page Table returned PTD: "
                 << std::hex << pde << v::endl;
         break;
-
-DEFAULT:
-    default:
-
-        
-        // TFAULT 0x01
-        // TFAULT 0x09
-
-//        if (tlb == itlb) {
-//
-//          v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
-//          m_mmu_cache->trigger_exception(1/*2*/);
-//          //v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
-//          //m_mmu_cache->trigger_exception(19);
-//
-//        } else {
-//
-//          v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
-//          m_mmu_cache->trigger_exception(9/*18*/);
-//          //v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
-//          //m_mmu_cache->trigger_exception(19);
-//
-//        }
-
-        //sc_stop();
-
-        return (-1);
     }
 
     return -1;
@@ -642,7 +621,6 @@ unsigned int mmu::read_mcr() {
   #endif
 
   return (tmp);
-
 }
 
 // Write MMU Control Register
@@ -661,7 +639,6 @@ void mmu::write_mcr(unsigned int * data) {
   MMU_CONTROL_REG = tmp2 | (tmp & 0x00008003);
 
   v::debug << name() << "Write " << tmp << " (" << *data << ") to MMU_CONTROL_REG: " << hex << v::setw(8) << MMU_CONTROL_REG << v::endl;
-
 }
 
 // Read MMU Context Table Pointer Register
