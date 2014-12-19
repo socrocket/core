@@ -17,6 +17,7 @@
 
 #include "core/models/mmu_cache/lib/mmu.h"
 #include "core/common/verbose.h"
+#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/instructions.hpp"
 
 mmu::mmu(ModuleName name, // sysc module name,
          mmu_cache_if * _mmu_cache,    // pointer to memory interface
@@ -388,6 +389,11 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
                              unsigned int tlb_size, sc_core::sc_time * t,
                              unsigned int * debug, bool is_dbg, bool &cacheable,
                              unsigned is_write /* LOAD / STORE? */, uint64_t * paddr ) {
+/*
+    Appendix I - Table I-1
+    The MMU will only receive the ASIs as follows: 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0x20-0x2F
+    Out of those, only the ASIs 0x8, 0x9, 0xA, 0xB will enter this routine!
+*/
 
     // According to the SparcV8 Manual: Pages of the Reference MMU are always aligned on 4K-byte boundaries; hence, the lower-order
     // 12 bits of a physical address are always the same as the low-order 12 bits of
@@ -535,15 +541,25 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
         // a subsequent access to ASI 9 will be evaluated according to the new
         // value of the NF bit.
         if( ! ( MMU_CONTROL_REG & 0x2 ) || ((MMU_CONTROL_REG & 0x2) && asi == 0x9 ) ) {
-            v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
-            m_mmu_cache->trigger_exception(19);
+/*          according to instructions.hpp ... not sure why ... doesn't make sense according to sparc manual: Chapter 7 Table 7-1
+
+            #define INSTR_ACCESS_MMU_MISS 2
+            #define INSTR_ACCESS_ERROR 3
+            #define INSTR_ACCESS_EXC 5
+
+            #define DATA_ACCESS_ERROR 17
+            #define DATA_ACCESS_MMU_MISS 18
+            #define DATA_ACCESS_EXC 19
+*/
+            if( is_instruction_access ) {
+                v::error << this->name() << "Trap encountered (instruction_access_exception) tt = 0x01" << v::endl;
+                m_mmu_cache->trigger_exception( INSTR_ACCESS_EXC );
+            }
+            else {
+                v::error << this->name() << "Trap encountered (data_access_exception) tt = 0x09" << v::endl;
+                m_mmu_cache->trigger_exception( DATA_ACCESS_EXC );
+            }
             return -1;
-        // TFAULT 0x01
-        // TFAULT 0x09
-//          v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
-//          m_mmu_cache->trigger_exception(1/*2*/);
-//          v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
-//          m_mmu_cache->trigger_exception(9/*18*/);
         }
     }
 
