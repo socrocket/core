@@ -209,11 +209,10 @@ mmu::~mmu() {
 
 signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * access_index,
                                   uint64_t vaddr, int asi, uint64_t * page_size,
-                                  unsigned * debug, bool is_dbg, sc_core::sc_time * t, unsigned is_write, unsigned * pde_REMOVE, unsigned * mask_REMOVE ) {
+                                  unsigned * debug, bool is_dbg, sc_core::sc_time * t, unsigned is_write, unsigned * pde_REMOVE ) {
 
     signed access_perms = 0, error_code = 0, is_diry, is_user;
     unsigned pde_ptr, pde;
-    uint64_t page_offset;
     bool cacheable_mem;
 
     // According to the SparcV8 Manual: Pages of the Reference MMU are always aligned on 4K-byte boundaries; hence, the lower-order
@@ -300,7 +299,7 @@ signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * ac
     #endif
     *pde_REMOVE = pde;
 
-    unsigned mask = 0xffffffff;
+    *page_size = 0x0; // -1 -> 0xFFFFFFFFFFFFFFFF (uint64_t) :-)
     switch( pde & 0x3 ) {
     default:
     case 0: // Invalid
@@ -310,9 +309,6 @@ signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * ac
       return 4 << 2;                                        // L: Level 0, FT: Translation error
     
     case 1: // 1. load from 1st-level page table
-        mask  = 0x00ffffff;
-        *mask_REMOVE = mask;
-
         pde_ptr = ((pde & ~3) << 4)+(idx1 << 2);
         m_mmu_cache->mem_read(pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem, false);
         #ifdef LITTLE_ENDIAN_BO
@@ -328,9 +324,6 @@ signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * ac
 
         default:
         case 1: // 2. load from 2nd-level page table
-            mask = 0x0003ffff;
-            *mask_REMOVE = mask;
-
             pde_ptr = (((pde & ~0x3) << 4) + (idx2 << 2));
             m_mmu_cache->mem_read( pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem, false);
             #ifdef LITTLE_ENDIAN_BO
@@ -346,9 +339,6 @@ signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * ac
                 return (2 << 8) | (4 << 2);                 // L: Level 2, FT: Translation error
 
             case 1: // 3. load from 3rd-level page table
-                mask = 0x00000fff;
-                *mask_REMOVE = mask;
-
                 pde_ptr = (((pde & ~0x3) << 4) + (idx3<<2));
                 m_mmu_cache->mem_read( pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem, false);
                 #ifdef LITTLE_ENDIAN_BO
@@ -363,17 +353,15 @@ signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * ac
                 case 3: // Reserved
                     return (3 << 8) | (4 << 2);             // L: Level 3, FT: Translation error
                 case 2:
-                    page_offset = 0;
+                    break;
                 }
                 *page_size = 0x1000;
                 break;
             case 2:
-                page_offset = vaddr & 0x3f000;
                 *page_size = 0x40000;
             }
             break;
         case 2:
-            page_offset = vaddr & 0xfff000;
             *page_size = 0x1000000;
         }
     }
@@ -387,7 +375,7 @@ signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * ac
     // mklinuximg -> boot.c is setting access_perms here to SRMMU_ACC_S_ALL which is 0x7
     // therefore only Supervisor can access stuff, but on the other hand, only user accesses are triggered
 
-    *paddr = ((pde & ~0xFF) << 4 | (vaddr & mask));
+    *paddr = ((pde & ~0xFF) << 4 | (vaddr & ((*page_size) - 1)));
     *paddr &= (((uint64_t)1 << 36) - 1);
     return error_code;
 }
@@ -407,26 +395,11 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
     unsigned int offset = ((addr << m_vtag_width) >> m_vtag_width);
     t_VAT vpn = (addr >> (32 - m_vtag_width));
 
-    // The Virtual Address Tag consists of three indices, which are used to look
-    // up the three level page table in main memory. The indices are extracted from
-    // the tag and translated to byte addresses (shift left 2 bit)
-    //unsigned int idx1 = (vpn >> (m_idx2 + m_idx3) << 2);
-    //unsigned int idx2 = (vpn << (32 - m_idx2 - m_idx3)) >> (30 - m_idx3);
-    //unsigned int idx3 = (vpn << (32 - m_idx3)) >> (30 - m_idx3);
-    //unsigned int idx1 = (vpn >> 12);
-    //unsigned int idx2 = (vpn << 6) & 0x3e;
-    //unsigned int idx3 = vpn & 0x3e;
-    v::debug << this->name() << "VPN: " << hex << vpn << " vtag_width " << hex << m_vtag_width<< endl;
-    unsigned int idx1 = (vpn >> 12) & 0xff;
-    unsigned int idx2 = (vpn >> 6) & 0x3f;
-    unsigned int idx3 = vpn & 0x3f;
     
     // Locals for intermediate results
     t_PTE_context tmp;
     *paddr = 0xffffffffffff0000ULL; // has size of 36bits!
     unsigned int pde;
-
-    bool cacheable_mem;
 
     // Search virtual address tag in ipdc (associative)
     v::debug << this->name() << "Access with ADDR: " << std::hex << addr << " VPN: " << std::hex << vpn
@@ -516,10 +489,9 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
     
     uint64_t page_size = 0;
     unsigned access_index;
-    unsigned mask = 0xFFFFFFFF;
     signed error_code = get_physical_address( paddr, NULL, &access_index,
                                   addr, asi, &page_size,
-                                  debug, is_dbg, t, is_write, &pde, &mask );
+                                  debug, is_dbg, t, is_write, &pde );
 
     if( error_code ) {
         v::error << this->name()
@@ -591,13 +563,7 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
         tmp.context = MMU_CONTEXT_REG;
         tmp.pte = pde;
         tmp.lru = 0xffffffffffffffff - 1;
-//        if( mask != (page_size - 1) )
-//            std::cout << "ERRRORRRRRR " << std::hex << mask << " " << (page_size -1) << std::endl;
-//        if( ! page_size )
-//            tmp.offset_mask = (page_size - 1)/*mask*/;
-//        else
-//            tmp.offset_mask = 0xFFFFFFFF;
-        tmp.offset_mask = mask;
+        tmp.offset_mask = (page_size - 1);
 
         (*tlb)[vpn] = tmp;
 
@@ -611,7 +577,7 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
         }
 
         // build physical address from PTE and offset
-        *paddr = ((pde & ~0xFF) << 4 | (addr & tmp.offset_mask));
+        *paddr = ((pde & ~0xFF) << 4 | (addr & (page_size - 1)));
         *paddr &= (((uint64_t)1 << 36) - 1);
 
         if ((pde & (1<<7)) == 0) {
@@ -694,9 +660,7 @@ void mmu::write_mcr(unsigned int * data) {
   // Only TD [15], NF [1] and E [0] are writable
   MMU_CONTROL_REG = tmp2 | (tmp & 0x00008003);
 
-  //env->mmuregs[0] = (env->mmuregs[0] & 0xff000000) | (val & 0x00ffffff);
-
-  v::info << name() << "Write " << tmp << "(" << *data << ") to MMU_CONTROL_REG: " << hex << v::setw(8) << MMU_CONTROL_REG << v::endl;
+  v::debug << name() << "Write " << tmp << " (" << *data << ") to MMU_CONTROL_REG: " << hex << v::setw(8) << MMU_CONTROL_REG << v::endl;
 
 }
 
@@ -709,10 +673,9 @@ unsigned int mmu::read_mctpr() {
   swap_Endianess(tmp);
   #endif
   
-  v::info << name() << "Read from MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << tmp << v::endl;
+  v::debug << name() << "Read from MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << tmp << v::endl;
 
   return (tmp);
-
 }
 
 // Write MMU Context Table Pointer Register
@@ -727,8 +690,7 @@ void mmu::write_mctpr(unsigned int * data) {
   // [1-0] reserved, must read as zero
   MMU_CONTEXT_TABLE_POINTER_REG = (tmp & ~0x3);
 
-  v::info << name() << "Write to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << MMU_CONTEXT_TABLE_POINTER_REG << v::endl;
-
+  v::debug << name() << "Write to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << MMU_CONTEXT_TABLE_POINTER_REG << v::endl;
 }
 
 // Read MMU Context Register
@@ -740,10 +702,9 @@ unsigned int mmu::read_mctxr() {
   swap_Endianess(tmp);
   #endif
   
-  v::info << name() << "Read from MMU_CONTEXT_REG: " << hex << v::setw(8) << MMU_CONTEXT_REG << v::endl;
+  v::debug << name() << "Read from MMU_CONTEXT_REG: " << hex << v::setw(8) << MMU_CONTEXT_REG << v::endl;
 
   return (tmp);
-
 }
 
 // Write MMU Context Register
@@ -757,8 +718,7 @@ void mmu::write_mctxr(unsigned int * data) {
 
   MMU_CONTEXT_REG = tmp;
 
-  v::info << name() << "Write to MMU_CONTEXT_REG: " << hex << v::setw(8) << MMU_CONTEXT_REG << v::endl;
-
+  v::debug << name() << "Write to MMU_CONTEXT_REG: " << hex << v::setw(8) << MMU_CONTEXT_REG << v::endl;
 }
 
 // Read MMU Fault Status Register
@@ -770,13 +730,12 @@ unsigned int mmu::read_mfsr() {
   swap_Endianess(tmp);
   #endif
   
-  v::info << name() << "Read from MMU_FAULT_STATUS_REG: " << hex << v::setw(8) << MMU_FAULT_STATUS_REG << v::endl;
+  v::debug << name() << "Read from MMU_FAULT_STATUS_REG: " << hex << v::setw(8) << MMU_FAULT_STATUS_REG << v::endl;
 
   // Page 258 - Table H-8:  Reading the Fault Status Register clears it
   MMU_FAULT_STATUS_REG = 0;
 
   return (tmp);
-
 }
 
 // Read MMU Fault Address Register
@@ -788,10 +747,9 @@ unsigned int mmu::read_mfar() {
   swap_Endianess(tmp);
   #endif
   
-  v::info << name() << "Read from MMU_FAULT_ADDRESS_REG: " << hex << v::setw(8) << MMU_FAULT_ADDRESS_REG << v::endl;
+  v::debug << name() << "Read from MMU_FAULT_ADDRESS_REG: " << hex << v::setw(8) << MMU_FAULT_ADDRESS_REG << v::endl;
 
   return (tmp);
-
 }
 
 // Diagnostic PDC access (Page 255 SparcV8 Man):
