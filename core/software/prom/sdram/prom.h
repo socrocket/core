@@ -22,4 +22,3 @@
 
 // RAM Size (Used to set the stack pointer)
 #define RAMSIZE   0x002000000
-
