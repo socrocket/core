@@ -105,7 +105,7 @@ int sc_main(int argc, char** argv) {
 #ifdef HAVE_USI
     // Initialize Python
     USI_HAS_MODULE(systemc_);
-    USI_HAS_MODULE(usiobject);
+    USI_HAS_MODULE(delegate);
     USI_HAS_MODULE(scireg);
     USI_HAS_MODULE(amba);
     USI_HAS_MODULE(report);
@@ -114,7 +114,7 @@ int sc_main(int argc, char** argv) {
     usi_init(argc, argv);
 
     usi_load("usi.api.systemc");
-    usi_load("usi.api.usiobject");
+    usi_load("usi.api.delegate");
     usi_load("usi.api.scireg");
     usi_load("usi.api.amba");
 
