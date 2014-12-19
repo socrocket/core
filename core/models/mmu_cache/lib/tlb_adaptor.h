@@ -54,15 +54,15 @@ class tlb_adaptor : public DefaultBase, public mem_if {
 
             unsigned int paddr;
             unsigned int mmu_ctrl = m_mmu->read_mcr();
-            bool cacheable_tlb = true;
 
             #ifdef LITTLE_ENDIAN_BO
             swap_Endianess(mmu_ctrl);
             #endif
 
-            if ((mmu_ctrl & 0x1) == 1) { // mmu enabled
+            if ( mmu_ctrl & 0x1 ) { // mmu enabled
                 uint64_t t_paddr;
-                m_mmu->tlb_lookup(addr, asi, m_tlb, m_tlbnum, t, debug, is_dbg, cacheable_tlb, 0, &t_paddr );
+                if( m_mmu->tlb_lookup(addr, asi, m_tlb, m_tlbnum, t, debug, is_dbg, cacheable, 0, &t_paddr ) )
+                    return false;  // if not 0, tlb_lookup failed! -> no mem_read!
                 paddr = (unsigned int) t_paddr;
             }
             else { // mmu in bypass mode
@@ -70,7 +70,7 @@ class tlb_adaptor : public DefaultBase, public mem_if {
             }
 
             // forward request to amba interface - return cacheability
-            return (m_mmu_cache->mem_read(paddr, asi, data, len, t, debug, is_dbg, cacheable, is_lock) && cacheable_tlb);
+            return m_mmu_cache->mem_read(paddr, asi, data, len, t, debug, is_dbg, cacheable, is_lock);
         }
 
         /// implementation of mem_write function from mem_if.h
@@ -85,10 +85,11 @@ class tlb_adaptor : public DefaultBase, public mem_if {
             swap_Endianess(mmu_ctrl);
             #endif
 
-            if ((mmu_ctrl & 0x1) == 1) { // mmu enabled
+            if ( mmu_ctrl & 0x1 ) { // mmu enabled
                 uint64_t t_paddr;
-                m_mmu->tlb_lookup(addr, asi, m_tlb, m_tlbnum, t, debug, is_dbg, cacheable, 1, &t_paddr );
-                paddr = (unsigned int) t_paddr; 
+                if( m_mmu->tlb_lookup(addr, asi, m_tlb, m_tlbnum, t, debug, is_dbg, cacheable, 1, &t_paddr ) )
+                    return;  // if not 0, tlb_lookup failed! -> no mem_write!
+                paddr = (unsigned int) t_paddr;
             }
             else { // mmu in bypass mode
                 paddr = addr;
