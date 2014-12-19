@@ -174,14 +174,15 @@ mmu::mmu(ModuleName name, // sysc module name,
 
     }
 
-    unsigned tmp_access_table[8][8] = { { 0, 0, 0, 0, 2, 0, 3, 3 },
-                           { 0, 0, 0, 0, 2, 0, 0, 0 },
-                           { 2, 2, 0, 0, 0, 2, 3, 3 },
-                           { 2, 2, 0, 0, 0, 2, 0, 0 },
-                           { 2, 0, 2, 0, 2, 2, 3, 3 },
-                           { 2, 0, 2, 0, 2, 0, 2, 0 },
-                           { 2, 2, 2, 0, 2, 2, 3, 3 },
-                           { 2, 2, 2, 0, 2, 2, 2, 0 } };
+    unsigned tmp_access_table[8][8] = {
+      { 0, 0, 0, 0, 2, 0, 3, 3 },
+      { 0, 0, 0, 0, 2, 0, 0, 0 },
+      { 2, 2, 0, 0, 0, 2, 3, 3 },
+      { 2, 2, 0, 0, 0, 2, 0, 0 },
+      { 2, 0, 2, 0, 2, 2, 3, 3 },
+      { 2, 0, 2, 0, 2, 0, 2, 0 },
+      { 2, 2, 2, 0, 2, 2, 3, 3 },
+      { 2, 2, 2, 0, 2, 2, 2, 0 } };
     memcpy( this->access_table, tmp_access_table, sizeof(unsigned)*8*8 ); // ugly
 
     // Configuration report
@@ -203,6 +204,192 @@ mmu::~mmu() {
 
   GC_UNREGISTER_CALLBACKS();
 
+}
+
+
+signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * access_index,
+                                  uint64_t vaddr, int asi, uint64_t * page_size,
+                                  unsigned * debug, bool is_dbg, sc_core::sc_time * t, unsigned is_write, unsigned * pde_REMOVE, unsigned * mask_REMOVE ) {
+
+    signed access_perms = 0, error_code = 0, is_diry, is_user;
+    unsigned pde_ptr, pde;
+    uint64_t page_offset;
+    bool cacheable_mem;
+
+    // According to the SparcV8 Manual: Pages of the Reference MMU are always aligned on 4K-byte boundaries; hence, the lower-order
+    // 12 bits of a physical address are always the same as the low-order 12 bits of
+    // the virtual address. The Gaisler MMU additionally supports 8k, 16k and 32k alignment,
+//    unsigned int offset = ((addr << m_vtag_width) >> m_vtag_width);
+    t_VAT vpn = (vaddr >> (32 - m_vtag_width));
+
+    // The Virtual Address Tag consists of three indices, which are used to look
+    // up the three level page table in main memory. The indices are extracted from
+    // the tag and translated to byte addresses (shift left 2 bit)
+    //unsigned int idx1 = (vpn >> (m_idx2 + m_idx3) << 2);
+    //unsigned int idx2 = (vpn << (32 - m_idx2 - m_idx3)) >> (30 - m_idx3);
+    //unsigned int idx3 = (vpn << (32 - m_idx3)) >> (30 - m_idx3);
+    //unsigned int idx1 = (vpn >> 12);
+    //unsigned int idx2 = (vpn << 6) & 0x3e;
+    //unsigned int idx3 = vpn & 0x3e;
+    v::debug << this->name() << "VPN: " << hex << vpn << " vtag_width " << hex << m_vtag_width<< endl;
+    unsigned int idx1 = (vpn >> 12) & 0xff;
+    unsigned int idx2 = (vpn >> 6) & 0x3f;
+    unsigned int idx3 = vpn & 0x3f;
+
+
+    // User access:       ASI = 0x8 or 0xA
+    // Supervisor access: ASI = 0x9 or 0xB
+    is_user = ! (asi & 0x1);
+    // Instruction:       ASI = 0x8 or 0x9
+    // Data:              ASI = 0xA or 0xB
+    unsigned is_instruction_access = ! (asi & 0x2);
+
+
+    if( ! (MMU_CONTROL_REG & 0x1)) {
+        *paddr = vaddr;
+        return 0;
+    }
+
+    /*
+       AT
+        0  - ld/st? -> data/inst? -> user/priv? -> Load from User Data Space
+        1           |             |             \> Load from Supervisor Data Space
+        2           |             -> user/priv? -> Load/Execute from User Instruction Space
+        3           |                           \> Load/Execute from Supervisor Instruction Space
+        4           -> data/inst? -> user/priv? -> Store to User Data Space
+        5                         |             \> Store to Supervisor Data Space
+        6                         -> user/priv? -> Store to User Instruction Space
+        7                                       \> Store to Supervisor Instruction Space
+    */
+    *access_index = (is_write << 2) | (is_instruction_access << 1) | (! is_user) ; // AT (Access Type)
+    *paddr = 0xffffffffffff0000ULL; // has size of 36bits!
+
+    // COMPOSITION OF A PAGE TABLE DESCRIPTOR (PTD)
+    // [31-2] PTP - Page Table Pointer. Physical address of the base of a next-level
+    // page table. The PTP appears on bits 35 (32) through 6 of the physical address bus
+    // during miss processing. The page table pointed to by a PTP must be aligned on a
+    // boundary equal to the size of the page table. The sizes of the three levels of
+    // page tables are: level 1 - 1024 bytes, level 2 - 256 bytes, level 3 - 256 bytes.
+    // [1-0] ET - Entry type. (0 - reserved, 1 - PTD, 2 - PTE, 3 - reserved)
+
+    // COMPOSITION OF A PAGE TABLE ENTRY (PTE)
+    // [31-8] PPN - Physical Page Number. The PPN appears on bits 35 through 12 of the
+    // physical address bus when a translation completes (for 4kb default configuration)
+    // [7] C - Cacheable. If this bit is one, the page is cacheable by an instruction
+    // and/or data cache.
+    // [6] M - Modified. This bit is set to one by the MMU when the page is accessed
+    // for writing (except when accessed via passthrough ASI).
+    // [5] R - Referenced. this bit is set to one by the MMU when the page is accessed
+    // (except when accessed via passthrough ASI)
+    // [4-2] Access Permissions (see page 248 of Sparc Reference Manual)
+    // [1-0] ET - Entry type. (0 - reserved, 1 - PTD, 2 - PTE, 3 - reserved)
+
+    // tlb miss processing
+    v::debug << this->name()
+            << "START TLB MISS PROCESSING FOR VIRTUAL ADDRESS: " << std::hex
+            << vaddr << " with indices 1/2/3: " << idx1 << "/" << idx2 << "/" << idx3 << " for context: " << MMU_CONTEXT_REG << v::endl;
+
+    // **************************************
+    // Context-Table lookup
+    // **************************************
+
+    pde_ptr = (MMU_CONTEXT_TABLE_POINTER_REG << 4) + (MMU_CONTEXT_REG << 2);
+    m_mmu_cache->mem_read(pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem,  false);
+    #ifdef LITTLE_ENDIAN_BO
+    swap_Endianess(pde);
+    #endif
+    *pde_REMOVE = pde;
+
+    unsigned mask = 0xffffffff;
+    switch( pde & 0x3 ) {
+    default:
+    case 0: // Invalid
+      return 1 << 2;                                        // L: Level 0, FT: Invalid address error
+    case 2: // L0 PTE -> shouldn't possibly not happen
+    case 3: // Reserved
+      return 4 << 2;                                        // L: Level 0, FT: Translation error
+    
+    case 1: // 1. load from 1st-level page table
+        mask  = 0x00ffffff;
+        *mask_REMOVE = mask;
+
+        pde_ptr = ((pde & ~3) << 4)+(idx1 << 2);
+        m_mmu_cache->mem_read(pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem, false);
+        #ifdef LITTLE_ENDIAN_BO
+        swap_Endianess(pde);
+        #endif
+        *pde_REMOVE = pde;
+
+        switch( pde & 0x3 ) {
+        case 0: // Invalid
+            return (1 << 8) | (1 << 2);                     // L: Level 1, FT: Invalid address error
+        case 3: // Reserved
+            return (1 << 8) | (4 << 2);                     // L: Level 1, FT: Translation error
+
+        default:
+        case 1: // 2. load from 2nd-level page table
+            mask = 0x0003ffff;
+            *mask_REMOVE = mask;
+
+            pde_ptr = (((pde & ~0x3) << 4) + (idx2 << 2));
+            m_mmu_cache->mem_read( pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem, false);
+            #ifdef LITTLE_ENDIAN_BO
+            swap_Endianess(pde);
+            #endif
+            *pde_REMOVE = pde;
+
+            switch( pde & 0x3 ) {
+            default:
+            case 0: // Invalid
+                return (2 << 8) | (1 << 2);                 // L: Level 2, FT: Invalid address error
+            case 3: // Reserved
+                return (2 << 8) | (4 << 2);                 // L: Level 2, FT: Translation error
+
+            case 1: // 3. load from 3rd-level page table
+                mask = 0x00000fff;
+                *mask_REMOVE = mask;
+
+                pde_ptr = (((pde & ~0x3) << 4) + (idx3<<2));
+                m_mmu_cache->mem_read( pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem, false);
+                #ifdef LITTLE_ENDIAN_BO
+                swap_Endianess(pde);
+                #endif
+                *pde_REMOVE = pde;
+
+                switch( pde & 0x3 ) {
+                case 0: // Invalid
+                    return (3 << 8) | (1 << 2);             // L: Level 3, FT: Invalid address error
+                case 1: // PDE -> should not happen
+                case 3: // Reserved
+                    return (3 << 8) | (4 << 2);             // L: Level 3, FT: Translation error
+                case 2:
+                    page_offset = 0;
+                }
+                *page_size = 0x1000;
+                break;
+            case 2:
+                page_offset = vaddr & 0x3f000;
+                *page_size = 0x40000;
+            }
+            break;
+        case 2:
+            page_offset = vaddr & 0xfff000;
+            *page_size = 0x1000000;
+        }
+    }
+
+    // Page 257: FT -> PTE.V should be "PTE valid"
+    // check access (FT)
+    access_perms = (pde >> 0x2) & 0x7;
+    error_code = this->access_table[ *access_index ][ access_perms ] << 2; // FT -> depends on table (see page 257: FT second table)
+
+    // Comment: I'm more or less confinced that TSIM is not checking the error_code here.
+    // mklinuximg -> boot.c is setting access_perms here to SRMMU_ACC_S_ALL which is 0x7
+    // therefore only Supervisor can access stuff, but on the other hand, only user accesses are triggered
+
+    *paddr = ((pde & ~0xFF) << 4 | (vaddr & mask));
+    *paddr &= (((uint64_t)1 << 36) - 1);
+    return error_code;
 }
 
 
@@ -273,6 +460,7 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
             // Build physical address from PTE and offset, and return
             //paddr = (((tmp.pte >> 8) << (32 - m_vtag_width)) | (addr & tmp.offset_mask));
             *paddr = ((tmp.pte & ~0xff) << 4 | (addr & tmp.offset_mask));
+            *paddr &= ((0x1ull << 36) - 1);
             if ((tmp.pte & (1<<7)) == 0) {
               v::debug << this->name() << "data not cacheable!" << v::endl;
               cacheable = false;
@@ -293,7 +481,6 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
             if (m_tlb_rep==0) {
                 lru_update(vpn, tlb, tlb_size);
             }
-            *paddr &= ((0x1ull << 36) - 1);
             return 0;
         } else {
 
@@ -321,164 +508,67 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
 	        tdmisses++;
 	      }
     }
-//    return -1;
-//}
-//
-//signed mmu::mmu_handle_miss(unsigned int addr, unsigned asi,
-//                             std::map<t_VAT, t_PTE_context> * tlb,
-//                             unsigned int tlb_size, sc_core::sc_time * t,
-//                             unsigned int * debug, bool is_dbg, bool &cacheable,
-//                             unsigned is_write /* Load or Store? */ ) {
 
-    // User access:       ASI = 0x8 or 0xA
-    // Supervisor access: ASI = 0x9 or 0xB
-    unsigned is_user = ! (asi & 0x1);
-    // Instruction:       ASI = 0x8 or 0x9
-    // Data:              ASI = 0xA or 0xB
-    unsigned is_instruction_access = ! (asi & 0x2);
 
-    /*
-       AT
-        0  - ld/st? -> data/inst? -> user/priv? -> Load from User Data Space
-        1           |             |             \> Load from Supervisor Data Space
-        2           |             -> user/priv? -> Load/Execute from User Instruction Space
-        3           |                           \> Load/Execute from Supervisor Instruction Space
-        4           -> data/inst? -> user/priv? -> Store to User Data Space
-        5                         |             \> Store to Supervisor Data Space
-        6                         -> user/priv? -> Store to User Instruction Space
-        7                                       \> Store to Supervisor Instruction Space
-    */
-    unsigned access_index = (is_write << 2) | (is_instruction_access << 1) | (! is_user) ; // AT (Access Type)
 
-    // COMPOSITION OF A PAGE TABLE DESCRIPTOR (PTD)
-    // [31-2] PTP - Page Table Pointer. Physical address of the base of a next-level
-    // page table. The PTP appears on bits 35 (32) through 6 of the physical address bus
-    // during miss processing. The page table pointed to by a PTP must be aligned on a
-    // boundary equal to the size of the page table. The sizes of the three levels of
-    // page tables are: level 1 - 1024 bytes, level 2 - 256 bytes, level 3 - 256 bytes.
-    // [1-0] ET - Entry type. (0 - reserved, 1 - PTD, 2 - PTE, 3 - reserved)
 
-    // COMPOSITION OF A PAGE TABLE ENTRY (PTE)
-    // [31-8] PPN - Physical Page Number. The PPN appears on bits 35 through 12 of the
-    // physical address bus when a translation completes (for 4kb default configuration)
-    // [7] C - Cacheable. If this bit is one, the page is cacheable by an instruction
-    // and/or data cache.
-    // [6] M - Modified. This bit is set to one by the MMU when the page is accessed
-    // for writing (except when accessed via passthrough ASI).
-    // [5] R - Referenced. this bit is set to one by the MMU when the page is accessed
-    // (except when accessed via passthrough ASI)
-    // [4-2] Access Permissions (see page 248 of Sparc Reference Manual)
-    // [1-0] ET - Entry type. (0 - reserved, 1 - PTD, 2 - PTE, 3 - reserved)
 
-    // tlb miss processing
-    v::debug << this->name()
-            << "START TLB MISS PROCESSING FOR VIRTUAL ADDRESS: " << std::hex
-            << addr << " with indices 1/2/3: " << idx1 << "/" << idx2 << "/" << idx3 << " for context: " << MMU_CONTEXT_REG << v::endl;
-
-    // **************************************
-    // Context-Table lookup
-    // **************************************
-
-    unsigned pde_ptr = ((MMU_CONTEXT_TABLE_POINTER_REG) << 4) + (MMU_CONTEXT_REG << 2);
-    m_mmu_cache->mem_read(pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem,  false);
-    #ifdef LITTLE_ENDIAN_BO
-    swap_Endianess(pde);
-    #endif
-
-    unsigned mask = 0xffffffff;
-    unsigned page_size, page_offset;
-    unsigned error_code = 0;
-    switch( pde & 0x3 ) {
-    default:
-    case 0: // Invalid
-      error_code = 1 << 2; // L: Level 0, FT: Invalid address error
-      break;
-    case 2: // L0 PTE -> shouldn't possibly not happen
-    case 3: // Reserved
-      error_code = 4 << 2; // L: Level 0, FT: Translation error
-      break;
     
-    case 1: // 1. load from 1st-level page table
-        mask  = 0x00ffffff;
+    uint64_t page_size = 0;
+    unsigned access_index;
+    unsigned mask = 0xFFFFFFFF;
+    signed error_code = get_physical_address( paddr, NULL, &access_index,
+                                  addr, asi, &page_size,
+                                  debug, is_dbg, t, is_write, &pde, &mask );
 
-        pde_ptr = ((pde & ~3) << 4)+(idx1 << 2);
-        m_mmu_cache->mem_read(pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem, false);
-        #ifdef LITTLE_ENDIAN_BO
-        swap_Endianess(pde);
-        #endif
+    if( error_code ) {
+        v::error << this->name()
+                 << "Error in " << ((error_code >> 8) & 0x3) << "-Level Page Table / Entry type not valid: "
+                 << v::hex << pde << " VAddress: " << v::uint32 << addr << v::endl;
 
-        switch( pde & 0x3 ) {
-        case 0: // Invalid
-            error_code = (1 << 8) | (1 << 2); // L: Level 1, FT: Invalid address error
-            break;
-        case 3: // Reserved
-            error_code = (1 << 8) | (4 << 2); // L: Level 1, FT: Translation error
-            break;
+       sleep(1);
 
-        default:
-        case 1: // 2. load from 2nd-level page table
-            mask = 0x0003ffff;
+        // Set fault status and fault address
+        // (will be set 0, if read, otherwise set OW bit)
+        if( ! MMU_FAULT_STATUS_REG )
+            MMU_FAULT_STATUS_REG = 1;               // OW - Overwrite bit
+        // ToDo: Fault Priorities due to overwritting!
+        MMU_FAULT_STATUS_REG |= access_index << 5;  // AT - Access Type
+        MMU_FAULT_STATUS_REG |= error_code;         // provides L and FT
 
-            pde_ptr = (((pde & ~0x3) << 4) + (idx2 << 2));
-            m_mmu_cache->mem_read( pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem, false);
-            #ifdef LITTLE_ENDIAN_BO
-            swap_Endianess(pde);
-            #endif
 
-            switch( pde & 0x3 ) {
-            default:
-            case 0: // Invalid
-                error_code = (2 << 8) | (1 << 2); // L: Level 2, FT: Invalid address error
-                break;
-            case 3: // Reserved
-                error_code = (2 << 8) | (4 << 2); // L: Level 2, FT: Translation error
-                break;
+        // Instruction:       ASI = 0x8 or 0x9
+        // Data:              ASI = 0xA or 0xB
+        unsigned is_instruction_access = ! (asi & 0x2);
+        // The Fault Address Valid bit is set to one if the contents of the Fault
+        // Address Register are valid. The Fault Address Register need not be valid
+        // for instruction faults. The Fault Address Register must be valid for data
+        // faults and translation errors.
+        if( ! is_instruction_access )
+            MMU_FAULT_STATUS_REG |= 1 << 1;             // FAV - Fault Address Register valid
+        
+        MMU_FAULT_ADDRESS_REG = addr;
 
-            case 1: // 3. load from 3rd-level page table
-                mask = 0x00000fff;
 
-                pde_ptr = (((pde & ~0x3) << 4) + (idx3<<2));
-                m_mmu_cache->mem_read( pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem, false);
-                #ifdef LITTLE_ENDIAN_BO
-                swap_Endianess(pde);
-                #endif
+        // NF is the “No Fault” bit. When NF= 0, any fault detected by the MMU
+        // causes FSR and FAR to be updated and causes a fault to be generated to
+        // the processor. When NF= 1, a fault on an access to ASI 9 is handled as
+        // when NF= 0; a fault on an access to any other ASI causes FSR and FAR
+        // to be updated but no fault is generated to the processor.
 
-                switch( pde & 0x3 ) {
-                case 0: // Invalid
-                    error_code = (3 << 8) | (1 << 2); // L: Level 3, FT: Invalid address error
-                    break;
-                case 1: // PDE -> should not happen
-                case 3: // Reserved
-                    error_code = (3 << 8) | (4 << 2); // L: Level 3, FT: Translation error
-                    break;
-                case 2:
-                    page_offset = 0;
-                    page_size = 0x1000;
-                }
-                break;
-            case 2:
-                page_offset = addr & 0x3f000;
-                page_size = 0x40000;
-            }
-            break;
-        case 2:
-            page_offset = addr & 0xfff000;
-            page_size = 0x1000000;
+        // If a fault on access to an ASI other than 9 occurs while NF= 1, subsequently
+        // resetting NF from 1 to 0 does not cause a fault to the processor
+        // (even though FSR.FT ≠ 0 at that time).
+        // A change in value of the NF bit takes effect as soon as the bit is written;
+        // a subsequent access to ASI 9 will be evaluated according to the new
+        // value of the NF bit.
+        if( ! ( MMU_CONTROL_REG & 0x2 ) || ((MMU_CONTROL_REG & 0x2) && asi == 0x9 ) ) {
+            v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
+            m_mmu_cache->trigger_exception(19);
+            return -1;
         }
     }
 
-    // Page 257: FT -> PTE.V should be "PTE valid"
-    // check access (FT)
-    if( ! error_code ) {
-        unsigned access_perms = (pde >> 0x2) & 0x7;
-        error_code = this->access_table[ access_index ][ access_perms ] << 2; // FT -> depends on table (see page 257: FT second table)
-    }
-
-//    access_perms = (pde & PTE_ACCESS_MASK) >> PTE_ACCESS_SHIFT;
-//    error_code = access_table[*access_index][access_perms];
-//    if (error_code && !((env->mmuregs[0] & MMU_NF) && is_user)) {
-//        return error_code;
-//    }
 
     switch (pde & 0x3) {
     case 0x2:
@@ -501,6 +591,12 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
         tmp.context = MMU_CONTEXT_REG;
         tmp.pte = pde;
         tmp.lru = 0xffffffffffffffff - 1;
+//        if( mask != (page_size - 1) )
+//            std::cout << "ERRRORRRRRR " << std::hex << mask << " " << (page_size -1) << std::endl;
+//        if( ! page_size )
+//            tmp.offset_mask = (page_size - 1)/*mask*/;
+//        else
+//            tmp.offset_mask = 0xFFFFFFFF;
         tmp.offset_mask = mask;
 
         (*tlb)[vpn] = tmp;
@@ -516,6 +612,8 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
 
         // build physical address from PTE and offset
         *paddr = ((pde & ~0xFF) << 4 | (addr & tmp.offset_mask));
+        *paddr &= (((uint64_t)1 << 36) - 1);
+
         if ((pde & (1<<7)) == 0) {
           v::debug << this->name() << "data not cacheable!" << v::endl;
           cacheable = false;
@@ -526,8 +624,6 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
         v::debug << this->name() << "Mapping complete - Virtual Addr: "
                 << std::hex << addr << " Physical Addr: " << std::hex << paddr
                 << v::endl;
-        //std::cout << "- Mapping Complete: vaddr: " << std::hex << addr << ", paddr: " << paddr << std::endl;
-         *paddr &= (((uint64_t)1 << 36) - 1);
         return 0;
 
     case 0x1:
@@ -540,24 +636,7 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
 
 DEFAULT:
     default:
-        v::error << this->name()
-                 << "Error in " << ((error_code >> 8) & 0x3) << "-Level Page Table / Entry type not valid: "
-                 << v::hex << pde << " VAddress: " << v::uint32 << addr << v::endl;
 
-       sleep(5);
-
-        // Set fault status and fault address
-        // (will be set 0, if read, otherwise set OW bit)
-        if( ! MMU_FAULT_STATUS_REG )
-            MMU_FAULT_STATUS_REG |= 1;              // OW - Overwrite bit
-        MMU_FAULT_STATUS_REG |= access_index << 5;  // AT - Access Type
-        MMU_FAULT_STATUS_REG |= error_code;         // provides L and FT
-        MMU_FAULT_STATUS_REG |= 1 << 1;             // FAV - Fault Address Register valid
-        
-        MMU_FAULT_ADDRESS_REG = addr;
-
-        v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
-        m_mmu_cache->trigger_exception(19);
         
         // TFAULT 0x01
         // TFAULT 0x09
@@ -615,7 +694,9 @@ void mmu::write_mcr(unsigned int * data) {
   // Only TD [15], NF [1] and E [0] are writable
   MMU_CONTROL_REG = tmp2 | (tmp & 0x00008003);
 
-  v::debug << name() << "Write to MMU_CONTROL_REG: " << hex << v::setw(8) << MMU_CONTROL_REG << v::endl;
+  //env->mmuregs[0] = (env->mmuregs[0] & 0xff000000) | (val & 0x00ffffff);
+
+  v::info << name() << "Write " << tmp << "(" << *data << ") to MMU_CONTROL_REG: " << hex << v::setw(8) << MMU_CONTROL_REG << v::endl;
 
 }
 
@@ -628,7 +709,7 @@ unsigned int mmu::read_mctpr() {
   swap_Endianess(tmp);
   #endif
   
-  std::cout << name() << "Read from MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << tmp << std::endl;
+  v::info << name() << "Read from MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << tmp << v::endl;
 
   return (tmp);
 
@@ -646,7 +727,7 @@ void mmu::write_mctpr(unsigned int * data) {
   // [1-0] reserved, must read as zero
   MMU_CONTEXT_TABLE_POINTER_REG = (tmp & ~0x3);
 
-  std::cout << name() << "Write to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << MMU_CONTEXT_TABLE_POINTER_REG << std::endl;
+  v::info << name() << "Write to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << MMU_CONTEXT_TABLE_POINTER_REG << v::endl;
 
 }
 
@@ -659,7 +740,7 @@ unsigned int mmu::read_mctxr() {
   swap_Endianess(tmp);
   #endif
   
-  std::cout << name() << "Read from MMU_CONTEXT_REG: " << hex << v::setw(8) << MMU_CONTEXT_REG << std::endl;
+  v::info << name() << "Read from MMU_CONTEXT_REG: " << hex << v::setw(8) << MMU_CONTEXT_REG << v::endl;
 
   return (tmp);
 
@@ -676,7 +757,7 @@ void mmu::write_mctxr(unsigned int * data) {
 
   MMU_CONTEXT_REG = tmp;
 
-  std::cout << name() << "Write to MMU_CONTEXT_REG: " << hex << v::setw(8) << MMU_CONTEXT_REG << std::endl;
+  v::info << name() << "Write to MMU_CONTEXT_REG: " << hex << v::setw(8) << MMU_CONTEXT_REG << v::endl;
 
 }
 
@@ -689,7 +770,7 @@ unsigned int mmu::read_mfsr() {
   swap_Endianess(tmp);
   #endif
   
-  std::cout << name() << "Read from MMU_FAULT_STATUS_REG: " << hex << v::setw(8) << MMU_FAULT_STATUS_REG << std::endl;
+  v::info << name() << "Read from MMU_FAULT_STATUS_REG: " << hex << v::setw(8) << MMU_FAULT_STATUS_REG << v::endl;
 
   // Page 258 - Table H-8:  Reading the Fault Status Register clears it
   MMU_FAULT_STATUS_REG = 0;
@@ -707,7 +788,7 @@ unsigned int mmu::read_mfar() {
   swap_Endianess(tmp);
   #endif
   
-  std::cout << name() << "Read from MMU_FAULT_ADDRESS_REG: " << hex << v::setw(8) << MMU_FAULT_ADDRESS_REG << std::endl;
+  v::info << name() << "Read from MMU_FAULT_ADDRESS_REG: " << hex << v::setw(8) << MMU_FAULT_ADDRESS_REG << v::endl;
 
   return (tmp);
 
