@@ -99,7 +99,7 @@ class leon3_mmu_cache :
       virtual unsigned int read_word( const unsigned int & address , const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
       virtual unsigned short int read_half( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
       virtual unsigned char read_byte( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw();
-      virtual unsigned int read_instr( const unsigned int & address, const unsigned int flush) throw();
+      virtual unsigned int read_instr( const unsigned int & address, const unsigned int asi, const unsigned int flush) throw();
       virtual sc_dt::uint64 read_dword_dbg( const unsigned int & address ) throw();
       virtual unsigned int read_word_dbg( const unsigned int & address ) throw();
       virtual unsigned short int read_half_dbg( const unsigned int & address ) throw();
