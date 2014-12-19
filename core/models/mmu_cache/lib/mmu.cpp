@@ -244,12 +244,12 @@ signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * ac
     // Data:              ASI = 0xA or 0xB
     unsigned is_instruction_access = ! (asi & 0x2);
 
-
+/*  // --> handled within tlb_adaptor.h
     if( ! (MMU_CONTROL_REG & 0x1)) {
         *paddr = vaddr;
         return 0;
     }
-
+*/
     /*
        AT
         0  - ld/st? -> data/inst? -> user/priv? -> Load from User Data Space
@@ -367,14 +367,9 @@ signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * ac
         }
     }
 
-    // Page 257: FT -> PTE.V should be "PTE valid"
-    // check access (FT)
+    // Page 257: FT -> PTE.V should be "PTE valid" --> check access (FT)
     access_perms = (pde >> 0x2) & 0x7;
     error_code = this->access_table[ *access_index ][ access_perms ] << 2; // FT -> depends on table (see page 257: FT second table)
-
-    // Comment: I'm more or less confinced that TSIM is not checking the error_code here.
-    // mklinuximg -> boot.c is setting access_perms here to SRMMU_ACC_S_ALL which is 0x7
-    // therefore only Supervisor can access stuff, but on the other hand, only user accesses are triggered
 
     *paddr = ((pde & ~0xFF) << 4 | (vaddr & ((*page_size) - 1)));
     *paddr &= (((uint64_t)1 << 36) - 1);
