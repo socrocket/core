@@ -53,7 +53,7 @@ namespace leon3_funclt_trap{
         virtual unsigned int read_word( const unsigned int & address , const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
         virtual unsigned short int read_half( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
         virtual unsigned char read_byte( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
-        virtual unsigned int read_instr( const unsigned int & address, const unsigned int flush) throw() = 0;
+        virtual unsigned int read_instr( const unsigned int & address, const unsigned int asi, const unsigned int flush) throw() = 0;
         virtual sc_dt::uint64 read_dword_dbg( const unsigned int & address );
         virtual unsigned int read_word_dbg( const unsigned int & address );
         virtual unsigned short int read_half_dbg( const unsigned int & address );

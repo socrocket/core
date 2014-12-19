@@ -173,18 +173,18 @@ void mmu_cache_base::dorst() {
   // Reset functionality executed on 0 to 1 edge
 }
 
-void mmu_cache_base::exec_instr(const unsigned int &addr, unsigned char *ptr, unsigned int *debug, const unsigned int &flush, sc_core::sc_time& delay, bool is_dbg) {
+void mmu_cache_base::exec_instr(const unsigned int &addr, unsigned char *ptr, unsigned int asi, unsigned int *debug, const unsigned int &flush, sc_core::sc_time& delay, bool is_dbg) {
   v::debug << name() << "instr exec" << v::endl;
   // Instruction scratchpad enabled && address points into selected 16MB region
   bool cacheable = true;
   if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-    ilocalram->mem_read((unsigned int)addr, 0, ptr, 4, &delay, debug, is_dbg, cacheable);
+    ilocalram->mem_read((unsigned int)addr, asi, ptr, 4, &delay, debug, is_dbg, cacheable);
 
   // Instruction cache access
   } else {
 
-    icache->mem_read((unsigned int)addr, 0x8, ptr, 4, &delay, debug, is_dbg, cacheable, false);
+    icache->mem_read((unsigned int)addr, asi, ptr, 4, &delay, debug, is_dbg, cacheable, false);
 
   }
 }
@@ -903,13 +903,13 @@ bool mmu_cache_base::mem_read(unsigned int addr, unsigned int asi, unsigned char
   if ( (addr >= 0x800FF000) & (addr < 0x800FFFFF) ) {
     uint32_t tmp = uint32_t(*reinterpret_cast<uint32_t *>(trans->get_data_ptr()));
     swap_Endianess(tmp);
-    v::info << name() << "APB register addr: " << v::uint32 << addr << " data " << v::uint32 << tmp << v::endl;
+    //v::info << name() << "APB register addr: " << v::uint32 << addr << " data " << v::uint32 << tmp << v::endl;
 
   }
   if ( (addr >= 0xFFFFF000) & (addr < 0xFFFFFFFF) ) {
     uint32_t tmp = uint32_t(*reinterpret_cast<uint32_t *>(trans->get_data_ptr()));
     swap_Endianess(tmp);
-    v::info << name() << "AHB register addr: " << v::uint32 << addr << " data " << v::uint32 << tmp << v::endl;
+    //v::info << name() << "AHB register addr: " << v::uint32 << addr << " data " << v::uint32 << tmp << v::endl;
 
   }
   if (sc_time_stamp().value() > 4836056140000) {
