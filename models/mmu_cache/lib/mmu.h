@@ -64,7 +64,6 @@ class mmu : public DefaultBase, public mmu_if {
 
   // Member functions
   // ----------------
-  unsigned MYdebug;
   /// Page descriptor cache (PDC) lookup
   signed tlb_lookup(unsigned int addr, unsigned asi,
                              std::map<t_VAT, t_PTE_context> * tlb,
