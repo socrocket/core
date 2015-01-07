@@ -197,7 +197,6 @@ mmu::mmu(ModuleName name, // sysc module name,
     v::info << this->name() << " * mmupgsz (0, 2 - 4kb, 3 - 8kb, 4 - 16kb, 5 - 32kb): " << mmupgsz << v::endl;
     v::info << this->name() << " * pow_mon: " << m_pow_mon << v::endl;
     v::info << this->name() << " * ***************************************************************************** " << v::endl;
-    MYdebug = 0;
 }
 
 // Destructor
@@ -557,7 +556,6 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
             return -1;
         }
     }
-
 
     switch (pde & 0x3) {
     case 0x2:
