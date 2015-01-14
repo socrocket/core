@@ -49,8 +49,8 @@ Mctrl::Mctrl(
     hindex,
     0x04,                                        // ven: ESA
     0x0F,                                        // dev: MCTRL
-    1,
-    0,                                           // VER, IRQ
+    0,  // VER: SoCRocket default: 1, try to Mimic TSIM therefore 0 -- psiegl
+    0,                                           // IRQ
     ambaLayer,
     BAR(AHBMEM, _rommask, true, true, _romaddr),
     BAR(AHBMEM, _iomask, false, false, _ioaddr),
