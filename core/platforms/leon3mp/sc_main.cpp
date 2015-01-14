@@ -380,7 +380,7 @@ int sc_main(int argc, char** argv) {
     // Always enabled
 
     gs::gs_param_array p_irqmp("irqmp", p_conf);
-    gs::gs_param<unsigned int> p_irqmp_addr("addr", 0x1F0, p_irqmp);
+    gs::gs_param<unsigned int> p_irqmp_addr("addr", /*0x1F0*/0x2, p_irqmp); // SoCRocket default: 0x1F0, try to mimic TSIM therefore 0x2 -- psiegl
     gs::gs_param<unsigned int> p_irqmp_mask("mask", 0xFFF, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_index("index", 2, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_eirq("eirq", 0u, p_irqmp);
