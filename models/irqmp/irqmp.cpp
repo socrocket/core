@@ -29,7 +29,9 @@ Irqmp::Irqmp(ModuleName name,
   int eirq,
   unsigned int pindex,
   bool powmon) :
-  APBDevice<RegisterBase>(name, pindex, 0x01, 0x00D, 3, 0, APBIO, pmask, false, false, paddr, 0xFF),
+  APBDevice<RegisterBase>(name, pindex, 0x01, 0x00D, 
+        2, /* VER: SoCRocket default: 3, try to Mimic TSIM therefore 2 -- psiegl */
+        0, APBIO, pmask, false, false, paddr, 0xFF),
   apb_slv(
     "APB_SLAVE",                    // name
     r,                              // register container

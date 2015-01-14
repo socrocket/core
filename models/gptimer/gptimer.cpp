@@ -24,7 +24,9 @@
 GPTimer::GPTimer(ModuleName name, unsigned int ntimers,
                    int pindex, int paddr, int pmask, int pirq, int sepirq,
                    int sbits, int nbits, int wdog, bool powmon) :
-    APBDevice<RegisterBase>(name, pindex, 0x1, 0x11, 1, pirq, APBIO, pmask, false, false, paddr, 4 * (1+ ntimers)),
+    APBDevice<RegisterBase>(name, pindex, 0x1, 0x11,
+        0, /* VER: SoCRocket default: 1, try to Mimic TSIM therefore 0 -- psiegl */
+        pirq, APBIO, pmask, false, false, paddr, 4 * (1+ ntimers)),
     bus("bus", r, ((paddr) & (pmask)) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false),
     irq("IRQ"), wdog("WDOG"),
     conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)),
