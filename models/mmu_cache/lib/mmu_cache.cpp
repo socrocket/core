@@ -248,9 +248,9 @@ void mmu_cache::exec_data(tlm::tlm_generic_payload& trans, sc_core::sc_time& del
       lock   = 0;
 
       v::error << name() << "DEXT Payload extension missing - assume ASI 0xA for unprivileged data" << v::endl;
-  }
 
-  assert( 1 ); // fix asi -> priv / unpriv
+      assert( 1 ); // fix asi -> priv / unpriv
+  }
 
   tlm::tlm_response_status response = tlm::TLM_COMMAND_ERROR_RESPONSE;
   mmu_cache_base::exec_data(cmd, addr, ptr, len, asi, debug, flush, lock, delay, is_dbg, response);
