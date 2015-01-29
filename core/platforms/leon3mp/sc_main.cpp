@@ -123,6 +123,7 @@ int sc_main(int argc, char** argv) {
     usi_load("usi.cci");
     //usi_load("tools.python.power");
     usi_load("usi.shell");
+    usi_load("usi.tools.execute");
 
     usi_start_of_initialization();
 #endif  // HAVE_USI

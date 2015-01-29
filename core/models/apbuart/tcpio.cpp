@@ -24,7 +24,7 @@
 /// Creates a connection
 void TcpIo::makeConnection() {
   try {
-    srCommand("TcpIo")();
+    //srCommand("TcpIo")();
     boost::asio::io_service io_service;
     boost::asio::ip::tcp::acceptor acceptor(io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port));
     this->socket = new boost::asio::ip::tcp::socket(io_service);
