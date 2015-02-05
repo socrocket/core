@@ -131,6 +131,8 @@ class repo(ConfigurationContext):
             }).split(), cwd=directory )
 
     def add_repo(self, cmd, params):
+        import shutil
+
         if len(params) < 1:
             print "add takes 2 parameters:"
             print "usage: %s <directory> <repository>" % (' '.join(sys.argv[0:3]))
@@ -155,7 +157,6 @@ class repo(ConfigurationContext):
                 "parameter": params
             }).split())
         except CalledProcessError:
-            import shutil
             shutil.rmtree(directory)
 
         
