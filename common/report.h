@@ -270,7 +270,7 @@ class sr_report_handler : public sc_core::sc_report_handler {
         } else {
           // Whitelist
           sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj);
-          enabled = (iter == sr_report_handler::filter.end() || (severity_ > iter->second.first && verbosity_ >= iter->second.second));
+          enabled = (iter != sr_report_handler::filter.end() && (severity_ > iter->second.first && verbosity_ >= iter->second.second));
         }
       }
 
