@@ -235,7 +235,7 @@ int sc_main(int argc, char** argv) {
     );
 
     // Connect to APB and clock
-    apbctrl.apb(irqmp.apb_slv);
+    apbctrl.apb(irqmp.apb);
     irqmp.set_clk(p_system_clock,SC_NS);
 
     // AHBSlave - MCtrl, ArrayMemory
