@@ -25,9 +25,10 @@
 #ifndef COMMON_VMAP_H_
 #define COMMON_VMAP_H_
 
+#ifndef MTI_SYSTEMC
 #ifdef __GNUC__
 #ifdef __GNUC_MINOR__
-#if ((__GNUC__ >= 4 && __GNUC_MINOR__ >= 3) && !defined(MTI_SYSTEMC))
+#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
 #include <tr1/unordered_map>
 #define vmap std::tr1::unordered_map
 #else
@@ -47,6 +48,9 @@
 #define  vmap std::map
 #endif
 #endif
-
+#else
+#include <map>
+#define  vmap std::map
+#endif
 #endif  // COMMON_VMAP_H_
 /// @}

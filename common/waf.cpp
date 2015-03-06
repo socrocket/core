@@ -42,7 +42,7 @@ boost::filesystem::path findPath(std::string filename, std::string start) {
 }
 
 std::map<std::string, std::string> *readLockFile(std::string top) {
-    std::string lockfile(".lock-waf_"SYS_PLATFORM"_build");
+    std::string lockfile(".lock-waf_" SYS_PLATFORM "_build");
     boost::filesystem::path lockpath = findPath(lockfile, top);
     std::ifstream lockstream(lockpath.string().c_str(), std::ios::in);
     std::string lockcontent;
