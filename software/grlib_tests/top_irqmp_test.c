@@ -6,7 +6,7 @@ int main() {
 	report_start();
 
 	ramfill();
-	irqtest(0x00001000);
+	irqtest(0x8001f000);
 	report_end();
   return 0;
 }

@@ -455,7 +455,7 @@ void Irqmp::mpstat_read() {
 }
 
 void Irqmp::pending_write() {
-  v::debug << name() << "Pending write" << v::endl;
+  v::info << name() << "Pending write" << v::endl;
   e_signal.notify(1 * clock_cycle);
 }
 
