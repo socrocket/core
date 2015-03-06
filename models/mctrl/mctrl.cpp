@@ -107,6 +107,7 @@ Mctrl::Mctrl(
     0x0F,                                        // dev: MCTRL
     0, 0,                                        // VER, IRQ
     APBIO, _pmask, 0, 0, _paddr);
+  init_generics();
 
   // Display APB slave information
   srInfo("/configuration/gptimer/apbslave")
