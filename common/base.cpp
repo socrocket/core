@@ -10,6 +10,7 @@
 /// @author Rolf Meyer
 
 #include "core/common/base.h"
+#include "core/common/apbslave.h"
 #include "core/models/utils/apbdevice.h"
 
 template<>
@@ -22,18 +23,9 @@ SCBaseModule<APBDevice<DefaultBase> >::SCBaseModule(ModuleName mn, uint32_t regi
   APBDevice<DefaultBase>(mn, register_count) {
 }
 
-#ifndef MTI_SYSTEMC
-
 template<>
-SCBaseModule<RegisterBase>::SCBaseModule(ModuleName mn, uint32_t register_count) :
-  RegisterBase(mn, gs::reg::ALIGNED_ADDRESS, register_count, NULL) {
+SCBaseModule<APBSlave >::SCBaseModule(ModuleName mn, uint32_t register_count) :
+  APBSlave(mn, register_count) {
 }
-
-template<>
-SCBaseModule<APBDevice<RegisterBase> >::SCBaseModule(ModuleName mn, uint32_t register_count) :
-  APBDevice<RegisterBase>(mn, register_count) {
-}
-
-#endif
 
 /// @}
