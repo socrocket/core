@@ -711,7 +711,7 @@ int sc_main(int argc, char** argv) {
       );
 
       // Connecting APB Slave
-      apbctrl.apb(apbuart->bus);
+      apbctrl.apb(apbuart->apb);
       // Connecting Interrupts
       signalkit::connect(irqmp.irq_in, apbuart->irq, p_apbuart_irq);
       // Set clock
@@ -750,7 +750,7 @@ int sc_main(int argc, char** argv) {
       );
 
       // Connecting APB Slave
-      apbctrl.apb(apbuart1->bus);
+      apbctrl.apb(apbuart1->apb);
       // Connecting Interrupts
       signalkit::connect(irqmp.irq_in, apbuart1->irq, p_apbuart1_irq);
       // Set clock

@@ -27,16 +27,15 @@
 #include "core/models/utils/clkdevice.h"
 #include "core/common/signalkit.h"
 #include "core/common/verbose.h"
+#include "core/common/apbslave.h"
 
 /// @brief This class is a TLM 2.0 Model of the Aeroflex Gaisler GRLIB APBUART.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 16
-class APBUART : public APBDevice<RegisterBase>, public CLKDevice {
+class APBUART : public APBSlave, public CLKDevice {
   public:
     SC_HAS_PROCESS(APBUART);
     SK_HAS_SIGNALS(APBUART);
     GC_HAS_CALLBACKS();
-    /// APB Slave socket for all bus communication
-    gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;
 
     signal<std::pair<uint32_t, bool> >::out irq;
 
@@ -56,8 +55,7 @@ class APBUART : public APBDevice<RegisterBase>, public CLKDevice {
     /// Free all counter and unregister all callbacks.
     ~APBUART();
 
-    /// Execute the callback registering when systemc reaches the end of elaboration.
-    void end_of_elaboration();
+    void init_registers();
 
     // Register Callbacks
     void data_read();
