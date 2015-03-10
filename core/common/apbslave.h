@@ -14,8 +14,8 @@
 
 #include "core/common/systemc.h"
 #include "core/common/sr_register.h"
-#include "core/models/utils/apbdevicebase.h"
-#include "core/models/utils/apbdevice.h"
+#include "core/common/apbdevicebase.h"
+#include "core/common/apbdevice.h"
 
 template<unsigned int BUSWIDTH = 32, typename ADDR_TYPE = unsigned int, typename DATA_TYPE = unsigned int>
 class sr_register_amba_socket : public ::amba::amba_slave_socket<BUSWIDTH>, public ::amba_slave_base {

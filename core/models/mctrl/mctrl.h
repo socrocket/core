@@ -24,10 +24,10 @@
 #include <boost/config.hpp>
 #include <algorithm>
 
-#include "core/models/utils/ahbslave.h"
-#include "core/models/utils/apbdevice.h"
-#include "core/models/utils/clkdevice.h"
-#include "core/models/utils/memdevice.h"
+#include "core/common/ahbslave.h"
+#include "core/common/apbdevice.h"
+#include "core/common/clkdevice.h"
+#include "core/common/memdevice.h"
 #include "core/models/memory/ext_erase.h"
 #include "core/common/vendian.h"
 #include "core/common/verbose.h"

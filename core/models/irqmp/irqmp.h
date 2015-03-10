@@ -22,7 +22,7 @@
 #include <utility>
 
 #include "core/common/apbslave.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/clkdevice.h"
 #include "core/common/signalkit.h"
 
 /// @addtogroup irqmp IRQMP

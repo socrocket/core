@@ -43,7 +43,7 @@ The top-level of the library is structured as follows:
     * @ref core/models/mctrl "/mctrl"
     * @ref core/models/memory "/memory"
     * @ref core/models/mmu_cache "/mmu_cache"
-    * @ref core/models/utils "/utils"
+    * @ref core/common "/utils"
   * @ref core/platforms "/platforms"
     
     The platforms directory contains a subdirectory for all platforms. 

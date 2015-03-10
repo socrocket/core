@@ -12,7 +12,7 @@
 #ifndef PLATFORM_LEON3MP_LEON3MP_H_
 #define PLATFORM_LEON3MP_LEON3MP_H_
 #include "core/platforms/base/ambabase.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/clkdevice.h"
 #include "core/common/systemc.h"
 
 #include "core/models/mmu_cache/lib/leon3_mmu_cache.h"

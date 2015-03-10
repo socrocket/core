@@ -22,8 +22,8 @@
 #include <tlm.h>
 #include <map>
 
-#include "core/models/utils/ahbdevice.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/ahbdevice.h"
+#include "core/common/clkdevice.h"
 #include "core/common/signalkit.h"
 #include "core/common/msclogger.h"
 #include "core/common/socrocket.h"

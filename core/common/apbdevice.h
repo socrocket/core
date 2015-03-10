@@ -17,7 +17,7 @@
 #ifndef MODELS_UTILS_APBDEVICE_H_
 #define MODELS_UTILS_APBDEVICE_H_
 
-#include "core/models/utils/apbdevicebase.h"
+#include "core/common/apbdevicebase.h"
 
 /// @brief This class is a base class for grlib models. It implements the device plug and play informations.
 /// Together with the APBBridge class it implements the plug and play feature of the grlib.
@@ -110,7 +110,7 @@ class APBDevice : public BaseModule<BASE> , public APBDeviceBase {
     gs::cnf::gs_config<bool> g_pprefetchable;
 };
 
-#include "core/models/utils/apbdevice.tpp"
+#include "core/common/apbdevice.tpp"
 
 #endif  // MODELS_UTILS_APBDEVICE_H_
 /// @}

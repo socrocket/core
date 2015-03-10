@@ -29,8 +29,8 @@
 
 #include <map>
 
-#include "core/models/utils/ahbslave.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/ahbslave.h"
+#include "core/common/clkdevice.h"
 #include "core/models/memory/basememory.h"
 #include "core/common/msclogger.h"
 

@@ -20,7 +20,7 @@
 #include "core/common/amba.h"
 #include <stdint.h>
 
-#include "core/models/utils/ahbdevice.h"
+#include "core/common/ahbdevice.h"
 #include "core/common/msclogger.h"
 #include "core/common/verbose.h"
 
@@ -111,7 +111,7 @@ class AHBSlave : public AHBDevice<BASE> {
     gs::gs_config<uint64_t> m_writes;  // NOLINT(runtime/int)
 };
 
-#include "core/models/utils/ahbslave.tpp"
+#include "core/common/ahbslave.tpp"
 
 #endif  // MODELS_UTILS_AHBSLAVE_H_
 /// @}

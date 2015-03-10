@@ -15,7 +15,7 @@
 #ifndef MODELS_UTILS_AHBDEVICE_H_
 #define MODELS_UTILS_AHBDEVICE_H_
 
-#include "core/models/utils/ahbdevicebase.h"
+#include "core/common/ahbdevicebase.h"
 #include "core/common/gs_config.h"
 
 /// @brief This class is a base class for grlib models. It implements the device plug and play informations.
@@ -185,7 +185,7 @@ class AHBDevice : public BaseModule<BASE>, public AHBDeviceBase {
     gs::cnf::gs_config<bool> g_bar3hprefetchable;
 };
 
-#include "core/models/utils/ahbdevice.tpp"
+#include "core/common/ahbdevice.tpp"
 
 #endif  // MODELS_UTILS_AHBDEVICE_H_
 /// @}
