@@ -29,6 +29,7 @@ APBUART::APBUART(ModuleName name,
   irq("IRQ"),
   m_backend(backend),
   g_pirq(pirq),
+  g_console("console", console, m_generics),
   powermon(powmon) {
   SC_THREAD(send_irq);
   SC_THREAD(uart_ticks);
@@ -46,6 +47,7 @@ APBUART::APBUART(ModuleName name,
           << endl;
 
   init_registers();
+
   // Configuration report
   v::info << this->name() << " ******************************************************************************* " <<
   v::endl;
@@ -64,6 +66,11 @@ APBUART::APBUART(ModuleName name,
 // Destroy all Counter objects.
 APBUART::~APBUART() {
   GC_UNREGISTER_CALLBACKS();
+}
+
+void APBUART::init_generics() {
+    g_console.add_properties()
+    ("vhdl_name", "console"); 
 }
 
 void APBUART::init_registers() {

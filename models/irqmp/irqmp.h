@@ -75,6 +75,10 @@ class Irqmp : public APBSlave, public CLKDevice {
     ~Irqmp();
 
     // function prototypes
+    /// Initialize the generics with meta data.
+    ///
+    /// Will ne called from the constructor.
+    void init_generics();
     void init_registers();
 
     /// Automatically called at start of simulation
@@ -163,15 +167,15 @@ class Irqmp : public APBSlave, public CLKDevice {
     /// @param cpu  The CPU which acknowleged the Interrupt
     /// @param time Delay to the simulation time. Not used with this signal.
     void acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_time &time);
-
-  private:
     /// Number of CPUs in the System
     /// Needet to determ the number of receiver lines.
-    const int g_ncpu;
+    gs::cnf::gs_config<int> g_ncpu;
 
     /// Extended Interrupt Number
     /// Behind this interrupt are all extended interrupt cascaded.
-    const int g_eirq;
+    gs::cnf::gs_config<uint32_t> g_eirq;
+
+  private:
 
     /// Status of the force registers
     /// To determ the change in the status force fields.

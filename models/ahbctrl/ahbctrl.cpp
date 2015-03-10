@@ -133,7 +133,7 @@ AHBCtrl::AHBCtrl(
   }
 
   requests_pending = 0;
-
+  AHBCtrl::init_generics();
   srInfo()
     ("ioaddr", ioaddr)
     ("iomask", iomask)
@@ -172,26 +172,35 @@ void AHBCtrl::init_generics() {
   g_ioaddr.add_properties()
     ("name", "AHB IO Area Address")
     ("range", "0..0xFFF")
+    ("vhdl_name","ioaddr")
+    ("base","hex")
     ("The MSB address of the I/O area. Sets the 12 most significant bits in the 32-bit AHB address (e.g. 31 downto 20).");
 
   g_iomask.add_properties()
     ("name", "AHB IO Area Mask")
     ("range", "0..0xFFF")
+    ("vhdl_name","iomask")
+    ("base","hex")
     ("The I/O area address mask. Sets the size of the I/O area and the start address together with ioaddr.");
 
   g_cfgaddr.add_properties()
     ("name", "AHB CFG Area Address")
     ("range", "0..0xFF0")
+    ("vhdl_name", "cfgaddr")
+    ("base","hex")
     ("The MSB address of the confgiuration area. Sets 12 bits in the 32-bit AHB address (19 downto 8)");
 
   g_cfgmask.add_properties()
     ("name", "AHB CFG Area Mask")
     ("range", "0..0xFF0")
+    ("vhdl_name","cfgmask")
+    ("base","hex")
     ("The address mask of the configuration area. Sets the size of the configuration area and "
      "the start address together with cfgaddr.");
 
   g_rrobin.add_properties()
     ("name", "Round robin arbitration.")
+    ("vhdl_name", "rrobin")
     ("True  - round-robin arbitration\n"
      "False - priority arbitration (highest master id has highest priority)\n"
      "Arbitration is only supported in AT mode!! (no effect on LT simulation)");
@@ -199,23 +208,28 @@ void AHBCtrl::init_generics() {
   g_defmast.add_properties()
     ("name", "Default AHB Master")
     ("range", "0..16")
+    ("vhdl_name","defmast")
     ("The default AHB master index (bus parking). This feature is not modeled at transaction level."
      "Parameter is only used for reporting.");
 
   g_ioen.add_properties()
     ("name", "AHB IO area enable")
+    ("vhdl_name","ioen")
     ("AHB I/O area enable. Set to 0 to disable the I/O area.");
 
   g_fixbrst.add_properties()
     ("name", "Enable support for fixed burst length.")
+    ("vhdl_name", "fixbrst")
     ("Enable support for fixed-length bursts at RTL-Level. This feature is not supported at transaction-level.");
 
   g_split.add_properties()
     ("name", "Enable support for split transactions in AT models")
+    ("vhdl_name","split")
     ("Enables support for AHB SPLIT response at RTL-Level. This feature is not supported at transaction-level.");
 
   g_fpnpen.add_properties()
     ("name", "Enable full decoding of the PnP configuration records")
+    ("vhdl_name","fpnpen")
     ("When disabled the user-defined register in the PnP configuration records are not mapped in the configuration area.");
 
   g_mcheck.add_properties()

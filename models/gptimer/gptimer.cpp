@@ -29,33 +29,34 @@ GPTimer::GPTimer(ModuleName name, unsigned int ntimers,
     conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)),
     lasttime(0, sc_core::SC_NS), lastvalue(0),
     g_ntimers("ntimers", ntimers, m_generics),
-    g_sbits("sbit", sbits, m_generics),
+    g_sbits("sbits", sbits, m_generics),
     g_nbits("nbits", nbits, m_generics),
     g_wdog_length("wdog", wdog, m_generics),
     powermon("powermon", powmon, m_generics),
-    g_pindex("index", pindex, m_generics),
-    g_paddr("addr", paddr, m_generics),
-    g_pmask("mask", pmask, m_generics),
+    g_pindex("pindex", pindex, m_generics),
+    g_paddr("paddr", paddr, m_generics),
+    g_pmask("pmask", pmask, m_generics),
     g_sepirq("sepirq", sepirq, m_generics),
     sta_power_norm("sta_power_norm", 2.46e+6, m_power),   // Normalized static power input
     int_power_norm("int_power_norm", 1.093e-8, m_power),  // Normalized internal power input
     sta_power("sta_power", 0.0, m_power),   // Static power output
     int_power("int_power", 0.0, m_power) {  // Internal dynamic power output (activation independent)
   // Parameter checking
+  GPTimer::init_generics();
+  GPTimer::init_registers();
   assert("gsbits has to be between 1 and 32" && sbits > 0 && sbits < 33);
   assert("nbits has to be between 1 and 32" && nbits > 0 && nbits < 33);
   assert("ntimers has to be between 1 and 7" && ntimers > 0 && ntimers < 8);
   assert("wdog has to be between 0 and 2^nbits-1" && wdog >= 0 && wdog < (1LL << nbits));
+  
 
-  init_generics();
-  init_registers();
-
+  
   // Display APB slave information
   srInfo("/configuration/gptimer/apbslave")
      ("addr", (uint64_t)apb.get_base_addr())
      ("size", (uint64_t)apb.get_size())
      ("APB Slave Configuration");
-
+  
   //v::info << this->name() << "APB slave @0x" << hex << v::setw(8)
   //        << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex
   //        << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
@@ -67,7 +68,7 @@ GPTimer::GPTimer(ModuleName name, unsigned int ntimers,
     GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, GPTimer, sta_power_cb);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, GPTimer, int_power_cb);
   }
-
+  
   // Configuration report
   srInfo("/configuration/gptimer/generics")
     ("ntimers", ntimers)
@@ -81,6 +82,7 @@ GPTimer::GPTimer(ModuleName name, unsigned int ntimers,
     ("wdog", wdog)
     ("pow_mon", powmon)
     ("A GPTimer is created with these generics");
+    
   // v::info << this->name() << " ************************************************************************** " << v::endl;
   // v::info << this->name() << " * Created gptimer with following parameters: " << v::endl;
   // v::info << this->name() << " * ------------------------------------------ " << v::endl;
@@ -107,40 +109,34 @@ GPTimer::~GPTimer() {
 
 void GPTimer::init_generics() {
   // set name, type, default, range, hint and description for gs_configs
-  g_paddr.add_properties()
-    ("name", "APB Base Address")
-    ("range", "0..4095")
-    ("The 12bit MSB address at the APB bus");
-
-  g_pmask.add_properties()
-    ("name", "APB Base Mask")
-    ("range", "0..4095")
-    ("The 12bit APB address mask");
-
-  g_pindex.add_properties()
-    ("name", "Bus Index")
-    ("range", "0..15")
-    ("The slave index at the APB bus");
-
+  g_wdog_length.add_properties()
+    ("name","Watchdog")
+    ("vhdl_name", "wdog")
+    ("Length of the initial watchdog period. If zero the watchdog is disabled.");
   g_sepirq.add_properties()
     ("name", "Separated IRQs")
+    ("vhdl_name", "sepirq")
     ("1 - each timer will drive an individual interrupt line, starting with interrupt irq. \n"
      "0 - all timers will drive the same interrupt line (irq).");
 
   g_ntimers.add_properties()
     ("name", "Number of Counters")
     ("range", "1..7")
+    ("vhdl_name", "ntimers")
     ("Defines the number of timers in the unit.");
 
   g_sbits.add_properties()
     ("name", "Scaler Bits")
     ("range", "1..32")
+    ("vhdl_name", "sbits")
     ("Defines the number of bits in the scaler");
 
   g_nbits.add_properties()
     ("name", "Counter Bits")
     ("range", "1..32")
+    ("vhdl_name", "nbits")
     ("Defines the number of bits in the counters");
+  
 }
 
 void GPTimer::init_registers() {
