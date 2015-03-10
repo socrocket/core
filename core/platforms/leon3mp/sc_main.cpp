@@ -32,13 +32,13 @@
 #include <stdexcept>
 
 #include "core/common/verbose.h"
-#include "core/models/mmu_cache/lib/leon3_mmu_cache.h"
+#include "core/models/leon3/leon3.h"
 #include "core/models/ahbin/ahbin.h"
 #include "core/models/memory/memory.h"
 #include "core/models/apbctrl/apbctrl.h"
 #include "core/models/ahbmem/ahbmem.h"
 #include "core/models/mctrl/mctrl.h"
-#include "core/models/mmu_cache/lib/defines.h"
+#include "core/models/leon3/mmucache/defines.h"
 #include "core/models/gptimer/gptimer.h"
 #include "core/models/apbuart/apbuart.h"
 #include "core/models/apbuart/tcpio.h"
@@ -578,8 +578,8 @@ int sc_main(int argc, char** argv) {
       // =====================
       // Always enabled.
       // Needed for basic platform.
-      leon3_mmu_cache *leon3 = new leon3_mmu_cache(
-              sc_core::sc_gen_unique_name("leon3_mmu_cache", false), // name of sysc module
+      Leon3 *leon3 = new Leon3(
+              sc_core::sc_gen_unique_name("leon3", false), // name of sysc module
               p_mmu_cache_ic_en,         //  int icen = 1 (icache enabled)
               p_mmu_cache_ic_repl,       //  int irepl = 0 (icache LRU replacement)
               p_mmu_cache_ic_sets,       //  int isets = 4 (4 instruction cache sets)
