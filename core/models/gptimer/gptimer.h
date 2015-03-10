@@ -212,6 +212,7 @@ class GPTimer : public APBSlave, public CLKDevice {
   /// Seperated IRQ lines.
   /// If you whant to have seperated IRQ lines for each counter set this generic to true.
   gs::cnf::gs_config<bool> g_sepirq;
+  
 
   // *****************************************************
   // Power Modeling Parameters

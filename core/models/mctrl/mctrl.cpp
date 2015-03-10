@@ -100,6 +100,7 @@ Mctrl::Mctrl(
     0x0F,                                        // dev: MCTRL
     0, 0,                                        // VER, IRQ
     APBIO, _pmask, 0, 0, _paddr);
+
   init_generics();
 
   // Display APB slave information
@@ -157,7 +158,6 @@ Mctrl::Mctrl(
   mem_cfg.use_mandatory_phase(END_REQ);
   // mem_cfg.treat_unknown_as_ignorable();
   mem.set_config(mem_cfg);
-
   // Module configuration report
   v::info << this->name() << " ******************************************************************************* " <<
   v::endl;
@@ -192,51 +192,63 @@ Mctrl::~Mctrl() {
 
 void Mctrl::init_generics() {
   // set name, type, default, range, hint and description for gs_configs
-  /*g_index.add_properties()
-    ("name", "Bus Index")
-    ("range", "0..15")
-    ("Slave index at the AHB bus");
-
-  g_apb.add_properties()
-    ("name", "APB Bus Interface")
-    ("APB Bus Interface");
-
-  g_prom.add_properties()
-    ("name", "PROM configuration")
-    ("true - PROM enabled");
-
-  g_io.add_properties()
-    ("name", "IO memory configuration")
-    ("true - IO memory enabled");
-
-  g_ram.add_properties()
-    ("name", "RAM configuration")
-    ("RAM configuration");
-*/
+  g_romasel.add_properties()
+  ("vhdl_name", "romasel");
+  g_sdrasel.add_properties()
+  ("vhdl_name","sdrasel");
+  g_romaddr.add_properties()
+  ("vhdl_name", "romaddr")
+  ("base","hex");
+  g_rommask.add_properties()
+  ("vhdl_name", "rommask")
+  ("base","hex");
+  g_ioaddr.add_properties()
+  ("vhdl_name", "ioaddr")
+  ("base","hex");
+  g_iomask.add_properties()
+  ("vhdl_name", "iomask")
+  ("base","hex");
+  g_ramaddr.add_properties()
+  ("vhdl_name", "ramaddr")
+  ("base","hex");
+  g_rammask.add_properties()
+  ("vhdl_name","rammask")
+  ("base","hex");
+  g_wprot.add_properties()
+  ("vhdl_name","wprot");
+  g_srbanks.add_properties()
+  ("vhdl_name","srbanks");
   g_ram8.add_properties()
     ("name", "Enable 8bit PROM and SRAM access")
+    ("vhdl_name", "ram8")
     ("true - 8bit access enabled");
 
   g_ram16.add_properties()
     ("name", "Enable 16bit PROM and SRAM access")
+    ("vhdl_name", "ram16")
     ("true - 16bit access enabled");
+	
 
   g_sden.add_properties()
     ("name", "Enable SDRAM controller")
+    ("vhdl_name", "sden")
     ("true - SDRAM controller enabled");
 
   g_sepbus.add_properties()
     ("name", "Separate bus for SDRAM access")
+    ("vhdl_name", "sepbus")
     ("true - SDRAM uses separate data bus");
 
   g_sdbits.add_properties()
     ("name", "32 or 64bit SDRAM data bus")
     ("range", "32..64")
+    ("vhdl_name", "sdbits")
     ("Defines the width of the SDRAM data bus");
 
   g_mobile.add_properties()
     ("name", "Mobile SDRAM support")
     ("range", "0..3")
+    ("vhdl_name", "mobile")
     ("Mobile SDRAM support");
 
   g_pow_mon.add_properties()

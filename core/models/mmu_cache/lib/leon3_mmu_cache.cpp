@@ -1,5 +1,5 @@
 // vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
-/// @addtogroup mmu_cache
+/// @addtogroup leon3_leon3_mmu_cache
 /// @{
 /// @file leon3_leon3_mmu_cache.cpp
 /// Implementation of LEON2/3 cache-subsystem consisting of instruction cache,
@@ -90,6 +90,35 @@ leon3_mmu_cache::leon3_mmu_cache(
   g_gdb("gdb", 0, m_generics),
   g_history("history", "", m_generics),
   g_osemu("osemu", "", m_generics),
+  
+  g_icen("icen", icen, m_generics),
+  g_irepl("irepl", irepl, m_generics),
+  g_isets("isets", isets, m_generics),
+  g_ilinesize("ilinesize", ilinesize, m_generics),
+  g_isetsize("isetsize", isetsize, m_generics),
+  g_isetlock("isetlock", isetlock, m_generics),
+  g_dcen("dcen", dcen, m_generics),
+  g_drepl("drepl", drepl, m_generics),
+  g_dsets("dsets", dsets, m_generics),
+  g_dlinesize("dlinesize", dlinesize, m_generics),
+  g_dsetsize("dsetsize", dsetsize, m_generics),
+  g_dsetlock("dsetlock", dsetlock, m_generics),
+  g_dsnoop("dsnoop", dsnoop, m_generics),
+  g_ilram("ilram", ilram, m_generics),
+  g_ilramsize("ilramsize", ilramsize, m_generics),
+  g_ilramstart("ilramstart", ilramstart, m_generics),
+  g_dlram("dlram", dlram, m_generics),
+  g_dlramsize("dlramsize", dlramsize, m_generics),
+  g_dlramstart("dlramstart", dlramstart, m_generics),
+  g_cached("cached", cached, m_generics),
+  g_mmu_en("mmu_en", mmu_en, m_generics),
+  g_itlb_num("itlb_num", itlb_num, m_generics),
+  g_dtlb_num("dtlb_num", dtlb_num, m_generics),
+  g_tlb_type("tlb_type", tlb_type, m_generics),
+  g_tlb_rep("tlb_rep", tlb_rep, m_generics),
+  g_mmupgsz("mmupgsz", mmupgsz, m_generics),
+  g_hindex("hindex", hindex, m_generics),
+
   g_args("args", m_generics) {
     // TODO(rmeyer): This looks a lot like gs_configs!!!
     cpu.ENTRY_POINT   = 0x0;
@@ -99,12 +128,69 @@ leon3_mmu_cache::leon3_mmu_cache(
     GC_REGISTER_TYPED_PARAM_CALLBACK(&g_history, gs::cnf::post_write, leon3_mmu_cache, g_history_callback);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&g_osemu, gs::cnf::post_write, leon3_mmu_cache, g_osemu_callback);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&g_args, gs::cnf::post_write, leon3_mmu_cache, g_args_callback);
+    leon3_mmu_cache::init_generics();
 }
 
 leon3_mmu_cache::~leon3_mmu_cache() {
 
   GC_UNREGISTER_CALLBACKS();
 
+}
+void leon3_mmu_cache::init_generics(){
+    g_icen.add_properties()
+    ("vhdl_name","icen");
+    g_irepl.add_properties()
+    ("vhdl_name","irepl");
+    g_isets.add_properties()
+    ("vhdl_name","isets");
+    g_ilinesize.add_properties()
+    ("vhdl_name","ilinesize");
+    g_isetsize.add_properties()
+    ("vhdl_name","isetsize");
+    g_isetlock.add_properties()
+    ("vhdl_name","isetlock");
+    g_dcen.add_properties()
+    ("vhdl_name","dcen");
+    g_drepl.add_properties()
+    ("vhdl_name","drepl");
+    g_dsets.add_properties()
+    ("vhdl_name","dsets");
+    g_dlinesize.add_properties()
+    ("vhdl_name","dlinesize");
+    g_dsetsize.add_properties()
+    ("vhdl_name","dsetsize");
+    g_dsetlock.add_properties()
+    ("vhdl_name","dsetlock");
+    g_dsnoop.add_properties()
+    ("vhdl_name","dsnoop");
+    g_ilram.add_properties()
+    ("vhdl_name","ilram");
+    g_ilramsize.add_properties()
+    ("vhdl_name","ilramsize");
+    g_ilramstart.add_properties()
+    ("vhdl_name","ilramstart");
+    g_dlram.add_properties()
+    ("vhdl_name","dlram");
+    g_dlramsize.add_properties()
+    ("vhdl_name","dlramsize");
+    g_dlramstart.add_properties()
+    ("vhdl_name","dlramstart");
+    g_cached.add_properties()
+    ("vhdl_name","cached");
+    g_mmu_en.add_properties()
+    ("vhdl_name","mmuen");
+    g_itlb_num.add_properties()
+    ("vhdl_name","itlbnum");
+    g_dtlb_num.add_properties()
+    ("vhdl_name","dtlbnum");
+    g_tlb_type.add_properties()
+    ("vhdl_name","tlb_type");
+    g_tlb_rep.add_properties()
+    ("vhdl_name","tlb_rep");
+    g_mmupgsz.add_properties()
+    ("vhdl_name","mmupgsz");
+    g_hindex.add_properties()
+    ("vhdl_name","hindex");
 }
 
 void leon3_mmu_cache::clkcng() {

@@ -70,7 +70,7 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
     GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, AHBMem, int_power_cb);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, AHBMem, swi_power_cb);
   }
-
+  AHBMem::init_generics();
   // Display AHB slave information
   srInfo("/configuration/ahbmem/ahbslave")
      ("addr", (uint64_t)get_ahb_base_addr())
@@ -96,16 +96,21 @@ void AHBMem::init_generics() {
   // set name, type, default, range, hint and description for gs_configs
   g_hindex.add_properties()
     ("name", "Bus Index")
+    ("vhdl_name","hindex")
     ("range", "0..15")
     ("Slave index at the AHB bus");
 
   g_haddr.add_properties()
     ("name", "AHB Address")
+    ("vhdl_name","haddr")
+    ("base","hex")
     ("range", "0..0xFFF")
     ("The 12bit MSB address at the AHB bus");
 
   g_hmask.add_properties()
     ("name", "AHB Mask")
+    ("vhdl_name","hmask")
+    ("base","hex")
     ("range", "0..0xFFF")
     ("The 12bit AHB address mask");
 

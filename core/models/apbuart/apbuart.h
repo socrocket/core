@@ -42,9 +42,8 @@ class APBUART : public APBSlave, public CLKDevice {
     sc_event s_irq; // trigger interrupt when send buffer empty
 
     io_if *m_backend;
-
     uint32_t g_pirq;
-
+    gs::cnf::gs_config<bool> g_console;
     APBUART(ModuleName name, io_if *backend, uint16_t pindex = 0,
     uint16_t paddr = 0, uint16_t pmask = 4095, int pirq = 0,
     bool console = false,
@@ -53,7 +52,7 @@ class APBUART : public APBSlave, public CLKDevice {
 
     /// Free all counter and unregister all callbacks.
     ~APBUART();
-
+    void init_generics();
     void init_registers();
 
     // Register Callbacks
