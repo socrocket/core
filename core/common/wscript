@@ -14,9 +14,6 @@ def build(self):
                        'powermonitor.cpp',
                        'timingmonitor.cpp',
                        'msclogger.cpp',
-                       'json_parser.cpp',
-                       'block_allocator.cpp',
-                       'paramprinter.cpp',
                        'sr_report.cpp',
                        'waf.cpp',
                        'scireg.cpp'
