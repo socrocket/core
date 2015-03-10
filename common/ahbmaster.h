@@ -21,7 +21,7 @@
 #include "core/common/systemc.h"
 #include <tlm.h>
 
-#include "core/models/utils/ahbdevice.h"
+#include "core/common/ahbdevice.h"
 #include "core/common/msclogger.h"
 #include "core/common/verbose.h"
 
@@ -158,7 +158,7 @@ class AHBMaster : public AHBDevice<BASE> {
     bool response_error;
 };
 
-#include "core/models/utils/ahbmaster.tpp"
+#include "core/common/ahbmaster.tpp"
 
 #endif  // MODELS_UTILS_AHBMASTER_H_
 /// @}

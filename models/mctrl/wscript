@@ -10,6 +10,6 @@ def build(self):
     export_includes = self.top_dir,
     includes        = self.top_dir,
     uselib          = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
-    use             = 'memory utils signalkit common',
+    use             = 'memory  signalkit common',
     install_path    = '${PREFIX}/lib',
   )

@@ -20,6 +20,6 @@ def build(bld):
                        'lib/mmu_cache_base.cpp'],
     export_includes = 'lib',
     uselib         = 'SYSTEMC TLM AMBA AMBAMEM GREENSOCS',
-    use            = 'leon3.funclt common utils',
+    use            = 'leon3.funclt common ',
     install_path   = '${PREFIX}/lib',
   )

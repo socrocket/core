@@ -30,8 +30,8 @@
 
 #include "core/common/socrocket.h"
 #include "core/common/signalkit.h"
-#include "core/models/utils/ahbmaster.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/ahbmaster.h"
+#include "core/common/clkdevice.h"
 
 #include "core/common/verbose.h"
 #include "core/models/mmu_cache/lib/mmu_cache_base.h"

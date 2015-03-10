@@ -27,7 +27,7 @@
 #include "core/models/memory/memorypower.h"
 #include "core/common/verbose.h"
 #include "core/common/report.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/clkdevice.h"
 #include "core/models/memory/ext_erase.h"
 
 /// @brief This class models a generic memory. Depending on the configuration

@@ -22,8 +22,8 @@
 #include <vector>
 
 #include "core/models/apbuart/io_if.h"
-#include "core/models/utils/apbdevice.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/apbdevice.h"
+#include "core/common/clkdevice.h"
 #include "core/common/signalkit.h"
 #include "core/common/verbose.h"
 #include "core/common/apbslave.h"

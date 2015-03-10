@@ -14,7 +14,7 @@
 /// @author Rolf Meyer
 ///
 
-#include "core/models/utils/memdevice.h"
+#include "core/common/memdevice.h"
 #include "core/common/verbose.h"
 
 MEMDevice::MEMDevice(MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits,

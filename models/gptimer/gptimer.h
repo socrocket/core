@@ -24,7 +24,7 @@
 
 #include "core/models/gptimer/gpcounter.h"
 #include "core/common/apbslave.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/clkdevice.h"
 #include "core/common/signalkit.h"
 
 #include "core/common/verbose.h"

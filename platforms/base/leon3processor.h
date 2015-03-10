@@ -12,7 +12,7 @@
 #ifndef PLATFORM_BASE_LEON3PROCESSOR_H_
 #define PLATFORM_BASE_LEON3PROCESSOR_H_
 #include "core/platforms/base/ambabase.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/clkdevice.h"
 #include "core/common/systemc.h"
 
 #include "core/models/mmu_cache/lib/mmu_cache.h"
