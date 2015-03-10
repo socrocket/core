@@ -30,6 +30,7 @@ APBUART::APBUART(ModuleName name,
   irq("IRQ"),
   m_backend(backend),
   g_pirq(pirq),
+  g_console("console", console, m_generics),
   powermon(powmon) {
   SC_THREAD(send_irq);
   SC_THREAD(uart_ticks);
@@ -45,7 +46,7 @@ APBUART::APBUART(ModuleName name,
           << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex
           << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
           << endl;
-
+  APBUART::init_generics();
   /* create register */
   r.create_register("data", "UART Data Register",
     DATA,                                                          // offset
@@ -98,7 +99,10 @@ APBUART::APBUART(ModuleName name,
 APBUART::~APBUART() {
   GC_UNREGISTER_CALLBACKS();
 }
-
+void APBUART::init_generics() {
+    g_console.add_properties()
+    ("vhdl_name", "console"); 
+}
 // Set all register callbacks
 void APBUART::end_of_elaboration() {
   GR_FUNCTION(APBUART, data_read);

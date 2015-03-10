@@ -39,6 +39,10 @@
 #include "core/common/trapgen/debugger/GDBStub.hpp"
 #include "core/common/trapgen/osEmulator/osEmulator.hpp"
 
+/// @addtogroup mmu_cache MMU_Cache
+/// @{
+
+
 /// Top-level class of the memory sub-system for the TrapGen LEON3 simulator
 class leon3_mmu_cache :
   public mmu_cache_base,
@@ -89,6 +93,7 @@ class leon3_mmu_cache :
 
       // Destructor
       ~leon3_mmu_cache();
+      void init_generics();
       virtual void clkcng();
       gs::cnf::callback_return_type g_gdb_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
       gs::cnf::callback_return_type g_history_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
@@ -123,6 +128,42 @@ class leon3_mmu_cache :
     gs::cnf::gs_config<int> g_gdb;
     gs::cnf::gs_config<std::string> g_history;
     gs::cnf::gs_config<std::string> g_osemu;
+    /// icache enable
+    gs::cnf::gs_config<bool> g_icen;
+    gs::cnf::gs_config<uint32_t> g_irepl;
+    gs::cnf::gs_config<uint32_t> g_isets;
+    gs::cnf::gs_config<uint32_t> g_ilinesize;
+    gs::cnf::gs_config<uint32_t> g_isetsize;
+    gs::cnf::gs_config<bool> g_isetlock;
+    /// dcache enabled
+    gs::cnf::gs_config<bool> g_dcen;
+    gs::cnf::gs_config<uint32_t> g_drepl;
+    gs::cnf::gs_config<uint32_t> g_dsets;
+    gs::cnf::gs_config<uint32_t> g_dlinesize;
+    gs::cnf::gs_config<uint32_t> g_dsetsize;
+    gs::cnf::gs_config<bool> g_dsetlock;
+    gs::cnf::gs_config<bool> g_dsnoop;
+    /// instruction scratchpad enabled
+    gs::cnf::gs_config<bool> g_ilram;
+
+    gs::cnf::gs_config<uint32_t> g_ilramsize;
+    /// instruction scratchpad starting address
+    gs::cnf::gs_config<uint32_t> g_ilramstart;
+    /// data scratchpad enabled
+    gs::cnf::gs_config<bool> g_dlram;
+    gs::cnf::gs_config<uint32_t> g_dlramsize;
+    /// data scratchpad starting address
+    gs::cnf::gs_config<uint32_t> g_dlramstart;
+    /// enables fixed cacheability mask
+    gs::cnf::gs_config<uint32_t> g_cached;
+    /// mmu enabled
+    gs::cnf::gs_config<bool> g_mmu_en;
+    gs::cnf::gs_config<uint32_t> g_itlb_num;
+    gs::cnf::gs_config<uint32_t> g_dtlb_num;
+    gs::cnf::gs_config<uint32_t> g_tlb_type;
+    gs::cnf::gs_config<uint32_t> g_tlb_rep;
+    gs::cnf::gs_config<uint32_t> g_mmupgsz;
+    gs::cnf::gs_config<uint32_t> g_hindex;
     gs::cnf::gs_config<std::vector<std::string> > g_args;
 };
 

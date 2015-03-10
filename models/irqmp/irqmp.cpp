@@ -41,7 +41,8 @@ Irqmp::Irqmp(ModuleName name,
   cpu_rst("CPU_RESET"), cpu_stat("CPU_STAT"), irq_req("CPU_REQUEST"),
   irq_ack(&Irqmp::acknowledged_irq, "IRQ_ACKNOWLEDGE"),
   irq_in(&Irqmp::incomming_irq, "IRQ_INPUT"),
-  g_ncpu(ncpu), g_eirq(eirq),
+  g_ncpu("ncpu", ncpu, m_generics), 
+  g_eirq("eirq", eirq, m_generics),
   m_irq_counter("irq_line_activity", 32, m_counters),
   m_cpu_counter("cpu_line_activity", ncpu, m_counters),
   m_pow_mon(powmon),
@@ -51,7 +52,7 @@ Irqmp::Irqmp(ModuleName name,
   int_power("int_power", 0.0, m_power) {          // Dynamic power of controller
 
   forcereg = new uint32_t[g_ncpu];
-
+  Irqmp::init_generics(); 
   // Display APB slave information
   srInfo()
     ("paddr", paddr)
@@ -158,6 +159,18 @@ Irqmp::Irqmp(ModuleName name,
 Irqmp::~Irqmp() {
   GC_UNREGISTER_CALLBACKS();
   delete[] forcereg;
+}
+
+void Irqmp::init_generics() {
+  g_ncpu.add_properties()
+    ("name"," Number of CPUs in the System")
+    ("vhdl_name","ncpu")
+    ("Needet to determ the number of receiver lines.");
+    
+    g_eirq.add_properties()
+    ("name"," Extended Interrupt Number")
+    ("vhdl_name","eirq")
+    ("Behind this interrupt are all extended interrupt cascaded.");
 }
 
 // Automatically called at start of simulation

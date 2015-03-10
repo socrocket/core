@@ -147,7 +147,9 @@ class APBCtrl : public AHBSlave<DefaultBase>, public CLKDevice {
     /// The base address of the PNP APB device records
     /// 0xFF000
     const uint32_t m_pnpbase;
-
+    
+    gs::cnf::gs_config<uint32_t> g_haddr;
+    gs::cnf::gs_config<uint32_t> g_hmask;
     /// Check if there are any intersections between APB slave memory regions
     gs::cnf::gs_config<bool> g_mcheck;
 
