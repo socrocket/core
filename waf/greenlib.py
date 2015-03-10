@@ -92,7 +92,7 @@ def configure(self):
         self.dep_build(
             name         = name, 
             version      = version,
-            git_url      = "git://git.greensocs.com/greenlib.git",
+            git_url      = "http://git.greensocs.com/greenlib/greenlib.git",
             git_checkout = "ecfee38aebe09f91d1affd82ca03581a2bba3662",
             patch        = [os.path.join(self.path.abspath(), "core", "waf", "greenlib-2013-12-02.patch"),
                             os.path.join(self.path.abspath(), "core", "waf", "greenlib-2014-10-17.rmeyer.patch")],
