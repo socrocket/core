@@ -16,7 +16,6 @@
 #define MODELS_APBUART_APBUART_H_
 
 #include <greencontrol/all.h>
-#include "core/common/grambasockets/greenreg_ambasockets.h"
 #include <boost/config.hpp>
 #include "core/common/systemc.h"
 #include <string>

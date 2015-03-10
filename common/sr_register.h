@@ -205,8 +205,8 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
   public:
     typedef typename std::map<ADDR_TYPE, sr_register<DATA_TYPE> *> register_map_t;
 
-    sr_register_bank(const char* name, int size) : 
-      sc_register_bank<ADDR_TYPE, DATA_TYPE>(name, size) {
+    sr_register_bank(const char* name) : 
+      sc_register_bank<ADDR_TYPE, DATA_TYPE>(name, 0) {
     }
 
     ~sr_register_bank() {
@@ -221,6 +221,7 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       sr_register<DATA_TYPE> *reg = new sr_register<DATA_TYPE>(name, init_val, write_mask);
       m_register[addr] = reg;
       m_registers.push_back(reg);
+      this->m_size = m_registers.size();
       return *reg;
     }
 
@@ -228,6 +229,7 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       sr_register<DATA_TYPE> *reg = new sr_register<DATA_TYPE>(name, descr, init_val, write_mask);
       m_register.insert(std::make_pair(addr, reg));
       m_registers.push_back(reg);
+      this->m_size = m_registers.size();
       return *reg;
     }
 
@@ -238,7 +240,7 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       } else {
         i = 0;
       }
-      srInfo()("offset", offset)("value", i)(__PRETTY_FUNCTION__);
+      srDebug()("offset", offset)("value", i)(__PRETTY_FUNCTION__);
       return true;
     }
     bool bus_write(ADDR_TYPE offset, DATA_TYPE val) {
@@ -246,7 +248,7 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       if(reg) {
         reg->bus_write(val);
       }
-      srInfo()("offset", offset)("value", val)(__PRETTY_FUNCTION__);
+      srDebug()("offset", offset)("value", val)(__PRETTY_FUNCTION__);
       return true;
     }
     
@@ -257,7 +259,7 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       } else {
         i = 0;
       }
-      srInfo()("offset", offset)("value", i)(__PRETTY_FUNCTION__);
+      srDebug()("offset", offset)("value", i)(__PRETTY_FUNCTION__);
       return true;
     }
     
@@ -266,7 +268,7 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       if(reg) {
         reg->bus_write(val);
       } 
-      srInfo()("offset", offset)("value", val)(__PRETTY_FUNCTION__);
+      srDebug()("offset", offset)("value", val)(__PRETTY_FUNCTION__);
       return true;
     }
     

@@ -25,7 +25,7 @@ APBUART::APBUART(ModuleName name,
   int pirq,
   bool console,
   bool powmon) :
-  APBSlave(name, pindex, 0x1, 0x00C, 1, pirq, APBIO, pmask, false, false, paddr, 4),
+  APBSlave(name, pindex, 0x1, 0x00C, 1, pirq, APBIO, pmask, false, false, paddr),
   irq("IRQ"),
   m_backend(backend),
   g_pirq(pirq),

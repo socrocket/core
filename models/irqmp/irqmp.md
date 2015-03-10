@@ -41,8 +41,8 @@ The connection of the IRQMP towards the processors is implemented in very simila
 @subsection irqmp_p1_2 Control Registers
 
 The IRQMP can be configured and controlled by a set of memory-mapped registers (Table 32). 
-All control registers are 32 bit wide and implemented in form of a GreenReg register bank. 
-Therefore, as described in 3.4, class `Irqmp` is a chield of class `gr_device`. 
+All control registers are 32 bit wide and implemented in form of a register bank. 
+Therefore, as described in 3.4, class `Irqmp` is a child of class `APBSlave`. 
 An overview about the available registers is given in Table 32.
 
 @table Table 32 – IRQMP Registers
@@ -54,7 +54,7 @@ An overview about the available registers is given in Table 32.
 | 0x0C               | Interrupt Clear Register                               |
 | 0x10               | Multiprocessor Status Register                         |
 | 0c14               | Broadcast Register                                     |
-| 0x40 + 4 * n       |  Processor n Interrupt Mask Register                   |
+| 0x40 + 4 * n       | Processor n Interrupt Mask Register                    |
 | 0x80 + 4 * n       | Processor n Interrupt Force Register                   |
 | 0xC0 + 4 * n       | Processor n Extended Interrupt Identification Register |
 @endtable
@@ -201,34 +201,30 @@ The IRQMP unit consists of only one class.
 The irqmp.h file contains the module class definition. 
 The parameterization options, implemented as generics in the VHDL model, are realized as constructor parameters of the class. 
 
-Class `Irqmp` is a child of gr_device. 
-A GreenReg device is a top-level encapsulation for a complete functional unit and provides containment structures for other GreenReg elements, e.g. registers. 
+Class `Irqmp` is a child of APBSlave. 
+A APBSlave is an encapsulation for a complete functional unit and provides containment structures for other elements, e.g. registers. 
 Moreover, `Irqmp` inherits the PNP configuration record of class APBDevice, and the clock and reset interface defined in `CLKDevice`.
 The Irqmp class definition contains the module interface and the function prototypes of constructor, destructor, and callback functions. 
-Next, to the well-known `SC_HAS_PROCESS` macro, the model call `GC_HAS_CALLBACK`s for registration 
-with GreenReg and `SK_HAS_SIGNALS` for registration with the SignalKit. 
+Next, to the well-known `SC_HAS_PROCESS` macro, the model call `SK_HAS_SIGNALS` for registration with the SignalKit. 
 
 @subsection irqmp_p3_2 The irqmp.cpp file
 
 The constructor of `Irqmp` configures the `APBDevice`, the `gr_device` and the bus interface. 
-It constructs a GreenReg register container `r`, in which it implements all the registers listed in Table 32. 
-The register container is a C++ class implemented in the GreenReg libraries that provides memory management and interface functions. 
-Within this register container, a GreenReg register may be instantiated like in the following code snippet:
+It constructs a register bank `r`, in which it implements all the registers listed in Table 32. 
+The register bank is a C++ class implemented in the sc register libraries that provides memory management and interface functions. 
+Within this register bank, a register may be instantiated like in the following code snippet:
 
 ~~~{.cpp}
 r.create_register("pending", "Interrupt Pending Register",
                   0x04,
-                  STANDARD_REG | SINGLE_IO | SINGLE_BUFFER | FULL_WIDTH,
                   0x00000000,
                   IRQMP_IR_PENDING_EIP | IRQMP_IR_PENDING_IP,
-                  32,
-                  0x00
             );
 ~~~
 
 The arguments to the `create_register()` function are 
-name, description, offset, configuration, init value, write mask, register width, and lock mask. 
-For a detailed description of these options, please refer to the GreenReg documentation. 
+name, description, offset, init value, write mask. 
+For a detailed description of these options, please refer to the `r_register` documentation. 
 
 In addition to building the interface, the constructor registers the `SC_THREAD` `Irqmp::launch_irq`. 
 The `Irqmp::launch_irq` thread is sensitive to the SystemC event `e_signals` and contains the behavioral core of the model. 
