@@ -26,7 +26,7 @@
 
 #include "core/models/memory/memorypower.h"
 #include "core/common/verbose.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 #include "core/common/clkdevice.h"
 #include "core/models/memory/ext_erase.h"
 

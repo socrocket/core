@@ -8,8 +8,8 @@
 ///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Rolf Meyer
-#ifndef COMMON_REPORT_H_
-#define COMMON_REPORT_H_
+#ifndef COMMON_SR_REPORT_H_
+#define COMMON_SR_REPORT_H_
 
 #include <boost/any.hpp>
 #include <systemc.h>
@@ -459,5 +459,5 @@ void sr_report::operator()(const std::string &name) {
       sc_core::SC_MAX_SEVERITY, NULL, id, "command", \
       0x0FFFFFFF, __FILE__, __LINE__)("typename", type)
 
-#endif  // COMMON_REPORT_H_
+#endif  // COMMON_SR_REPORT_H_
 /// @}

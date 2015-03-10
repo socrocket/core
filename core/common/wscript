@@ -17,7 +17,7 @@ def build(self):
                        'json_parser.cpp',
                        'block_allocator.cpp',
                        'paramprinter.cpp',
-                       'report.cpp',
+                       'sr_report.cpp',
                        'waf.cpp',
                        'scireg.cpp'
                        ],

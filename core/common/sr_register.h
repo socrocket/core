@@ -15,7 +15,7 @@
 
 #include "core/common/systemc.h"
 #include "core/common/sc_register.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 
 /// lsb0 mode is used in field position specification.
 /// (lsb0 defines the 0 as the least significant bit. It is the default

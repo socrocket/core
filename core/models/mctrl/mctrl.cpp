@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <set>
 #include "core/models/mctrl/mctrl.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 
 // constructor
 Mctrl::Mctrl(

@@ -14,7 +14,7 @@
 
 #include "core/common/gs_config.h"
 #include "core/common/systemc.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 
 #include "core/platforms/newleon3mp/leon3mp.h"
 #ifdef HAVE_USI

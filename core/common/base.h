@@ -13,7 +13,7 @@
 
 #include "core/common/systemc.h"
 #include "core/common/gs_config.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 
 typedef sc_core::sc_module_name ModuleName;
 typedef sc_core::sc_module DefaultBase;
