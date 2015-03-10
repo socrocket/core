@@ -16,7 +16,7 @@
 ///
 
 #include "core/models/leon3/mmucache/mmu_cache_base.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 #include "core/common/vendian.h"
 
 //SC_HAS_PROCESS(mmu_cache_base<>);

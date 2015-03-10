@@ -14,7 +14,7 @@
 #include <amba.h>
 #include "core/common/systemc.h"
 #include "core/common/base.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 
 typedef amba::amba_layer_ids AbstractionLayer;
 

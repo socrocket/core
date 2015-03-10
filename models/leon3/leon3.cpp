@@ -17,7 +17,7 @@
 
 #include <boost/filesystem.hpp>
 #include "core/models/leon3/leon3.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 #include "core/common/vendian.h"
 
 //SC_HAS_PROCESS(Leon3<>);

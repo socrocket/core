@@ -18,7 +18,7 @@
 
 #include "core/common/base.h"
 #include "core/common/verbose.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 #include "core/models/apbuart/tcpio.h"
 
 /// Creates a connection

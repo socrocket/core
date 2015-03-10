@@ -18,7 +18,7 @@
 #include "core/models/apbctrl/apbctrl.h"
 #include "core/common/vendian.h"
 #include "core/common/verbose.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 
 /// Constructor of class APBCtrl
 APBCtrl::APBCtrl(

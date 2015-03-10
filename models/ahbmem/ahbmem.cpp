@@ -20,7 +20,7 @@
 #include <fstream>
 
 #include "core/models/ahbmem/ahbmem.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 #include "core/common/verbose.h"
 
 /// Constructor
