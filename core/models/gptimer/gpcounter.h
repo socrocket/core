@@ -18,7 +18,6 @@
 #define MODELS_GPTIMER_GPCOUNTER_H_
 
 #include "core/common/gs_config.h"
-//#include <greenreg/greenreg.h>
 #include "core/common/base.h"
 #include "core/common/systemc.h"
 

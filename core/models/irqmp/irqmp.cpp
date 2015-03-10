@@ -29,7 +29,7 @@ Irqmp::Irqmp(ModuleName name,
   int eirq,
   unsigned int pindex,
   bool powmon) :
-  APBSlave(name, pindex, 0x01, 0x00D, 3, 0, APBIO, pmask, false, false, paddr, 0xFF),
+  APBSlave(name, pindex, 0x01, 0x00D, 3, 0, APBIO, pmask, false, false, paddr),
   cpu_rst("CPU_RESET"), cpu_stat("CPU_STAT"), irq_req("CPU_REQUEST"),
   irq_ack(&Irqmp::acknowledged_irq, "IRQ_ACKNOWLEDGE"),
   irq_in(&Irqmp::incomming_irq, "IRQ_INPUT"),
@@ -239,8 +239,6 @@ void Irqmp::dorst() {
 //
 // process sensitive to apbi.pirq
 void Irqmp::incomming_irq(const std::pair<uint32_t, bool> &irq, const sc_time &time) {
-  // A variable with true as workaround for greenreg.
-  bool t = true;
   if (!irq.second) {
     // Return if the value turned to false.
     // Interrupts will not be unset this way.
@@ -256,7 +254,7 @@ void Irqmp::incomming_irq(const std::pair<uint32_t, bool> &irq, const sc_time &t
       // If the incomming interrupt is not listed in the broadcast register
       // it goes in the pending register
       if (!r[BROADCAST].bit(line)) {
-        r[IR_PENDING].bit(line, t);
+        r[IR_PENDING].bit(line, true);
       }
 
       // If it is not listed n the broadcast register and not an extended interrupt it goes into the force registers.
@@ -264,8 +262,8 @@ void Irqmp::incomming_irq(const std::pair<uint32_t, bool> &irq, const sc_time &t
       if (r[BROADCAST].bit(line) && (line < 16)) {
         // set force registers for broadcasted interrupts
         for (int32_t cpu = 0; cpu < g_ncpu; cpu++) {
-          r[PROC_IR_FORCE(cpu)].bit(line, t);
-          forcereg[cpu] |= (t << line);
+          r[PROC_IR_FORCE(cpu)].bit(line, true);
+          forcereg[cpu] |= (true << line);
         }
       }
     }
@@ -292,8 +290,8 @@ void Irqmp::launch_irq() {
     for (cpu = g_ncpu - 1; cpu > -1; cpu--) {
       // Pending register for this CPU line.
       pending = (r[IR_PENDING] | r[IR_FORCE]) & r[PROC_IR_MASK(cpu)];
-      v::debug << name() << "For CPU " << cpu << " pending: " << v::uint32 << r[IR_PENDING] << ", force: " <<
-      v::uint32 << r[IR_FORCE] << ", proc_ir_mask: " << r[PROC_IR_MASK(cpu)] << v::endl;
+      v::debug << name() << "For CPU " << cpu << " pending: " << v::uint32 << r[IR_PENDING].read() << ", force: " <<
+      v::uint32 << r[IR_FORCE].read() << ", proc_ir_mask: " << r[PROC_IR_MASK(cpu)].read() << v::endl;
 
       // All relevant interrupts for this CPU line to determ pending extended interrupts
       masked  = pending | (r[PROC_IR_FORCE(cpu)] & IR_FORCE_IF);

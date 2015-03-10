@@ -28,9 +28,8 @@ AHBDevice<BASE>::AHBDevice(
     BAR bar0,
     BAR bar1,
     BAR bar2,
-    BAR bar3,
-    uint32_t register_count) :
-  BaseModule<BASE>(mn, register_count),
+    BAR bar3) :
+  BaseModule<BASE>(mn),
   g_bars("bar", this->m_generics),
   g_bar0("0", g_bars),
   g_bar1("1", g_bars),
@@ -67,9 +66,8 @@ AHBDevice<BASE>::AHBDevice(
 // Standard constructor
 template<class BASE>
 AHBDevice<BASE>::AHBDevice(
-    ModuleName mn,
-    uint32_t register_count) :
-  BaseModule<BASE>(mn, register_count),
+    ModuleName mn) :
+  BaseModule<BASE>(mn),
   g_bars("bar", this->m_generics),
   g_bar0("0", g_bars),
   g_bar1("1", g_bars),

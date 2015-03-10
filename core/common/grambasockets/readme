@@ -1,3 +1,0 @@
-This folder contains the headers wich connects the GreenReg Sockets with AMBAKit Sockets.
-It should be included in the GreenReg Framework but might not be published untill the AMBAKit is released.
-For that reason a posibly older version of the files is provided here as a backup.

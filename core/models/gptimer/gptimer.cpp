@@ -24,7 +24,7 @@
 GPTimer::GPTimer(ModuleName name, unsigned int ntimers,
                    int pindex, int paddr, int pmask, int pirq, int sepirq,
                    int sbits, int nbits, int wdog, bool powmon) :
-    APBSlave(name, pindex, 0x1, 0x11, 1, pirq, APBIO, pmask, false, false, paddr, 4 * (1+ ntimers)),
+    APBSlave(name, pindex, 0x1, 0x11, 1, pirq, APBIO, pmask, false, false, paddr),
     irq("IRQ"), wdog("WDOG"),
     conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)),
     lasttime(0, sc_core::SC_NS), lastvalue(0),

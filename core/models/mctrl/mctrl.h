@@ -20,7 +20,6 @@
 #include <tlm.h>
 #include "core/common/amba.h"
 #include "core/common/gs_config.h"
-#include "core/common/grambasockets/greenreg_ambasockets.h"
 #include <greensocket/initiator/multi_socket.h>
 #include <boost/config.hpp>
 #include <algorithm>
