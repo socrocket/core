@@ -15,21 +15,18 @@
 #ifndef MODELS_GPTIMER_GPTIMER_H_
 #define MODELS_GPTIMER_GPTIMER_H_
 
-#include <greencontrol/all.h>
-#include "core/common/grambasockets/greenreg_ambasockets.h"
 #include "core/common/base.h"
 #include "core/common/systemc.h"
-#include "core/common/apbslave.h"
 #include <boost/config.hpp>
 
 #include <string>
 #include <vector>
 
 #include "core/models/gptimer/gpcounter.h"
-#include "core/models/utils/apbdevice.h"
+#include "core/common/apbslave.h"
 #include "core/models/utils/clkdevice.h"
-
 #include "core/common/signalkit.h"
+
 #include "core/common/verbose.h"
 #include "core/common/gs_config.h"
 

@@ -76,38 +76,6 @@ def find(self, path = None):
       '''
     )
 
-    # Check for GreenSocs GreenReg Library
-
-    self.check_cxx(
-      stlib        = 'greenreg',
-      uselib_store = 'GREENSOCS',
-      mandatory    = True,
-      libpath      = libpath,
-      okmsg        = "ok",
-    ) 
-
-    ##################################################
-    # Check for GreenSocs GreenReg Header
-    ##################################################
-    self.check_cxx(
-      header_name   = "greenreg/greenreg.h",
-      uselib_store  = 'GREENSOCS',
-      mandatory     = True,
-      includes      = incpath,
-      uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
-      okmsg        = "ok",
-      fragment='''
-           #include <systemc.h>
-           #include <tlm.h>
-           #include <greenreg/greenreg.h>
-
-           extern "C" {
-               int sc_main(int argc, char** argv) {
-                   return 0;
-               };
-           }
-      '''
-    )
     if path:
         self.env["HOME_GREENLIB"] = path
     

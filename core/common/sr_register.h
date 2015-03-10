@@ -15,6 +15,7 @@
 
 #include "core/common/systemc.h"
 #include "core/common/sc_register.h"
+#include "core/common/report.h"
 
 /// lsb0 mode is used in field position specification.
 /// (lsb0 defines the 0 as the least significant bit. It is the default
@@ -22,7 +23,7 @@
 template<typename T>
 class sr_register_field : public sc_register_field_b<T> {
   public:
-    sr_register_field( const char* name, sc_register_b<T>* c, unsigned int highpos, unsigned int lowpos)
+    sr_register_field(const char* name, sc_register_b<T> *c, unsigned int highpos, unsigned int lowpos)
       : sc_register_field_b<T>(name, c), m_highpos(highpos), m_lowpos(lowpos) {
       // Generate mask.
       gen_mask();
@@ -97,6 +98,7 @@ class sr_register : public sc_register_b<DATA_TYPE> {
   public:
     typedef typename std::vector<sr_register_callback_base *> callback_vector_t;
     typedef typename std::map<sr_register_callback_type, callback_vector_t > callback_map_t;
+    typedef typename std::map<const char *, sr_register_field<DATA_TYPE> *> field_map_t;
 
     sr_register(const char *name, DATA_TYPE init_val, DATA_TYPE write_mask)
       : sc_register_b<DATA_TYPE>(name, init_val), m_write_mask(write_mask), m_access_mode(SC_REG_RW_ACCESS) {
@@ -113,6 +115,10 @@ class sr_register : public sc_register_b<DATA_TYPE> {
         iter->second.clear();
       }
       m_callbacks.clear();
+
+      for(typename field_map_t::iterator iter = m_fields.begin(); iter != m_fields.end(); ++iter) {
+        delete iter->second;
+      }
     }
 
     template<typename OWNER>
@@ -127,6 +133,15 @@ class sr_register : public sc_register_b<DATA_TYPE> {
         m_callbacks.insert(pair);
       }
       return *this;
+    }
+
+    sr_register &create_field(const char *name, size_t start, size_t end) {
+      m_fields.insert(std::make_pair(name, new sr_register_field<DATA_TYPE>(name, this, start, end)));
+      return *this;
+    }
+
+    sr_register_field<DATA_TYPE> &field(const char *name) {
+      return m_fields[name];
     }
 
     const DATA_TYPE &get_write_mask() {
@@ -180,6 +195,7 @@ class sr_register : public sc_register_b<DATA_TYPE> {
     }
 
     callback_map_t m_callbacks;
+    field_map_t m_fields;
     DATA_TYPE m_write_mask;
     sc_register_access_mode m_access_mode;
 };
@@ -189,8 +205,8 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
   public:
     typedef typename std::map<ADDR_TYPE, sr_register<DATA_TYPE> *> register_map_t;
 
-    sr_register_bank(const char* name, int size) : 
-      sc_register_bank<ADDR_TYPE, DATA_TYPE>(name, size) {
+    sr_register_bank(const char* name) : 
+      sc_register_bank<ADDR_TYPE, DATA_TYPE>(name, 0) {
     }
 
     ~sr_register_bank() {
@@ -205,6 +221,7 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       sr_register<DATA_TYPE> *reg = new sr_register<DATA_TYPE>(name, init_val, write_mask);
       m_register[addr] = reg;
       m_registers.push_back(reg);
+      this->m_size = m_registers.size();
       return *reg;
     }
 
@@ -212,6 +229,7 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       sr_register<DATA_TYPE> *reg = new sr_register<DATA_TYPE>(name, descr, init_val, write_mask);
       m_register.insert(std::make_pair(addr, reg));
       m_registers.push_back(reg);
+      this->m_size = m_registers.size();
       return *reg;
     }
 
@@ -222,7 +240,7 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       } else {
         i = 0;
       }
-      srInfo()("offset", offset)("value", i)(__PRETTY_FUNCTION__);
+      srDebug()("offset", offset)("value", i)(__PRETTY_FUNCTION__);
       return true;
     }
     bool bus_write(ADDR_TYPE offset, DATA_TYPE val) {
@@ -230,7 +248,7 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       if(reg) {
         reg->bus_write(val);
       }
-      srInfo()("offset", offset)("value", val)(__PRETTY_FUNCTION__);
+      srDebug()("offset", offset)("value", val)(__PRETTY_FUNCTION__);
       return true;
     }
     
@@ -241,7 +259,7 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       } else {
         i = 0;
       }
-      srInfo()("offset", offset)("value", i)(__PRETTY_FUNCTION__);
+      srDebug()("offset", offset)("value", i)(__PRETTY_FUNCTION__);
       return true;
     }
     
@@ -250,7 +268,7 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
       if(reg) {
         reg->bus_write(val);
       } 
-      srInfo()("offset", offset)("value", val)(__PRETTY_FUNCTION__);
+      srDebug()("offset", offset)("value", val)(__PRETTY_FUNCTION__);
       return true;
     }
     

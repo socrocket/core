@@ -15,17 +15,8 @@
 #include "core/common/gs_config.h"
 #include "core/common/report.h"
 
-#ifndef MTI_SYSTEMC
-// #include <greensocket/initiator/multi_socket.h>
-#include <greenreg/greenreg.h>
-#include "core/common/grambasockets/greenreg_ambasockets.h"
-#endif
-
 typedef sc_core::sc_module_name ModuleName;
 typedef sc_core::sc_module DefaultBase;
-typedef gs::reg::gr_device RegisterBase;
-typedef amba::amba_layer_ids AbstractionLayer;
-typedef gs::reg::greenreg_socket<gs::amba::amba_slave<32> > RegisterSocket;
 
 typedef gs::cnf::cnf_api ParameterAPI;
 typedef gs::cnf::gs_param_array ParameterArray;
@@ -34,17 +25,10 @@ typedef gs::cnf::gs_param_array ParameterArray;
 //using Parameter<TYPE> = gs::cnf::gs_config<TYPE>;
 
 template<class BASE = DefaultBase>
-class SCBaseModule : public BASE {
+class BaseModule : public BASE {
   public:
-    SCBaseModule(ModuleName mn, uint32_t register_count = 0);
-    virtual ~SCBaseModule() {}
-};
-
-template<class BASE = DefaultBase>
-class BaseModule : public SCBaseModule<BASE> {
-  public:
-    BaseModule(ModuleName mn, uint32_t register_count = 0) :
-        SCBaseModule<BASE>(mn, register_count),
+    BaseModule(ModuleName mn) :
+        BASE(mn),
         m_generics("generics"),
         m_counters("counters"),
         m_power("power") {

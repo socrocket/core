@@ -52,8 +52,7 @@ class AHBMaster : public AHBDevice<BASE> {
       BAR bar0 = BAR(),
       BAR bar1 = BAR(),
       BAR bar2 = BAR(),
-      BAR bar3 = BAR(),
-      uint32_t register_count = 16);
+      BAR bar3 = BAR());
 
     /// Destructor
     ~AHBMaster();

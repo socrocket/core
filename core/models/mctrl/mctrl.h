@@ -20,7 +20,6 @@
 #include <tlm.h>
 #include "core/common/amba.h"
 #include "core/common/gs_config.h"
-#include "core/common/grambasockets/greenreg_ambasockets.h"
 #include <greensocket/initiator/multi_socket.h>
 #include <boost/config.hpp>
 #include <algorithm>
@@ -32,6 +31,7 @@
 #include "core/models/memory/ext_erase.h"
 #include "core/common/vendian.h"
 #include "core/common/verbose.h"
+#include "core/common/apbslave.h"
 #include "core/common/signalkit.h"
 
 /// @addtogroup mctrl MCtrl
@@ -39,7 +39,7 @@
 
 /// @brief This class is an TLM 2.0 Model of the Aeroflex Gaisler GRLIB mctrl.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 66.
-class Mctrl : public AHBSlave<APBDevice<RegisterBase> >,
+class Mctrl : public AHBSlave<APBSlave>,
               public CLKDevice {
   public:
     SC_HAS_PROCESS(Mctrl);
@@ -90,11 +90,8 @@ class Mctrl : public AHBSlave<APBDevice<RegisterBase> >,
 
     /// Initialize generics
     void init_generics();
-
-    /// APB Slave Socket
-    ///
-    /// Connects mctrl config registers to APB
-    gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb;
+    /// Initialize registers
+    void init_registers();
 
     /// Memory Master Socket
     ///
