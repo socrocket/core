@@ -7,8 +7,7 @@ def build(self):
   self(
     target          = 'common',
     features        = 'cxx cxxstlib pyembed',
-    source          = ['base.cpp',
-                       'verbose.cpp',
+    source          = ['verbose.cpp',
                        'powermonitor.cpp',
                        'timingmonitor.cpp',
                        'msclogger.cpp',

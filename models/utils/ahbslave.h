@@ -50,8 +50,7 @@ class AHBSlave : public AHBDevice<BASE> {
       BAR bar0 = BAR(),
       BAR bar1 = BAR(),
       BAR bar2 = BAR(),
-      BAR bar3 = BAR(),
-      uint32_t register_count = 0);
+      BAR bar3 = BAR());
 
     ~AHBSlave();
 

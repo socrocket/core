@@ -57,10 +57,10 @@ class sr_register_amba_socket : public ::amba::amba_slave_socket<BUSWIDTH>, publ
             *data <<= (byteaddr << 3);
             break;
           case 2:
-            SC_REPORT_FATAL(this->name(), "GreenReg AMBA Sockets: 2byte access is not implementet correctly\n");
+            SC_REPORT_FATAL(this->name(), "APBSlave Socket: 2byte access is not implementet correctly\n");
             break;
           case 3:
-            SC_REPORT_FATAL(this->name(), "GreenReg AMBA Sockets: 3byte access is not implementet correctly\n");
+            SC_REPORT_FATAL(this->name(), "APBSlave Socket: 3byte access is not implementet correctly\n");
             break;
           default:
             #ifdef LITTLE_ENDIAN_BO
@@ -81,13 +81,13 @@ class sr_register_amba_socket : public ::amba::amba_slave_socket<BUSWIDTH>, publ
       gp.set_response_status(tlm::TLM_OK_RESPONSE);
     }
 
-    gs::amba::amba_slave<BUSWIDTH>& operator()() {
+    /*gs::amba::amba_slave<BUSWIDTH>& operator()() {
       return *this;
     }
 
     gs::amba::amba_slave<BUSWIDTH>& get_bus_port() {
       return *this;
-    }
+    }*/
 
     virtual sc_dt::uint64 get_base_addr() = 0;
     virtual sc_dt::uint64 get_size() = 0;
@@ -119,17 +119,17 @@ class APBSlave : public APBDevice<DefaultBase> {
   public:
     APBSlave(ModuleName mn, uint32_t bus_id, uint8_t vendorid, uint16_t deviceid, uint8_t version,
         uint8_t irq, AMBADeviceType type, uint16_t mask, bool cacheable, bool prefetchable, 
-        uint16_t address, uint32_t register_count = 0) : 
+        uint16_t address) : 
       APBDevice<DefaultBase>(mn,
-          bus_id, vendorid, deviceid, version, irq, type, mask, cacheable, prefetchable, address, register_count),
-      r("register", register_count),
+          bus_id, vendorid, deviceid, version, irq, type, mask, cacheable, prefetchable, address),
+      r("register"),
       apb("apb", &r) {
       r.add_associate_busport(&apb);
     }
 
-    APBSlave(ModuleName mn, uint32_t register_count = 0) :
-      APBDevice<DefaultBase>(mn, register_count), 
-      r("register", register_count),
+    APBSlave(ModuleName mn) :
+      APBDevice<DefaultBase>(mn), 
+      r("register"),
       apb("apb", &r) {
       r.add_associate_busport(&apb);
     }

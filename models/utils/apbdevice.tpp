@@ -28,9 +28,8 @@ APBDevice<BASE>::APBDevice(
     uint16_t mask,
     bool cacheable,
     bool prefetchable,
-    uint16_t address,
-    uint32_t register_count) :
-  BaseModule<BASE>(mn, register_count),
+    uint16_t address) :
+  BaseModule<BASE>(mn),
   g_pindex("pindex", busid, this->m_generics),
   g_pvendorid("pvendorid", vendorid, this->m_generics),
   g_pdeviceid("pdeviceid", deviceid, this->m_generics),
@@ -45,8 +44,8 @@ APBDevice<BASE>::APBDevice(
 }
 
 template<class BASE>
-APBDevice<BASE>::APBDevice(ModuleName mn, uint32_t register_count) :
-  BaseModule<BASE>(mn, register_count),
+APBDevice<BASE>::APBDevice(ModuleName mn) :
+  BaseModule<BASE>(mn),
   g_pindex("pindex", this->m_generics),
   g_pvendorid("pvendorid", this->m_generics),
   g_pdeviceid("pdeviceid", this->m_generics),

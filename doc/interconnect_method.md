@@ -239,9 +239,9 @@ Figure 4 shows a simple APB write transfer and its abstraction using a blocking 
 
 @subsection im_apb_creating Creating/Binding APB sockets
 
-The easiest way to create custom APB components is to instantiate a GreenReg socket. GreenReg sockets are extended AMBA sockets, which allow the specification of register interfaces.
+The easiest way to create custom APB components is to instantiate a APBSlave. The come with APB sockets as extended AMBA sockets, which allow the specification of register interfaces.
 
-Please include the amba.h header of the Carbon AMBA TLM Modeling Kit and the greenreg_ambasockets.h header in your design.
+Please include the core/common/amba.h header to include the Carbon AMBA TLM Modeling Kit and core/common/apbslave.h header in your design.
 
 @todo verify section
 
@@ -250,19 +250,7 @@ A detailed description on how to set up APB components and register interfaces i
 **Master socket declaration (single):**
 
 ~~~{.cpp}
-gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb;
-~~~
-
-**Instantiation (module constructor):**
-
-~~~{.cpp}
-apb("apb",   
-r,                            // Name of GreenReg register container  
-APBDevice::get_base_addr_(),  // APB base address  
-APBDevice::get_size_(),       // APB size of address space  
-amba::amba_APB,               // Bus protocol specifier  
-amba::amba_LT,                // APB is always LT (blocking)  
-false),                       // Only used for CT modeling
+class Model : public APBSlave {
 ~~~
 
 @section interconnect_methodology_axi AXI Modeling

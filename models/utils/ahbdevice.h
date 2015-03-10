@@ -47,15 +47,12 @@ class AHBDevice : public BaseModule<BASE>, public AHBDeviceBase {
         BAR bar0,
         BAR bar1 = BAR(),
         BAR bar2 = BAR(),
-        BAR bar3 = BAR(),
-        uint32_t register_count = 0);
+        BAR bar3 = BAR());
 
     /// All device informations are needed while constructing a device.
     /// The register content is formed here.
     /// Before ending the constructor of the subclass you have to call init!
-    AHBDevice(
-        ModuleName mn,
-        uint32_t register_count = 0);
+    AHBDevice(ModuleName mn);
 
     /// All device informations missing by the second constructor.
     /// The register content is formed here.

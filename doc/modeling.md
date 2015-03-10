@@ -70,57 +70,46 @@ This section can be found here: @subpage signalkit_doc
 
 @section modeling4 Memory mapped registers
 
-GreenReg is used to model memory mapped registers throughout the library. 
+sr registers are used to model memory mapped registers throughout the library. 
+They are based on sc registers from Cadence and implement the full scireg interface.
+Moreover the register creation is more flexible and runtime dynamic than in sc registers.
+The register creation is modeled after the GreenLib way.
 Since almost every model requires a set of control registers, this unified scheme yields a high productivity gain. 
 The following steps are required to define a register:
 
-1. Include the GreenReg AMBA Socket header file.
+1. Include the sr_register header file.
    ~~~
-   #include greenreg_ambasockets.h
+   #include "core/common/sr_register.h"
    ~~~
-2. Derive your class from GreenReg device 
+2. Instantiate a register bank in your device device 
    ~~~
-   class foo : public gs::reg::gr_device
+   sr_register_bank<> r;
    ~~~
-3. Tell the system that your registers will require callback function (using the build-in macro).
+3. Create the socket the register is going to be connected to.
    ~~~
-   GC_HAS_CALLBACKS() 
+   sr_register_amba_socket<> my_sock;
    ~~~
-4. Create the socket the register is going to be connected to.
-   ~~~
-   gs::reg::greenreg_socket<gs::amba::amba_slave<32> > my_sock;
-   ~~~
-5. In the constructor of the module – initialize gr_device and socket.
-   ~~~
-   // This will create a register bank of size bank_size bytes
-   gr_device(name, gs::reg::ALIGNED_ADDRESS, bank_size, NULL)
-   ~~~
-6. The initialization of gr_device (5) delivers a default pointer (r) to the newly generated memory bank. 
+4. In the constructor of the module – initialize register bank and the socket.
    The initialization of the socket requires this pointer along the address settings for the bank as input arguments.
    ~~~
-   // Initialize socket and hook up register bank r
+   // This will create a register bank
+   r(name)
    my_sock(„sock“, r, start address, end address, protocol (e.g. amba::amba_APB), abstraction (e.g. amba::amba_LT), false) 
    ~~~
-7. Create a register within the new memory bank.
+5. Create a register within the new memory bank.
+   Register handler functions for register event.
    ~~~
-   // New register in bank r at bank address + offset
-   r.create_register(name, description, offset, type (e.g. gs::reg::STANDARD_REG), initial value, write mask, bit width, lock mask (not used))
+   void init_registers() {
+     // New register in bank r at bank address + offset
+     r.create_register(name, description, offset, initial value, write mask)
+        .callback(SR_POST_WRITE, Object, &Class::my_handler);
+   }
    ~~~
-8. Register a handler function for the register and make the handler sensitive to a register event.
+6. In this example the handler will be called after completion of a write operation (POST_WRITE). The signature of the handler function is void:
    ~~~
-   GR_FUNCTION(foo, my_handler);
-   GR_SENSITIVE(r[offset].add_rule(gs::reg::POST_WRITE, „scaler_write“, gs::reg::NOTIFY))
-   ~~~
-9. In this example the handler will be called after completion of a write operation (POST_WRITE). The signature of the handler function is void:
-   ~~~
-   void my_handler()
-   ~~~
-10. A module that uses GreenReg registers needs to call the following macro in the destructor:
-   ~~~
-   GC_UNREGISTER_CALLBACKS
+   void &Class::my_handler()
    ~~~
 
-Remark: All modules making use of GreenReg memory mapped registers must inherit from class `gr_device`. 
 In the SoCRocket library this accounts for all IPs containing an APB slave interface (e.g. `MCTRL`, `IRQMP`, `GPTimer`, `SoCWire`. 
 
 @section modeling5 Power Modeling
@@ -328,7 +317,6 @@ The response_callback function is plain virtual and must be implemented by the u
 AHB Slaves: AHB slave components must inherit from class AHBSlave. 
 AHBSlave is derived from class AHBDevice and template class `<BASE>`. 
 `<BASE>` can be `sc_module`, which is the default case, or any other child of `sc_module`. 
-Modules implementing memory mapped registers should set `<BASE>` to `gs::reg::gr_device` (Greenreg Device).
 AHBDevice provides the interface for identification of the device in the system. 
 At start_of_simulation the AHBCTRL reads the configuration records of all connected AHBDevices (Masters and Slaves) for building up its internal routing table (PNP records). 
 The actual slave socket, all related functionality, and state machines are encapsulated in class AHBSlave itself.
@@ -345,10 +333,10 @@ The slave can be configured for LT and AT abstraction via constructor parameter 
 The response delay is the number of wait-states required for delivering the data multiplied with clock cycle time.
 
 APB Slaves: All APB slaves must inherit from class APBDevice. Similar to AHBDevice the conveyed information is used to set up the routing table of the APBCtrl (PNP records).
-If the new device is supposed to have memory mapped registers, it must inherit from class `gs::reg::gr_device`. A small guide for modeling registers with GreenReg can be found in section @ref modeling4 "Memory mapped registers".
+A small guide for modeling registers can be found in section @ref modeling4 "Memory mapped registers".
 To enable the connection of the clock, the module should also inherit from class CLKDevice.
 ~~~{.cpp}
-class my_apbcomponent : public gs::reg::gr_device, public APBDevice, public CLKDevice
+class my_apbcomponent : public APBDevice, public CLKDevice
 ~~~
 *Note: Classes that inherit from gr_device must not inherit from sc_module!*
 

@@ -98,10 +98,6 @@ Contains utility classes and functions, which are jointly used by all models of 
 This mainly comprises timing monitor, power monitor,  endianess conversion and verbosity control. 
 More detailed explanantions on the seperate files in this directory are given in 3.2.
 
-## contrib
-
-Contains a set of patches for GreenSocs 4.2.0 and newly developed TLM Sockets that enable GreenReg registers to be bound to Carbon AHB sockets.
-
 ## doc
 
 The documentation to this library.

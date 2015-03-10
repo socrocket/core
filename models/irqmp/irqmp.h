@@ -18,26 +18,21 @@
 #include <stdint.h>
 #include "core/common/systemc.h"
 #include "core/common/gs_config.h"
-#include "core/common/grambasockets/greenreg_ambasockets.h"
 #include <boost/config.hpp>
 #include <utility>
 
-#include "core/models/utils/apbdevice.h"
+#include "core/common/apbslave.h"
 #include "core/models/utils/clkdevice.h"
 #include "core/common/signalkit.h"
 
 /// @addtogroup irqmp IRQMP
 /// @{
 
-class Irqmp : public APBDevice<RegisterBase>,
-              public CLKDevice {
+class Irqmp : public APBSlave, public CLKDevice {
   public:
     SC_HAS_PROCESS(Irqmp);
     SK_HAS_SIGNALS(Irqmp);
     GC_HAS_CALLBACKS();
-
-    /// Slave socket responsible for all bus communication
-    gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb_slv;
 
     /// CPU reset out signals
     signal<bool>::selector cpu_rst;
@@ -84,6 +79,8 @@ class Irqmp : public APBDevice<RegisterBase>,
     ///
     /// Will ne called from the constructor.
     void init_generics();
+    void init_registers();
+
     /// Automatically called at start of simulation
     void start_of_simulation();
 

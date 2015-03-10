@@ -5,15 +5,30 @@ MCtrl - Memory Controller {#mctrl_p}
 
 @section mctrl_functionality Functionality and Features
 
-The TLM model of the MCTRL unit models behaviour and timing of the GRLIB MCTRL VHDL implementation described in RD04. It controls a memory subsystem comprising four different types of memory: PROM, I/O, SRAM, and SDRAM. All these memories can be accessed through an AHB slave socket, using an internal address decoder. The control register interface of the device is modeled as a GreenReg register bank, which is attached to an APB slave socket. Hence, like any other device containing GreenReg registers, class mctrl is derived from class gr_device (3.4).
+The TLM model of the MCTRL unit models behaviour and timing
+of the GRLIB MCTRL VHDL implementation described in RD04. 
+It controls a memory subsystem comprising four different
+types of memory: PROM, I/O, SRAM, and SDRAM. 
+All these memories can be accessed through an AHB slave 
+socket, using an internal address decoder.
+The control register interface of the device is modeled as
+a sr register bank, which is attached to an APB slave socket.
+Hence, like any other APB device containing sr registers, 
+class mctrl is derived from class APBSlave.
 
 @todo what about this section 3.4 (memory mapped registers)?
 
-The MCTRL is a slave on the AHB bus and on the APB bus. Respectively, it inherits PNP configuration records from classes AHBDevice and APBDevice. The timing of the model is approximated at two different levels of abstraction (LT and AT).
+The MCTRL is a slave on the AHB bus and on the APB bus.
+Respectively, it inherits PNP configuration records from 
+classes AHBDevice and APBDevice through
+AHBSlave and APBSlave.
+The timing of the model is approximated at two different
+levels of abstraction (LT and AT).
 
 @subsection mctrl_control_register Control Registers
 
-The register control interface consists of four configuration registers (Table 14). All of them are 32 bits wide.
+The register control interface consists of four configuration 
+registers (Table 14). All of them are 32 bits wide.
 
 | APB Address Offset | Register                           |
 |--------------------|------------------------------------|

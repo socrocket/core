@@ -172,7 +172,7 @@ def get_testdirs(path='.'):
 def getdirs(base = '.', excludes = list()):
     """
     For external resources
-    Not used at the moment, maybe with greenreg or grlib
+    Not used at the moment, maybe with grlib
     Return recursively all subdirectories of base, 
     exept directories matching excludes.
     """

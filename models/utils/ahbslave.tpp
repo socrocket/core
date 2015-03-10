@@ -25,8 +25,7 @@ AHBSlave<BASE>::AHBSlave(
     BAR bar0,
     BAR bar1,
     BAR bar2,
-    BAR bar3,
-    uint32_t register_count) :
+    BAR bar3) :
   AHBDevice<BASE>(
     mn,
     hindex,
@@ -37,8 +36,7 @@ AHBSlave<BASE>::AHBSlave(
     bar0,
     bar1,
     bar2,
-    bar3,
-    register_count),
+    bar3),
   ahb("ahb", ::amba::amba_AHB, ambaLayer, false  /* Arbitration */),
   m_RequestPEQ("RequestPEQ"),
   m_ResponsePEQ("ResponsePEQ"),

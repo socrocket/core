@@ -25,9 +25,8 @@ AHBMaster<BASE>::AHBMaster(
     BAR bar0,
     BAR bar1,
     BAR bar2,
-    BAR bar3,
-    uint32_t register_count) :
-  AHBDevice<BASE>(nm, hindex, vendor, device, version, irq, bar0, bar1, bar2, bar3, register_count),
+    BAR bar3) :
+  AHBDevice<BASE>(nm, hindex, vendor, device, version, irq, bar0, bar1, bar2, bar3),
   ahb("ahb", ::amba::amba_AHB, ambaLayer, false),
   m_ResponsePEQ("ResponsePEQ"),
   m_ambaLayer(ambaLayer),
