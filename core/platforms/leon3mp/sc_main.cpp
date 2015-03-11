@@ -56,6 +56,11 @@
 #include "vphy/tapdev.h"
 #include "vphy/loopback.h"
 #endif
+#ifdef HAVE_REPO_MEDIA
+#include "media/models/ahbdisplay/ahbdisplay.h"
+#include "media/models/ahbcamera/ahbcamera.h"
+#include "media/models/ahbshuffler/ahbshuffler.h"
+#endif
 
 //#include "vphy/trafgen.h"
 
@@ -962,6 +967,85 @@ int sc_main(int argc, char** argv) {
   // GREth done. ==========================
 #endif  // HAVE_GRETH
     // ******************************************
+
+#ifdef HAVE_REPO_MEDIA
+    // AHBDisplay - AHBMaster
+    // ==================
+    gs::gs_param_array p_ahbdisplay("ahbdisplay", p_conf);
+    gs::gs_param<bool> p_ahbdisplay_en("en", false, p_ahbdisplay);
+    gs::gs_param<unsigned int> p_ahbdisplay_hindex("hindex", 2, p_ahbdisplay);
+    gs::gs_param<unsigned int> p_ahbdisplay_pindex("pindex", 4, p_ahbdisplay);
+    gs::gs_param<unsigned int> p_ahbdisplay_paddr("paddr", 0x500, p_ahbdisplay);
+    gs::gs_param<unsigned int> p_ahbdisplay_pmask("pmask", 0xFFF, p_ahbdisplay);
+    if(p_ahbdisplay_en) {
+      AHBDisplay *ahbdisplay = new AHBDisplay("ahbdisplay",
+        p_ahbdisplay_hindex,  // ahb index
+        p_ahbdisplay_pindex,  // apb index
+        p_ahbdisplay_paddr,  // apb address
+        p_ahbdisplay_pmask,  // apb mask
+        ambaLayer,
+        true
+      );
+
+      // Connecting APB Slave
+      ahbdisplay->ahb(ahbctrl.ahbIN);
+      apbctrl.apb(ahbdisplay->apb);
+      ahbdisplay->set_clk(p_system_clock,SC_NS);
+      //ahbdisplay->memory = sdram.memory;
+    }
+
+    // AHBCamera - AHBMaster
+    // ==================
+    gs::gs_param_array p_ahbcamera("ahbcamera", p_conf);
+    gs::gs_param<bool> p_ahbcamera_en("en", false, p_ahbcamera);
+    gs::gs_param<unsigned int> p_ahbcamera_hindex("hindex", 3, p_ahbcamera);
+    gs::gs_param<unsigned int> p_ahbcamera_pindex("pindex", 5, p_ahbcamera);
+    gs::gs_param<unsigned int> p_ahbcamera_paddr("paddr", 0x501, p_ahbcamera);
+    gs::gs_param<unsigned int> p_ahbcamera_pmask("pmask", 0xFFF, p_ahbcamera);
+    gs::gs_param<std::string> p_ahbcamera_video("video", "bigbuckbunny_small.m2v", p_ahbcamera);
+    if(p_ahbcamera_en) {
+      AHBCamera *ahbcamera = new AHBCamera("ahbcamera",
+        p_ahbcamera_hindex,  // ahb index
+        p_ahbcamera_pindex,  // apb index
+        p_ahbcamera_paddr,   // apb addr
+        p_ahbcamera_pmask,   // apb make
+        ((std::string)p_ahbcamera_video).c_str(),
+        ambaLayer,
+        true
+      );
+
+      // Connecting APB Slave
+      ahbcamera->ahb(ahbctrl.ahbIN);
+      apbctrl.apb(ahbcamera->apb);
+      ahbcamera->set_clk(p_system_clock,SC_NS);
+      //ahbcamera->memory = sdram.memory;
+    }
+
+    // AHBShuffler - AHBMaster
+    // ==================
+    gs::gs_param_array p_ahbshuffler("ahbshuffler", p_conf);
+    gs::gs_param<bool> p_ahbshuffler_en("en", false, p_ahbshuffler);
+    gs::gs_param<unsigned int> p_ahbshuffler_hindex("hindex", 4, p_ahbshuffler);
+    gs::gs_param<unsigned int> p_ahbshuffler_pindex("pindex", 6, p_ahbshuffler);
+    gs::gs_param<unsigned int> p_ahbshuffler_paddr("paddr", 0x502, p_ahbshuffler);
+    gs::gs_param<unsigned int> p_ahbshuffler_pmask("pmask", 0xFFF, p_ahbshuffler);
+    if(p_ahbshuffler_en) {
+      AHBShuffler *ahbshuffler = new AHBShuffler("ahbshuffler",
+        p_ahbshuffler_hindex,  // ahb index
+        p_ahbshuffler_pindex,  // apb index
+        p_ahbshuffler_paddr,   // apb addr
+        p_ahbshuffler_pmask,   // apb make
+        ambaLayer,
+        true
+      );
+
+      // Connecting APB Slave
+      ahbshuffler->ahb(ahbctrl.ahbIN);
+      apbctrl.apb(ahbshuffler->apb);
+      ahbshuffler->set_clk(p_system_clock,SC_NS);
+      //ahbshuffler->memory = sdram.memory;
+    }
+#endif // HAVE_REPO_MEDIA
 
     signalkit::signal_out<bool, Irqmp> irqmp_rst;
     connect(irqmp_rst, irqmp.rst);
