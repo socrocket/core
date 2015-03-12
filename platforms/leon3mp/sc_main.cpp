@@ -105,6 +105,7 @@ int sc_main(int argc, char** argv) {
 #ifdef HAVE_USI
     // Initialize Python
     USI_HAS_MODULE(systemc_);
+    USI_HAS_MODULE(registry);
     USI_HAS_MODULE(delegate);
     USI_HAS_MODULE(scireg);
     USI_HAS_MODULE(amba);

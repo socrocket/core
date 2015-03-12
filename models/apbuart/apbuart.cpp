@@ -13,7 +13,10 @@
 ///
 
 #include "core/models/apbuart/apbuart.h"
+#include "core/common/sr_registry.h"
 #include <string>
+
+//SR_HAS_MODULE(APBUART);
 
 // Constructor: create all members, registers and Counter objects.
 // Store configuration default value in conf_defaults.
