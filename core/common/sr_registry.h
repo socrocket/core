@@ -20,13 +20,14 @@
 class SrModuleRegistry {
   public:
     typedef std::map<std::string, SrModuleRegistry *> map_t;
+    typedef std::map<std::string, map_t> map_map_t;
     typedef sc_core::sc_object *(*generator_f)(sc_core::sc_module_name);
-    SrModuleRegistry(std::string type, generator_f funct, std::string file);
-    static sc_core::sc_object *create_object_by_name(std::string type, std::string name);
-    static std::set<std::string> get_module_files();
+    SrModuleRegistry(std::string group, std::string type, generator_f funct, std::string file);
+    static sc_core::sc_object *create_object_by_name(std::string group, std::string type, std::string name);
+    static std::set<std::string> get_module_files(std::string group);
 
   private:
-    static map_t reg;
+    static map_map_t m_members;
     generator_f m_funct;
     const std::string m_file;
 };
@@ -34,7 +35,7 @@ class SrModuleRegistry {
 
 #define \
   SR_HAS_MODULE_GENERATOR(type, funct) \
-  static SrModuleRegistry __sr_module_registry_##funct##__(type, &funct, __FILE__); \
+  static SrModuleRegistry __sr_module_registry_##funct##__("module", type, &funct, __FILE__); \
   volatile SrModuleRegistry *__sr_module_registry_##funct = &__sr_module_registry_##funct##__;
 
 #define \
