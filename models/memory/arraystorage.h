@@ -32,7 +32,7 @@ class ArrayStorage : public Storage {
     void read_block(const uint32_t &addr, uint8_t *ptr, const uint32_t &len) const;
 
     void erase(const uint32_t &start, const uint32_t &end);
-  private:
+  //private:
     uint8_t *data;
 };
 

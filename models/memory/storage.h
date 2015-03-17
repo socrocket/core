@@ -18,6 +18,8 @@
 
 class Storage {
   public:
+    virtual ~Storage(){};
+
     virtual void write(const uint32_t &addr, const uint8_t &byte) = 0;
 
     virtual uint8_t read(const uint32_t &addr) const = 0;

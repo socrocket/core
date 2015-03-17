@@ -75,6 +75,7 @@ enum sr_register_callback_type {
 
 class sr_register_callback_base {
   public:
+    virtual ~sr_register_callback_base(){};
     virtual void call() = 0;
 };
 
