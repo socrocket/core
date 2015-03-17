@@ -27,7 +27,8 @@ class SrModuleRegistry {
     static std::set<std::string> get_module_files(std::string group);
 
   private:
-    static map_map_t m_members;
+    static map_t &get_group(std::string group);
+    static map_map_t *m_members;
     generator_f m_funct;
     const std::string m_file;
 };
