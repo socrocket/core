@@ -269,13 +269,13 @@ void Mctrl::init_registers() {
       0x04, MCFG2_DEFAULT, MCFG2_WRITE_MASK | 1 << 5 | 1 << 4)
     .callback(SR_POST_WRITE, this, &Mctrl::mcfg2_write)
     .callback(SR_POST_WRITE, this, &Mctrl::launch_sdram_command)
-    .create_field("sr_bk", 9, 12)       // SRAM bank size
+    .create_field("sr_bk", 12, 9)       // SRAM bank size
     .create_field("si", 13, 13)         // SRAM disable, address space calculation
     .create_field("se", 14, 14)         // SDRAM enable, address space calculation
-    .create_field("launch", 19, 20)     // SDRAM command field
-    .create_field("sdr_bk", 23, 25)     // SDRAM bank size
+    .create_field("launch", 20, 19)     // SDRAM command field
+    .create_field("sdr_bk", 25, 23)     // SDRAM bank size
     .create_field("lmr", 26, 26)        // tcas needs LMR command
-    .create_field("sdr_trfc", 27, 29);   // SDRAM refresh cycle
+    .create_field("sdr_trfc", 29, 27);   // SDRAM refresh cycle
 
   r.create_register("MCFG3", "Memory Configuration Register 3", 0x08,
     MCFG3_DEFAULT, MCFG3_WRITE_MASK);
@@ -283,8 +283,8 @@ void Mctrl::init_registers() {
   r.create_register("MCFG4", "Power-Saving Configuration Register",
       0x0C, MCFG4_DEFAULT, MCFG4_WRITE_MASK)
     .callback(SR_POST_WRITE, this, &Mctrl::switch_power_mode)
-    .create_field("emr", 0, 6)       // DS, TCSR, PASR need EMR command
-    .create_field("pmode", 16, 18);  // SDRAM power saving mode field
+    .create_field("emr", 6, 0)       // DS, TCSR, PASR need EMR command
+    .create_field("pmode", 18, 16);  // SDRAM power saving mode field
 }
 
 void Mctrl::end_of_elaboration() {

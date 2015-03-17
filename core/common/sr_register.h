@@ -50,7 +50,7 @@ class sr_register_field : public sc_register_field_b<T> {
 
     // Based on lowpos, highpos, generate mask of type T.
     void gen_mask() {
-        assert( (lowpos <= m_highpos) && (m_highpos < sizeof(T)*8) );
+        assert( (m_lowpos <= m_highpos) && (m_highpos < sizeof(T)*8) );
         unsigned int width = m_highpos - m_lowpos + 1;
         unsigned int m0 = 0x1;
         m_mask = 0;
@@ -169,12 +169,10 @@ class sr_register : public sc_register_b<DATA_TYPE> {
       raise_callback(SR_POST_WRITE);
     }
     bool bit(int pos) const {
-      srInfo()("value", this->read())("pos", pos)("mask", 1 << pos)("read", this->read() & (1 << pos))(__PRETTY_FUNCTION__);
       return this->read() & (1 << pos);
     }
 
     void bit(int pos, bool value) {
-      srInfo()("old", this->read())("pos", pos)("mask", 1 << pos)("new", (this->read() & ~(1 << pos)) | (value << pos))(__PRETTY_FUNCTION__);
       this->write((this->read() & ~(1 << pos)) | (value << pos));
     }
 
