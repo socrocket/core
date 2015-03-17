@@ -56,9 +56,13 @@
 #include "vphy/tapdev.h"
 #include "vphy/loopback.h"
 #endif
-#ifdef HAVE_REPO_MEDIA
+#ifdef HAVE_AHBDISPLAY
 #include "media/models/ahbdisplay/ahbdisplay.h"
+#endif
+#ifdef HAVE_AHBCAMERA
 #include "media/models/ahbcamera/ahbcamera.h"
+#endif
+#ifdef HAVE_AHBSHUFFLER
 #include "media/models/ahbshuffler/ahbshuffler.h"
 #endif
 
@@ -969,7 +973,7 @@ int sc_main(int argc, char** argv) {
 #endif  // HAVE_GRETH
     // ******************************************
 
-#ifdef HAVE_REPO_MEDIA
+#ifdef HAVE_AHBDISPLAY
     // AHBDisplay - AHBMaster
     // ==================
     gs::gs_param_array p_ahbdisplay("ahbdisplay", p_conf);
@@ -994,7 +998,8 @@ int sc_main(int argc, char** argv) {
       ahbdisplay->set_clk(p_system_clock,SC_NS);
       ahbdisplay->memory = ((ArrayStorage *)sdram.storage)->data;
     }
-
+#endif
+#ifdef HAVE_AHBCAMERA
     // AHBCamera - AHBMaster
     // ==================
     gs::gs_param_array p_ahbcamera("ahbcamera", p_conf);
@@ -1021,7 +1026,8 @@ int sc_main(int argc, char** argv) {
       ahbcamera->set_clk(p_system_clock,SC_NS);
       ahbcamera->memory = ((ArrayStorage *)sdram.storage)->data;
     }
-
+#endif
+#ifdef HAVE_AHBSHUFFLER
     // AHBShuffler - AHBMaster
     // ==================
     gs::gs_param_array p_ahbshuffler("ahbshuffler", p_conf);
