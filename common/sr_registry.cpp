@@ -11,33 +11,39 @@
 /// @author Rolf Meyer
 #include "core/common/sr_registry.h"
 
-SrModuleRegistry::map_map_t SrModuleRegistry::m_members = SrModuleRegistry::map_map_t();
+SrModuleRegistry::map_map_t *SrModuleRegistry::m_members = NULL;
 
-SrModuleRegistry::SrModuleRegistry(std::string group, std::string type, SrModuleRegistry::generator_f funct, std::string file) : 
-  m_funct(funct), m_file(file) {
-  SrModuleRegistry::map_map_t::iterator iter = SrModuleRegistry::m_members.find(group);
-  if(iter == SrModuleRegistry::m_members.end()) {
-    m_members.insert(std::make_pair(group, SrModuleRegistry::map_t()));
-    iter = SrModuleRegistry::m_members.find(group);
+SrModuleRegistry::map_t &SrModuleRegistry::get_group(std::string group) {
+  if(!SrModuleRegistry::m_members) {
+    SrModuleRegistry::m_members = new map_map_t();
   }
-  iter->second.insert(std::make_pair(type, this));
+  SrModuleRegistry::map_map_t::iterator iter = SrModuleRegistry::m_members->find(group);
+  if(iter == SrModuleRegistry::m_members->end()) {
+    SrModuleRegistry::m_members->insert(std::make_pair(group, SrModuleRegistry::map_t()));
+    iter = SrModuleRegistry::m_members->find(group);
+  }
+  return iter->second;
+}
+
+SrModuleRegistry::SrModuleRegistry(std::string groupname, std::string type, SrModuleRegistry::generator_f funct, std::string file) : 
+  m_funct(funct), m_file(file) {
+  SrModuleRegistry::map_t &group = SrModuleRegistry::get_group(groupname);
+  group.insert(std::make_pair(type, this));
 };
 
-sc_core::sc_object *SrModuleRegistry::create_object_by_name(std::string group, std::string type, std::string name) {
-  SrModuleRegistry::map_map_t::iterator iter = SrModuleRegistry::m_members.find(group);
-  if(iter != SrModuleRegistry::m_members.end()) {
-    SrModuleRegistry::map_t::iterator item = iter->second.find(type);
-    if(item != iter->second.end()) {
-      return item->second->m_funct(name.c_str());
-    }
+sc_core::sc_object *SrModuleRegistry::create_object_by_name(std::string groupname, std::string type, std::string name) {
+  SrModuleRegistry::map_t &group = SrModuleRegistry::get_group(groupname);
+  SrModuleRegistry::map_t::iterator item = group.find(type);
+  if(item != group.end()) {
+    return item->second->m_funct(name.c_str());
   }
   return NULL;
 }
 
-std::set<std::string> SrModuleRegistry::get_module_files(std::string group) {
+std::set<std::string> SrModuleRegistry::get_module_files(std::string groupname) {
   std::set<std::string> result;
-  SrModuleRegistry::map_map_t::iterator iter = SrModuleRegistry::m_members.find(group);
-  for(SrModuleRegistry::map_t::iterator item = iter->second.begin(); item != iter->second.end(); ++item) {
+  SrModuleRegistry::map_t &group = SrModuleRegistry::get_group(groupname);
+  for(SrModuleRegistry::map_t::iterator item = group.begin(); item != group.end(); ++item) {
     result.insert(item->second->m_file);
   }
   return result;
