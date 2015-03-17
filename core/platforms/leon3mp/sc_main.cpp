@@ -992,7 +992,7 @@ int sc_main(int argc, char** argv) {
       ahbdisplay->ahb(ahbctrl.ahbIN);
       apbctrl.apb(ahbdisplay->apb);
       ahbdisplay->set_clk(p_system_clock,SC_NS);
-      //ahbdisplay->memory = sdram.memory;
+      ahbdisplay->memory = ((ArrayStorage *)sdram.storage)->data;
     }
 
     // AHBCamera - AHBMaster
@@ -1019,7 +1019,7 @@ int sc_main(int argc, char** argv) {
       ahbcamera->ahb(ahbctrl.ahbIN);
       apbctrl.apb(ahbcamera->apb);
       ahbcamera->set_clk(p_system_clock,SC_NS);
-      //ahbcamera->memory = sdram.memory;
+      ahbcamera->memory = ((ArrayStorage *)sdram.storage)->data;
     }
 
     // AHBShuffler - AHBMaster
@@ -1044,7 +1044,7 @@ int sc_main(int argc, char** argv) {
       ahbshuffler->ahb(ahbctrl.ahbIN);
       apbctrl.apb(ahbshuffler->apb);
       ahbshuffler->set_clk(p_system_clock,SC_NS);
-      //ahbshuffler->memory = sdram.memory;
+      ahbshuffler->memory = ((ArrayStorage *)sdram.storage)->data;
     }
 #endif // HAVE_REPO_MEDIA
 
