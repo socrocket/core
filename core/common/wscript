@@ -14,6 +14,7 @@ def build(self):
                        'powermonitor.cpp',
                        'timingmonitor.cpp',
                        'msclogger.cpp',
+                       'sr_registry.cpp',
                        'sr_report.cpp',
                        'waf.cpp',
                        'scireg.cpp'

@@ -18,6 +18,9 @@
 #include <vector>
 #include "core/models/gptimer/gptimer.h"
 #include "core/common/sr_report.h"
+#include "core/common/sr_registry.h"
+
+SR_HAS_MODULE(GPTimer);
 
 // Constructor: create all members, registers and Counter objects.
 // Store configuration default value in conf_defaults.
