@@ -28,9 +28,9 @@ class sr_register_amba_socket : public ::amba::amba_slave_socket<BUSWIDTH>, publ
         m_register(bank) {
 
       // Bind amba blocking ...
-      register_b_transport(this, &sr_register_amba_socket::b_transport);
+      this->register_b_transport(this, &sr_register_amba_socket::b_transport);
       // Register debug transport
-      register_transport_dbg(this, &sr_register_amba_socket::transport_dbg);
+      this->register_transport_dbg(this, &sr_register_amba_socket::transport_dbg);
     }
 
     virtual ~sr_register_amba_socket() {
