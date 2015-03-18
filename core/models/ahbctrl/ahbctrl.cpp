@@ -107,9 +107,10 @@ AHBCtrl::AHBCtrl(
 
     // Register tlm non blocking transport forward path
     ahbIN.register_nb_transport_fw(this, &AHBCtrl::nb_transport_fw, 0);
-
+    ahbIN.register_get_direct_mem_ptr((AHBCtrl *)this, &AHBCtrl::get_direct_mem_ptr);
     // Register tlm non blocking transport backward path
     ahbOUT.register_nb_transport_bw(this, &AHBCtrl::nb_transport_bw, 0);
+    ahbOUT.register_invalidate_direct_mem_ptr((AHBCtrl *)this, &AHBCtrl::invalidate_direct_mem_ptr);
 
     // Register arbiter thread
     SC_THREAD(arbitrate);
@@ -1308,6 +1309,38 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
     // Invalid index
     trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
     return 0;
+  }
+}
+
+bool AHBCtrl::get_direct_mem_ptr(unsigned int index, tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data) {
+  // Extract address from payload
+  uint32_t addr   = trans.get_address();
+  // Extract length from payload
+  if (g_fpnpen && (((addr ^ ((static_cast<uint32_t>(g_ioaddr) << 20) |
+                    (static_cast<uint32_t>(g_cfgaddr) << 8))) &
+                   ((static_cast<uint32_t>(g_iomask) << 20) |
+                    (static_cast<uint32_t>(g_cfgmask) << 8))) == 0)) {
+    // Configuration area is read only
+    trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+    return false;
+  }
+
+  // Find slave by address / returns slave index or -1 for not mapped
+  int idx = get_index(trans.get_address());
+
+  // For valid slave index
+  if (idx >= 0) {
+    // Forward request to the selected slave
+    return ahbOUT[idx]->get_direct_mem_ptr(trans, dmi_data);
+  } else {
+    trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+    return false;
+  }
+}
+
+void AHBCtrl::invalidate_direct_mem_ptr(unsigned int index, sc_dt::uint64 start_range, sc_dt::uint64 end_range) {
+  for(unsigned int idx=0; idx < num_of_master_bindings; ++idx) {
+    ahbIN[idx]->invalidate_direct_mem_ptr(start_range, end_range);
   }
 }
 
