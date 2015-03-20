@@ -166,6 +166,8 @@ class Mctrl : public AHBSlave<APBSlave>,
         sc_core::sc_time &delay,          // NOLINT(runtime/references)
         bool debug = false);
     uint32_t transport_dbg(tlm_generic_payload &gp);  // NOLINT(runtime/references)
+    bool get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data);
+    void invalidate_direct_mem_ptr(unsigned int index, sc_dt::uint64 start_range, sc_dt::uint64 end_range);
 
   private:
     /// Indexer for Memmory models on the mem Socket.
