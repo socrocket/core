@@ -559,118 +559,118 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
 
       // Set mem_width in byte from bitmask
       switch (mem_width) {
-      default: mem_width = 4;
-        break;
-      case 1:  mem_width = 2;
-        break;
-      case 0:  mem_width = 1;
-        break;
+        default: mem_width = 4;
+          break;
+        case 1:  mem_width = 2;
+          break;
+        case 0:  mem_width = 1;
+          break;
       }
 
       // Calculate delay: The static delay for the whole transaction and the per word delay:
       switch (port.dev->get_type()) {
-      case MEMDevice::ROM:
-        rmw = false;
-        if (gp.is_write()) {
-          if (!r[MCFG1].bit(11)) {
-            v::error << name() << "Invalid memory access: Writing to PROM is disabled." << v::endl;
-            gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
-            return 0;
-          }
-          trans_delay = 0;
-          word_delay = 1 + ((r[MCFG1].read() >> 4) & 0xF);
-        } else {
-          trans_delay = 0;
-          word_delay = 1 + ((r[MCFG1].read() >> 0) & 0xF);
+        case MEMDevice::ROM:
+          rmw = false;
+          if (gp.is_write()) {
+            if (!r[MCFG1].bit(11)) {
+              v::error << name() << "Invalid memory access: Writing to PROM is disabled." << v::endl;
+              gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
+              return 0;
+            }
+            trans_delay = 0;
+            word_delay = 1 + ((r[MCFG1].read() >> 4) & 0xF);
+          } else {
+            trans_delay = 0;
+            word_delay = 1 + ((r[MCFG1].read() >> 0) & 0xF);
 
-          // The RTL Model reads every mem_word as an 32bit word from the memory.
-          // So we need to ensure the same behaviour here we multiply the read times to fit 32bit each.
-          // GRIP 59.5
-          uint32_t tmp = length;
-          // Multiply with the number of memory accesses per length and mem_width.
-          switch (mem_width) {
-          case 1:  switch (tmp) {
-            case 1: tmp = 4;
+            // The RTL Model reads every mem_word as an 32bit word from the memory.
+            // So we need to ensure the same behaviour here we multiply the read times to fit 32bit each.
+            // GRIP 59.5
+            uint32_t tmp = length;
+            // Multiply with the number of memory accesses per length and mem_width.
+            switch (mem_width) {
+            case 1:  switch (tmp) {
+              case 1: tmp = 4;
+                break;
+              case 2: tmp = 2;
+                break;
+              default: tmp = 1;
+                break;
+            }
               break;
-            case 2: tmp = 2;
+            case 2: switch (tmp) {
+              case 1:
+              case 2: tmp = 1;
+                break;
+              default: tmp = 2;
+                break;
+            }
               break;
             default: tmp = 1;
               break;
+            }
+            word_delay *= tmp;
           }
-            break;
-          case 2: switch (tmp) {
-            case 1:
-            case 2: tmp = 1;
-              break;
-            default: tmp = 2;
-              break;
-          }
-            break;
-          default: tmp = 1;
-            break;
-          }
-          word_delay *= tmp;
-        }
-        break;
-      case MEMDevice::IO:
-        if (!r[MCFG1].bit(19)) {
-          v::error << name() << "Invalid memory access: Access to IO is disabled." << v::endl;
-          gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
-          return 0;
-        }
-        if (gp.is_write()) {
-          word_delay = (3 + ((r[MCFG1].read() >> 20) & 0xF));
-        } else {
-          word_delay = (5 + ((r[MCFG1].read() >> 20) & 0xF));
-        }
-        break;
-      case MEMDevice::SRAM:
-        if (gp.is_write()) {
-          trans_delay = 0;
-          word_delay = 2 + ((r[MCFG2].read() >> 2) & 0x3);
-          if (rmw && (length < 4)) {
-            trans_delay += 0;
-            word_delay += 4 + ((r[MCFG2].read() >> 0) & 0x3);
-          }
-        } else {
-          trans_delay = 0;
-          word_delay = 2 + ((r[MCFG2].read() >> 0) & 0x3);
-        }
-        break;
-      case MEMDevice::SDRAM:
-        // I assume Tcas and Trcd are always equal.
-        // That would mean the delay for a transaction is something like:
-        // Trcd + (words/col_width)*Tcas for read
-        // Trcd + (words/col_width)*Twr for write
-        // And it is by default read modify write, due to the fact that we have to load a column.
-        rmw = true;
-        if (gp.is_write()) {
-          trans_delay = (r[MCFG2].bit(26) ? 2 : 1);
-          word_delay = 0;              // ((r[MCFG2].bit(26)?3:2));
-        } else {
-          // RCD DELAY
-          trans_delay = 2 + (r[MCFG2].bit(30) ? 3 : 2);
-          // CAS DELAY
-          word_delay = 3 + (r[MCFG2].bit(26) ? 3 : 2);
-          // word_delay = 0; //((r[MCFG2].get()>>0) & 0xF);
-        }
-        if (g_mobile) {
-          switch (m_pmode) {
-          default: break;
-          case 1: trans_delay += 1;
-            break;                                         // Power-Down Mode Delay
-          case 2: trans_delay += 1;
-            v::warn << name() << "The Controller is in Auto-Self-Refresh Mode. Transaction might not be wanted!" <<
-            v::endl;
-            break;                    // Auto-Self Refresh
-          case 5: {                 // Deep power down! No transaction possible:
-            v::error << name() << "The Controller is in Deep-Power-Down Mode. No transactions possible." << v::endl;
+          break;
+        case MEMDevice::IO:
+          if (!r[MCFG1].bit(19)) {
+            v::error << name() << "Invalid memory access: Access to IO is disabled." << v::endl;
             gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
             return 0;
           }
+          if (gp.is_write()) {
+            word_delay = (3 + ((r[MCFG1].read() >> 20) & 0xF));
+          } else {
+            word_delay = (5 + ((r[MCFG1].read() >> 20) & 0xF));
           }
-        }
-        break;
+          break;
+        case MEMDevice::SRAM:
+          if (gp.is_write()) {
+            trans_delay = 0;
+            word_delay = 2 + ((r[MCFG2].read() >> 2) & 0x3);
+            if (rmw && (length < 4)) {
+              trans_delay += 0;
+              word_delay += 4 + ((r[MCFG2].read() >> 0) & 0x3);
+            }
+          } else {
+            trans_delay = 0;
+            word_delay = 2 + ((r[MCFG2].read() >> 0) & 0x3);
+          }
+          break;
+        case MEMDevice::SDRAM:
+          // I assume Tcas and Trcd are always equal.
+          // That would mean the delay for a transaction is something like:
+          // Trcd + (words/col_width)*Tcas for read
+          // Trcd + (words/col_width)*Twr for write
+          // And it is by default read modify write, due to the fact that we have to load a column.
+          rmw = true;
+          if (gp.is_write()) {
+            trans_delay = (r[MCFG2].bit(26) ? 2 : 1);
+            word_delay = 0;              // ((r[MCFG2].bit(26)?3:2));
+          } else {
+            // RCD DELAY
+            trans_delay = 2 + (r[MCFG2].bit(30) ? 3 : 2);
+            // CAS DELAY
+            word_delay = 3 + (r[MCFG2].bit(26) ? 3 : 2);
+            // word_delay = 0; //((r[MCFG2].get()>>0) & 0xF);
+          }
+          if (g_mobile) {
+            switch (m_pmode) {
+            default: break;
+            case 1: trans_delay += 1;
+              break;                                         // Power-Down Mode Delay
+            case 2: trans_delay += 1;
+              v::warn << name() << "The Controller is in Auto-Self-Refresh Mode. Transaction might not be wanted!" <<
+              v::endl;
+              break;                    // Auto-Self Refresh
+            case 5: {                 // Deep power down! No transaction possible:
+              v::error << name() << "The Controller is in Deep-Power-Down Mode. No transactions possible." << v::endl;
+              gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
+              return 0;
+            }
+            }
+          }
+          break;
       }
 
       v::debug << name() << "Length: " << std::dec << length << ", mem_width: " << std::dec << mem_width <<
