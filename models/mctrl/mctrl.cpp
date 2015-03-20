@@ -153,6 +153,8 @@ Mctrl::Mctrl(
 
   init_registers();
 
+  ahb.register_get_direct_mem_ptr((Mctrl *)this, &Mctrl::get_direct_mem_ptr);
+  mem.register_invalidate_direct_mem_ptr((Mctrl *)this, &Mctrl::invalidate_direct_mem_ptr);
   gs::socket::config<tlm::tlm_base_protocol_types> mem_cfg;
   mem_cfg.use_mandatory_phase(BEGIN_REQ);
   mem_cfg.use_mandatory_phase(END_REQ);
@@ -1041,6 +1043,33 @@ uint32_t Mctrl::transport_dbg(tlm_generic_payload &gp) {  // NOLINT(runtime/refe
   }
 
   return length;
+}
+
+bool Mctrl::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data) {
+  // access to ROM adress space
+  uint32_t addr   = trans.get_address();
+  uint32_t length = trans.get_data_length();
+  MEMPort port  = get_port(addr);
+  if (port.id != 100) {
+    if (length <= port.length) {
+      return mem[port.id]->get_direct_mem_ptr(trans, dmi_data);
+    }
+  }
+  return false;
+}
+
+void Mctrl::invalidate_direct_mem_ptr(unsigned int index, sc_dt::uint64 start_range, sc_dt::uint64 end_range) {
+  sc_dt::uint64 base_addr = 0x0;
+  if(c_rom.id == index) {
+    base_addr = c_rom.addr;
+  } else if(c_io.id == index) {
+    base_addr = c_io.addr;
+  } else if(c_sram.id == index) {
+    base_addr = c_sram.addr;
+  } else {
+    base_addr = c_sdram.addr;
+  }
+  ahb->invalidate_direct_mem_ptr(base_addr+start_range, base_addr+end_range);
 }
 
 sc_core::sc_time Mctrl::get_clock() {
