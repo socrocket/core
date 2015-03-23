@@ -42,4 +42,12 @@ void ArrayStorage::write_block(const uint32_t &addr, const uint8_t *ptr, const u
 void ArrayStorage::read_block(const uint32_t &addr, uint8_t *ptr, const uint32_t &len) const {
   memcpy(ptr, &data[addr], len);
 }
+
+uint8_t *ArrayStorage::get_dmi_ptr() {
+  return data;
+}
+
+bool ArrayStorage::allow_dmi_rw() {
+  return true;
+}
 /// @}

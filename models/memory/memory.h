@@ -76,6 +76,7 @@ class Memory : public MemoryPower {
 
     /// TLM 2.0 debug transport function
     unsigned int transport_dbg(tlm::tlm_generic_payload &gp);
+    bool get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data);
 
     gs::gs_config<uint64_t> m_writes;
     gs::gs_config<uint64_t> m_reads;

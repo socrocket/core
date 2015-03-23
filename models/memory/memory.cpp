@@ -196,4 +196,15 @@ unsigned int Memory::transport_dbg(tlm::tlm_generic_payload &gp) {
   }
 }
 
+bool Memory::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data) {
+  // access to ROM adress space
+  dmi_data.allow_read_write();
+  dmi_data.set_dmi_ptr(storage->get_dmi_ptr());
+  dmi_data.set_start_address(0);
+  dmi_data.set_end_address(get_bsize() * ((get_banks()<5)? get_banks() : 8));
+  dmi_data.set_read_latency(SC_ZERO_TIME);
+  dmi_data.set_write_latency(SC_ZERO_TIME);
+  return storage->allow_dmi_rw();
+}
+
 /// @}

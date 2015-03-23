@@ -356,6 +356,7 @@ void Mctrl::start_of_simulation() {
       case MEMDevice::ROM: {
         if (c_rom.id > 10) {
           c_rom = port;
+          c_rom.base_addr = get_ahb_bar_addr(0);
           uint32_t bits = (device->get_bits() >> 4) & 3;
           v::debug << name() << "ROM-Width: " << bits << v::endl;
           r[MCFG1] = r[MCFG1] | (bits << 8);
@@ -366,6 +367,7 @@ void Mctrl::start_of_simulation() {
       case MEMDevice::IO: {
         if (c_io.id > 10) {
           c_io = port;
+          c_io.base_addr = get_ahb_bar_addr(1);
           uint32_t bits = (device->get_bits() >> 4) & 3;
           r[MCFG1] = r[MCFG1] | (bits << 27);
         } else {
@@ -375,6 +377,7 @@ void Mctrl::start_of_simulation() {
       case MEMDevice::SRAM: {
         if (c_sram.id > 10) {
           c_sram = port;
+          c_sram.base_addr = get_ahb_bar_addr(2); // @TODO(all): Change for SI + SE bits
           // set ram width and ram bank size
           r[MCFG2] = (r[MCFG2].read() & ~0x00001EC0) |
                      ((static_cast<int>(log2(device->get_bsize()) - 13) & 0xF) << 9) |
@@ -386,6 +389,7 @@ void Mctrl::start_of_simulation() {
       case MEMDevice::SDRAM: {
         if (c_sdram.id > 10) {
           c_sdram = port;
+          c_sdram.base_addr = get_ahb_bar_addr(2); // @TODO(all): Change for SI + SE bits
           r[MCFG2] = (r[MCFG2].read() & ~0x003E0000) |
                      ((static_cast<int>(log2(device->get_bsize()) - 22) & 0x7) << 23) |
                      ((static_cast<int>(log2(device->get_cols()) - 8) & 0x3) << 21);
@@ -1049,25 +1053,32 @@ bool Mctrl::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dm
   // access to ROM adress space
   uint32_t addr   = trans.get_address();
   uint32_t length = trans.get_data_length();
+  uint32_t start, end;
+  bool result = false;
   MEMPort port  = get_port(addr);
   if (port.id != 100) {
     if (length <= port.length) {
-      return mem[port.id]->get_direct_mem_ptr(trans, dmi_data);
+      trans.set_address(port.addr);
+      result = mem[port.id]->get_direct_mem_ptr(trans, dmi_data);
+      start = port.base_addr + dmi_data.get_start_address();
+      end = port.base_addr + dmi_data.get_end_address();
+      dmi_data.set_start_address(start);
+      dmi_data.set_end_address(end);
     }
   }
-  return false;
+  return result;
 }
 
 void Mctrl::invalidate_direct_mem_ptr(unsigned int index, sc_dt::uint64 start_range, sc_dt::uint64 end_range) {
   sc_dt::uint64 base_addr = 0x0;
   if(c_rom.id == index) {
-    base_addr = c_rom.addr;
+    base_addr = c_rom.base_addr;
   } else if(c_io.id == index) {
-    base_addr = c_io.addr;
+    base_addr = c_io.base_addr;
   } else if(c_sram.id == index) {
-    base_addr = c_sram.addr;
+    base_addr = c_sram.base_addr;
   } else {
-    base_addr = c_sdram.addr;
+    base_addr = c_sdram.base_addr;
   }
   ahb->invalidate_direct_mem_ptr(base_addr+start_range, base_addr+end_range);
 }

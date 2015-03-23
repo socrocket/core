@@ -180,6 +180,7 @@ class Mctrl : public AHBSlave<APBSlave>,
         MEMPort();
         uint32_t id;
         MEMDevice *dev;
+        uint32_t base_addr;
         uint32_t addr;
         uint32_t length;
     };
