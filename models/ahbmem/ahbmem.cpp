@@ -22,6 +22,9 @@
 #include "core/models/ahbmem/ahbmem.h"
 #include "core/common/sr_report.h"
 #include "core/common/verbose.h"
+#include "core/common/sr_registry.h"
+
+SR_HAS_MODULE(AHBMem);
 
 /// Constructor
 AHBMem::AHBMem(const ModuleName nm,  // Module name

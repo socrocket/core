@@ -116,6 +116,7 @@ int sc_main(int argc, char** argv) {
     USI_HAS_MODULE(systemc_);
     USI_HAS_MODULE(registry);
     USI_HAS_MODULE(delegate);
+    USI_HAS_MODULE(greensocket);
     USI_HAS_MODULE(scireg);
     USI_HAS_MODULE(amba);
     USI_HAS_MODULE(report);
@@ -125,6 +126,7 @@ int sc_main(int argc, char** argv) {
 
     usi_load("usi.api.systemc");
     usi_load("usi.api.delegate");
+    usi_load("usi.api.greensocket");
     usi_load("usi.api.scireg");
     usi_load("usi.api.amba");
 
