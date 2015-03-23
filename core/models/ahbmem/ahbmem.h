@@ -48,7 +48,7 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
     /// @param addr Start address for memory initilization
     AHBMem(
       const ModuleName nm,
-      uint16_t haddr_,
+      uint16_t haddr_ = 0,
       uint16_t hmask_ = 0,
       AbstractionLayer ambaLayer = amba::amba_LT,
       uint32_t slave_id = 0,
