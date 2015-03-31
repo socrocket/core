@@ -19,6 +19,8 @@
 
 #include <stdint.h>
 #include <string>
+#include "core/common/gs_config.h"
+#include "core/common/base.h"
 
 /// @brief This class is a base class for memory models. It implements the device plug and play informations.
 /// 
@@ -27,7 +29,7 @@
 /// determine the features of the attached component for correct access and delay calculation.
 ///
 /// @see mctrl
-class MEMDevice {
+class MEMDevice : public BaseModule<DefaultBase> {
   public:
     /// Device type
     enum device_type {
@@ -40,11 +42,13 @@ class MEMDevice {
 
     /// All device informations are needed while constructing a device.
     /// The register content is formed here.
-    MEMDevice(device_type type, uint32_t banks = 0, uint32_t bsize = 0, uint32_t bits = 32, uint32_t cols = 0);
+    MEMDevice(sc_module_name name, device_type type, uint32_t banks = 0, uint32_t bsize = 0, uint32_t bits = 32, uint32_t cols = 0);
 
-    MEMDevice();
     /// Empty destructor
     virtual ~MEMDevice();
+
+    /// Initialize MEMDevice generics
+    virtual void init_mem_generics();
 
     /// Returns the memory configuration.
     virtual const char*get_device_info() const;
@@ -70,14 +74,11 @@ class MEMDevice {
     virtual const uint32_t get_cols() const;
 
   private:
-    device_type m_type;
-    uint32_t m_banks;
-    uint32_t m_bsize;
-    uint32_t m_bits;
-    uint32_t m_cols;
-
-    // Memory type name (rom, io, sram, sdram)
-    std::string m_type_name;
+    gs::cnf::gs_config<uint32_t> g_type;
+    gs::cnf::gs_config<uint32_t> g_banks;
+    gs::cnf::gs_config<uint32_t> g_bsize;
+    gs::cnf::gs_config<uint32_t> g_bits;
+    gs::cnf::gs_config<uint32_t> g_cols;
 };
 
 #endif  // MODELS_UTILS_MEMDEVICE_H_

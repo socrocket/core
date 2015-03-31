@@ -17,24 +17,24 @@
 #include "core/common/memdevice.h"
 #include "core/common/verbose.h"
 
-MEMDevice::MEMDevice(MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits,
-  uint32_t cols) : m_type(type), m_banks(banks), m_bsize(bsize), m_bits(bits), m_cols(cols) {
-  switch (type) {
-  case MEMDevice::IO:
-    m_type_name = "io";
-    break;
-  case MEMDevice::SRAM:
-    m_type_name = "sram";
-    break;
-  case MEMDevice::SDRAM:
-    m_type_name = "sdram";
-    break;
-  default:
-    m_type_name = "rom";
-  }
+MEMDevice::MEMDevice(sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols) : 
+  BaseModule<DefaultBase>(name),
+  g_type("type", type, m_generics),
+  g_banks("banks", banks, m_generics),
+  g_bsize("bsize", bsize, m_generics),
+  g_bits("bits", bits, m_generics),
+  g_cols("cols", cols, m_generics) {
+    init_mem_generics();
 }
 
 MEMDevice::~MEMDevice() {
+}
+
+void MEMDevice::init_mem_generics() {
+  // TODO describe mem generics
+  g_type.add_properties()
+    ("enum", "ROM, IO, SRAM, SDRAM")
+    ("Defines the type of the memory");
 }
 
 const char *MEMDevice::get_device_info() const {
@@ -42,26 +42,27 @@ const char *MEMDevice::get_device_info() const {
 }
 
 const MEMDevice::device_type MEMDevice::get_type() const {
-  return m_type;
+  return MEMDevice::device_type(static_cast<uint32_t>(g_type));
 }
 
 const std::string MEMDevice::get_type_name() const {
-  return m_type_name;
+  const std::string names[4] = {"rom", "io", "sram", "sdram"};
+  return names[g_type];
 }
 
 const uint32_t MEMDevice::get_banks() const {
-  return m_banks;
+  return g_banks;
 }
 
 const uint32_t MEMDevice::get_bsize() const {
-  return m_bsize;
+  return g_bsize;
 }
 
 const uint32_t MEMDevice::get_bits() const {
-  return m_bits;
+  return g_bits;
 }
 
 const uint32_t MEMDevice::get_cols() const {
-  return m_cols;
+  return g_cols;
 }
 /// @}
