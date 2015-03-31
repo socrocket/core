@@ -70,6 +70,7 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
       erase(0, get_ahb_size()-1);
     }
 
+    bool get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data);
     /// @brief Method to write a byte into the memory
     /// @param addr Write address
     /// @param byte Write data

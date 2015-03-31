@@ -43,7 +43,7 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
       0,
       ambaLayer,
       BAR(AHBMEM, hmask, cacheable, 0, haddr)),
-    BaseMemory(BaseMemory::ARRAY, get_ahb_size()),
+    BaseMemory(BaseMemory::ARRAY, get_ahb_bar_size(0)),
     ahbBaseAddress(static_cast<uint32_t>((hmask) & haddr) << 20),
     ahbSize(~(static_cast<uint32_t>(hmask) << 20) + 1),
     g_haddr("haddr", haddr, m_generics),
@@ -74,6 +74,7 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
     GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, AHBMem, swi_power_cb);
   }
   AHBMem::init_generics();
+  ahb.register_get_direct_mem_ptr(this, &AHBMem::get_direct_mem_ptr);
   // Display AHB slave information
   srInfo("/configuration/ahbmem/ahbslave")
      ("addr", (uint64_t)get_ahb_base_addr())
@@ -206,6 +207,17 @@ uint32_t AHBMem::exec_func(
 // Returns clock cycle time for e.g. use in AHBSlave parent
 sc_core::sc_time AHBMem::get_clock() {
   return clock_cycle;
+}
+
+bool AHBMem::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data) {
+  // access to ROM adress space
+  dmi_data.allow_read_write();
+  dmi_data.set_dmi_ptr(storage->get_dmi_ptr());
+  dmi_data.set_start_address(0);
+  dmi_data.set_end_address(get_ahb_bar_size(0));
+  dmi_data.set_read_latency(SC_ZERO_TIME);
+  dmi_data.set_write_latency(SC_ZERO_TIME);
+  return storage->allow_dmi_rw();
 }
 
 void AHBMem::writeByteDBG(const uint32_t address, const uint8_t byte) {
