@@ -1321,6 +1321,7 @@ bool AHBCtrl::get_direct_mem_ptr(unsigned int index, tlm::tlm_generic_payload& t
                    ((static_cast<uint32_t>(g_iomask) << 20) |
                     (static_cast<uint32_t>(g_cfgmask) << 8))) == 0)) {
     // Configuration area is read only
+    v::info << name() << "config area read only" << v::endl;
     trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
     return false;
   }
@@ -1331,8 +1332,10 @@ bool AHBCtrl::get_direct_mem_ptr(unsigned int index, tlm::tlm_generic_payload& t
   // For valid slave index
   if (idx >= 0) {
     // Forward request to the selected slave
+    v::info << name() << "forwarding to slave" << v::endl;
     return ahbOUT[idx]->get_direct_mem_ptr(trans, dmi_data);
   } else {
+    v::info << name() << "forwarding failed, no slave" << v::endl;
     trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
     return false;
   }

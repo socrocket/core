@@ -108,6 +108,7 @@ void Memory::b_transport(tlm::tlm_generic_payload &gp, sc_time &delay) {
   // Extract erase extension
   ext_erase *ers;
   gp.get_extension(ers);
+  gp.set_dmi_allowed(storage->allow_dmi_rw());
 
   if (ers) {
     // Check erase extension first:
@@ -204,6 +205,7 @@ bool Memory::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& d
   dmi_data.set_end_address(get_bsize() * ((get_banks()<5)? get_banks() : 8));
   dmi_data.set_read_latency(SC_ZERO_TIME);
   dmi_data.set_write_latency(SC_ZERO_TIME);
+  v::info << name() << "allow_dmi_rw is: " << v::uint32 << storage->allow_dmi_rw() << v::endl;
   return storage->allow_dmi_rw();
 }
 
