@@ -151,7 +151,7 @@ uint32_t AHBMem::exec_func(
       srWarn(name())
         ("Transaction exceeds slave memory region");
     }
-
+    trans.set_dmi_allowed(storage->allow_dmi_rw());
     if (trans.is_write()) {
       // write simulation memory
       write_block(trans.get_address(), trans.get_data_ptr(), trans.get_data_length());
@@ -217,6 +217,7 @@ bool AHBMem::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& d
   dmi_data.set_end_address(get_ahb_bar_size(0));
   dmi_data.set_read_latency(SC_ZERO_TIME);
   dmi_data.set_write_latency(SC_ZERO_TIME);
+  v::info << name() << "allow_dmi_rw is: " << v::uint32 << storage->allow_dmi_rw() << v::endl;
   return storage->allow_dmi_rw();
 }
 
