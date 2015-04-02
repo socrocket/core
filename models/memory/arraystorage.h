@@ -36,7 +36,7 @@ class ArrayStorage : public Storage {
     uint8_t *get_dmi_ptr();
 
     bool allow_dmi_rw();
-  //private:
+  private:
     uint8_t *data;
 };
 
