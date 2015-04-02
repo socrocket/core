@@ -700,6 +700,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
           memgp.set_byte_enable_ptr(gp.get_byte_enable_ptr());
           memgp.set_data_ptr(data);
           mem[port.id]->b_transport(memgp, mem_delay);
+          gp.set_dmi_allowed(memgp.is_dmi_allowed());
           memcpy(&data[port.addr & (mem_width - 1)], gp.get_data_ptr(), gp.get_data_length());
           port.addr = port.addr & ~(mem_width - 1);
         } else if (length < mem_width) {
@@ -722,6 +723,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
       memgp.set_data_ptr(data);
       mem[port.id]->b_transport(memgp, mem_delay);
       // transport_statistics(gp);
+      gp.set_dmi_allowed(memgp.is_dmi_allowed());
       gp.set_response_status(memgp.get_response_status());
       m_right_transactions++;
 
@@ -1031,6 +1033,7 @@ uint32_t Mctrl::transport_dbg(tlm_generic_payload &gp) {  // NOLINT(runtime/refe
       memgp.set_byte_enable_ptr(gp.get_byte_enable_ptr());
       memgp.set_data_ptr(gp.get_data_ptr());
       uint32_t result = mem[port.id]->transport_dbg(memgp);
+      gp.set_dmi_allowed(memgp.is_dmi_allowed());
       gp.set_response_status(memgp.get_response_status());
       return result;
     } else {
