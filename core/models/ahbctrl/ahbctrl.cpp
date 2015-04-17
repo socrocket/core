@@ -98,6 +98,9 @@ AHBCtrl::AHBCtrl(
   if (ambaLayer == amba::amba_LT) {
     // Register tlm blocking transport function
     ahbIN.register_b_transport(this, &AHBCtrl::b_transport);
+    ahbIN.register_get_direct_mem_ptr((AHBCtrl *)this, &AHBCtrl::get_direct_mem_ptr);
+    ahbOUT.register_invalidate_direct_mem_ptr((AHBCtrl *)this, &AHBCtrl::invalidate_direct_mem_ptr);
+
   }
 
   // Register non blocking transport functions
@@ -107,11 +110,8 @@ AHBCtrl::AHBCtrl(
 
     // Register tlm non blocking transport forward path
     ahbIN.register_nb_transport_fw(this, &AHBCtrl::nb_transport_fw, 0);
-    ahbIN.register_get_direct_mem_ptr((AHBCtrl *)this, &AHBCtrl::get_direct_mem_ptr);
     // Register tlm non blocking transport backward path
     ahbOUT.register_nb_transport_bw(this, &AHBCtrl::nb_transport_bw, 0);
-    ahbOUT.register_invalidate_direct_mem_ptr((AHBCtrl *)this, &AHBCtrl::invalidate_direct_mem_ptr);
-
     // Register arbiter thread
     SC_THREAD(arbitrate);
 
@@ -1321,7 +1321,6 @@ bool AHBCtrl::get_direct_mem_ptr(unsigned int index, tlm::tlm_generic_payload& t
                    ((static_cast<uint32_t>(g_iomask) << 20) |
                     (static_cast<uint32_t>(g_cfgmask) << 8))) == 0)) {
     // Configuration area is read only
-    v::info << name() << "config area read only" << v::endl;
     trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
     return false;
   }
@@ -1332,10 +1331,8 @@ bool AHBCtrl::get_direct_mem_ptr(unsigned int index, tlm::tlm_generic_payload& t
   // For valid slave index
   if (idx >= 0) {
     // Forward request to the selected slave
-    v::info << name() << "forwarding to slave" << v::endl;
     return ahbOUT[idx]->get_direct_mem_ptr(trans, dmi_data);
   } else {
-    v::info << name() << "forwarding failed, no slave" << v::endl;
     trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
     return false;
   }

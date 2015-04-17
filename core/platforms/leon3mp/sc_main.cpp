@@ -998,7 +998,6 @@ int sc_main(int argc, char** argv) {
       ahbdisplay->ahb(ahbctrl.ahbIN);
       apbctrl.apb(ahbdisplay->apb);
       ahbdisplay->set_clk(p_system_clock,SC_NS);
-      ahbdisplay->memory = ((ArrayStorage *)sdram.storage)->data;
     }
 #endif
 #ifdef HAVE_AHBCAMERA
@@ -1026,7 +1025,6 @@ int sc_main(int argc, char** argv) {
       ahbcamera->ahb(ahbctrl.ahbIN);
       apbctrl.apb(ahbcamera->apb);
       ahbcamera->set_clk(p_system_clock,SC_NS);
-      ahbcamera->memory = ((ArrayStorage *)sdram.storage)->data;
     }
 #endif
 #ifdef HAVE_AHBSHUFFLER
@@ -1052,7 +1050,6 @@ int sc_main(int argc, char** argv) {
       ahbshuffler->ahb(ahbctrl.ahbIN);
       apbctrl.apb(ahbshuffler->apb);
       ahbshuffler->set_clk(p_system_clock,SC_NS);
-      ahbshuffler->memory = ((ArrayStorage *)sdram.storage)->data;
     }
 #endif // HAVE_REPO_MEDIA
 

@@ -1069,7 +1069,6 @@ bool Mctrl::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dm
       dmi_data.set_end_address(end);
     }
   }
-  v::info << name() << "result is: " << v::uint32 << result << v::endl;
   return result;
 }
 
