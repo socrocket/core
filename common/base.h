@@ -12,18 +12,32 @@
 #define COMMON_BASE_H_
 
 #include "core/common/systemc.h"
-#include "core/common/gs_config.h"
 #include "core/common/sr_report.h"
 #include "core/common/sr_registry.h"
 
 typedef sc_core::sc_module_name ModuleName;
 typedef sc_core::sc_module DefaultBase;
 
+//template<typename TYPE>
+//using Parameter<TYPE> = gs::cnf::gs_config<TYPE>;
+
+inline void sr_hierarchy_push(sc_core::sc_object *obj) {
+  typedef void (sc_core::sc_simcontext::*fun_t)(sc_core::sc_object *);
+  sc_core::sc_simcontext *context = sc_core::sc_get_curr_simcontext();
+  fun_t fun = reinterpret_cast<fun_t>(&sc_core::sc_simcontext::hierarchy_push);
+  (context->*fun)(obj);
+}
+
+inline void sr_hierarchy_pop() {
+  sc_core::sc_simcontext *context = sc_core::sc_get_curr_simcontext();
+  context->hierarchy_pop();
+}
+
+#include "core/common/gs_config.h"
+
 typedef gs::cnf::cnf_api ParameterAPI;
 typedef gs::cnf::gs_param_array ParameterArray;
 
-//template<typename TYPE>
-//using Parameter<TYPE> = gs::cnf::gs_config<TYPE>;
 
 template<class BASE = DefaultBase>
 class BaseModule : public BASE {
