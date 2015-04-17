@@ -49,6 +49,7 @@ Memory::Memory(ModuleName name,
   // Register TLM 2.0 transport functions
   bus.register_b_transport(this, &Memory::b_transport);
   bus.register_transport_dbg(this, &Memory::transport_dbg);
+  bus.register_get_direct_mem_ptr(this, &Memory::get_direct_mem_ptr);
 
   GC_REGISTER_TYPED_PARAM_CALLBACK(&m_reads, gs::cnf::pre_read, Memory, m_reads_cb);
   GC_REGISTER_TYPED_PARAM_CALLBACK(&m_writes, gs::cnf::pre_read, Memory, m_writes_cb);
@@ -205,7 +206,6 @@ bool Memory::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& d
   dmi_data.set_end_address(get_bsize() * ((get_banks()<5)? get_banks() : 8));
   dmi_data.set_read_latency(SC_ZERO_TIME);
   dmi_data.set_write_latency(SC_ZERO_TIME);
-  v::info << name() << "allow_dmi_rw is: " << v::uint32 << storage->allow_dmi_rw() << v::endl;
   return storage->allow_dmi_rw();
 }
 
