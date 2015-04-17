@@ -166,7 +166,7 @@ void GPTimer::init_registers() {
   .callback(SR_PRE_READ, this, &GPTimer::conf_read);
 
   for (unsigned int i = 0; i < g_ntimers; ++i) {
-    GPCounter *c = new GPCounter(this, i, gen_unique_name("GPCounter", true));
+    GPCounter *c = new GPCounter(this, i, gen_unique_name("counter", true));
     counter.push_back(c);
     r.create_register(gen_unique_name("value", false), "GPCounter Value Register",
       VALUE(i),                                            // offset
