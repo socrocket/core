@@ -274,7 +274,7 @@ void GPTimer::scaler_read() {
     } else {
       r[SCALER] = reload - value;
     }
-    v::info << name() << "Scaler read: " << v::uint32 << ((uint32_t)r[SCALER]) << " Reload: " << v::uint32 << reload << v::endl;
+    //v::info << name() << "Scaler read: " << v::uint32 << ((uint32_t)r[SCALER]) << " Reload: " << v::uint32 << reload << v::endl;
 }
 
 // Callback for scaler relaod register. Updates Prescaler Ticks and all Counters on write.
@@ -282,14 +282,14 @@ void GPTimer::screload_write() {
     uint32_t reload = r[SCRELOAD];
     r[SCALER] = reload;
     scaler_write();
-    v::info << name() << "Scalerreload write: " << v::uint32 << reload << v::endl;
+    //v::info << name() << "Scalerreload write: " << v::uint32 << reload << v::endl;
 }
 
 // Callback for scaler value register. Updates Prescaler Ticks and all Counters on write.
 void GPTimer::scaler_write() {
     lasttime = sc_core::sc_time_stamp();
     lastvalue = r[SCALER];
-    v::info << name() << "Scaler write: " << lastvalue << v::endl;
+    //v::info << name() << "Scaler write: " << lastvalue << v::endl;
     for (std::vector<GPCounter *>::iterator iter = counter.begin(); iter != counter.end(); iter++) {
         (*iter)->calculate();  // Recalculate
     }
