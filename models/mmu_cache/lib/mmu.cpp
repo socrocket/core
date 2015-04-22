@@ -211,7 +211,7 @@ signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * ac
                                   uint64_t vaddr, int asi, uint64_t * page_size,
                                   unsigned * debug, bool is_dbg, sc_core::sc_time * t, unsigned is_write, unsigned * pde_REMOVE ) {
 
-    signed access_perms = 0, error_code = 0, is_diry, is_user;
+    signed access_perms = 0, error_code = 0, is_dirty, is_user;
     unsigned pde_ptr, pde;
     bool cacheable_mem;
 
@@ -370,8 +370,81 @@ signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * ac
     access_perms = (pde >> 0x2) & 0x7;
     error_code = this->access_table[ *access_index ][ access_perms ] << 2; // FT -> depends on table (see page 257: FT second table)
 
+    signed h;
+    if( ! error_code ) {
+/*    is_dirty = (rw & 1) && !(pde & PG_MODIFIED_MASK); // 0x6
+    if (!(pde & PG_ACCESSED_MASK) || is_dirty) { // 0x5
+        pde |= PG_ACCESSED_MASK;
+        if (is_dirty) {
+            pde |= PG_MODIFIED_MASK;
+        }
+        stl_phys_notdirty(cs->as, pde_ptr, pde);
+    }
+*/
+        /* update page modified and dirty bits */
+        is_dirty = ( is_write );
+        if( is_dirty )    
+            pde |= (0x1 << 6); // Set Modified Bit
+        
+        if( is_dirty || !( pde & (0x1 << 5) ) ) // if it got dirty, or has not been accessed yet -> referenced!
+            pde |= (0x1 << 5); // Set Referenced Bit
+
+
+        // READ = 0x1, WRITE = 0x2, EXECUTE = 0x4
+        signed access_perms2[2][8] = {
+            { 0x1,
+              0x1 | 0x2,
+              0x1 | 0x4,
+              0x1 | 0x2 | 0x4,
+              0x4,
+              0x1,
+              0x0,
+              0x0
+            },
+            { 0x1,
+              0x1 | 0x2,
+              0x1 | 0x4,
+              0x1 | 0x2 | 0x4,
+              0x4,
+              0x1 | 0x2,
+              0x1 | 0x4,
+              0x1 | 0x2 | 0x4
+            }
+        };
+/*
+    READ          = ! is_write
+    WRITE         = is_write
+    EXECUTE       = is_instruction ( && ! is_write ? )
+    Supervisor    = ! is_user
+    User          = is_user
+*/
+        h = access_perms2[ ( is_user ) ? 0x0 : 0x1 ][ (pde >> 0x2) & 0x7 ];
+    }
+
     *paddr = ((pde & ~0xFF) << 4 | (vaddr & ((*page_size) - 1)));
     *paddr &= (((uint64_t)1 << 36) - 1);
+
+    if( ! error_code ) {
+        if( (! (h & 0x1)) && ! is_write )
+            std::cout << "--------------> no READ allowed!  " << std::hex << *paddr << std::endl;
+
+        if( (!(h & 0x2)) && is_write )
+            std::cout << "--------------> no WRITE allowed!" << std::hex << *paddr << " " << error_code << std::endl;
+
+        if( (!(h & 0x4)) && is_instruction_access )
+            std::cout << "no EXECUTE allowed!" << std::endl;
+    }
+/*
+instruction_access_exception tt=0x01
+    A blocking error exception occurred on an instruction access (for example,
+    an MMU indicated that the page was invalid or read-protected).
+privileged_instruction tt=0x03
+    An attempt was made to execute a privileged instruction while S = 0
+data_access_exception
+    A blocking error exception occurred on a load/store data access. (for exam-
+    ple, an MMU indicated that the page was invalid or write-protected).
+*/
+
     return error_code;
 }
 
@@ -392,7 +465,7 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
     // According to the SparcV8 Manual: Pages of the Reference MMU are always aligned on 4K-byte boundaries; hence, the lower-order
     // 12 bits of a physical address are always the same as the low-order 12 bits of
     // the virtual address. The Gaisler MMU additionally supports 8k, 16k and 32k alignment,
-    unsigned int offset = ((addr << m_vtag_width) >> m_vtag_width);
+//    unsigned int offset = ((addr << m_vtag_width) >> m_vtag_width);
     t_VAT vpn = (addr >> (32 - m_vtag_width));
 
     
@@ -401,6 +474,7 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
     *paddr = 0xffffffffffff0000ULL; // has size of 36bits!
     unsigned int pde;
 
+/*
     // Search virtual address tag in ipdc (associative)
     v::debug << this->name() << "Access with ADDR: " << std::hex << addr << " VPN: " << std::hex << vpn
             << " and OFFSET: " << std::hex << offset << v::endl;
@@ -482,7 +556,7 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
 	      }
     }
 
-
+*/
 
 
 
@@ -496,7 +570,8 @@ signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
     if( error_code ) {
         v::error << this->name()
                  << "In " << ((error_code >> 8) & 0x3) << "-Level Page Table / Entry type not valid: "
-                 << " VA: " << v::uint32 << addr << v::endl;
+                 << " VA: " << v::uint32 << addr << ", is " << ( is_write ? "write" : "load" )
+                 << " and " << ((! (asi & 0x2)) ? "instruction" : "data" ) << v::endl;
 
        sleep(1);
 
