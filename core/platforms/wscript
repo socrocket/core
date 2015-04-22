@@ -3,5 +3,6 @@
 top = '..'
 
 def build(self):
-  self.recurse_all()
+  self.recurse('leon3mp')
+  #self.recurse_all()
 

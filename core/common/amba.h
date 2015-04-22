@@ -11,15 +11,12 @@
 #ifndef COMMON_AMBA_H_
 #define COMMON_AMBA_H_
 
+#include <amba.h>
 #include "core/common/systemc.h"
 #include "core/common/base.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 
-#ifndef MTI_SYSTEMC
-// #include <greensocket/initiator/multi_socket.h>
-#include <greenreg/greenreg.h>
-#include "core/common/grambasockets/greenreg_ambasockets.h"
-#endif
+typedef amba::amba_layer_ids AbstractionLayer;
 
 /// Device type
 /// See grlib manual for more information

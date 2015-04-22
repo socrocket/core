@@ -43,7 +43,7 @@ The top-level of the library is structured as follows:
     * @ref core/models/mctrl "/mctrl"
     * @ref core/models/memory "/memory"
     * @ref core/models/mmu_cache "/mmu_cache"
-    * @ref core/models/utils "/utils"
+    * @ref core/common "/utils"
   * @ref core/platforms "/platforms"
     
     The platforms directory contains a subdirectory for all platforms. 
@@ -97,10 +97,6 @@ For more interformation on transactors, please see the Interconnection Methodolo
 Contains utility classes and functions, which are jointly used by all models of the library.
 This mainly comprises timing monitor, power monitor,  endianess conversion and verbosity control. 
 More detailed explanantions on the seperate files in this directory are given in 3.2.
-
-## contrib
-
-Contains a set of patches for GreenSocs 4.2.0 and newly developed TLM Sockets that enable GreenReg registers to be bound to Carbon AHB sockets.
 
 ## doc
 

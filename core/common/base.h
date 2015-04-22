@@ -12,39 +12,38 @@
 #define COMMON_BASE_H_
 
 #include "core/common/systemc.h"
-#include "core/common/gs_config.h"
-#include "core/common/report.h"
-
-#ifndef MTI_SYSTEMC
-// #include <greensocket/initiator/multi_socket.h>
-#include <greenreg/greenreg.h>
-#include "core/common/grambasockets/greenreg_ambasockets.h"
-#endif
+#include "core/common/sr_report.h"
+#include "core/common/sr_registry.h"
 
 typedef sc_core::sc_module_name ModuleName;
 typedef sc_core::sc_module DefaultBase;
-typedef gs::reg::gr_device RegisterBase;
-typedef amba::amba_layer_ids AbstractionLayer;
-typedef gs::reg::greenreg_socket<gs::amba::amba_slave<32> > RegisterSocket;
-
-typedef gs::cnf::cnf_api ParameterAPI;
-typedef gs::cnf::gs_param_array ParameterArray;
 
 //template<typename TYPE>
 //using Parameter<TYPE> = gs::cnf::gs_config<TYPE>;
 
-template<class BASE = DefaultBase>
-class SCBaseModule : public BASE {
-  public:
-    SCBaseModule(ModuleName mn, uint32_t register_count = 0);
-    virtual ~SCBaseModule() {}
-};
+inline void sr_hierarchy_push(sc_core::sc_object *obj) {
+  typedef void (sc_core::sc_simcontext::*fun_t)(sc_core::sc_object *);
+  sc_core::sc_simcontext *context = sc_core::sc_get_curr_simcontext();
+  fun_t fun = reinterpret_cast<fun_t>(&sc_core::sc_simcontext::hierarchy_push);
+  (context->*fun)(obj);
+}
+
+inline void sr_hierarchy_pop() {
+  sc_core::sc_simcontext *context = sc_core::sc_get_curr_simcontext();
+  context->hierarchy_pop();
+}
+
+#include "core/common/gs_config.h"
+
+typedef gs::cnf::cnf_api ParameterAPI;
+typedef gs::cnf::gs_param_array ParameterArray;
+
 
 template<class BASE = DefaultBase>
-class BaseModule : public SCBaseModule<BASE> {
+class BaseModule : public BASE {
   public:
-    BaseModule(ModuleName mn, uint32_t register_count = 0) :
-        SCBaseModule<BASE>(mn, register_count),
+    BaseModule(ModuleName mn) :
+        BASE(mn),
         m_generics("generics"),
         m_counters("counters"),
         m_power("power") {

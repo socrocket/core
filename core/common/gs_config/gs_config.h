@@ -13,8 +13,16 @@
 ///
 #include <string>
 #include <map>
+#include "core/common/base.h"
 
 //class easy_init;
+
+inline gs::cnf::gs_param_array *sr_exp(gs::cnf::gs_param_array *param) {
+  if(param) {
+    sr_hierarchy_push(param);
+  }
+  return param;
+}
 
 namespace gs {
 namespace cnf {
@@ -28,8 +36,11 @@ namespace cnf {
         gs_param_base(
           n, 
           register_at_db, 
-          parent_array, 
+          sr_exp(parent_array),
           force_top_level_name) {
+        if (parent_array) {
+          sr_hierarchy_pop();
+        }
       }
 
       class easy_init {

@@ -29,21 +29,13 @@ Irqmp::Irqmp(ModuleName name,
   int eirq,
   unsigned int pindex,
   bool powmon) :
-  APBDevice<RegisterBase>(name, pindex, 0x01, 0x00D, 
-        2, /* VER: SoCRocket default: 3, try to Mimic TSIM therefore 2 -- psiegl */
-        0, APBIO, pmask, false, false, paddr, 0xFF),
-  apb_slv(
-    "APB_SLAVE",                    // name
-    r,                              // register container
-    ((paddr) & pmask) << 8,           // start address
-    (((~pmask & 0xfff) + 1) << 8),  // register space length
-      ::amba::amba_APB,             // bus type
-      ::amba::amba_LT,              // communication type / abstraction level
-      false),                       // not used
+  APBSlave(name, pindex, 0x01, 0x00D, 2, /* VER: SoCRocket default: 3, try to Mimic TSIM therefore 2 -- psiegl */
+            0, APBIO, pmask, false, false, paddr),
   cpu_rst("CPU_RESET"), cpu_stat("CPU_STAT"), irq_req("CPU_REQUEST"),
   irq_ack(&Irqmp::acknowledged_irq, "IRQ_ACKNOWLEDGE"),
   irq_in(&Irqmp::incomming_irq, "IRQ_INPUT"),
-  g_ncpu(ncpu), g_eirq(eirq),
+  g_ncpu("ncpu", ncpu, m_generics), 
+  g_eirq("eirq", eirq, m_generics),
   m_irq_counter("irq_line_activity", 32, m_counters),
   m_cpu_counter("cpu_line_activity", ncpu, m_counters),
   m_pow_mon(powmon),
@@ -53,7 +45,7 @@ Irqmp::Irqmp(ModuleName name,
   int_power("int_power", 0.0, m_power) {          // Dynamic power of controller
 
   forcereg = new uint32_t[g_ncpu];
-
+  Irqmp::init_generics(); 
   // Display APB slave information
   srInfo()
     ("paddr", paddr)
@@ -63,76 +55,7 @@ Irqmp::Irqmp(ModuleName name,
 
   assert(ncpu < 17 && "the IRQMP can only handle up to 16 CPUs");
 
-  // create register | name + description
-  r.create_register("level", "Interrupt Level Register",
-    0x00,                   // offset
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-    | gs::reg::FULL_WIDTH,  // config
-    0x00000000,             // init value
-    Irqmp::IR_LEVEL_IL,     // write mask
-    32,                     // reg width (maximum 32 bit)
-    0x00);                  // lock mask: Not implementet, has to be zero.
-
-  r.create_register("pending", "Interrupt Pending Register", 0x04,
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |
-    gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH, 0x00000000,
-    IR_PENDING_EIP | IR_PENDING_IP, 32, 0x00);
-  // Following register is part of the manual, but will never be used.
-  // 1) A system with 0 cpus will never be implemented
-  // 2) If there were 0 cpus, no cpu would need an IR force register
-  // 3) The IR force register for the first CPU ('CPU 0') will always be located at address 0x80
-  // if (g_ncpu == 0) {
-  r.create_register("force", "Interrupt Force Register", 0x08,
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-    | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-    0x00000000, IR_FORCE_IF, 32, 0x00);
-  // }
-  r.create_register("clear", "Interrupt Clear Register", 0x0C,
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-    | gs::reg::FULL_WIDTH, 0x00000000, IR_CLEAR_IC, 32,
-    0x00);
-  r.create_register("mpstat", "Multiprocessor Status Register", 0x10,
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-    | gs::reg::FULL_WIDTH, 0x00000000, MP_STAT_WMASK, 32, 0x00);
-  r.create_register("broadcast", "Interrupt broadcast Register", 0x14,
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-    | gs::reg::FULL_WIDTH, 0x00000000, BROADCAST_BM, 32,
-    0x00);
-  // 3 IRQ(A)MP Registers pinned to 0 to indecate that we are a single IRQMP
-  r.create_register("asymctrl", "Asymetric Multicore Control Register", 0x20,
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-    | gs::reg::FULL_WIDTH, 0x00000000, 0x00000000, 32,
-    0x00);
-  r.create_register("irqctrlsel0", "Interrupt Controller Select Register for Processors 0 - 7", 0x24,
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-    | gs::reg::FULL_WIDTH, 0x00000000, 0x00000000, 32,
-    0x00);
-  r.create_register("irqctrlsel1", "Interrupt Controller Select Register for Processors 8 - 15", 0x28,
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO | gs::reg::SINGLE_BUFFER
-    | gs::reg::FULL_WIDTH, 0x00000000, 0x00000000, 32,
-    0x00);
-
-  for (int i = 0; i < g_ncpu; ++i) {
-    r.create_register(gen_unique_name("mask", false),
-      "Interrupt Mask Register", 0x40 + 0x4 * i,
-      gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-      | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-      0xFFFFFFFE, PROC_MASK_EIM | Irqmp::PROC_MASK_IM, 32, 0x00);
-    r.create_register(gen_unique_name("force", false),
-      "Interrupt Force Register", 0x80 + 0x4 * i,
-      gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-      | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-      0x00000000, PROC_IR_FORCE_IFC | PROC_IR_FORCE_IF, 32,
-      0x00);
-    r.create_register(gen_unique_name("eir_id", false),
-      "Extended Interrupt Identification Register", 0xC0 + 0x4 * i,
-      gs::reg::STANDARD_REG | gs::reg::SINGLE_IO
-      | gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-      0x00000000, PROC_EXTIR_ID_EID, 32, 0x00);
-    // Reset corresponding performance counter
-    m_cpu_counter[i] = 0;
-    forcereg[i] = 0;
-  }
+  init_registers();
 
   SC_THREAD(launch_irq);
 
@@ -158,8 +81,90 @@ Irqmp::Irqmp(ModuleName name,
 }
 
 Irqmp::~Irqmp() {
-  GC_UNREGISTER_CALLBACKS();
   delete[] forcereg;
+}
+
+void Irqmp::init_generics() {
+  g_ncpu.add_properties()
+    ("name"," Number of CPUs in the System")
+    ("vhdl_name","ncpu")
+    ("Needet to determ the number of receiver lines.");
+    
+    g_eirq.add_properties()
+    ("name"," Extended Interrupt Number")
+    ("vhdl_name","eirq")
+    ("Behind this interrupt are all extended interrupt cascaded.");
+}
+
+void Irqmp::init_registers() {
+  // create register | name + description
+  r.create_register("level", "Interrupt Level Register",
+    0x00,                   // offset
+    0x00000000,             // init value
+    Irqmp::IR_LEVEL_IL);    // write mask
+
+  r.create_register("pending", "Interrupt Pending Register", 
+    0x04,
+    0x00000000,
+    IR_PENDING_EIP | IR_PENDING_IP)
+  .callback(SR_POST_WRITE, this, &Irqmp::pending_write);
+
+  // Following register is part of the manual, but will never be used.
+  // 1) A system with 0 cpus will never be implemented
+  // 2) If there were 0 cpus, no cpu would need an IR force register
+  // 3) The IR force register for the first CPU ('CPU 0') will always be located at address 0x80
+  r.create_register("force", "Interrupt Force Register", 
+    0x08,
+    0x00000000, 
+    IR_FORCE_IF)
+  .callback(SR_POST_WRITE, this, &Irqmp::pending_write);
+
+  r.create_register("clear", "Interrupt Clear Register",
+    0x0C, 0x00000000, IR_CLEAR_IC)
+  .callback(SR_POST_WRITE, this, &Irqmp::clear_write);
+
+  r.create_register("mpstat", "Multiprocessor Status Register",
+    0x10, 0x00000000, MP_STAT_WMASK)
+  .callback(SR_PRE_READ, this, &Irqmp::mpstat_read)
+  .callback(SR_POST_WRITE, this, &Irqmp::mpstat_write);
+
+  r.create_register("broadcast", "Interrupt broadcast Register",
+    0x14, 0x00000000, BROADCAST_BM);
+
+  // 3 IRQ(A)MP Registers pinned to 0 to indecate that we are a single IRQMP
+  r.create_register("asymctrl", "Asymetric Multicore Control Register",
+    0x20, 0x00000000, 0x00000000);
+  r.create_register("irqctrlsel0", "Interrupt Controller Select Register for Processors 0 - 7",
+    0x24, 0x00000000, 0x00000000);
+  r.create_register("irqctrlsel1", "Interrupt Controller Select Register for Processors 8 - 15",
+    0x28, 0x00000000, 0x00000000);
+
+  for (int i = 0; i < g_ncpu; ++i) {
+    r.create_register(gen_unique_name("mask", false),
+      "Interrupt Mask Register", 
+      0x40 + 0x4 * i,
+      0xFFFFFFFE,
+      PROC_MASK_EIM | Irqmp::PROC_MASK_IM)
+    // send interrupts to processors after write to pending / force regs
+    .callback(SR_POST_WRITE, this, &Irqmp::pending_write);
+
+    r.create_register(gen_unique_name("force", false),
+      "Interrupt Force Register",
+      0x80 + 0x4 * i,
+      0x00000000, 
+      PROC_IR_FORCE_IFC | PROC_IR_FORCE_IF)
+    .callback(SR_POST_WRITE, this, &Irqmp::force_write);
+
+    r.create_register(gen_unique_name("eir_id", false),
+      "Extended Interrupt Identification Register",
+      0xC0 + 0x4 * i,
+      0x00000000,
+      PROC_EXTIR_ID_EID);
+
+    // Reset corresponding performance counter
+    m_cpu_counter[i] = 0;
+    forcereg[i] = 0;
+  }
 }
 
 // Automatically called at start of simulation
@@ -171,31 +176,6 @@ void Irqmp::start_of_simulation() {
 }
 
 void Irqmp::end_of_elaboration() {
-  // send interrupts to processors after write to pending / force regs
-  GR_FUNCTION(Irqmp, pending_write);   // args: module name, callback function name
-  GR_SENSITIVE(r[IR_PENDING].add_rule(gs::reg::POST_WRITE, "pending_write", gs::reg::NOTIFY));
-  GR_SENSITIVE(r[IR_FORCE].add_rule(gs::reg::POST_WRITE, "force_write", gs::reg::NOTIFY));
-  for (int i_cpu = 0; i_cpu < g_ncpu; i_cpu++) {
-    GR_SENSITIVE(r[PROC_IR_MASK(i_cpu)].add_rule(gs::reg::POST_WRITE, "proc_ir_mask_write", gs::reg::NOTIFY));
-  }
-
-  // unset pending bits of cleared interrupts
-  GR_FUNCTION(Irqmp, clear_write);
-  GR_SENSITIVE(r[IR_CLEAR].add_rule(gs::reg::POST_WRITE, "clear_write", gs::reg::NOTIFY));
-
-  // unset force bits of cleared interrupts
-  for (int i_cpu = 0; i_cpu < g_ncpu; i_cpu++) {
-    GR_FUNCTION(Irqmp, force_write);
-    GR_SENSITIVE(r[PROC_IR_FORCE(i_cpu)].add_rule(
-        gs::reg::POST_WRITE, gen_unique_name("force_write", false), gs::reg::NOTIFY));
-  }
-
-  // manage cpu run / reset signals after write into MP status reg
-  GR_FUNCTION(Irqmp, mpstat_write);
-  GR_SENSITIVE(r[MP_STAT].add_rule(gs::reg::POST_WRITE, "mpstat_write", gs::reg::NOTIFY));
-
-  GR_FUNCTION(Irqmp, mpstat_read);
-  GR_SENSITIVE(r[MP_STAT].add_rule(gs::reg::PRE_READ, "mpstat_read", gs::reg::NOTIFY));
 }
 
 // Print execution statistic at end of simulation
@@ -274,8 +254,6 @@ void Irqmp::dorst() {
 //
 // process sensitive to apbi.pirq
 void Irqmp::incomming_irq(const std::pair<uint32_t, bool> &irq, const sc_time &time) {
-  // A variable with true as workaround for greenreg.
-  bool t = true;
   if (!irq.second) {
     // Return if the value turned to false.
     // Interrupts will not be unset this way.
@@ -290,17 +268,17 @@ void Irqmp::incomming_irq(const std::pair<uint32_t, bool> &irq, const sc_time &t
 
       // If the incomming interrupt is not listed in the broadcast register
       // it goes in the pending register
-      if (!r[BROADCAST].bit_get(line)) {
-        r[IR_PENDING].bit_set(line, t);
+      if (!r[BROADCAST].bit(line)) {
+        r[IR_PENDING].bit(line, true);
       }
 
       // If it is not listed n the broadcast register and not an extended interrupt it goes into the force registers.
       // EIRs cannot be forced
-      if (r[BROADCAST].bit_get(line) && (line < 16)) {
+      if (r[BROADCAST].bit(line) && (line < 16)) {
         // set force registers for broadcasted interrupts
         for (int32_t cpu = 0; cpu < g_ncpu; cpu++) {
-          r[PROC_IR_FORCE(cpu)].bit_set(line, t);
-          forcereg[cpu] |= (t << line);
+          r[PROC_IR_FORCE(cpu)].bit(line, true);
+          forcereg[cpu] |= (true << line);
         }
       }
     }
@@ -327,8 +305,8 @@ void Irqmp::launch_irq() {
     for (cpu = g_ncpu - 1; cpu > -1; cpu--) {
       // Pending register for this CPU line.
       pending = (r[IR_PENDING] | r[IR_FORCE]) & r[PROC_IR_MASK(cpu)];
-      v::debug << name() << "For CPU " << cpu << " pending: " << v::uint32 << r[IR_PENDING].get() << ", force: " <<
-      v::uint32 << r[IR_FORCE].get() << ", proc_ir_mask: " << r[PROC_IR_MASK(cpu)].get() << v::endl;
+      v::debug << name() << "For CPU " << cpu << " pending: " << v::uint32 << r[IR_PENDING].read() << ", force: " <<
+      v::uint32 << r[IR_FORCE].read() << ", proc_ir_mask: " << r[PROC_IR_MASK(cpu)].read() << v::endl;
 
       // All relevant interrupts for this CPU line to determ pending extended interrupts
       masked  = pending | (r[PROC_IR_FORCE(cpu)] & IR_FORCE_IF);
@@ -336,7 +314,7 @@ void Irqmp::launch_irq() {
       if (g_eirq != 0) {
         // Set the pending pit in the pending register.
         eirq_en = masked & IR_PENDING_EIP;
-        r[IR_PENDING].bit_set(g_eirq, eirq_en);
+        r[IR_PENDING].bit(g_eirq, eirq_en);
       } else {
         eirq_en = 0;
       }
@@ -459,13 +437,13 @@ void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_
 
   // clear interrupt from pending and force register
   // if(r[BROADCAST].bit_get(irq)) {
-  r[PROC_IR_FORCE(cpu)].bit_set(irq, f);
+  r[PROC_IR_FORCE(cpu)].bit(irq, f);
   forcereg[cpu] &= ~(1 << irq) & 0xFFFE;
   // }
 
   irq_req.write(~0, std::pair<uint32_t, bool>(irq, false));
-  r[IR_PENDING].bit_set(irq, f);
-  r[IR_FORCE].bit_set(irq, f);
+  r[IR_PENDING].bit(irq, f);
+  r[IR_FORCE].bit(irq, f);
   r[PROC_EXTIR_ID(cpu)] = 0;
   e_signal.notify(2 * clock_cycle);
 }
@@ -490,7 +468,7 @@ void Irqmp::mpstat_read() {
 }
 
 void Irqmp::pending_write() {
-  v::debug << name() << "Pending write" << v::endl;
+  v::info << name() << "Pending write" << v::endl;
   e_signal.notify(1 * clock_cycle);
 }
 

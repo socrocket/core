@@ -124,51 +124,69 @@ For manual instantiation include header amba.h from Carbon TLM AMBA modeling kit
 
 **Master socket declaration (single):**
 
-    amba::amba_master_socket<32> ahb;
+~~~{.cpp}
+amba::amba_master_socket<32> ahb;
+~~~
 
 **Instantiation (module constructor):**
 
-    ahb("ahb", amba::amba_AHB, ambaLayer, false);
-    # ambaLayer = amba::amba_AT or amba::amba_LT
-    # false is only used for CT modeling
+~~~{.cpp}
+ahb("ahb", amba::amba_AHB, ambaLayer, false);
+# ambaLayer = amba::amba_AT or amba::amba_LT
+# false is only used for CT modeling
+~~~
 
 **Slave socket declaration (single):**
 
-    amba::amba_slave_socket<32> ahb;
+~~~{.cpp}
+amba::amba_slave_socket<32> ahb;
+~~~
 
 **Instantiation (module constructor):**
 
-    ahb("ahb", amba::amba_AHB, ambaLayer, false);
-    # ambaLayer = amba::amba_AT or amba::amba_LT
-    # false is only used for CT modeling
+~~~{.cpp}
+ahb("ahb", amba::amba_AHB, ambaLayer, false);
+# ambaLayer = amba::amba_AT or amba::amba_LT
+# false is only used for CT modeling
+~~~
 
 **Multi-master socket declaration:**
 
-    amba::amba_master_socket<32, N> ahbIN;
-    # N: Number of channels for this socket - 0 meaning no limit
+~~~{.cpp}
+amba::amba_master_socket<32, N> ahbIN;
+# N: Number of channels for this socket - 0 meaning no limit
+~~~
 
 **Instantiation (module constructor):**
 
-    ahbIN("ahbIN", amba::amba_AHB, ambaLayer, false)
-    # ambaLayer = amba::amba_AT or amba::amba_LT
-    # false is only used for CT modeling
+~~~{.cpp}
+ahbIN("ahbIN", amba::amba_AHB, ambaLayer, false)
+# ambaLayer = amba::amba_AT or amba::amba_LT
+# false is only used for CT modeling
+~~~
 
 **Multi-slave socket declaration:**
 
-    amba::amba_slave_socket<32, N> ahbOUT;
-    # N: Number of channels for this socket - 0 meaning no limit
+~~~{.cpp}
+amba::amba_slave_socket<32, N> ahbOUT;
+# N: Number of channels for this socket - 0 meaning no limit
+~~~
 
 **Instantiation (module constructor):**
 
-    ahbOUT("ahbOUT", amba::amba_AHB, ambaLayer*, false**)
-    # ambaLayer = amba::amba_AT or amba::amba_LT
-    # false is only used for CT modeling
+~~~{.cpp}
+ahbOUT("ahbOUT", amba::amba_AHB, ambaLayer*, false**)
+# ambaLayer = amba::amba_AT or amba::amba_LT
+# false is only used for CT modeling
+~~~
 
 **Binding sockets:**
 
 Binding AHB sockets follows the rules for TLM2.0 socket binding.
 
-    initiator.ahb(target.ahb)
+~~~{.cpp}
+initiator.ahb(target.ahb)
+~~~
 
 See core/platforms/leon3mp/sc_main.cpp for more examples.
 
@@ -221,9 +239,9 @@ Figure 4 shows a simple APB write transfer and its abstraction using a blocking 
 
 @subsection im_apb_creating Creating/Binding APB sockets
 
-The easiest way to create custom APB components is to instantiate a GreenReg socket. GreenReg sockets are extended AMBA sockets, which allow the specification of register interfaces.
+The easiest way to create custom APB components is to instantiate a APBSlave. The come with APB sockets as extended AMBA sockets, which allow the specification of register interfaces.
 
-Please include the amba.h header of the Carbon AMBA TLM Modeling Kit and the greenreg_ambasockets.h header in your design.
+Please include the core/common/amba.h header to include the Carbon AMBA TLM Modeling Kit and core/common/apbslave.h header in your design.
 
 @todo verify section
 
@@ -231,17 +249,9 @@ A detailed description on how to set up APB components and register interfaces i
 
 **Master socket declaration (single):**
 
-    gs::reg::greenreg_socket<gs::amba::amba_slave<32> > apb;
-
-**Instantiation (module constructor):**
-
-    apb("apb",   
-	r,                            // Name of GreenReg register container  
-	APBDevice::get_base_addr_(),  // APB base address  
-	APBDevice::get_size_(),       // APB size of address space  
-	amba::amba_APB,               // Bus protocol specifier  
-	amba::amba_LT,                // APB is always LT (blocking)  
-	false),                       // Only used for CT modeling
+~~~{.cpp}
+class Model : public APBSlave {
+~~~
 
 @section interconnect_methodology_axi AXI Modeling
 

@@ -11,7 +11,7 @@ def build(self):
     export_includes = self.top_dir,
     includes = self.top_dir,
     uselib          = 'SYSTEMC TLM AMBA GREENSOCS',
-    use             = 'common utils',
+    use             = 'common ',
     install_path    = '${PREFIX}/lib',
   )
 

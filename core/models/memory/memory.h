@@ -26,8 +26,8 @@
 
 #include "core/models/memory/memorypower.h"
 #include "core/common/verbose.h"
-#include "core/common/report.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/sr_report.h"
+#include "core/common/clkdevice.h"
 #include "core/models/memory/ext_erase.h"
 
 /// @brief This class models a generic memory. Depending on the configuration
@@ -76,6 +76,7 @@ class Memory : public MemoryPower {
 
     /// TLM 2.0 debug transport function
     unsigned int transport_dbg(tlm::tlm_generic_payload &gp);
+    bool get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data);
 
     gs::gs_config<uint64_t> m_writes;
     gs::gs_config<uint64_t> m_reads;

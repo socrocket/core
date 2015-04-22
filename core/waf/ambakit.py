@@ -52,25 +52,6 @@ def find(self, path = None):
       uselib       = 'BOOST SYSTEMC TLM GREENSOCS AMBA',
       okmsg        = "ok",
     )
-   
-    # Check for AMBAKit extended GreenSocs from contrib
-    self.check_cxx(
-      header_name   = "greenreg_ambasockets.h",
-      uselib_store  = 'AMBA',
-      mandatory     = True,
-      includes      = [os.path.join(self.path.abspath(),'core', 'common', 'grambasockets'), 
-                       os.path.join(self.path.abspath(), 'include'),
-                       self.path.abspath()],
-      fragment     = """
-                     #include "greenreg_ambasockets.h"
-                     int sc_main(int argc, char *argv[]) {
-                       return 0;
-                     }
-                     """,
-      uselib        = 'GREENSOCS BOOST SYSTEMC TLM AMBA',
-      okmsg         = "ok",
-      msg           = "Check compatibility of AMBAKit and GreenReg"
-    )
     
 def configure(self):
     try:

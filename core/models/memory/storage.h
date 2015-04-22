@@ -18,6 +18,8 @@
 
 class Storage {
   public:
+    virtual ~Storage(){};
+
     virtual void write(const uint32_t &addr, const uint8_t &byte) = 0;
 
     virtual uint8_t read(const uint32_t &addr) const = 0;
@@ -27,6 +29,10 @@ class Storage {
     virtual void read_block(const uint32_t &addr, uint8_t *data, const uint32_t &len) const = 0;
 
     virtual void erase(const uint32_t &start, const uint32_t &end) = 0;
+
+    virtual uint8_t *get_dmi_ptr() { return NULL; }
+
+    virtual bool allow_dmi_rw() { return false; }
 };
 
 #endif  // MODELS_MEMORY_STORAGE_H_

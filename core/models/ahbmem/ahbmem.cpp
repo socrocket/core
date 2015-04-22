@@ -20,8 +20,11 @@
 #include <fstream>
 
 #include "core/models/ahbmem/ahbmem.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 #include "core/common/verbose.h"
+#include "core/common/sr_registry.h"
+
+SR_HAS_MODULE(AHBMem);
 
 /// Constructor
 AHBMem::AHBMem(const ModuleName nm,  // Module name
@@ -40,7 +43,7 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
       0,
       ambaLayer,
       BAR(AHBMEM, hmask, cacheable, 0, haddr)),
-    BaseMemory(BaseMemory::ARRAY, get_ahb_size()),
+    BaseMemory(BaseMemory::ARRAY, get_ahb_bar_size(0)),
     ahbBaseAddress(static_cast<uint32_t>((hmask) & haddr) << 20),
     ahbSize(~(static_cast<uint32_t>(hmask) << 20) + 1),
     g_haddr("haddr", haddr, m_generics),
@@ -70,7 +73,8 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
     GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, AHBMem, int_power_cb);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, AHBMem, swi_power_cb);
   }
-
+  AHBMem::init_generics();
+  ahb.register_get_direct_mem_ptr(this, &AHBMem::get_direct_mem_ptr);
   // Display AHB slave information
   srInfo("/configuration/ahbmem/ahbslave")
      ("addr", (uint64_t)get_ahb_base_addr())
@@ -96,16 +100,21 @@ void AHBMem::init_generics() {
   // set name, type, default, range, hint and description for gs_configs
   g_hindex.add_properties()
     ("name", "Bus Index")
+    ("vhdl_name","hindex")
     ("range", "0..15")
     ("Slave index at the AHB bus");
 
   g_haddr.add_properties()
     ("name", "AHB Address")
+    ("vhdl_name","haddr")
+    ("base","hex")
     ("range", "0..0xFFF")
     ("The 12bit MSB address at the AHB bus");
 
   g_hmask.add_properties()
     ("name", "AHB Mask")
+    ("vhdl_name","hmask")
+    ("base","hex")
     ("range", "0..0xFFF")
     ("The 12bit AHB address mask");
 
@@ -142,7 +151,7 @@ uint32_t AHBMem::exec_func(
       srWarn(name())
         ("Transaction exceeds slave memory region");
     }
-
+    trans.set_dmi_allowed(storage->allow_dmi_rw());
     if (trans.is_write()) {
       // write simulation memory
       write_block(trans.get_address(), trans.get_data_ptr(), trans.get_data_length());
@@ -198,6 +207,18 @@ uint32_t AHBMem::exec_func(
 // Returns clock cycle time for e.g. use in AHBSlave parent
 sc_core::sc_time AHBMem::get_clock() {
   return clock_cycle;
+}
+
+bool AHBMem::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data) {
+  // access to ROM adress space
+  dmi_data.allow_read_write();
+  dmi_data.set_dmi_ptr(storage->get_dmi_ptr());
+  dmi_data.set_start_address(0);
+  dmi_data.set_end_address(get_ahb_bar_size(0));
+  dmi_data.set_read_latency(SC_ZERO_TIME);
+  dmi_data.set_write_latency(SC_ZERO_TIME);
+  v::info << name() << "allow_dmi_rw is: " << v::uint32 << storage->allow_dmi_rw() << v::endl;
+  return storage->allow_dmi_rw();
 }
 
 void AHBMem::writeByteDBG(const uint32_t address, const uint8_t byte) {

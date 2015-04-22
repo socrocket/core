@@ -20,10 +20,10 @@
 #include "core/common/systemc.h"
 #include "core/common/base.h"
 
-#include "core/models/utils/ahbslave.h"
-#include "core/models/utils/ahbdevice.h"
-#include "core/models/utils/apbdevice.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/ahbslave.h"
+#include "core/common/ahbdevice.h"
+#include "core/common/apbdevice.h"
+#include "core/common/clkdevice.h"
 #include "core/common/vmap.h"
 
 /// @addtogroup apbctrl APBCtrl
@@ -147,7 +147,9 @@ class APBCtrl : public AHBSlave<DefaultBase>, public CLKDevice {
     /// The base address of the PNP APB device records
     /// 0xFF000
     const uint32_t m_pnpbase;
-
+    
+    gs::cnf::gs_config<uint32_t> g_haddr;
+    gs::cnf::gs_config<uint32_t> g_hmask;
     /// Check if there are any intersections between APB slave memory regions
     gs::cnf::gs_config<bool> g_mcheck;
 

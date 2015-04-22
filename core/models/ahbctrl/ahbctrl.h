@@ -22,8 +22,8 @@
 #include <tlm.h>
 #include <map>
 
-#include "core/models/utils/ahbdevice.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/ahbdevice.h"
+#include "core/common/clkdevice.h"
 #include "core/common/signalkit.h"
 #include "core/common/msclogger.h"
 #include "core/common/socrocket.h"
@@ -69,6 +69,10 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
 
     /// TLM debug interface
     unsigned int transport_dbg(uint32_t id, tlm::tlm_generic_payload &gp);  // NOLINT(runtime/references)
+
+    /// DMI Pathes
+    virtual bool get_direct_mem_ptr(unsigned int index, tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data);
+    virtual void invalidate_direct_mem_ptr(unsigned int index, sc_dt::uint64 start_range, sc_dt::uint64 end_range);
 
     /// The arbiter thread. Responsible for arbitrating transactions in AT mode.
     void arbitrate();

@@ -18,7 +18,7 @@
 #include "core/models/apbctrl/apbctrl.h"
 #include "core/common/vendian.h"
 #include "core/common/verbose.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 
 /// Constructor of class APBCtrl
 APBCtrl::APBCtrl(
@@ -41,6 +41,8 @@ APBCtrl::APBCtrl(
   m_AcceptPEQ("AcceptPEQ"),
   m_TransactionPEQ("TransactionPEQ"),
   m_pnpbase(0xFF000),
+  g_haddr("haddr", haddr, m_generics),
+  g_hmask("hmask", hmask, m_generics),
   g_mcheck("mcheck", mcheck, m_generics),
   g_pow_mon("pow_mon", pow_mon, m_generics),
   m_ambaLayer(ambaLayer),
