@@ -76,38 +76,6 @@ def find(self, path = None):
       '''
     )
 
-    # Check for GreenSocs GreenReg Library
-
-    self.check_cxx(
-      stlib        = 'greenreg',
-      uselib_store = 'GREENSOCS',
-      mandatory    = True,
-      libpath      = libpath,
-      okmsg        = "ok",
-    ) 
-
-    ##################################################
-    # Check for GreenSocs GreenReg Header
-    ##################################################
-    self.check_cxx(
-      header_name   = "greenreg/greenreg.h",
-      uselib_store  = 'GREENSOCS',
-      mandatory     = True,
-      includes      = incpath,
-      uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
-      okmsg        = "ok",
-      fragment='''
-           #include <systemc.h>
-           #include <tlm.h>
-           #include <greenreg/greenreg.h>
-
-           extern "C" {
-               int sc_main(int argc, char** argv) {
-                   return 0;
-               };
-           }
-      '''
-    )
     if path:
         self.env["HOME_GREENLIB"] = path
     
@@ -124,7 +92,7 @@ def configure(self):
         self.dep_build(
             name         = name, 
             version      = version,
-            git_url      = "git://git.greensocs.com/greenlib.git",
+            git_url      = "http://git.greensocs.com/greenlib/greenlib.git",
             git_checkout = "ecfee38aebe09f91d1affd82ca03581a2bba3662",
             patch        = [os.path.join(self.path.abspath(), "core", "waf", "greenlib-2013-12-02.patch"),
                             os.path.join(self.path.abspath(), "core", "waf", "greenlib-2014-10-17.rmeyer.patch")],

@@ -103,7 +103,7 @@ class BaseMemory : public scireg_ns::scireg_region_if {
     /// word (4 bytes) write count
     unsigned long long writes32;
 
-  private:
+  //private:
     Storage *storage;
 };
 

@@ -11,6 +11,6 @@ def build(self):
     export_includes = self.top_dir,
     includes        = self.top_dir,
     uselib          = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM GREENSOCS',
-    use             = 'utils signalkit common',
+    use             = ' signalkit common',
     install_path    = '${PREFIX}/lib',
   )

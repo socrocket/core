@@ -1,21 +1,21 @@
 #! /usr/bin/env python
 # vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
-top = '..'
+top = '../..'
 
 def build(self):
   self.recurse('trapgen')
   self(
     target          = 'common',
     features        = 'cxx cxxstlib pyembed',
-    source          = ['base.cpp',
+    source          = [
+                       'memdevice.cpp',
+                       'clkdevice.cpp',
                        'verbose.cpp',
                        'powermonitor.cpp',
                        'timingmonitor.cpp',
                        'msclogger.cpp',
-                       'json_parser.cpp',
-                       'block_allocator.cpp',
-                       'paramprinter.cpp',
-                       'report.cpp',
+                       'sr_registry.cpp',
+                       'sr_report.cpp',
                        'waf.cpp',
                        'scireg.cpp'
                        ],

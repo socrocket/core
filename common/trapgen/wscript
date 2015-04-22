@@ -15,8 +15,8 @@ def build(self):
           'utils/trap_utils.cpp',
           'debugger/GDBConnectionManager.cpp',
         ],
-        export_includes = '. utils',
-        includes = '. utils',
+        export_includes = ['.','utils',self.top_dir],
+        includes = ['.','utils',self.top_dir],
         uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS ELF_LIB',
         install_path    = '${PREFIX}/lib',
     )

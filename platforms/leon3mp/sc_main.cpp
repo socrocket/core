@@ -10,6 +10,10 @@
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
+#ifdef HAVE_USI
+#include "pysc/usi.h"
+#endif
+
 #include "core/common/gs_config.h"
 #include "core/common/systemc.h"
 #include <string.h>
@@ -21,26 +25,20 @@
 #include "core/common/trapgen/debugger/GDBStub.hpp"
 #include "core/common/trapgen/elfloader/execLoader.hpp"
 #include "core/common/trapgen/osEmulator/osEmulator.hpp"
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
-#include <boost/program_options/errors.hpp>
 #include <iostream>
 #include <vector>
 #include <cstring>
 #include <cstdlib>
 #include <stdexcept>
 
-#include "core/common/json_parser.h"
-#include "core/common/paramprinter.h"
 #include "core/common/verbose.h"
-#include "core/common/powermonitor.h"
-#include "core/models/mmu_cache/lib/leon3_mmu_cache.h"
+#include "core/models/leon3/leon3.h"
 #include "core/models/ahbin/ahbin.h"
 #include "core/models/memory/memory.h"
 #include "core/models/apbctrl/apbctrl.h"
 #include "core/models/ahbmem/ahbmem.h"
 #include "core/models/mctrl/mctrl.h"
-#include "core/models/mmu_cache/lib/defines.h"
+#include "core/models/leon3/mmucache/defines.h"
 #include "core/models/gptimer/gptimer.h"
 #include "core/models/apbuart/apbuart.h"
 #include "core/models/apbuart/tcpio.h"
@@ -48,6 +46,7 @@
 #include "core/models/irqmp/irqmp.h"
 #include "core/models/ahbctrl/ahbctrl.h"
 #include "core/models/ahbprof/ahbprof.h"
+#include <boost/filesystem.hpp>
 
 #ifdef HAVE_SOCWIRE
 #include "models/socwire/AHB2Socwire.h"
@@ -57,9 +56,14 @@
 #include "vphy/tapdev.h"
 #include "vphy/loopback.h"
 #endif
-
-#ifdef HAVE_PYSC
-#include "pysc/pysc.h"
+#ifdef HAVE_AHBDISPLAY
+#include "media/models/ahbdisplay/ahbdisplay.h"
+#endif
+#ifdef HAVE_AHBCAMERA
+#include "media/models/ahbcamera/ahbcamera.h"
+#endif
+#ifdef HAVE_AHBSHUFFLER
+#include "media/models/ahbshuffler/ahbshuffler.h"
 #endif
 
 //#include "vphy/trafgen.h"
@@ -74,46 +78,10 @@ namespace trap {
   extern int exitValue;
 };
 
-#ifdef HAVE_PYSC
-void (*old_sigint)(int) = NULL;
-void (*old_sigterm)(int) = NULL;
-#endif
 void stopSimFunction(int sig) {
-  #ifdef HAVE_PYSC
-  if (sig == SIGINT) {
-    sc_core::sc_status status = sc_core::sc_get_status();
-    if (status == sc_core::SC_RUNNING) {
-      sc_core::sc_pause();
-    } else if(status == sc_core::SC_PAUSED) {
-      old_sigint(sig);
-    }
-    return;
-  } 
-  #endif
   v::warn << "main" << "Simulation interrupted by user" << std::endl;
   sc_core::sc_stop();
   wait(SC_ZERO_TIME);
-  #ifdef HAVE_PYSC
-  if (sig == SIGTERM) {
-    old_sigterm(sig);
-  }
-  #endif
-}
-
-boost::filesystem::path find_top_path(char *start) {
-
-  #if (BOOST_VERSION < 104600)
-    boost::filesystem::path path = boost::filesystem::path(start).parent_path();
-  #else
-    boost::filesystem::path path = boost::filesystem::absolute(boost::filesystem::path(start).parent_path());
-  #endif
-
-  boost::filesystem::path waf("waf");
-  while(!boost::filesystem::exists(path/waf) && !path.empty()) {
-    path = path.parent_path();
-  }
-  return path;
-
 }
 
 string greth_script_path;
@@ -136,157 +104,41 @@ void grethVPHYHook(char* dev_name)
 }
 
 int sc_main(int argc, char** argv) {
-    boost::program_options::options_description desc("Options");
-    desc.add_options()
-      ("help", "Shows this message.")
-      ("jsonconfig,j", boost::program_options::value<std::string>(), "The main configuration file. Usual config.json.")
-#ifdef HAVE_PYSC
-      ("pythonscript,p", boost::program_options::value<std::string>(), "The main python script file. Usual sc_main.py.")
-#endif
-      ("option,o", boost::program_options::value<std::vector<std::string> >(), "Additional configuration options.")
-      ("argument,a", boost::program_options::value<std::vector<std::string> >(), "Arguments to the software running inside the simulation.")
-#ifdef HAVE_GRETH
-      ("greth,g", boost::program_options::value<std::vector<std::string> >(), "Initial Options for GREth-Core.")
-#endif
-      ("listoptions,l", "Show a list of all avaliable options")
-      ("interactiv,i", "Start simulation in interactiv mode")
-      ("listoptionsfiltered,f", boost::program_options::value<std::string>(), "Show a list of avaliable options containing a keyword")
-      ("listgsconfig,c", "Show a list of all avaliable gs_config options")
-      ("listgsconfigfiltered,g", boost::program_options::value<std::string>(), "Show a list of avaliable options containing a keyword")
-      ("saveoptions,s", boost::program_options::value<std::string>(), "Save options to json file. Default: saved_config.json");
-
-    boost::program_options::positional_options_description p;
-    p.add("argument", -1);
-
-    boost::program_options::variables_map vm;
-    try {
-      boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
-      boost::program_options::notify(vm);
-    } catch(boost::program_options::unknown_option o) {
-      #if (BOOST_VERSION > 104600)
-      std::cout << "Comand line argument '" << o.get_option_name() << "' unknown. Please use -a,[argument] to add it to the software arguments or correct it." << std::endl;
-      #endif
-      exit(1);
-    }
-
-    if(vm.count("help")) {
-        std::cout << std::endl << "SoCRocket -- LEON3 Multi-Processor Platform" << std::endl;
-        std::cout << std::endl << "Usage: " << argv[0] << " [options]" << std::endl;
-        std::cout << std::endl << desc << std::endl;
-        return 0;
-    }
-
     clock_t cstart, cend;
     std::string prom_app;
-
-    bool paramlist = false, paramlistfiltered = false, configlist = false, configlistfiltered = false;//, saveoptions = false;
 
     gs::ctr::GC_Core       core;
     gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
     gs::cnf::ConfigPlugin configPlugin(&cnfdatabase);
 
-    json_parser* jsonreader = new json_parser();
-
-    if(vm.count("jsonconfig")) {
-        setenv("JSONCONFIG", vm["jsonconfig"].as<std::string>().c_str(), true);
-    }
-
-    // Find *.json
-    // - First search on the comandline
-    // - Then search environment variable
-    // - Then search in current dir
-    // - and finaly in the application directory
-    // - searches in the source directory
-    // Print an error if it is not found!
-    boost::filesystem::path topdir = find_top_path(argv[0]);
-    boost::filesystem::path appdir = (boost::filesystem::path(argv[0]).parent_path());
-    boost::filesystem::path srcdir = (topdir / boost::filesystem::path("build") / boost::filesystem::path(__FILE__).parent_path());
-    boost::filesystem::path json("leon3mp.json");
-    char *json_env = std::getenv("JSONCONFIG");
-    if(json_env) {
-        json = boost::filesystem::path(json_env);
-    } else if(boost::filesystem::exists(json)) {
-        json = json;
-    } else if(boost::filesystem::exists(appdir / json)) {
-        json = appdir / json;
-    } else if(boost::filesystem::exists(srcdir / json)) {
-        json = srcdir / json;
-    }
-    if(boost::filesystem::exists(boost::filesystem::path(json))) {
-        v::info << "main" << "Open Configuration " << json << v::endl;
-        jsonreader->config(json.string().c_str());
-    } else {
-        v::warn << "main" << "No *.json found. Please put it in the current work directory, application directory or put the path to the file in the JSONCONFIG environment variable" << v::endl;
-    }
-
-    gs::cnf::cnf_api *mApi = gs::cnf::GCnf_Api::getApiInstance(NULL);
-    if(vm.count("option")) {
-        std::vector<std::string> vec = vm["option"].as< std::vector<std::string> >();
-        for(std::vector<std::string>::iterator iter = vec.begin(); iter!=vec.end(); iter++) {
-           std::string parname;
-           std::string parvalue;
-
-           // *** Check right format (parname=value)
-           // of no space
-           if(iter->find_first_of("=") == std::string::npos) {
-               v::warn << "main" << "Option value in command line option has no '='. Type '--help' for help. " << *iter;
-           }
-           // if not space before equal sign
-           if(iter->find_first_of(" ") < iter->find_first_of("=")) {
-               v::warn << "main" << "Option value in command line option may not contain a space before '='. " << *iter;
-           }
-
-           // Parse parameter name
-           parname = iter->substr(0,iter->find_first_of("="));
-           // Parse parameter value
-           parvalue = iter->substr(iter->find_first_of("=")+1);
-
-           // Set parameter
-           mApi->setInitValue(parname, parvalue);
-        }
-    }
-
-
-    if(vm.count("listoptions")) {
-       paramlist = true;
-    }
-
-    if(vm.count("listgsconfig")) {
-       configlist = true;
-    }
-    //if(vm.count("saveoptions")) {
-    //   saveoptions = true;
-    //}
-
-	std::string optionssearchkey = "";
-	if(vm.count("listoptionsfiltered")) {
-        optionssearchkey = vm["listoptionsfiltered"].as<std::string>();
-	    paramlistfiltered = true;
-    }
-
-	std::string configssearchkey = "";
-	if(vm.count("listgsconfigfiltered")) {
-        configssearchkey = vm["listgsconfigfiltered"].as<std::string>();
-	    configlistfiltered= true;
-    }
-
-#ifdef HAVE_PYSC
+#ifdef HAVE_USI
     // Initialize Python
-    std::string pythonscript = "";
-    if(vm.count("pythonscript")) {
-      pythonscript = vm["pythonscript"].as<std::string>();
-    }
+    USI_HAS_MODULE(systemc_);
+    USI_HAS_MODULE(registry);
+    USI_HAS_MODULE(delegate);
+    USI_HAS_MODULE(greensocket);
+    USI_HAS_MODULE(scireg);
+    USI_HAS_MODULE(amba);
+    USI_HAS_MODULE(report);
+    USI_HAS_MODULE(parameter_);
+    USI_HAS_MODULE(mtrace);
+    usi_init(argc, argv);
 
-    PythonModule python("python_interpreter", pythonscript.c_str(), argc, argv);
+    usi_load("usi.api.systemc");
+    usi_load("usi.api.delegate");
+    usi_load("usi.api.greensocket");
+    usi_load("usi.api.scireg");
+    usi_load("usi.api.amba");
 
-    //python.load("tools.python.arguments");
-    python.load("tools.python.console_reporter");
-    //python.load("tools.python.config");
-    //python.load("tools.python.power");
-    python.load("tools.python.shell");
+    usi_load("usi.log.console_reporter");
+    usi_load("usi.tools.args");
+    usi_load("usi.cci");
+    //usi_load("tools.python.power");
+    usi_load("usi.shell");
+    usi_load("usi.tools.execute");
 
-    python.start_of_initialization();
-#endif  // HAVE_PYSC
+    usi_start_of_initialization();
+#endif  // HAVE_USI
     // Build GreenControl Configuration Namespace
     // ==========================================
     gs::gs_param_array p_conf("conf");
@@ -395,7 +247,7 @@ int sc_main(int argc, char** argv) {
     );
 
     // Connect to APB and clock
-    apbctrl.apb(irqmp.apb_slv);
+    apbctrl.apb(irqmp.apb);
     irqmp.set_clk(p_system_clock,SC_NS);
 
     // AHBSlave - MCtrl, ArrayMemory
@@ -738,8 +590,8 @@ int sc_main(int argc, char** argv) {
       // =====================
       // Always enabled.
       // Needed for basic platform.
-      leon3_mmu_cache *leon3 = new leon3_mmu_cache(
-              sc_core::sc_gen_unique_name("leon3_mmu_cache", false), // name of sysc module
+      Leon3 *leon3 = new Leon3(
+              sc_core::sc_gen_unique_name("leon3", false), // name of sysc module
               p_mmu_cache_ic_en,         //  int icen = 1 (icache enabled)
               p_mmu_cache_ic_repl,       //  int irepl = 0 (icache LRU replacement)
               p_mmu_cache_ic_sets,       //  int isets = 4 (4 instruction cache sets)
@@ -799,9 +651,6 @@ int sc_main(int argc, char** argv) {
       if(!((std::string)p_system_osemu).empty()) {
         leon3->g_osemu = p_system_osemu;
       }
-      if(vm.count("argument")) {
-        leon3->g_args = vm["arguments"].as<std::vector<std::string> >();
-      }
     }
 
     // APBSlave - GPTimer
@@ -833,7 +682,7 @@ int sc_main(int argc, char** argv) {
       );
 
       // Connect to apb and clock
-      apbctrl.apb(gptimer->bus);
+      apbctrl.apb(gptimer->apb);
       gptimer->set_clk(p_system_clock,SC_NS);
 
       // Connecting Interrupts
@@ -858,7 +707,7 @@ int sc_main(int argc, char** argv) {
     if(p_apbuart_en) {
       switch(p_apbuart_type) {
         case 1:
-          uart_io = new TcpIo(port);
+          uart_io = new TcpIo("TcpIo", port);
           break;
         default:
           uart_io = new NullIO();
@@ -874,7 +723,7 @@ int sc_main(int argc, char** argv) {
       );
 
       // Connecting APB Slave
-      apbctrl.apb(apbuart->bus);
+      apbctrl.apb(apbuart->apb);
       // Connecting Interrupts
       signalkit::connect(irqmp.irq_in, apbuart->irq, p_apbuart_irq);
       // Set clock
@@ -897,7 +746,7 @@ int sc_main(int argc, char** argv) {
     if(p_apbuart1_en) {
       switch(p_apbuart1_type) {
         case 1:
-          uart1_io = new TcpIo(port1);
+          uart1_io = new TcpIo("TcpIo2", port1);
           break;
         default:
           uart1_io = new NullIO();
@@ -913,7 +762,7 @@ int sc_main(int argc, char** argv) {
       );
 
       // Connecting APB Slave
-      apbctrl.apb(apbuart1->bus);
+      apbctrl.apb(apbuart1->apb);
       // Connecting Interrupts
       signalkit::connect(irqmp.irq_in, apbuart1->irq, p_apbuart1_irq);
       // Set clock
@@ -1049,7 +898,7 @@ int sc_main(int argc, char** argv) {
     greth_config->mdiohold = p_greth_mdiohold;
     greth_config->maxsize = p_greth_maxsize;
     // Optional params for tap offset and post script
-    if(vm.count("greth")) {
+    /*if(vm.count("greth")) {
         std::vector<std::string> vec = vm["greth"].as< std::vector<std::string> >();
         for(std::vector<std::string>::iterator iter = vec.begin(); iter!=vec.end(); iter++) {
            std::string parname;
@@ -1081,7 +930,7 @@ int sc_main(int argc, char** argv) {
                greth_script_path = parvalue.c_str();
            }
         }
-    }
+    }*/
 
     GREth *greth;
     if(p_greth_en)  {
@@ -1124,63 +973,100 @@ int sc_main(int argc, char** argv) {
     }
   // GREth done. ==========================
 #endif  // HAVE_GRETH
-    // * Param Listing **************************
-    paramprinter printer;
-    if(paramlist) {
-    	printer.printParams();
-    	exit(0);
-    }
-
-    if(configlist){
-      printer.printConfigs();
-    	exit(0);
-    }
-
-    if(paramlistfiltered ){
-      printer.printParams(optionssearchkey);
-    	exit(0);
-    }
-
-    if(configlistfiltered ){
-      printer.printConfigs(configssearchkey);
-    	exit(0);
-    }
-
     // ******************************************
+
+#ifdef HAVE_AHBDISPLAY
+    // AHBDisplay - AHBMaster
+    // ==================
+    gs::gs_param_array p_ahbdisplay("ahbdisplay", p_conf);
+    gs::gs_param<bool> p_ahbdisplay_en("en", false, p_ahbdisplay);
+    gs::gs_param<unsigned int> p_ahbdisplay_hindex("hindex", 2, p_ahbdisplay);
+    gs::gs_param<unsigned int> p_ahbdisplay_pindex("pindex", 4, p_ahbdisplay);
+    gs::gs_param<unsigned int> p_ahbdisplay_paddr("paddr", 0x500, p_ahbdisplay);
+    gs::gs_param<unsigned int> p_ahbdisplay_pmask("pmask", 0xFFF, p_ahbdisplay);
+    if(p_ahbdisplay_en) {
+      AHBDisplay *ahbdisplay = new AHBDisplay("ahbdisplay",
+        p_ahbdisplay_hindex,  // ahb index
+        p_ahbdisplay_pindex,  // apb index
+        p_ahbdisplay_paddr,  // apb address
+        p_ahbdisplay_pmask,  // apb mask
+        ambaLayer,
+        true
+      );
+
+      // Connecting APB Slave
+      ahbdisplay->ahb(ahbctrl.ahbIN);
+      apbctrl.apb(ahbdisplay->apb);
+      ahbdisplay->set_clk(p_system_clock,SC_NS);
+    }
+#endif
+#ifdef HAVE_AHBCAMERA
+    // AHBCamera - AHBMaster
+    // ==================
+    gs::gs_param_array p_ahbcamera("ahbcamera", p_conf);
+    gs::gs_param<bool> p_ahbcamera_en("en", false, p_ahbcamera);
+    gs::gs_param<unsigned int> p_ahbcamera_hindex("hindex", 3, p_ahbcamera);
+    gs::gs_param<unsigned int> p_ahbcamera_pindex("pindex", 5, p_ahbcamera);
+    gs::gs_param<unsigned int> p_ahbcamera_paddr("paddr", 0x501, p_ahbcamera);
+    gs::gs_param<unsigned int> p_ahbcamera_pmask("pmask", 0xFFF, p_ahbcamera);
+    gs::gs_param<std::string> p_ahbcamera_video("video", "bigbuckbunny_small.m2v", p_ahbcamera);
+    if(p_ahbcamera_en) {
+      AHBCamera *ahbcamera = new AHBCamera("ahbcamera",
+        p_ahbcamera_hindex,  // ahb index
+        p_ahbcamera_pindex,  // apb index
+        p_ahbcamera_paddr,   // apb addr
+        p_ahbcamera_pmask,   // apb make
+        ((std::string)p_ahbcamera_video).c_str(),
+        ambaLayer,
+        true
+      );
+
+      // Connecting APB Slave
+      ahbcamera->ahb(ahbctrl.ahbIN);
+      apbctrl.apb(ahbcamera->apb);
+      ahbcamera->set_clk(p_system_clock,SC_NS);
+    }
+#endif
+#ifdef HAVE_AHBSHUFFLER
+    // AHBShuffler - AHBMaster
+    // ==================
+    gs::gs_param_array p_ahbshuffler("ahbshuffler", p_conf);
+    gs::gs_param<bool> p_ahbshuffler_en("en", false, p_ahbshuffler);
+    gs::gs_param<unsigned int> p_ahbshuffler_hindex("hindex", 4, p_ahbshuffler);
+    gs::gs_param<unsigned int> p_ahbshuffler_pindex("pindex", 6, p_ahbshuffler);
+    gs::gs_param<unsigned int> p_ahbshuffler_paddr("paddr", 0x502, p_ahbshuffler);
+    gs::gs_param<unsigned int> p_ahbshuffler_pmask("pmask", 0xFFF, p_ahbshuffler);
+    if(p_ahbshuffler_en) {
+      AHBShuffler *ahbshuffler = new AHBShuffler("ahbshuffler",
+        p_ahbshuffler_hindex,  // ahb index
+        p_ahbshuffler_pindex,  // apb index
+        p_ahbshuffler_paddr,   // apb addr
+        p_ahbshuffler_pmask,   // apb make
+        ambaLayer,
+        true
+      );
+
+      // Connecting APB Slave
+      ahbshuffler->ahb(ahbctrl.ahbIN);
+      apbctrl.apb(ahbshuffler->apb);
+      ahbshuffler->set_clk(p_system_clock,SC_NS);
+    }
+#endif // HAVE_REPO_MEDIA
 
     signalkit::signal_out<bool, Irqmp> irqmp_rst;
     connect(irqmp_rst, irqmp.rst);
     irqmp_rst.write(0);
     irqmp_rst.write(1);
 
-    // * Power Monitor **************************
-    //if(p_report_power) {
-    //    new powermonitor("pow_mon");
-    //}
-
-#ifdef HAVE_PYSC
-    python.end_of_initialization();
-    old_sigint = python.signal(SIGINT, stopSimFunction);
-    old_sigterm = python.signal(SIGTERM, stopSimFunction);
-#else
+#ifndef HAVE_USI
     (void) signal(SIGINT, stopSimFunction);
     (void) signal(SIGTERM, stopSimFunction);
 #endif
     cstart = cend = clock();
     cstart = clock();
     //mtrace();
-#ifdef HAVE_PYSC
-    sc_core::sc_status status = sc_core::SC_RUNNING;
-    while(1) {
-      if (status == sc_core::SC_RUNNING) {
-        sc_core::sc_start();
-      } else if (status == sc_core::SC_PAUSED) {
-        python.pause_of_simulation();
-      } else {
-        break;
-      }
-      status = sc_core::sc_get_status();
-    }
+#ifdef HAVE_USI
+    usi_start();
 #else
     sc_core::sc_start();
 #endif
@@ -1190,11 +1076,6 @@ int sc_main(int argc, char** argv) {
     v::info << "Summary" << "Start: " << dec << cstart << v::endl;
     v::info << "Summary" << "End:   " << dec << cend << v::endl;
     v::info << "Summary" << "Delta: " << dec << setprecision(4) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
-
-#ifdef HAVE_PYSC
-    python.start_of_evaluation();
-    python.end_of_evaluation();
-#endif
 
     std::cout << "End of sc_main" << std::endl << std::flush;
     return trap::exitValue;

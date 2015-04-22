@@ -21,8 +21,8 @@
 #include <fstream>
 #include <map>
 
-#include "core/models/utils/ahbslave.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/ahbslave.h"
+#include "core/common/clkdevice.h"
 #include "core/common/msclogger.h"
 
 struct prof_info {

@@ -15,8 +15,6 @@
 #ifndef MODELS_GPTIMER_GPTIMER_H_
 #define MODELS_GPTIMER_GPTIMER_H_
 
-#include <greencontrol/all.h>
-#include "core/common/grambasockets/greenreg_ambasockets.h"
 #include "core/common/base.h"
 #include "core/common/systemc.h"
 #include <boost/config.hpp>
@@ -25,10 +23,10 @@
 #include <vector>
 
 #include "core/models/gptimer/gpcounter.h"
-#include "core/models/utils/apbdevice.h"
-#include "core/models/utils/clkdevice.h"
-
+#include "core/common/apbslave.h"
+#include "core/common/clkdevice.h"
 #include "core/common/signalkit.h"
+
 #include "core/common/verbose.h"
 #include "core/common/gs_config.h"
 
@@ -36,13 +34,11 @@
 
 /// @brief This class is a TLM 2.0 Model of the Aeroflex Gaisler GRLIB GPTimer.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 37
-class GPTimer : public APBDevice<RegisterBase>, public CLKDevice {
+class GPTimer : public APBSlave, public CLKDevice {
  public:
   SC_HAS_PROCESS(GPTimer);
   SK_HAS_SIGNALS(GPTimer);
   GC_HAS_CALLBACKS();
-  /// APB Slave socket for all bus communication
-  gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;
 
   signal<std::pair<uint32_t, bool> >::out irq;
   signal<bool>::out wdog;
@@ -216,6 +212,7 @@ class GPTimer : public APBDevice<RegisterBase>, public CLKDevice {
   /// Seperated IRQ lines.
   /// If you whant to have seperated IRQ lines for each counter set this generic to true.
   gs::cnf::gs_config<bool> g_sepirq;
+  
 
   // *****************************************************
   // Power Modeling Parameters

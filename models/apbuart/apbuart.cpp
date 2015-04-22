@@ -13,7 +13,10 @@
 ///
 
 #include "core/models/apbuart/apbuart.h"
+#include "core/common/sr_registry.h"
 #include <string>
+
+//SR_HAS_MODULE(APBUART);
 
 // Constructor: create all members, registers and Counter objects.
 // Store configuration default value in conf_defaults.
@@ -25,11 +28,11 @@ APBUART::APBUART(ModuleName name,
   int pirq,
   bool console,
   bool powmon) :
-  APBDevice<RegisterBase>(name, pindex, 0x1, 0x00C, 1, pirq, APBIO, pmask, false, false, paddr, 4),
-  bus("bus", r, ((paddr) & pmask) << 8, (((~pmask & 0xfff) + 1) << 8), ::amba::amba_APB, ::amba::amba_LT, false),
+  APBSlave(name, pindex, 0x1, 0x00C, 1, pirq, APBIO, pmask, false, false, paddr),
   irq("IRQ"),
   m_backend(backend),
   g_pirq(pirq),
+  g_console("console", console, m_generics),
   powermon(powmon) {
   SC_THREAD(send_irq);
   SC_THREAD(uart_ticks);
@@ -42,43 +45,12 @@ APBUART::APBUART(ModuleName name,
   // TODO(all) Implement and Test interrupt thread
   // Display APB slave information
   v::info << this->name() << "APB slave @0x" << hex << v::setw(8)
-          << v::setfill('0') << bus.get_base_addr() << " size: 0x" << hex
-          << v::setw(8) << v::setfill('0') << bus.get_size() << " byte"
+          << v::setfill('0') << apb.get_base_addr() << " size: 0x" << hex
+          << v::setw(8) << v::setfill('0') << apb.get_size() << " byte"
           << endl;
 
-  /* create register */
-  r.create_register("data", "UART Data Register",
-    DATA,                                                          // offset
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |                   // config
-    gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-    DATA_DEFAULT,                                                  // init value
-    DATA_MASK,                                                     // write mask
-    32,                                                            // Register width.
-    0x00);                                                         // Lock Mask: NI.
-  r.create_register("status", "UART Status Register",
-    STATUS,                                                        // offset
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |                   // config
-    gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-    STATUS_DEFAULT,                                                // init value
-    STATUS_MASK,                                                   // write mask
-    32,                                                            // Register width.
-    0x00);                                                         // Lock Mask: NI.
-  r.create_register("control", "UART Control Register",
-    CONTROL,                                                       // offset
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |                   // config
-    gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-    CONTROL_DEFAULT,                                               // init value
-    CONTROL_MASK,                                                  // write mask
-    32,                                                            // Register width.
-    0x00);                                                         // Lock Mask: NI.
-  r.create_register("scaler", "UART Scaler Register",
-    SCALER,                                                        // offset
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |                   // config
-    gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-    SCALER_DEFAULT,                                                // init value
-    SCALER_MASK,                                                   // write mask
-    32,                                                            // Register width.
-    0x00);                                                         // Lock Mask: NI.
+  init_registers();
+
   // Configuration report
   v::info << this->name() << " ******************************************************************************* " <<
   v::endl;
@@ -99,22 +71,37 @@ APBUART::~APBUART() {
   GC_UNREGISTER_CALLBACKS();
 }
 
-// Set all register callbacks
-void APBUART::end_of_elaboration() {
-  GR_FUNCTION(APBUART, data_read);
-  GR_SENSITIVE(r[DATA].add_rule(gs::reg::PRE_READ, "data_read", gs::reg::NOTIFY));
+void APBUART::init_generics() {
+    g_console.add_properties()
+    ("vhdl_name", "console"); 
+}
 
-  GR_FUNCTION(APBUART, data_write);
-  GR_SENSITIVE(r[DATA].add_rule(gs::reg::POST_WRITE, "data_write", gs::reg::NOTIFY));
+void APBUART::init_registers() {
+  /* create register */
+  r.create_register("data", "UART Data Register",
+    DATA,                                                          // offset
+    DATA_DEFAULT,                                                  // init value
+    DATA_MASK)                                                     // write mask
+  .callback(SR_PRE_READ, this, &APBUART::data_read)
+  .callback(SR_POST_WRITE, this, &APBUART::data_write);
 
-  GR_FUNCTION(APBUART, status_read);
-  GR_SENSITIVE(r[STATUS].add_rule(gs::reg::PRE_READ, "status_read", gs::reg::NOTIFY));
-  
-  GR_FUNCTION(APBUART, control_read);
-  GR_SENSITIVE(r[CONTROL].add_rule(gs::reg::PRE_READ, "control_read", gs::reg::NOTIFY));
-  
-  GR_FUNCTION(APBUART, control_write);
-  GR_SENSITIVE(r[CONTROL].add_rule(gs::reg::POST_WRITE, "control_write", gs::reg::NOTIFY));
+  r.create_register("status", "UART Status Register",
+    STATUS,                                                        // offset
+    STATUS_DEFAULT,                                                // init value
+    STATUS_MASK)                                                   // write mask
+  .callback(SR_PRE_READ, this, &APBUART::status_read);
+
+  r.create_register("control", "UART Control Register",
+    CONTROL,                                                       // offset
+    CONTROL_DEFAULT,                                               // init value
+    CONTROL_MASK)                                                  // write mask
+  .callback(SR_PRE_READ, this, &APBUART::control_read)
+  .callback(SR_POST_WRITE, this, &APBUART::control_write);
+
+  r.create_register("scaler", "UART Scaler Register",
+    SCALER,                                                        // offset
+    SCALER_DEFAULT,                                                // init value
+    SCALER_MASK);                                                  // write mask
 }
 
 void APBUART::data_read() {

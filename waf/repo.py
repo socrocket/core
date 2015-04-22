@@ -131,6 +131,8 @@ class repo(ConfigurationContext):
             }).split(), cwd=directory )
 
     def add_repo(self, cmd, params):
+        import shutil
+
         if len(params) < 1:
             print "add takes 2 parameters:"
             print "usage: %s <directory> <repository>" % (' '.join(sys.argv[0:3]))
@@ -146,13 +148,17 @@ class repo(ConfigurationContext):
 
         tempdir = "build/repo-tmp"
 
-        import subprocess
-        subprocess.call(("%(git)s clone %(repository)s %(directory)s" % {
-            "git": "git",
-            "directory": tempdir,
-            "repository": repository,
-            "parameter": params
-        }).split())
+        try:
+            import subprocess
+            subprocess.call(("%(git)s clone %(repository)s %(directory)s" % {
+                "git": "git",
+                "directory": tempdir,
+                "repository": repository,
+                "parameter": params
+            }).split())
+        except CalledProcessError:
+            shutil.rmtree(directory)
+
         
         vals = get_repo_vals(tempdir)
         if not directory:
@@ -286,6 +292,7 @@ conf(loadrepos)
 
 def iterrepos(self):
     REPOS = read_repos()
+    self.repositories = REPOS
     for d, repo in REPOS.iteritems():
         if d == "core":
             continue

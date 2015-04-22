@@ -16,27 +16,25 @@
 #define MODELS_APBUART_APBUART_H_
 
 #include <greencontrol/all.h>
-#include "core/common/grambasockets/greenreg_ambasockets.h"
 #include <boost/config.hpp>
 #include "core/common/systemc.h"
 #include <string>
 #include <vector>
 
 #include "core/models/apbuart/io_if.h"
-#include "core/models/utils/apbdevice.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/apbdevice.h"
+#include "core/common/clkdevice.h"
 #include "core/common/signalkit.h"
 #include "core/common/verbose.h"
+#include "core/common/apbslave.h"
 
 /// @brief This class is a TLM 2.0 Model of the Aeroflex Gaisler GRLIB APBUART.
 /// Further informations to the original VHDL Modle are available in the GRLIB IP Core User's Manual Section 16
-class APBUART : public APBDevice<RegisterBase>, public CLKDevice {
+class APBUART : public APBSlave, public CLKDevice {
   public:
     SC_HAS_PROCESS(APBUART);
     SK_HAS_SIGNALS(APBUART);
     GC_HAS_CALLBACKS();
-    /// APB Slave socket for all bus communication
-    gs::reg::greenreg_socket<gs::amba::amba_slave<32> > bus;
 
     signal<std::pair<uint32_t, bool> >::out irq;
 
@@ -44,9 +42,8 @@ class APBUART : public APBDevice<RegisterBase>, public CLKDevice {
     sc_event s_irq; // trigger interrupt when send buffer empty
 
     io_if *m_backend;
-
     uint32_t g_pirq;
-
+    gs::cnf::gs_config<bool> g_console;
     APBUART(ModuleName name, io_if *backend, uint16_t pindex = 0,
     uint16_t paddr = 0, uint16_t pmask = 4095, int pirq = 0,
     bool console = false,
@@ -55,9 +52,8 @@ class APBUART : public APBDevice<RegisterBase>, public CLKDevice {
 
     /// Free all counter and unregister all callbacks.
     ~APBUART();
-
-    /// Execute the callback registering when systemc reaches the end of elaboration.
-    void end_of_elaboration();
+    void init_generics();
+    void init_registers();
 
     // Register Callbacks
     void data_read();

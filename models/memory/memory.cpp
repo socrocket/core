@@ -49,6 +49,7 @@ Memory::Memory(ModuleName name,
   // Register TLM 2.0 transport functions
   bus.register_b_transport(this, &Memory::b_transport);
   bus.register_transport_dbg(this, &Memory::transport_dbg);
+  bus.register_get_direct_mem_ptr(this, &Memory::get_direct_mem_ptr);
 
   GC_REGISTER_TYPED_PARAM_CALLBACK(&m_reads, gs::cnf::pre_read, Memory, m_reads_cb);
   GC_REGISTER_TYPED_PARAM_CALLBACK(&m_writes, gs::cnf::pre_read, Memory, m_writes_cb);
@@ -108,6 +109,7 @@ void Memory::b_transport(tlm::tlm_generic_payload &gp, sc_time &delay) {
   // Extract erase extension
   ext_erase *ers;
   gp.get_extension(ers);
+  gp.set_dmi_allowed(storage->allow_dmi_rw());
 
   if (ers) {
     // Check erase extension first:
@@ -194,6 +196,17 @@ unsigned int Memory::transport_dbg(tlm::tlm_generic_payload &gp) {
   default:
     return 0;
   }
+}
+
+bool Memory::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data) {
+  // access to ROM adress space
+  dmi_data.allow_read_write();
+  dmi_data.set_dmi_ptr(storage->get_dmi_ptr());
+  dmi_data.set_start_address(0);
+  dmi_data.set_end_address(get_bsize() * ((get_banks()<5)? get_banks() : 8));
+  dmi_data.set_read_latency(SC_ZERO_TIME);
+  dmi_data.set_write_latency(SC_ZERO_TIME);
+  return storage->allow_dmi_rw();
 }
 
 /// @}

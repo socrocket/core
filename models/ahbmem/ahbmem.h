@@ -29,8 +29,8 @@
 
 #include <map>
 
-#include "core/models/utils/ahbslave.h"
-#include "core/models/utils/clkdevice.h"
+#include "core/common/ahbslave.h"
+#include "core/common/clkdevice.h"
 #include "core/models/memory/basememory.h"
 #include "core/common/msclogger.h"
 
@@ -48,7 +48,7 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
     /// @param addr Start address for memory initilization
     AHBMem(
       const ModuleName nm,
-      uint16_t haddr_,
+      uint16_t haddr_ = 0,
       uint16_t hmask_ = 0,
       AbstractionLayer ambaLayer = amba::amba_LT,
       uint32_t slave_id = 0,
@@ -70,6 +70,7 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
       erase(0, get_ahb_size()-1);
     }
 
+    bool get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data);
     /// @brief Method to write a byte into the memory
     /// @param addr Write address
     /// @param byte Write data

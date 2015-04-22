@@ -66,7 +66,7 @@ The ‘gptimer.h’ file contains the module class definition. Any communication
 The parameterization options, implemented as generics in the VHDL model, are realized as constructor parameters of the GPTimer class. This makes the module parametrizable during instantiation. Details on the parameters are given in section 7.3.
 
 @subsubsection gptimer_p2_1_2 Configuration of the module
-The GPTimer unit is configurable through its Timer configuration register and its Counter configuration registers. The configuration registers, which are accessible through the APB bus, are modeled and accessed through the comfortable mechanisms provided by GreenReg. To ensure GreenReg compatibility, the GPTimer class needs to be a child module of a GreenReg Device. A gr_device is a top-level encapsulation for a complete functional unit and provides containment structures for other GreenReg elements, e.g. registers. Thus, the GPTimer class inherits the gr_device class. 
+The GPTimer unit is configurable through its Timer configuration register and its Counter configuration registers. The configuration registers, which are accessible through the APB bus, are modeled and accessed through the comfortable mechanisms provided by sr registers. To ensure compatibility, the GPTimer class needs to be a child module of APBSlave. APBSlave is an encapsulation for a complete functional unit and provides containment structures for other elements, e.g. registers. Thus, the GPTimer class inherits the gr_device class. 
 
 The ‘gptimer.h’ file contains const variables defining register addresses and bit masks. These definitions are made for programming convenience.
 The write masks of the registers can be used to ensure that only permitted bits are set when writing to a register. They can also be applied for reading specific fields of a register masking all other bits.
@@ -80,7 +80,7 @@ Apart from the APB communication directed to the registers of the GPTimer, the m
 @subsubsection gptimer_p2_1_4 Operation of the module
 The GPTimer class definition contains the module interface and the function prototypes of constructor, destructor, SystemC proesses, callback functions, and pure C++ software routines. The GPTimer unit needs to assert interrupt signals at the correct points of time and therefore needs an SC_THREAD process to keep track of time. A second SC_THREAD is used for debug only and is disabled by default.
 
-The SystemC processes have to be registered with the SystemC simulation kernel using the SystemC macro, SC_HAS_PROCESS(). In a similar fashion, the callback functions, which are hooked to the registers built with GreenReg, are registered with the SystemC simulation kernel using the GreenControl macro, GC_HAS_CALLBACKS().
+The SystemC processes have to be registered with the SystemC simulation kernel using the SystemC macro, SC_HAS_PROCESS().
 In addition, some class attributes are defined to keep track of the overall state of operation of the module:
   - A lasttime variable stores the last timestamp at which the value of the prescaler has been know. This time is required as a reference for any calculation of ticks.
   - A lastvalue variable stores the contents of the prescaler value register at the time stored in lasttime. The prescaler value is known when it is calculated With the information given in lasttime and lastvalue it is possible to calculate the next tick.

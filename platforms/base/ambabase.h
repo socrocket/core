@@ -13,7 +13,7 @@
 
 #include <systemc>
 
-#include "core/models/utils/clkdevice.h"
+#include "core/common/clkdevice.h"
 #include "core/models/ahbctrl/ahbctrl.h"
 #include "core/models/apbctrl/apbctrl.h"
 #include "core/models/irqmp/irqmp.h"

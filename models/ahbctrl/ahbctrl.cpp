@@ -19,6 +19,9 @@
 #include "core/models/ahbctrl/ahbctrl.h"
 #include "core/common/vendian.h"
 #include "core/common/verbose.h"
+#include "core/common/sr_registry.h"
+
+SR_HAS_MODULE(AHBCtrl);
 
 // Constructor of class AHBCtrl
 AHBCtrl::AHBCtrl(
@@ -95,6 +98,9 @@ AHBCtrl::AHBCtrl(
   if (ambaLayer == amba::amba_LT) {
     // Register tlm blocking transport function
     ahbIN.register_b_transport(this, &AHBCtrl::b_transport);
+    ahbIN.register_get_direct_mem_ptr((AHBCtrl *)this, &AHBCtrl::get_direct_mem_ptr);
+    ahbOUT.register_invalidate_direct_mem_ptr((AHBCtrl *)this, &AHBCtrl::invalidate_direct_mem_ptr);
+
   }
 
   // Register non blocking transport functions
@@ -104,10 +110,8 @@ AHBCtrl::AHBCtrl(
 
     // Register tlm non blocking transport forward path
     ahbIN.register_nb_transport_fw(this, &AHBCtrl::nb_transport_fw, 0);
-
     // Register tlm non blocking transport backward path
     ahbOUT.register_nb_transport_bw(this, &AHBCtrl::nb_transport_bw, 0);
-
     // Register arbiter thread
     SC_THREAD(arbitrate);
 
@@ -133,7 +137,7 @@ AHBCtrl::AHBCtrl(
   }
 
   requests_pending = 0;
-
+  AHBCtrl::init_generics();
   srInfo()
     ("ioaddr", ioaddr)
     ("iomask", iomask)
@@ -172,26 +176,35 @@ void AHBCtrl::init_generics() {
   g_ioaddr.add_properties()
     ("name", "AHB IO Area Address")
     ("range", "0..0xFFF")
+    ("vhdl_name","ioaddr")
+    ("base","hex")
     ("The MSB address of the I/O area. Sets the 12 most significant bits in the 32-bit AHB address (e.g. 31 downto 20).");
 
   g_iomask.add_properties()
     ("name", "AHB IO Area Mask")
     ("range", "0..0xFFF")
+    ("vhdl_name","iomask")
+    ("base","hex")
     ("The I/O area address mask. Sets the size of the I/O area and the start address together with ioaddr.");
 
   g_cfgaddr.add_properties()
     ("name", "AHB CFG Area Address")
     ("range", "0..0xFF0")
+    ("vhdl_name", "cfgaddr")
+    ("base","hex")
     ("The MSB address of the confgiuration area. Sets 12 bits in the 32-bit AHB address (19 downto 8)");
 
   g_cfgmask.add_properties()
     ("name", "AHB CFG Area Mask")
     ("range", "0..0xFF0")
+    ("vhdl_name","cfgmask")
+    ("base","hex")
     ("The address mask of the configuration area. Sets the size of the configuration area and "
      "the start address together with cfgaddr.");
 
   g_rrobin.add_properties()
     ("name", "Round robin arbitration.")
+    ("vhdl_name", "rrobin")
     ("True  - round-robin arbitration\n"
      "False - priority arbitration (highest master id has highest priority)\n"
      "Arbitration is only supported in AT mode!! (no effect on LT simulation)");
@@ -199,23 +212,28 @@ void AHBCtrl::init_generics() {
   g_defmast.add_properties()
     ("name", "Default AHB Master")
     ("range", "0..16")
+    ("vhdl_name","defmast")
     ("The default AHB master index (bus parking). This feature is not modeled at transaction level."
      "Parameter is only used for reporting.");
 
   g_ioen.add_properties()
     ("name", "AHB IO area enable")
+    ("vhdl_name","ioen")
     ("AHB I/O area enable. Set to 0 to disable the I/O area.");
 
   g_fixbrst.add_properties()
     ("name", "Enable support for fixed burst length.")
+    ("vhdl_name", "fixbrst")
     ("Enable support for fixed-length bursts at RTL-Level. This feature is not supported at transaction-level.");
 
   g_split.add_properties()
     ("name", "Enable support for split transactions in AT models")
+    ("vhdl_name","split")
     ("Enables support for AHB SPLIT response at RTL-Level. This feature is not supported at transaction-level.");
 
   g_fpnpen.add_properties()
     ("name", "Enable full decoding of the PnP configuration records")
+    ("vhdl_name","fpnpen")
     ("When disabled the user-defined register in the PnP configuration records are not mapped in the configuration area.");
 
   g_mcheck.add_properties()
@@ -1291,6 +1309,38 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
     // Invalid index
     trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
     return 0;
+  }
+}
+
+bool AHBCtrl::get_direct_mem_ptr(unsigned int index, tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data) {
+  // Extract address from payload
+  uint32_t addr   = trans.get_address();
+  // Extract length from payload
+  if (g_fpnpen && (((addr ^ ((static_cast<uint32_t>(g_ioaddr) << 20) |
+                    (static_cast<uint32_t>(g_cfgaddr) << 8))) &
+                   ((static_cast<uint32_t>(g_iomask) << 20) |
+                    (static_cast<uint32_t>(g_cfgmask) << 8))) == 0)) {
+    // Configuration area is read only
+    trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+    return false;
+  }
+
+  // Find slave by address / returns slave index or -1 for not mapped
+  int idx = get_index(trans.get_address());
+
+  // For valid slave index
+  if (idx >= 0) {
+    // Forward request to the selected slave
+    return ahbOUT[idx]->get_direct_mem_ptr(trans, dmi_data);
+  } else {
+    trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
+    return false;
+  }
+}
+
+void AHBCtrl::invalidate_direct_mem_ptr(unsigned int index, sc_dt::uint64 start_range, sc_dt::uint64 end_range) {
+  for(unsigned int idx=0; idx < num_of_master_bindings; ++idx) {
+    ahbIN[idx]->invalidate_direct_mem_ptr(start_range, end_range);
   }
 }
 

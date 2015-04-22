@@ -313,7 +313,13 @@ def build(bld):
      linkflags    = '-static -g -O1 -mno-fpu -lleonbare',
      lib          = 'm',
      target       = 'mphello.sparc',
-     source       = ['mp-hello.c'],
+     source       = ['mp-hello.c',
+                     'ramfill.c', 
+                     'standalone.c', 
+                     'standaloneasm.S',
+                     'irqmp.c', 
+                     'cacheasm.S', 
+                     'cache.c'],
      install_path = None,
   )
    

@@ -14,9 +14,12 @@
 
 #include "core/common/gs_config.h"
 #include "core/common/systemc.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 
 #include "core/platforms/newleon3mp/leon3mp.h"
+#ifdef HAVE_USI
+#include "pysc/usi.h"
+#endif
 
 namespace trap {
   extern int exitValue;
@@ -24,12 +27,8 @@ namespace trap {
 
 void stopSimFunction( int sig ){
   v::warn << "main" << "Simulation interrupted by user" << std::endl;
-#ifndef HAVE_PYTHON
-  PythonModule::signal(sig);
-#else
   sc_stop();
   wait(SC_ZERO_TIME);
-#endif  // HAVE_PYTHON
 }
 
 int sc_main(int argc, char** argv) {
@@ -43,24 +42,39 @@ int sc_main(int argc, char** argv) {
     gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
     gs::cnf::ConfigPlugin configPlugin(&cnfdatabase);
 
-#ifdef HAVE_PYSC
-    PythonModule python("python_interpreter", NULL, argc, argv);
+#ifdef HAVE_USI
+    // Initialize Python
+    USI_HAS_MODULE(systemc_);
+    USI_HAS_MODULE(delegate);
+    USI_HAS_MODULE(scireg);
+    USI_HAS_MODULE(amba);
+    USI_HAS_MODULE(report);
+    USI_HAS_MODULE(parameter_);
+    USI_HAS_MODULE(mtrace);
+    usi_init(argc, argv);
 
-    python.load("tools.python.arguments");
-    python.load("tools.python.console_reporter");
-    python.load("tools.python.config");
-    python.load("tools.python.power");
+    usi_load("usi.api.systemc");
+    usi_load("usi.api.delegate");
+    usi_load("usi.api.scireg");
+    usi_load("usi.api.amba");
 
-    python.start_of_initialization();
-#endif  // HAVE_PYSC
+    usi_load("usi.log.console_reporter");
+    usi_load("usi.tools.args");
+    usi_load("usi.cci");
+    //usi_load("tools.python.power");
+    usi_load("usi.shell");
+
+    usi_start_of_initialization();
+#endif  // HAVE_USI
 
     Leon3mpPlatform leon3mp("leon3mp");
 
-#ifdef HAVE_PYSC
-    python.end_of_initialization();
-#endif
     cstart = cend = clock();
+#ifdef HAVE_USI
+    usi_start();
+#else
     sc_core::sc_start();
+#endif
     cend = clock();
 
     srInfo("main")
@@ -68,10 +82,6 @@ int sc_main(int argc, char** argv) {
       ("end_of_simulation", (uint64_t)cend)
       ("Simulation execution time");
 
-#ifdef HAVE_PYSC
-    python.start_of_evaluation();
-    python.end_of_evaluation();
-#endif
     return trap::exitValue;
 }
 /// @}

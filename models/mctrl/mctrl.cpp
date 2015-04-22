@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <set>
 #include "core/models/mctrl/mctrl.h"
-#include "core/common/report.h"
+#include "core/common/sr_report.h"
 
 // constructor
 Mctrl::Mctrl(
@@ -44,7 +44,7 @@ Mctrl::Mctrl(
     unsigned int pindex,
     bool powermon,
     AbstractionLayer ambaLayer) :
-  AHBSlave<APBDevice<RegisterBase> >(
+  AHBSlave<APBSlave>(
     name,
     hindex,
     0x04,                                        // ven: ESA
@@ -55,14 +55,7 @@ Mctrl::Mctrl(
     BAR(AHBMEM, _rommask, true, true, _romaddr),
     BAR(AHBMEM, _iomask, false, false, _ioaddr),
     BAR(AHBMEM, _rammask, true, true, _ramaddr),
-    BAR(),
-    4),
-  apb("apb", r,                                  // name and register container of the greenreg_socket
-    (_paddr & _pmask) << 8, // base address
-    (((~_pmask & 0xfff) + 1) << 8), // decode size
-    ::amba::amba_APB,                            // bus type
-    ::amba::amba_LT,                             // abstraction level
-    false),                                      // socket is not used for arbitration
+    BAR()),
   mem("mem", gs::socket::GS_TXN_ONLY),
   busy(false),
   m_total_transactions("total_transactions", 0ull, m_counters),
@@ -107,6 +100,8 @@ Mctrl::Mctrl(
     0x0F,                                        // dev: MCTRL
     0, 0,                                        // VER, IRQ
     APBIO, _pmask, 0, 0, _paddr);
+
+  init_generics();
 
   // Display APB slave information
   srInfo("/configuration/gptimer/apbslave")
@@ -156,37 +151,15 @@ Mctrl::Mctrl(
              << "Check ram/io address and mask for overlaps." << v::endl;
   }
 
-  // Create register | name + description
-  r.create_register("MCFG1", "Memory Configuration Register 1", 0x00,    // offset
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |                         // configuration
-    gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-    MCFG1_DEFAULT,                    // init value(to be calculated from the generics for all 4 registers)
-    // TODO(all): check consistency of ram8, ram 16 generics vs. default and mask of PROM WIDTH field
-    MCFG1_WRITE_MASK | 1 << 9 | 1 << 8,                                  // write mask
-    32,                  // reg width (maximum 32 bit)
-    0x00);               // lock mask: Not implementet, has to be zero.
-  r.create_register("MCFG2", "Memory Configuration Register 2", 0x04,
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |
-    gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-    MCFG2_DEFAULT,
-    // TODO(all): check consistency of ram8, ram 16 generics vs. default and mask of PROM WIDTH field
-    MCFG2_WRITE_MASK | 1 << 5 | 1 << 4,
-    32, 0x00);
-  r.create_register("MCFG3", "Memory Configuration Register 3", 0x08,
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |
-    gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-    MCFG3_DEFAULT, MCFG3_WRITE_MASK, 32, 0x00);
-  r.create_register("MCFG4", "Power-Saving Configuration Register", 0x0C,
-    gs::reg::STANDARD_REG | gs::reg::SINGLE_IO |
-    gs::reg::SINGLE_BUFFER | gs::reg::FULL_WIDTH,
-    MCFG4_DEFAULT, MCFG4_WRITE_MASK, 32, 0x00);
+  init_registers();
 
+  ahb.register_get_direct_mem_ptr((Mctrl *)this, &Mctrl::get_direct_mem_ptr);
+  mem.register_invalidate_direct_mem_ptr((Mctrl *)this, &Mctrl::invalidate_direct_mem_ptr);
   gs::socket::config<tlm::tlm_base_protocol_types> mem_cfg;
   mem_cfg.use_mandatory_phase(BEGIN_REQ);
   mem_cfg.use_mandatory_phase(END_REQ);
   // mem_cfg.treat_unknown_as_ignorable();
   mem.set_config(mem_cfg);
-
   // Module configuration report
   v::info << this->name() << " ******************************************************************************* " <<
   v::endl;
@@ -221,51 +194,63 @@ Mctrl::~Mctrl() {
 
 void Mctrl::init_generics() {
   // set name, type, default, range, hint and description for gs_configs
-  /*g_index.add_properties()
-    ("name", "Bus Index")
-    ("range", "0..15")
-    ("Slave index at the AHB bus");
-
-  g_apb.add_properties()
-    ("name", "APB Bus Interface")
-    ("APB Bus Interface");
-
-  g_prom.add_properties()
-    ("name", "PROM configuration")
-    ("true - PROM enabled");
-
-  g_io.add_properties()
-    ("name", "IO memory configuration")
-    ("true - IO memory enabled");
-
-  g_ram.add_properties()
-    ("name", "RAM configuration")
-    ("RAM configuration");
-*/
+  g_romasel.add_properties()
+  ("vhdl_name", "romasel");
+  g_sdrasel.add_properties()
+  ("vhdl_name","sdrasel");
+  g_romaddr.add_properties()
+  ("vhdl_name", "romaddr")
+  ("base","hex");
+  g_rommask.add_properties()
+  ("vhdl_name", "rommask")
+  ("base","hex");
+  g_ioaddr.add_properties()
+  ("vhdl_name", "ioaddr")
+  ("base","hex");
+  g_iomask.add_properties()
+  ("vhdl_name", "iomask")
+  ("base","hex");
+  g_ramaddr.add_properties()
+  ("vhdl_name", "ramaddr")
+  ("base","hex");
+  g_rammask.add_properties()
+  ("vhdl_name","rammask")
+  ("base","hex");
+  g_wprot.add_properties()
+  ("vhdl_name","wprot");
+  g_srbanks.add_properties()
+  ("vhdl_name","srbanks");
   g_ram8.add_properties()
     ("name", "Enable 8bit PROM and SRAM access")
+    ("vhdl_name", "ram8")
     ("true - 8bit access enabled");
 
   g_ram16.add_properties()
     ("name", "Enable 16bit PROM and SRAM access")
+    ("vhdl_name", "ram16")
     ("true - 16bit access enabled");
+	
 
   g_sden.add_properties()
     ("name", "Enable SDRAM controller")
+    ("vhdl_name", "sden")
     ("true - SDRAM controller enabled");
 
   g_sepbus.add_properties()
     ("name", "Separate bus for SDRAM access")
+    ("vhdl_name", "sepbus")
     ("true - SDRAM uses separate data bus");
 
   g_sdbits.add_properties()
     ("name", "32 or 64bit SDRAM data bus")
     ("range", "32..64")
+    ("vhdl_name", "sdbits")
     ("Defines the width of the SDRAM data bus");
 
   g_mobile.add_properties()
     ("name", "Mobile SDRAM support")
     ("range", "0..3")
+    ("vhdl_name", "mobile")
     ("Mobile SDRAM support");
 
   g_pow_mon.add_properties()
@@ -273,36 +258,38 @@ void Mctrl::init_generics() {
     ("true - Enable default power monitor (report will be generated at the end of the simulation.");
 }
 
-// register GreenReg callback after elaboration
+void Mctrl::init_registers() {
+  // Create register | name + description
+  
+  // TODO(all): check consistency of ram8, ram 16 generics vs. default and mask of PROM WIDTH field
+  r.create_register("MCFG1", "Memory Configuration Register 1", 0x00,    // offset
+      MCFG1_DEFAULT, MCFG1_WRITE_MASK | 1 << 9 | 1 << 8)
+    .callback(SR_POST_WRITE, this, &Mctrl::mcfg1_write);
+
+  // TODO(all): check consistency of ram8, ram 16 generics vs. default and mask of PROM WIDTH field
+  r.create_register("MCFG2", "Memory Configuration Register 2", 
+      0x04, MCFG2_DEFAULT, MCFG2_WRITE_MASK | 1 << 5 | 1 << 4)
+    .callback(SR_POST_WRITE, this, &Mctrl::mcfg2_write)
+    .callback(SR_POST_WRITE, this, &Mctrl::launch_sdram_command)
+    .create_field("sr_bk", 12, 9)       // SRAM bank size
+    .create_field("si", 13, 13)         // SRAM disable, address space calculation
+    .create_field("se", 14, 14)         // SDRAM enable, address space calculation
+    .create_field("launch", 20, 19)     // SDRAM command field
+    .create_field("sdr_bk", 25, 23)     // SDRAM bank size
+    .create_field("lmr", 26, 26)        // tcas needs LMR command
+    .create_field("sdr_trfc", 29, 27);   // SDRAM refresh cycle
+
+  r.create_register("MCFG3", "Memory Configuration Register 3", 0x08,
+    MCFG3_DEFAULT, MCFG3_WRITE_MASK);
+
+  r.create_register("MCFG4", "Power-Saving Configuration Register",
+      0x0C, MCFG4_DEFAULT, MCFG4_WRITE_MASK)
+    .callback(SR_POST_WRITE, this, &Mctrl::switch_power_mode)
+    .create_field("emr", 6, 0)       // DS, TCSR, PASR need EMR command
+    .create_field("pmode", 18, 16);  // SDRAM power saving mode field
+}
+
 void Mctrl::end_of_elaboration() {
-  // create bit accessors for green registers
-  // callbacks can then be registers on the defined bits only instead
-  // of the entire register
-  // arguments: br.create(name, start bit, end bit)
-  r[MCFG2].br.create("lmr", 26, 26);        // tcas needs LMR command
-  r[MCFG4].br.create("emr", 0, 6);          // DS, TCSR, PASR need EMR command
-  r[MCFG2].br.create("launch", 19, 20);     // SDRAM command field
-  r[MCFG4].br.create("pmode", 16, 18);      // SDRAM power saving mode field
-  r[MCFG2].br.create("si", 13, 13);         // SRAM disable, address space calculation
-  r[MCFG2].br.create("se", 14, 14);         // SDRAM enable, address space calculation
-  r[MCFG2].br.create("sr_bk", 9, 12);       // SRAM bank size
-  r[MCFG2].br.create("sdr_bk", 23, 25);     // SDRAM bank size
-  r[MCFG2].br.create("sdr_trfc", 27, 29);   // SDRAM refresh cycle
-
-  // register callbacks
-  // The following callbacks affect SDRAM only and are therefore not required if SDRAM is disabled
-  GR_FUNCTION(Mctrl, mcfg1_write);
-  GR_SENSITIVE(r[MCFG1].add_rule(gs::reg::POST_WRITE, "mcfg1_write", gs::reg::NOTIFY));
-  GR_FUNCTION(Mctrl, mcfg2_write);
-  GR_SENSITIVE(r[MCFG2].add_rule(gs::reg::POST_WRITE, "mcfg2_write", gs::reg::NOTIFY));
-  if (g_sden) {
-    GR_FUNCTION(Mctrl, launch_sdram_command);
-    GR_SENSITIVE(r[MCFG2].br["launch"].add_rule(gs::reg::POST_WRITE, "sdrcmd", gs::reg::NOTIFY));
-
-    GR_FUNCTION(Mctrl, switch_power_mode);
-    GR_SENSITIVE(r[MCFG4].br["pmode"].add_rule(gs::reg::POST_WRITE, "erase_sdr", gs::reg::NOTIFY));
-  }
-
   // initialize mctrl according to generics
   dorst();
 }
@@ -369,6 +356,7 @@ void Mctrl::start_of_simulation() {
       case MEMDevice::ROM: {
         if (c_rom.id > 10) {
           c_rom = port;
+          c_rom.base_addr = get_ahb_bar_addr(0);
           uint32_t bits = (device->get_bits() >> 4) & 3;
           v::debug << name() << "ROM-Width: " << bits << v::endl;
           r[MCFG1] = r[MCFG1] | (bits << 8);
@@ -379,6 +367,7 @@ void Mctrl::start_of_simulation() {
       case MEMDevice::IO: {
         if (c_io.id > 10) {
           c_io = port;
+          c_io.base_addr = get_ahb_bar_addr(1);
           uint32_t bits = (device->get_bits() >> 4) & 3;
           r[MCFG1] = r[MCFG1] | (bits << 27);
         } else {
@@ -388,8 +377,9 @@ void Mctrl::start_of_simulation() {
       case MEMDevice::SRAM: {
         if (c_sram.id > 10) {
           c_sram = port;
+          c_sram.base_addr = get_ahb_bar_addr(2); // @TODO(all): Change for SI + SE bits
           // set ram width and ram bank size
-          r[MCFG2] = (r[MCFG2].get() & ~0x00001EC0) |
+          r[MCFG2] = (r[MCFG2].read() & ~0x00001EC0) |
                      ((static_cast<int>(log2(device->get_bsize()) - 13) & 0xF) << 9) |
                      ((static_cast<int>(log2(device->get_bits()) - 3) & 0x3) << 4);
         } else {
@@ -399,7 +389,8 @@ void Mctrl::start_of_simulation() {
       case MEMDevice::SDRAM: {
         if (c_sdram.id > 10) {
           c_sdram = port;
-          r[MCFG2] = (r[MCFG2].get() & ~0x003E0000) |
+          c_sdram.base_addr = get_ahb_bar_addr(2); // @TODO(all): Change for SI + SE bits
+          r[MCFG2] = (r[MCFG2].read() & ~0x003E0000) |
                      ((static_cast<int>(log2(device->get_bsize()) - 22) & 0x7) << 23) |
                      ((static_cast<int>(log2(device->get_cols()) - 8) & 0x3) << 21);
         } else {
@@ -469,15 +460,15 @@ void Mctrl::dorst() {
     case 1:
       // enable mobile SDRAM support
       mcfg = static_cast<uint32_t>(r[MCFG2] | MCFG2_MS);
-      r[MCFG2].set(mcfg);
+      r[MCFG2].write(mcfg);
       break;
     case 2:
       // enable mobile SDRAM support
       mcfg = static_cast<uint32_t>(r[MCFG2] | MCFG2_MS);
-      r[MCFG2].set(mcfg);
+      r[MCFG2].write(mcfg);
       // enable mobile SDRAM
       mcfg = static_cast<uint32_t>(r[MCFG4] | MCFG4_ME);
-      r[MCFG4].set(mcfg);
+      r[MCFG4].write(mcfg);
       break;
     // Case 3 would be the same as 2 here,
     // the difference being that 3 disables std SDRAM,
@@ -507,12 +498,12 @@ void Mctrl::dorst() {
     r[MCFG1] = r[MCFG1] | (set << 27);
   }
   if ((c_sram.id != 100) && (c_sram.dev != NULL)) {
-    r[MCFG2] = (r[MCFG2].get() & ~0x00001EC0) |
+    r[MCFG2] = (r[MCFG2].read() & ~0x00001EC0) |
                ((static_cast<int>(log2(c_sram.dev->get_bsize()) - 13) & 0xF) << 9) |
                ((static_cast<int>(log2(c_sram.dev->get_bits()) - 3) & 0x3) << 4);
   }
   if ((c_sdram.id != 100) && (c_sram.dev != NULL)) {
-    r[MCFG2] = (r[MCFG2].get() & ~0x003E0000) |
+    r[MCFG2] = (r[MCFG2].read() & ~0x003E0000) |
                ((static_cast<int>(log2(c_sdram.dev->get_bsize()) - 22) & 0x7) << 23) |
                ((static_cast<int>(log2(c_sdram.dev->get_cols()) - 8) & 0x3) << 21);
   }
@@ -528,7 +519,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
   uint32_t mem_width = 4;
   unsigned char *orig_data = gp.get_data_ptr();
   unsigned char *data = orig_data;
-  bool rmw = (r[MCFG2].get() >> 6) & 1;
+  bool rmw = (r[MCFG2].read() >> 6) & 1;
   MEMPort port   = get_port(addr);
   sc_time mem_delay;
 
@@ -556,136 +547,136 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
       // If you want use the component in another system with the need to check
       // Check for the code in an older revision around r560
       width = 4;
-      v::debug << name() << "MCFG1: " << v::uint32 << r[MCFG1].get() << ", MCFG2: " << v::uint32 << r[MCFG2].get() <<
+      v::debug << name() << "MCFG1: " << v::uint32 << r[MCFG1].read() << ", MCFG2: " << v::uint32 << r[MCFG2].read() <<
       v::endl;
       // Get defined mem bit width from registers.
       switch (port.dev->get_type()) {
         case MEMDevice::ROM:
-          mem_width = (r[MCFG1].get() >> 8) & 0x3;
+          mem_width = (r[MCFG1].read() >> 8) & 0x3;
           break;
         case MEMDevice::IO:
-          mem_width = (r[MCFG1].get() >> 27) & 0x3;
+          mem_width = (r[MCFG1].read() >> 27) & 0x3;
           break;
         case MEMDevice::SRAM:
         case MEMDevice::SDRAM:
-          mem_width = (r[MCFG2].get() >> 4) & 0x3;
+          mem_width = (r[MCFG2].read() >> 4) & 0x3;
           break;
       }
 
       // Set mem_width in byte from bitmask
       switch (mem_width) {
-      default: mem_width = 4;
-        break;
-      case 1:  mem_width = 2;
-        break;
-      case 0:  mem_width = 1;
-        break;
+        default: mem_width = 4;
+          break;
+        case 1:  mem_width = 2;
+          break;
+        case 0:  mem_width = 1;
+          break;
       }
 
       // Calculate delay: The static delay for the whole transaction and the per word delay:
       switch (port.dev->get_type()) {
-      case MEMDevice::ROM:
-        rmw = false;
-        if (gp.is_write()) {
-          if (!r[MCFG1].bit_get(11)) {
-            v::error << name() << "Invalid memory access: Writing to PROM is disabled." << v::endl;
-            gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
-            return 0;
-          }
-          trans_delay = 0;
-          word_delay = 1 + ((r[MCFG1].get() >> 4) & 0xF);
-        } else {
-          trans_delay = 0;
-          word_delay = 1 + ((r[MCFG1].get() >> 0) & 0xF);
+        case MEMDevice::ROM:
+          rmw = false;
+          if (gp.is_write()) {
+            if (!r[MCFG1].bit(11)) {
+              v::error << name() << "Invalid memory access: Writing to PROM is disabled." << v::endl;
+              gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
+              return 0;
+            }
+            trans_delay = 0;
+            word_delay = 1 + ((r[MCFG1].read() >> 4) & 0xF);
+          } else {
+            trans_delay = 0;
+            word_delay = 1 + ((r[MCFG1].read() >> 0) & 0xF);
 
-          // The RTL Model reads every mem_word as an 32bit word from the memory.
-          // So we need to ensure the same behaviour here we multiply the read times to fit 32bit each.
-          // GRIP 59.5
-          uint32_t tmp = length;
-          // Multiply with the number of memory accesses per length and mem_width.
-          switch (mem_width) {
-          case 1:  switch (tmp) {
-            case 1: tmp = 4;
+            // The RTL Model reads every mem_word as an 32bit word from the memory.
+            // So we need to ensure the same behaviour here we multiply the read times to fit 32bit each.
+            // GRIP 59.5
+            uint32_t tmp = length;
+            // Multiply with the number of memory accesses per length and mem_width.
+            switch (mem_width) {
+            case 1:  switch (tmp) {
+              case 1: tmp = 4;
+                break;
+              case 2: tmp = 2;
+                break;
+              default: tmp = 1;
+                break;
+            }
               break;
-            case 2: tmp = 2;
+            case 2: switch (tmp) {
+              case 1:
+              case 2: tmp = 1;
+                break;
+              default: tmp = 2;
+                break;
+            }
               break;
             default: tmp = 1;
               break;
+            }
+            word_delay *= tmp;
           }
-            break;
-          case 2: switch (tmp) {
-            case 1:
-            case 2: tmp = 1;
-              break;
-            default: tmp = 2;
-              break;
-          }
-            break;
-          default: tmp = 1;
-            break;
-          }
-          word_delay *= tmp;
-        }
-        break;
-      case MEMDevice::IO:
-        if (!r[MCFG1].bit_get(19)) {
-          v::error << name() << "Invalid memory access: Access to IO is disabled." << v::endl;
-          gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
-          return 0;
-        }
-        if (gp.is_write()) {
-          word_delay = (3 + ((r[MCFG1].get() >> 20) & 0xF));
-        } else {
-          word_delay = (5 + ((r[MCFG1].get() >> 20) & 0xF));
-        }
-        break;
-      case MEMDevice::SRAM:
-        if (gp.is_write()) {
-          trans_delay = 0;
-          word_delay = 2 + ((r[MCFG2].get() >> 2) & 0x3);
-          if (rmw && (length < 4)) {
-            trans_delay += 0;
-            word_delay += 4 + ((r[MCFG2].get() >> 0) & 0x3);
-          }
-        } else {
-          trans_delay = 0;
-          word_delay = 2 + ((r[MCFG2].get() >> 0) & 0x3);
-        }
-        break;
-      case MEMDevice::SDRAM:
-        // I assume Tcas and Trcd are always equal.
-        // That would mean the delay for a transaction is something like:
-        // Trcd + (words/col_width)*Tcas for read
-        // Trcd + (words/col_width)*Twr for write
-        // And it is by default read modify write, due to the fact that we have to load a column.
-        rmw = true;
-        if (gp.is_write()) {
-          trans_delay = (r[MCFG2].bit_get(26) ? 2 : 1);
-          word_delay = 0;              // ((r[MCFG2].bit_get(26)?3:2));
-        } else {
-          // RCD DELAY
-          trans_delay = 2 + (r[MCFG2].bit_get(30) ? 3 : 2);
-          // CAS DELAY
-          word_delay = 3 + (r[MCFG2].bit_get(26) ? 3 : 2);
-          // word_delay = 0; //((r[MCFG2].get()>>0) & 0xF);
-        }
-        if (g_mobile) {
-          switch (m_pmode) {
-          default: break;
-          case 1: trans_delay += 1;
-            break;                                         // Power-Down Mode Delay
-          case 2: trans_delay += 1;
-            v::warn << name() << "The Controller is in Auto-Self-Refresh Mode. Transaction might not be wanted!" <<
-            v::endl;
-            break;                    // Auto-Self Refresh
-          case 5: {                 // Deep power down! No transaction possible:
-            v::error << name() << "The Controller is in Deep-Power-Down Mode. No transactions possible." << v::endl;
+          break;
+        case MEMDevice::IO:
+          if (!r[MCFG1].bit(19)) {
+            v::error << name() << "Invalid memory access: Access to IO is disabled." << v::endl;
             gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
             return 0;
           }
+          if (gp.is_write()) {
+            word_delay = (3 + ((r[MCFG1].read() >> 20) & 0xF));
+          } else {
+            word_delay = (5 + ((r[MCFG1].read() >> 20) & 0xF));
           }
-        }
-        break;
+          break;
+        case MEMDevice::SRAM:
+          if (gp.is_write()) {
+            trans_delay = 0;
+            word_delay = 2 + ((r[MCFG2].read() >> 2) & 0x3);
+            if (rmw && (length < 4)) {
+              trans_delay += 0;
+              word_delay += 4 + ((r[MCFG2].read() >> 0) & 0x3);
+            }
+          } else {
+            trans_delay = 0;
+            word_delay = 2 + ((r[MCFG2].read() >> 0) & 0x3);
+          }
+          break;
+        case MEMDevice::SDRAM:
+          // I assume Tcas and Trcd are always equal.
+          // That would mean the delay for a transaction is something like:
+          // Trcd + (words/col_width)*Tcas for read
+          // Trcd + (words/col_width)*Twr for write
+          // And it is by default read modify write, due to the fact that we have to load a column.
+          rmw = true;
+          if (gp.is_write()) {
+            trans_delay = (r[MCFG2].bit(26) ? 2 : 1);
+            word_delay = 0;              // ((r[MCFG2].bit(26)?3:2));
+          } else {
+            // RCD DELAY
+            trans_delay = 2 + (r[MCFG2].bit(30) ? 3 : 2);
+            // CAS DELAY
+            word_delay = 3 + (r[MCFG2].bit(26) ? 3 : 2);
+            // word_delay = 0; //((r[MCFG2].get()>>0) & 0xF);
+          }
+          if (g_mobile) {
+            switch (m_pmode) {
+            default: break;
+            case 1: trans_delay += 1;
+              break;                                         // Power-Down Mode Delay
+            case 2: trans_delay += 1;
+              v::warn << name() << "The Controller is in Auto-Self-Refresh Mode. Transaction might not be wanted!" <<
+              v::endl;
+              break;                    // Auto-Self Refresh
+            case 5: {                 // Deep power down! No transaction possible:
+              v::error << name() << "The Controller is in Deep-Power-Down Mode. No transactions possible." << v::endl;
+              gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
+              return 0;
+            }
+            }
+          }
+          break;
       }
 
       v::debug << name() << "Length: " << std::dec << length << ", mem_width: " << std::dec << mem_width <<
@@ -709,6 +700,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
           memgp.set_byte_enable_ptr(gp.get_byte_enable_ptr());
           memgp.set_data_ptr(data);
           mem[port.id]->b_transport(memgp, mem_delay);
+          gp.set_dmi_allowed(memgp.is_dmi_allowed());
           memcpy(&data[port.addr & (mem_width - 1)], gp.get_data_ptr(), gp.get_data_length());
           port.addr = port.addr & ~(mem_width - 1);
         } else if (length < mem_width) {
@@ -731,14 +723,15 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
       memgp.set_data_ptr(data);
       mem[port.id]->b_transport(memgp, mem_delay);
       // transport_statistics(gp);
+      gp.set_dmi_allowed(memgp.is_dmi_allowed());
       gp.set_response_status(memgp.get_response_status());
       m_right_transactions++;
 
       // Bus Ready used?
       // If IO Bus Ready take the delay from the memmory.
       // Or if the RAM Bus Ready is set.
-      if (((port.dev->get_type() == MEMDevice::IO) && (r[MCFG1].get() & MCFG1_IBRDY)) ||
-          ((port.dev->get_type() == MEMDevice::SRAM) && r[MCFG2].get() & MCFG2_RBRDY)) {
+      if (((port.dev->get_type() == MEMDevice::IO) && (r[MCFG1].read() & MCFG1_IBRDY)) ||
+          ((port.dev->get_type() == MEMDevice::SRAM) && r[MCFG2].read() & MCFG2_RBRDY)) {
         delay += mem_delay;
       } else {
         delay += (trans_delay + (((length - 1) / mem_width) + 1) * word_delay) * clock_cycle;
@@ -797,7 +790,7 @@ void Mctrl::launch_sdram_command() {
   }
   // clear command bits
   uint32_t set = static_cast<uint32_t>(r[MCFG2] & ~MCFG2_SDRAM_CMD);
-  r[MCFG2].set(set);
+  r[MCFG2].write(set);
 }
 
 // Use data or address field to report the banks to delete bitwise? Maybe?
@@ -899,7 +892,7 @@ void Mctrl::switch_power_mode() {
 }
 
 void Mctrl::mcfg1_write() {
-  uint32_t mcfg = r[MCFG1].get();
+  uint32_t mcfg = r[MCFG1].read();
   if ((((mcfg >> 8) & 0x3) == 0) && !g_ram8) {
     mcfg &= ~MCFG1_PROM_WIDTH;
     mcfg |= (2 << 8);
@@ -912,14 +905,14 @@ void Mctrl::mcfg1_write() {
     v::warn << name() <<
     "PROM access with 16bit width configured in MCFG1, but RAM16 Generic is 0 so 32bit access assumed." << v::endl;
   }
-  v::debug << name() << "Old MCFG1: " << v::uint32 << r[MCFG1].get()
+  v::debug << name() << "Old MCFG1: " << v::uint32 << r[MCFG1].read()
            << " new MCFG1: " << v::uint32 << mcfg
            << " ram8,16: " << g_ram8 << "," << g_ram16 << v::endl;
-  r[MCFG1].set(mcfg);
+  r[MCFG1].write(mcfg);
 }
 
 void Mctrl::mcfg2_write() {
-  uint32_t mcfg = r[MCFG2].get();
+  uint32_t mcfg = r[MCFG2].read();
   if (!g_sden) {
     mcfg &= ~MCFG2_SE;
   }
@@ -935,10 +928,10 @@ void Mctrl::mcfg2_write() {
     v::warn << name() <<
     "RAM access with 16bit width configured in MCFG2, but RAM16 Generic is 0 so 32bit access assumed." << v::endl;
   }
-  v::debug << name() << "Old MCFG2: " << v::uint32 << r[MCFG2].get()
+  v::debug << name() << "Old MCFG2: " << v::uint32 << r[MCFG2].read()
            << " new MCFG2: " << v::uint32 << mcfg
            << " ram8,16: " << g_ram8 << "," << g_ram16 << v::endl;
-  r[MCFG2].set(mcfg);
+  r[MCFG2].write(mcfg);
 }
 
 Mctrl::MEMPort Mctrl::get_port(uint32_t addr) {
@@ -1040,6 +1033,7 @@ uint32_t Mctrl::transport_dbg(tlm_generic_payload &gp) {  // NOLINT(runtime/refe
       memgp.set_byte_enable_ptr(gp.get_byte_enable_ptr());
       memgp.set_data_ptr(gp.get_data_ptr());
       uint32_t result = mem[port.id]->transport_dbg(memgp);
+      gp.set_dmi_allowed(memgp.is_dmi_allowed());
       gp.set_response_status(memgp.get_response_status());
       return result;
     } else {
@@ -1056,6 +1050,40 @@ uint32_t Mctrl::transport_dbg(tlm_generic_payload &gp) {  // NOLINT(runtime/refe
   }
 
   return length;
+}
+
+bool Mctrl::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data) {
+  // access to ROM adress space
+  uint32_t addr   = trans.get_address();
+  uint32_t length = trans.get_data_length();
+  uint32_t start, end;
+  bool result = false;
+  MEMPort port  = get_port(addr);
+  if (port.id != 100) {
+    if (length <= port.length) {
+      trans.set_address(port.addr);
+      result = mem[port.id]->get_direct_mem_ptr(trans, dmi_data);
+      start = port.base_addr + dmi_data.get_start_address();
+      end = port.base_addr + dmi_data.get_end_address();
+      dmi_data.set_start_address(start);
+      dmi_data.set_end_address(end);
+    }
+  }
+  return result;
+}
+
+void Mctrl::invalidate_direct_mem_ptr(unsigned int index, sc_dt::uint64 start_range, sc_dt::uint64 end_range) {
+  sc_dt::uint64 base_addr = 0x0;
+  if(c_rom.id == index) {
+    base_addr = c_rom.base_addr;
+  } else if(c_io.id == index) {
+    base_addr = c_io.base_addr;
+  } else if(c_sram.id == index) {
+    base_addr = c_sram.base_addr;
+  } else {
+    base_addr = c_sdram.base_addr;
+  }
+  ahb->invalidate_direct_mem_ptr(base_addr+start_range, base_addr+end_range);
 }
 
 sc_core::sc_time Mctrl::get_clock() {

@@ -16,12 +16,15 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/thread.hpp>
 
-#include "core/models/apbuart/tcpio.h"
+#include "core/common/base.h"
 #include "core/common/verbose.h"
+#include "core/common/sr_report.h"
+#include "core/models/apbuart/tcpio.h"
 
 /// Creates a connection
 void TcpIo::makeConnection() {
   try {
+    //srCommand("TcpIo")();
     boost::asio::io_service io_service;
     boost::asio::ip::tcp::acceptor acceptor(io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port));
     this->socket = new boost::asio::ip::tcp::socket(io_service);
@@ -34,7 +37,7 @@ void TcpIo::makeConnection() {
 }
 
 /// Opens a new socket connection on the specified port
-TcpIo::TcpIo(unsigned int port, bool test) : port(port) {
+TcpIo::TcpIo(ModuleName mn, unsigned int port, bool test) : sc_core::sc_object(mn), port(port) {
   if (!test) {
     this->makeConnection();
   } else {

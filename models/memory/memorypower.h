@@ -23,23 +23,23 @@
 #include <tlm.h>
 
 #include "core/models/memory/basememory.h"
-#include "core/models/utils/clkdevice.h"
-#include "core/models/utils/memdevice.h"
+#include "core/common/clkdevice.h"
+#include "core/common/memdevice.h"
 #include "core/common/verbose.h"
 
 // template<class BASE = DefaultBase>
 // class MemoryPower : public BASE {
-class MemoryPower : public DefaultBase, public CLKDevice, public MEMDevice, public BaseMemory {
+class MemoryPower : public MEMDevice, public CLKDevice, public BaseMemory {
   public:
     GC_HAS_CALLBACKS();
 
     MemoryPower(
     sc_module_name name,
-    MEMDevice::device_type type,
-    uint32_t banks,
-    uint32_t bsize,
-    uint32_t bits,
-    uint32_t cols,
+    MEMDevice::device_type type = MEMDevice::SRAM,
+    uint32_t banks = 4,
+    uint32_t bsize = 128,
+    uint32_t bits = 32,
+    uint32_t cols = 16,
     BaseMemory::implementation_type implementation = BaseMemory::ARRAY,
     bool pow_mon = false);
 
