@@ -113,14 +113,14 @@ void GPCounter::value_read() {
     } else {
       p->r[GPTimer::VALUE(nr)] = (uint32_t)value;
     }
-    v::info << name() << " value_read: value=" << v::uint64 << ((uint32_t)p->r[GPTimer::VALUE(nr)]) << " reload=" << v::uint64 << reload << v::endl;
+    //v::info << name() << " value_read: value=" << v::uint64 << ((uint32_t)p->r[GPTimer::VALUE(nr)]) << " reload=" << v::uint64 << reload << v::endl;
   }
 }
 
 void GPCounter::value_write() {
     lastvalue = p->r[GPTimer::VALUE(nr)];
     lasttime = sc_core::sc_time_stamp();
-    v::info << name() << " value_write: lastvalue=" << v::uint32 << lastvalue << " lasttime=" << lasttime << v::endl;
+    //v::info << name() << " value_write: lastvalue=" << v::uint32 << lastvalue << " lasttime=" << lasttime << v::endl;
     if (!stopped) {
         calculate();
     }
@@ -138,33 +138,33 @@ void GPCounter::ticking() {
         // calculate sleep time, GPCounter timeout
         calculate();
 
-        v::info << name() << "GPCounter" << nr << " counting" << v::endl;
+        //v::info << name() << "GPCounter" << nr << " counting" << v::endl;
         wait(e_wait);
 
         // update performance counter
         m_underflows = m_underflows + 1;
 
-        v::info << name() << "GPCounter" << nr << " underflow" << v::endl;
+        //v::info << name() << "GPCounter" << nr << " underflow" << v::endl;
         // Send interupt and set outputs
         if (p->r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_IE]) {
             // APBIRQ addresse beachten -.-
             irqnr = (p->r[GPTimer::CONF] >> 3) & 0x1F;
             value_read();
-            v::info << name() << "ticking IRQ: " << irqnr << 
-              " CONF "<< hex << (uint32_t)p->r[GPTimer::CONF] << 
-              " SCALER "<< hex << (uint32_t)p->r[GPTimer::SCALER] <<
-              " SCRELOAD "<< hex << (uint32_t)p->r[GPTimer::SCRELOAD] <<
-              " VALUE "<< hex << (uint32_t)p->r[GPTimer::VALUE(nr)] <<
-              " RELOAD "<< hex << (uint32_t)p->r[GPTimer::RELOAD(nr)] << 
-              " nr " << nr << v::endl;
-            srInfo()
-              ("IRQ", irqnr)
-              ("CONF", (uint32_t)p->r[GPTimer::CONF])
-              ("SCALER", (uint32_t)p->r[GPTimer::SCALER])
-              ("SCRELOAD", (uint32_t)p->r[GPTimer::SCRELOAD])
-              ("VALUE", (uint32_t)p->r[GPTimer::VALUE(nr)])
-              ("RELOAD", (uint32_t)p->r[GPTimer::RELOAD(nr)])
-              ("ticking...");
+            //v::info << name() << "ticking IRQ: " << irqnr << 
+            //  " CONF "<< hex << (uint32_t)p->r[GPTimer::CONF] << 
+            //  " SCALER "<< hex << (uint32_t)p->r[GPTimer::SCALER] <<
+            //  " SCRELOAD "<< hex << (uint32_t)p->r[GPTimer::SCRELOAD] <<
+            //  " VALUE "<< hex << (uint32_t)p->r[GPTimer::VALUE(nr)] <<
+            //  " RELOAD "<< hex << (uint32_t)p->r[GPTimer::RELOAD(nr)] << 
+            //  " nr " << nr << v::endl;
+            //srInfo()
+            //  ("IRQ", irqnr)
+            //  ("CONF", (uint32_t)p->r[GPTimer::CONF])
+            //  ("SCALER", (uint32_t)p->r[GPTimer::SCALER])
+            //  ("SCRELOAD", (uint32_t)p->r[GPTimer::SCRELOAD])
+            //  ("VALUE", (uint32_t)p->r[GPTimer::VALUE(nr)])
+            //  ("RELOAD", (uint32_t)p->r[GPTimer::RELOAD(nr)])
+            //  ("ticking...");
 
             if (p->r[GPTimer::CONF].b[GPTimer::CONF_SI]) {
                 irqnr += nr;
@@ -247,7 +247,7 @@ sc_core::sc_time GPCounter::cycletime() {
     t = p->clock_cycle;
     m = p->r[GPTimer::SCRELOAD];
   }
-  v::info << name() << "calc cycletime: clock_cycle: " << t << " SCRELOAD: " << m << " result: " << t*(m+1) << v::endl;
+  //v::info << name() << "calc cycletime: clock_cycle: " << t << " SCRELOAD: " << m << " result: " << t*(m+1) << v::endl;
   return t * (m + 1);
 }
 
@@ -261,22 +261,22 @@ void GPCounter::calculate() {
     if (p->r[GPTimer::CTRL(nr)].b[GPTimer::CTRL_EN]) {
         sc_core::sc_time zero = this->nextzero();
         sc_core::sc_time cycle = this->cycletime();
-        v::info << name() << " calculate: " << nr
-                 << ": zero=" << zero << " cycle=" << cycle
-                 << " value=" << v::uint32 << value << v::endl;
+        //v::info << name() << " calculate: " << nr
+        //         << ": zero=" << zero << " cycle=" << cycle
+        //         << " value=" << v::uint32 << value << v::endl;
         time = zero;
         //time += (cycle * value)+1 * p->clock_cycle;
         time += (cycle * value) + (nr + 1) * p->clock_cycle;
-        v::info << name() << " calculate: " << nr << ": time=" << time << v::endl;
+        //v::info << name() << " calculate: " << nr << ": time=" << time << v::endl;
         e_wait.notify(time);
     }
-            v::info << name() << "calculate" << 
-              " CONF "<< hex << (uint32_t)p->r[GPTimer::CONF] << 
-              " SCALER "<< hex << (uint32_t)p->r[GPTimer::SCALER] <<
-              " SCRELOAD "<< hex << (uint32_t)p->r[GPTimer::SCRELOAD] <<
-              " VALUE "<< hex << (uint32_t)p->r[GPTimer::VALUE(nr)] <<
-              " CTRL "<< hex << (uint32_t)p->r[GPTimer::CTRL(nr)] <<
-              " RELOAD "<< hex << (uint32_t)p->r[GPTimer::RELOAD(nr)] << v::endl;
+            //v::info << name() << "calculate" << 
+            //  " CONF "<< hex << (uint32_t)p->r[GPTimer::CONF] << 
+            //  " SCALER "<< hex << (uint32_t)p->r[GPTimer::SCALER] <<
+            //  " SCRELOAD "<< hex << (uint32_t)p->r[GPTimer::SCRELOAD] <<
+            //  " VALUE "<< hex << (uint32_t)p->r[GPTimer::VALUE(nr)] <<
+            //  " CTRL "<< hex << (uint32_t)p->r[GPTimer::CTRL(nr)] <<
+            //  " RELOAD "<< hex << (uint32_t)p->r[GPTimer::RELOAD(nr)] << v::endl;
 }
 
 // Start counting imideately.
