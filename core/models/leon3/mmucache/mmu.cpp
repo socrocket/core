@@ -17,7 +17,7 @@
 
 #include "core/models/leon3/mmucache/mmu.h"
 #include "core/common/verbose.h"
-#include "core/models/extern/LEON3/simulatorSources/leon3.funclt/instructions.hpp"
+#include "core/models/leon3/intunit/instructions.hpp"
 
 mmu::mmu(ModuleName name, // sysc module name,
          mmu_cache_if * _mmu_cache,    // pointer to memory interface
