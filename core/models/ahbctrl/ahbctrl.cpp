@@ -611,7 +611,9 @@ void AHBCtrl::print_requests() {
 // Arbitration thread (AT only)
 void AHBCtrl::arbitrate() {
   tlm::tlm_phase phase;
+#ifndef NDEBUG // assert specific macro
   tlm::tlm_sync_enum status;
+#endif
   sc_core::sc_time delay;
 
   payload_t *trans = NULL;
@@ -756,8 +758,12 @@ void AHBCtrl::arbitrate() {
           // Forward arrow for msc
           msclogger::forward(this, &ahbOUT, trans, phase, delay, slave_id);
 
+#ifdef NDEBUG // assert specific macro
+          ahbOUT[slave_id]->nb_transport_fw(*trans, phase, delay);
+#else
           status = ahbOUT[slave_id]->nb_transport_fw(*trans, phase, delay);
           assert((status == tlm::TLM_ACCEPTED) || (status == tlm::TLM_UPDATED));
+#endif
 
           if (phase == tlm::END_REQ) {
             m_RequestPEQ.notify(*trans, delay);
@@ -834,7 +840,9 @@ void AHBCtrl::RequestThread() {
   connection_t connection;
 
   tlm::tlm_phase phase;
+#ifndef NDEBUG // assert specific macro
   tlm::tlm_sync_enum status;
+#endif
   sc_core::sc_time delay;
 
   while (true) {
@@ -874,9 +882,13 @@ void AHBCtrl::RequestThread() {
       // Backward arrow for msc
       msclogger::backward(this, &ahbIN, trans, phase, delay, connection.master_id);
 
-      status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
 
+#ifdef NDEBUG // assert specific macro
+      ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
+#else
+      status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
       assert(status == tlm::TLM_ACCEPTED);
+#endif
     }
   }
 }
@@ -886,7 +898,9 @@ void AHBCtrl::ResponseThread() {
   connection_t connection;
 
   tlm::tlm_phase phase;
+#ifndef NDEBUG // assert specific macro
   tlm::tlm_sync_enum status;
+#endif
   sc_core::sc_time delay;
 
   while (true) {
@@ -912,9 +926,12 @@ void AHBCtrl::ResponseThread() {
       // Backward arrow for msc
       msclogger::backward(this, &ahbIN, trans, phase, delay, connection.master_id);
 
+#ifdef NDEBUG // assert specific macro
+      ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
+#else
       status = ahbIN[connection.master_id]->nb_transport_bw(*trans, phase, delay);
-
       assert((status == tlm::TLM_ACCEPTED) || (status == tlm::TLM_UPDATED));
+#endif
 
       if (phase == tlm::END_RESP) {
         m_EndResponsePEQ.notify(*trans, delay);
@@ -930,7 +947,9 @@ void AHBCtrl::EndResponseThread() {
   connection_t connection;
 
   tlm::tlm_phase phase;
+#ifndef NDEBUG // assert specific macro
   tlm::tlm_sync_enum status;
+#endif
   sc_core::sc_time delay;
 
   while (true) {
@@ -969,9 +988,12 @@ void AHBCtrl::EndResponseThread() {
         // Forward arrow for msc
         msclogger::forward(this, &ahbOUT, trans, phase, delay, connection.slave_id);
 
+#ifdef NDEBUG // assert specific macro
+        ahbOUT[connection.slave_id]->nb_transport_fw(*trans, phase, delay);
+#else
         status = ahbOUT[connection.slave_id]->nb_transport_fw(*trans, phase, delay);
-
         assert((status == tlm::TLM_ACCEPTED) || (status == tlm::TLM_COMPLETED));
+#endif
 
         v::debug << name() << "Release " << trans << " Ref-Count before calling release " << trans->get_ref_count() <<
           v::endl;

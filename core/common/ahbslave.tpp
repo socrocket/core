@@ -156,7 +156,9 @@ template<class BASE>
 void AHBSlave<BASE>::requestThread() {
   tlm::tlm_phase phase;
   sc_core::sc_time delay;
+#ifndef NDEBUG // assert specific macro
   tlm::tlm_sync_enum status;
+#endif
 
   tlm::tlm_generic_payload *trans;
 
@@ -176,8 +178,12 @@ void AHBSlave<BASE>::requestThread() {
     msclogger::backward(this, &ahb, trans, phase, delay);
 
     // Call to backward transport
+#ifdef NDEBUG // assert specific macro
+    ahb->nb_transport_bw(*trans, phase, delay);
+#else
     status = ahb->nb_transport_bw(*trans, phase, delay);
     assert(status == tlm::TLM_ACCEPTED);
+#endif
   }
 }
 

@@ -14,6 +14,7 @@
 #include <boost/any.hpp>
 #include <systemc.h>
 #include "core/common/vmap.h"
+#include <map> // gcc-5 doesn't like vmap within this file
 
 namespace v {
 
@@ -260,7 +261,8 @@ class sr_report_handler : public sc_core::sc_report_handler {
         if(sr_report_handler::blacklist) {
           // Blacklist
           if(!sr_report_handler::filter.empty()) {
-            sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj);
+            std::map< const sc_core::sc_object *, std::pair<sc_core::sc_severity, int> >::iterator iter = sr_report_handler::filter.find( obj );
+            //sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj); // deprecated with GCC 5
             if(iter != sr_report_handler::filter.end()) {
               if(severity_ <= iter->second.first && verbosity_ >= iter->second.second) {
                 enabled = false;
@@ -269,7 +271,8 @@ class sr_report_handler : public sc_core::sc_report_handler {
           }
         } else {
           // Whitelist
-          sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj);
+          std::map< const sc_core::sc_object *, std::pair<sc_core::sc_severity, int> >::iterator iter = sr_report_handler::filter.find( obj );
+          //sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj); // deprecated with GCC 5
           enabled = (iter != sr_report_handler::filter.end() && (severity_ > iter->second.first && verbosity_ >= iter->second.second));
         }
       }
@@ -307,20 +310,22 @@ class sr_report_handler : public sc_core::sc_report_handler {
     }
 
     static void remove_sc_object_from_filter(sc_core::sc_object *obj) {
-      sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj);
+      std::map< const sc_core::sc_object *, std::pair<sc_core::sc_severity, int> >::iterator iter = sr_report_handler::filter.find(obj);
+      //sr_report_handler::filter_t::iterator iter = sr_report_handler::filter.find(obj); // deprecated with GCC 5
       if(iter != sr_report_handler::filter.end()) {
           sr_report_handler::filter.erase(iter);
       }
     }
 
     using sc_core::sc_report_handler::handler;
-    typedef vmap<const sc_core::sc_object *, std::pair<sc_core::sc_severity, int> > filter_t;
   friend void sr_report::operator()(const std::string &name);
   private:
     static sr_report rep;
     static sr_report null;
     static bool blacklist;
-    static filter_t filter;
+//    typedef vmap<const sc_core::sc_object *, std::pair<sc_core::sc_severity, int> > filter_t; // deprecated with GCC 5
+//    static filter_t filter; // deprecated with GCC 5
+    static std::map< const sc_core::sc_object *, std::pair<sc_core::sc_severity, int> > filter;
 };
 
 void sr_report::operator()(const std::string &name) {
