@@ -16,5 +16,6 @@ sr_report sr_report_handler::null(sc_core::SC_INFO, sc_core::sc_report_handler::
                                   __FILE__, __LINE__, sc_core::SC_NONE, sc_core::SC_UNSPECIFIED);
 
 bool sr_report_handler::blacklist = true;
-sr_report_handler::filter_t sr_report_handler::filter = sr_report_handler::filter_t();
+//sr_report_handler::filter_t sr_report_handler::filter = sr_report_handler::filter_t(); // deprecated with GCC 5
+std::map< const sc_core::sc_object *, std::pair<sc_core::sc_severity, int> > sr_report_handler::filter = std::map< const sc_core::sc_object *, std::pair<sc_core::sc_severity, int> >();
 /// @}
