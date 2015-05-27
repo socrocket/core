@@ -31,28 +31,7 @@
 #include <string>
 #include <vector>
 
-#ifdef __GNUC__
-#ifdef __GNUC_MINOR__
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
-#include <tr1/unordered_map>
-#define template_map std::tr1::unordered_map
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else // ifdef __GNUC__
-#ifdef _WIN32
-#include <hash_map>
-#define  template_map stdext::hash_map
-#else
-#include <map>
-#define  template_map std::map
-#endif
-#endif
+#include "core/common/vmap.h"
 
 namespace trap {
 template<class AddressType>
@@ -66,8 +45,8 @@ struct Watchpoint {
 template<class AddressType>
 class WatchpointManager {
   private:
-    template_map<AddressType, Watchpoint<AddressType> > watchpoints;
-    typename template_map<AddressType, Watchpoint<AddressType> >::iterator lastWatch;
+    vmap<AddressType, Watchpoint<AddressType> > watchpoints;
+    typename vmap<AddressType, Watchpoint<AddressType> >::iterator lastWatch;
   public:
     WatchpointManager() {
       this->lastWatch = this->watchpoints.end();
@@ -116,7 +95,7 @@ class WatchpointManager {
 
     Watchpoint<AddressType>*getWatchPoint(AddressType address, unsigned int size) throw() {
       for (unsigned int i = 0; i < size; i++) {
-        typename template_map<AddressType, Watchpoint<AddressType> >::iterator foundWatchPoint = this->watchpoints.find(
+        typename vmap<AddressType, Watchpoint<AddressType> >::iterator foundWatchPoint = this->watchpoints.find(
           address + i);
         if (foundWatchPoint != this->lastWatch) {
           return &(foundWatchPoint->second);
@@ -125,7 +104,7 @@ class WatchpointManager {
       return NULL;
     }
 
-    template_map<AddressType, Watchpoint<AddressType> >&getWatchpoints() throw() {
+    vmap<AddressType, Watchpoint<AddressType> >&getWatchpoints() throw() {
       return this->watchpoints;
     }
 };

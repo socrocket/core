@@ -27,28 +27,7 @@
 #ifndef PROFILER_HPP
 #define PROFILER_HPP
 
-#ifdef __GNUC__
-#ifdef __GNUC_MINOR__
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
-#include <tr1/unordered_map>
-#define template_map std::tr1::unordered_map
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else // ifdef __GNUC__
-#ifdef _WIN32
-#include <hash_map>
-#define  template_map stdext::hash_map
-#else
-#include <map>
-#define  template_map std::map
-#endif
-#endif
+#include "core/common/vmap.h"
 
 #include <fstream>
 #include <iostream>
@@ -78,16 +57,16 @@ class Profiler : public ToolsIf<issueWidth> {
     // running on the processor
     ELFFrontend &elfInstance;
     // Statistic on the instructions
-    template_map<unsigned int, ProfInstruction> instructions;
+    vmap<unsigned int, ProfInstruction> instructions;
     ProfInstruction *oldInstruction;
     sc_time oldInstrTime;
-    template_map<unsigned int, ProfInstruction>::iterator instructionsEnd;
+    vmap<unsigned int, ProfInstruction>::iterator instructionsEnd;
     // Statistic on the functions
-    typename template_map<issueWidth, ProfFunction> functions;
+    typename vmap<issueWidth, ProfFunction> functions;
     std::vector<ProfFunction *> currentStack;
     sc_time oldFunTime;
     unsigned int oldFunInstructions;
-    typename template_map<issueWidth, ProfFunction>::iterator functionsEnd;
+    typename vmap<issueWidth, ProfFunction>::iterator functionsEnd;
     // names of the routines which should be ignored from
     // entry or exit
     std::set<std::string> ignored;
@@ -110,7 +89,7 @@ class Profiler : public ToolsIf<issueWidth> {
       }
       // Update the new instruction statistics
       unsigned int instrId = curInstr->getId();
-      template_map<unsigned int, ProfInstruction>::iterator foundInstr = this->instructions.find(instrId);
+      vmap<unsigned int, ProfInstruction>::iterator foundInstr = this->instructions.find(instrId);
       if (foundInstr != this->instructionsEnd) {
         foundInstr->second.numCalls++;
         this->oldInstruction = &(foundInstr->second);
@@ -165,7 +144,7 @@ class Profiler : public ToolsIf<issueWidth> {
         }
         ProfFunction::numTotalCalls++;
         ProfFunction *curFun = NULL;
-        typename template_map<issueWidth, ProfFunction>::iterator curFunction = this->functions.find(curPC);
+        typename vmap<issueWidth, ProfFunction>::iterator curFunction = this->functions.find(curPC);
         if (curFunction != this->functionsEnd) {
           curFun = &(curFunction->second);
           curFun->numCalls++;
@@ -283,7 +262,7 @@ class Profiler : public ToolsIf<issueWidth> {
       // two files will be created: fileName_fun.csv and fileName_instr.csv
       std::ofstream instructionFile((fileName + "_instr.csv").c_str());
       instructionFile << ProfInstruction::printCsvHeader() << std::endl;
-      template_map<unsigned int, ProfInstruction>::iterator instrIter, instrEnd;
+      vmap<unsigned int, ProfInstruction>::iterator instrIter, instrEnd;
       for (instrIter = this->instructions.begin(), instrEnd = this->instructions.end();
            instrIter != instrEnd;
            instrIter++) {
@@ -295,7 +274,7 @@ class Profiler : public ToolsIf<issueWidth> {
       if (!this->disableFunctionProfiling) {
         std::ofstream functionFile((fileName + "_fun.csv").c_str());
         functionFile << ProfFunction::printCsvHeader() << std::endl;
-        typename template_map<issueWidth, ProfFunction>::iterator funIter, funEnd;
+        typename vmap<issueWidth, ProfFunction>::iterator funIter, funEnd;
         for (funIter = this->functions.begin(), funEnd = this->functions.end(); funIter != funEnd; funIter++) {
           functionFile << funIter->second.printCsv() << std::endl;
         }
