@@ -32,28 +32,7 @@ extern "C" {
 #include <gelf.h>
 }
 
-#ifdef __GNUC__
-#ifdef __GNUC_MINOR__
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
-#include <tr1/unordered_map>
-#define template_map std::tr1::unordered_map
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else // ifdef __GNUC__
-#ifdef _WIN32
-#include <hash_map>
-#define  template_map stdext::hash_map
-#else
-#include <map>
-#define  template_map std::map
-#endif
-#endif
+#include "core/common/vmap.h"
 
 #include <list>
 #include <map>
@@ -73,10 +52,10 @@ class ELFFrontend {
     int elfFd;
 
     ///Variables holding what read from the file
-    template_map<unsigned int, std::list<std::string> > addrToSym;
-    template_map<unsigned int, std::string> addrToFunction;
+    vmap<unsigned int, std::list<std::string> > addrToSym;
+    vmap<unsigned int, std::string> addrToFunction;
     std::map<std::string, unsigned int> symToAddr;
-    template_map<unsigned int, std::pair<std::string, unsigned int> > addrToSrc;
+    vmap<unsigned int, std::pair<std::string, unsigned int> > addrToSrc;
     unsigned int entryPoint;
     unsigned char *programData;
 

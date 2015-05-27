@@ -52,28 +52,7 @@
 #include <fstream>
 #include <boost/circular_buffer.hpp>
 #include "core/common/trapgen/instructionBase.hpp"
-#ifdef __GNUC__
-#ifdef __GNUC_MINOR__
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
-#include <tr1/unordered_map>
-#define template_map std::tr1::unordered_map
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#ifdef _WIN32
-#include <hash_map>
-#define  template_map stdext::hash_map
-#else
-#include <map>
-#define  template_map std::map
-#endif
-#endif
+#include "core/common/vmap.h"
 
 #include "core/models/leon3/intunit/irqPorts.hpp"
 #include "core/models/leon3/intunit/externalPins.hpp"
@@ -99,7 +78,7 @@ namespace leon3_funclt_trap{
         Instruction **INSTRUCTIONS;
         Instruction *curInstrPtr;
         unsigned int raisedException;
-        template_map<unsigned int, CacheElem> instrCache;
+        vmap<unsigned int, CacheElem> instrCache;
         static int numInstances;
         unsigned int IRQ;
 

@@ -51,29 +51,6 @@
 #include <fstream>
 #include <boost/circular_buffer.hpp>
 #include "core/common/trapgen/instructionBase.hpp"
-#ifdef __GNUC__
-#ifdef __GNUC_MINOR__
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
-#include <tr1/unordered_map>
-#define template_map std::tr1::unordered_map
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#ifdef _WIN32
-#include <hash_map>
-#define  template_map stdext::hash_map
-#else
-#include <map>
-#define  template_map std::map
-#endif
-#endif
-
 #include "core/models/leon3/intunit/irqPorts.hpp"
 #include "core/models/leon3/intunit/externalPins.hpp"
 #include <string>
@@ -84,7 +61,7 @@ using namespace leon3_funclt_trap;
 using namespace trap;
 void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
     bool startMet = false;
-    template_map< unsigned int, CacheElem >::iterator instrCacheEnd = this->instrCache.end();
+    vmap< unsigned int, CacheElem >::iterator instrCacheEnd = this->instrCache.end();
 
     unsigned int firstPC = this->PC + 0;
     unsigned int firstbitString = this->instrMem.read_instr(firstPC, 0x8 | (PSR[key_S]? 1 : 0), 0);
@@ -145,7 +122,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                     raisedException = 0;
                     curInstrPtr->RaiseException(this->curPC, this->PC, exception);
                 }
-                template_map< unsigned int, CacheElem >::iterator cachedInstr = this->instrCache.find(bitString);
+                vmap< unsigned int, CacheElem >::iterator cachedInstr = this->instrCache.find(bitString);
                 unsigned int *curCount = NULL;
                 if(cachedInstr != instrCacheEnd) {
                     curInstrPtr = cachedInstr->second.instr;
@@ -183,7 +160,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                 }
                 if (cachedInstr != instrCacheEnd) {
                     if (curCount && *curCount < 256) {
-                        *curCount++;
+//                        *curCount++; // ????
                     } else if (curCount) {
                         // ... and then add the instruction to the cache
                         cachedInstr->second.instr = curInstrPtr;
@@ -789,7 +766,7 @@ leon3_funclt_trap::Processor_leon3_funclt::~Processor_leon3_funclt(){
         delete this->INSTRUCTIONS[i];
     }
     delete [] this->INSTRUCTIONS;
-    template_map< unsigned int, CacheElem >::const_iterator cacheIter, cacheEnd;
+    vmap< unsigned int, CacheElem >::const_iterator cacheIter, cacheEnd;
     for(cacheIter = this->instrCache.begin(), cacheEnd = this->instrCache.end(); cacheIter \
         != cacheEnd; cacheIter++){
         delete cacheIter->second.instr;
