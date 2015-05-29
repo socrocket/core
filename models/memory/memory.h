@@ -48,12 +48,12 @@ class Memory : public MemoryPower {
     /// @param bits Bit width of memory
     /// @param cols Number of SDRAM cols.
     Memory(sc_module_name name,
-    MEMDevice::device_type type,
-    uint32_t banks,
-    uint32_t bsize,
-    uint32_t bits,
-    uint32_t cols,
-    BaseMemory::implementation_type implementation = BaseMemory::ARRAY,
+    MEMDevice::device_type type = MEMDevice::SDRAM,
+    uint32_t banks = 2,
+    uint32_t bsize = 128 * 1024 * 1024,
+    uint32_t bits = 32,
+    uint32_t cols = 16,
+    std::string implementation = "ArrayStorage",
     bool pow_mon = false);
 
     /// Destructor
@@ -67,6 +67,8 @@ class Memory : public MemoryPower {
 
     /// write counter callback
     gs::cnf::callback_return_type m_writes_cb(gs::gs_param_base &changed_param, gs::cnf::callback_type reason);
+    
+    void before_end_of_elaboration();
 
     /// SystemC end of simulation
     void end_of_simulation();
@@ -80,6 +82,8 @@ class Memory : public MemoryPower {
 
     gs::gs_config<uint64_t> m_writes;
     gs::gs_config<uint64_t> m_reads;
+    gs::gs_config<std::string> g_storage_type;
+    gs::gs_config<std::string> g_elf_file;
 };
 
 #endif  // MODELS_MEMORY_MEMORY_H_

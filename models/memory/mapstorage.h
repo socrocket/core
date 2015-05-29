@@ -21,9 +21,11 @@
 
 class MapStorage : public Storage {
   public:
-    explicit MapStorage(const uint32_t &size);
+    explicit MapStorage(sc_core::sc_module_name mn);
 
     ~MapStorage();
+
+    void set_size(const uint32_t &size);
 
     void write(const uint32_t &addr, const uint8_t &byte);
 
