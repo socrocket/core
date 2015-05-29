@@ -43,7 +43,6 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
       0,
       ambaLayer,
       BAR(AHBMEM, hmask, cacheable, 0, haddr)),
-    BaseMemory(BaseMemory::ARRAY, get_ahb_bar_size(0)),
     ahbBaseAddress(static_cast<uint32_t>((hmask) & haddr) << 20),
     ahbSize(~(static_cast<uint32_t>(hmask) << 20) + 1),
     g_haddr("haddr", haddr, m_generics),
@@ -52,6 +51,7 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
     g_cacheable("cacheable", cacheable, m_generics),
     g_wait_states("wait_states", wait_states, m_generics),
     g_pow_mon("pow_mon", pow_mon, m_generics),
+    g_storage_type("storage", "ArrayStorage", m_generics),
     sta_power_norm("sta_power_norm", 1269.53125, m_power),                  // Normalized static power input
     int_power_norm("int_power_norm", 1.61011e-12, m_power),                 // Normalized internal power input
     dyn_read_energy_norm("dyn_read_energy_norm", 7.57408e-13, m_power),     // Normalized read energy input
@@ -129,6 +129,11 @@ void AHBMem::init_generics() {
   g_pow_mon.add_properties()
     ("name", "Power Monitoring")
     ("If true enable power monitoring");
+
+  g_pow_mon.add_properties()
+    ("name", "Memory Storage Type")
+    ("enum", "ArrayStorage, MapStorage")
+    ("Defines the type of memory used as a backend implementation");
 }
 
 void AHBMem::dorst() {
@@ -151,7 +156,7 @@ uint32_t AHBMem::exec_func(
       srWarn(name())
         ("Transaction exceeds slave memory region");
     }
-    trans.set_dmi_allowed(storage->allow_dmi_rw());
+    trans.set_dmi_allowed(m_storage->allow_dmi_rw());
     if (trans.is_write()) {
       // write simulation memory
       write_block(trans.get_address(), trans.get_data_ptr(), trans.get_data_length());
@@ -212,17 +217,21 @@ sc_core::sc_time AHBMem::get_clock() {
 bool AHBMem::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data) {
   // access to ROM adress space
   dmi_data.allow_read_write();
-  dmi_data.set_dmi_ptr(storage->get_dmi_ptr());
+  dmi_data.set_dmi_ptr(m_storage->get_dmi_ptr());
   dmi_data.set_start_address(0);
   dmi_data.set_end_address(get_ahb_bar_size(0));
   dmi_data.set_read_latency(SC_ZERO_TIME);
   dmi_data.set_write_latency(SC_ZERO_TIME);
-  v::info << name() << "allow_dmi_rw is: " << v::uint32 << storage->allow_dmi_rw() << v::endl;
-  return storage->allow_dmi_rw();
+  v::info << name() << "allow_dmi_rw is: " << v::uint32 << m_storage->allow_dmi_rw() << v::endl;
+  return m_storage->allow_dmi_rw();
 }
 
 void AHBMem::writeByteDBG(const uint32_t address, const uint8_t byte) {
   write_dbg(address, byte);
+}
+
+void AHBMem::before_end_of_elaboration() {
+  set_storage(g_storage_type, get_ahb_bar_size(0));
 }
 
 // Automatically called at the beginning of the simulation

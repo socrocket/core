@@ -106,6 +106,9 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
         gs::gs_param_base &changed_param,  // NOLINT(runtime/references)
         gs::cnf::callback_type reason);
 
+    /// Creates the memory backend
+    void before_end_of_elaboration();
+
     /// Generates execution statistic at end of simulation
     void end_of_simulation();
 
@@ -135,6 +138,9 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
 
     /// Power monitoring on/off
     gs::cnf::gs_config<bool> g_pow_mon;
+
+    /// Stores the type of memory used
+    gs::cnf::gs_config<std::string> g_storage_type;
 
   public:
     /// Power Modeling Parameters
