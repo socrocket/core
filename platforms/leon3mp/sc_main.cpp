@@ -111,6 +111,9 @@ int sc_main(int argc, char** argv) {
     gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
     gs::cnf::ConfigPlugin configPlugin(&cnfdatabase);
 
+    SR_INCLUDE_MODULE(ArrayStorage);
+    SR_INCLUDE_MODULE(MapStorage);
+
 #ifdef HAVE_USI
     // Initialize Python
     USI_HAS_MODULE(systemc_);
@@ -136,6 +139,7 @@ int sc_main(int argc, char** argv) {
     //usi_load("tools.python.power");
     usi_load("usi.shell");
     usi_load("usi.tools.execute");
+    usi_load("usi.tools.elf");
 
     usi_start_of_initialization();
 #endif  // HAVE_USI
@@ -333,14 +337,14 @@ int sc_main(int argc, char** argv) {
                      p_mctrl_prom_bsize * 1024 * 1024,
                      p_mctrl_prom_width,
                      0,
-                     BaseMemory::MAP,
+                     "MapStorage",
                      p_report_power
     );
 
     // Connect to memory controller and clock
     mctrl.mem(rom.bus);
     rom.set_clk(p_system_clock, SC_NS);
-
+#if 0
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_prom_elf("elf", "", p_mctrl_prom);
     if(!((std::string)p_mctrl_prom_elf).empty()) {
@@ -358,6 +362,7 @@ int sc_main(int argc, char** argv) {
         exit(1);
       }
     }
+#endif
 
     // IO memory instantiation
     Memory io( "io",
@@ -366,7 +371,7 @@ int sc_main(int argc, char** argv) {
                p_mctrl_prom_bsize * 1024 * 1024,
                p_mctrl_prom_width,
                0,
-               BaseMemory::MAP,
+               "MapStorage",
                p_report_power
     );
 
@@ -376,7 +381,7 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);
-
+#if 0
     if(!((std::string)p_mctrl_io_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_io_elf))) {
         uint8_t *execData;
@@ -392,6 +397,7 @@ int sc_main(int argc, char** argv) {
         exit(1);
       }
     }
+#endif
 
     // SRAM instantiation
     Memory sram( "sram",
@@ -400,7 +406,7 @@ int sc_main(int argc, char** argv) {
                  p_mctrl_ram_sram_bsize * 1024 * 1024,
                  p_mctrl_ram_sram_width,
                  0,
-                 BaseMemory::MAP,
+                 "MapStorage",
                  p_report_power
     );
 
@@ -410,7 +416,7 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
-
+#if 0
     if(!((std::string)p_mctrl_ram_sram_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sram_elf))) {
         uint8_t *execData;
@@ -426,6 +432,7 @@ int sc_main(int argc, char** argv) {
         exit(1);
       }
     }
+#endif
 
     // SDRAM instantiation
     Memory sdram( "sdram",
@@ -434,7 +441,7 @@ int sc_main(int argc, char** argv) {
                        p_mctrl_ram_sdram_bsize * 1024 * 1024,
                        p_mctrl_ram_sdram_width,
                        p_mctrl_ram_sdram_cols,
-                       BaseMemory::ARRAY,
+                       "ArrayStorage",
                        p_report_power
     );
 
@@ -444,7 +451,7 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sdram_elf("elf", "", p_mctrl_ram_sdram);
-
+#if 0
     if(!((std::string)p_mctrl_ram_sdram_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sdram_elf))) {
         uint8_t *execData;
@@ -460,6 +467,7 @@ int sc_main(int argc, char** argv) {
         exit(1);
       }
     }
+#endif
 
 
     //leon3.ENTRY_POINT   = 0;
@@ -493,7 +501,7 @@ int sc_main(int argc, char** argv) {
       // Connect to ahbctrl and clock
       ahbctrl.ahbOUT(ahbmem->ahb);
       ahbmem->set_clk(p_system_clock, SC_NS);
-
+#if 0
       // ELF loader from leon (Trap-Gen)
       if(!((std::string)p_ahbmem_elf).empty()) {
         if(boost::filesystem::exists(boost::filesystem::path((std::string)p_ahbmem_elf))) {
@@ -510,6 +518,7 @@ int sc_main(int argc, char** argv) {
           exit(1);
         }
       }
+#endif
     }
 
 
