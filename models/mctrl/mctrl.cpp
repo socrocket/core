@@ -19,6 +19,8 @@
 #include "core/models/mctrl/mctrl.h"
 #include "core/common/sr_report.h"
 
+SR_HAS_MODULE(Mctrl);
+
 // constructor
 Mctrl::Mctrl(
     ModuleName name,

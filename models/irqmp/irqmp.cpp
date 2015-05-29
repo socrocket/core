@@ -21,6 +21,8 @@
 #include "core/models/irqmp/irqmp.h"
 #include "core/common/verbose.h"
 
+SR_HAS_MODULE(Irqmp);
+
 /// Constructor
 Irqmp::Irqmp(ModuleName name,
   int paddr,

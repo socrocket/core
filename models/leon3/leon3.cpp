@@ -20,7 +20,8 @@
 #include "core/common/sr_report.h"
 #include "core/common/vendian.h"
 
-//SC_HAS_PROCESS(Leon3<>);
+SR_HAS_MODULE(Leon3);
+
 /// Constructor
 Leon3::Leon3(
       ModuleName name,
