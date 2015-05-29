@@ -13,6 +13,9 @@
 
 SrModuleRegistry::map_map_t *SrModuleRegistry::m_members = NULL;
 
+void SrModuleRegistry::included() {
+}
+
 SrModuleRegistry::map_t &SrModuleRegistry::get_group(std::string group) {
   if(!SrModuleRegistry::m_members) {
     SrModuleRegistry::m_members = new map_map_t();
