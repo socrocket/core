@@ -19,9 +19,11 @@
 
 class ArrayStorage : public Storage {
   public:
-    explicit ArrayStorage(const uint32_t &size);
+    explicit ArrayStorage(sc_core::sc_module_name mn);
 
     ~ArrayStorage();
+
+    void set_size(const uint32_t &size);
 
     void write(const uint32_t &addr, const uint8_t &byte);
 

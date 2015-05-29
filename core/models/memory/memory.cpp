@@ -23,6 +23,8 @@ using namespace sc_core;
 using namespace std;
 using namespace tlm;
 
+SR_HAS_MODULE(Memory);
+
 // Constructor implementation
 Memory::Memory(ModuleName name,
   MEMDevice::device_type type,
@@ -30,12 +32,14 @@ Memory::Memory(ModuleName name,
   uint32_t bsize,
   uint32_t bits,
   uint32_t cols,
-  BaseMemory::implementation_type implementation,
+  std::string implementation,
   bool powmon) :
-  MemoryPower(name, type, banks, bsize, bits, cols, implementation, powmon),
+  MemoryPower(name, type, banks, bsize, bits, cols, powmon),
   bus("bus"),
   m_writes("bytes_written", 0ull, m_performance_counters),
-  m_reads("bytes_read", 0ull, m_performance_counters) {
+  m_reads("bytes_read", 0ull, m_performance_counters),
+  g_storage_type("storage", implementation, m_generics),
+  g_elf_file("elf_file", "", m_generics) {
   // TLM 2.0 socket configuration
   gs::socket::config<tlm::tlm_base_protocol_types> bus_cfg;
   bus_cfg.use_mandatory_phase(BEGIN_REQ);
@@ -74,6 +78,10 @@ Memory::~Memory() {
   GC_UNREGISTER_CALLBACKS();
 }
 
+void Memory::before_end_of_elaboration() {
+  set_storage(g_storage_type, get_size());
+}
+
 // Automatically called at start of simulation
 void Memory::start_of_simulation() {
   // Intitialize power model
@@ -109,7 +117,7 @@ void Memory::b_transport(tlm::tlm_generic_payload &gp, sc_time &delay) {
   // Extract erase extension
   ext_erase *ers;
   gp.get_extension(ers);
-  gp.set_dmi_allowed(storage->allow_dmi_rw());
+  gp.set_dmi_allowed(m_storage->allow_dmi_rw());
 
   if (ers) {
     // Check erase extension first:
@@ -201,12 +209,12 @@ unsigned int Memory::transport_dbg(tlm::tlm_generic_payload &gp) {
 bool Memory::get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data) {
   // access to ROM adress space
   dmi_data.allow_read_write();
-  dmi_data.set_dmi_ptr(storage->get_dmi_ptr());
+  dmi_data.set_dmi_ptr(m_storage->get_dmi_ptr());
   dmi_data.set_start_address(0);
   dmi_data.set_end_address(get_bsize() * ((get_banks()<5)? get_banks() : 8));
   dmi_data.set_read_latency(SC_ZERO_TIME);
   dmi_data.set_write_latency(SC_ZERO_TIME);
-  return storage->allow_dmi_rw();
+  return m_storage->allow_dmi_rw();
 }
 
 /// @}

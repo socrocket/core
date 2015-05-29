@@ -14,13 +14,20 @@
 
 #include "core/models/memory/arraystorage.h"
 
-ArrayStorage::ArrayStorage(const uint32_t &size) {
-  data = new uint8_t[size];
-//  erase(0, size);
+SR_HAS_MEMORYSTORAGE(ArrayStorage);
+
+ArrayStorage::ArrayStorage(sc_core::sc_module_name mn) : Storage(mn), data(NULL) {
 }
 
 ArrayStorage::~ArrayStorage() {
   delete[] data;
+}
+
+void ArrayStorage::set_size(const uint32_t &size) {
+  if(data) {
+    delete data;
+  }
+  data = new uint8_t[size];
 }
 
 void ArrayStorage::write(const uint32_t &addr, const uint8_t &byte) {

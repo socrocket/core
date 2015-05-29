@@ -14,10 +14,15 @@
 
 #include "core/models/memory/mapstorage.h"
 
-MapStorage::MapStorage(const uint32_t &size) {
+SR_HAS_MEMORYSTORAGE(MapStorage);
+
+MapStorage::MapStorage(sc_core::sc_module_name mn) : Storage(mn) {
 }
 
 MapStorage::~MapStorage() {
+}
+
+void MapStorage::set_size(const uint32_t &size) {
 }
 
 void MapStorage::write(const uint32_t &addr, const uint8_t &byte) {
