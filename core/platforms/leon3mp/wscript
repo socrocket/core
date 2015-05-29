@@ -7,7 +7,7 @@ def build(bld):
     bld(
         target       = 'leon3mp.platform',
         features     = 'cxx cprogram pyembed',
-        source       = 'sc_main.cpp',
+        source       = 'sc_main.cpp so_main.cpp',
         includes     = '.',
         use          = use,
         #ut_param     = ['singlecore.lt.prom', 'irqmp.sparc'],
