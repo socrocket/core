@@ -52,5 +52,25 @@ std::set<std::string> SrModuleRegistry::get_module_files(std::string groupname) 
   return result;
 }
 
+std::set<std::string> SrModuleRegistry::get_module_names(std::string groupname) {
+  std::set<std::string> result;
+  SrModuleRegistry::map_t &group = SrModuleRegistry::get_group(groupname);
+  for(SrModuleRegistry::map_t::iterator item = group.begin(); item != group.end(); ++item) {
+    result.insert(item->first);
+  }
+  return result;
+}
+
+std::set<std::string> SrModuleRegistry::get_group_names() {
+  std::set<std::string> result;
+  if(!SrModuleRegistry::m_members) {
+    SrModuleRegistry::m_members = new map_map_t();
+  }
+  for(SrModuleRegistry::map_map_t::iterator item = m_members->begin(); item != m_members->end(); ++item) {
+    result.insert(item->first);
+  }
+  return result;
+}
+
 /// @}
 
