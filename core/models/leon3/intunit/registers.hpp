@@ -40,6 +40,7 @@
 
 #include <ostream>
 #include "core/common/trapgen/utils/trap_utils.hpp"
+#include "core/common/sc_register.h"
 
 #define FUNC_MODEL
 #define LT_IF
@@ -105,12 +106,12 @@ namespace leon3_funclt_trap{
 
 namespace leon3_funclt_trap{
 
-    class Register{
-
-        public:
+    class Register : public sc_register<unsigned int, SC_REG_RW_ACCESS> {
+      public:
         Register( const Register & other );
         Register();
-        virtual void immediateWrite( const unsigned int & value ) throw() = 0;
+
+        virtual void immediateWrite( const unsigned int & m_cur_val ) throw() = 0;
         virtual unsigned int readNewValue() throw() = 0;
         virtual void clockCycle() throw();
         virtual InnerField & operator []( int bitField ) throw() = 0;
@@ -162,169 +163,169 @@ namespace leon3_funclt_trap{
         public:
         class InnerField_VER : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_VER( unsigned int & value );
+            InnerField_VER( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0xf000000) >> 24;
+                return (this->m_cur_val & 0xf000000) >> 24;
             }
             virtual ~InnerField_VER();
         };
 
         class InnerField_ICC_z : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_ICC_z( unsigned int & value );
+            InnerField_ICC_z( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x400000) >> 22;
+                return (this->m_cur_val & 0x400000) >> 22;
             }
             virtual ~InnerField_ICC_z();
         };
 
         class InnerField_ICC_v : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_ICC_v( unsigned int & value );
+            InnerField_ICC_v( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x200000) >> 21;
+                return (this->m_cur_val & 0x200000) >> 21;
             }
             virtual ~InnerField_ICC_v();
         };
 
         class InnerField_EF : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_EF( unsigned int & value );
+            InnerField_EF( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x1000) >> 12;
+                return (this->m_cur_val & 0x1000) >> 12;
             }
             virtual ~InnerField_EF();
         };
 
         class InnerField_EC : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_EC( unsigned int & value );
+            InnerField_EC( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x2000) >> 13;
+                return (this->m_cur_val & 0x2000) >> 13;
             }
             virtual ~InnerField_EC();
         };
 
         class InnerField_ICC_n : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_ICC_n( unsigned int & value );
+            InnerField_ICC_n( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x800000) >> 23;
+                return (this->m_cur_val & 0x800000) >> 23;
             }
             virtual ~InnerField_ICC_n();
         };
 
         class InnerField_S : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_S( unsigned int & value );
+            InnerField_S( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x80) >> 7;
+                return (this->m_cur_val & 0x80) >> 7;
             }
             virtual ~InnerField_S();
         };
 
         class InnerField_ET : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_ET( unsigned int & value );
+            InnerField_ET( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x20) >> 5;
+                return (this->m_cur_val & 0x20) >> 5;
             }
             virtual ~InnerField_ET();
         };
 
         class InnerField_ICC_c : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_ICC_c( unsigned int & value );
+            InnerField_ICC_c( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x100000) >> 20;
+                return (this->m_cur_val & 0x100000) >> 20;
             }
             virtual ~InnerField_ICC_c();
         };
 
         class InnerField_PS : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_PS( unsigned int & value );
+            InnerField_PS( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x40) >> 6;
+                return (this->m_cur_val & 0x40) >> 6;
             }
             virtual ~InnerField_PS();
         };
 
         class InnerField_PIL : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_PIL( unsigned int & value );
+            InnerField_PIL( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0xf00) >> 8;
+                return (this->m_cur_val & 0xf00) >> 8;
             }
             virtual ~InnerField_PIL();
         };
 
         class InnerField_CWP : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_CWP( unsigned int & value );
+            InnerField_CWP( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x1f);
+                return (this->m_cur_val & 0x1f);
             }
             virtual ~InnerField_CWP();
         };
 
         class InnerField_IMPL : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_IMPL( unsigned int & value );
+            InnerField_IMPL( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0xf0000000L) >> 28;
+                return (this->m_cur_val & 0xf0000000L) >> 28;
             }
             virtual ~InnerField_IMPL();
         };
@@ -355,7 +356,7 @@ namespace leon3_funclt_trap{
         InnerField_CWP field_CWP;
         InnerField_IMPL field_IMPL;
         InnerField_Empty field_empty;
-        unsigned int value;
+        unsigned int m_cur_val;
 
         public:
         Reg32_0();
@@ -419,7 +420,7 @@ namespace leon3_funclt_trap{
                 }
             }
         }
-        void immediateWrite( const unsigned int & value ) throw();
+        void immediateWrite( const unsigned int & m_cur_val ) throw();
         unsigned int readNewValue() throw();
         unsigned int operator ~() throw();
         Reg32_0 & operator =( const unsigned int & other ) throw();
@@ -483,7 +484,7 @@ namespace leon3_funclt_trap{
         Reg32_0 & operator <<=( const Register & other ) throw();
         Reg32_0 & operator >>=( const Register & other ) throw();
         inline operator unsigned int() const throw(){
-            return this->value;
+            return this->m_cur_val;
         }
         std::ostream & operator <<( std::ostream & stream ) const throw();
     };
@@ -496,416 +497,416 @@ namespace leon3_funclt_trap{
         public:
         class InnerField_WIM_28 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_28( unsigned int & value );
+            InnerField_WIM_28( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x10000000) >> 28;
+                return (this->m_cur_val & 0x10000000) >> 28;
             }
             virtual ~InnerField_WIM_28();
         };
 
         class InnerField_WIM_29 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_29( unsigned int & value );
+            InnerField_WIM_29( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x20000000) >> 29;
+                return (this->m_cur_val & 0x20000000) >> 29;
             }
             virtual ~InnerField_WIM_29();
         };
 
         class InnerField_WIM_24 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_24( unsigned int & value );
+            InnerField_WIM_24( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x1000000) >> 24;
+                return (this->m_cur_val & 0x1000000) >> 24;
             }
             virtual ~InnerField_WIM_24();
         };
 
         class InnerField_WIM_25 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_25( unsigned int & value );
+            InnerField_WIM_25( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x2000000) >> 25;
+                return (this->m_cur_val & 0x2000000) >> 25;
             }
             virtual ~InnerField_WIM_25();
         };
 
         class InnerField_WIM_26 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_26( unsigned int & value );
+            InnerField_WIM_26( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x4000000) >> 26;
+                return (this->m_cur_val & 0x4000000) >> 26;
             }
             virtual ~InnerField_WIM_26();
         };
 
         class InnerField_WIM_27 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_27( unsigned int & value );
+            InnerField_WIM_27( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x8000000) >> 27;
+                return (this->m_cur_val & 0x8000000) >> 27;
             }
             virtual ~InnerField_WIM_27();
         };
 
         class InnerField_WIM_20 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_20( unsigned int & value );
+            InnerField_WIM_20( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x100000) >> 20;
+                return (this->m_cur_val & 0x100000) >> 20;
             }
             virtual ~InnerField_WIM_20();
         };
 
         class InnerField_WIM_21 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_21( unsigned int & value );
+            InnerField_WIM_21( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x200000) >> 21;
+                return (this->m_cur_val & 0x200000) >> 21;
             }
             virtual ~InnerField_WIM_21();
         };
 
         class InnerField_WIM_22 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_22( unsigned int & value );
+            InnerField_WIM_22( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x400000) >> 22;
+                return (this->m_cur_val & 0x400000) >> 22;
             }
             virtual ~InnerField_WIM_22();
         };
 
         class InnerField_WIM_23 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_23( unsigned int & value );
+            InnerField_WIM_23( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x800000) >> 23;
+                return (this->m_cur_val & 0x800000) >> 23;
             }
             virtual ~InnerField_WIM_23();
         };
 
         class InnerField_WIM_9 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_9( unsigned int & value );
+            InnerField_WIM_9( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x200) >> 9;
+                return (this->m_cur_val & 0x200) >> 9;
             }
             virtual ~InnerField_WIM_9();
         };
 
         class InnerField_WIM_8 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_8( unsigned int & value );
+            InnerField_WIM_8( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x100) >> 8;
+                return (this->m_cur_val & 0x100) >> 8;
             }
             virtual ~InnerField_WIM_8();
         };
 
         class InnerField_WIM_1 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_1( unsigned int & value );
+            InnerField_WIM_1( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x2) >> 1;
+                return (this->m_cur_val & 0x2) >> 1;
             }
             virtual ~InnerField_WIM_1();
         };
 
         class InnerField_WIM_0 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_0( unsigned int & value );
+            InnerField_WIM_0( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x1);
+                return (this->m_cur_val & 0x1);
             }
             virtual ~InnerField_WIM_0();
         };
 
         class InnerField_WIM_3 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_3( unsigned int & value );
+            InnerField_WIM_3( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x8) >> 3;
+                return (this->m_cur_val & 0x8) >> 3;
             }
             virtual ~InnerField_WIM_3();
         };
 
         class InnerField_WIM_2 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_2( unsigned int & value );
+            InnerField_WIM_2( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x4) >> 2;
+                return (this->m_cur_val & 0x4) >> 2;
             }
             virtual ~InnerField_WIM_2();
         };
 
         class InnerField_WIM_5 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_5( unsigned int & value );
+            InnerField_WIM_5( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x20) >> 5;
+                return (this->m_cur_val & 0x20) >> 5;
             }
             virtual ~InnerField_WIM_5();
         };
 
         class InnerField_WIM_4 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_4( unsigned int & value );
+            InnerField_WIM_4( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x10) >> 4;
+                return (this->m_cur_val & 0x10) >> 4;
             }
             virtual ~InnerField_WIM_4();
         };
 
         class InnerField_WIM_7 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_7( unsigned int & value );
+            InnerField_WIM_7( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x80) >> 7;
+                return (this->m_cur_val & 0x80) >> 7;
             }
             virtual ~InnerField_WIM_7();
         };
 
         class InnerField_WIM_6 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_6( unsigned int & value );
+            InnerField_WIM_6( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x40) >> 6;
+                return (this->m_cur_val & 0x40) >> 6;
             }
             virtual ~InnerField_WIM_6();
         };
 
         class InnerField_WIM_11 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_11( unsigned int & value );
+            InnerField_WIM_11( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x800) >> 11;
+                return (this->m_cur_val & 0x800) >> 11;
             }
             virtual ~InnerField_WIM_11();
         };
 
         class InnerField_WIM_10 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_10( unsigned int & value );
+            InnerField_WIM_10( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x400) >> 10;
+                return (this->m_cur_val & 0x400) >> 10;
             }
             virtual ~InnerField_WIM_10();
         };
 
         class InnerField_WIM_13 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_13( unsigned int & value );
+            InnerField_WIM_13( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x2000) >> 13;
+                return (this->m_cur_val & 0x2000) >> 13;
             }
             virtual ~InnerField_WIM_13();
         };
 
         class InnerField_WIM_12 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_12( unsigned int & value );
+            InnerField_WIM_12( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x1000) >> 12;
+                return (this->m_cur_val & 0x1000) >> 12;
             }
             virtual ~InnerField_WIM_12();
         };
 
         class InnerField_WIM_15 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_15( unsigned int & value );
+            InnerField_WIM_15( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x8000) >> 15;
+                return (this->m_cur_val & 0x8000) >> 15;
             }
             virtual ~InnerField_WIM_15();
         };
 
         class InnerField_WIM_14 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_14( unsigned int & value );
+            InnerField_WIM_14( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x4000) >> 14;
+                return (this->m_cur_val & 0x4000) >> 14;
             }
             virtual ~InnerField_WIM_14();
         };
 
         class InnerField_WIM_17 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_17( unsigned int & value );
+            InnerField_WIM_17( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x20000) >> 17;
+                return (this->m_cur_val & 0x20000) >> 17;
             }
             virtual ~InnerField_WIM_17();
         };
 
         class InnerField_WIM_16 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_16( unsigned int & value );
+            InnerField_WIM_16( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x10000) >> 16;
+                return (this->m_cur_val & 0x10000) >> 16;
             }
             virtual ~InnerField_WIM_16();
         };
 
         class InnerField_WIM_19 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_19( unsigned int & value );
+            InnerField_WIM_19( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x80000) >> 19;
+                return (this->m_cur_val & 0x80000) >> 19;
             }
             virtual ~InnerField_WIM_19();
         };
 
         class InnerField_WIM_18 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_18( unsigned int & value );
+            InnerField_WIM_18( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x40000) >> 18;
+                return (this->m_cur_val & 0x40000) >> 18;
             }
             virtual ~InnerField_WIM_18();
         };
 
         class InnerField_WIM_31 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_31( unsigned int & value );
+            InnerField_WIM_31( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x80000000L) >> 31;
+                return (this->m_cur_val & 0x80000000L) >> 31;
             }
             virtual ~InnerField_WIM_31();
         };
 
         class InnerField_WIM_30 : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_30( unsigned int & value );
+            InnerField_WIM_30( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0x40000000) >> 30;
+                return (this->m_cur_val & 0x40000000) >> 30;
             }
             virtual ~InnerField_WIM_30();
         };
@@ -955,7 +956,7 @@ namespace leon3_funclt_trap{
         InnerField_WIM_31 field_WIM_31;
         InnerField_WIM_30 field_WIM_30;
         InnerField_Empty field_empty;
-        unsigned int value;
+        unsigned int m_cur_val;
 
         public:
         Reg32_1();
@@ -1095,7 +1096,7 @@ namespace leon3_funclt_trap{
                 }
             }
         }
-        void immediateWrite( const unsigned int & value ) throw();
+        void immediateWrite( const unsigned int & m_cur_val ) throw();
         unsigned int readNewValue() throw();
         unsigned int operator ~() throw();
         Reg32_1 & operator =( const unsigned int & other ) throw();
@@ -1159,7 +1160,7 @@ namespace leon3_funclt_trap{
         Reg32_1 & operator <<=( const Register & other ) throw();
         Reg32_1 & operator >>=( const Register & other ) throw();
         inline operator unsigned int() const throw(){
-            return this->value;
+            return this->m_cur_val;
         }
         std::ostream & operator <<( std::ostream & stream ) const throw();
     };
@@ -1172,26 +1173,26 @@ namespace leon3_funclt_trap{
         public:
         class InnerField_TBA : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_TBA( unsigned int & value );
+            InnerField_TBA( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0xfffff000L) >> 12;
+                return (this->m_cur_val & 0xfffff000L) >> 12;
             }
             virtual ~InnerField_TBA();
         };
 
         class InnerField_TT : public InnerField{
             private:
-            unsigned int & value;
+            unsigned int & m_cur_val;
 
             public:
-            InnerField_TT( unsigned int & value );
+            InnerField_TT( unsigned int & m_cur_val );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
-                return (this->value & 0xff0) >> 4;
+                return (this->m_cur_val & 0xff0) >> 4;
             }
             virtual ~InnerField_TT();
         };
@@ -1211,7 +1212,7 @@ namespace leon3_funclt_trap{
         InnerField_TBA field_TBA;
         InnerField_TT field_TT;
         InnerField_Empty field_empty;
-        unsigned int value;
+        unsigned int m_cur_val;
 
         public:
         Reg32_2();
@@ -1231,7 +1232,7 @@ namespace leon3_funclt_trap{
                 }
             }
         }
-        void immediateWrite( const unsigned int & value ) throw();
+        void immediateWrite( const unsigned int & m_cur_val ) throw();
         unsigned int readNewValue() throw();
         unsigned int operator ~() throw();
         Reg32_2 & operator =( const unsigned int & other ) throw();
@@ -1295,7 +1296,7 @@ namespace leon3_funclt_trap{
         Reg32_2 & operator <<=( const Register & other ) throw();
         Reg32_2 & operator >>=( const Register & other ) throw();
         inline operator unsigned int() const throw(){
-            return this->value;
+            return this->m_cur_val;
         }
         std::ostream & operator <<( std::ostream & stream ) const throw();
     };
@@ -1319,14 +1320,14 @@ namespace leon3_funclt_trap{
 
         private:
         InnerField_Empty field_empty;
-        unsigned int value;
+        unsigned int m_cur_val;
 
         public:
         Reg32_3();
         inline InnerField & operator []( int bitField ) throw(){
             return this->field_empty;
         }
-        void immediateWrite( const unsigned int & value ) throw();
+        void immediateWrite( const unsigned int & m_cur_val ) throw();
         unsigned int readNewValue() throw();
         unsigned int operator ~() throw();
         Reg32_3 & operator =( const unsigned int & other ) throw();
@@ -1390,7 +1391,7 @@ namespace leon3_funclt_trap{
         Reg32_3 & operator <<=( const Register & other ) throw();
         Reg32_3 & operator >>=( const Register & other ) throw();
         inline operator unsigned int() const throw(){
-            return this->value;
+            return this->m_cur_val;
         }
         std::ostream & operator <<( std::ostream & stream ) const throw();
     };
@@ -1414,14 +1415,14 @@ namespace leon3_funclt_trap{
 
         private:
         InnerField_Empty field_empty;
-        unsigned int value;
+        unsigned int m_cur_val;
 
         public:
         Reg32_3_const_0();
         inline InnerField & operator []( int bitField ) throw(){
             return this->field_empty;
         }
-        void immediateWrite( const unsigned int & value ) throw();
+        void immediateWrite( const unsigned int & m_cur_val ) throw();
         unsigned int readNewValue() throw();
         unsigned int operator ~() throw();
         Reg32_3_const_0 & operator =( const unsigned int & other ) throw();
