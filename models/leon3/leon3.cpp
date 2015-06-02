@@ -89,7 +89,7 @@ Leon3::Leon3(
   debugger(NULL),
   osEmu(NULL),
   g_gdb("gdb", 0, m_generics),
-  g_history("history", "", m_generics),
+  //g_history("history", "", m_generics),
   g_osemu("osemu", "", m_generics),
   
   g_icen("icen", icen, m_generics),
@@ -126,7 +126,7 @@ Leon3::Leon3(
     cpu.MPROC_ID      = (hindex) << 28;
     
     GC_REGISTER_TYPED_PARAM_CALLBACK(&g_gdb, gs::cnf::post_write, Leon3, g_gdb_callback);
-    GC_REGISTER_TYPED_PARAM_CALLBACK(&g_history, gs::cnf::post_write, Leon3, g_history_callback);
+    //GC_REGISTER_TYPED_PARAM_CALLBACK(&g_history, gs::cnf::post_write, Leon3, g_history_callback);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&g_osemu, gs::cnf::post_write, Leon3, g_osemu_callback);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&g_args, gs::cnf::post_write, Leon3, g_args_callback);
     Leon3::init_generics();
@@ -213,14 +213,14 @@ gs::cnf::callback_return_type Leon3::g_gdb_callback(gs::gs_param_base& changed_p
   return GC_RETURN_OK;
 }
 
-gs::cnf::callback_return_type Leon3::g_history_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
+/*gs::cnf::callback_return_type Leon3::g_history_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
   std::string history;
   changed_param.getValue(history);
   if(!history.empty()) {
     cpu.enableHistory(history);
   }
   return GC_RETURN_OK;
-}
+}*/
 
 gs::cnf::callback_return_type Leon3::g_osemu_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
   std::string osemu;

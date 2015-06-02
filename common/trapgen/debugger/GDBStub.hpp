@@ -853,7 +853,7 @@ class GDBStub : public ToolsIf<issueWidth>, public MemoryToolsIf<issueWidth>, pu
         } else if (custComm == "hist") {
           // Now I have to print the last n executed instructions; lets first get such number n
           resp.type = GDBResponse::OUTPUT_rsp;
-#ifndef ENABLE_HISTORY
+/*#ifndef ENABLE_HISTORY
           resp.message =
             "\nInstruction History not enabled at compile time: please reconfigure the project with the --enable-history option\n\n";
 #else
@@ -888,7 +888,7 @@ class GDBStub : public ToolsIf<issueWidth>, public MemoryToolsIf<issueWidth>, pu
               resp.message = "";
             }
           }
-#endif
+#endif*/
           this->connManager.sendResponse(resp);
           resp.type = GDBResponse::OK_rsp;
         } else if (custComm == "help") {
