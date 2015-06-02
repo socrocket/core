@@ -26,6 +26,8 @@ class SrModuleRegistry {
     void included();
     static sc_core::sc_object *create_object_by_name(std::string group, std::string type, std::string name);
     static std::set<std::string> get_module_files(std::string group);
+    static std::set<std::string> get_module_names(std::string group);
+    static std::set<std::string> get_group_names();
 
   private:
     static map_t &get_group(std::string group);
