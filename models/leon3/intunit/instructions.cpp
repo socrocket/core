@@ -120,7 +120,7 @@ void leon3_funclt_trap::Instruction::RaiseException( unsigned int pcounter, unsi
           halts execution. If ET=0 and an interrupt request or an interrupting or deferred
           exception occurs, it is ignored.
         */
-        if(exceptionId == TRAP_INSTRUCTION/*< IRQ_LEV_15*/){
+        if(exceptionId == TRAP_INSTRUCTION < IRQ_LEV_15){
             // I print a core dump and then I signal an error: an exception happened while
             // exceptions were disabled in the processor core
             THROW_EXCEPTION("@"<<sc_core::sc_time_stamp()<<" /"<<(unsigned)sc_core::sc_delta_count()
@@ -4664,7 +4664,6 @@ unsigned int leon3_funclt_trap::RETT_imm::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     targetAddr = rs1 + SignExtend(simm13, 13);
     newCwp = ((unsigned int)(PSR[key_CWP] + 1)) % NUM_REG_WIN;
@@ -4680,7 +4679,13 @@ unsigned int leon3_funclt_trap::RETT_imm::behavior(){
         PC = npcounter;
         NPC = targetAddr;
         #endif
+//		std::cout << getInstructionName() <<  " " << PC << " " << NPC << std::endl;
+//		if( PC == NPC ) {
+//			std::cout << "PC " << pcounter << " -> " << PC << "; NPC " << npcounter << " -> " << NPC << std::endl;
+//		}
     }
+	else
+    	this->IncrementPC();
 
     #ifdef ACC_MODEL
     if(exceptionEnabled || !supervisor || invalidWin || notAligned){
@@ -9893,7 +9898,7 @@ unsigned int leon3_funclt_trap::RETT_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
+    
 
     targetAddr = rs1 + rs2;
     newCwp = ((unsigned int)(PSR[key_CWP] + 1)) % NUM_REG_WIN;
@@ -9909,7 +9914,13 @@ unsigned int leon3_funclt_trap::RETT_reg::behavior(){
         PC = npcounter;
         NPC = targetAddr;
         #endif
+		//std::cout << getInstructionName() <<  " " << PC << " " << NPC << std::endl;
+//		if( PC == NPC ) {
+//			std::cout << std::hex << "PC " << pcounter << " -> " << PC << "; NPC " << npcounter << " -> " << NPC << std::endl;
+//		}
     }
+	else
+		this->IncrementPC();
 
     #ifdef ACC_MODEL
     if(exceptionEnabled || !supervisor || invalidWin || notAligned){
