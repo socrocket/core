@@ -120,7 +120,7 @@ void leon3_funclt_trap::Instruction::RaiseException( unsigned int pcounter, unsi
           halts execution. If ET=0 and an interrupt request or an interrupting or deferred
           exception occurs, it is ignored.
         */
-        if(exceptionId == TRAP_INSTRUCTION < IRQ_LEV_15){
+        if(exceptionId < IRQ_LEV_15 || exceptionId == TRAP_INSTRUCTION ){ // should only be == TRAP_INSTRUCTION
             // I print a core dump and then I signal an error: an exception happened while
             // exceptions were disabled in the processor core
             THROW_EXCEPTION("@"<<sc_core::sc_time_stamp()<<" /"<<(unsigned)sc_core::sc_delta_count()
