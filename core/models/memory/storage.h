@@ -18,16 +18,19 @@
 #include "core/common/sr_registry.h"
 
 #define \
-  SR_HAS_MEMORYSTORAGE_GENERATOR(type, funct) \
-  static SrModuleRegistry __sr_module_registry_##funct##__("MemoryStorage", #type, &funct, __FILE__); \
-  volatile SrModuleRegistry *__sr_module_registry_##type = &__sr_module_registry_##funct##__;
+  SR_HAS_MEMORYSTORAGE_GENERATOR(type, factory, isinstance) \
+  static SrModuleRegistry __sr_module_registry_##type##__("MemoryStorage", #type, &factory, &isinstance, __FILE__); \
+  volatile SrModuleRegistry *__sr_module_registry_##type = &__sr_module_registry_##type##__;
 
 #define \
   SR_HAS_MEMORYSTORAGE(type) \
     sc_core::sc_object *create_##type(sc_core::sc_module_name mn) { \
       return new type(mn); \
     } \
-    SR_HAS_MEMORYSTORAGE_GENERATOR(type, create_##type);
+    bool isinstance_of_##type(sc_core::sc_object *obj) { \
+      return dynamic_cast<type *>(obj) != NULL; \
+    } \
+    SR_HAS_MEMORYSTORAGE_GENERATOR(type, create_##type, isinstance_of_##type);
 
 
 

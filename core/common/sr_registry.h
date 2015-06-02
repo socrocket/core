@@ -21,10 +21,12 @@ class SrModuleRegistry {
   public:
     typedef std::map<std::string, SrModuleRegistry *> map_t;
     typedef std::map<std::string, map_t> map_map_t;
-    typedef sc_core::sc_object *(*generator_f)(sc_core::sc_module_name);
-    SrModuleRegistry(std::string group, std::string type, generator_f funct, std::string file);
+    typedef sc_core::sc_object *(*factory_f)(sc_core::sc_module_name);
+    typedef bool (*isinstance_f)(sc_core::sc_object *obj);
+    SrModuleRegistry(std::string group, std::string type, factory_f factory, isinstance_f isinstance, std::string file);
     void included();
     static sc_core::sc_object *create_object_by_name(std::string group, std::string type, std::string name);
+    static std::string get_type_of(sc_core::sc_object *obj);
     static std::set<std::string> get_module_files(std::string group);
     static std::set<std::string> get_module_names(std::string group);
     static std::set<std::string> get_group_names();
@@ -32,22 +34,26 @@ class SrModuleRegistry {
   private:
     static map_t &get_group(std::string group);
     static map_map_t *m_members;
-    generator_f m_funct;
+    factory_f m_factory;
+    isinstance_f m_isinstance;
     const std::string m_file;
 };
 
 
 #define \
-  SR_HAS_MODULE_GENERATOR(type, funct) \
-  static SrModuleRegistry __sr_module_registry_##funct##__("module", #type, &funct, __FILE__); \
-  volatile SrModuleRegistry *__sr_module_registry_##type = &__sr_module_registry_##funct##__;
+  SR_HAS_MODULE_GENERATOR(type, factory, isinstance) \
+  static SrModuleRegistry __sr_module_registry_##type##__("module", #type, &factory, &isinstance, __FILE__); \
+  volatile SrModuleRegistry *__sr_module_registry_##type = &__sr_module_registry_##type##__;
 
 #define \
   SR_HAS_MODULE(type) \
     sc_core::sc_object *create_##type(sc_core::sc_module_name mn) { \
       return new type(mn); \
     } \
-    SR_HAS_MODULE_GENERATOR(type, create_##type);
+    bool isinstance_of_##type(sc_core::sc_object *obj) { \
+      return dynamic_cast<type *>(obj) != NULL; \
+    } \
+    SR_HAS_MODULE_GENERATOR(type, create_##type, isinstance_of_##type);
 
 #define \
   SR_INCLUDE_MODULE(type) \
