@@ -1,7 +1,7 @@
 // vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
 /// @addtogroup apbuart
 /// @{
-/// @file nullio.h
+/// @file reportio.h
 /// Class implementing the communication among the simulated UART component and
 /// the
 ///
@@ -13,14 +13,17 @@
 /// @author Thomas Schuster
 ///
 
-#ifndef MODELS_APBUART_NULLIO_H_
-#define MODELS_APBUART_NULLIO_H_
+#ifndef MODELS_APBUART_REPORTIO_H_
+#define MODELS_APBUART_REPORTIO_H_
 
 #include "core/models/apbuart/io_if.h"
+#include "core/common/systemc.h"
+#include "core/common/base.h"
+#include "core/common/sr_report.h"
 
-class NullIO : public io_if {
+class ReportIO : public BaseModule<DefaultBase>, public io_if {
   public:
-    NullIO();
+    ReportIO(sc_core::sc_module_name nm);
 
     /// Receives a character; returns true if read the character is valid,
     /// false in case the character is not valid (such as if we are communicating
@@ -34,7 +37,13 @@ class NullIO : public io_if {
 
     /// Creates a connection
     void makeConnection();
+
+    /// Defines if single characters are send or only complete lines
+    gs::gs_config<bool> g_lines;
+
+  private:
+    std::string line;
 };
 
-#endif  // MODELS_APBUART_NULLIO_H_
+#endif  // MODELS_APBUART_REPORTIO_H_
 /// @}
