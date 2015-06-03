@@ -853,42 +853,6 @@ class GDBStub : public ToolsIf<issueWidth>, public MemoryToolsIf<issueWidth>, pu
         } else if (custComm == "hist") {
           // Now I have to print the last n executed instructions; lets first get such number n
           resp.type = GDBResponse::OUTPUT_rsp;
-/*#ifndef ENABLE_HISTORY
-          resp.message =
-            "\nInstruction History not enabled at compile time: please reconfigure the project with the --enable-history option\n\n";
-#else
-          unsigned int histLen = 0;
-          try {
-            histLen = boost::lexical_cast<unsigned int>(req.extension.substr(spacePos + 1));
-          } catch (...) {
-            resp.message = "\nPlease specify a correct history length\n\n";
-          }
-          if (histLen > 1000) {
-            resp.message = "\nAt maximum 1000 instructions are kept in the history\n\n";
-          }
-          // Lets now print the history
-          boost::circular_buffer<HistoryInstrType> &historyQueue = processorInstance.getInstructionHistory();
-          std::vector<std::string> histVec;
-          boost::circular_buffer<HistoryInstrType>::const_reverse_iterator beg, end;
-          unsigned int histRead = 0;
-          for (histRead = 0, beg = historyQueue.rbegin(), end = historyQueue.rend();
-               beg != end && histRead < histLen;
-               beg++, histRead++) {
-            histVec.push_back(beg->toStr());
-          }
-          resp.message += "\nAddress\t\tname\t\t\tmnemonic\t\tcycle\n\n";
-          std::vector<std::string>::const_reverse_iterator histVecBeg, histVecEnd;
-          unsigned int sentLines = 0;
-          for (histVecBeg = histVec.rbegin(), histVecEnd = histVec.rend(); histVecBeg != histVecEnd; histVecBeg++) {
-            resp.message += *histVecBeg + "\n";
-            sentLines++;
-            if (sentLines == 5) {
-              sentLines = 0;
-              this->connManager.sendResponse(resp);
-              resp.message = "";
-            }
-          }
-#endif*/
           this->connManager.sendResponse(resp);
           resp.type = GDBResponse::OK_rsp;
         } else if (custComm == "help") {

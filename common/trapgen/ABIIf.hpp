@@ -97,7 +97,6 @@ class ABIIf {
     virtual bool isRoutineExit(const InstructionBase *instr) throw() = 0;
     virtual unsigned char*getState() const throw() = 0;
     virtual void setState(unsigned char *state) throw() = 0;
-    //virtual boost::circular_buffer<HistoryInstrType>&getInstructionHistory() = 0;
     virtual ~ABIIf() {}
 };
 }

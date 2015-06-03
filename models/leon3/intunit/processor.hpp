@@ -72,7 +72,6 @@ namespace leon3_funclt_trap{
         unsigned int profStartAddr;
         unsigned int profEndAddr;
         //std::ofstream histFile;
-        //bool historyEnabled;
         bool instrExecuting;
         sc_event instrEndEvent;
         Instruction **INSTRUCTIONS;
@@ -121,7 +120,6 @@ namespace leon3_funclt_trap{
         sc_time latency;
         sc_time profTimeStart;
         sc_time profTimeEnd;
-        //boost::circular_buffer< HistoryInstrType > instHistoryQueue;
         unsigned int undumpedHistElems;
         unsigned int ENTRY_POINT;
         unsigned int MPROC_ID;
@@ -133,7 +131,6 @@ namespace leon3_funclt_trap{
         gs::gs_config<bool> historyEnabled;
         bool m_pow_mon;
         void setProfilingRange( unsigned int startAddr, unsigned int endAddr );
-        //void enableHistory( std::string fileName = "" );
         IRQ_IRQ_Instruction * IRQ_irqInstr;
         ~Processor_leon3_funclt();
 
