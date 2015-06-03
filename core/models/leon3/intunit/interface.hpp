@@ -74,7 +74,6 @@ namespace leon3_funclt_trap{
         Alias * REGS;
         bool & instrExecuting;
         sc_event & instrEndEvent;
-        //boost::circular_buffer< HistoryInstrType > & instHistoryQueue;
         int routineEntryState;
         int routineExitState;
         std::vector< std::vector< std::string > > routineEntrySequence;
@@ -84,8 +83,8 @@ namespace leon3_funclt_trap{
         LEON3_ABIIf( unsigned int & PROGRAM_LIMIT, MemoryInterface & dataMem, Reg32_0 & PSR, \
             Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass \
             & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias \
-            & PCR, Alias * REGS, bool & instrExecuting, sc_event & instrEndEvent );/*, boost::circular_buffer< \
-            HistoryInstrType > & instHistoryQueue*/
+            & PCR, Alias * REGS, bool & instrExecuting, sc_event & instrEndEvent );
+            
         bool isLittleEndian() const throw();
         int getProcessorID() const throw();
         bool isInstrExecuting() const throw();
@@ -117,7 +116,6 @@ namespace leon3_funclt_trap{
         unsigned char readCharMem( const unsigned int & address );
         void writeMem( const unsigned int & address, unsigned int datum );
         void writeCharMem( const unsigned int & address, unsigned char datum );
-        //boost::circular_buffer< HistoryInstrType > & getInstructionHistory();
         virtual ~LEON3_ABIIf();
     };
 
