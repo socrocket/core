@@ -386,7 +386,7 @@ conf(dep_path)
 
 @TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('cxxstlib')
-def export_hase_define(self):
+def export_has_define(self):
   defines = getattr(self, 'export_defines', [])
   defines = Utils.to_list(defines)
   defines += ["HAVE_" + self.target.replace(".", "_").upper()]
