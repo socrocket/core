@@ -119,19 +119,19 @@ int sc_main(int argc, char** argv) {
 
 #ifdef HAVE_USI
     // Initialize Python
-    USI_HAS_MODULE(systemc_);
+    USI_HAS_MODULE(systemc);
     USI_HAS_MODULE(registry);
     USI_HAS_MODULE(delegate);
     USI_HAS_MODULE(greensocket);
     USI_HAS_MODULE(scireg);
     USI_HAS_MODULE(amba);
     USI_HAS_MODULE(report);
-    USI_HAS_MODULE(parameter_);
+    USI_HAS_MODULE(cci);
     USI_HAS_MODULE(mtrace);
     usi_init(argc, argv);
 
-    usi_load("usi.api.systemc");
-    usi_load("usi.api.delegate");
+    // Core APIs will be loaded by usi_init:
+    // usi, usi.systemc, usi.api.delegate, usi.api.report
     usi_load("usi.api.greensocket");
     usi_load("usi.api.scireg");
     usi_load("usi.api.amba");
