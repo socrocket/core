@@ -269,7 +269,7 @@ def fetch(self, *k, **kw):
                 )
             else:
                 self.cmd_and_log(
-                    [self.env.CURL, "-O", tar_url, "-o", kw["tar"]],
+                    [self.env.CURL, tar_url, "-o", kw["tar"]],
                     output=Context.BOTH,
                     cwd=kw["BASE_PATH_FETCH"]
                 )
