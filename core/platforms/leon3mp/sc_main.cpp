@@ -123,7 +123,7 @@ int sc_main(int argc, char** argv) {
     USI_HAS_MODULE(scireg);
     USI_HAS_MODULE(amba);
     USI_HAS_MODULE(report);
-    USI_HAS_MODULE(parameter_);
+    USI_HAS_MODULE(cci);
     USI_HAS_MODULE(mtrace);
     usi_init(argc, argv);
 
