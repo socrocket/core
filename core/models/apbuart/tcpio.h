@@ -20,20 +20,23 @@
 #include <string>
 
 #include "core/models/apbuart/io_if.h"
+#include "core/common/base.h"
+#include "core/common/verbose.h"
+#include "core/common/sr_report.h"
 
-class TcpIo : public sc_core::sc_object, public io_if {
+class TcpIO : public BaseModule<DefaultBase>, public io_if {
   private:
     /// Represents the currently open connection
     boost::asio::ip::tcp::socket *socket;
 
     /// The port on which the connection takes place;
-    unsigned int port;
+    gs::gs_config<unsigned int> g_port;
 
   public:
     /// Opens a new socket connection on the specified port
-    TcpIo(ModuleName mn, unsigned int port = 2000, bool test = false);
+    TcpIO(ModuleName mn, unsigned int port = 2000, bool test = false);
 
-    ~TcpIo();
+    ~TcpIO();
 
     /// Receives a character; returns true if read the character is valid,
     /// false in case the character is not valid (such as if we are communicating
@@ -47,11 +50,12 @@ class TcpIo : public sc_core::sc_object, public io_if {
 
     /// Creates a connection
     void makeConnection();
+
 };
 
 struct ConnectionThread {
-  TcpIo *sock;
-  explicit ConnectionThread(TcpIo *sock) : sock(sock) {}
+  TcpIO *sock;
+  explicit ConnectionThread(TcpIO *sock) : sock(sock) {}
   void operator()() {
     sock->makeConnection();
   }
