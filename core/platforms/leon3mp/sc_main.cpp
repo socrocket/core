@@ -42,7 +42,7 @@
 #include "core/models/gptimer/gptimer.h"
 #include "core/models/apbuart/apbuart.h"
 #include "core/models/apbuart/tcpio.h"
-#include "core/models/apbuart/nullio.h"
+#include "core/models/apbuart/reportio.h"
 #include "core/models/irqmp/irqmp.h"
 #include "core/models/ahbctrl/ahbctrl.h"
 #include "core/models/ahbprof/ahbprof.h"
@@ -113,22 +113,25 @@ int sc_main(int argc, char** argv) {
 
     SR_INCLUDE_MODULE(ArrayStorage);
     SR_INCLUDE_MODULE(MapStorage);
+    SR_INCLUDE_MODULE(ReportIO);
+    SR_INCLUDE_MODULE(TcpIO);
+
 
 #ifdef HAVE_USI
     // Initialize Python
-    USI_HAS_MODULE(systemc_);
+    USI_HAS_MODULE(systemc);
     USI_HAS_MODULE(registry);
     USI_HAS_MODULE(delegate);
     USI_HAS_MODULE(greensocket);
     USI_HAS_MODULE(scireg);
     USI_HAS_MODULE(amba);
     USI_HAS_MODULE(report);
-    USI_HAS_MODULE(parameter_);
+    USI_HAS_MODULE(cci);
     USI_HAS_MODULE(mtrace);
     usi_init(argc, argv);
 
-    usi_load("usi.api.systemc");
-    usi_load("usi.api.delegate");
+    // Core APIs will be loaded by usi_init:
+    // usi, usi.systemc, usi.api.delegate, usi.api.report
     usi_load("usi.api.greensocket");
     usi_load("usi.api.scireg");
     usi_load("usi.api.amba");
@@ -703,7 +706,7 @@ int sc_main(int argc, char** argv) {
 
     // APBSlave - APBUart
     // ==================
-    gs::gs_param_array p_apbuart("apbuart", p_conf);
+    gs::gs_param_array p_apbuart("apbuart0", p_conf);
     gs::gs_param<bool> p_apbuart_en("en", false, p_apbuart);
     gs::gs_param<unsigned int> p_apbuart_index("index", 1, p_apbuart);
     gs::gs_param<unsigned int> p_apbuart_addr("addr", 0x001, p_apbuart);
@@ -711,19 +714,21 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_apbuart_irq("irq", 2u, p_apbuart);
     gs::gs_param<unsigned int> p_apbuart_type("type", 1, p_apbuart);
     gs::gs_param<unsigned int> p_apbuart_port("port", 2000, p_apbuart);
-    int port = (unsigned int)p_apbuart_port;
-    io_if *uart_io = NULL;
+    std::string uart_backend;
+    //int port = (unsigned int)p_apbuart_port;
+    //io_if *uart_io = NULL;
     if(p_apbuart_en) {
       switch(p_apbuart_type) {
         case 1:
-          uart_io = new TcpIo("TcpIo", port);
+          uart_backend = "TcpIO";
           break;
         default:
-          uart_io = new NullIO();
+          uart_backend = "ReportIO";
           break;
       }
 
-      APBUART *apbuart = new APBUART(sc_core::sc_gen_unique_name("apbuart", true), uart_io,
+      APBUART *apbuart = new APBUART(sc_core::sc_gen_unique_name("apbuart0", true),
+        uart_backend,
         p_apbuart_index,           // index
         p_apbuart_addr,            // paddr
         p_apbuart_mask,            // pmask
@@ -750,19 +755,18 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_apbuart1_irq("irq", 3, p_apbuart1); // 4???
     gs::gs_param<unsigned int> p_apbuart1_type("type", 0u, p_apbuart1);
     gs::gs_param<unsigned int> p_apbuart1_port("port", 3000, p_apbuart1);
-    int port1 = (unsigned int)p_apbuart1_port;
-    io_if *uart1_io = NULL;
     if(p_apbuart1_en) {
       switch(p_apbuart1_type) {
         case 1:
-          uart1_io = new TcpIo("TcpIo2", port1);
+          uart_backend = "TcpIO";
           break;
         default:
-          uart1_io = new NullIO();
+          uart_backend = "ReportIO";
           break;
       }
 
-      APBUART *apbuart1 = new APBUART(sc_core::sc_gen_unique_name("apbuart1", true), uart1_io,
+      APBUART *apbuart1 = new APBUART(sc_core::sc_gen_unique_name("apbuart1", true),
+        uart_backend,
         p_apbuart1_index,           // index
         p_apbuart1_addr,            // paddr
         p_apbuart1_mask,            // pmask

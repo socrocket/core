@@ -21,7 +21,7 @@
 // Constructor: create all members, registers and Counter objects.
 // Store configuration default value in conf_defaults.
 APBUART::APBUART(ModuleName name,
-  io_if *backend,
+  std::string uart_backend,
   uint16_t pindex,
   uint16_t paddr,
   uint16_t pmask,
@@ -30,7 +30,6 @@ APBUART::APBUART(ModuleName name,
   bool powmon) :
   APBSlave(name, pindex, 0x1, 0x00C, 1, pirq, APBIO, pmask, false, false, paddr),
   irq("IRQ"),
-  m_backend(backend),
   g_pirq(pirq),
   g_console("console", console, m_generics),
   powermon(powmon) {
@@ -50,6 +49,14 @@ APBUART::APBUART(ModuleName name,
           << endl;
 
   init_registers();
+
+  sc_core::sc_object *obj = SrModuleRegistry::create_object_by_name("UARTBackend", uart_backend, "backend");
+  m_backend = dynamic_cast<io_if *>(obj);
+  if (!m_backend) {
+    srError("APBUART")
+      ("backend", uart_backend)
+      ("UART backend not created");
+  }
 
   // Configuration report
   v::info << this->name() << " ******************************************************************************* " <<
