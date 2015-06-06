@@ -97,7 +97,7 @@ int main()
 
   int *p_a = &A[0] ;
   int *p_b = &B[0] ;
-  int *p_c = &C[0] ;
+  volatile int *p_c = &C[0] ;
 
   int f,i,k ;
 
