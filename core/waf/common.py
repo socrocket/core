@@ -246,7 +246,7 @@ def fetch(self, *k, **kw):
                     output=Context.BOTH,
                     cwd=fetch_path
                 )
-            self.end_msg("Ok")
+            self.end_msg("ok")
 
         else:
             self.end_msg("Already done")
@@ -264,7 +264,7 @@ def fetch(self, *k, **kw):
                 output=Context.BOTH, 
                 cwd=kw["BASE_PATH_FETCH"]
             )
-            self.end_msg("Ok")
+            self.end_msg("ok")
         else:
             self.end_msg("Already done")
 
@@ -276,7 +276,7 @@ def fetch(self, *k, **kw):
         if not os.path.exists(fetch_path):
             msg = kw.get("no_tar_msg",
                 "Searched for %(tar)s and it was not found. "
-                "please download it yourself an place it in %(path)s"
+                "please download it yourself and place it in %(path)s"
             )
             self.fatal(msg % {"tar": kw["tar"], "path": kw["BASE_PATH_FETCH"]})
         if not os.path.isdir(kw["src"]):
@@ -285,7 +285,7 @@ def fetch(self, *k, **kw):
                 output=Context.BOTH, 
                 cwd=os.path.dirname(kw["src"])
             )
-            self.end_msg("Ok")
+            self.end_msg("ok")
         else:
             self.end_msg("Already done")
 
@@ -303,7 +303,7 @@ def fetch(self, *k, **kw):
                    output=Context.BOTH,
                    cwd=kw["src"],
                )
-               self.end_msg("Ok")
+               self.end_msg("ok")
            except Errors.WafError, e:
                self.end_msg("Failed, make sure patch %s was already applied" % patch)
     return k, kw
@@ -339,7 +339,7 @@ def dep_build(self, *k, **kw):
                 shell=True,
                 cwd=kw.get("config_cwd",kw["build"]) % kw
             )
-            self.end_msg("Ok")
+            self.end_msg("ok")
 
             self.start_msg("  Compile %s" % kw["name"])
             self.cmd_and_log(
@@ -349,7 +349,7 @@ def dep_build(self, *k, **kw):
                 shell=True,
                 cwd=kw.get("build_cwd",kw["build"]) % kw
             )
-            self.end_msg("Ok")
+            self.end_msg("ok")
         
         if not os.path.exists(kw["prefix"]):
             self.start_msg("  Install %s" % kw["name"])
@@ -360,7 +360,7 @@ def dep_build(self, *k, **kw):
                 shell=True,
                 cwd=kw.get("install_cwd",kw["build"]) % kw
             )
-            self.end_msg("Ok")
+            self.end_msg("ok")
     else:
         self.end_msg("Already done")
 
