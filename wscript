@@ -75,6 +75,7 @@ def configure(self):
     ))
     
 def build(self):
+    self.load(LOAD) # reload python2 and configuration
     logger = Logger("%s/build.log" % self.bldnode.abspath())
     sys.stdout = logger
     sys.stderr = logger

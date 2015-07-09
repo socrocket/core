@@ -51,29 +51,6 @@
 #include <fstream>
 #include <boost/circular_buffer.hpp>
 #include "core/common/trapgen/instructionBase.hpp"
-#ifdef __GNUC__
-#ifdef __GNUC_MINOR__
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
-#include <tr1/unordered_map>
-#define template_map std::tr1::unordered_map
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#ifdef _WIN32
-#include <hash_map>
-#define  template_map stdext::hash_map
-#else
-#include <map>
-#define  template_map std::map
-#endif
-#endif
-
 #include "core/models/leon3/intunit/irqPorts.hpp"
 #include "core/models/leon3/intunit/externalPins.hpp"
 #include <string>
@@ -84,10 +61,10 @@ using namespace leon3_funclt_trap;
 using namespace trap;
 void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
     bool startMet = false;
-    template_map< unsigned int, CacheElem >::iterator instrCacheEnd = this->instrCache.end();
+    vmap< unsigned int, CacheElem >::iterator instrCacheEnd = this->instrCache.end();
 
     unsigned int firstPC = this->PC + 0;
-    unsigned int firstbitString = this->instrMem.read_instr(firstPC,0);
+    unsigned int firstbitString = this->instrMem.read_instr(firstPC, 0x8 | (PSR[key_S]? 1 : 0), 0);
     int firstinstrId = this->decoder.decode(firstbitString);
     Instruction *firstinstr = this->INSTRUCTIONS[firstinstrId];
     raisedException = 0;
@@ -130,22 +107,15 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                 } else if(startMet && curPC == this->profEndAddr){
                     this->profTimeEnd = sc_time_stamp();
                 }
-                #ifdef ENABLE_HISTORY
-                HistoryInstrType instrQueueElem;
-                if (this->historyEnabled){
-                    instrQueueElem.cycle = (unsigned int)(this->quantKeeper.get_current_time()/this->latency);
-                    instrQueueElem.address = curPC;
-                }
-                #endif
 
                 int instrId = 0;
-                unsigned int bitString = this->instrMem.read_instr(curPC,0);
+                unsigned int bitString = this->instrMem.read_instr(curPC, 0x8 | (PSR[key_S]? 1 : 0),0);
                 if(raisedException) {
                     unsigned int exception = raisedException;
                     raisedException = 0;
                     curInstrPtr->RaiseException(this->curPC, this->PC, exception);
                 }
-                template_map< unsigned int, CacheElem >::iterator cachedInstr = this->instrCache.find(bitString);
+                vmap< unsigned int, CacheElem >::iterator cachedInstr = this->instrCache.find(bitString);
                 unsigned int *curCount = NULL;
                 if(cachedInstr != instrCacheEnd) {
                     curInstrPtr = cachedInstr->second.instr;
@@ -164,9 +134,13 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                     curInstrPtr->setParams(bitString);
                 }
                 #ifdef ENABLE_HISTORY
+                //TODO(bfarkas): remove ifdef?
                 if (this->historyEnabled) {
-                    instrQueueElem.name = curInstrPtr->getInstructionName();
-                    instrQueueElem.mnemonic = curInstrPtr->getMnemonic();
+                    srInfo()
+                        ("Address",curPC)
+                        ("Name",curInstrPtr->getInstructionName())
+                        ("Mnemonic",curInstrPtr->getMnemonic())
+                        ("Instruction History");
                 }
                 #endif
                 try {
@@ -183,7 +157,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                 }
                 if (cachedInstr != instrCacheEnd) {
                     if (curCount && *curCount < 256) {
-                        *curCount++;
+//                        *curCount++; // ????
                     } else if (curCount) {
                         // ... and then add the instruction to the cache
                         cachedInstr->second.instr = curInstrPtr;
@@ -193,25 +167,6 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                     this->instrCache.insert(std::pair< unsigned int, CacheElem >(bitString, CacheElem()));
                     instrCacheEnd = this->instrCache.end();
                 }
-                #ifdef ENABLE_HISTORY
-                if (this->historyEnabled) {
-                    // First I add the new element to the queue
-                    this->instHistoryQueue.push_back(instrQueueElem);
-                    //Now, in case the queue dump file has been specified, I have to check if I need
-                    //to save it
-                    if (this->histFile){
-                        this->undumpedHistElems++;
-                        if (undumpedHistElems == this->instHistoryQueue.capacity()) {
-                            boost::circular_buffer<HistoryInstrType>::const_iterator beg, end;
-                            for(beg = this->instHistoryQueue.begin(), end = this->instHistoryQueue.end(); beg \
-                                != end; beg++){
-                                this->histFile << beg->toStr() << std::endl;
-                            }
-                            this->undumpedHistElems = 0;
-                        }
-                    }
-                }
-                #endif
             } catch (annull_exception &etc) {
                 numCycles = 0;
             }
@@ -374,11 +329,6 @@ void leon3_funclt_trap::Processor_leon3_funclt::setProfilingRange( unsigned int 
     this->profEndAddr = endAddr;
 }
 
-void leon3_funclt_trap::Processor_leon3_funclt::enableHistory( std::string fileName ){
-    this->historyEnabled = true;
-    this->histFile.open(fileName.c_str(), ios::out | ios::ate);
-}
-
 leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
     sc_module_name name,
     MemoryInterface *memory,
@@ -391,6 +341,7 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
       latency(latency), 
       IRQ_port("IRQ_IRQ", IRQ),
       irqAck("irqAck_PIN"),
+      historyEnabled("historyEnabled", false),
       m_pow_mon(pow_mon),
       sta_power_norm("power.leon3.sta_power_norm", 5.27e+8, true), // norm. static power
       int_power_norm("power.leon3.int_power_norm", 5.497e-6, true), // norm. dynamic power
@@ -754,8 +705,7 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
     this->profTimeEnd = SC_ZERO_TIME;
     this->profStartAddr = (unsigned int)-1;
     this->profEndAddr = (unsigned int)-1;
-    this->historyEnabled = false;
-    this->instHistoryQueue.set_capacity(1000);
+    this->historyEnabled = false; 
     this->undumpedHistElems = 0;
     this->numInstructions = 0;
     this->ENTRY_POINT = 0;
@@ -764,8 +714,7 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
     this->PROGRAM_START = 0;
     this->abiIf = new LEON3_ABIIf(this->PROGRAM_LIMIT, this->dataMem, this->PSR, this->WIM, \
         this->TBR, this->Y, this->PC, this->NPC, this->GLOBAL, this->WINREGS, this->ASR, \
-        this->FP, this->LR, this->SP, this->PCR, this->REGS, this->instrExecuting, this->instrEndEvent, \
-        this->instHistoryQueue);
+        this->FP, this->LR, this->SP, this->PCR, this->REGS, this->instrExecuting, this->instrEndEvent );
     SC_THREAD(mainLoop);
 
     // Register power callback functions
@@ -789,36 +738,12 @@ leon3_funclt_trap::Processor_leon3_funclt::~Processor_leon3_funclt(){
         delete this->INSTRUCTIONS[i];
     }
     delete [] this->INSTRUCTIONS;
-    template_map< unsigned int, CacheElem >::const_iterator cacheIter, cacheEnd;
+    vmap< unsigned int, CacheElem >::const_iterator cacheIter, cacheEnd;
     for(cacheIter = this->instrCache.begin(), cacheEnd = this->instrCache.end(); cacheIter \
         != cacheEnd; cacheIter++){
         delete cacheIter->second.instr;
     }
     delete this->abiIf;
     delete this->IRQ_irqInstr;
-    #ifdef ENABLE_HISTORY
-    if(this->historyEnabled){
-        //Now, in case the queue dump file has been specified, I have to check if I need
-        //to save the yet undumped elements
-        if(this->histFile){
-            if(this->undumpedHistElems > 0){
-                std::vector<std::string> histVec;
-                boost::circular_buffer<HistoryInstrType>::const_reverse_iterator beg, end;
-                unsigned int histRead = 0;
-                for(histRead = 0, beg = this->instHistoryQueue.rbegin(), end = this->instHistoryQueue.rend(); \
-                    beg != end && histRead < this->undumpedHistElems; beg++, histRead++){
-                    histVec.push_back(beg->toStr());
-                }
-                std::vector<std::string>::const_reverse_iterator histVecBeg, histVecEnd;
-                for(histVecBeg = histVec.rbegin(), histVecEnd = histVec.rend(); histVecBeg != histVecEnd; \
-                    histVecBeg++){
-                    this->histFile <<  *histVecBeg << std::endl;
-                }
-            }
-            this->histFile.flush();
-            this->histFile.close();
-        }
-    }
-    #endif
 }
 

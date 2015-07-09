@@ -15,6 +15,7 @@
 
 #include "core/common/systemc.h"
 #include "core/common/sc_register.h"
+#include "core/common/base.h"
 #include "core/common/sr_report.h"
 
 /// lsb0 mode is used in field position specification.
@@ -217,7 +218,9 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
     }
 
     sr_register<DATA_TYPE> &create_register(const char *name, ADDR_TYPE addr, DATA_TYPE init_val, DATA_TYPE write_mask) {
+      sr_hierarchy_push(this);
       sr_register<DATA_TYPE> *reg = new sr_register<DATA_TYPE>(name, init_val, write_mask);
+      sr_hierarchy_pop();
       m_register[addr] = reg;
       m_registers.push_back(reg);
       this->m_size = m_registers.size();
@@ -225,7 +228,9 @@ class sr_register_bank : public sc_register_bank<ADDR_TYPE, DATA_TYPE> {
     }
 
     sr_register<DATA_TYPE> &create_register(const char *name, const char *descr, ADDR_TYPE addr, DATA_TYPE init_val, DATA_TYPE write_mask) {
+      sr_hierarchy_push(this);
       sr_register<DATA_TYPE> *reg = new sr_register<DATA_TYPE>(name, descr, init_val, write_mask);
+      sr_hierarchy_pop();
       m_register.insert(std::make_pair(addr, reg));
       m_registers.push_back(reg);
       this->m_size = m_registers.size();

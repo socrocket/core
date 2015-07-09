@@ -65,4 +65,8 @@ const uint32_t MEMDevice::get_bits() const {
 const uint32_t MEMDevice::get_cols() const {
   return g_cols;
 }
+
+const uint32_t MEMDevice::get_size() const {
+  return g_bsize * ((g_banks < 5) ? g_banks : 8);
+}
 /// @}

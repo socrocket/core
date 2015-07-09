@@ -21,6 +21,8 @@
 #include "core/models/irqmp/irqmp.h"
 #include "core/common/verbose.h"
 
+SR_HAS_MODULE(Irqmp);
+
 /// Constructor
 Irqmp::Irqmp(ModuleName name,
   int paddr,
@@ -29,7 +31,8 @@ Irqmp::Irqmp(ModuleName name,
   int eirq,
   unsigned int pindex,
   bool powmon) :
-  APBSlave(name, pindex, 0x01, 0x00D, 3, 0, APBIO, pmask, false, false, paddr),
+  APBSlave(name, pindex, 0x01, 0x00D, 2, /* VER: SoCRocket default: 3, try to Mimic TSIM therefore 2 -- psiegl */
+            0, APBIO, pmask, false, false, paddr),
   cpu_rst("CPU_RESET"), cpu_stat("CPU_STAT"), irq_req("CPU_REQUEST"),
   irq_ack(&Irqmp::acknowledged_irq, "IRQ_ACKNOWLEDGE"),
   irq_in(&Irqmp::incomming_irq, "IRQ_INPUT"),

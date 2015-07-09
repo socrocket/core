@@ -28,7 +28,6 @@
 #include "core/common/verbose.h"
 
 // template<class BASE = DefaultBase>
-// class MemoryPower : public BASE {
 class MemoryPower : public MEMDevice, public CLKDevice, public BaseMemory {
   public:
     GC_HAS_CALLBACKS();
@@ -40,7 +39,6 @@ class MemoryPower : public MEMDevice, public CLKDevice, public BaseMemory {
     uint32_t bsize = 128,
     uint32_t bits = 32,
     uint32_t cols = 16,
-    BaseMemory::implementation_type implementation = BaseMemory::ARRAY,
     bool pow_mon = false);
 
     ~MemoryPower();

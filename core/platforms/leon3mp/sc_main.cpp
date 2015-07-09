@@ -42,7 +42,7 @@
 #include "core/models/gptimer/gptimer.h"
 #include "core/models/apbuart/apbuart.h"
 #include "core/models/apbuart/tcpio.h"
-#include "core/models/apbuart/nullio.h"
+#include "core/models/apbuart/reportio.h"
 #include "core/models/irqmp/irqmp.h"
 #include "core/models/ahbctrl/ahbctrl.h"
 #include "core/models/ahbprof/ahbprof.h"
@@ -111,21 +111,27 @@ int sc_main(int argc, char** argv) {
     gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
     gs::cnf::ConfigPlugin configPlugin(&cnfdatabase);
 
+    SR_INCLUDE_MODULE(ArrayStorage);
+    SR_INCLUDE_MODULE(MapStorage);
+    SR_INCLUDE_MODULE(ReportIO);
+    SR_INCLUDE_MODULE(TcpIO);
+
+
 #ifdef HAVE_USI
     // Initialize Python
-    USI_HAS_MODULE(systemc_);
+    USI_HAS_MODULE(systemc);
     USI_HAS_MODULE(registry);
     USI_HAS_MODULE(delegate);
     USI_HAS_MODULE(greensocket);
     USI_HAS_MODULE(scireg);
     USI_HAS_MODULE(amba);
     USI_HAS_MODULE(report);
-    USI_HAS_MODULE(parameter_);
+    USI_HAS_MODULE(cci);
     USI_HAS_MODULE(mtrace);
     usi_init(argc, argv);
 
-    usi_load("usi.api.systemc");
-    usi_load("usi.api.delegate");
+    // Core APIs will be loaded by usi_init:
+    // usi, usi.systemc, usi.api.delegate, usi.api.report
     usi_load("usi.api.greensocket");
     usi_load("usi.api.scireg");
     usi_load("usi.api.amba");
@@ -136,6 +142,7 @@ int sc_main(int argc, char** argv) {
     //usi_load("tools.python.power");
     usi_load("usi.shell");
     usi_load("usi.tools.execute");
+    usi_load("usi.tools.elf");
 
     usi_start_of_initialization();
 #endif  // HAVE_USI
@@ -232,7 +239,7 @@ int sc_main(int argc, char** argv) {
     // Always enabled
 
     gs::gs_param_array p_irqmp("irqmp", p_conf);
-    gs::gs_param<unsigned int> p_irqmp_addr("addr", 0x1F0, p_irqmp);
+    gs::gs_param<unsigned int> p_irqmp_addr("addr", /*0x1F0*/0x2, p_irqmp); // SoCRocket default: 0x1F0, try to mimic TSIM therefore 0x2 -- psiegl
     gs::gs_param<unsigned int> p_irqmp_mask("mask", 0xFFF, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_index("index", 2, p_irqmp);
     gs::gs_param<unsigned int> p_irqmp_eirq("eirq", 0u, p_irqmp);
@@ -333,14 +340,14 @@ int sc_main(int argc, char** argv) {
                      p_mctrl_prom_bsize * 1024 * 1024,
                      p_mctrl_prom_width,
                      0,
-                     BaseMemory::MAP,
+                     "MapStorage",
                      p_report_power
     );
 
     // Connect to memory controller and clock
     mctrl.mem(rom.bus);
     rom.set_clk(p_system_clock, SC_NS);
-
+#if 0
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_prom_elf("elf", "", p_mctrl_prom);
     if(!((std::string)p_mctrl_prom_elf).empty()) {
@@ -358,6 +365,7 @@ int sc_main(int argc, char** argv) {
         exit(1);
       }
     }
+#endif
 
     // IO memory instantiation
     Memory io( "io",
@@ -366,7 +374,7 @@ int sc_main(int argc, char** argv) {
                p_mctrl_prom_bsize * 1024 * 1024,
                p_mctrl_prom_width,
                0,
-               BaseMemory::MAP,
+               "MapStorage",
                p_report_power
     );
 
@@ -376,7 +384,7 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);
-
+#if 0
     if(!((std::string)p_mctrl_io_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_io_elf))) {
         uint8_t *execData;
@@ -392,6 +400,7 @@ int sc_main(int argc, char** argv) {
         exit(1);
       }
     }
+#endif
 
     // SRAM instantiation
     Memory sram( "sram",
@@ -400,7 +409,7 @@ int sc_main(int argc, char** argv) {
                  p_mctrl_ram_sram_bsize * 1024 * 1024,
                  p_mctrl_ram_sram_width,
                  0,
-                 BaseMemory::MAP,
+                 "MapStorage",
                  p_report_power
     );
 
@@ -410,7 +419,7 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
-
+#if 0
     if(!((std::string)p_mctrl_ram_sram_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sram_elf))) {
         uint8_t *execData;
@@ -426,6 +435,7 @@ int sc_main(int argc, char** argv) {
         exit(1);
       }
     }
+#endif
 
     // SDRAM instantiation
     Memory sdram( "sdram",
@@ -434,7 +444,7 @@ int sc_main(int argc, char** argv) {
                        p_mctrl_ram_sdram_bsize * 1024 * 1024,
                        p_mctrl_ram_sdram_width,
                        p_mctrl_ram_sdram_cols,
-                       BaseMemory::ARRAY,
+                       "ArrayStorage",
                        p_report_power
     );
 
@@ -444,7 +454,7 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sdram_elf("elf", "", p_mctrl_ram_sdram);
-
+#if 0
     if(!((std::string)p_mctrl_ram_sdram_elf).empty()) {
       if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sdram_elf))) {
         uint8_t *execData;
@@ -460,6 +470,7 @@ int sc_main(int argc, char** argv) {
         exit(1);
       }
     }
+#endif
 
 
     //leon3.ENTRY_POINT   = 0;
@@ -493,7 +504,7 @@ int sc_main(int argc, char** argv) {
       // Connect to ahbctrl and clock
       ahbctrl.ahbOUT(ahbmem->ahb);
       ahbmem->set_clk(p_system_clock, SC_NS);
-
+#if 0
       // ELF loader from leon (Trap-Gen)
       if(!((std::string)p_ahbmem_elf).empty()) {
         if(boost::filesystem::exists(boost::filesystem::path((std::string)p_ahbmem_elf))) {
@@ -510,6 +521,7 @@ int sc_main(int argc, char** argv) {
           exit(1);
         }
       }
+#endif
     }
 
 
@@ -694,7 +706,7 @@ int sc_main(int argc, char** argv) {
 
     // APBSlave - APBUart
     // ==================
-    gs::gs_param_array p_apbuart("apbuart", p_conf);
+    gs::gs_param_array p_apbuart("apbuart0", p_conf);
     gs::gs_param<bool> p_apbuart_en("en", false, p_apbuart);
     gs::gs_param<unsigned int> p_apbuart_index("index", 1, p_apbuart);
     gs::gs_param<unsigned int> p_apbuart_addr("addr", 0x001, p_apbuart);
@@ -702,19 +714,21 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_apbuart_irq("irq", 2u, p_apbuart);
     gs::gs_param<unsigned int> p_apbuart_type("type", 1, p_apbuart);
     gs::gs_param<unsigned int> p_apbuart_port("port", 2000, p_apbuart);
-    int port = (unsigned int)p_apbuart_port;
-    io_if *uart_io = NULL;
+    std::string uart_backend;
+    //int port = (unsigned int)p_apbuart_port;
+    //io_if *uart_io = NULL;
     if(p_apbuart_en) {
       switch(p_apbuart_type) {
         case 1:
-          uart_io = new TcpIo("TcpIo", port);
+          uart_backend = "TcpIO";
           break;
         default:
-          uart_io = new NullIO();
+          uart_backend = "ReportIO";
           break;
       }
 
-      APBUART *apbuart = new APBUART(sc_core::sc_gen_unique_name("apbuart", true), uart_io,
+      APBUART *apbuart = new APBUART(sc_core::sc_gen_unique_name("apbuart0", true),
+        uart_backend,
         p_apbuart_index,           // index
         p_apbuart_addr,            // paddr
         p_apbuart_mask,            // pmask
@@ -741,19 +755,18 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_apbuart1_irq("irq", 3, p_apbuart1); // 4???
     gs::gs_param<unsigned int> p_apbuart1_type("type", 0u, p_apbuart1);
     gs::gs_param<unsigned int> p_apbuart1_port("port", 3000, p_apbuart1);
-    int port1 = (unsigned int)p_apbuart1_port;
-    io_if *uart1_io = NULL;
     if(p_apbuart1_en) {
       switch(p_apbuart1_type) {
         case 1:
-          uart1_io = new TcpIo("TcpIo2", port1);
+          uart_backend = "TcpIO";
           break;
         default:
-          uart1_io = new NullIO();
+          uart_backend = "ReportIO";
           break;
       }
 
-      APBUART *apbuart1 = new APBUART(sc_core::sc_gen_unique_name("apbuart1", true), uart1_io,
+      APBUART *apbuart1 = new APBUART(sc_core::sc_gen_unique_name("apbuart1", true),
+        uart_backend,
         p_apbuart1_index,           // index
         p_apbuart1_addr,            // paddr
         p_apbuart1_mask,            // pmask

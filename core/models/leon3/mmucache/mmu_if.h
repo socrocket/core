@@ -27,9 +27,11 @@ class mmu_if {
     public:
 
         // page descriptor cache (PDC) lookup
-        virtual unsigned int tlb_lookup(unsigned int addr, std::map<t_VAT,
-                t_PTE_context> * tlb, unsigned int tlb_size,
-                sc_core::sc_time * t, unsigned int * debug, bool is_dbg, bool &cacheable) = 0;
+        virtual signed tlb_lookup(unsigned int addr, unsigned asi,
+                             std::map<t_VAT, t_PTE_context> * tlb,
+                             unsigned int tlb_size, sc_core::sc_time * t,
+                             unsigned int * debug, bool is_dbg, bool &cacheable,
+                             unsigned is_write /* LOAD / STORE? */, uint64_t * paddr ) = 0;
 
         // read mmu internal registers (ASI 0x19)
         virtual unsigned int read_mcr() = 0;

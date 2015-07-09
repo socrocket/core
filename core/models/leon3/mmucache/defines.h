@@ -67,7 +67,7 @@ typedef struct {
   unsigned int context;
   unsigned int pte;
   uint64_t lru;
-  unsigned int offset_mask;
+  uint64_t page_size;
 } t_PTE_context;
 
 // virtual address tag

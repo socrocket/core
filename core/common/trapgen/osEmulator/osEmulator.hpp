@@ -27,33 +27,10 @@
 #ifndef OSEMULATOR_HPP
 #define OSEMULATOR_HPP
 
-#include <map>
 #include <string>
 
 #include "core/common/systemc.h"
-
-#ifdef __GNUC__
-#ifdef __GNUC_MINOR__
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
-#include <tr1/unordered_map>
-#define template_map std::tr1::unordered_map
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else // ifdef __GNUC__
-#ifdef _WIN32
-#include <hash_map>
-#define  template_map stdext::hash_map
-#else
-#include <map>
-#define  template_map std::map
-#endif
-#endif
+#include "core/common/vmap.h"
 
 #include "core/common/trapgen/ABIIf.hpp"
 #include "core/common/trapgen/ToolsIf.hpp"
@@ -72,9 +49,9 @@ namespace trap {
 template<class issueWidth>
 class OSEmulator : public ToolsIf<issueWidth>, public OSEmulatorBase {
   private:
-    template_map<issueWidth, SyscallCB<issueWidth> *> syscCallbacks;
+    vmap<issueWidth, SyscallCB<issueWidth> *> syscCallbacks;
     ABIIf<issueWidth> &processorInstance;
-    typename template_map<issueWidth, SyscallCB<issueWidth> *>::const_iterator syscCallbacksEnd;
+    typename vmap<issueWidth, SyscallCB<issueWidth> *>::const_iterator syscCallbacksEnd;
     ELFFrontend *elfFrontend;
 
     unsigned int countBits(issueWidth bits) {
@@ -94,11 +71,11 @@ class OSEmulator : public ToolsIf<issueWidth>, public OSEmulatorBase {
         return false;
       }
 
-      typename template_map<issueWidth,
+      typename vmap<issueWidth,
         SyscallCB<issueWidth> *>::iterator foundSysc = this->syscCallbacks.find(symAddr);
       if (foundSysc != this->syscCallbacks.end()) {
         int numMatch = 0;
-        typename template_map<issueWidth, SyscallCB<issueWidth> *>::iterator allCallIter, allCallEnd;
+        typename vmap<issueWidth, SyscallCB<issueWidth> *>::iterator allCallIter, allCallEnd;
         for (allCallIter = this->syscCallbacks.begin(), allCallEnd = this->syscCallbacks.end();
              allCallIter != allCallEnd;
              allCallIter++) {
@@ -118,11 +95,11 @@ class OSEmulator : public ToolsIf<issueWidth>, public OSEmulatorBase {
     }
 
     bool register_syscall(issueWidth address, SyscallCB<issueWidth> &callBack) {
-      typename template_map<issueWidth,
+      typename vmap<issueWidth,
         SyscallCB<issueWidth> *>::iterator foundSysc = this->syscCallbacks.find(address);
       if (foundSysc != this->syscCallbacks.end()) {
         int numMatch = 0;
-        typename template_map<issueWidth, SyscallCB<issueWidth> *>::iterator allCallIter, allCallEnd;
+        typename vmap<issueWidth, SyscallCB<issueWidth> *>::iterator allCallIter, allCallEnd;
         for (allCallIter = this->syscCallbacks.begin(), allCallEnd = this->syscCallbacks.end();
              allCallIter != allCallEnd;
              allCallIter++) {
@@ -146,7 +123,7 @@ class OSEmulator : public ToolsIf<issueWidth>, public OSEmulatorBase {
     }
     std::set<std::string> getRegisteredFunctions() {
       std::set<std::string> registeredFunctions;
-      typename template_map<issueWidth, SyscallCB<issueWidth> *>::iterator emuIter, emuEnd;
+      typename vmap<issueWidth, SyscallCB<issueWidth> *>::iterator emuIter, emuEnd;
       for (emuIter = this->syscCallbacks.begin(), emuEnd = this->syscCallbacks.end(); emuIter != emuEnd; emuIter++) {
         registeredFunctions.insert(this->elfFrontend->symbolAt(emuIter->first));
       }
@@ -539,7 +516,7 @@ class OSEmulator : public ToolsIf<issueWidth>, public OSEmulatorBase {
       // I have to go over all the registered system calls and check if there is one
       // that matches the current program counter. In case I simply call the corresponding
       // callback.
-      typename template_map<issueWidth, SyscallCB<issueWidth> *>::const_iterator foundSysc = this->syscCallbacks.find(
+      typename vmap<issueWidth, SyscallCB<issueWidth> *>::const_iterator foundSysc = this->syscCallbacks.find(
         curPC);
       if (foundSysc != this->syscCallbacksEnd) {
         return (*(foundSysc->second))();

@@ -31,28 +31,8 @@
 #include <string>
 #include <vector>
 
-#ifdef __GNUC__
-#ifdef __GNUC_MINOR__
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
-#include <tr1/unordered_map>
-#define template_map std::tr1::unordered_map
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else // ifdef __GNUC__
-#ifdef _WIN32
-#include <hash_map>
-#define  template_map stdext::hash_map
-#else
-#include <map>
-#define  template_map std::map
-#endif
-#endif
+#include "core/common/vmap.h"
+
 
 namespace trap {
 template<class AddressType>
@@ -66,8 +46,8 @@ struct Breakpoint {
 template<class AddressType>
 class BreakpointManager {
   private:
-    template_map<AddressType, Breakpoint<AddressType> > breakpoints;
-    typename template_map<AddressType, Breakpoint<AddressType> >::iterator lastBreak;
+    vmap<AddressType, Breakpoint<AddressType> > breakpoints;
+    typename vmap<AddressType, Breakpoint<AddressType> >::iterator lastBreak;
   public:
     BreakpointManager() {
       this->lastBreak = this->breakpoints.end();
@@ -111,7 +91,7 @@ class BreakpointManager {
       }
     }
 
-    template_map<AddressType, Breakpoint<AddressType> >&getBreakpoints() throw() {
+    vmap<AddressType, Breakpoint<AddressType> >&getBreakpoints() throw() {
       return this->breakpoints;
     }
 };
