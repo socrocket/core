@@ -50,83 +50,53 @@ class tlb_adaptor : public DefaultBase, public mem_if {
         /// implementation of mem_read function from mem_if.h
         virtual bool mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
                               unsigned int len, sc_core::sc_time * t,
-                              unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
+                              unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock ) {
 
             unsigned int paddr;
-	    unsigned int mmu_ctrl = m_mmu->read_mcr();
-      unsigned int tmp_data;
-      bool cacheable_tlb = true;
+            unsigned int mmu_ctrl = m_mmu->read_mcr();
 
-	    #ifdef LITTLE_ENDIAN_BO
-	    swap_Endianess(mmu_ctrl);
-	    #endif
-      v::debug << name() << "MMU_CONTROL_REG " << hex << mmu_ctrl << endl;
+            #ifdef LITTLE_ENDIAN_BO
+            swap_Endianess(mmu_ctrl);
+            #endif
 
-            // mmu enabled≈
-            if ((mmu_ctrl & 0x1) == 1) {
-
-	      v::debug << name() << "MMU enabled - lookup TLB" << hex << (mmu_ctrl & 0x1) << v::endl;
-              paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug, is_dbg, cacheable_tlb);
-
+            if ( mmu_ctrl & 0x1 ) { // mmu enabled
+                uint64_t t_paddr;
+                if( m_mmu->tlb_lookup(addr, asi, m_tlb, m_tlbnum, t, debug, is_dbg, cacheable, 0, &t_paddr ) )
+                    return false;  // if not 0, tlb_lookup failed! -> no mem_read!
+                paddr = (unsigned int) t_paddr;
             }
-            // mmu in bypass mode
-            else {
-
-        v::debug << name() << "MMU_CONTROL_REG " << hex << mmu_ctrl << endl;
-	      v::debug << name() << "MMU disabled - physical addressing" << hex << (mmu_ctrl & 0x1)  << v::endl;
-              paddr = addr;
-
+            else { // mmu in bypass mode
+                paddr = addr;
             }
 
             // forward request to amba interface - return cacheability
-            v::debug << name() << "tlb_adaptor cacheable: " << cacheable << v::endl;
-            tmp_data = (unsigned int)(*data);
-            swap_Endianess(tmp_data);
-            v::debug << name() << "mem read data: 0x"<< hex << tmp_data << " vaddr: 0x" << hex << addr << " paddr: 0x" << hex << paddr << " mmu: " << (mmu_ctrl & 0x1) << v::endl;
-            return (m_mmu_cache->mem_read(paddr, asi, data, len, t, debug, is_dbg, cacheable, is_lock) && cacheable_tlb);
-
-
-
+            return m_mmu_cache->mem_read(paddr, asi, data, len, t, debug, is_dbg, cacheable, is_lock);
         }
 
         /// implementation of mem_write function from mem_if.h
         virtual void mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
                                unsigned int len, sc_core::sc_time * t,
-                               unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
+                               unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock ) {
 
             unsigned int paddr;
-	    unsigned int mmu_ctrl = m_mmu->read_mcr();
-      unsigned int tmp_data;
+            unsigned int mmu_ctrl = m_mmu->read_mcr();
 
-	    #ifdef LITTLE_ENDIAN_BO
-	    swap_Endianess(mmu_ctrl);
-	    #endif
-      v::debug << name() << "MMU_CONTROL_REG " << hex << mmu_ctrl << endl;
+            #ifdef LITTLE_ENDIAN_BO
+            swap_Endianess(mmu_ctrl);
+            #endif
 
-
-            // mmu enabled
-            if ((mmu_ctrl & 0x1) == 1) {
-
-	            v::debug << name() << "MMU enabled - lookup TLB" << hex << (mmu_ctrl & 0x1)  << v::endl;
-              v::debug << name() << "asi " << hex << asi << v::endl;  
-              paddr = m_mmu->tlb_lookup(addr, m_tlb, m_tlbnum, t, debug, is_dbg, cacheable);
-
+            if ( mmu_ctrl & 0x1 ) { // mmu enabled
+                uint64_t t_paddr;
+                if( m_mmu->tlb_lookup(addr, asi, m_tlb, m_tlbnum, t, debug, is_dbg, cacheable, 1, &t_paddr ) )
+                    return;  // if not 0, tlb_lookup failed! -> no mem_write!
+                paddr = (unsigned int) t_paddr;
             }
-            // mmu in bypass mode
-            else {
-
-        v::debug << name() << "MMU_CONTROL_REG " << hex << mmu_ctrl << endl;
-	      v::debug << name() << "MMU disabled - physical addressing" << hex << (mmu_ctrl & 0x1)  << v::endl;
-              paddr = addr;
-
+            else { // mmu in bypass mode
+                paddr = addr;
             }
 
             // forward request to mmu amba interface
-            tmp_data = (unsigned int)(*data);
-            swap_Endianess(tmp_data);
-            v::debug << name() << "mem write data: 0x"<< hex << tmp_data << " vaddr: 0x" << hex << addr << " paddr: 0x" << hex << paddr << " mmu: " << (mmu_ctrl & 0x1) << v::endl;
             m_mmu_cache->mem_write(paddr, asi, data, len, t, debug, is_dbg, is_lock, cacheable);
-
         }
 
     public:

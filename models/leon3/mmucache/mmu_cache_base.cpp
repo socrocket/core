@@ -173,18 +173,18 @@ void mmu_cache_base::dorst() {
   // Reset functionality executed on 0 to 1 edge
 }
 
-void mmu_cache_base::exec_instr(const unsigned int &addr, unsigned char *ptr, unsigned int *debug, const unsigned int &flush, sc_core::sc_time& delay, bool is_dbg) {
+void mmu_cache_base::exec_instr(const unsigned int &addr, unsigned char *ptr, unsigned int asi, unsigned int *debug, const unsigned int &flush, sc_core::sc_time& delay, bool is_dbg) {
   v::debug << name() << "instr exec" << v::endl;
   // Instruction scratchpad enabled && address points into selected 16MB region
   bool cacheable = true;
   if (m_ilram && (((addr >> 24) & 0xff) == m_ilramstart)) {
 
-    ilocalram->mem_read((unsigned int)addr, 0, ptr, 4, &delay, debug, is_dbg, cacheable);
+    ilocalram->mem_read((unsigned int)addr, asi, ptr, 4, &delay, debug, is_dbg, cacheable);
 
   // Instruction cache access
   } else {
 
-    icache->mem_read((unsigned int)addr, 0x8, ptr, 4, &delay, debug, is_dbg, cacheable, false);
+    icache->mem_read((unsigned int)addr, asi, ptr, 4, &delay, debug, is_dbg, cacheable, false);
 
   }
 }

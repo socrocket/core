@@ -6,7 +6,7 @@ def build(self):
   self(
     target          = 'apbuart',
     features        = 'cxx cxxstlib',
-    source          = 'apbuart.cpp tcpio.cpp nullio.cpp', 
+    source          = 'apbuart.cpp tcpio.cpp reportio.cpp', 
     export_includes = self.top_dir,
     includes        = self.top_dir,
     uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',

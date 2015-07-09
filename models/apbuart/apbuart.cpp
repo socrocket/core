@@ -21,7 +21,7 @@
 // Constructor: create all members, registers and Counter objects.
 // Store configuration default value in conf_defaults.
 APBUART::APBUART(ModuleName name,
-  io_if *backend,
+  std::string uart_backend,
   uint16_t pindex,
   uint16_t paddr,
   uint16_t pmask,
@@ -30,7 +30,6 @@ APBUART::APBUART(ModuleName name,
   bool powmon) :
   APBSlave(name, pindex, 0x1, 0x00C, 1, pirq, APBIO, pmask, false, false, paddr),
   irq("IRQ"),
-  m_backend(backend),
   g_pirq(pirq),
   g_console("console", console, m_generics),
   powermon(powmon) {
@@ -50,6 +49,14 @@ APBUART::APBUART(ModuleName name,
           << endl;
 
   init_registers();
+
+  sc_core::sc_object *obj = SrModuleRegistry::create_object_by_name("UARTBackend", uart_backend, "backend");
+  m_backend = dynamic_cast<io_if *>(obj);
+  if (!m_backend) {
+    srError("APBUART")
+      ("backend", uart_backend)
+      ("UART backend not created");
+  }
 
   // Configuration report
   v::info << this->name() << " ******************************************************************************* " <<
@@ -111,10 +118,10 @@ void APBUART::data_read() {
     reg = (uint32_t)recv_buffer[recv_buffer_end];
     inc_fifo_level(&recv_buffer_end);
     r[DATA] = reg;
-    v::info << name() << "Received char: " << reg << v::endl;
+    //v::info << name() << "Received char: " << reg << v::endl;
     if (((r[CONTROL] & (1<<2)) != 0) && (recv_buffer_level > 0)) {    // CONTROL receiver interrupt enable
       e_irq.notify(clock_cycle * 100);
-      v::info << name() << "Triggered interrupt, still data in fifo" << v::endl;
+    //  v::info << name() << "Triggered interrupt, still data in fifo" << v::endl;
     }
   }
 }
@@ -124,16 +131,16 @@ void APBUART::data_write() {
   uint32_t reg = 0;
   reg = r[DATA];
   c = static_cast<char>(reg & 0xFF);
-  v::info << name() << "write to data: " << c << v::endl;
+  //v::info << name() << "write to data: " << c << v::endl;
   if (((r[CONTROL] & (1<<1)) != 0)) {
     if (send_buffer >= fifosize) {
       overrun = true;
-      v::info << name() << "missed char due to overrun" << v::endl;
+      //v::info << name() << "missed char due to overrun" << v::endl;
     } else {
       m_backend->sendChar(c);
       send_buffer += 1;
       update_level_int();
-      v::info << name() << "sent char to backend" << v::endl;
+      //v::info << name() << "sent char to backend" << v::endl;
     }
   } else {
       // print even if transmitter disabled
@@ -160,24 +167,24 @@ void APBUART::status_read() {
   reg |= overrun << 4;
   reg |= (send_buffer <= 1) << 2;
   reg |= (send_buffer == 0) << 1;
-  v::info << name() << "Status Read, Received chars: " << received << " to send: " << to_transmit << " status: " << v::uint32 << reg << v::endl;
+  //v::info << name() << "Status Read, Received chars: " << received << " to send: " << to_transmit << " status: " << v::uint32 << reg << v::endl;
   r[STATUS] = reg;
   overrun = false;
 }
 
 void APBUART::control_write() {
-  v::info << name() << "Control write: " << v::uint32 << uint32_t(r[CONTROL]) << v::endl;
+  //v::info << name() << "Control write: " << v::uint32 << uint32_t(r[CONTROL]) << v::endl;
 }
 
 void APBUART::control_read() {
-  v::info << name() << "Control read: " << v::uint32 << uint32_t(r[CONTROL]) << v::endl;
+  //v::info << name() << "Control read: " << v::uint32 << uint32_t(r[CONTROL]) << v::endl;
 }
 
 void APBUART::send_irq() {
   while (true) {
     wait(e_irq);
     irq.write(std::pair<uint32_t, bool>(1<< g_pirq, true));
-    v::info << name() << "Triggered IRQ " << g_pirq << v::endl;
+    //v::info << name() << "Triggered IRQ " << g_pirq << v::endl;
     wait(clock_cycle);
     if (!level_int) {
       irq.write(std::pair<uint32_t, bool>(1<< g_pirq, false));
@@ -197,25 +204,25 @@ void APBUART::uart_ticks() {
     if (send_buffer > 0) {
       if (((r[CONTROL] & (1<<3)) != 0) && (send_buffer == 1)) {
         trigger_irq = true;
-        v::info << name() << "trigger interrupt because send and fifo empty" << v::endl;
+        //v::info << name() << "trigger interrupt because send and fifo empty" << v::endl;
       }
       send_buffer -= 1;
-      v::info << name() << "virtually sent char" << v::endl;
+      //v::info << name() << "virtually sent char" << v::endl;
       update_level_int();
     }
     if ((m_backend->receivedChars() > 0) && (recv_buffer_level < fifosize) && ((r[CONTROL] & (1<<2)) != 0)) {
       if (recv_buffer_level == 0) {
         trigger_irq = true;
-        v::info << name() << "trigger interrupt, received char and fifo was empty" << v::endl;
+        //v::info << name() << "trigger interrupt, received char and fifo was empty" << v::endl;
       }
       recv_buffer_level += 1;
       m_backend->getReceivedChar(&(recv_buffer[recv_buffer_end]));
       inc_fifo_level(&recv_buffer_end);
-      v::info << name() << "put char in recv-fifo" << v::endl;
+      //v::info << name() << "put char in recv-fifo" << v::endl;
     }
     if (trigger_irq) {
       e_irq.notify();
-      v::info << name() << "triggered interrupt"  << v::endl;
+      //v::info << name() << "triggered interrupt"  << v::endl;
     }
   }
 

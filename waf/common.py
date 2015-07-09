@@ -269,7 +269,7 @@ def fetch(self, *k, **kw):
                 )
             else:
                 self.cmd_and_log(
-                    [self.env.CURL, "-O", tar_url, "-o", kw["tar"]],
+                    [self.env.CURL, tar_url, "-o", kw["tar"]],
                     output=Context.BOTH,
                     cwd=kw["BASE_PATH_FETCH"]
                 )
@@ -386,7 +386,7 @@ conf(dep_path)
 
 @TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('cxxstlib')
-def export_hase_define(self):
+def export_has_define(self):
   defines = getattr(self, 'export_defines', [])
   defines = Utils.to_list(defines)
   defines += ["HAVE_" + self.target.replace(".", "_").upper()]

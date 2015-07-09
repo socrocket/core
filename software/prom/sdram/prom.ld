@@ -36,8 +36,8 @@ _PROM_BANKS = 2;
 _PROM_BSIZE = 256M;
 _PROM_SIZE = (_PROM_BANKS * _PROM_BSIZE);
 
-_RAM_BANKS = 4;
-_RAM_BSIZE =  128M;
+_RAM_BANKS = 1; /* def: 4, Gaisler: 1 */
+_RAM_BSIZE =  4M; /* def: 128M, Jan: 32M, Gaisler: 4M */
 _RAM_SIZE = (_RAM_BANKS * _RAM_BSIZE);
 
 _RAM_START =  0x40000000;
@@ -65,8 +65,8 @@ LEON_REG = 0x80000000;
 
 MEMORY
 {
-  rom     : ORIGIN = 0x00000000, LENGTH = 16M
-  ram     : ORIGIN = 0x40000000, LENGTH = 1024M
+  rom     : ORIGIN = 0x00000000, LENGTH = 2M /* def: 16M, Gaisler: 2M */
+  ram     : ORIGIN = 0x40000000, LENGTH = 4M /* def: 1024 MB, Jan: 32M, Gaisler: 4M */
 }
 
 SECTIONS

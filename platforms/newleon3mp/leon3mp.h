@@ -26,7 +26,7 @@
 #include "core/models/gptimer/gptimer.h"
 #include "core/models/apbuart/apbuart.h"
 #include "core/models/apbuart/tcpio.h"
-#include "core/models/apbuart/nullio.h"
+#include "core/models/apbuart/reportio.h"
 #include "core/models/irqmp/irqmp.h"
 #include "core/models/ahbctrl/ahbctrl.h"
 #include "core/models/ahbprof/ahbprof.h"

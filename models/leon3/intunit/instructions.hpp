@@ -99,10 +99,8 @@ namespace leon3_funclt_trap{
 
         protected:
         inline void IncrementPC() throw(){
-            unsigned int npc = NPC;
-            PC = npc;
-            npc += 4;
-            NPC = npc;
+            PC = NPC;
+            NPC += 4;
         }
         Reg32_0 & PSR;
         Reg32_1 & WIM;

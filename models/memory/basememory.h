@@ -24,16 +24,11 @@
 
 class BaseMemory : public scireg_ns::scireg_region_if {
   public:
-    enum implementation_type {
-      ARRAY = 0,
-      MAP = 1
-    };
-
-    typedef implementation_type type;
-
-    BaseMemory(const implementation_type &type, const uint32_t &size);
+    BaseMemory();
 
     ~BaseMemory();
+
+    void set_storage(std::string implementation, uint32_t size);
 
     uint8_t read(const uint32_t &addr);
 
@@ -103,8 +98,8 @@ class BaseMemory : public scireg_ns::scireg_region_if {
     /// word (4 bytes) write count
     unsigned long long writes32;
 
-  //private:
-    Storage *storage;
+  protected:
+    Storage *m_storage;
 };
 
 #endif  // MODELS_MEMORY_BASEMEMORY_H_

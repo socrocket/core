@@ -45,28 +45,7 @@ extern "C" {
 #include <unistd.h>
 #include <limits.h>
 
-#ifdef __GNUC__
-#ifdef __GNUC_MINOR__
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
-#include <tr1/unordered_map>
-#define template_map std::tr1::unordered_map
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#ifdef _WIN32
-#include <hash_map>
-#define  template_map stdext::hash_map
-#else
-#include <map>
-#define  template_map std::map
-#endif
-#endif
+#include "core/common/vmap.h"
 
 #include <map>
 #include <string>
@@ -265,9 +244,9 @@ void trap::ELFFrontend::readSymbols(){
 ///That if address is in the middle of a function, the symbol
 ///returned refers to the function itself
 std::list<std::string> trap::ELFFrontend::symbolsAt(unsigned int address) const throw(){
-    template_map<unsigned int, std::list<std::string> >::const_iterator symMap1 = this->addrToSym.find(address);
+    vmap<unsigned int, std::list<std::string> >::const_iterator symMap1 = this->addrToSym.find(address);
     if(symMap1 == this->addrToSym.end()){
-        template_map<unsigned int, std::string>::const_iterator symMap2 = this->addrToFunction.find(address);
+        vmap<unsigned int, std::string>::const_iterator symMap2 = this->addrToFunction.find(address);
         std::list<std::string> functionsList;
         if(symMap2 != this->addrToFunction.end())
             functionsList.push_back(symMap2->second);
@@ -281,9 +260,9 @@ std::list<std::string> trap::ELFFrontend::symbolsAt(unsigned int address) const 
 ///That if address is in the middle of a function, the symbol
 ///returned refers to the function itself
 std::string trap::ELFFrontend::symbolAt(unsigned int address) const throw(){
-    template_map<unsigned int, std::list<std::string> >::const_iterator symMap1 = this->addrToSym.find(address);
+    vmap<unsigned int, std::list<std::string> >::const_iterator symMap1 = this->addrToSym.find(address);
     if(symMap1 == this->addrToSym.end()){
-        template_map<unsigned int, std::string>::const_iterator symMap2 = this->addrToFunction.find(address);
+        vmap<unsigned int, std::string>::const_iterator symMap2 = this->addrToFunction.find(address);
         if(symMap2 != this->addrToFunction.end()){
             return symMap2->second;
         }
@@ -322,8 +301,8 @@ unsigned int trap::ELFFrontend::getBinaryEnd() const{
 
 ///Specifies whether the address is the first one of a rountine
 bool trap::ELFFrontend::isRoutineEntry(unsigned int address) const{
-    template_map<unsigned int, std::string>::const_iterator funNameIter = this->addrToFunction.find(address);
-    template_map<unsigned int, std::string>::const_iterator endFunNames = this->addrToFunction.end();
+    vmap<unsigned int, std::string>::const_iterator funNameIter = this->addrToFunction.find(address);
+    vmap<unsigned int, std::string>::const_iterator endFunNames = this->addrToFunction.end();
     if(funNameIter == endFunNames)
         return false;
     std::string curName = funNameIter->second;
@@ -338,8 +317,8 @@ bool trap::ELFFrontend::isRoutineEntry(unsigned int address) const{
 
 ///Specifies whether the address is the last one of a routine
 bool trap::ELFFrontend::isRoutineExit(unsigned int address) const{
-    template_map<unsigned int, std::string>::const_iterator funNameIter = this->addrToFunction.find(address);
-    template_map<unsigned int, std::string>::const_iterator endFunNames = this->addrToFunction.end();
+    vmap<unsigned int, std::string>::const_iterator funNameIter = this->addrToFunction.find(address);
+    vmap<unsigned int, std::string>::const_iterator endFunNames = this->addrToFunction.end();
     if(funNameIter == endFunNames)
         return false;
     std::string curName = funNameIter->second;
@@ -356,7 +335,7 @@ bool trap::ELFFrontend::isRoutineExit(unsigned int address) const{
 ///which contains the code and line to the line in that file. Returns
 ///false if the address is not valid
 bool trap::ELFFrontend::getSrcFile(unsigned int address, std::string &fileName, unsigned int &line) const{
-    template_map<unsigned int, std::pair<std::string, unsigned int> >::const_iterator srcMap = this->addrToSrc.find(address);
+    vmap<unsigned int, std::pair<std::string, unsigned int> >::const_iterator srcMap = this->addrToSrc.find(address);
     if(srcMap == this->addrToSrc.end()){
         return false;
     }

@@ -52,28 +52,7 @@
 #include <fstream>
 #include <boost/circular_buffer.hpp>
 #include "core/common/trapgen/instructionBase.hpp"
-#ifdef __GNUC__
-#ifdef __GNUC_MINOR__
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
-#include <tr1/unordered_map>
-#define template_map std::tr1::unordered_map
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#include <ext/hash_map>
-#define  template_map __gnu_cxx::hash_map
-#endif
-#else
-#ifdef _WIN32
-#include <hash_map>
-#define  template_map stdext::hash_map
-#else
-#include <map>
-#define  template_map std::map
-#endif
-#endif
+#include "core/common/vmap.h"
 
 #include "core/models/leon3/intunit/irqPorts.hpp"
 #include "core/models/leon3/intunit/externalPins.hpp"
@@ -92,14 +71,13 @@ namespace leon3_funclt_trap{
         Decoder decoder;
         unsigned int profStartAddr;
         unsigned int profEndAddr;
-        std::ofstream histFile;
-        bool historyEnabled;
+        //std::ofstream histFile;
         bool instrExecuting;
         sc_event instrEndEvent;
         Instruction **INSTRUCTIONS;
         Instruction *curInstrPtr;
         unsigned int raisedException;
-        template_map<unsigned int, CacheElem> instrCache;
+        vmap<unsigned int, CacheElem> instrCache;
         static int numInstances;
         unsigned int IRQ;
 
@@ -142,7 +120,6 @@ namespace leon3_funclt_trap{
         sc_time latency;
         sc_time profTimeStart;
         sc_time profTimeEnd;
-        boost::circular_buffer< HistoryInstrType > instHistoryQueue;
         unsigned int undumpedHistElems;
         unsigned int ENTRY_POINT;
         unsigned int MPROC_ID;
@@ -151,9 +128,9 @@ namespace leon3_funclt_trap{
         unsigned int curPC;
         IntrTLMPort_32 IRQ_port;
         PinTLM_out_32 irqAck;
+        gs::gs_config<bool> historyEnabled;
         bool m_pow_mon;
         void setProfilingRange( unsigned int startAddr, unsigned int endAddr );
-        void enableHistory( std::string fileName = "" );
         IRQ_IRQ_Instruction * IRQ_irqInstr;
         ~Processor_leon3_funclt();
 

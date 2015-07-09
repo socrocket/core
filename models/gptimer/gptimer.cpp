@@ -27,7 +27,8 @@ SR_HAS_MODULE(GPTimer);
 GPTimer::GPTimer(ModuleName name, unsigned int ntimers,
                    int pindex, int paddr, int pmask, int pirq, int sepirq,
                    int sbits, int nbits, int wdog, bool powmon) :
-    APBSlave(name, pindex, 0x1, 0x11, 1, pirq, APBIO, pmask, false, false, paddr),
+    APBSlave(name, pindex, 0x1, 0x11, 0, /* VER: SoCRocket default: 1, try to Mimic TSIM therefore 0 -- psiegl */
+              pirq, APBIO, pmask, false, false, paddr),
     irq("IRQ"), wdog("WDOG"),
     conf_defaults((sepirq << 8) | ((pirq & 0xF) << 3) | (ntimers & 0x7)),
     lasttime(0, sc_core::SC_NS), lastvalue(0),
@@ -166,7 +167,7 @@ void GPTimer::init_registers() {
   .callback(SR_PRE_READ, this, &GPTimer::conf_read);
 
   for (unsigned int i = 0; i < g_ntimers; ++i) {
-    GPCounter *c = new GPCounter(this, i, gen_unique_name("GPCounter", true));
+    GPCounter *c = new GPCounter(this, i, gen_unique_name("counter", true));
     counter.push_back(c);
     r.create_register(gen_unique_name("value", false), "GPCounter Value Register",
       VALUE(i),                                            // offset

@@ -73,6 +73,9 @@ class MEMDevice : public BaseModule<DefaultBase> {
     /// Returns the column size of the memory (sdram)
     virtual const uint32_t get_cols() const;
 
+    /// Returns the size of the whole memory
+    virtual const uint32_t get_size() const;
+
   private:
     gs::cnf::gs_config<uint32_t> g_type;
     gs::cnf::gs_config<uint32_t> g_banks;

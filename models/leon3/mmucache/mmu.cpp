@@ -17,6 +17,7 @@
 
 #include "core/models/leon3/mmucache/mmu.h"
 #include "core/common/verbose.h"
+#include "core/models/leon3/intunit/instructions.hpp"
 
 mmu::mmu(ModuleName name, // sysc module name,
          mmu_cache_if * _mmu_cache,    // pointer to memory interface
@@ -174,6 +175,17 @@ mmu::mmu(ModuleName name, // sysc module name,
 
     }
 
+    unsigned tmp_access_table[8][8] = {
+      { 0, 0, 0, 0, 2, 0, 3, 3 },
+      { 0, 0, 0, 0, 2, 0, 0, 0 },
+      { 2, 2, 0, 0, 0, 2, 3, 3 },
+      { 2, 2, 0, 0, 0, 2, 0, 0 },
+      { 2, 0, 2, 0, 2, 2, 3, 3 },
+      { 2, 0, 2, 0, 2, 0, 2, 0 },
+      { 2, 2, 2, 0, 2, 2, 3, 3 },
+      { 2, 2, 2, 0, 2, 2, 2, 0 } };
+    memcpy( this->access_table, tmp_access_table, sizeof(unsigned)*8*8 ); // ugly
+
     // Configuration report
     v::info << this->name() << " ******************************************************************************* " << v::endl;
     v::info << this->name() << " * Created mmu with following parameters: " << v::endl;
@@ -194,18 +206,20 @@ mmu::~mmu() {
 
 }
 
-// look up a tlb (page descriptor cache)
-// and return physical address
-unsigned int mmu::tlb_lookup(unsigned int addr,
-                             std::map<t_VAT, t_PTE_context> * tlb,
-                             unsigned int tlb_size, sc_core::sc_time * t,
-                             unsigned int * debug, bool is_dbg, bool &cacheable) {
+
+signed mmu::get_physical_address( uint64_t * paddr, signed * prot, unsigned * access_index,
+                                  uint64_t vaddr, int asi, uint64_t * page_size,
+                                  unsigned * debug, bool is_dbg, sc_core::sc_time * t, unsigned is_write, unsigned * pde_REMOVE ) {
+
+    signed access_perms = 0, error_code = 0, is_dirty, is_user;
+    unsigned pde_ptr, pde;
+    bool cacheable_mem;
 
     // According to the SparcV8 Manual: Pages of the Reference MMU are always aligned on 4K-byte boundaries; hence, the lower-order
     // 12 bits of a physical address are always the same as the low-order 12 bits of
     // the virtual address. The Gaisler MMU additionally supports 8k, 16k and 32k alignment,
-    unsigned int offset = ((addr << m_vtag_width) >> m_vtag_width);
-    t_VAT vpn = (addr >> (32 - m_vtag_width));
+//    unsigned int offset = ((addr << m_vtag_width) >> m_vtag_width);
+    t_VAT vpn = (vaddr >> (32 - m_vtag_width));
 
     // The Virtual Address Tag consists of three indices, which are used to look
     // up the three level page table in main memory. The indices are extracted from
@@ -220,122 +234,34 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     unsigned int idx1 = (vpn >> 12) & 0xff;
     unsigned int idx2 = (vpn >> 6) & 0x3f;
     unsigned int idx3 = vpn & 0x3f;
-    
-    // Locals for intermediate results
-    t_PTE_context tmp;
-    unsigned int paddr;
-    unsigned int data;
 
-    unsigned int slot_no;
 
-    bool context_miss = false;
+    // User access:       ASI = 0x8 or 0xA
+    // Supervisor access: ASI = 0x9 or 0xB
+    is_user = ! (asi & 0x1);
+    // Instruction:       ASI = 0x8 or 0x9
+    // Data:              ASI = 0xA or 0xB
+    unsigned is_instruction_access = ! (asi & 0x2);
 
-    bool cacheable_mem;
-
-    // Search virtual address tag in ipdc (associative)
-    v::debug << this->name() << "Access with ADDR: " << std::hex << addr << " VPN: " << std::hex << vpn
-            << " and OFFSET: " << std::hex << offset << v::endl;
-    pdciter = tlb->find(vpn);
-
-    // Log tlb reads for power monitoring
-    if (m_pow_mon) {
-
-      // All tlbs are read in parallel !
-      if (tlb == itlb) {
-
-        dyn_itlb_reads += tlb_size;
-
-      } else {
-
-        dyn_dtlb_reads += tlb_size;
-
-      }
+/*  // --> handled within tlb_adaptor.h
+    if( ! (MMU_CONTROL_REG & 0x1)) {
+        *paddr = vaddr;
+        return 0;
     }
-
-    // TLB hit
-    if (pdciter != tlb->end()) {
-
-      // Read the PDC entry
-      tmp = pdciter->second;
-
-      v::debug << this->name() << "Virtual Address Tag Hit in TLB " << tmp.tlb_no << " for address: "
-                << hex << addr << v::endl;
-
-        // Check the context tag
-        if (tmp.context == MMU_CONTEXT_REG) {
-
-            v::debug << this->name() << "CONTEXT hit " << hex << MMU_CONTEXT_REG << v::endl;
-
-            // Build physical address from PTE and offset, and return
-            //paddr = (((tmp.pte >> 8) << (32 - m_vtag_width)) | (addr & tmp.offset_mask));
-            paddr = ((tmp.pte & ~0xff) << 4 | (addr & tmp.offset_mask));
-            if ((tmp.pte & (1<<7)) == 0) {
-              v::debug << this->name() << "data not cacheable!" << v::endl;
-              cacheable = false;
-            } else {
-              cacheable = true;
-            }
-
-            // Update debug information
-            TLBHIT_SET(*debug);
-
-	    if (tlb == itlb) {
-
-	      tihits[tmp.tlb_no]++;
-
-	    } else {
-
-	      tdhits[tmp.tlb_no]++;
-
-	    }
-
-	    // Update LRU history
-	    if (m_tlb_rep==0) {
-
-	      lru_update(vpn, tlb, tlb_size);
-
-	    }
-
-            return (paddr);
-
-        } else {
-
-            v::debug << this->name() << "CONTEXT miss" << v::endl;
-
-            // Update debug information
-            TLBMISS_SET(*debug);
-
-	    if (tlb == itlb) {
-
-	      timisses++;
-
-	    } else {
-
-	      tdmisses++;
-
-	    }
-
-            context_miss = true;
-
-        }
-    } else {
-
-        v::debug << this->name() << "Virtual Address Tag miss" << v::endl;
-
-        // Update debug information
-        TLBMISS_SET(*debug);
-
-	if (tlb == itlb) {
-
-	  timisses++;
-
-	} else {
-
-	  tdmisses++;
-
-	}
-
-    }
+*/
+    /*
+       AT
+        0  - ld/st? -> data/inst? -> user/priv? -> Load from User Data Space
+        1           |             |             \> Load from Supervisor Data Space
+        2           |             -> user/priv? -> Load/Execute from User Instruction Space
+        3           |                           \> Load/Execute from Supervisor Instruction Space
+        4           -> data/inst? -> user/priv? -> Store to User Data Space
+        5                         |             \> Store to Supervisor Data Space
+        6                         -> user/priv? -> Store to User Instruction Space
+        7                                       \> Store to Supervisor Instruction Space
+    */
+    *access_index = (is_write << 2) | (is_instruction_access << 1) | (! is_user) ; // AT (Access Type)
+    *paddr = 0xffffffffffff0000ULL; // has size of 36bits!
 
     // COMPOSITION OF A PAGE TABLE DESCRIPTOR (PTD)
     // [31-2] PTP - Page Table Pointer. Physical address of the base of a next-level
@@ -360,203 +286,391 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
     // tlb miss processing
     v::debug << this->name()
             << "START TLB MISS PROCESSING FOR VIRTUAL ADDRESS: " << std::hex
-            << addr << " with indices 1/2/3: " << idx1 << "/" << idx2 << "/" << idx3 << " for context: " << MMU_CONTEXT_REG << v::endl;
+            << vaddr << " with indices 1/2/3: " << idx1 << "/" << idx2 << "/" << idx3 << " for context: " << MMU_CONTEXT_REG << v::endl;
 
     // **************************************
     // Context-Table lookup
     // **************************************
 
-    //m_mmu_cache->mem_read(((MMU_CONTEXT_TABLE_POINTER_REG >> 2) << 6) + (MMU_CONTEXT_REG << 2), 0x8,
-    unsigned int context_table_address = ((MMU_CONTEXT_TABLE_POINTER_REG) << 4) + (MMU_CONTEXT_REG << 2);
-    m_mmu_cache->mem_read(context_table_address, 0x8,
-                          (unsigned char *)&data, 4, t, debug, is_dbg, cacheable_mem,  false);
-
+    pde_ptr = (MMU_CONTEXT_TABLE_POINTER_REG << 4) + (MMU_CONTEXT_REG << 2);
+    m_mmu_cache->mem_read(pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem,  false);
     #ifdef LITTLE_ENDIAN_BO
-    swap_Endianess(data);
+    swap_Endianess(pde);
     #endif
+    *pde_REMOVE = pde;
 
-    v::debug << this->name() << "CONTEXT TABLE LOOKUP returns page table address: " << std::hex << data << v::endl;
+    *page_size = 0x0; // -1 -> 0xFFFFFFFFFFFFFFFF (uint64_t) :-)
+    switch( pde & 0x3 ) {
+    default:
+    case 0: // Invalid
+      return 1 << 2;                                        // L: Level 0, FT: Invalid address error
+    case 2: // L0 PTE -> shouldn't possibly not happen
+    case 3: // Reserved
+      return 4 << 2;                                        // L: Level 0, FT: Translation error
+    
+    case 1: // 1. load from 1st-level page table
+        pde_ptr = ((pde & ~3) << 4)+(idx1 << 2);
+        m_mmu_cache->mem_read(pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem, false);
+        #ifdef LITTLE_ENDIAN_BO
+        swap_Endianess(pde);
+        #endif
+        *pde_REMOVE = pde;
 
-    // ***************************************
-    // 3-Level TLB table walk
-    // ***************************************
+        switch( pde & 0x3 ) {
+        case 0: // Invalid
+            return (1 << 8) | (1 << 2);                     // L: Level 1, FT: Invalid address error
+        case 3: // Reserved
+            return (1 << 8) | (4 << 2);                     // L: Level 1, FT: Translation error
 
-    // 1. load from 1st-level page table
-    //m_mmu_cache->mem_read((data << 4)+(idx1<<2), 0x8,
-    //                      (unsigned char *)&data, 4, t, debug, is_dbg, false);
-    v::debug << this->name() << "base address: "  << std::hex << ((data & ~3) << 4) << v::endl;
-    v::debug << this->name() << "idx1 address: "  << std::hex << (idx1 << 2) << v::endl;
-    m_mmu_cache->mem_read(((data & ~3) << 4)+(idx1 << 2), 0x8,
-                          (unsigned char *)&data, 4, t, debug, is_dbg, cacheable_mem, false);
+        default:
+        case 1: // 2. load from 2nd-level page table
+            pde_ptr = (((pde & ~0x3) << 4) + (idx2 << 2));
+            m_mmu_cache->mem_read( pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem, false);
+            #ifdef LITTLE_ENDIAN_BO
+            swap_Endianess(pde);
+            #endif
+            *pde_REMOVE = pde;
 
-    #ifdef LITTLE_ENDIAN_BO
-    swap_Endianess(data);
-    #endif
+            switch( pde & 0x3 ) {
+            default:
+            case 0: // Invalid
+                return (2 << 8) | (1 << 2);                 // L: Level 2, FT: Invalid address error
+            case 3: // Reserved
+                return (2 << 8) | (4 << 2);                 // L: Level 2, FT: Translation error
 
-    v::debug << this->name() << "Back from 1st-level page table: "  << std::hex << data << v::endl;
+            case 1: // 3. load from 3rd-level page table
+                pde_ptr = (((pde & ~0x3) << 4) + (idx3<<2));
+                m_mmu_cache->mem_read( pde_ptr, 0x8, (unsigned char *)&pde, 4, t, debug, is_dbg, cacheable_mem, false);
+                #ifdef LITTLE_ENDIAN_BO
+                swap_Endianess(pde);
+                #endif
+                *pde_REMOVE = pde;
 
-    // page table entry (PTE) or page table descriptor (PTD) (to level 2)
-    if ((data & 0x3) == 0x2) {
-
-        v::debug << this->name() << "1-Level Page Table returned PTE: "
-                << std::hex << data << v::endl;
-
-        // In case of a virtual address tag miss a new PDC entry is created.
-        // For context miss the existing entry will be replaced.
-        if ((!context_miss) && (tlb->size() == tlb_size)) {
-
-            v::debug << this->name() << "PDC full" << std::hex << data
-                    << v::endl;
-
-	    // Remove a TLB entry, with respect to replacement strategy
-	    slot_no = tlb_remove(tlb, tlb_size);
-
-	    tmp.tlb_no = slot_no;
-
-
-        } else {
-
-	  v::debug << this->name() << "Create new entry PDC entry - TLB number: " << tlb->size() << v::endl;
-	  tmp.tlb_no = tlb->size();
-
-	}
-
-        // add to PDC
-        tmp.context = MMU_CONTEXT_REG;
-        tmp.pte = data;
-        tmp.lru = 0xffffffffffffffff - 1;
-        tmp.offset_mask = 0x00ffffff;
-
-        // Log TLB writes for power monitoring
-        if (m_pow_mon) {
-
-          if (tlb == itlb) {
-
-            dyn_itlb_writes++;
-
-          } else {
-
-            dyn_dtlb_writes++;
-
-          }
+                switch( pde & 0x3 ) {
+                case 0: // Invalid
+                    return (3 << 8) | (1 << 2);             // L: Level 3, FT: Invalid address error
+                case 1: // PDE -> should not happen
+                case 3: // Reserved
+                    return (3 << 8) | (4 << 2);             // L: Level 3, FT: Translation error
+                case 2:
+                    break;
+                }
+                *page_size = 0x1000;
+                break;
+            case 2:
+                *page_size = 0x40000;
+            }
+            break;
+        case 2:
+            *page_size = 0x1000000;
         }
-
-	(*tlb)[vpn] = tmp;
-
-        // build physical address from PTE and offset
-        paddr = ((tmp.pte & ~0xFF) << 4 | (addr & tmp.offset_mask));
-        if ((data & (1<<7)) == 0) {
-          v::debug << this->name() << "data not cacheable!" << v::endl;
-          cacheable = false;
-        } else {
-          cacheable = true;
-        }
-
-        v::debug << this->name() << "Mapping complete - Virtual Addr: "
-                << std::hex << addr << " Physical Addr: " << std::hex << paddr
-                << v::endl;
-        return (paddr);
-
-    } else if ((data & 0x3) == 0x1) {
-
-        v::debug << this->name() << "1st-Level Page Table returned PTD: "
-                << std::hex << data << v::endl;
-
-    } else {
-
-        v::error << this->name()
-                << "Error in 1st-Level Page Table / Entry type not valid"
-                << " VAddress: " << v::uint32 << addr <<::endl;
-
-        // Set fault status and fault address
-        MMU_FAULT_STATUS_REG = 0;
-        MMU_FAULT_STATUS_REG |= 1 << 8; // L  - Level of Error
-        MMU_FAULT_STATUS_REG |= 4 << 2; // FT - Translation Error
-        MMU_FAULT_STATUS_REG |= 1 << 1; // FAV - Fault Address Register valid
-
-        MMU_FAULT_ADDRESS_REG = addr;
-
-        if (tlb == itlb) {
-
-          //v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
-          //m_mmu_cache->trigger_exception(2);
-          v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
-          m_mmu_cache->trigger_exception(19);
-
-        } else {
-
-          //v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
-          //m_mmu_cache->trigger_exception(18);
-          v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
-          m_mmu_cache->trigger_exception(19);
-
-        }
-
-        //sc_stop();
-
-        return (0);
     }
 
-    v::debug << this->name() << "base address: "  << std::hex << ((data >> 4) << 8) << v::endl;
-    v::debug << this->name() << "idx2 address: "  << std::hex << (idx2 << 2) << v::endl;
-    // 2. load from 2nd-level page table
-    m_mmu_cache->mem_read((((data & ~0x3) << 4) + (idx2 << 2)), 0x8, (unsigned char *)&data,
-                          4, t, debug, is_dbg, cacheable_mem, false);
+    // Page 257: FT -> PTE.V should be "PTE valid" --> check access (FT)
+    access_perms = (pde >> 0x2) & 0x7;
+    error_code = this->access_table[ *access_index ][ access_perms ] << 2; // FT -> depends on table (see page 257: FT second table)
 
-    #ifdef LITTLE_ENDIAN_BO
-    swap_Endianess(data);
-    #endif
+    signed h;
+    if( ! error_code ) {
+/*    is_dirty = (rw & 1) && !(pde & PG_MODIFIED_MASK); // 0x6
+    if (!(pde & PG_ACCESSED_MASK) || is_dirty) { // 0x5
+        pde |= PG_ACCESSED_MASK;
+        if (is_dirty) {
+            pde |= PG_MODIFIED_MASK;
+        }
+        stl_phys_notdirty(cs->as, pde_ptr, pde);
+    }
+*/
+        /* update page modified and dirty bits */
+        is_dirty = ( is_write );
+        if( is_dirty )    
+            pde |= (0x1 << 6); // Set Modified Bit
+        
+        if( is_dirty || !( pde & (0x1 << 5) ) ) // if it got dirty, or has not been accessed yet -> referenced!
+            pde |= (0x1 << 5); // Set Referenced Bit
 
-    // page table entry (PTE) or page table descriptor (PTD) (to level 3)
-    if ((data & 0x3) == 0x2) {
 
-        v::debug << this->name() << "2-Level Page Table returned PTE: "
-                << std::hex << data << v::endl;
+        // READ = 0x1, WRITE = 0x2, EXECUTE = 0x4
+        signed access_perms2[2][8] = {
+            { 0x1,
+              0x1 | 0x2,
+              0x1 | 0x4,
+              0x1 | 0x2 | 0x4,
+              0x4,
+              0x1,
+              0x0,
+              0x0
+            },
+            { 0x1,
+              0x1 | 0x2,
+              0x1 | 0x4,
+              0x1 | 0x2 | 0x4,
+              0x4,
+              0x1 | 0x2,
+              0x1 | 0x4,
+              0x1 | 0x2 | 0x4
+            }
+        };
+/*
+    READ          = ! is_write
+    WRITE         = is_write
+    EXECUTE       = is_instruction ( && ! is_write ? )
+    Supervisor    = ! is_user
+    User          = is_user
+*/
+        h = access_perms2[ ( is_user ) ? 0x0 : 0x1 ][ (pde >> 0x2) & 0x7 ];
+    }
+
+    *paddr = ((pde & ~0xFF) << 4 | (vaddr & ((*page_size) - 1)));
+    *paddr &= (((uint64_t)1 << 36) - 1);
+
+    if( ! error_code ) {
+        if( (! (h & 0x1)) && ! is_write )
+            std::cout << "--------------> no READ allowed!  " << std::hex << *paddr << std::endl;
+
+        if( (!(h & 0x2)) && is_write )
+            std::cout << "--------------> no WRITE allowed!" << std::hex << *paddr << " " << error_code << std::endl;
+
+        if( (!(h & 0x4)) && is_instruction_access )
+            std::cout << "no EXECUTE allowed!" << std::endl;
+    }
+/*
+instruction_access_exception tt=0x01
+    A blocking error exception occurred on an instruction access (for example,
+    an MMU indicated that the page was invalid or read-protected).
+privileged_instruction tt=0x03
+    An attempt was made to execute a privileged instruction while S = 0
+data_access_exception
+    A blocking error exception occurred on a load/store data access. (for exam-
+    ple, an MMU indicated that the page was invalid or write-protected).
+*/
+
+    return error_code;
+}
+
+
+// look up a tlb (page descriptor cache)
+// and return physical address
+signed mmu::tlb_lookup(unsigned int addr, unsigned asi,
+                             std::map<t_VAT, t_PTE_context> * tlb,
+                             unsigned int tlb_size, sc_core::sc_time * t,
+                             unsigned int * debug, bool is_dbg, bool &cacheable,
+                             unsigned is_write /* LOAD / STORE? */, uint64_t * paddr ) {
+/*
+    Appendix I - Table I-1
+    The MMU will only receive the ASIs as follows: 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB, 0x20-0x2F
+    Out of those, only the ASIs 0x8, 0x9, 0xA, 0xB will enter this routine!
+*/
+
+    // According to the SparcV8 Manual: Pages of the Reference MMU are always aligned on 4K-byte boundaries; hence, the lower-order
+    // 12 bits of a physical address are always the same as the low-order 12 bits of
+    // the virtual address. The Gaisler MMU additionally supports 8k, 16k and 32k alignment,
+//    unsigned int offset = ((addr << m_vtag_width) >> m_vtag_width);
+    t_VAT vpn = (addr >> (32 - m_vtag_width));
+
+    
+    // Locals for intermediate results
+    t_PTE_context tmp;
+    *paddr = 0xffffffffffff0000ULL; // has size of 36bits!
+    unsigned int pde;
+
+/*
+    // Search virtual address tag in ipdc (associative)
+    v::debug << this->name() << "Access with ADDR: " << std::hex << addr << " VPN: " << std::hex << vpn
+            << " and OFFSET: " << std::hex << offset << v::endl;
+    pdciter = tlb->find(vpn);
+
+    // Log tlb reads for power monitoring
+    if (m_pow_mon) {
+      // All tlbs are read in parallel !
+      if (tlb == itlb) {
+        dyn_itlb_reads += tlb_size;
+      } else {
+        dyn_dtlb_reads += tlb_size;
+      }
+    }
+
+    // TLB hit
+    if (pdciter != tlb->end()) {
+
+      // Read the PDC entry
+      tmp = pdciter->second;
+
+      v::debug << this->name() << "Virtual Address Tag Hit in TLB " << tmp.tlb_no << " for address: "
+                << hex << addr << v::endl;
+
+        // Check the context tag
+        if (tmp.context == MMU_CONTEXT_REG) {
+
+            v::debug << this->name() << "CONTEXT hit " << hex << MMU_CONTEXT_REG << v::endl;
+
+            // Build physical address from PTE and offset, and return
+            //paddr = (((tmp.pte >> 8) << (32 - m_vtag_width)) | (addr & (tmp.page_size -1)));
+            *paddr = ((tmp.pte & ~0xff) << 4 | (addr & (tmp.page_size - 1)));
+            *paddr &= ((0x1ull << 36) - 1);
+            if ((tmp.pte & (1<<7)) == 0) {
+              v::debug << this->name() << "data not cacheable!" << v::endl;
+              cacheable = false;
+            } else {
+              cacheable = true;
+            }
+
+            // Update debug information
+            TLBHIT_SET(*debug);
+
+            if (tlb == itlb) {
+                tihits[tmp.tlb_no]++;
+            } else {
+                tdhits[tmp.tlb_no]++;
+            }
+
+            // Update LRU history
+            if (m_tlb_rep==0) {
+                lru_update(vpn, tlb, tlb_size);
+            }
+            return 0;
+        } else {
+
+            v::debug << this->name() << "CONTEXT miss" << v::endl;
+
+            // Update debug information
+            TLBMISS_SET(*debug);
+
+            if (tlb == itlb) {
+                timisses++;
+            } else {
+	        tdmisses++;
+            }
+        }
+    } else {
+
+        v::debug << this->name() << "Virtual Address Tag miss" << v::endl;
+
+        // Update debug information
+        TLBMISS_SET(*debug);
+
+	      if (tlb == itlb) {
+	        timisses++;
+	      } else {
+	        tdmisses++;
+	      }
+    }
+
+*/
+
+
+
+    
+    uint64_t page_size;
+    unsigned access_index;
+    signed error_code = get_physical_address( paddr, NULL, &access_index,
+                                  addr, asi, &page_size,
+                                  debug, is_dbg, t, is_write, &pde );
+
+    if( error_code ) {
+        v::error << this->name()
+                 << "In " << ((error_code >> 8) & 0x3) << "-Level Page Table / Entry type not valid: "
+                 << " VA: " << v::uint32 << addr << ", is " << ( is_write ? "write" : "load" )
+                 << " and " << ((! (asi & 0x2)) ? "instruction" : "data" ) << v::endl;
+
+       sleep(1);
+
+        // Set fault status and fault address
+        // (will be set 0, if read, otherwise set OW bit)
+        if( ! MMU_FAULT_STATUS_REG )
+            MMU_FAULT_STATUS_REG = 1;               // OW - Overwrite bit
+        // ToDo: Fault Priorities due to overwritting!
+        MMU_FAULT_STATUS_REG |= access_index << 5;  // AT - Access Type
+        MMU_FAULT_STATUS_REG |= error_code;         // provides L and FT
+
+
+        // Instruction:       ASI = 0x8 or 0x9
+        // Data:              ASI = 0xA or 0xB
+        unsigned is_instruction_access = ! (asi & 0x2);
+        // The Fault Address Valid bit is set to one if the contents of the Fault
+        // Address Register are valid. The Fault Address Register need not be valid
+        // for instruction faults. The Fault Address Register must be valid for data
+        // faults and translation errors.
+        if( ! is_instruction_access )
+            MMU_FAULT_STATUS_REG |= 1 << 1;             // FAV - Fault Address Register valid
+        
+        MMU_FAULT_ADDRESS_REG = addr;
+
+
+        // NF is the “No Fault” bit. When NF= 0, any fault detected by the MMU
+        // causes FSR and FAR to be updated and causes a fault to be generated to
+        // the processor. When NF= 1, a fault on an access to ASI 9 is handled as
+        // when NF= 0; a fault on an access to any other ASI causes FSR and FAR
+        // to be updated but no fault is generated to the processor.
+
+        // If a fault on access to an ASI other than 9 occurs while NF= 1, subsequently
+        // resetting NF from 1 to 0 does not cause a fault to the processor
+        // (even though FSR.FT ≠ 0 at that time).
+        // A change in value of the NF bit takes effect as soon as the bit is written;
+        // a subsequent access to ASI 9 will be evaluated according to the new
+        // value of the NF bit.
+        if( ! ( MMU_CONTROL_REG & 0x2 ) || ((MMU_CONTROL_REG & 0x2) && asi == 0x9 ) ) {
+/*          according to instructions.hpp ... not sure why ... doesn't make sense according to sparc manual: Chapter 7 Table 7-1
+
+            #define INSTR_ACCESS_MMU_MISS 2
+            #define INSTR_ACCESS_ERROR 3
+            #define INSTR_ACCESS_EXC 5
+
+            #define DATA_ACCESS_ERROR 17
+            #define DATA_ACCESS_MMU_MISS 18
+            #define DATA_ACCESS_EXC 19
+*/
+            if( is_instruction_access ) {
+                v::error << this->name() << "Trap encountered (instruction_access_exception) tt = 0x01" << v::endl;
+                m_mmu_cache->trigger_exception( INSTR_ACCESS_EXC );
+            }
+            else {
+                v::error << this->name() << "Trap encountered (data_access_exception) tt = 0x09" << v::endl;
+                m_mmu_cache->trigger_exception( DATA_ACCESS_EXC );
+            }
+            return -1;
+        }
+    }
+
+    switch (pde & 0x3) {
+    case 0x2:
+        v::debug << this->name() << ((error_code >> 8) & 0x3) << "-Level Page Table returned PTE: "
+                << std::hex << pde << v::endl;
 
         // In case of a virtual address tag miss a new PDC entry is created.
         // For context miss the existing entry will be replaced.
-        if ((!context_miss) && (tlb->size() == tlb_size)) {
+        if (tlb->size() == tlb_size) {
+            v::debug << this->name() << "TLB full" << std::hex << pde  << v::endl;
 
-          v::debug << this->name() << "PDC full" << std::hex << data
-                  << v::endl;
-
-	  // Remove a TLB entry, with respect to replacement strategy
-	  slot_no = tlb_remove(tlb, tlb_size);
-
-	  tmp.tlb_no = slot_no;
-
+            // Remove a TLB entry, with respect to replacement strategy
+            tmp.tlb_no = tlb_remove(tlb, tlb_size);
         } else {
-
-	  v::debug << this->name() << "Create new entry PDC entry - TLB number: " << tlb->size() << v::endl;
-	  tmp.tlb_no = tlb->size();
-
+            v::debug << this->name() << "Create new entry PDC entry - TLB number: " << tlb->size() << v::endl;
+            tmp.tlb_no = tlb->size();
         }
 
         // add to PDC
         tmp.context = MMU_CONTEXT_REG;
-        tmp.pte = data;
-      	tmp.lru = 0xffffffffffffffff - 1;
-        tmp.offset_mask = 0x0003ffff;
+        tmp.pte = pde;
+        tmp.lru = 0xffffffffffffffff - 1;
+        tmp.page_size = page_size;
 
         (*tlb)[vpn] = tmp;
 
         // Log TLB writes for power monitoring
         if (m_pow_mon) {
-
           if (tlb == itlb) {
-
             dyn_itlb_writes++;
-
           } else {
-
             dyn_dtlb_writes++;
-
           }
         }
 
         // build physical address from PTE and offset
-        paddr = ((tmp.pte & ~0xFF) << 4 | (addr & tmp.offset_mask));
-        if ((data & (1<<7)) == 0) {
+        *paddr = ((pde & ~0xFF) << 4 | (addr & (page_size - 1)));
+        *paddr &= (((uint64_t)1 << 36) - 1);
+
+        if ((pde & (1<<7)) == 0) {
           v::debug << this->name() << "data not cacheable!" << v::endl;
           cacheable = false;
         } else {
@@ -566,150 +680,18 @@ unsigned int mmu::tlb_lookup(unsigned int addr,
         v::debug << this->name() << "Mapping complete - Virtual Addr: "
                 << std::hex << addr << " Physical Addr: " << std::hex << paddr
                 << v::endl;
-        return (paddr);
+        return 0;
 
-    } else if ((data & 0x3) == 0x1) {
-
-        v::debug << this->name() << "2-Level Page Table returned PTD: "
-                << std::hex << data << v::endl;
-
-    } else {
-
-        v::error << this->name()
-                 << "Error in 2-Level Page Table / Entry type not valid: "
-                 << std::hex << data << " VAddress: " << v::uint32 << addr << v::endl;
-
-        // Set fault status and fault address
-        MMU_FAULT_STATUS_REG = 0;
-        MMU_FAULT_STATUS_REG |= 2 << 8; // L  - Level of Error
-        MMU_FAULT_STATUS_REG |= 4 << 2; // FT - Translation Error
-        MMU_FAULT_STATUS_REG |= 1 << 1; // FAV - Fault Address Register valid
-
-        MMU_FAULT_ADDRESS_REG = addr;
-
-        if (tlb == itlb) {
-
-          //v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
-          //m_mmu_cache->trigger_exception(2);
-          v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
-          m_mmu_cache->trigger_exception(19);
-
-        } else {
-
-          //v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
-          //m_mmu_cache->trigger_exception(18);
-          v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
-          m_mmu_cache->trigger_exception(19);
-
-        }
-
-        //sc_stop();
-
-        return (0);
+    case 0x1:
+        if( ((error_code >> 8) & 0x3) == 3 ) // if level 3 goto DEFAULT
+            break;
+        // can otherwise only happen in level 1 or 2
+        v::debug << this->name() << ((error_code >> 8) & 0x3) << "-Level Page Table returned PTD: "
+                << std::hex << pde << v::endl;
+        break;
     }
 
-    // 3. load from 3rd-level page table
-    m_mmu_cache->mem_read((((data & ~0x3) << 4) + (idx3<<2)), 0x8, (unsigned char *)&data,
-                          4, t, debug, is_dbg, cacheable_mem, false);
-
-    #ifdef LITTLE_ENDIAN_BO
-    swap_Endianess(data);
-    #endif
-
-    // 3rd-level page table must contain PTE (PTD not allowed)
-    if ((data & 0x3) == 0x2) {
-
-        v::debug << this->name() << "3-Level Page Table returned PTE: "
-                << std::hex << data << v::endl;
-
-        // In case of a virtual address tag miss a new PDC entry is created.
-        // For context miss the existing entry will be replaced.
-        if ((!context_miss) && (tlb->size() == tlb_size)) {
-
-            v::debug << this->name() << "PDC full" << std::hex << data
-                    << v::endl;
-
-	    // Remove a TLB entry, with respect to replacement strategy
-	    slot_no = tlb_remove(tlb, tlb_size);
-
-	    tmp.tlb_no = slot_no;
-
-        } else {
-
-	  v::debug << this->name() << "Create new entry PDC entry - TLB number: " << tlb->size() << v::endl;
-	  tmp.tlb_no = tlb->size();
-
-        }
-
-        // add to PDC
-        tmp.context = MMU_CONTEXT_REG;
-        tmp.pte = data;
-        tmp.lru = 0xffffffffffffffff - 1;
-        tmp.offset_mask = 0x00000fff;
-
-        (*tlb)[vpn] = tmp;
-
-        // Log TLB writes for power monitoring
-        if (m_pow_mon) {
-
-          if (tlb == itlb) {
-
-            dyn_itlb_writes++;
-
-          } else {
-
-            dyn_dtlb_writes++;
-
-          }
-        }
-
-        // build physical address from PTE and offset
-        paddr = ((tmp.pte & ~0xFF) << 4 | (addr & tmp.offset_mask));
-        if ((data & (1<<7)) == 0) {
-          v::debug << this->name() << "data not cacheable!" << v::endl;
-          cacheable = false;
-        } else {
-          cacheable = true;
-        }
-
-        v::debug << this->name() << "Mapping complete - Virtual Addr: "
-                << std::hex << addr << " Physical Addr: " << std::hex << paddr
-                << v::endl;
-        return (paddr);
-    } else {
-
-        v::error << this->name()
-                 << "Error in 3-Level Page Table / Entry type not valid. VAddress: " << v::uint32 << addr
-                 << v::endl;
-
-        // Set fault status and fault address
-        MMU_FAULT_STATUS_REG = 0;
-        MMU_FAULT_STATUS_REG |= 3 << 8; // L  - Level of Error
-        MMU_FAULT_STATUS_REG |= 4 << 2; // FT - Translation Error
-        MMU_FAULT_STATUS_REG |= 1 << 1; // FAV - Fault Address Register valid
-
-        MMU_FAULT_ADDRESS_REG = addr;
-
-        if (tlb == itlb) {
-
-          //v::error << this->name() << "Trap encountered (instruction_access_mmu_miss) tt = 0x3c" << v::endl;
-          //m_mmu_cache->trigger_exception(2);
-          v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
-          m_mmu_cache->trigger_exception(19);
-
-        } else {
-
-          //v::error << this->name() << "Trap encountered (data_access_mmu_miss) tt = 0x2c" << v::endl;
-          //m_mmu_cache->trigger_exception(18);
-          v::error << this->name() << "Trap encountered (data_access_exception/page fault) tt = 0x09" << v::endl;
-          m_mmu_cache->trigger_exception(19);
-
-        }
-
-        //sc_stop();
-
-        return (0);
-    }
+    return -1;
 }
 
 // Read MMU Control Register
@@ -723,7 +705,6 @@ unsigned int mmu::read_mcr() {
   #endif
 
   return (tmp);
-
 }
 
 // Write MMU Control Register
@@ -741,8 +722,7 @@ void mmu::write_mcr(unsigned int * data) {
   // Only TD [15], NF [1] and E [0] are writable
   MMU_CONTROL_REG = tmp2 | (tmp & 0x00008003);
 
-  v::debug << name() << "Write to MMU_CONTROL_REG: " << hex << v::setw(8) << MMU_CONTROL_REG << v::endl;
-
+  v::debug << name() << "Write " << tmp << " (" << *data << ") to MMU_CONTROL_REG: " << hex << v::setw(8) << MMU_CONTROL_REG << v::endl;
 }
 
 // Read MMU Context Table Pointer Register
@@ -754,10 +734,9 @@ unsigned int mmu::read_mctpr() {
   swap_Endianess(tmp);
   #endif
   
-  v::debug << name() << "Read to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << tmp << v::endl;
+  v::debug << name() << "Read from MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << tmp << v::endl;
 
   return (tmp);
-
 }
 
 // Write MMU Context Table Pointer Register
@@ -773,7 +752,6 @@ void mmu::write_mctpr(unsigned int * data) {
   MMU_CONTEXT_TABLE_POINTER_REG = (tmp & ~0x3);
 
   v::debug << name() << "Write to MMU_CONTEXT_TABLE_POINTER_REG: " << hex << v::setw(8) << MMU_CONTEXT_TABLE_POINTER_REG << v::endl;
-
 }
 
 // Read MMU Context Register
@@ -784,9 +762,10 @@ unsigned int mmu::read_mctxr() {
   #ifdef LITTLE_ENDIAN_BO
   swap_Endianess(tmp);
   #endif
+  
+  v::debug << name() << "Read from MMU_CONTEXT_REG: " << hex << v::setw(8) << MMU_CONTEXT_REG << v::endl;
 
   return (tmp);
-
 }
 
 // Write MMU Context Register
@@ -801,7 +780,6 @@ void mmu::write_mctxr(unsigned int * data) {
   MMU_CONTEXT_REG = tmp;
 
   v::debug << name() << "Write to MMU_CONTEXT_REG: " << hex << v::setw(8) << MMU_CONTEXT_REG << v::endl;
-
 }
 
 // Read MMU Fault Status Register
@@ -812,9 +790,13 @@ unsigned int mmu::read_mfsr() {
   #ifdef LITTLE_ENDIAN_BO
   swap_Endianess(tmp);
   #endif
+  
+  v::debug << name() << "Read from MMU_FAULT_STATUS_REG: " << hex << v::setw(8) << MMU_FAULT_STATUS_REG << v::endl;
+
+  // Page 258 - Table H-8:  Reading the Fault Status Register clears it
+  MMU_FAULT_STATUS_REG = 0;
 
   return (tmp);
-
 }
 
 // Read MMU Fault Address Register
@@ -825,9 +807,10 @@ unsigned int mmu::read_mfar() {
   #ifdef LITTLE_ENDIAN_BO
   swap_Endianess(tmp);
   #endif
+  
+  v::debug << name() << "Read from MMU_FAULT_ADDRESS_REG: " << hex << v::setw(8) << MMU_FAULT_ADDRESS_REG << v::endl;
 
   return (tmp);
-
 }
 
 // Diagnostic PDC access (Page 255 SparcV8 Man):
@@ -936,13 +919,12 @@ unsigned int mmu::tlb_remove(std::map<t_VAT, t_PTE_context> * tlb, unsigned int 
       count = 0;
 
       for(selector = tlb->begin(); selector != tlb->end(); selector++) {
+	        if (count == tlb_select) {
 
-	if (count == tlb_select) {
+	          tlb->erase(selector);
+	          break;
 
-	  tlb->erase(selector);
-	  break;
-
-	}
+	        }
       }
 
   }
@@ -956,8 +938,6 @@ void mmu::lru_update(t_VAT vpn, std::map<t_VAT, t_PTE_context> * tlb, unsigned i
 
   std::map<t_VAT, t_PTE_context>::iterator selector;
 
-  v::debug << name() << "LRU_UPDATE for VPN: " << hex << vpn << v::endl;
-
   // The LRU counters of all TLBs, except the selected one (vpn),
   // are decrement. The counter of the selected TLB is set to the maximum.
   for (selector = tlb->begin(); selector != tlb->end(); selector++) {
@@ -966,13 +946,13 @@ void mmu::lru_update(t_VAT vpn, std::map<t_VAT, t_PTE_context> * tlb, unsigned i
 
       if (selector->second.lru != 0) {
 
-	(selector->second.lru)--;
+        (selector->second.lru)--;
 
       }
 
     } else {
 
-	selector->second.lru = 0xffffffffffffffff - 1;
+      selector->second.lru = 0xffffffffffffffff - 1;
 
     }
 

@@ -13,22 +13,30 @@
 ///
 
 #include "core/models/memory/basememory.h"
+#include "core/common/sr_registry.h"
+#include "core/common/sr_report.h"
 
-BaseMemory::BaseMemory(const implementation_type &type, const uint32_t &size) {
+BaseMemory::BaseMemory() {
   reads = 0;
   reads32 = 0;
   writes = 0;
   writes32 = 0;
-
-  switch (type) {
-  case BaseMemory::ARRAY: storage = new ArrayStorage(size);
-  case BaseMemory::MAP: storage = new MapStorage(size);
-  default: storage = new ArrayStorage(size);
-  }
 }
 
 BaseMemory::~BaseMemory() {
-  delete storage;
+  delete m_storage;
+}
+
+void BaseMemory::set_storage(std::string implementation, uint32_t size) {
+  sc_core::sc_object *obj = SrModuleRegistry::create_object_by_name("MemoryStorage", implementation, "storage");
+  m_storage = dynamic_cast<Storage *>(obj);
+  if(!m_storage) {
+    srError("BaseMemory")
+      ("storage", implementation)
+      ("size", size)
+      ("Memory Store not created");
+  }
+  m_storage->set_size(size);
 }
 
 uint8_t BaseMemory::read(const uint32_t &addr) {
@@ -44,11 +52,11 @@ void BaseMemory::write(const uint32_t &addr, const uint8_t &byte) {
 }
 
 uint8_t BaseMemory::read_dbg(const uint32_t &addr) {
-  return storage->read(addr);
+  return m_storage->read(addr);
 }
 
 void BaseMemory::write_dbg(const uint32_t &addr, const uint8_t &byte) {
-  storage->write(addr, byte);
+  m_storage->write(addr, byte);
 }
 
 void BaseMemory::erase(const uint32_t &start, const uint32_t &end) {
@@ -56,7 +64,7 @@ void BaseMemory::erase(const uint32_t &start, const uint32_t &end) {
 }
 
 void BaseMemory::erase_dbg(const uint32_t &start, const uint32_t &end) {
-  storage->erase(start, end);
+  m_storage->erase(start, end);
 }
 
 void BaseMemory::write_block(const uint32_t &addr, uint8_t *data, const uint32_t &len) {
@@ -66,7 +74,7 @@ void BaseMemory::write_block(const uint32_t &addr, uint8_t *data, const uint32_t
 }
 
 void BaseMemory::write_block_dbg(const uint32_t &addr, const uint8_t *data, const uint32_t &len) {
-  storage->write_block(addr, data, len);
+  m_storage->write_block(addr, data, len);
 }
 
 void BaseMemory::read_block(const uint32_t &addr, uint8_t *data, const uint32_t &len) {
@@ -76,6 +84,6 @@ void BaseMemory::read_block(const uint32_t &addr, uint8_t *data, const uint32_t 
 }
 
 void BaseMemory::read_block_dbg(const uint32_t &addr, uint8_t *data, const uint32_t &len) const {
-  storage->read_block(addr, data, len);
+  m_storage->read_block(addr, data, len);
 }
 /// @}

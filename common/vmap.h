@@ -26,31 +26,27 @@
 #define COMMON_VMAP_H_
 
 #ifndef MTI_SYSTEMC
-#ifdef __GNUC__
-#ifdef __GNUC_MINOR__
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 3)
-#include <tr1/unordered_map>
-#define vmap std::tr1::unordered_map
+  #ifdef __GNUC__
+    #if ((__GNUC__ * 100 + __GNUC_MINOR__) >= 403)
+      #include <tr1/unordered_map>
+      #define vmap std::tr1::unordered_map
+    #else
+      #include <ext/hash_map>
+      #define  vmap __gnu_cxx::hash_map
+    #endif
+  #else  // ifdef __GNUC__
+    #ifdef _WIN32
+      #include <hash_map>
+      #define  vmap stdext::hash_map
+    #else
+      #include <map>
+      #define  vmap std::map
+    #endif
+  #endif
 #else
-#include <ext/hash_map>
-#define  vmap __gnu_cxx::hash_map
+  #include <map>
+  #define  vmap std::map
 #endif
-#else
-#include <ext/hash_map>  // NOLINT(build/include)
-#define  vmap __gnu_cxx::hash_map
-#endif
-#else  // ifdef __GNUC__
-#ifdef _WIN32
-#include <hash_map>
-#define  vmap stdext::hash_map
-#else
-#include <map>
-#define  vmap std::map
-#endif
-#endif
-#else
-#include <map>
-#define  vmap std::map
-#endif
+
 #endif  // COMMON_VMAP_H_
 /// @}
