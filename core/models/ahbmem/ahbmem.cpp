@@ -154,8 +154,8 @@ uint32_t AHBMem::exec_func(
     trans.set_dmi_allowed(storage->allow_dmi_rw());
     if (trans.is_write()) {
       // write simulation memory
-      write_block(trans.get_address(), trans.get_data_ptr(), trans.get_data_length());
-
+      write_block(get_ahb_bar_relative_addr(0,trans.get_address()), trans.get_data_ptr(), trans.get_data_length());
+      
       // Base delay is one clock cycle per word
       words_transferred = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
 
@@ -168,7 +168,7 @@ uint32_t AHBMem::exec_func(
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
     } else {
       // read simulation memory
-      read_block(trans.get_address(), trans.get_data_ptr(), trans.get_data_length());
+      read_block(get_ahb_bar_relative_addr(0,trans.get_address()), trans.get_data_ptr(), trans.get_data_length());
 
       // Base delay is one clock cycle per word
       words_transferred = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
