@@ -49,9 +49,10 @@ namespace trap {
 template<class issueWidth>
 class OSEmulator : public ToolsIf<issueWidth>, public OSEmulatorBase {
   private:
-    vmap<issueWidth, SyscallCB<issueWidth> *> syscCallbacks;
+    typedef typename vmap<issueWidth, SyscallCB<issueWidth> *> syscallcb_map_t;
+    typename syscallcb_map_t::const_iterator syscCallbacksEnd;
+    syscallcb_map_t syscCallbacks;
     ABIIf<issueWidth> &processorInstance;
-    typename vmap<issueWidth, SyscallCB<issueWidth> *>::const_iterator syscCallbacksEnd;
     ELFFrontend *elfFrontend;
 
     unsigned int countBits(issueWidth bits) {
@@ -64,59 +65,38 @@ class OSEmulator : public ToolsIf<issueWidth>, public OSEmulatorBase {
       return numBits;
     }
 
+    bool register_syscall(issueWidth addr, SyscallCB<issueWidth> &callBack) {
+      typename syscallcb_map_t::iterator foundSysc = this->syscCallbacks.find(addr);
+      if (foundSysc != this->syscCallbacks.end()) {
+        int numMatch = 0;
+        typename syscallcb_map_t::iterator allCallIter, allCallEnd;
+        for (allCallIter = this->syscCallbacks.begin(), allCallEnd = this->syscCallbacks.end();
+             allCallIter != allCallEnd;
+             allCallIter++) {
+          if (allCallIter->second == foundSysc->second) {
+            numMatch++;
+          }
+        }
+        if (numMatch <= 1) {
+          delete foundSysc->second;
+        }
+      }
+
+      this->syscCallbacks[addr] = &callBack;
+      this->syscCallbacksEnd = this->syscCallbacks.end();
+
+      return true;
+    }
+
     bool register_syscall(std::string funName, SyscallCB<issueWidth> &callBack) {
       bool valid = false;
       unsigned int symAddr = this->elfFrontend->getSymAddr(funName, valid);
       if (!valid) {
         return false;
       }
-
-      typename vmap<issueWidth,
-        SyscallCB<issueWidth> *>::iterator foundSysc = this->syscCallbacks.find(symAddr);
-      if (foundSysc != this->syscCallbacks.end()) {
-        int numMatch = 0;
-        typename vmap<issueWidth, SyscallCB<issueWidth> *>::iterator allCallIter, allCallEnd;
-        for (allCallIter = this->syscCallbacks.begin(), allCallEnd = this->syscCallbacks.end();
-             allCallIter != allCallEnd;
-             allCallIter++) {
-          if (allCallIter->second == foundSysc->second) {
-            numMatch++;
-          }
-        }
-        if (numMatch <= 1) {
-          delete foundSysc->second;
-        }
-      }
-
-      this->syscCallbacks[symAddr] = &callBack;
-      this->syscCallbacksEnd = this->syscCallbacks.end();
-
-      return true;
+      return register_syscall(symAddr, callBack);
     }
 
-    bool register_syscall(issueWidth address, SyscallCB<issueWidth> &callBack) {
-      typename vmap<issueWidth,
-        SyscallCB<issueWidth> *>::iterator foundSysc = this->syscCallbacks.find(address);
-      if (foundSysc != this->syscCallbacks.end()) {
-        int numMatch = 0;
-        typename vmap<issueWidth, SyscallCB<issueWidth> *>::iterator allCallIter, allCallEnd;
-        for (allCallIter = this->syscCallbacks.begin(), allCallEnd = this->syscCallbacks.end();
-             allCallIter != allCallEnd;
-             allCallIter++) {
-          if (allCallIter->second == foundSysc->second) {
-            numMatch++;
-          }
-        }
-        if (numMatch <= 1) {
-          delete foundSysc->second;
-        }
-      }
-
-      this->syscCallbacks[address] = &callBack;
-      this->syscCallbacksEnd = this->syscCallbacks.end();
-
-      return true;
-    }
   public:
     OSEmulator(ABIIf<issueWidth> &processorInstance) : processorInstance(processorInstance) {
       this->syscCallbacksEnd = this->syscCallbacks.end();
