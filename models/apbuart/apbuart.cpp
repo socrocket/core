@@ -248,7 +248,7 @@ void APBUART::inc_fifo_level(uint32_t *counter) {
 void APBUART::dorst() {
 }
 
-void APBUART::start_of_simulation() {
+void APBUART::before_end_of_elaboration() {
   sc_core::sc_object *obj = SrModuleRegistry::create_object_by_name("UARTBackend", g_backend, "backend");
   m_backend = dynamic_cast<io_if *>(obj);
   if (!m_backend) {
