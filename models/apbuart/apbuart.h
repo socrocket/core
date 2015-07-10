@@ -44,7 +44,8 @@ class APBUART : public APBSlave, public CLKDevice {
     io_if *m_backend;
     uint32_t g_pirq;
     gs::cnf::gs_config<bool> g_console;
-    APBUART(ModuleName name, std::string uart_backend, uint16_t pindex = 0,
+    gs::cnf::gs_config<std::string> g_backend;
+    APBUART(ModuleName name, std::string uart_backend = "ReporterIo",  uint16_t pindex = 0,
     uint16_t paddr = 0, uint16_t pmask = 4095, int pirq = 0,
     bool console = false,
     // bool parity = false, bool flow = false, int fifosize = 0,
@@ -76,6 +77,8 @@ class APBUART : public APBSlave, public CLKDevice {
 
     // Signal Callbacks
     virtual void dorst();
+
+    void start_of_simulation();
 
     const uint32_t powermon;
 
