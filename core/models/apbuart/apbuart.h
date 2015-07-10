@@ -78,7 +78,7 @@ class APBUART : public APBSlave, public CLKDevice {
     // Signal Callbacks
     virtual void dorst();
 
-    void start_of_simulation();
+    void before_end_of_elaboration();
 
     const uint32_t powermon;
 
