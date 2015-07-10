@@ -32,6 +32,7 @@ APBUART::APBUART(ModuleName name,
   irq("IRQ"),
   g_pirq(pirq),
   g_console("console", console, m_generics),
+  g_backend("backend", uart_backend, m_generics),
   powermon(powmon) {
   SC_THREAD(send_irq);
   SC_THREAD(uart_ticks);
@@ -50,13 +51,6 @@ APBUART::APBUART(ModuleName name,
 
   init_registers();
 
-  sc_core::sc_object *obj = SrModuleRegistry::create_object_by_name("UARTBackend", uart_backend, "backend");
-  m_backend = dynamic_cast<io_if *>(obj);
-  if (!m_backend) {
-    srError("APBUART")
-      ("backend", uart_backend)
-      ("UART backend not created");
-  }
 
   // Configuration report
   v::info << this->name() << " ******************************************************************************* " <<
@@ -252,6 +246,16 @@ void APBUART::inc_fifo_level(uint32_t *counter) {
 }
 
 void APBUART::dorst() {
+}
+
+void APBUART::start_of_simulation() {
+  sc_core::sc_object *obj = SrModuleRegistry::create_object_by_name("UARTBackend", g_backend, "backend");
+  m_backend = dynamic_cast<io_if *>(obj);
+  if (!m_backend) {
+    srError("APBUART")
+      ("backend", g_backend)
+      ("UART backend not created");
+  }
 }
 
 /// @}
