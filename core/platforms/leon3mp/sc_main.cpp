@@ -704,84 +704,81 @@ int sc_main(int argc, char** argv) {
 
     }
 
-    // APBSlave - APBUart
-    // ==================
-    gs::gs_param_array p_apbuart("apbuart0", p_conf);
-    gs::gs_param<bool> p_apbuart_en("en", false, p_apbuart);
-    gs::gs_param<unsigned int> p_apbuart_index("index", 1, p_apbuart);
-    gs::gs_param<unsigned int> p_apbuart_addr("addr", 0x001, p_apbuart);
-    gs::gs_param<unsigned int> p_apbuart_mask("mask", 0xFFF, p_apbuart);
-    gs::gs_param<unsigned int> p_apbuart_irq("irq", 2u, p_apbuart);
-    gs::gs_param<unsigned int> p_apbuart_type("type", 1, p_apbuart);
-    gs::gs_param<unsigned int> p_apbuart_port("port", 2000, p_apbuart);
-    std::string uart_backend;
-    //int port = (unsigned int)p_apbuart_port;
-    //io_if *uart_io = NULL;
-    if(p_apbuart_en) {
-      switch(p_apbuart_type) {
-        case 1:
-          uart_backend = "TcpIO";
-          break;
-        default:
-          uart_backend = "ReportIO";
-          break;
+    // APBSlave - APBUart(s)
+    // =====================
+    struct {
+      const char * unique_name;
+      bool enable;
+      uint index;
+      uint16_t addr;
+      uint16_t mask;
+      uint irq;
+      uint type;
+      uint port;
+    } apbuarts[ 2 ] = { 
+      { 
+        .unique_name = "apbuart0",
+        .enable = false,
+        .index = 1,
+        .addr = 0x001,
+        .mask = 0xFFF,
+        .irq = 2u,
+        .type = 1,
+        .port = 2000
+      },
+      {
+        .unique_name = "apbuart1",
+        .enable = true,
+        .index = 9,
+        .addr = 0x009,
+        .mask = 0xFFF,
+        .irq = 3, // 4???
+        .type = 0u,
+        .port = 3000
       }
+    };
+    
+    for( uint i = 0; i < 2; i++ ) {
+      gs::gs_param_array p_apbuart( apbuarts[ i ].unique_name, p_conf);
+      gs::gs_param<bool> p_apbuart_en("en", apbuarts[ i ].enable, p_apbuart);
+      gs::gs_param<unsigned int> p_apbuart_index("index", apbuarts[ i ].index, p_apbuart);
+      gs::gs_param<unsigned int> p_apbuart_addr("addr", apbuarts[ i ].addr, p_apbuart);
+      gs::gs_param<unsigned int> p_apbuart_mask("mask", apbuarts[ i ].mask, p_apbuart);
+      gs::gs_param<unsigned int> p_apbuart_irq("irq", apbuarts[ i ].irq, p_apbuart);
+      gs::gs_param<unsigned int> p_apbuart_type("type", apbuarts[ i ].type, p_apbuart);
+      gs::gs_param<unsigned int> p_apbuart_port("port", apbuarts[ i ].port, p_apbuart);
+      std::string uart_backend;
+      //int port = (unsigned int)p_apbuart_port;
+      //io_if *uart_io = NULL;
+      if(p_apbuart_en) {
+        switch(p_apbuart_type) {
+          case 1:
+            uart_backend = "TcpIO";
+            break;
+          default:
+            uart_backend = "ReportIO";
+            break;
+        }
 
-      APBUART *apbuart = new APBUART(sc_core::sc_gen_unique_name("apbuart0", true),
-        uart_backend,
-        p_apbuart_index,           // index
-        p_apbuart_addr,            // paddr
-        p_apbuart_mask,            // pmask
-        p_apbuart_irq,             // pirq
-        p_report_power   // powmon
-      );
+        APBUART *apbuart = new APBUART(sc_core::sc_gen_unique_name(apbuarts[ i ].unique_name, true),
+          uart_backend,
+          p_apbuart_index,           // index
+          p_apbuart_addr,            // paddr
+          p_apbuart_mask,            // pmask
+          p_apbuart_irq,             // pirq
+          p_report_power   // powmon
+        );
 
-      // Connecting APB Slave
-      apbctrl.apb(apbuart->apb);
-      // Connecting Interrupts
-      signalkit::connect(irqmp.irq_in, apbuart->irq, p_apbuart_irq);
-      // Set clock
-      apbuart->set_clk(p_system_clock,SC_NS);
-      // ******************************************
+        // Connecting APB Slave
+        apbctrl.apb(apbuart->apb);
+        // Connecting Interrupts
+        signalkit::connect(irqmp.irq_in, apbuart->irq, p_apbuart_irq);
+        // Set clock
+        apbuart->set_clk(p_system_clock,SC_NS);
+        // ******************************************
+      }
     }
 
-    // APBSlave - APBUart
-    // ==================
-    gs::gs_param_array p_apbuart1("apbuart1", p_conf);
-    gs::gs_param<bool> p_apbuart1_en("en", true, p_apbuart1);
-    gs::gs_param<unsigned int> p_apbuart1_index("index", 9, p_apbuart1);
-    gs::gs_param<unsigned int> p_apbuart1_addr("addr", 0x009, p_apbuart1);
-    gs::gs_param<unsigned int> p_apbuart1_mask("mask", 0xFFF, p_apbuart1);
-    gs::gs_param<unsigned int> p_apbuart1_irq("irq", 3, p_apbuart1); // 4???
-    gs::gs_param<unsigned int> p_apbuart1_type("type", 0u, p_apbuart1);
-    gs::gs_param<unsigned int> p_apbuart1_port("port", 3000, p_apbuart1);
-    if(p_apbuart1_en) {
-      switch(p_apbuart1_type) {
-        case 1:
-          uart_backend = "TcpIO";
-          break;
-        default:
-          uart_backend = "ReportIO";
-          break;
-      }
-
-      APBUART *apbuart1 = new APBUART(sc_core::sc_gen_unique_name("apbuart1", true),
-        uart_backend,
-        p_apbuart1_index,           // index
-        p_apbuart1_addr,            // paddr
-        p_apbuart1_mask,            // pmask
-        p_apbuart1_irq,             // pirq
-        p_report_power   // powmon
-      );
-
-      // Connecting APB Slave
-      apbctrl.apb(apbuart1->apb);
-      // Connecting Interrupts
-      signalkit::connect(irqmp.irq_in, apbuart1->irq, p_apbuart1_irq);
-      // Set clock
-      apbuart1->set_clk(p_system_clock,SC_NS);
-      // ******************************************
-    }
 
     // AHBSlave - AHBProf
     // ==================
