@@ -343,7 +343,7 @@ int sc_main(int argc, char** argv) {
                      p_mctrl_prom_bsize * 1024 * 1024,
                      p_mctrl_prom_width,
                      0,
-                     "MapStorage",
+                     "ArrayStorage",
                      p_report_power
     );
 
