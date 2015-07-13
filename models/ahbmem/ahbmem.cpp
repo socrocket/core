@@ -130,7 +130,7 @@ void AHBMem::init_generics() {
     ("name", "Power Monitoring")
     ("If true enable power monitoring");
 
-  g_pow_mon.add_properties()
+  g_storage_type.add_properties()
     ("name", "Memory Storage Type")
     ("enum", "ArrayStorage, MapStorage")
     ("Defines the type of memory used as a backend implementation");
