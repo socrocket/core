@@ -16,6 +16,7 @@ def build(self):
                        'msclogger.cpp',
                        'sr_registry.cpp',
                        'sr_report.cpp',
+                       'sr_iss/intrinsics/platformintrinsic.cpp',
                        'waf.cpp',
                        'scireg.cpp'
                        ],
