@@ -29,7 +29,7 @@
 /// @addtogroup apbctrl APBCtrl
 /// @{
 
-class APBCtrl : public AHBSlave<DefaultBase>, public CLKDevice {
+class APBCtrl : public AHBSlave<>, public CLKDevice {
   public:
     GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(APBCtrl);

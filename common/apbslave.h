@@ -117,12 +117,12 @@ class APBSlaveSocket : public sr_register_amba_socket<BUSWIDTH, ADDR_TYPE, DATA_
 
 };
 
-class APBSlave : public APBDevice<DefaultBase> {
+class APBSlave : public APBDevice<BaseModule<DefaultBase> > {
   public:
     APBSlave(ModuleName mn, uint32_t bus_id, uint8_t vendorid, uint16_t deviceid, uint8_t version,
         uint8_t irq, AMBADeviceType type, uint16_t mask, bool cacheable, bool prefetchable, 
         uint16_t address) : 
-      APBDevice<DefaultBase>(mn,
+      APBDevice<BaseModule<DefaultBase> >(mn,
           bus_id, vendorid, deviceid, version, irq, type, mask, cacheable, prefetchable, address),
       r("register"),
       apb("apb", &r) {
@@ -130,7 +130,7 @@ class APBSlave : public APBDevice<DefaultBase> {
     }
 
     APBSlave(ModuleName mn) :
-      APBDevice<DefaultBase>(mn), 
+      APBDevice<BaseModule<DefaultBase> >(mn), 
       r("register"),
       apb("apb", &r) {
       r.add_associate_busport(&apb);
