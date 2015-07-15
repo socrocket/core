@@ -47,7 +47,7 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
     ahbSize(~(static_cast<uint32_t>(hmask) << 20) + 1),
     g_haddr("haddr", haddr, m_generics),
     g_hmask("hmask", hmask, m_generics),
-    g_hindex("hindex", hindex, m_generics),
+    //g_hindex("hindex", hindex, m_generics),
     g_cacheable("cacheable", cacheable, m_generics),
     g_wait_states("wait_states", wait_states, m_generics),
     g_pow_mon("pow_mon", pow_mon, m_generics),
@@ -84,7 +84,7 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
   srInfo("/configuration/ahbmem/generics")
     ("haddr", g_haddr)
     ("hmask", g_hmask)
-    ("hindex", g_hindex)
+    //("hindex", g_hindex)
     ("cacheable", g_cacheable)
     ("wait_states", g_wait_states)
     ("Create AHB simulation memory");
@@ -98,11 +98,11 @@ AHBMem::~AHBMem() {
 
 void AHBMem::init_generics() {
   // set name, type, default, range, hint and description for gs_configs
-  g_hindex.add_properties()
+  /*g_hindex.add_properties()
     ("name", "Bus Index")
     ("vhdl_name","hindex")
     ("range", "0..15")
-    ("Slave index at the AHB bus");
+    ("Slave index at the AHB bus");*/
 
   g_haddr.add_properties()
     ("name", "AHB Address")
@@ -163,7 +163,7 @@ uint32_t AHBMem::exec_func(
       
       // Base delay is one clock cycle per word
       words_transferred = (trans.get_data_length() < 4) ? 1 : (trans.get_data_length() >> 2);
-
+ 
       if (g_pow_mon) {
         dyn_writes += words_transferred;
       }

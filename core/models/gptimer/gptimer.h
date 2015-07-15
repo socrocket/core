@@ -199,16 +199,6 @@ class GPTimer : public APBSlave, public CLKDevice {
   /// Enables the powermonitor capapbilities
   gs::cnf::gs_config<uint32_t> powermon;
 
-  // gs_config for index, addr, mask, sepirq
-  /// APB bus slave index
-  gs::cnf::gs_config<uint32_t> g_pindex;
-
-  /// APB bus slave address
-  gs::cnf::gs_config<uint32_t> g_paddr;
-
-  /// APB bus slave mask
-  gs::cnf::gs_config<uint32_t> g_pmask;
-
   /// Seperated IRQ lines.
   /// If you whant to have seperated IRQ lines for each counter set this generic to true.
   gs::cnf::gs_config<bool> g_sepirq;

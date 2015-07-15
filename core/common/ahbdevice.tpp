@@ -29,7 +29,7 @@ AHBDevice<BASE>::AHBDevice(
     BAR bar1,
     BAR bar2,
     BAR bar3) :
-  BaseModule<BASE>(mn),
+  BASE(mn),
   g_bars("bar", this->m_generics),
   g_bar0("0", g_bars),
   g_bar1("1", g_bars),
@@ -67,7 +67,7 @@ AHBDevice<BASE>::AHBDevice(
 template<class BASE>
 AHBDevice<BASE>::AHBDevice(
     ModuleName mn) :
-  BaseModule<BASE>(mn),
+  BASE(mn),
   g_bars("bar", this->m_generics),
   g_bar0("0", g_bars),
   g_bar1("1", g_bars),

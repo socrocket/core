@@ -33,7 +33,7 @@
 ///
 /// An overview about how to build own components based on AHBMaster is given in @ref modeling7 "Extending the Library".
 /// 
-template<class BASE = DefaultBase>
+template<class BASE = BaseModule<DefaultBase> >
 class AHBMaster : public AHBDevice<BASE> {
   public:
     SC_HAS_PROCESS(AHBMaster);

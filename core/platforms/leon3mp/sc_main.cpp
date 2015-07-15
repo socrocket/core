@@ -55,13 +55,13 @@
 #include "vphy/loopback.h"
 #endif
 #ifdef HAVE_AHBDISPLAY
-#include "media/models/ahbdisplay/ahbdisplay.h"
+#include "models/ahbdisplay/ahbdisplay.h"
 #endif
 #ifdef HAVE_AHBCAMERA
-#include "media/models/ahbcamera/ahbcamera.h"
+#include "models/ahbcamera/ahbcamera.h"
 #endif
 #ifdef HAVE_AHBSHUFFLER
-#include "media/models/ahbshuffler/ahbshuffler.h"
+#include "models/ahbshuffler/ahbshuffler.h"
 #endif
 #ifdef HAVE_AHBGPGPU
 #include "ahbgpgpu/models/nyuzi/nyuzi.h"
@@ -1006,9 +1006,7 @@ int sc_main(int argc, char** argv) {
         p_ahbdisplay_hindex,  // ahb index
         p_ahbdisplay_pindex,  // apb index
         p_ahbdisplay_paddr,  // apb address
-        p_ahbdisplay_pmask,  // apb mask
-        ambaLayer,
-        true
+        p_ahbdisplay_pmask  // apb mask
       );
 
       // Connecting APB Slave
@@ -1034,8 +1032,7 @@ int sc_main(int argc, char** argv) {
         p_ahbcamera_paddr,   // apb addr
         p_ahbcamera_pmask,   // apb make
         ((std::string)p_ahbcamera_video).c_str(),
-        ambaLayer,
-        true
+        ambaLayer
       );
 
       // Connecting APB Slave
