@@ -54,6 +54,8 @@ class sr_register_amba_socket : public ::amba::amba_slave_socket<BUSWIDTH>, publ
 
         switch (length) {
           case 1:
+            // shift data by byteaddr * 8 
+            /// @todo We have to read the old data from the register first!!!!
             *data <<= (byteaddr << 3);
             break;
           case 2:
