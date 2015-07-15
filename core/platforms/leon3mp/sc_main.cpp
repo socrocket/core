@@ -23,8 +23,6 @@
 #include <mcheck.h>
 #include "core/common/amba.h"
 #include "core/common/trapgen/debugger/GDBStub.hpp"
-#include "core/common/trapgen/elfloader/execLoader.hpp"
-#include "core/common/trapgen/osEmulator/osEmulator.hpp"
 #include <iostream>
 #include <vector>
 #include <cstring>
@@ -77,9 +75,7 @@ using namespace sc_core;
 using namespace socw;
 #endif
 
-namespace trap {
-  extern int exitValue;
-};
+extern int exitValue;
 
 void stopSimFunction(int sig) {
   v::warn << "main" << "Simulation interrupted by user" << std::endl;
@@ -125,6 +121,7 @@ int sc_main(int argc, char** argv) {
     USI_HAS_MODULE(systemc);
     USI_HAS_MODULE(registry);
     USI_HAS_MODULE(delegate);
+    USI_HAS_MODULE(intrinsics);
     USI_HAS_MODULE(greensocket);
     USI_HAS_MODULE(scireg);
     USI_HAS_MODULE(amba);
@@ -600,6 +597,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_gdb_en("en", false, p_gdb);
     gs::gs_param<int> p_gdb_port("port", 1500, p_gdb);
     gs::gs_param<int> p_gdb_proc("proc", 0, p_gdb);
+    Leon3 *first_leon = NULL;
     for(uint32_t i=0; i< p_system_ncpu; i++) {
       // AHBMaster - MMU_CACHE
       // =====================
@@ -637,6 +635,9 @@ int sc_main(int argc, char** argv) {
               p_report_power,            // Power Monitor,
               ambaLayer                  // TLM abstraction layer
       );
+      if(!first_leon) {
+        first_leon = leon3;
+      }
 
       // Connecting AHB Master
       leon3->ahb(ahbctrl.ahbIN);
@@ -1118,6 +1119,6 @@ int sc_main(int argc, char** argv) {
     v::info << "Summary" << "Delta: " << dec << setprecision(4) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
 
     std::cout << "End of sc_main" << std::endl << std::flush;
-    return trap::exitValue;
+    return first_leon->cpu.getInterface().getExitValue();
 }
 /// @}
