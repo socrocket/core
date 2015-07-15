@@ -77,6 +77,8 @@ namespace leon3_funclt_trap{
         Instruction **INSTRUCTIONS;
         Instruction *curInstrPtr;
         unsigned int raisedException;
+        unsigned int raisedExceptionPC;
+        unsigned int raisedExceptionNPC;
         vmap<unsigned int, CacheElem> instrCache;
         static int numInstances;
         unsigned int IRQ;
