@@ -107,13 +107,13 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                 } else if(startMet && curPC == this->profEndAddr){
                     this->profTimeEnd = sc_time_stamp();
                 }
-
+                
                 int instrId = 0;
                 unsigned int bitString = this->instrMem.read_instr(curPC, 0x8 | (PSR[key_S]? 1 : 0),0);
                 if(raisedException) {
                     unsigned int exception = raisedException;
                     raisedException = 0;
-                    curInstrPtr->RaiseException(this->curPC, this->PC, exception);
+                    curInstrPtr->RaiseException(raisedExceptionPC, raisedExceptionNPC, exception);
                 }
                 vmap< unsigned int, CacheElem >::iterator cachedInstr = this->instrCache.find(bitString);
                 unsigned int *curCount = NULL;
@@ -183,6 +183,8 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
 
 void leon3_funclt_trap::Processor_leon3_funclt::triggerException(unsigned int exception) {
     raisedException = exception;
+    raisedExceptionPC = this->PC;
+    raisedExceptionNPC = this->NPC;
 }
 
 void leon3_funclt_trap::Processor_leon3_funclt::beginOp(){
