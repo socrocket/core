@@ -102,6 +102,20 @@ void grethVPHYHook(char* dev_name)
   return;
 }
 
+class irqmp_rst_stimuli : sc_core::sc_module {
+  public:
+    signalkit::signal_out<bool, Irqmp> irqmp_rst;
+    irqmp_rst_stimuli(sc_core::sc_module_name mn) : 
+        sc_core::sc_module(mn), 
+        irqmp_rst("rst") {
+
+    }
+    void start_of_simulation() {
+      irqmp_rst.write(0);
+      irqmp_rst.write(1);
+    }
+};
+
 int sc_main(int argc, char** argv) {
     clock_t cstart, cend;
     std::string prom_app;
@@ -347,25 +361,6 @@ int sc_main(int argc, char** argv) {
     // Connect to memory controller and clock
     mctrl.mem(rom.bus);
     rom.set_clk(p_system_clock, SC_NS);
-#if 0
-    // ELF loader from leon (Trap-Gen)
-    gs::gs_param<std::string> p_mctrl_prom_elf("elf", "", p_mctrl_prom);
-    if(!((std::string)p_mctrl_prom_elf).empty()) {
-      if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_prom_elf))) {
-        uint8_t *execData;
-        v::info << "rom" << "Loading Prom with " << p_mctrl_prom_elf << v::endl;
-        ExecLoader prom_loader(p_mctrl_prom_elf);
-        execData = prom_loader.getProgData();
-
-        for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
-          rom.write_dbg(prom_loader.getDataStart() + i - ((((unsigned int)p_mctrl_prom_addr)&((unsigned int)p_mctrl_prom_mask))<<20), execData[i]);
-        }
-      } else {
-        v::warn << "rom" << "File " << p_mctrl_prom_elf << " does not exist!" << v::endl;
-        exit(1);
-      }
-    }
-#endif
 
     // IO memory instantiation
     Memory io( "io",
@@ -384,23 +379,6 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);
-#if 0
-    if(!((std::string)p_mctrl_io_elf).empty()) {
-      if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_io_elf))) {
-        uint8_t *execData;
-        v::info << "io" << "Loading IO with " << p_mctrl_io_elf << v::endl;
-        ExecLoader loader(p_mctrl_io_elf);
-        execData = loader.getProgData();
-
-        for(unsigned int i = 0; i < loader.getProgDim(); i++) {
-          io.write_dbg(loader.getDataStart() + i - ((((unsigned int)p_mctrl_io_addr)&((unsigned int)p_mctrl_io_mask))<<20), execData[i]);
-        }
-      } else {
-        v::warn << "io" << "File " << p_mctrl_io_elf << " does not exist!" << v::endl;
-        exit(1);
-      }
-    }
-#endif
 
     // SRAM instantiation
     Memory sram( "sram",
@@ -419,23 +397,6 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
-#if 0
-    if(!((std::string)p_mctrl_ram_sram_elf).empty()) {
-      if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sram_elf))) {
-        uint8_t *execData;
-        v::info << "sram" << "Loading SRam with " << p_mctrl_ram_sram_elf << v::endl;
-        ExecLoader loader(p_mctrl_ram_sram_elf);
-        execData = loader.getProgData();
-
-        for(unsigned int i = 0; i < loader.getProgDim(); i++) {
-          sram.write_dbg(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
-        }
-      } else {
-        v::warn << "sram" << "File " << p_mctrl_ram_sram_elf << " does not exist!" << v::endl;
-        exit(1);
-      }
-    }
-#endif
 
     // SDRAM instantiation
     Memory sdram( "sdram",
@@ -454,23 +415,6 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sdram_elf("elf", "", p_mctrl_ram_sdram);
-#if 0
-    if(!((std::string)p_mctrl_ram_sdram_elf).empty()) {
-      if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sdram_elf))) {
-        uint8_t *execData;
-        v::info << "sdram" << "Loading SDRam with " << p_mctrl_ram_sdram_elf << v::endl;
-        ExecLoader loader(p_mctrl_ram_sdram_elf);
-        execData = loader.getProgData();
-
-        for(unsigned int i = 0; i < loader.getProgDim(); i++) {
-          sdram.write_dbg(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
-        }
-      } else {
-        v::warn << "sdram" << "File " << p_mctrl_ram_sdram_elf << " does not exist!" << v::endl;
-        exit(1);
-      }
-    }
-#endif
 
 
     //leon3.ENTRY_POINT   = 0;
@@ -504,24 +448,6 @@ int sc_main(int argc, char** argv) {
       // Connect to ahbctrl and clock
       ahbctrl.ahbOUT(ahbmem->ahb);
       ahbmem->set_clk(p_system_clock, SC_NS);
-#if 0
-      // ELF loader from leon (Trap-Gen)
-      if(!((std::string)p_ahbmem_elf).empty()) {
-        if(boost::filesystem::exists(boost::filesystem::path((std::string)p_ahbmem_elf))) {
-          uint8_t *execData;
-          v::info << "ahbmem" << "Loading AHBMem with " << p_ahbmem_elf << v::endl;
-          ExecLoader prom_loader(p_ahbmem_elf);
-          execData = prom_loader.getProgData();
-
-          for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
-            ahbmem->writeByteDBG(prom_loader.getDataStart() + i - ((((unsigned int)p_ahbmem_addr)&((unsigned int)p_ahbmem_mask))<<20), execData[i]);
-          }
-        } else {
-          v::warn << "ahbmem" << "File " << p_ahbmem_elf << " does not exist!" << v::endl;
-          exit(1);
-        }
-      }
-#endif
     }
 
 
@@ -1090,12 +1016,8 @@ int sc_main(int argc, char** argv) {
       //connect(nyuzi->snoop, nyuzi.snoop);
     }
 #endif /* #ifdef HAVE_AHBGPGPU */
-
-    signalkit::signal_out<bool, Irqmp> irqmp_rst;
-    connect(irqmp_rst, irqmp.rst);
-    irqmp_rst.write(0);
-    irqmp_rst.write(1);
-
+    irqmp_rst_stimuli stimuli("platform_stimuli");
+    connect(stimuli.irqmp_rst, irqmp.rst);
 #ifndef HAVE_USI
     (void) signal(SIGINT, stopSimFunction);
     (void) signal(SIGTERM, stopSimFunction);
