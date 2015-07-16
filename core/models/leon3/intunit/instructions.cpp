@@ -4679,10 +4679,6 @@ unsigned int leon3_funclt_trap::RETT_imm::behavior(){
         PC = npcounter;
         NPC = targetAddr;
         #endif
-//		std::cout << getInstructionName() <<  " " << PC << " " << NPC << std::endl;
-//		if( PC == NPC ) {
-//			std::cout << "PC " << pcounter << " -> " << PC << "; NPC " << npcounter << " -> " << NPC << std::endl;
-//		}
     }
 	else
     	this->IncrementPC();
@@ -9915,10 +9911,6 @@ unsigned int leon3_funclt_trap::RETT_reg::behavior(){
         PC = npcounter;
         NPC = targetAddr;
         #endif
-		//std::cout << getInstructionName() <<  " " << PC << " " << NPC << std::endl;
-//		if( PC == NPC ) {
-//			std::cout << std::hex << "PC " << pcounter << " -> " << PC << "; NPC " << npcounter << " -> " << NPC << std::endl;
-//		}
     }
 	else
 		this->IncrementPC();
