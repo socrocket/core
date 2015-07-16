@@ -4704,7 +4704,6 @@ unsigned int leon3_funclt_trap::RETT_imm::behavior(){
     #endif
 
     if(exceptionEnabled){
-	exit(1);
         if(supervisor){
             RaiseException(pcounter, npcounter, ILLEGAL_INSTR);
         }
@@ -9936,7 +9935,6 @@ unsigned int leon3_funclt_trap::RETT_reg::behavior(){
     #endif
 
     if(exceptionEnabled){
-	exit(1);
         if(supervisor){
             RaiseException(pcounter, npcounter, ILLEGAL_INSTR);
         }
