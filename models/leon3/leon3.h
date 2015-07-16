@@ -37,7 +37,7 @@
 // LEON3
 #include "core/models/leon3/intunit/processor.hpp"
 #include "core/common/trapgen/debugger/GDBStub.hpp"
-#include "core/common/trapgen/osEmulator/osEmulator.hpp"
+#include "core/common/sr_iss/intrinsics/intrinsicmanager.h"
 
 /// @addtogroup mmu_cache MMU_Cache
 /// @{
@@ -123,7 +123,7 @@ class Leon3 :
 
     LEON3 cpu;
     GDBStub<uint32_t> *debugger;
-    OSEmulator<uint32_t> *osEmu;
+    IntrinsicManager<uint32_t> m_intrinsics;
 
     gs::cnf::gs_config<int> g_gdb;
     gs::cnf::gs_config<std::string> g_history;
