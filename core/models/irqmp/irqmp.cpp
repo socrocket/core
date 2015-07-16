@@ -270,13 +270,13 @@ void Irqmp::incomming_irq(const std::pair<uint32_t, bool> &irq, const sc_time &t
 
       // If the incomming interrupt is not listed in the broadcast register
       // it goes in the pending register
-      if (!r[BROADCAST].bit(line)) {
+      if (!r[BROADCAST].bit(line+1)) {
         r[IR_PENDING].bit(line, true);
       }
 
       // If it is not listed n the broadcast register and not an extended interrupt it goes into the force registers.
       // EIRs cannot be forced
-      if (r[BROADCAST].bit(line) && (line < 16)) {
+      if (r[BROADCAST].bit(line+1) && (line < 16)) {
         // set force registers for broadcasted interrupts
         for (int32_t cpu = 0; cpu < g_ncpu; cpu++) {
           r[PROC_IR_FORCE(cpu)].bit(line, true);
