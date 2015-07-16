@@ -715,13 +715,13 @@ leon3_funclt_trap::ANDNcc_reg::~ANDNcc_reg(){
 }
 unsigned int leon3_funclt_trap::LDSB_imm::behavior(){
     this->totalInstrCycles = 0;
-    this->IncrementPC();
 
     address = rs1 + SignExtend(simm13, 13);
 
     readValue = SignExtend(dataMem.read_byte(address, 0xA | (PSR[key_S]? 1 : 0), 0, 0), 8);
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -1203,7 +1203,6 @@ unsigned int leon3_funclt_trap::LDSBA_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     supervisor = PSR[key_S];
@@ -1230,6 +1229,7 @@ unsigned int leon3_funclt_trap::LDSBA_reg::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -1285,7 +1285,6 @@ unsigned int leon3_funclt_trap::LDUH_imm::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + SignExtend(simm13, 13);
 
@@ -1303,6 +1302,7 @@ unsigned int leon3_funclt_trap::LDUH_imm::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -1353,7 +1353,6 @@ unsigned int leon3_funclt_trap::STA_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     toWrite = rd;
@@ -1380,6 +1379,7 @@ unsigned int leon3_funclt_trap::STA_reg::behavior(){
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
     }
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -1492,7 +1492,6 @@ unsigned int leon3_funclt_trap::LDSHA_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     supervisor = PSR[key_S];
@@ -1523,6 +1522,7 @@ unsigned int leon3_funclt_trap::LDSHA_reg::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -1578,7 +1578,6 @@ unsigned int leon3_funclt_trap::STBA_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     toWrite = (unsigned char)(rd & 0x000000FF);
@@ -1601,6 +1600,7 @@ unsigned int leon3_funclt_trap::STBA_reg::behavior(){
     if(!supervisor){
         RaiseException(pcounter, npcounter, PRIVILEDGE_INSTR);
     }
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -1655,7 +1655,6 @@ unsigned int leon3_funclt_trap::ST_imm::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + SignExtend(simm13, 13);
     toWrite = rd;
@@ -1678,6 +1677,7 @@ unsigned int leon3_funclt_trap::ST_imm::behavior(){
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
     }
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -1865,7 +1865,6 @@ unsigned int leon3_funclt_trap::SWAPA_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     toWrite = rd;
@@ -1895,6 +1894,7 @@ unsigned int leon3_funclt_trap::SWAPA_reg::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -2013,13 +2013,13 @@ leon3_funclt_trap::ADDXcc_imm::~ADDXcc_imm(){
 }
 unsigned int leon3_funclt_trap::STB_imm::behavior(){
     this->totalInstrCycles = 0;
-    this->IncrementPC();
 
     address = rs1 + SignExtend(simm13, 13);
     toWrite = (unsigned char)(rd & 0x000000FF);
 
     dataMem.write_byte(address, toWrite, 0xA | (PSR[key_S]? 1 : 0), 0, 0);
     stall(1);
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -2133,7 +2133,6 @@ unsigned int leon3_funclt_trap::STH_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     toWrite = (unsigned short int)(rd & 0x0000FFFF);
@@ -2156,6 +2155,7 @@ unsigned int leon3_funclt_trap::STH_reg::behavior(){
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
     }
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -2384,7 +2384,6 @@ leon3_funclt_trap::UMULcc_reg::~UMULcc_reg(){
 }
 unsigned int leon3_funclt_trap::LDSTUB_reg::behavior(){
     this->totalInstrCycles = 0;
-    this->IncrementPC();
 
     address = rs1 + rs2;
 
@@ -2393,6 +2392,7 @@ unsigned int leon3_funclt_trap::LDSTUB_reg::behavior(){
     stall(2);
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -2623,7 +2623,6 @@ unsigned int leon3_funclt_trap::LD_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
 
@@ -2641,6 +2640,7 @@ unsigned int leon3_funclt_trap::LD_reg::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -2693,7 +2693,6 @@ unsigned int leon3_funclt_trap::ST_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     toWrite = rd;
@@ -2716,6 +2715,7 @@ unsigned int leon3_funclt_trap::ST_reg::behavior(){
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
     }
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -2828,7 +2828,6 @@ unsigned int leon3_funclt_trap::LDD_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     #ifdef ACC_MODEL
     REGS[rd_bit ^ 0x1].lock();
@@ -2871,6 +2870,7 @@ unsigned int leon3_funclt_trap::LDD_reg::behavior(){
     #ifdef ACC_MODEL
     unlockQueue[0].push_back(REGS[rd_bit ^ 0x1].getPipeReg());
     #endif
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -2982,7 +2982,6 @@ unsigned int leon3_funclt_trap::LDUH_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
 
@@ -3000,6 +2999,7 @@ unsigned int leon3_funclt_trap::LDUH_reg::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -3337,7 +3337,6 @@ unsigned int leon3_funclt_trap::STD_imm::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + SignExtend(simm13, 13);
     if(rd_bit % 2 == 0){
@@ -3365,6 +3364,7 @@ unsigned int leon3_funclt_trap::STD_imm::behavior(){
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
     }
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -3542,7 +3542,6 @@ unsigned int leon3_funclt_trap::SWAP_imm::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + SignExtend(simm13, 13);
     toWrite = rd;
@@ -3568,6 +3567,7 @@ unsigned int leon3_funclt_trap::SWAP_imm::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -3898,7 +3898,6 @@ unsigned int leon3_funclt_trap::STH_imm::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + SignExtend(simm13, 13);
     toWrite = (unsigned short int)(rd & 0x0000FFFF);
@@ -3921,6 +3920,7 @@ unsigned int leon3_funclt_trap::STH_imm::behavior(){
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
     }
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -4033,7 +4033,6 @@ unsigned int leon3_funclt_trap::LDD_imm::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     #ifdef ACC_MODEL
     REGS[rd_bit ^ 0x1].lock();
@@ -4076,6 +4075,7 @@ unsigned int leon3_funclt_trap::LDD_imm::behavior(){
     #ifdef ACC_MODEL
     unlockQueue[0].push_back(REGS[rd_bit ^ 0x1].getPipeReg());
     #endif
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -4182,7 +4182,6 @@ unsigned int leon3_funclt_trap::LDUHA_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     supervisor = PSR[key_S];
@@ -4213,6 +4212,7 @@ unsigned int leon3_funclt_trap::LDUHA_reg::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -4708,6 +4708,7 @@ unsigned int leon3_funclt_trap::RETT_imm::behavior(){
     #endif
 
     if(exceptionEnabled){
+	exit(1);
         if(supervisor){
             RaiseException(pcounter, npcounter, ILLEGAL_INSTR);
         }
@@ -5152,13 +5153,13 @@ leon3_funclt_trap::WRITEtbr_imm::~WRITEtbr_imm(){
 }
 unsigned int leon3_funclt_trap::LDUB_reg::behavior(){
     this->totalInstrCycles = 0;
-    this->IncrementPC();
 
     address = rs1 + rs2;
 
     readValue = dataMem.read_byte(address, 0xA | (PSR[key_S]? 1 : 0), 0, 0);
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -5370,13 +5371,13 @@ leon3_funclt_trap::ADDXcc_reg::~ADDXcc_reg(){
 }
 unsigned int leon3_funclt_trap::STB_reg::behavior(){
     this->totalInstrCycles = 0;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     toWrite = (unsigned char)(rd & 0x000000FF);
 
     dataMem.write_byte(address, toWrite, 0xA | (PSR[key_S]? 1 : 0), 0, 0);
     stall(1);
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -5720,7 +5721,6 @@ leon3_funclt_trap::READwim::~READwim(){
 }
 unsigned int leon3_funclt_trap::LDSTUB_imm::behavior(){
     this->totalInstrCycles = 0;
-    this->IncrementPC();
 
     address = rs1 + SignExtend(simm13, 13);
 
@@ -5729,6 +5729,7 @@ unsigned int leon3_funclt_trap::LDSTUB_imm::behavior(){
     stall(2);
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -5841,13 +5842,13 @@ leon3_funclt_trap::SMAC_imm::~SMAC_imm(){
 }
 unsigned int leon3_funclt_trap::LDSB_reg::behavior(){
     this->totalInstrCycles = 0;
-    this->IncrementPC();
 
     address = rs1 + rs2;
 
     readValue = SignExtend(dataMem.read_byte(address, 0xA | (PSR[key_S]? 1 : 0), 0, 0), 8);
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -6136,7 +6137,6 @@ unsigned int leon3_funclt_trap::LDSH_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
 
@@ -6161,6 +6161,7 @@ unsigned int leon3_funclt_trap::LDSH_reg::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -6352,7 +6353,6 @@ unsigned int leon3_funclt_trap::STD_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     if(rd_bit % 2 == 0){
@@ -6380,6 +6380,7 @@ unsigned int leon3_funclt_trap::STD_reg::behavior(){
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
     }
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -6823,7 +6824,6 @@ unsigned int leon3_funclt_trap::LDSH_imm::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + SignExtend(simm13, 13);
 
@@ -6848,6 +6848,7 @@ unsigned int leon3_funclt_trap::LDSH_imm::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -6945,7 +6946,6 @@ unsigned int leon3_funclt_trap::LDSTUBA_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     supervisor = PSR[key_S];
@@ -6970,6 +6970,7 @@ unsigned int leon3_funclt_trap::LDSTUBA_reg::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -8254,7 +8255,6 @@ unsigned int leon3_funclt_trap::SWAP_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     toWrite = rd;
@@ -8280,6 +8280,7 @@ unsigned int leon3_funclt_trap::SWAP_reg::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -8393,7 +8394,6 @@ unsigned int leon3_funclt_trap::STDA_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     if(rd_bit % 2 == 0){
@@ -8425,6 +8425,7 @@ unsigned int leon3_funclt_trap::STDA_reg::behavior(){
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
     }
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -8799,7 +8800,6 @@ unsigned int leon3_funclt_trap::LDUBA_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     supervisor = PSR[key_S];
@@ -8826,6 +8826,7 @@ unsigned int leon3_funclt_trap::LDUBA_reg::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -9207,7 +9208,6 @@ unsigned int leon3_funclt_trap::LDA_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     supervisor = PSR[key_S];
@@ -9238,6 +9238,7 @@ unsigned int leon3_funclt_trap::LDA_reg::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -9292,7 +9293,6 @@ unsigned int leon3_funclt_trap::STHA_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + rs2;
     toWrite = (unsigned short int)(rd & 0x0000FFFF);
@@ -9319,6 +9319,7 @@ unsigned int leon3_funclt_trap::STHA_reg::behavior(){
     if(notAligned){
         RaiseException(pcounter, npcounter, MEM_ADDR_NOT_ALIGNED);
     }
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -9373,7 +9374,6 @@ unsigned int leon3_funclt_trap::LDDA_reg::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     #ifdef ACC_MODEL
     REGS[rd_bit ^ 0x1].lock();
@@ -9418,6 +9418,7 @@ unsigned int leon3_funclt_trap::LDDA_reg::behavior(){
     #ifdef ACC_MODEL
     unlockQueue[0].push_back(REGS[rd_bit ^ 0x1].getPipeReg());
     #endif
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -9624,7 +9625,6 @@ unsigned int leon3_funclt_trap::LD_imm::behavior(){
     this->totalInstrCycles = 0;
     pcounter = PC;
     npcounter = NPC;
-    this->IncrementPC();
 
     address = rs1 + SignExtend(simm13, 13);
 
@@ -9642,6 +9642,7 @@ unsigned int leon3_funclt_trap::LD_imm::behavior(){
     }
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -9841,13 +9842,13 @@ leon3_funclt_trap::TRAP_reg::~TRAP_reg(){
 }
 unsigned int leon3_funclt_trap::LDUB_imm::behavior(){
     this->totalInstrCycles = 0;
-    this->IncrementPC();
 
     address = rs1 + SignExtend(simm13, 13);
 
     readValue = dataMem.read_byte(address, 0xA | (PSR[key_S]? 1 : 0), 0, 0);
 
     rd = readValue;
+    this->IncrementPC();
     return this->totalInstrCycles;
 }
 
@@ -9943,6 +9944,7 @@ unsigned int leon3_funclt_trap::RETT_reg::behavior(){
     #endif
 
     if(exceptionEnabled){
+	exit(1);
         if(supervisor){
             RaiseException(pcounter, npcounter, ILLEGAL_INSTR);
         }
