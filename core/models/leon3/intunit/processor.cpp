@@ -113,7 +113,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                 if(raisedException) {
                     unsigned int exception = raisedException;
                     raisedException = 0;
-                    curInstrPtr->RaiseException(this->curPC, this->PC, exception);
+                    curInstrPtr->RaiseException(this->PC, this->NPC, exception);
                 }
                 vmap< unsigned int, CacheElem >::iterator cachedInstr = this->instrCache.find(bitString);
                 unsigned int *curCount = NULL;
