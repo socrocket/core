@@ -97,6 +97,8 @@ class ABIIf {
     virtual bool isRoutineExit(const InstructionBase *instr) throw() = 0;
     virtual unsigned char*getState() const throw() = 0;
     virtual void setState(unsigned char *state) throw() = 0;
+    virtual void setExitValue(unsigned int value) throw() = 0;
+    virtual unsigned int getExitValue() throw() = 0;
     virtual ~ABIIf() {}
 };
 }
