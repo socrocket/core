@@ -119,6 +119,7 @@ class irqmp_rst_stimuli : sc_core::sc_module {
 int sc_main(int argc, char** argv) {
     clock_t cstart, cend;
     std::string prom_app;
+    sr_report_handler::handler = sr_report_handler::default_handler;
 
     gs::ctr::GC_Core       core;
     gs::cnf::ConfigDatabase cnfdatabase("ConfigDatabase");
@@ -143,6 +144,8 @@ int sc_main(int argc, char** argv) {
     USI_HAS_MODULE(cci);
     USI_HAS_MODULE(mtrace);
     usi_init(argc, argv);
+    //sr_report_handler::handler = sr_report_handler::default_handler; <<-- Uncoment for C++ handler
+
 
     // Core APIs will be loaded by usi_init:
     // usi, usi.systemc, usi.api.delegate, usi.api.report
