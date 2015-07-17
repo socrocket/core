@@ -303,7 +303,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
       ((static_cast<uint32_t>(g_ioaddr) << 20) |
        (static_cast<uint32_t>(g_cfgaddr) << 8)) &
        ((static_cast<uint32_t>(g_iomask) << 20) | (static_cast<uint32_t>(g_cfgmask) << 8)));
-  v::debug << name() << "Accessing PNP area at " << addr << v::endl;
+  srDebug()("addr", addr)("Accessing PNP area");
 
   // Slave area
   if (addr >= 0x800) {
@@ -315,10 +315,10 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     // Calculate offset within device information
     unsigned int offset = (addr >> 2) & 0x7;
 
-    v::debug << name() << "Access mSlaves - device: " << device << " offset: " << offset << v::endl;
+    srDebug()("addr", addr)("device", device)("offset", offset)("Access mSlaves");
 
     if (device >= num_of_slave_bindings) {
-      v::debug << name() << "Access to unregistered PNP Slave Register!" << v::endl;
+      srWarn()("addr", addr)("device", device)("slavecount", num_of_slave_bindings)("Access to unregistered PNP Slave Register!");
       return 0;
     }
 
@@ -341,7 +341,7 @@ unsigned int AHBCtrl::getPNPReg(const uint32_t address) {
     unsigned int offset = (addr >> 2) & 0x7;
 
     if (device >= num_of_master_bindings) {
-      v::debug << name() << "Access to unregistered PNP Master Register!" << v::endl;
+      srWarn()("addr", addr)("device", device)("slavecount", num_of_master_bindings)("Access to unregistered PNP Slave Register!");
       return 0;
     }
 
@@ -370,11 +370,12 @@ void AHBCtrl::b_transport(uint32_t id,
   sc_core::sc_object *slvobj = NULL;
   sc_core::sc_object *mstobj = NULL;
 
-  if (v::debug) {
+  //if (v::debug) {
     other_socket = ahbIN.get_other_side(id, a);
     mstobj = other_socket->get_parent();
-  }
+  //}
 
+  srDebug()("pointer", reinterpret_cast<size_t>(&trans))("busy", busy)("is_lock", is_lock)("id", id)("lock_master", lock_master)("delay", delay)(__PRETTY_FUNCTION__);
   // Bus occupied or locked by other master
   while (busy || (is_lock && (id != lock_master))) {
     wait(clock_cycle);
@@ -392,6 +393,7 @@ void AHBCtrl::b_transport(uint32_t id,
   uint32_t addr   = trans.get_address();
   // Extract length from payload
   uint32_t length = trans.get_data_length();
+  srDebug()("pointer", reinterpret_cast<size_t>(&trans))("busy", busy)("is_lock", is_lock)("id", id)("lock_master", lock_master)("addr", addr)("delay", delay)(__PRETTY_FUNCTION__);
   
   // Is this an access to configuration area
   if (g_fpnpen && ((
@@ -444,14 +446,12 @@ void AHBCtrl::b_transport(uint32_t id,
 
   // For valid slave index
   if (index >= 0) {
-    if (v::debug) {
+    //if (v::debug) {
       other_socket = ahbOUT.get_other_side(index, a);
       slvobj = other_socket->get_parent();
 
-      v::debug << name() << "AHB Request for address: 0x" << hex << v::setfill('0')
-               << v::setw(8) << trans.get_address() << ", from master: "
-               << mstobj->name() << ", forwarded to slave: " << slvobj->name() << endl;
-    }
+      srDebug()("addr", trans.get_address())("master", mstobj->name())("slave", slvobj->name())("AHBRequest, b_transport");
+    //}
 
     // Broadcast master_id and address for dcache snooping
     if (trans.get_command() == tlm::TLM_WRITE_COMMAND) {
@@ -469,9 +469,11 @@ void AHBCtrl::b_transport(uint32_t id,
     // uint32_t id = data_int & 0xFFFFFFFF;
     delay+=clock_cycle;
 
+    srDebug()("addr", trans.get_address())("master", mstobj->name())("slave", slvobj->name())("Outbound b_tranport");
     // Forward request to the selected slave
     ahbOUT[index]->b_transport(trans, delay);
 
+    srDebug()("addr", trans.get_address())("master", mstobj->name())("slave", slvobj->name())("Outbound b_tranport called");
     // v::debug << name() << "Delay after return from slave: " << delay << v::endl;
 
     // Power event end
@@ -489,6 +491,7 @@ void AHBCtrl::b_transport(uint32_t id,
     v::error << name() << "AHB Request 0x" << hex << v::setfill('0')
              << v::setw(8) << trans.get_address() << ", from master:"
              << mstobj->name() << ": Unmapped address space." << endl;
+    srWarn()("addr", trans.get_address())("master", mstobj->name())("AHBRequest, b_transport to unmapped address space");
 
     // Invalid index
     trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
@@ -509,8 +512,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(
     tlm::tlm_generic_payload &trans,  // NOLINT(runtime/references)
     tlm::tlm_phase &phase,            // NOLINT(runtime/references)
     sc_core::sc_time &delay) {        // NOLINT(runtime/references)
-  v::debug << name() << "nb_transport_fw received transaction 0x" << hex << &trans << " with phase " << phase <<
-    " and delay " << delay << v::endl;
+  srDebug()("pointer", reinterpret_cast<size_t>(&trans))("phase", phase)("delay", delay)(__PRETTY_FUNCTION__);
 
   if (phase == tlm::BEGIN_REQ) {
     // Increment reference counter
@@ -522,8 +524,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(
     ahbIN.get_extension<amba::amba_id>(m_id, trans);
     m_id->value = master_id;
 
-    v::debug << name() << "Acquire " << hex << &trans << " Master ID = " << master_id << " Ref-Count = " <<
-      trans.get_ref_count() << v::endl;
+    srDebug()("pointer", reinterpret_cast<size_t>(&trans))("master_id", master_id)("refcount", trans.get_ref_count());
 
     // In communication with the ahbctrl, BEGIN_REQ marks the begin of the bus request.
     // Transaction is send to request thread, where it is going to be decoded and put in PENDING state.
@@ -552,7 +553,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_fw(
     // Transaction completed
     return tlm::TLM_COMPLETED;
   } else {
-    v::error << name() << "Illegal phase in call to nb_transport_fw!" << v::endl;
+    srError()("Illegal phase in call to nb_transport_fw!");
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
   }
 
@@ -569,8 +570,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(
     tlm::tlm_generic_payload &trans,  // NOLINT(runtime/references)
     tlm::tlm_phase &phase,            // NOLINT(runtime/references)
     sc_core::sc_time &delay) {        // NOLINT(runtime/references)
-  v::debug << name() << "nb_transport_bw received transaction 0x" << hex << &trans << " with phase: " << phase <<
-    " and delay: " << delay << v::endl;
+  srDebug()("pointer", reinterpret_cast<size_t>(&trans))("phase", phase)("delay", delay)(__PRETTY_FUNCTION__);
 
   // The slave has sent END_REQ
   if (phase == tlm::END_REQ) {
@@ -586,7 +586,7 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(
     m_ResponsePEQ.notify(trans, delay);
     delay = SC_ZERO_TIME;
   } else {
-    v::error << name() << "Invalid phase in call to nb_transport_bw!" << v::endl;
+    srError()("Invalid phase in call to nb_transport_bw!");
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
   }
 
@@ -676,10 +676,10 @@ void AHBCtrl::arbitrate() {
           for (uint32_t i = 0; i < num_of_master_bindings; i++) {
             robin = (robin + 1) % num_of_master_bindings;
 
-            v::debug << name() << "Robin: " << robin << v::endl;
+            srDebug()("robin", robin)(__PRETTY_FUNCTION__);
 
             if (request_map[robin].state == TRANS_PENDING) {
-              v::debug << name() << "Select for robin: " << robin << v::endl;
+              srDebug()("robin", robin)("Selected for robin");
 
               address_bus_owner = robin;
               request_map[robin].state = TRANS_SCHEDULED;
@@ -695,7 +695,7 @@ void AHBCtrl::arbitrate() {
           }
         } else {
           if (request_map[lock_master].state == TRANS_PENDING) {
-            v::debug << name() << "Select for robin: " << robin << v::endl;
+            srDebug()("robin", robin)("Selected for robin");
 
             address_bus_owner = lock_master;
             request_map[lock_master].state = TRANS_SCHEDULED;
@@ -752,8 +752,7 @@ void AHBCtrl::arbitrate() {
           phase = tlm::BEGIN_REQ;
           delay = SC_ZERO_TIME;
 
-          v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_fw with phase " << phase <<
-            v::endl;
+          srDebug()("pointer", reinterpret_cast<size_t>(&trans))("phase", phase)("delay", delay)(__PRETTY_FUNCTION__);
 
           // Forward arrow for msc
           msclogger::forward(this, &ahbOUT, trans, phase, delay, slave_id);
@@ -801,7 +800,7 @@ void AHBCtrl::AcceptThread() {
               ((static_cast<uint32_t>(g_iomask) << 20) |
                (static_cast<uint32_t>(g_cfgmask) << 8))) == 0)) {
         if (trans->get_command() == tlm::TLM_WRITE_COMMAND) {
-          v::warn << name() << "PNP area is read-only. Write operation ignored" << v::endl;
+          srWarn()("PNP area is read-only. Write operation ignored");
         }
 
         // Reserved PNP id
