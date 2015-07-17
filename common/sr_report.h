@@ -15,6 +15,10 @@
 #include <systemc.h>
 #include "core/common/vmap.h"
 #include <map> // gcc-5 doesn't like vmap within this file
+#include <string>
+#include <iomanip>
+#include <iostream>  // NOLINT(readability/streams)
+#include <streambuf>
 
 namespace v {
 
@@ -332,6 +336,9 @@ class sr_report_handler : public sc_core::sc_report_handler {
     }
 
     using sc_core::sc_report_handler::handler;
+
+    static void default_handler(const sc_core::sc_report &rep, const sc_core::sc_actions &actions);
+        
   friend void sr_report::operator()(const std::string &name);
   private:
     static sr_report rep;
