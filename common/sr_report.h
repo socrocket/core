@@ -189,9 +189,23 @@ class sr_report : public sc_core::sc_report {
       return *this;
     }
 
+    inline sr_report &operator()(const std::string &name, sc_dt::int64 value) {
+      if(enabled) {
+        pairs.push_back(v::pair(name, (int64_t)value));
+      }
+      return *this;
+    }
+
     inline sr_report &operator()(const std::string &name, uint64_t value) {
       if(enabled) {
         pairs.push_back(v::pair(name, value));
+      }
+      return *this;
+    }
+
+    inline sr_report &operator()(const std::string &name, sc_dt::uint64 value) {
+      if(enabled) {
+        pairs.push_back(v::pair(name, (uint64_t)value));
       }
       return *this;
     }

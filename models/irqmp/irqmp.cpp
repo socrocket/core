@@ -454,9 +454,11 @@ void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_
 // callback registered on mp status register
 void Irqmp::mpstat_write() {
   uint32_t stat = r[MP_STAT] & 0xFFFF;
+  srDebug()("mpstat", stat)("written mpstat");
   for (int i = 0; i < g_ncpu; i++) {
     if ((stat & (1 << i)) && !cpu_stat.read(i)) {
       cpu_rst.write(1 << i, true);
+      srDebug()("cpu", i)("Enable CPU");
     }
   }
 }
@@ -465,8 +467,10 @@ void Irqmp::mpstat_read() {
   uint32_t reg = (g_ncpu << 28) | (g_eirq << 16);
   for (int i = 0; i < g_ncpu; i++) {
     reg |= ((!cpu_stat.read(i)) << i);
+    srDebug()("cpu", i)("CPU enabled");
   }
   r[MP_STAT] = reg;
+  srDebug()("mpstat", reg)("new mpstat");
 }
 
 void Irqmp::pending_write() {
