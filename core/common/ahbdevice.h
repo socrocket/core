@@ -32,8 +32,8 @@
 ///
 /// @see AHBCtrl
 ///
-template<class BASE = DefaultBase>
-class AHBDevice : public BaseModule<BASE>, public AHBDeviceBase {
+template <class BASE = BaseModule<DefaultBase> >
+class AHBDevice : public BASE, public AHBDeviceBase {
   public:
     /// All device informations are needed while constructing a device.
     /// The register content is formed here.
