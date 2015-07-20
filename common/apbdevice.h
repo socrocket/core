@@ -30,8 +30,8 @@
 /// Modules, like the MCTRL, which posses an AHB as well as an APB interface must be derived from AHBDevice and APBDevice.
 ///
 /// @see APBCtrl
-template<class BASE = DefaultBase>
-class APBDevice : public BaseModule<BASE> , public APBDeviceBase {
+template<class BASE = BaseModule<DefaultBase> >
+class APBDevice : public BASE , public APBDeviceBase {
   public:
     /// All device informations are needed while constructing a device.
     /// The register content is formed here.

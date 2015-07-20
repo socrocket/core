@@ -34,7 +34,7 @@
 #include "core/common/verbose.h"
 
 /// Definition of class AHBIn
-class AHBIn : public AHBMaster<DefaultBase>, public CLKDevice {
+class AHBIn : public AHBMaster<>, public CLKDevice {
   public:
     SC_HAS_PROCESS(AHBIn);
     SK_HAS_SIGNALS(AHBIn);

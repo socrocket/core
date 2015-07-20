@@ -32,7 +32,7 @@
 ///
 /// An overview about how to build own components based on AHBSlave is given in @ref modeling7 "Extending the Library".
 ///
-template<class BASE = DefaultBase>
+template<class BASE = BaseModule<DefaultBase> >
 class AHBSlave : public AHBDevice<BASE> {
   public:
     SC_HAS_PROCESS(AHBSlave);

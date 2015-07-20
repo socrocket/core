@@ -29,7 +29,7 @@ APBDevice<BASE>::APBDevice(
     bool cacheable,
     bool prefetchable,
     uint16_t address) :
-  BaseModule<BASE>(mn),
+  BASE(mn),
   g_pindex("pindex", busid, this->m_generics),
   g_pvendorid("pvendorid", vendorid, this->m_generics),
   g_pdeviceid("pdeviceid", deviceid, this->m_generics),
@@ -45,17 +45,17 @@ APBDevice<BASE>::APBDevice(
 
 template<class BASE>
 APBDevice<BASE>::APBDevice(ModuleName mn) :
-  BaseModule<BASE>(mn),
-  g_pindex("pindex", this->m_generics),
-  g_pvendorid("pvendorid", this->m_generics),
-  g_pdeviceid("pdeviceid", this->m_generics),
-  g_pversion("pversion", this->m_generics),
-  g_pirq("pirq", this->m_generics),
-  g_paddr("paddr", this->m_generics),
-  g_pmask("pmask", this->m_generics),
-  g_ptype("ptype", this->m_generics),
-  g_pcacheable("pcacheable", this->m_generics),
-  g_pprefetchable("pprefetchable", this->m_generics) {
+  BASE(mn),
+  g_pindex("pindex", this->m_generics, false, false),
+  g_pvendorid("pvendorid", this->m_generics, false, false),
+  g_pdeviceid("pdeviceid", this->m_generics, false, false),
+  g_pversion("pversion", this->m_generics, false, false),
+  g_pirq("pirq", this->m_generics, false, false),
+  g_paddr("paddr", this->m_generics, false, false),
+  g_pmask("pmask", this->m_generics, false, false),
+  g_ptype("ptype", this->m_generics, false, false),
+  g_pcacheable("pcacheable", this->m_generics, false, false),
+  g_pprefetchable("pprefetchable", this->m_generics, false, false) {
   init_apb_generics();
 }
 
@@ -64,15 +64,25 @@ void APBDevice<BASE>::init_apb(uint32_t pindex, uint8_t pvendorid, uint16_t pdev
       uint8_t pirq, AMBADeviceType ptype, uint16_t pmask,
       bool pcacheable, bool pprefetchable, uint16_t paddr) {
   g_pindex.init(pindex);
+  this->m_api->addPar(&g_pindex);
   g_pvendorid.init(pvendorid);
+  this->m_api->addPar(&g_pvendorid);
   g_pdeviceid.init(pdeviceid);
+  this->m_api->addPar(&g_pdeviceid);
   g_pversion.init(pversion);
+  this->m_api->addPar(&g_pversion);
   g_pirq.init(pirq);
+  this->m_api->addPar(&g_pirq);
   g_paddr.init(paddr);
+  this->m_api->addPar(&g_paddr);
   g_pmask.init(pmask);
+  this->m_api->addPar(&g_pmask);
   g_ptype.init(ptype);
+  this->m_api->addPar(&g_ptype);
   g_pcacheable.init(pcacheable);
+  this->m_api->addPar(&g_pcacheable);
   g_pprefetchable.init(pprefetchable);
+  this->m_api->addPar(&g_pprefetchable);
 }
 
 template<class BASE>

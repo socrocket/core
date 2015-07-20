@@ -29,7 +29,7 @@ APBCtrl::APBCtrl(
     uint32_t hindex,             // AHB bus index
     bool pow_mon,                // Enable power monitoring
     AbstractionLayer ambaLayer) :
-  AHBSlave<DefaultBase>(nm,
+  AHBSlave<>(nm,
     hindex,
     0x01,                        // vendor_id: Gaisler
     0x006,                       // device_id: APBCTRL (p. 92 GRIP)
