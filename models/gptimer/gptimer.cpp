@@ -37,9 +37,6 @@ GPTimer::GPTimer(ModuleName name, unsigned int ntimers,
     g_nbits("nbits", nbits, m_generics),
     g_wdog_length("wdog", wdog, m_generics),
     powermon("powermon", powmon, m_generics),
-    g_pindex("pindex", pindex, m_generics),
-    g_paddr("paddr", paddr, m_generics),
-    g_pmask("pmask", pmask, m_generics),
     g_sepirq("sepirq", sepirq, m_generics),
     sta_power_norm("sta_power_norm", 2.46e+6, m_power),   // Normalized static power input
     int_power_norm("int_power_norm", 1.093e-8, m_power),  // Normalized internal power input

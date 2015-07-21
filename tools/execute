@@ -27,8 +27,8 @@ platform=$(find ${builddir} -name "$template.platform")
 prom=$(find ${builddir} -name "$prom.prom")
 ram=$(find ${builddir} -name "$app.sparc")
 
-echo $platform --loadelf rom=$prom --loadelf sdram=$ram --option conf.system.osemu=$ram $@
-time $platform --loadelf rom=$prom --loadelf sdram=$ram --option conf.system.osemu=$ram $@
+echo $platform --loadelf \"rom=$prom\" --loadelf "\"sdram=$ram(0x40000000)\"" --intrinsics "\"leon3_0=$ram(standard)\"" $@
+time $platform --loadelf "rom=$prom" --loadelf "sdram=$ram(0x40000000)" --intrinsics "leon3_0=$ram(standard)" $@
 if [ $? -eq 0 ] ; then
   echo "!!! Successfull"
 else

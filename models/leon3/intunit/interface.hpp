@@ -76,6 +76,7 @@ namespace leon3_funclt_trap{
         sc_event & instrEndEvent;
         int routineEntryState;
         int routineExitState;
+        unsigned int exitValue;
         std::vector< std::vector< std::string > > routineEntrySequence;
         std::vector< std::vector< std::string > > routineExitSequence;
 
@@ -96,6 +97,8 @@ namespace leon3_funclt_trap{
         bool isRoutineExit( const InstructionBase * instr ) throw();
         unsigned char * getState() const throw();
         void setState( unsigned char * state ) throw();
+        void setExitValue(unsigned int value) throw();
+        unsigned int getExitValue() throw();
         unsigned int getCodeLimit();
         unsigned int readLR() const throw();
         void setLR( const unsigned int & newValue ) throw();

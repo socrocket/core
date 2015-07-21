@@ -837,6 +837,13 @@ void leon3_funclt_trap::LEON3_ABIIf::setState( unsigned char * state ) throw(){
     curStateTemp += 4;
 }
 
+void leon3_funclt_trap::LEON3_ABIIf::setExitValue( unsigned int value ) throw(){
+  this->exitValue = value;
+}
+unsigned int leon3_funclt_trap::LEON3_ABIIf::getExitValue() throw(){
+  return this->exitValue;
+}
+
 unsigned int leon3_funclt_trap::LEON3_ABIIf::getCodeLimit(){
     return this->PROGRAM_LIMIT;
 }

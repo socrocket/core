@@ -392,7 +392,7 @@ void AHBCtrl::b_transport(uint32_t id,
   uint32_t addr   = trans.get_address();
   // Extract length from payload
   uint32_t length = trans.get_data_length();
-
+  
   // Is this an access to configuration area
   if (g_fpnpen && ((
           (addr ^ ((static_cast<uint32_t>(g_ioaddr) << 20) |

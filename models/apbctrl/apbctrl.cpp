@@ -29,7 +29,7 @@ APBCtrl::APBCtrl(
     uint32_t hindex,             // AHB bus index
     bool pow_mon,                // Enable power monitoring
     AbstractionLayer ambaLayer) :
-  AHBSlave<DefaultBase>(nm,
+  AHBSlave<>(nm,
     hindex,
     0x01,                        // vendor_id: Gaisler
     0x006,                       // device_id: APBCTRL (p. 92 GRIP)
@@ -179,7 +179,7 @@ uint32_t APBCtrl::exec_func(
   uint32_t addr = ahb_gp.get_address();
   // Extract length from payload
   uint32_t length = ahb_gp.get_data_length();
-
+      
   // Is this an access to the configuration area
   // The configuration area is always in the upper 0xFF000 area
   if (((addr ^ m_pnpbase) & m_pnpbase) == 0) {
@@ -233,7 +233,7 @@ uint32_t APBCtrl::exec_func(
       apb_gp->set_command(ahb_gp.get_command());
       // Substract the base address of the bridge
       apb_gp->set_address((ahb_gp.get_address() & 0x000fffff)+i);
-      apb_gp->set_data_length(4);
+      apb_gp->set_data_length(( length <=4 ) ? length : 4); 
       apb_gp->set_byte_enable_ptr(ahb_gp.get_byte_enable_ptr());
       apb_gp->set_data_ptr(ahb_gp.get_data_ptr()+i);
 
@@ -243,6 +243,7 @@ uint32_t APBCtrl::exec_func(
 	//PM::send(this,"apb_trans", 1, sc_time_stamp(), (unsigned int)apb_gp->get_data_ptr(), g_pow_mon);
 
 	// Forward request to the selected slave
+
 	apb[index]->b_transport(*apb_gp, delay);
 
 	// Add delay for APB setup cycle

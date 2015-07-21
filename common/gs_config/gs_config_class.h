@@ -74,6 +74,8 @@ public:                                                                   \
     explicit gs_config(const std::string &nam, const val_type &val   , gs_param_array& parent_array) : gs_config_t<val_type>(nam        , false, &parent_array, true) { gs_config_t<val_type>::init(val); }    \
     explicit gs_config(const char *nam,        const val_type &val   , gs_param_array& parent_array) : gs_config_t<val_type>(string(nam), false, &parent_array, true) { gs_config_t<val_type>::init(val); }    \
     \
+    explicit gs_config(const std::string &nam, gs_param_array* parent_array, const bool force_top_level_name, const bool register_at_db) : gs_config_t<val_type>(nam, force_top_level_name,  parent_array, register_at_db) { gs_config_t<val_type>::init(); } \
+    explicit gs_config(const std::string &nam, gs_param_array& parent_array, const bool force_top_level_name, const bool register_at_db) : gs_config_t<val_type>(nam, force_top_level_name, &parent_array, register_at_db) { gs_config_t<val_type>::init(); } \
     explicit gs_config(const std::string &nam, const std::string &val, gs_param_array* parent_array, const bool force_top_level_name, const bool register_at_db) : gs_config_t<val_type>(nam, force_top_level_name,  parent_array, register_at_db) { gs_config_t<val_type>::init(convertStringToValue(val)); } \
     explicit gs_config(const std::string &nam, const std::string &val, gs_param_array& parent_array, const bool force_top_level_name, const bool register_at_db) : gs_config_t<val_type>(nam, force_top_level_name, &parent_array, register_at_db) { gs_config_t<val_type>::init(convertStringToValue(val)); } \
     \

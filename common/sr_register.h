@@ -161,6 +161,7 @@ class sr_register : public sc_register_b<DATA_TYPE> {
 
     void bus_read(DATA_TYPE& i) const {
       raise_callback(SR_PRE_READ);
+      srInfo()("value", i)(__PRETTY_FUNCTION__);
       i = this->read();
       raise_callback(SR_POST_READ);
     }
@@ -185,6 +186,7 @@ class sr_register : public sc_register_b<DATA_TYPE> {
     }
 
     sr_register<DATA_TYPE> &operator = (const DATA_TYPE &val) {
+      srInfo()("value", val)("mask", m_write_mask)(__PRETTY_FUNCTION__);
       this->write(val);
       return *this;
     }
