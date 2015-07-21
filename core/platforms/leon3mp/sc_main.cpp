@@ -1072,21 +1072,26 @@ int sc_main(int argc, char** argv) {
 #ifdef HAVE_AHBGPGPU
     gs::gs_param_array p_nyuzi("nyuzi", p_conf );
     gs::gs_param<bool> p_nyuzi_en("en", false, p_nyuzi );
-    gs::gs_param<unsigned int> p_nyuzi_index("index", 5, p_nyuzi );
+    gs::gs_param<unsigned int> p_nyuzi_pindex("pindex", 9, p_nyuzi );
+    gs::gs_param<unsigned int> p_nyuzi_hindex("hindex", 5, p_nyuzi );
     gs::gs_param<unsigned int> p_nyuzi_irq("irq", 7, p_nyuzi );
-//    gs::gs_param<uint16_t> p_nyuzi_paddr("paddr", 0x700, p_nyuzi ); // fixme -> requires APB to address, descriptor-based?
-//    gs::gs_param<uint16_t> p_nyuzi_pmask("pmask", 0xFFF, p_nyuzi );
+    gs::gs_param<uint16_t> p_nyuzi_paddr("paddr", 0x700, p_nyuzi ); // fixme -> requires APB to address, descriptor-based?
+    gs::gs_param<uint16_t> p_nyuzi_pmask("pmask", 0xFFF, p_nyuzi );
     if( p_nyuzi_en ) {
       Nyuzi * nyuzi = new Nyuzi("nyuzi",
-//        p_ahbgpgpu_paddr,
-//        p_ahbgpgpu_pmask,
+        p_nyuzi_pindex,
+        p_nyuzi_paddr,
+        p_nyuzi_pmask,
         ambaLayer,
-        p_nyuzi_index,
+        p_nyuzi_hindex,
         p_nyuzi_irq
       );
       
       // Connecting AHB Master
       nyuzi->ahb(ahbctrl.ahbIN);
+
+      // Connecting APB Slave
+      apbctrl.apb(nyuzi->apb);
       // Set clock
       //nyuzi->set_clk(p_system_clock, SC_NS);
       //connect(nyuzi->snoop, nyuzi.snoop);
