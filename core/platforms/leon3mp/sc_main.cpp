@@ -23,8 +23,6 @@
 #include <mcheck.h>
 #include "core/common/amba.h"
 #include "core/common/trapgen/debugger/GDBStub.hpp"
-#include "core/common/trapgen/elfloader/execLoader.hpp"
-#include "core/common/trapgen/osEmulator/osEmulator.hpp"
 #include <iostream>
 #include <vector>
 #include <cstring>
@@ -57,13 +55,13 @@
 #include "vphy/loopback.h"
 #endif
 #ifdef HAVE_AHBDISPLAY
-#include "media/models/ahbdisplay/ahbdisplay.h"
+#include "models/ahbdisplay/ahbdisplay.h"
 #endif
 #ifdef HAVE_AHBCAMERA
-#include "media/models/ahbcamera/ahbcamera.h"
+#include "models/ahbcamera/ahbcamera.h"
 #endif
 #ifdef HAVE_AHBSHUFFLER
-#include "media/models/ahbshuffler/ahbshuffler.h"
+#include "models/ahbshuffler/ahbshuffler.h"
 #endif
 #ifdef HAVE_AHBGPGPU
 #include "ahbgpgpu/models/nyuzi/nyuzi.h"
@@ -77,9 +75,7 @@ using namespace sc_core;
 using namespace socw;
 #endif
 
-namespace trap {
-  extern int exitValue;
-};
+extern int exitValue;
 
 void stopSimFunction(int sig) {
   v::warn << "main" << "Simulation interrupted by user" << std::endl;
@@ -106,6 +102,20 @@ void grethVPHYHook(char* dev_name)
   return;
 }
 
+class irqmp_rst_stimuli : sc_core::sc_module {
+  public:
+    signalkit::signal_out<bool, Irqmp> irqmp_rst;
+    irqmp_rst_stimuli(sc_core::sc_module_name mn) : 
+        sc_core::sc_module(mn), 
+        irqmp_rst("rst") {
+
+    }
+    void start_of_simulation() {
+      irqmp_rst.write(0);
+      irqmp_rst.write(1);
+    }
+};
+
 int sc_main(int argc, char** argv) {
     clock_t cstart, cend;
     std::string prom_app;
@@ -125,6 +135,7 @@ int sc_main(int argc, char** argv) {
     USI_HAS_MODULE(systemc);
     USI_HAS_MODULE(registry);
     USI_HAS_MODULE(delegate);
+    USI_HAS_MODULE(intrinsics);
     USI_HAS_MODULE(greensocket);
     USI_HAS_MODULE(scireg);
     USI_HAS_MODULE(amba);
@@ -350,25 +361,6 @@ int sc_main(int argc, char** argv) {
     // Connect to memory controller and clock
     mctrl.mem(rom.bus);
     rom.set_clk(p_system_clock, SC_NS);
-#if 0
-    // ELF loader from leon (Trap-Gen)
-    gs::gs_param<std::string> p_mctrl_prom_elf("elf", "", p_mctrl_prom);
-    if(!((std::string)p_mctrl_prom_elf).empty()) {
-      if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_prom_elf))) {
-        uint8_t *execData;
-        v::info << "rom" << "Loading Prom with " << p_mctrl_prom_elf << v::endl;
-        ExecLoader prom_loader(p_mctrl_prom_elf);
-        execData = prom_loader.getProgData();
-
-        for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
-          rom.write_dbg(prom_loader.getDataStart() + i - ((((unsigned int)p_mctrl_prom_addr)&((unsigned int)p_mctrl_prom_mask))<<20), execData[i]);
-        }
-      } else {
-        v::warn << "rom" << "File " << p_mctrl_prom_elf << " does not exist!" << v::endl;
-        exit(1);
-      }
-    }
-#endif
 
     // IO memory instantiation
     Memory io( "io",
@@ -387,23 +379,6 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);
-#if 0
-    if(!((std::string)p_mctrl_io_elf).empty()) {
-      if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_io_elf))) {
-        uint8_t *execData;
-        v::info << "io" << "Loading IO with " << p_mctrl_io_elf << v::endl;
-        ExecLoader loader(p_mctrl_io_elf);
-        execData = loader.getProgData();
-
-        for(unsigned int i = 0; i < loader.getProgDim(); i++) {
-          io.write_dbg(loader.getDataStart() + i - ((((unsigned int)p_mctrl_io_addr)&((unsigned int)p_mctrl_io_mask))<<20), execData[i]);
-        }
-      } else {
-        v::warn << "io" << "File " << p_mctrl_io_elf << " does not exist!" << v::endl;
-        exit(1);
-      }
-    }
-#endif
 
     // SRAM instantiation
     Memory sram( "sram",
@@ -422,23 +397,6 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
-#if 0
-    if(!((std::string)p_mctrl_ram_sram_elf).empty()) {
-      if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sram_elf))) {
-        uint8_t *execData;
-        v::info << "sram" << "Loading SRam with " << p_mctrl_ram_sram_elf << v::endl;
-        ExecLoader loader(p_mctrl_ram_sram_elf);
-        execData = loader.getProgData();
-
-        for(unsigned int i = 0; i < loader.getProgDim(); i++) {
-          sram.write_dbg(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
-        }
-      } else {
-        v::warn << "sram" << "File " << p_mctrl_ram_sram_elf << " does not exist!" << v::endl;
-        exit(1);
-      }
-    }
-#endif
 
     // SDRAM instantiation
     Memory sdram( "sdram",
@@ -457,23 +415,6 @@ int sc_main(int argc, char** argv) {
 
     // ELF loader from leon (Trap-Gen)
     gs::gs_param<std::string> p_mctrl_ram_sdram_elf("elf", "", p_mctrl_ram_sdram);
-#if 0
-    if(!((std::string)p_mctrl_ram_sdram_elf).empty()) {
-      if(boost::filesystem::exists(boost::filesystem::path((std::string)p_mctrl_ram_sdram_elf))) {
-        uint8_t *execData;
-        v::info << "sdram" << "Loading SDRam with " << p_mctrl_ram_sdram_elf << v::endl;
-        ExecLoader loader(p_mctrl_ram_sdram_elf);
-        execData = loader.getProgData();
-
-        for(unsigned int i = 0; i < loader.getProgDim(); i++) {
-          sdram.write_dbg(loader.getDataStart() + i - ((((unsigned int)p_mctrl_ram_addr)&((unsigned int)p_mctrl_ram_mask))<<20), execData[i]);
-        }
-      } else {
-        v::warn << "sdram" << "File " << p_mctrl_ram_sdram_elf << " does not exist!" << v::endl;
-        exit(1);
-      }
-    }
-#endif
 
 
     //leon3.ENTRY_POINT   = 0;
@@ -507,24 +448,6 @@ int sc_main(int argc, char** argv) {
       // Connect to ahbctrl and clock
       ahbctrl.ahbOUT(ahbmem->ahb);
       ahbmem->set_clk(p_system_clock, SC_NS);
-#if 0
-      // ELF loader from leon (Trap-Gen)
-      if(!((std::string)p_ahbmem_elf).empty()) {
-        if(boost::filesystem::exists(boost::filesystem::path((std::string)p_ahbmem_elf))) {
-          uint8_t *execData;
-          v::info << "ahbmem" << "Loading AHBMem with " << p_ahbmem_elf << v::endl;
-          ExecLoader prom_loader(p_ahbmem_elf);
-          execData = prom_loader.getProgData();
-
-          for(unsigned int i = 0; i < prom_loader.getProgDim(); i++) {
-            ahbmem->writeByteDBG(prom_loader.getDataStart() + i - ((((unsigned int)p_ahbmem_addr)&((unsigned int)p_ahbmem_mask))<<20), execData[i]);
-          }
-        } else {
-          v::warn << "ahbmem" << "File " << p_ahbmem_elf << " does not exist!" << v::endl;
-          exit(1);
-        }
-      }
-#endif
     }
 
 
@@ -600,6 +523,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_gdb_en("en", false, p_gdb);
     gs::gs_param<int> p_gdb_port("port", 1500, p_gdb);
     gs::gs_param<int> p_gdb_proc("proc", 0, p_gdb);
+    Leon3 *first_leon = NULL;
     for(uint32_t i=0; i< p_system_ncpu; i++) {
       // AHBMaster - MMU_CACHE
       // =====================
@@ -637,6 +561,9 @@ int sc_main(int argc, char** argv) {
               p_report_power,            // Power Monitor,
               ambaLayer                  // TLM abstraction layer
       );
+      if(!first_leon) {
+        first_leon = leon3;
+      }
 
       // Connecting AHB Master
       leon3->ahb(ahbctrl.ahbIN);
@@ -1005,9 +932,7 @@ int sc_main(int argc, char** argv) {
         p_ahbdisplay_hindex,  // ahb index
         p_ahbdisplay_pindex,  // apb index
         p_ahbdisplay_paddr,  // apb address
-        p_ahbdisplay_pmask,  // apb mask
-        ambaLayer,
-        true
+        p_ahbdisplay_pmask  // apb mask
       );
 
       // Connecting APB Slave
@@ -1033,8 +958,7 @@ int sc_main(int argc, char** argv) {
         p_ahbcamera_paddr,   // apb addr
         p_ahbcamera_pmask,   // apb make
         ((std::string)p_ahbcamera_video).c_str(),
-        ambaLayer,
-        true
+        ambaLayer
       );
 
       // Connecting APB Slave
@@ -1097,12 +1021,8 @@ int sc_main(int argc, char** argv) {
       //connect(nyuzi->snoop, nyuzi.snoop);
     }
 #endif /* #ifdef HAVE_AHBGPGPU */
-
-    signalkit::signal_out<bool, Irqmp> irqmp_rst;
-    connect(irqmp_rst, irqmp.rst);
-    irqmp_rst.write(0);
-    irqmp_rst.write(1);
-
+    irqmp_rst_stimuli stimuli("platform_stimuli");
+    connect(stimuli.irqmp_rst, irqmp.rst);
 #ifndef HAVE_USI
     (void) signal(SIGINT, stopSimFunction);
     (void) signal(SIGTERM, stopSimFunction);
@@ -1123,6 +1043,6 @@ int sc_main(int argc, char** argv) {
     v::info << "Summary" << "Delta: " << dec << setprecision(4) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
 
     std::cout << "End of sc_main" << std::endl << std::flush;
-    return trap::exitValue;
+    return first_leon->cpu.getInterface().getExitValue();
 }
 /// @}

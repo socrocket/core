@@ -70,6 +70,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/xtime.hpp>
 
+extern int exitValue;
 namespace trap {
 template<class issueWidth>
 class GDBStub : public ToolsIf<issueWidth>, public MemoryToolsIf<issueWidth>, public sc_module {
@@ -345,8 +346,7 @@ class GDBStub : public ToolsIf<issueWidth>, public MemoryToolsIf<issueWidth>, pu
         if (error) {
           response.payload = SIGABRT;
         } else {
-          extern int exitValue;
-          response.payload = exitValue;
+          response.payload = processorInstance.getExitValue();
         }
         this->connManager.sendResponse(response);
       }

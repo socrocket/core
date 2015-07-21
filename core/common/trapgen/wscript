@@ -7,10 +7,10 @@ def build(self):
         target  = 'trap',
         features = 'cxx cxxstlib',
         source  = [
-          'osEmulator/syscCallB.cpp',
+          #'osEmulator/syscCallB.cpp',
           'ToolsIf.cpp',
-          'elfloader/elfFrontend.cpp',
-          'elfloader/execLoader.cpp',
+          #'elfloader/elfFrontend.cpp',
+          #'elfloader/execLoader.cpp',
           'profiler/profInfo.cpp',
           'utils/trap_utils.cpp',
           'debugger/GDBConnectionManager.cpp',

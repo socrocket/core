@@ -87,10 +87,8 @@ Leon3::Leon3(
       abstractionLayer),
   cpu("leon3", this, sc_core::sc_time(10, sc_core::SC_NS), pow_mon),
   debugger(NULL),
-  osEmu(NULL),
+  m_intrinsics("intrinsics", *(cpu.abiIf)),
   g_gdb("gdb", 0, m_generics),
-  g_osemu("osemu", "", m_generics),
-  
   g_icen("icen", icen, m_generics),
   g_irepl("irepl", irepl, m_generics),
   g_isets("isets", isets, m_generics),
@@ -125,9 +123,9 @@ Leon3::Leon3(
     cpu.MPROC_ID      = (hindex) << 28;
     
     GC_REGISTER_TYPED_PARAM_CALLBACK(&g_gdb, gs::cnf::post_write, Leon3, g_gdb_callback);
-    GC_REGISTER_TYPED_PARAM_CALLBACK(&g_osemu, gs::cnf::post_write, Leon3, g_osemu_callback);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&g_args, gs::cnf::post_write, Leon3, g_args_callback);
     Leon3::init_generics();
+    cpu.toolManager.addTool(m_intrinsics);
 }
 
 Leon3::~Leon3() {
@@ -211,29 +209,12 @@ gs::cnf::callback_return_type Leon3::g_gdb_callback(gs::gs_param_base& changed_p
   return GC_RETURN_OK;
 }
 
-gs::cnf::callback_return_type Leon3::g_osemu_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
-  std::string osemu;
-  changed_param.getValue(osemu);
-  if(!osemu.empty()) {
-    if(boost::filesystem::exists(boost::filesystem::path(osemu))) {
-      osEmu = new OSEmulator<unsigned int>(*(cpu.abiIf));
-      osEmu->initSysCalls(osemu);
-    }
-    cpu.toolManager.addTool(*osEmu);
-  } else {
-    v::warn << name() << "File " << osemu << " not found!" << v::endl;
-    exit(1);
-  }
-  return GC_RETURN_OK;
-}
-
 gs::cnf::callback_return_type Leon3::g_args_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason) {
   std::vector<std::string> options;
-  options.push_back((std::string)g_osemu);
   for(uint32_t i = 0; i < g_args.size(); i++) {
       options.push_back(g_args[i]);
   }
-  osEmu->set_program_args(options);
+  m_intrinsics.set_program_args(options);
   return GC_RETURN_OK;
 }
 // Read instruction

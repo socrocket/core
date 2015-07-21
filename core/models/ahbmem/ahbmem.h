@@ -128,7 +128,7 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
     gs::cnf::gs_config<uint32_t> g_hmask;
 
     /// AHB Slave Index (constructor parameters)
-    gs::cnf::gs_config<uint32_t> g_hindex;
+    //gs::cnf::gs_config<uint32_t> g_hindex;
 
     /// Device cacheable or not
     gs::cnf::gs_config<bool> g_cacheable;
