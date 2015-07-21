@@ -75,21 +75,17 @@ uint32_t AHBOut::exec_func(
       } else {
         v::warn << name() << "File not open" << endl;
       }
-
-      // Total delay is base delay + 4 wait states
-      delay += clock_cycle * 4;
-      trans.set_response_status(tlm::TLM_OK_RESPONSE);
     } else {
       // We don't support reading. We are an output device.
       // So return 0x0
       for (uint32_t i = 0; i < trans.get_data_length(); i++) {
         *(trans.get_data_ptr() + i) = 0;
       }
-
-      // Total delay is base delay + 4 wait states
-      delay += clock_cycle * 4;
-      trans.set_response_status(tlm::TLM_OK_RESPONSE);
     }
+
+    // Total delay is base delay + 4 wait states
+    delay += clock_cycle * 4;
+    trans.set_response_status(tlm::TLM_OK_RESPONSE);
   } else {
     // address not valid
     v::error << name() << "Address not within permissable slave memory space" << v::endl;
