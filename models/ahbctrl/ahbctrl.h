@@ -5,7 +5,7 @@
 /// AHB Controller / Bus model. The decoder collects all AHB request from the
 /// masters and forwards them to the appropriate slave.
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the

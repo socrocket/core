@@ -6,7 +6,7 @@
 /// dcache controllers. The localram enables fast 0-waitstate access to
 /// instructions or data.
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the 

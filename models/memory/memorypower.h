@@ -5,7 +5,7 @@
 /// Memory power estimation functions functions. Based on information provided
 /// by the statistical module of the BaseMemory implementation
 ///
-/// @date 2014-2014
+/// @date 2014-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the

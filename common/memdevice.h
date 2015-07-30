@@ -6,7 +6,7 @@
 /// models. It implements the the device information register needed for the
 /// plug and play interface.
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the

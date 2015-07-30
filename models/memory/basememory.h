@@ -6,7 +6,7 @@
 /// with _dbg are debugging functions, hence they will not influence the
 /// statistical analysis.
 ///
-/// @date 2014-2014
+/// @date 2014-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the

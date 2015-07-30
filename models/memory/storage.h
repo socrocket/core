@@ -4,7 +4,7 @@
 /// @file storage.h
 /// Interface definition for storage-implementations for memories
 ///
-/// @date 2014-2014
+/// @date 2014-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
