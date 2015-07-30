@@ -29,7 +29,7 @@
 #include "core/models/leon3/mmucache/dcio_payload_extension.h"
 
 #include "core/common/socrocket.h"
-#include "core/common/signalkit.h"
+#include "core/common/sr_signal.h"
 #include "core/common/ahbmaster.h"
 #include "core/common/clkdevice.h"
 
@@ -55,7 +55,7 @@ class mmu_cache_base :
 
   GC_HAS_CALLBACKS();
   SC_HAS_PROCESS(mmu_cache_base);
-  SK_HAS_SIGNALS(mmu_cache_base);
+  SR_HAS_SIGNALS(mmu_cache_base);
   // TLM sockets
   // -----------
 

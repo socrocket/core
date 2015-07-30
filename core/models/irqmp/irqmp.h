@@ -23,7 +23,7 @@
 
 #include "core/common/apbslave.h"
 #include "core/common/clkdevice.h"
-#include "core/common/signalkit.h"
+#include "core/common/sr_signal.h"
 
 /// @addtogroup irqmp IRQMP
 /// @{
@@ -31,7 +31,7 @@
 class Irqmp : public APBSlave, public CLKDevice {
   public:
     SC_HAS_PROCESS(Irqmp);
-    SK_HAS_SIGNALS(Irqmp);
+    SR_HAS_SIGNALS(Irqmp);
     GC_HAS_CALLBACKS();
 
     /// CPU reset out signals

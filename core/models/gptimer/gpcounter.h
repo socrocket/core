@@ -21,7 +21,7 @@
 #include "core/common/base.h"
 #include "core/common/systemc.h"
 
-#include "core/common/signalkit.h"
+#include "core/common/sr_signal.h"
 
 class GPTimer;
 

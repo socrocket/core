@@ -28,7 +28,7 @@
 #include "core/common/clkdevice.h"
 
 // Signal definitions for IRQ communication
-#include "core/common/signalkit.h"
+#include "core/common/sr_signal.h"
 
 // Verbosity kit - for output formatting and filtering
 #include "core/common/verbose.h"
@@ -37,7 +37,7 @@
 class AHBIn : public AHBMaster<>, public CLKDevice {
   public:
     SC_HAS_PROCESS(AHBIn);
-    SK_HAS_SIGNALS(AHBIn);
+    SR_HAS_SIGNALS(AHBIn);
 
     /// SignalKit interrupt output
     signal<std::pair<uint32_t, bool> >::out irq;

@@ -1,18 +1,18 @@
 // vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
-/// @addtogroup signalkit
+/// @addtogroup common
 /// @{
-/// @file signalkit.h
-/// @date 2010-2014
+/// @file sr_signal.h
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the 
 ///            authors is strictly prohibited.
 /// @author Rolf Meyer
 ///
-/// The SignalKit enables the user to read and write signal like channels.
+/// sr_signal enables the user to read and write signal like channels.
 /// Unlike the signal implementation is SystemC the signals are not using the SystemC kernel.
 /// Therefore they are not scheduled. They are direct transmittet as function calls.
-/// The SignalKit is designed to complete the idea behind TLM to use direct fast communication.
+/// sr_signal is designed to complete the idea behind TLM to use direct fast communication.
 /// But the use of single Signals should be avoided when possible.
 ///
 /// Each incomming signal can trigger a callback, but at least it will change a value.
@@ -25,11 +25,10 @@
 /// Insted it is useful in a case of unidiectional communication: interrupts or resets.
 
 
-#ifndef SIGNALKIT_H
-#define SIGNALKIT_H
-#include "core/common/signalkit_h/module.h"
-#include "core/common/signalkit_h/adapter.h"
-#include "core/common/signalkit_h/connect.h"
+#ifndef CORE_COMMON_SR_SIGNAL_H__
+#define CORE_COMMON_SR_SIGNAL_H__
 
-#endif  // SIGNALKIT_H
+#include "core/common/sr_signal/sr_signal.h"
+
+#endif  // CORE_COMMON_SIGNAL_H__
 /// @}

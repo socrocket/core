@@ -42,13 +42,13 @@
 
 #include "core/common/trapgen/utils/trap_utils.hpp"
 
-#include "core/common/signalkit.h"
+#include "core/common/sr_signal.h"
 
 #define FUNC_MODEL
 #define LT_IF
 namespace leon3_funclt_trap{
 
-    class IntrTLMPort_32 : public signalkit::signal_module<IntrTLMPort_32>, public sc_module{
+    class IntrTLMPort_32 : public sr_signal::sr_signal_module<IntrTLMPort_32>, public sc_module{
 
         public:
         IntrTLMPort_32( sc_module_name portName, unsigned int & irqSignal );

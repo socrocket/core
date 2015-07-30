@@ -32,7 +32,7 @@
 #include "core/common/vendian.h"
 #include "core/common/verbose.h"
 #include "core/common/apbslave.h"
-#include "core/common/signalkit.h"
+#include "core/common/sr_signal.h"
 
 /// @addtogroup mctrl MCtrl
 /// @{
@@ -43,7 +43,7 @@ class Mctrl : public AHBSlave<APBSlave>,
               public CLKDevice {
   public:
     SC_HAS_PROCESS(Mctrl);
-    SK_HAS_SIGNALS(Mctrl);
+    SR_HAS_SIGNALS(Mctrl);
 
     /// Creates a new Instance of an MCtrl.
     ///
