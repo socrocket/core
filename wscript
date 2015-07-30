@@ -18,40 +18,9 @@ LOAD = [
 
 TOOLS = [
     'common',
+    'dependency',
     'repository'
 ]
-"""
-#    'swig',
-    'flags',
-#    'virtualenv',
-    'pthreads',
-    'boosting',
-    'endian',
-#    'grlib',
-#    'modelsim',
-    'systools',
-    'libelf',
-    'systemc',
-    'cmake',
-    'winsocks',
-#    'trap',
-#    'sdl',
-#    'mpeg3',
-    'lua',
-#    'blas',
-#    'lapack',
-    'greenlib',
-    'ambakit',
-    'socrocket',
-    'wizard',
-    'docs',
-#    'shell',
-    'cpplint',
-    'oclint',
-    'clang_compilation_database',
-    'sparcelf',
-]
-"""
 
 def options(self): 
     self.load(LOAD)

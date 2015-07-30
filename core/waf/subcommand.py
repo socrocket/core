@@ -39,6 +39,9 @@ class SubcommandContext(ConfigurationContext):
        The SubcommandContext
        Here we initialize a Context especialy for subcommands
     """
+    cmd=None
+    def __init__(self, **kw):
+        super(SubcommandContext, self).__init__(**kw)
     def execute(self):
         self.init_dirs()
         self.cachedir=self.bldnode.make_node(Build.CACHE_DIR)
