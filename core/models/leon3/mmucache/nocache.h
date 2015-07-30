@@ -5,7 +5,7 @@
 /// Cache placeholder. Implements the cache interface and forwards request to
 /// mmu or ahb interface depending on the configuration.
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the 

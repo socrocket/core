@@ -4,7 +4,7 @@
 /// @file ahbmem.h
 /// Provide a test bench memory class with AHB slave interface.
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the

@@ -26,7 +26,7 @@
 /// ~~~
 /// Defining the verbosity at configuration time has the advantage that undesired output is optimized way (compared to runtime switching).
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the

@@ -5,7 +5,7 @@
 /// Class definition for input device. Provides frames of data samples in regual
 /// intervals. CPU is notifed about new data via IRQ.
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
