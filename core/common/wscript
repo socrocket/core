@@ -14,15 +14,12 @@ def build(self):
                        'powermonitor.cpp',
                        'timingmonitor.cpp',
                        'msclogger.cpp',
-                       'sr_registry.cpp',
-                       'sr_report.cpp',
                        'sr_iss/intrinsics/platformintrinsic.cpp',
-                       'waf.cpp',
-                       'scireg.cpp'
+                       'waf.cpp'
                        ],
     export_includes = self.top_dir,
     includes        = self.top_dir,
-    uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
+    uselib          = 'sr_registry sr_register sr_report BOOST SYSTEMC TLM AMBA GREENSOCS',
     install_path    = '${PREFIX}/lib',
   )
   self(

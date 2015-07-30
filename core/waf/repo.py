@@ -1,17 +1,23 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # vim: set expandtab:ts=4:sw=4:setfiletype python
+"""
+    Repository Manager
+    Extends Waf with the ability to handle git repositories.
+"""
 import os,shlex,sys,time,json,subprocess,shutil
 from waflib import Context,Scripting,TaskGen
 from waflib.Configure import ConfigurationContext
 from waflib import ConfigSet,Utils,Options,Logs,Context,Build,Errors
 from core.waf.common import conf
+from tempfile import mkdtemp
 
 WAF_CONFIG_LOG='repo.log'
 WAF_REPO_LOCK='.lock_repo.json'
 REPOS = {}
 
 def read_repos():
+    """Read the repository database file"""
     if os.path.isfile(Context.out_dir+os.sep+WAF_REPO_LOCK):
         with open(Context.out_dir+os.sep+WAF_REPO_LOCK, "r") as jsonfile:
             obj = json.load(jsonfile)
@@ -22,25 +28,31 @@ def read_repos():
         return {"core": core.strip()}
 
 def write_repos(repos):
+    """Write the repository database file"""
     with open(Context.out_dir+os.sep+WAF_REPO_LOCK, "w") as jsonfile:
         json.dump(repos, jsonfile, sort_keys=True, indent=2, separators=(',', ': '))
         jsonfile.close()
 
 
 def get_repo_vals(directory):
+    """Return configuration key value pairs for a repository directory"""
     prefix = "repository_"
-    keys = ["name", "desc", "tools", "path"]
+    keys = ["name", "desc", "tools", "path", "version", "deps"]
     result = {}
     obj = {}
     wscript = os.path.join(directory, "wscript")
     if os.path.isfile(wscript):
         execfile(wscript, {}, obj)
-    for key in keys:
-        name = (prefix + key).upper()
-        result[key] = obj.get(name, "")
-    return result
+    if "REPOSITORY" in obj:
+        return obj["REPOSITORY"]
+    else:
+        for key in keys:
+            name = (prefix + key).upper()
+            if name in obj:
+              result[key] = obj[name]
+        return result
 
-
+# for python 2.6 compatibility
 if "check_output" not in dir( subprocess ): # duck punch it in!
     def f(*popenargs, **kwargs):
         if 'stdout' in kwargs:
@@ -86,10 +98,21 @@ def rmlinematch(oldstr, infile):
             for line in linelist: f.writelines(line)
 
 def init(self):
-  if Options.commands[0] == "repo":
-    del(Options.commands[1:])
+    """
+        Initialize repo manager
+        As soon as we detect that the first argument to waf is "repo".
+        Remove all other arguments from the list.
+        This ensures that ./waf repo can handle its own sub commands and arguments.
+    """
+    if Options.commands[0] == "repo":
+        del(Options.commands[1:])
 
 class repo(ConfigurationContext):
+    """
+       The repo Context
+       In here all work with the repositories is done.
+       The database handlers are extern so the repository database is read in other contextes too.
+    """
     cmd = 'repo'
     fun = 'repo'
     def execute(self):
@@ -145,10 +168,14 @@ class repo(ConfigurationContext):
         elif len(params) == 2:
             directory = params[0]
             repository = params[1]
+            if os.path.isdir(directory):
+                print "Target directory does already exist '%s'" % directory
+                return
 
-        tempdir = "build/repo-tmp"
+        tempdir = mkdtemp(dor="build", prefix="repo")
 
         try:
+            print "Fetching repository %s" % repository
             import subprocess
             subprocess.call(("%(git)s clone %(repository)s %(directory)s" % {
                 "git": "git",
@@ -157,6 +184,7 @@ class repo(ConfigurationContext):
                 "parameter": params
             }).split())
         except CalledProcessError:
+            print "An error occured while repository creation on %s" % repository
             shutil.rmtree(directory)
 
         
@@ -167,8 +195,15 @@ class repo(ConfigurationContext):
         if directory == "core":
             directory = "."
 
+        print "Moving repository %s to %s" % (repository, directory)
+        if os.path.isdir(directory):
+            print "Target directory does already exist '%s'" % directory
+            return
         shutil.move(tempdir, directory)
         REPOS[directory] = repository
+        for dep_params in vals["deps"].iteritems():
+            print "  Adding dependency %s" % dep_params[0]
+            add_repo("add", dep_params)
 
     def mv_cmd(self, cmd, params):
         if len(params) != 2:
@@ -224,10 +259,13 @@ class repo(ConfigurationContext):
         for directory, repository in REPOS.iteritems():
             vals = get_repo_vals(os.path.join(self.path.abspath(), directory))
             print "%s <= %s" % (directory, repository)
-            print "    name: %s" % vals["name"]
-            print "    default path: %s" % vals["path"]
-            print "    tools: %s" % ', '.join(vals["tools"])
-            print "    description: %s" % vals["desc"]
+            print "    name: %s" % vals.get("name", "")
+            print "    description: %s" % vals.get("desc", "")
+            print "    default path: %s" % vals.get("path", "")
+            print "    tools: %s" % ', '.join(vals.get("tools", ""))
+            print "    dependencies:"
+            for directory, repository in vals.get("deps", {}).iteritems():
+                print "        %s <= %s" % (directory, repository)
             print ""
 
     def show_help(self, cmd, params):
@@ -267,30 +305,37 @@ class repo(ConfigurationContext):
                 return
             CMDS[cmd](cmd, params)
 
-setattr(Context.g_module, 'init', init)
-setattr(Context.g_module, 'repo', repo)
+setattr(Context.g_module, 'init', init) # Detect repo argument
+setattr(Context.g_module, 'repo', repo) # Insert context
 
 @TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('cxx')
 def export_have_define(self):
+    """This function extends the C compiler functionality to register precompiler defines for each repository"""
     defines = getattr(self, 'defines', [])
     defines = Utils.to_list(defines)
     REPOS = read_repos()
     for repo in REPOS:
-        defines += ['HAVE_REPO_' + repo.replace('.', '_').upper()]
+        defines += ['HAVE_REPO_' + repo.replace('.', '_').replace('/', '_').upper()]
     setattr(self, 'defines', defines)
 
 def loadrepos(self):
+    """Load repositories"""
     REPOS = read_repos()
     for d, repo in REPOS.iteritems():
         directory = os.path.join(os.getcwd(),d)
         vals = get_repo_vals(directory)
         waf = os.path.join(directory, "waf")
-        self.load(vals["tools"], tooldir=[waf])
+        self.load(vals.get("tools", []), tooldir=[waf])
 
 conf(loadrepos)
 
 def iterrepos(self):
+    """
+        Iterate through repositories.
+        It is simmilar to recurse.
+        But it does not work on subdirectories but repos.
+    """
     REPOS = read_repos()
     self.repositories = REPOS
     for d, repo in REPOS.iteritems():
