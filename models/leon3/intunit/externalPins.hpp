@@ -41,14 +41,14 @@
 #include "core/common/trapgen/utils/trap_utils.hpp"
 #include "core/common/systemc.h"
 
-#include "core/common/signalkit.h"
+#include "core/common/sr_signal.h"
 
 #define FUNC_MODEL
 #define LT_IF
 namespace leon3_funclt_trap{
     class PinTLM_out_32 : public sc_module {
       public:
-        SK_HAS_SIGNALS(PinTLM_out_32);
+        SR_HAS_SIGNALS(PinTLM_out_32);
         PinTLM_out_32( sc_module_name portName );
         void send_pin_req( const unsigned int & value ) throw();
         void on_run(const bool &value, const sc_time &delay) throw();

@@ -24,7 +24,7 @@
 #include "core/models/apbuart/io_if.h"
 #include "core/common/apbdevice.h"
 #include "core/common/clkdevice.h"
-#include "core/common/signalkit.h"
+#include "core/common/sr_signal.h"
 #include "core/common/verbose.h"
 #include "core/common/apbslave.h"
 
@@ -33,7 +33,7 @@
 class APBUART : public APBSlave, public CLKDevice {
   public:
     SC_HAS_PROCESS(APBUART);
-    SK_HAS_SIGNALS(APBUART);
+    SR_HAS_SIGNALS(APBUART);
     GC_HAS_CALLBACKS();
 
     signal<std::pair<uint32_t, bool> >::out irq;

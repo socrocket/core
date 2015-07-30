@@ -24,7 +24,7 @@
 
 #include "core/common/ahbdevice.h"
 #include "core/common/clkdevice.h"
-#include "core/common/signalkit.h"
+#include "core/common/sr_signal.h"
 #include "core/common/msclogger.h"
 #include "core/common/socrocket.h"
 #include "core/common/sr_param.h"
@@ -33,7 +33,7 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
   public:
     GC_HAS_CALLBACKS();
     SC_HAS_PROCESS(AHBCtrl);
-    SK_HAS_SIGNALS(AHBCtrl);
+    SR_HAS_SIGNALS(AHBCtrl);
 
     // AMBA sockets
     // ------------------

@@ -25,7 +25,7 @@
 #include "core/models/gptimer/gpcounter.h"
 #include "core/common/apbslave.h"
 #include "core/common/clkdevice.h"
-#include "core/common/signalkit.h"
+#include "core/common/sr_signal.h"
 
 #include "core/common/verbose.h"
 #include "core/common/sr_param.h"
@@ -37,7 +37,7 @@
 class GPTimer : public APBSlave, public CLKDevice {
  public:
   SC_HAS_PROCESS(GPTimer);
-  SK_HAS_SIGNALS(GPTimer);
+  SR_HAS_SIGNALS(GPTimer);
   GC_HAS_CALLBACKS();
 
   signal<std::pair<uint32_t, bool> >::out irq;

@@ -49,7 +49,7 @@
 #include "core/common/trapgen/utils/trap_utils.hpp"
 #include <boost/lexical_cast.hpp>
 
-#include "core/common/signalkit.h"
+#include "core/common/sr_signal.h"
 
 //Now some stuff for generating random numbers
 #include <ctime>
@@ -63,7 +63,7 @@ namespace std {
 }
 #endif
 
-class IrqGenerator : public signalkit::signal_module<IrqGenerator>, public sc_module{
+class IrqGenerator : public sr_signal::sr_signal_module<IrqGenerator>, public sc_module{
     private:
         sc_time latency;
         int lastIrq;

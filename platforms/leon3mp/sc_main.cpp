@@ -104,7 +104,7 @@ void grethVPHYHook(char* dev_name)
 
 class irqmp_rst_stimuli : sc_core::sc_module {
   public:
-    signalkit::signal_out<bool, Irqmp> irqmp_rst;
+    sr_signal::signal_out<bool, Irqmp> irqmp_rst;
     irqmp_rst_stimuli(sc_core::sc_module_name mn) : 
         sc_core::sc_module(mn), 
         irqmp_rst("rst") {
@@ -479,7 +479,7 @@ int sc_main(int argc, char** argv) {
       ahbin->set_clk(p_system_clock, SC_NS);
 
       // Connect interrupt out
-      signalkit::connect(irqmp.irq_in, ahbin->irq, p_ahbin_irq);
+      sr_signal::connect(irqmp.irq_in, ahbin->irq, p_ahbin_irq);
     }
 
     // CREATE LEON3 Processor
@@ -632,7 +632,7 @@ int sc_main(int argc, char** argv) {
 
       // Connecting Interrupts
       for(int i=0; i < 8; i++) {
-        signalkit::connect(irqmp.irq_in, gptimer->irq, p_gptimer_pirq + i);
+        sr_signal::connect(irqmp.irq_in, gptimer->irq, p_gptimer_pirq + i);
       }
 
     }
@@ -672,7 +672,7 @@ int sc_main(int argc, char** argv) {
       // Connecting APB Slave
       apbctrl.apb(apbuart->apb);
       // Connecting Interrupts
-      signalkit::connect(irqmp.irq_in, apbuart->irq, p_apbuart_irq);
+      sr_signal::connect(irqmp.irq_in, apbuart->irq, p_apbuart_irq);
       // Set clock
       apbuart->set_clk(p_system_clock,SC_NS);
       // ******************************************
@@ -710,7 +710,7 @@ int sc_main(int argc, char** argv) {
       // Connecting APB Slave
       apbctrl.apb(apbuart1->apb);
       // Connecting Interrupts
-      signalkit::connect(irqmp.irq_in, apbuart1->irq, p_apbuart1_irq);
+      sr_signal::connect(irqmp.irq_in, apbuart1->irq, p_apbuart1_irq);
       // Set clock
       apbuart1->set_clk(p_system_clock,SC_NS);
       // ******************************************
