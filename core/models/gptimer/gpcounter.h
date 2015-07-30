@@ -17,7 +17,7 @@
 #ifndef MODELS_GPTIMER_GPCOUNTER_H_
 #define MODELS_GPTIMER_GPCOUNTER_H_
 
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/base.h"
 #include "core/common/systemc.h"
 
@@ -134,7 +134,7 @@ class GPCounter : public DefaultBase {
   gs::gs_param_array m_performance_counters;
 
   /// Number of underflows of the counter
-  gs::gs_config<uint64_t> m_underflows;  // NOLINT(runtime/int)
+  sr_param<uint64_t> m_underflows;  // NOLINT(runtime/int)
 };
 
 #endif // MODELS_GPTIMER_GPCOUNTER_H_

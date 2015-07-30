@@ -1,7 +1,7 @@
 // vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 :
 /// @addtogroup common
 /// @{
-/// @file propertyconfig.h
+/// @file sr_param.h
 /// @date 2013-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
@@ -11,13 +11,10 @@
 /// This file is the recommended file to include the basic  GreenConfig 
 /// service which is located in the namespace  gs::cnf.
 
-#ifndef COMMON_GS_CONFIG_H_
-#define COMMON_GS_CONFIG_H_
+#ifndef COMMON_SR_PARAM_H_
+#define COMMON_SR_PARAM_H_
 
-#include <greencontrol/config.h>
+#include "core/common/sr_param/sr_param.h"
 
-#include "core/common/gs_config/gs_config.h"
-#include "core/common/gs_config/gs_config_class.h"
-
-#endif  // COMMON_GS_CONFIG_H_
+#endif  // COMMON_SR_PARAM_H_
 /// @}

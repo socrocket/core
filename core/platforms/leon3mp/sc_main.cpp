@@ -14,7 +14,7 @@
 #include "pysc/usi.h"
 #endif
 
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/systemc.h"
 #include <string.h>
 #include <sys/time.h>

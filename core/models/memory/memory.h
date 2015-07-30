@@ -18,7 +18,7 @@
 #ifndef MODELS_MEMORY_MEMORY_H_
 #define MODELS_MEMORY_MEMORY_H_
 
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include <greensocket/target/single_socket.h>
 #include "core/common/base.h"
 #include "core/common/systemc.h"
@@ -80,10 +80,10 @@ class Memory : public MemoryPower {
     unsigned int transport_dbg(tlm::tlm_generic_payload &gp);
     bool get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data);
 
-    gs::gs_config<uint64_t> m_writes;
-    gs::gs_config<uint64_t> m_reads;
-    gs::gs_config<std::string> g_storage_type;
-    gs::gs_config<std::string> g_elf_file;
+    sr_param<uint64_t> m_writes;
+    sr_param<uint64_t> m_reads;
+    sr_param<std::string> g_storage_type;
+    sr_param<std::string> g_elf_file;
 };
 
 #endif  // MODELS_MEMORY_MEMORY_H_

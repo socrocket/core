@@ -28,7 +28,7 @@
 #include "core/common/signalkit.h"
 
 #include "core/common/verbose.h"
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 
 #undef CTRL
 
@@ -181,43 +181,43 @@ class GPTimer : public APBSlave, public CLKDevice {
   /// For compatibility to the GPTimer VHDL model this is still called "timers".
   /// But keep in mind that the ticking units of the SystemC GPTimer are called
   /// GPCounters/counters to decrease confusion.
-  gs::cnf::gs_config<uint32_t> g_ntimers;
+  sr_param<uint32_t> g_ntimers;
 
   /// Number of scaler bits to use for the pescaler.
   /// This value can be up to 32bits and limits the maximum value of the prescaler.
-  gs::cnf::gs_config<uint32_t> g_sbits;
+  sr_param<uint32_t> g_sbits;
 
   /// Number of counter register bits.
   /// This value can be up to 32bits and limits the maximum value of all counters.
-  gs::cnf::gs_config<uint32_t> g_nbits;
+  sr_param<uint32_t> g_nbits;
 
   /// Length of the initial watchdog period.
   /// It will be set after reset and if the watchdog counter reaches zero fire an watchdog event to reset the hardware.
   /// If zero the watchdog ist disabled.
-  gs::cnf::gs_config<uint32_t> g_wdog_length;
+  sr_param<uint32_t> g_wdog_length;
 
   /// Enables the powermonitor capapbilities
-  gs::cnf::gs_config<uint32_t> powermon;
+  sr_param<uint32_t> powermon;
 
   /// Seperated IRQ lines.
   /// If you whant to have seperated IRQ lines for each counter set this generic to true.
-  gs::cnf::gs_config<bool> g_sepirq;
+  sr_param<bool> g_sepirq;
   
 
   // *****************************************************
   // Power Modeling Parameters
 
   /// Normalized static power input
-  gs::cnf::gs_config<double> sta_power_norm;
+  sr_param<double> sta_power_norm;
 
   /// Normalized internal power input (activation independent)
-  gs::cnf::gs_config<double> int_power_norm;
+  sr_param<double> int_power_norm;
 
   /// Static power of module
-  gs::cnf::gs_config<double> sta_power;
+  sr_param<double> sta_power;
 
   /// Internal power of module (activation independent)
-  gs::cnf::gs_config<double> int_power;
+  sr_param<double> int_power;
 
 
   // *****************************************************

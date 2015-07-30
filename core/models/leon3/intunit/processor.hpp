@@ -38,7 +38,7 @@
 #ifndef LT_PROCESSOR_HPP
 #define LT_PROCESSOR_HPP
 
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/trapgen/utils/customExceptions.hpp"
 #include "core/models/leon3/intunit/instructions.hpp"
 #include "core/models/leon3/intunit/decoder.hpp"
@@ -130,7 +130,7 @@ namespace leon3_funclt_trap{
         unsigned int curPC;
         IntrTLMPort_32 IRQ_port;
         PinTLM_out_32 irqAck;
-        gs::gs_config<bool> historyEnabled;
+        sr_param<bool> historyEnabled;
         bool m_pow_mon;
         void setProfilingRange( unsigned int startAddr, unsigned int endAddr );
         IRQ_IRQ_Instruction * IRQ_irqInstr;
@@ -140,37 +140,37 @@ namespace leon3_funclt_trap{
       /// Power Modeling Parameters
       
       /// Normalized static power input
-      gs::gs_config<double> sta_power_norm;
+      sr_param<double> sta_power_norm;
 
       /// Normalized internal power input (activation independent)
-      gs::gs_config<double> int_power_norm;
+      sr_param<double> int_power_norm;
 
       /// Normalized average instruction energy
-      gs::gs_config<double> dyn_instr_energy_norm;
+      sr_param<double> dyn_instr_energy_norm;
 
       /// Parameter array for power data output
       gs::gs_param_array power;
 
       /// Static power of module
-      gs::gs_config<double> sta_power;
+      sr_param<double> sta_power;
 
       /// Dynamic power of module (activation independent)
-      gs::gs_config<double> int_power;
+      sr_param<double> int_power;
 
       /// Switching power of module
-      gs::gs_config<double> swi_power;
+      sr_param<double> swi_power;
 
       /// Power frame starting time
-      gs::gs_config<sc_core::sc_time> power_frame_starting_time;
+      sr_param<sc_core::sc_time> power_frame_starting_time;
       
       /// Average dynamic energy per instruction
-      gs::gs_config<double> dyn_instr_energy;
+      sr_param<double> dyn_instr_energy;
 
       /// Number of instructions processed in time frame
-      gs::gs_config<uint64_t> dyn_instr;
+      sr_param<uint64_t> dyn_instr;
       
       /// Number of instructions processed
-      gs::gs_config<uint64_t> numInstructions;
+      sr_param<uint64_t> numInstructions;
     };
 
 };

@@ -16,7 +16,7 @@
 #ifndef MODELS_MEMORY_MEMORYPOWER_H_
 #define MODELS_MEMORY_MEMORYPOWER_H_
 
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include <greensocket/target/single_socket.h>
 #include "core/common/base.h"
 #include "core/common/systemc.h"
@@ -71,10 +71,10 @@ class MemoryPower : public MEMDevice, public CLKDevice, public BaseMemory {
     gs::gs_param_array m_performance_counters;
 
     /// Performance counter to store transaction byte reads
-    // gs::gs_config<uint64_t> m_reads;
+    // sr_param<uint64_t> m_reads;
 
     /// Performance counter to store the transaction byte writes
-    // gs::gs_config<uint64_t> m_writes;
+    // sr_param<uint64_t> m_writes;
 
     /// *****************************************************
     /// Power Modeling Parameters
@@ -83,40 +83,40 @@ class MemoryPower : public MEMDevice, public CLKDevice, public BaseMemory {
     gs::gs_param_array power;
 
     /// Normalized static power input
-    gs::gs_config<double> sta_power_norm;
+    sr_param<double> sta_power_norm;
 
     /// Normalized internal power input (activation independent)
-    gs::gs_config<double> int_power_norm;
+    sr_param<double> int_power_norm;
 
     /// Normalized read access energy
-    gs::gs_config<double> dyn_read_energy_norm;
+    sr_param<double> dyn_read_energy_norm;
 
     /// Normalized write access energy
-    gs::gs_config<double> dyn_write_energy_norm;
+    sr_param<double> dyn_write_energy_norm;
 
     /// Static power of module
-    gs::gs_config<double> sta_power;
+    sr_param<double> sta_power;
 
     /// Internal power of module
-    gs::gs_config<double> int_power;
+    sr_param<double> int_power;
 
     /// Switching power of module
-    gs::gs_config<double> swi_power;
+    sr_param<double> swi_power;
 
     /// Power frame starting time
-    gs::gs_config<sc_core::sc_time> power_frame_starting_time;
+    sr_param<sc_core::sc_time> power_frame_starting_time;
 
     /// Dynamic energy per read access
-    gs::gs_config<double> dyn_read_energy;
+    sr_param<double> dyn_read_energy;
 
     /// Dynamic energy per write access
-    gs::gs_config<double> dyn_write_energy;
+    sr_param<double> dyn_write_energy;
 
     /// Number of reads from memory (read & reset by monitor)
-    gs::gs_config<uint64_t> dyn_reads;
+    sr_param<uint64_t> dyn_reads;
 
     /// Number of writes to memory (read & reset by monitor)
-    gs::gs_config<uint64_t> dyn_writes;
+    sr_param<uint64_t> dyn_writes;
 
   private:
     /// Offset for dyn_reads

@@ -43,8 +43,8 @@ class APBUART : public APBSlave, public CLKDevice {
 
     io_if *m_backend;
     uint32_t g_pirq;
-    gs::cnf::gs_config<bool> g_console;
-    gs::cnf::gs_config<std::string> g_backend;
+    sr_param<bool> g_console;
+    sr_param<std::string> g_backend;
     APBUART(ModuleName name, std::string uart_backend = "ReporterIO",  uint16_t pindex = 0,
     uint16_t paddr = 0, uint16_t pmask = 4095, int pirq = 0,
     bool console = false,

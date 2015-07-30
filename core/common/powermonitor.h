@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/systemc.h"
 #include "core/common/verbose.h"
 
