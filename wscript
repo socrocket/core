@@ -18,7 +18,7 @@ LOAD = [
 
 TOOLS = [
     'common',
-    'repo'
+    'repository'
 ]
 """
 #    'swig',
