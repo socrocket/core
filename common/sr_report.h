@@ -22,6 +22,16 @@
 
 namespace v {
 
+/// Standard verbosity is 3.
+/// All messages but debug.
+#ifndef VERBOSITY
+#ifdef GLOBALVERBOSITY
+#define VERBOSITY GLOBALVERBOSITY
+#else
+#define VERBOSITY 4
+#endif
+#endif
+
 class pair {
   public:
     pair(const std::string name, int8_t value) : name(name), type(INT32), data(value) {
@@ -361,7 +371,9 @@ void sr_report::operator()(const std::string &name) {
 #define _GET_MACRO_(dummy,_1,NAME,...) NAME
 #define _GET_MACRO_2_(dummy,_1,_2,NAME,...) NAME
 
-#define srDebug(...) _GET_MACRO_(dummy,##__VA_ARGS__,srDebug_1(__VA_ARGS__),srDebug_0())
+#define srDebug(...) \
+  if(5 >= VERBOSITY) {} else \
+    _GET_MACRO_(dummy,##__VA_ARGS__,srDebug_1(__VA_ARGS__),srDebug_0())
 
 #define srDebug_0() \
     sr_report_handler::report( \
@@ -401,7 +413,9 @@ void sr_report::operator()(const std::string &name) {
       sc_core::SC_MEDIUM, __FILE__ , __LINE__)
 
 // for data to be analysed by ipython
-#define srAnalyse(...) _GET_MACRO_(dummy,##__VA_ARGS__,srAnalyse_1(__VA_ARGS__),srAnalyse_0())
+#define srAnalyse(...) \
+  if(4 >= VERBOSITY) {} else \
+    _GET_MACRO_(dummy,##__VA_ARGS__,srAnalyse_1(__VA_ARGS__),srAnalyse_0())
 
 #define srAnalyse_0() \
     sr_report_handler::report( \
@@ -413,7 +427,9 @@ void sr_report::operator()(const std::string &name) {
       sc_core::SC_INFO, NULL, id, "", \
       sc_core::SC_FULL, __FILE__ , __LINE__)
 
-#define srInfo(...) _GET_MACRO_(dummy,##__VA_ARGS__,srInfo_1(__VA_ARGS__),srInfo_0())
+#define srInfo(...) \
+  if(3 >= VERBOSITY) {} else \
+    _GET_MACRO_(dummy,##__VA_ARGS__,srInfo_1(__VA_ARGS__),srInfo_0())
 
 #define srInfo_0() \
     sr_report_handler::report( \
