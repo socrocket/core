@@ -7,12 +7,11 @@
 """
 import os,shlex,sys,time,json,subprocess,shutil
 from waflib import Context,Scripting,TaskGen
-from waflib.Configure import ConfigurationContext
 from waflib import ConfigSet,Utils,Options,Logs,Context,Build,Errors
 from core.waf.common import conf
-from tempfile import mkdtemp
+from core.waf.subcommand import subcommand, SubcommandContext
+import time
 
-WAF_CONFIG_LOG='repo.log'
 WAF_REPO_LOCK='.lock_repo.json'
 REPOS = {}
 
@@ -97,17 +96,8 @@ def rmlinematch(oldstr, infile):
             f.truncate()
             for line in linelist: f.writelines(line)
 
-def init(self):
-    """
-        Initialize repo manager
-        As soon as we detect that the first argument to waf is "repo".
-        Remove all other arguments from the list.
-        This ensures that ./waf repo can handle its own sub commands and arguments.
-    """
-    if Options.commands[0] == "repo":
-        del(Options.commands[1:])
-
-class repo(ConfigurationContext):
+@subcommand
+class repo(SubcommandContext):
     """
        The repo Context
        In here all work with the repositories is done.
@@ -115,29 +105,6 @@ class repo(ConfigurationContext):
     """
     cmd = 'repo'
     fun = 'repo'
-    def execute(self):
-        self.init_dirs()
-        self.cachedir=self.bldnode.make_node(Build.CACHE_DIR)
-        self.cachedir.mkdir()
-        path=os.path.join(self.bldnode.abspath(),WAF_CONFIG_LOG)
-        self.logger=Logs.make_logger(path,'cfg')
-        app=getattr(Context.g_module,'APPNAME','')
-        if app:
-            ver=getattr(Context.g_module,'VERSION','')
-            if ver:
-              app="%s (%s)"%(app,ver)
-        if id(self.srcnode)==id(self.bldnode):
-          Logs.warn('Setting top == out (remember to use "update_outputs")')
-        elif id(self.path)!=id(self.srcnode):
-          if self.srcnode.is_child_of(self.path):
-            Logs.warn('Are you certain that you do not want to set top="." ?')
-        global REPOS
-        Context.top_dir=self.srcnode.abspath()
-        Context.out_dir=self.bldnode.abspath()
-        REPOS = read_repos()
-        self.work()
-        write_repos(REPOS)
-        #self.store()
 
     def git_cmd(self, cmd, params):
         global REPOS
@@ -172,7 +139,7 @@ class repo(ConfigurationContext):
                 print "Target directory does already exist '%s'" % directory
                 return
 
-        tempdir = mkdtemp(dor="build", prefix="repo")
+        tempdir = os.path("build", "repo-%x" % int(time.time()))
 
         try:
             print "Fetching repository %s" % repository
@@ -201,10 +168,16 @@ class repo(ConfigurationContext):
             return
         shutil.move(tempdir, directory)
         REPOS[directory] = repository
-        for dep_params in vals["deps"].iteritems():
+        for dep_params in vals.get("deps", {}).iteritems():
             print "  Adding dependency %s" % dep_params[0]
-            add_repo("add", dep_params)
+            self.add_repo("add", dep_params)
 
+    def init_repo(self, cmd, params):
+        vals = get_repo_vals("core")
+        for dep_params in vals.get("deps", {}).iteritems():
+            print "  Adding dependency %s" % dep_params[0]
+            self.add_repo("add", dep_params)
+        
     def mv_cmd(self, cmd, params):
         if len(params) != 2:
             print "mv takes 2 parameters:"
@@ -243,7 +216,6 @@ class repo(ConfigurationContext):
                 git_cmd(self, "rm", ["-rf", from_abs[len(from_repo):]])
                 git_cmd(self, "add", [to_abs[len(to_repo):]])
 
-        
 
     def del_repo(self, cmd, params):
         import shutil
@@ -279,7 +251,10 @@ class repo(ConfigurationContext):
         print ""
 
     def work(self):
+        global REPOS
+        REPOS = read_repos()
         CMDS = {
+            'init': self.init_repo,
             'pull': self.git_cmd, 
             'push': self.git_cmd, 
             'update': self.git_cmd, 
@@ -302,11 +277,9 @@ class repo(ConfigurationContext):
 
             if not CMDS.has_key(cmd):
                 self.show_help(cmd, params)
-                return
-            CMDS[cmd](cmd, params)
-
-setattr(Context.g_module, 'init', init) # Detect repo argument
-setattr(Context.g_module, 'repo', repo) # Insert context
+            else:
+                CMDS[cmd](cmd, params)
+        write_repos(REPOS)
 
 @TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('cxx')
