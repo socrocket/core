@@ -2,16 +2,13 @@
 /// @addtogroup common
 /// @{
 /// @file sc_api.h
-///
-///
 /// @date 2013-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
-/// @author
-///
-
+/// @author Marcus Bartholomeu (GreenSocs Ltd)
+/// @author Rolf Meyer
 #ifndef COMMON_SC_API_H_
 #define COMMON_SC_API_H_
 

@@ -9,7 +9,8 @@
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
-/// @author
+/// @author Rolf Meyer
+/// @author Thomas Schuster
 ///
 
 #ifndef MODELS_UTILS_AHBDEVICE_H_
