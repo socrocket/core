@@ -19,7 +19,7 @@
 #include "core/common/systemc.h"
 #include <tlm.h>
 #include "core/common/amba.h"
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include <greensocket/initiator/multi_socket.h>
 #include <boost/config.hpp>
 #include <algorithm>
@@ -219,88 +219,88 @@ class Mctrl : public AHBSlave<APBSlave>,
     uint8_t m_pmode;
 
     /// The number of total transactions handled by the mctrl
-    gs::gs_config<uint64_t> m_total_transactions;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_total_transactions;  // NOLINT(runtime/int)
 
     /// The number of successfull ended transactions
-    gs::gs_config<uint64_t> m_right_transactions;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_right_transactions;  // NOLINT(runtime/int)
 
     /// Total time of power down mode
-    gs::gs_config<sc_time> m_power_down_time;
+    sr_param<sc_time> m_power_down_time;
 
     /// Last time switched to power down mode
-    gs::gs_config<sc_time> m_power_down_start;
+    sr_param<sc_time> m_power_down_start;
 
     /// Total time of deep power down mode
-    gs::gs_config<sc_time> m_deep_power_down_time;
+    sr_param<sc_time> m_deep_power_down_time;
 
     /// Last time switched to deep power down mode
-    gs::gs_config<sc_time> m_deep_power_down_start;
+    sr_param<sc_time> m_deep_power_down_start;
 
     /// Total time of auto self refresh mode
-    gs::gs_config<sc_time> m_self_refresh_time;
+    sr_param<sc_time> m_self_refresh_time;
 
     /// Last time switched to auto self refresh mode
-    gs::gs_config<sc_time> m_self_refresh_start;
+    sr_param<sc_time> m_self_refresh_start;
 
     // *****************************************************
     // Power Modeling Parameters
 
     /// Normalized static power of controller
-    gs::gs_config<double> sta_power_norm;
+    sr_param<double> sta_power_norm;
 
     /// Normalized internal power of controller
-    gs::gs_config<double> int_power_norm;
+    sr_param<double> int_power_norm;
 
     /// Normalized read energy
-    gs::gs_config<double> dyn_read_energy_norm;
+    sr_param<double> dyn_read_energy_norm;
 
     /// Normalized write energy
-    gs::gs_config<double> dyn_write_energy_norm;
+    sr_param<double> dyn_write_energy_norm;
 
     /// Controller static power
-    gs::gs_config<double> sta_power;
+    sr_param<double> sta_power;
 
     /// Controller internal power
-    gs::gs_config<double> int_power;
+    sr_param<double> int_power;
 
     /// Controller switching poer
-    gs::gs_config<double> swi_power;
+    sr_param<double> swi_power;
 
     /// Power frame starting time
-    gs::gs_config<sc_core::sc_time> power_frame_starting_time;
+    sr_param<sc_core::sc_time> power_frame_starting_time;
 
     /// Dynamic energy per read access
-    gs::gs_config<double> dyn_read_energy;
+    sr_param<double> dyn_read_energy;
 
     /// Dynamic energy per write access
-    gs::gs_config<double> dyn_write_energy;
+    sr_param<double> dyn_write_energy;
 
     /// Number of reads from memory
-    gs::gs_config<uint64_t> dyn_reads;  // NOLINT(runtime/int)
+    sr_param<uint64_t> dyn_reads;  // NOLINT(runtime/int)
 
     /// Number of writes from memory
-    gs::gs_config<uint64_t> dyn_writes;  // NOLINT(runtime/int)
+    sr_param<uint64_t> dyn_writes;  // NOLINT(runtime/int)
 
     // Constructor parameters (modeling VHDL generics)
-    gs::cnf::gs_config<int> g_romasel;
-    gs::cnf::gs_config<int> g_sdrasel;
-    gs::cnf::gs_config<int> g_romaddr;
-    gs::cnf::gs_config<int> g_rommask;
-    gs::cnf::gs_config<int> g_ioaddr;
-    gs::cnf::gs_config<int> g_iomask;
-    gs::cnf::gs_config<int> g_ramaddr;
-    gs::cnf::gs_config<int> g_rammask;
-    gs::cnf::gs_config<int> g_wprot;
-    gs::cnf::gs_config<int> g_srbanks;
-    gs::cnf::gs_config<int> g_ram8;
-    gs::cnf::gs_config<int> g_ram16;
-    gs::cnf::gs_config<int> g_sepbus;
-    gs::cnf::gs_config<int> g_sdbits;
-    gs::cnf::gs_config<int> g_mobile;
-    gs::cnf::gs_config<int> g_sden;
+    sr_param<int> g_romasel;
+    sr_param<int> g_sdrasel;
+    sr_param<int> g_romaddr;
+    sr_param<int> g_rommask;
+    sr_param<int> g_ioaddr;
+    sr_param<int> g_iomask;
+    sr_param<int> g_ramaddr;
+    sr_param<int> g_rammask;
+    sr_param<int> g_wprot;
+    sr_param<int> g_srbanks;
+    sr_param<int> g_ram8;
+    sr_param<int> g_ram16;
+    sr_param<int> g_sepbus;
+    sr_param<int> g_sdbits;
+    sr_param<int> g_mobile;
+    sr_param<int> g_sden;
 
     /// Power monitoring on/off
-    gs::cnf::gs_config<bool> g_pow_mon;
+    sr_param<bool> g_pow_mon;
 
   public:
     // --- Constant bit masks for APB register access

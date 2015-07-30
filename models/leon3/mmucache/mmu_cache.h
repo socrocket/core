@@ -18,7 +18,7 @@
 #ifndef __MMU_CACHE_H__
 #define __MMU_CACHE_H__
 
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/systemc.h"
 #include "core/common/amba.h"
 //#include <tlm_1/tlm_req_rsp/tlm_channels/tlm_fifo/tlm_fifo.h>

@@ -9,7 +9,7 @@ REPOSITORY_DEPS = {
   "core/common/sr_registry": "https://github.com/socrocket/sr_registry.git",
   "core/common/sr_register": "https://github.com/socrocket/sr_register.git",
   "core/common/sr_report": "https://github.com/socrocket/sr_report.git",
-  #"core/common/sr_config": "https://github.com/socrocket/sr_config.git",
+  "core/common/sr_param": "https://github.com/socrocket/sr_param.git",
   #"core/common/signalkit": "https://github.com/socrocket/signalkit.git",
 }
 REPOSITORY_TOOLS = [

@@ -19,7 +19,7 @@ typedef sc_core::sc_module_name ModuleName;
 typedef sc_core::sc_module DefaultBase;
 
 //template<typename TYPE>
-//using Parameter<TYPE> = gs::cnf::gs_config<TYPE>;
+//using Parameter<TYPE> = sr_param<TYPE>;
 
 inline void sr_hierarchy_push(sc_core::sc_object *obj) {
   typedef void (sc_core::sc_simcontext::*fun_t)(sc_core::sc_object *);
@@ -33,7 +33,7 @@ inline void sr_hierarchy_pop() {
   context->hierarchy_pop();
 }
 
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 
 typedef gs::cnf::cnf_api ParameterAPI;
 typedef gs::cnf::gs_param_array ParameterArray;

@@ -18,7 +18,7 @@
 #ifndef __MMU_CACHE_BASE_H__
 #define __MMU_CACHE_BASE_H__
 
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/systemc.h"
 #include "core/common/amba.h"
 //#include <tlm_1/tlm_req_rsp/tlm_channels/tlm_fifo/tlm_fifo.h>
@@ -243,10 +243,10 @@ class mmu_cache_base :
   tlm::tlm_fifo<tlm::tlm_generic_payload *> bus_in_fifo;
 
   /// Total number of successful transactions for execution statistics 
-  gs::gs_config<uint64_t> m_right_transactions;
+  sr_param<uint64_t> m_right_transactions;
 
   /// Total number of transactions for execution statistics
-  gs::gs_config<uint64_t> m_total_transactions;
+  sr_param<uint64_t> m_total_transactions;
 
   /// power monitoring enabled
   bool m_pow_mon;
@@ -261,40 +261,40 @@ class mmu_cache_base :
   // Power Modeling Parameters
 
   /// Normalized static power of controller
-  gs::gs_config<double> sta_power_norm;
+  sr_param<double> sta_power_norm;
 
   /// Normalized internal power of controller
-  gs::gs_config<double> int_power_norm;
+  sr_param<double> int_power_norm;
 
   /// Normalized read access energy
-  gs::gs_config<double> dyn_read_energy_norm;
+  sr_param<double> dyn_read_energy_norm;
 
   /// Normalized write access energy
-  gs::gs_config<double> dyn_write_energy_norm;
+  sr_param<double> dyn_write_energy_norm;
 
   /// Controller static power
-  gs::gs_config<double> sta_power;
+  sr_param<double> sta_power;
 
   /// Controller internal power
-  gs::gs_config<double> int_power;
+  sr_param<double> int_power;
 
   /// Controller switching power
-  gs::gs_config<double> swi_power;
+  sr_param<double> swi_power;
 
   /// Power frame starting time
-  gs::gs_config<sc_core::sc_time> power_frame_starting_time;
+  sr_param<sc_core::sc_time> power_frame_starting_time;
 
   /// Dynamic energy per read access
-  gs::gs_config<double> dyn_read_energy;
+  sr_param<double> dyn_read_energy;
 
   /// Dynamic energy per write access
-  gs::gs_config<double> dyn_write_energy;
+  sr_param<double> dyn_write_energy;
 
   /// Number of reads from memory (read & reset by monitor)
-  gs::gs_config<uint64_t> dyn_reads;
+  sr_param<uint64_t> dyn_reads;
 
   /// Number of writes to memory (read & reset by monitor)
-  gs::gs_config<uint64_t> dyn_writes;    
+  sr_param<uint64_t> dyn_writes;    
 
   uint64_t globl_count;
   

@@ -24,7 +24,7 @@
 #include <tlm_utils/peq_with_get.h>
 #endif
 
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 
 
 #include <map>
@@ -122,67 +122,67 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
     gs::cnf::gs_param_array g_conf;
 
     /// 12 bit MSB address (constructor parameters)
-    gs::cnf::gs_config<uint32_t> g_haddr;
+    sr_param<uint32_t> g_haddr;
 
     /// 12 bit MSB mask (constructor parameters)
-    gs::cnf::gs_config<uint32_t> g_hmask;
+    sr_param<uint32_t> g_hmask;
 
     /// AHB Slave Index (constructor parameters)
-    //gs::cnf::gs_config<uint32_t> g_hindex;
+    //sr_param<uint32_t> g_hindex;
 
     /// Device cacheable or not
-    gs::cnf::gs_config<bool> g_cacheable;
+    sr_param<bool> g_cacheable;
 
     /// Number of wait states to be inserted for each transfer
-    gs::cnf::gs_config<uint32_t> g_wait_states;
+    sr_param<uint32_t> g_wait_states;
 
     /// Power monitoring on/off
-    gs::cnf::gs_config<bool> g_pow_mon;
+    sr_param<bool> g_pow_mon;
 
     /// Stores the type of memory used
-    gs::cnf::gs_config<std::string> g_storage_type;
+    sr_param<std::string> g_storage_type;
 
   public:
     /// Power Modeling Parameters
 
     /// Normalized static power input
-    gs::gs_config<double> sta_power_norm;
+    sr_param<double> sta_power_norm;
 
     /// Normalized internal power input (activation independent)
-    gs::gs_config<double> int_power_norm;
+    sr_param<double> int_power_norm;
 
     /// Normalized read access energy
-    gs::gs_config<double> dyn_read_energy_norm;
+    sr_param<double> dyn_read_energy_norm;
 
     /// Normalized write access energy
-    gs::gs_config<double> dyn_write_energy_norm;
+    sr_param<double> dyn_write_energy_norm;
 
     /// Parameter array for power data output
     gs::gs_param_array power;
 
     /// Static power of module
-    gs::gs_config<double> sta_power;
+    sr_param<double> sta_power;
 
     /// Dynamic power of module (activation independent)
-    gs::gs_config<double> int_power;
+    sr_param<double> int_power;
 
     /// Switching power of module
-    gs::gs_config<double> swi_power;
+    sr_param<double> swi_power;
 
     /// Power frame starting time
-    gs::gs_config<sc_core::sc_time> power_frame_starting_time;
+    sr_param<sc_core::sc_time> power_frame_starting_time;
 
     /// Dynamic energy per read access
-    gs::gs_config<double> dyn_read_energy;
+    sr_param<double> dyn_read_energy;
 
     /// Dynamic energy per write access
-    gs::gs_config<double> dyn_write_energy;
+    sr_param<double> dyn_write_energy;
 
     /// Number of reads from memory (read & reset by monitor)
-    gs::gs_config<uint64_t> dyn_reads;  // NOLINT(runtime/int)
+    sr_param<uint64_t> dyn_reads;  // NOLINT(runtime/int)
 
     /// Number of writes to memory (read & reset by monitor)
-    gs::gs_config<uint64_t> dyn_writes;  // NOLINT(runtime/int)
+    sr_param<uint64_t> dyn_writes;  // NOLINT(runtime/int)
 };
 
 #endif  // MODELS_AHBMEM_AHBMEM_H_

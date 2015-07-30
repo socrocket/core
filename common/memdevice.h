@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 #include <string>
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/base.h"
 
 /// @brief This class is a base class for memory models. It implements the device plug and play informations.
@@ -77,11 +77,11 @@ class MEMDevice : public BaseModule<DefaultBase> {
     virtual const uint32_t get_size() const;
 
   private:
-    gs::cnf::gs_config<uint32_t> g_type;
-    gs::cnf::gs_config<uint32_t> g_banks;
-    gs::cnf::gs_config<uint32_t> g_bsize;
-    gs::cnf::gs_config<uint32_t> g_bits;
-    gs::cnf::gs_config<uint32_t> g_cols;
+    sr_param<uint32_t> g_type;
+    sr_param<uint32_t> g_banks;
+    sr_param<uint32_t> g_bsize;
+    sr_param<uint32_t> g_bits;
+    sr_param<uint32_t> g_cols;
 };
 
 #endif  // MODELS_UTILS_MEMDEVICE_H_

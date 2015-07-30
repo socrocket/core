@@ -18,7 +18,7 @@
 
 #include "core/common/amba.h"
 #include "core/common/base.h"
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include <tlm.h>
 #include <map>
 
@@ -27,7 +27,7 @@
 #include "core/common/signalkit.h"
 #include "core/common/msclogger.h"
 #include "core/common/socrocket.h"
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 
 class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
   public:
@@ -138,40 +138,40 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
     // Data Members
     // ------------
     /// The MSB address of the I/O area
-    gs::cnf::gs_config<uint32_t> g_ioaddr;
+    sr_param<uint32_t> g_ioaddr;
 
     /// The I/O area address mask
-    gs::cnf::gs_config<uint32_t> g_iomask;
+    sr_param<uint32_t> g_iomask;
 
     /// The MSB address of the configuration area (PNP)
-    gs::cnf::gs_config<uint32_t> g_cfgaddr;
+    sr_param<uint32_t> g_cfgaddr;
 
     /// The address mask of the configuration area
-    gs::cnf::gs_config<uint32_t> g_cfgmask;
+    sr_param<uint32_t> g_cfgmask;
 
     /// 1 - round robin, 0 - fixed priority arbitration (only AT)
-    gs::cnf::gs_config<bool> g_rrobin;
+    sr_param<bool> g_rrobin;
 
     /// Enable support for AHB SPLIT response (only AT)
-    gs::cnf::gs_config<bool> g_split;
+    sr_param<bool> g_split;
 
     /// ID of the default master
-    gs::cnf::gs_config<uint32_t> g_defmast;
+    sr_param<uint32_t> g_defmast;
 
     /// AHB I/O area enable
-    gs::cnf::gs_config<bool> g_ioen;
+    sr_param<bool> g_ioen;
 
     /// Enable support for fixed-length bursts
-    gs::cnf::gs_config<bool> g_fixbrst;
+    sr_param<bool> g_fixbrst;
 
     /// Enable support for fixed-length bursts
-    gs::cnf::gs_config<bool> g_fpnpen;
+    sr_param<bool> g_fpnpen;
 
     /// Check if there are any intersections between core memory regions
-    gs::cnf::gs_config<bool> g_mcheck;
+    sr_param<bool> g_mcheck;
 
     /// Enable power monitoring (Only TLM)
-    gs::cnf::gs_config<bool> g_pow_mon;
+    sr_param<bool> g_pow_mon;
 
     const sc_time arbiter_eval_delay;
 
@@ -238,31 +238,31 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
     unsigned int num_of_master_bindings;
 
     /// Total waiting time in arbiter
-    gs::gs_config<sc_time> m_total_wait;
+    sr_param<sc_time> m_total_wait;
 
     /// Total number of arbitrated instructions
-    gs::gs_config<unsigned long long> m_arbitrated;  // NOLINT(runtime/int)
+    sr_param<unsigned long long> m_arbitrated;  // NOLINT(runtime/int)
 
     /// Maximum waiting time in arbiter
-    gs::gs_config<sc_time> m_max_wait;
+    sr_param<sc_time> m_max_wait;
 
     /// ID of the master with the maximum waiting time
-    gs::gs_config<uint64_t> m_max_wait_master;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_max_wait_master;  // NOLINT(runtime/int)
 
     /// Number of idle cycles
-    gs::gs_config<uint64_t> m_idle_count;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_idle_count;  // NOLINT(runtime/int)
 
     /// Total number of transactions handled by the instance
-    gs::gs_config<uint64_t> m_total_transactions;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_total_transactions;  // NOLINT(runtime/int)
 
     /// Succeeded number of transaction handled by the instance
-    gs::gs_config<uint64_t> m_right_transactions;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_right_transactions;  // NOLINT(runtime/int)
 
     /// Counts bytes written to AHBCTRL from the master side
-    gs::gs_config<uint64_t> m_writes;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_writes;  // NOLINT(runtime/int)
 
     /// Counts bytes read from AHBCTRL from the master side
-    gs::gs_config<uint64_t> m_reads;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_reads;  // NOLINT(runtime/int)
 
     /// ID of the master which currently 'owns' the bus
     uint32_t current_master;
@@ -283,40 +283,40 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
     // Power Modeling Parameters
 
     /// Normalized static power input
-    gs::gs_config<double> sta_power_norm;
+    sr_param<double> sta_power_norm;
 
     /// Normalized internal power input (activation independent)
-    gs::gs_config<double> int_power_norm;
+    sr_param<double> int_power_norm;
 
     /// Normalized read access energy
-    gs::gs_config<double> dyn_read_energy_norm;
+    sr_param<double> dyn_read_energy_norm;
 
     /// Normalized write access energy
-    gs::gs_config<double> dyn_write_energy_norm;
+    sr_param<double> dyn_write_energy_norm;
 
     /// Static power of module
-    gs::gs_config<double> sta_power;
+    sr_param<double> sta_power;
 
     /// Dynamic power of module (activation independent)
-    gs::gs_config<double> int_power;
+    sr_param<double> int_power;
 
     /// Switching power of module
-    gs::gs_config<double> swi_power;
+    sr_param<double> swi_power;
 
     /// Power frame starting time
-    gs::gs_config<sc_core::sc_time> power_frame_starting_time;
+    sr_param<sc_core::sc_time> power_frame_starting_time;
 
     /// Dynamic energy per read access
-    gs::gs_config<double> dyn_read_energy;
+    sr_param<double> dyn_read_energy;
 
     /// Dynamic energy per write access
-    gs::gs_config<double> dyn_write_energy;
+    sr_param<double> dyn_write_energy;
 
     /// Number of reads from memory (read & reset by monitor)
-    gs::gs_config<uint64_t> dyn_reads;  // NOLINT(runtime/int)
+    sr_param<uint64_t> dyn_reads;  // NOLINT(runtime/int)
 
     /// Number of writes to memory (read & reset by monitor)
-    gs::gs_config<uint64_t> dyn_writes;  // NOLINT(runtime/int)
+    sr_param<uint64_t> dyn_writes;  // NOLINT(runtime/int)
 
     // Private functions
     // -----------------

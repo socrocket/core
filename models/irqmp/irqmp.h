@@ -17,7 +17,7 @@
 
 #include <stdint.h>
 #include "core/common/systemc.h"
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include <boost/config.hpp>
 #include <utility>
 
@@ -169,11 +169,11 @@ class Irqmp : public APBSlave, public CLKDevice {
     void acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_time &time);
     /// Number of CPUs in the System
     /// Needet to determ the number of receiver lines.
-    gs::cnf::gs_config<int> g_ncpu;
+    sr_param<int> g_ncpu;
 
     /// Extended Interrupt Number
     /// Behind this interrupt are all extended interrupt cascaded.
-    gs::cnf::gs_config<uint32_t> g_eirq;
+    sr_param<uint32_t> g_eirq;
 
   private:
 
@@ -197,16 +197,16 @@ class Irqmp : public APBSlave, public CLKDevice {
     // Power Modeling Parameters
 
     /// Normalized static power of controller
-    gs::gs_config<double> sta_power_norm;
+    sr_param<double> sta_power_norm;
 
     /// Normalized dynamic power of controller
-    gs::gs_config<double> int_power_norm;
+    sr_param<double> int_power_norm;
 
     /// Controller static power
-    gs::gs_config<double> sta_power;
+    sr_param<double> sta_power;
 
     /// Controller dynamic power
-    gs::gs_config<double> int_power;
+    sr_param<double> int_power;
 
     // ******************************************************
     // Constant and mask definitions

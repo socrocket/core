@@ -30,7 +30,7 @@ class TcpIO : public BaseModule<DefaultBase>, public io_if {
     boost::asio::ip::tcp::socket *socket;
 
     /// The port on which the connection takes place;
-    gs::gs_config<unsigned int> g_port;
+    sr_param<unsigned int> g_port;
 
   public:
     /// Opens a new socket connection on the specified port

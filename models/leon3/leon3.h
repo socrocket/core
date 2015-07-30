@@ -19,7 +19,7 @@
 #define Leon3_H_
 
 #include "core/common/systemc.h"
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/amba.h"
 //#include <tlm_1/tlm_req_rsp/tlm_channels/tlm_fifo/tlm_fifo.h>
 
@@ -125,46 +125,46 @@ class Leon3 :
     GDBStub<uint32_t> *debugger;
     IntrinsicManager<uint32_t> m_intrinsics;
 
-    gs::cnf::gs_config<int> g_gdb;
-    gs::cnf::gs_config<std::string> g_history;
-    gs::cnf::gs_config<std::string> g_osemu;
+    sr_param<int> g_gdb;
+    sr_param<std::string> g_history;
+    sr_param<std::string> g_osemu;
     /// icache enable
-    gs::cnf::gs_config<bool> g_icen;
-    gs::cnf::gs_config<uint32_t> g_irepl;
-    gs::cnf::gs_config<uint32_t> g_isets;
-    gs::cnf::gs_config<uint32_t> g_ilinesize;
-    gs::cnf::gs_config<uint32_t> g_isetsize;
-    gs::cnf::gs_config<bool> g_isetlock;
+    sr_param<bool> g_icen;
+    sr_param<uint32_t> g_irepl;
+    sr_param<uint32_t> g_isets;
+    sr_param<uint32_t> g_ilinesize;
+    sr_param<uint32_t> g_isetsize;
+    sr_param<bool> g_isetlock;
     /// dcache enabled
-    gs::cnf::gs_config<bool> g_dcen;
-    gs::cnf::gs_config<uint32_t> g_drepl;
-    gs::cnf::gs_config<uint32_t> g_dsets;
-    gs::cnf::gs_config<uint32_t> g_dlinesize;
-    gs::cnf::gs_config<uint32_t> g_dsetsize;
-    gs::cnf::gs_config<bool> g_dsetlock;
-    gs::cnf::gs_config<bool> g_dsnoop;
+    sr_param<bool> g_dcen;
+    sr_param<uint32_t> g_drepl;
+    sr_param<uint32_t> g_dsets;
+    sr_param<uint32_t> g_dlinesize;
+    sr_param<uint32_t> g_dsetsize;
+    sr_param<bool> g_dsetlock;
+    sr_param<bool> g_dsnoop;
     /// instruction scratchpad enabled
-    gs::cnf::gs_config<bool> g_ilram;
+    sr_param<bool> g_ilram;
 
-    gs::cnf::gs_config<uint32_t> g_ilramsize;
+    sr_param<uint32_t> g_ilramsize;
     /// instruction scratchpad starting address
-    gs::cnf::gs_config<uint32_t> g_ilramstart;
+    sr_param<uint32_t> g_ilramstart;
     /// data scratchpad enabled
-    gs::cnf::gs_config<bool> g_dlram;
-    gs::cnf::gs_config<uint32_t> g_dlramsize;
+    sr_param<bool> g_dlram;
+    sr_param<uint32_t> g_dlramsize;
     /// data scratchpad starting address
-    gs::cnf::gs_config<uint32_t> g_dlramstart;
+    sr_param<uint32_t> g_dlramstart;
     /// enables fixed cacheability mask
-    gs::cnf::gs_config<uint32_t> g_cached;
+    sr_param<uint32_t> g_cached;
     /// mmu enabled
-    gs::cnf::gs_config<bool> g_mmu_en;
-    gs::cnf::gs_config<uint32_t> g_itlb_num;
-    gs::cnf::gs_config<uint32_t> g_dtlb_num;
-    gs::cnf::gs_config<uint32_t> g_tlb_type;
-    gs::cnf::gs_config<uint32_t> g_tlb_rep;
-    gs::cnf::gs_config<uint32_t> g_mmupgsz;
-    gs::cnf::gs_config<uint32_t> g_hindex;
-    gs::cnf::gs_config<std::vector<std::string> > g_args;
+    sr_param<bool> g_mmu_en;
+    sr_param<uint32_t> g_itlb_num;
+    sr_param<uint32_t> g_dtlb_num;
+    sr_param<uint32_t> g_tlb_type;
+    sr_param<uint32_t> g_tlb_rep;
+    sr_param<uint32_t> g_mmupgsz;
+    sr_param<uint32_t> g_hindex;
+    sr_param<std::vector<std::string> > g_args;
 };
 
 #endif //__MMU_CACHE_H__

@@ -39,7 +39,7 @@ class ReportIO : public BaseModule<DefaultBase>, public io_if {
     void makeConnection();
 
     /// Defines if single characters are send or only complete lines
-    gs::gs_config<bool> g_lines;
+    sr_param<bool> g_lines;
 
   private:
     std::string line;

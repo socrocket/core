@@ -16,7 +16,7 @@
 #define MODELS_APBCTRL_APBCTRL_H_
 
 #include "core/common/amba.h"
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/systemc.h"
 #include "core/common/base.h"
 
@@ -148,13 +148,13 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
     /// 0xFF000
     const uint32_t m_pnpbase;
     
-    gs::cnf::gs_config<uint32_t> g_haddr;
-    gs::cnf::gs_config<uint32_t> g_hmask;
+    sr_param<uint32_t> g_haddr;
+    sr_param<uint32_t> g_hmask;
     /// Check if there are any intersections between APB slave memory regions
-    gs::cnf::gs_config<bool> g_mcheck;
+    sr_param<bool> g_mcheck;
 
     /// Enable power monitoring (Only TLM)
-    gs::cnf::gs_config<bool> g_pow_mon;
+    sr_param<bool> g_pow_mon;
 
     /// Abstraction Layer
     AbstractionLayer m_ambaLayer;
@@ -166,49 +166,49 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
     // Performance Counters
 
     /// Total number of transactions
-    gs::gs_config<uint64_t> m_total_transactions;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_total_transactions;  // NOLINT(runtime/int)
 
     /// Successful number of transactions
-    gs::gs_config<uint64_t> m_right_transactions;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_right_transactions;  // NOLINT(runtime/int)
 
     // *****************************************************
     // Power Modeling Parameters
 
     /// Normalized static power input
-    gs::gs_config<double> sta_power_norm;
+    sr_param<double> sta_power_norm;
 
     /// Normalized internal power input (activation independent)
-    gs::gs_config<double> int_power_norm;
+    sr_param<double> int_power_norm;
 
     /// Normalized read access energy
-    gs::gs_config<double> dyn_read_energy_norm;
+    sr_param<double> dyn_read_energy_norm;
 
     /// Normalized write access energy
-    gs::gs_config<double> dyn_write_energy_norm;
+    sr_param<double> dyn_write_energy_norm;
 
     /// Static power of module
-    gs::gs_config<double> sta_power;
+    sr_param<double> sta_power;
 
     /// Internal power of module (activation independent)
-    gs::gs_config<double> int_power;
+    sr_param<double> int_power;
 
     /// Switching power of module
-    gs::gs_config<double> swi_power;
+    sr_param<double> swi_power;
 
     /// Power frame starting time
-    gs::gs_config<sc_core::sc_time> power_frame_starting_time;
+    sr_param<sc_core::sc_time> power_frame_starting_time;
 
     /// Dynamic energy per read access
-    gs::gs_config<double> dyn_read_energy;
+    sr_param<double> dyn_read_energy;
 
     /// Dynamic energy per write access
-    gs::gs_config<double> dyn_write_energy;
+    sr_param<double> dyn_write_energy;
 
     /// Number of reads from memory (read & reset by monitor)
-    gs::gs_config<uint64_t> dyn_reads;  // NOLINT(runtime/int)
+    sr_param<uint64_t> dyn_reads;  // NOLINT(runtime/int)
 
     /// Number of writes to memory (read & reset by monitor)
-    gs::gs_config<uint64_t> dyn_writes;  // NOLINT(runtime/int)
+    sr_param<uint64_t> dyn_writes;  // NOLINT(runtime/int)
 };
 
 /// @}
