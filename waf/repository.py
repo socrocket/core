@@ -5,6 +5,7 @@
     Repository Manager
     Extends Waf with the ability to handle git repositories.
 """
+from __future__ import print_function
 import os,shlex,sys,time,json,subprocess,shutil
 from waflib import Context,Scripting,TaskGen
 from waflib import ConfigSet,Utils,Options,Logs,Context,Build,Errors
@@ -41,7 +42,9 @@ def get_repo_vals(directory):
     obj = {}
     wscript = os.path.join(directory, "wscript")
     if os.path.isfile(wscript):
-        execfile(wscript, {}, obj)
+        with open(wscript, "r") as script:
+            code = compile(script.read(), wscript, 'exec')
+            exec(code, {}, obj)
     if "REPOSITORY" in obj:
         return obj["REPOSITORY"]
     else:
@@ -108,10 +111,10 @@ class repo(SubcommandContext):
 
     def git_cmd(self, cmd, params):
         global REPOS
-        for directory, repository in REPOS.iteritems():
+        for directory, repository in REPOS.items():
             if directory == "core":
                 directory = "."
-            print "%s:" % (directory)
+            print("%s:" % (directory))
             import subprocess
             subprocess.call(("%(git)s %(cmd)s %(parameter)s" % {
               "git": "git",
@@ -124,8 +127,8 @@ class repo(SubcommandContext):
         import shutil
 
         if len(params) < 1:
-            print "add takes 2 parameters:"
-            print "usage: %s <directory> <repository>" % (' '.join(sys.argv[0:3]))
+            print("add takes 2 parameters:")
+            print("usage: %s <directory> <repository>" % (' '.join(sys.argv[0:3])))
             return
 
         elif len(params) == 1:
@@ -136,13 +139,13 @@ class repo(SubcommandContext):
             directory = params[0]
             repository = params[1]
             if os.path.isdir(directory):
-                print "Target directory does already exist '%s'" % directory
+                print("Target directory does already exist '%s'" % directory)
                 return
 
         tempdir = os.path("build", "repo-%x" % int(time.time()))
 
         try:
-            print "Fetching repository %s" % repository
+            print("Fetching repository %s" % repository)
             import subprocess
             subprocess.call(("%(git)s clone %(repository)s %(directory)s" % {
                 "git": "git",
@@ -151,7 +154,7 @@ class repo(SubcommandContext):
                 "parameter": params
             }).split())
         except CalledProcessError:
-            print "An error occured while repository creation on %s" % repository
+            print("An error occured while repository creation on %s" % repository)
             shutil.rmtree(directory)
 
         
@@ -162,27 +165,27 @@ class repo(SubcommandContext):
         if directory == "core":
             directory = "."
 
-        print "Moving repository %s to %s" % (repository, directory)
+        print("Moving repository %s to %s" % (repository, directory))
         if os.path.isdir(directory):
-            print "Target directory does already exist '%s'" % directory
+            print("Target directory does already exist '%s'" % directory)
             return
         shutil.move(tempdir, directory)
         REPOS[directory] = repository
-        for dep_params in vals.get("deps", {}).iteritems():
-            print "  Adding dependency %s" % dep_params[0]
+        for dep_params in vals.get("deps", {}).items():
+            print("  Adding dependency %s" % dep_params[0])
             self.add_repo("add", dep_params)
 
     def init_repo(self, cmd, params):
         vals = get_repo_vals("core")
-        for dep_params in vals.get("deps", {}).iteritems():
-            print "  Adding dependency %s" % dep_params[0]
+        for dep_params in vals.get("deps", {}).items():
+            print("  Adding dependency %s" % dep_params[0])
             self.add_repo("add", dep_params)
         
     def mv_cmd(self, cmd, params):
         if len(params) != 2:
-            print "mv takes 2 parameters:"
-            print "File history will not integrated"
-            print "usage: %s <from> <to>" % (' '.join(sys.argv[0:3]))
+            print("mv takes 2 parameters:")
+            print("File history will not integrated")
+            print("usage: %s <from> <to>" % (' '.join(sys.argv[0:3])))
             return
         else:
             from_abs = os.path.abspath(params[0])
@@ -192,7 +195,7 @@ class repo(SubcommandContext):
                 to_abs = os.path.join(to_abs, os.path.basepath(from_abs))
 
             to_repo = None
-            for directory, repository in REPOS.iteritems():
+            for directory, repository in REPOS.items():
                 repo_abs = None
                 if directory == "core":
                     repo_abs = self.path.abspath()
@@ -206,7 +209,7 @@ class repo(SubcommandContext):
                     break
 
             if not from_repo or not to_repo:
-                print "%s <from> <to> can only be used in socrocket repos" % (' '.join(sys.argv[0:3]))
+                print("%s <from> <to> can only be used in socrocket repos" % (' '.join(sys.argv[0:3])))
                 return
 
             if from_repo == to_repo:
@@ -221,34 +224,34 @@ class repo(SubcommandContext):
         import shutil
         for directory in params:
             if directory == "core":
-                print "You cannot delete the core repository"
+                print("You cannot delete the core repository")
                 continue
             del(REPOS[directory])
             shutil.rmtree(directory)
 
     def show_repo(self, cmd, params):
         global REPOS
-        for directory, repository in REPOS.iteritems():
+        for directory, repository in REPOS.items():
             vals = get_repo_vals(os.path.join(self.path.abspath(), directory))
-            print "%s <= %s" % (directory, repository)
-            print "    name: %s" % vals.get("name", "")
-            print "    description: %s" % vals.get("desc", "")
-            print "    default path: %s" % vals.get("path", "")
-            print "    tools: %s" % ', '.join(vals.get("tools", ""))
-            print "    dependencies:"
-            for directory, repository in vals.get("deps", {}).iteritems():
-                print "        %s <= %s" % (directory, repository)
-            print ""
+            print("%s <= %s" % (directory, repository))
+            print("    name: %s" % vals.get("name", ""))
+            print("    description: %s" % vals.get("desc", ""))
+            print("    default path: %s" % vals.get("path", ""))
+            print("    tools: %s" % ', '.join(vals.get("tools", "")))
+            print("    dependencies:")
+            for directory, repository in vals.get("deps", {}).items():
+                print("        %s <= %s" % (directory, repository))
+            print("")
 
     def show_help(self, cmd, params):
-        print "usage: %s <comands> <parameters...>" % (' '.join(sys.argv[0:2]))
-        print
-        print "Comands:"
-        print "  help"
-        print "  add <directory> <repository>"
-        print "  rm <directory...>"
-        print "  show"
-        print ""
+        print("usage: %s <comands> <parameters...>" % (' '.join(sys.argv[0:2])))
+        print()
+        print("Comands:")
+        print("  help")
+        print("  add <directory> <repository>")
+        print("  rm <directory...>")
+        print("  show")
+        print("")
 
     def work(self):
         global REPOS
@@ -275,7 +278,7 @@ class repo(SubcommandContext):
             cmd = argv[0]
             params = argv[1:]
 
-            if not CMDS.has_key(cmd):
+            if cmd not in CMDS:
                 self.show_help(cmd, params)
             else:
                 CMDS[cmd](cmd, params)
@@ -295,7 +298,7 @@ def export_have_define(self):
 def loadrepos(self):
     """Load repositories"""
     REPOS = read_repos()
-    for d, repo in REPOS.iteritems():
+    for d, repo in REPOS.items():
         directory = os.path.join(os.getcwd(),d)
         vals = get_repo_vals(directory)
         waf = os.path.join(directory, "waf")
@@ -311,7 +314,7 @@ def iterrepos(self):
     """
     REPOS = read_repos()
     self.repositories = REPOS
-    for d, repo in REPOS.iteritems():
+    for d, repo in REPOS.items():
         if d == "core":
             continue
         self.repository_root = self.srcnode.find_node(str(d))

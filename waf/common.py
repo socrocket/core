@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+from __future__ import print_function
 import os
 import fnmatch
 import subprocess
@@ -27,7 +28,7 @@ def options(self):
 
 def configure(self):
     """Standard tools needed for fetching and building"""
-    print """
+    print("""
       To compile SoCRocket you need to have installed a basic Unix system.
       Atleast it needs to contain: 
 
@@ -42,7 +43,7 @@ def configure(self):
       to provice a 32bit environment to execute the precompiled toolchain.
 
       For the ipython support blas and lapack needs to be installed.
-    """
+    """)
     self.find_program('nm', mandatory=1, var='NM')
     self.find_program('git', var='GIT', mandatory=True, okmsg="ok")
     self.find_program('patch', var='PATCH', mandatory=True, okmsg="ok")
@@ -76,7 +77,7 @@ def conf(f):
 			del kw['mandatory']
 		try:
 			return f(*k,**kw)
-		except Errors.ConfigurationError ,e:
+		except Errors.ConfigurationError as e:
 			if mandatory:
 				raise e
 	setattr(Options.OptionsContext,f.__name__,fun)
@@ -136,7 +137,7 @@ def conf(f):
 
 def macclean(self):
   """Clean garbage files from the source tree"""
-  print subprocess.call(['find', '.', '(', '-name', '*.DS_Store', '-o', '-name', '*~', '-o', '-name', '.*~', ')', '-print', '-delete'], shell=False, stderr=subprocess.STDOUT)
+  print(subprocess.call(['find', '.', '(', '-name', '*.DS_Store', '-o', '-name', '*~', '-o', '-name', '.*~', ')', '-print', '-delete'], shell=False, stderr=subprocess.STDOUT))
 
 setattr(Context.g_module, 'macclean', macclean)
 class Macclean(Build.BuildContext):

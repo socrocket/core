@@ -1,7 +1,10 @@
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
 from PyQt4 import QtCore, QtGui
 from copy import copy, deepcopy
-from item import Item
-from null import NullItem
+from .item import Item
+from .null import NullItem
 
 class Null(NullItem):
     def row(self):

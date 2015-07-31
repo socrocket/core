@@ -33,11 +33,11 @@ def base(self, *k, **kw):
 
 def fetch(self, *k, **kw):
     """Fetch Dependency Sourcen"""
-    if kw.has_key("tar") and os.path.isfile(os.path.join(kw['fdeps'], kw['tar'] % kw)):
+    if "tar" in kw and os.path.isfile(os.path.join(kw['fdeps'], kw['tar'] % kw)):
         """First try the fallback ./deps folder"""
         fallback_file = os.path.join(kw['fdeps'], kw['tar'] % kw)
         shutil.copytree(fallback_file, os.path.join(kw["BASE_PATH_FETCH"], kw['tar'] % kw))
-    elif kw.has_key("git_url"):
+    elif "git_url" in kw:
         """Then search for a git repo"""
         self.start_msg("Cloning %(name)s" % kw)
         git_url = kw.get("git_url")
@@ -48,7 +48,7 @@ def fetch(self, *k, **kw):
                 output=Context.BOTH,
                 cwd=kw["BASE_PATH_FETCH"]
             )
-            if kw.has_key("git_checkout"):
+            if "git_checkout" in kw:
                 self.cmd_and_log(
                     [self.env.GIT, "checkout", kw["git_checkout"]],
                     output=Context.BOTH,
@@ -61,7 +61,7 @@ def fetch(self, *k, **kw):
         if not os.path.isdir(kw["src"]):
             shutil.copytree(fetch_path, kw["src"])
 
-    elif kw.has_key("tar_url"):
+    elif "tar_url" in kw:
         """Finaly try to download a tar file yourself"""
         kw["tar"] = kw.get("tar", "%(base)s.tar.gz") % kw
         tar_url = kw.get("tar_url", "") % kw
@@ -83,7 +83,7 @@ def fetch(self, *k, **kw):
         else:
             self.end_msg("Already done")
 
-    if (kw.has_key("tar") or kw.has_key("tar_url")) and not kw.has_key('git_url'):
+    if ("tar" in kw or "tar_url" in kw) and 'git_url' not in kw:
         """If there was a tar file (Either block 1 or 3) extract it"""
         kw["tar"] = kw.get("tar", "%(base)s.tar.gz") % kw
         fetch_path = os.path.join(kw["BASE_PATH_FETCH"], kw["tar"])
@@ -104,11 +104,11 @@ def fetch(self, *k, **kw):
         else:
             self.end_msg("Already done")
 
-    elif not kw.has_key("git_url"):
+    elif "git_url" not in kw:
         """If nothing of the above applied we are doomed"""
         self.fatal("You need to specify git_url, tar_url or tar")
 
-    if kw.has_key("patch"):
+    if "patch" in kw:
         """Try to patch the source if neccecary (patch is defined in the parameters)"""
         for patch in Utils.to_list(kw["patch"]):
            try:
@@ -119,7 +119,7 @@ def fetch(self, *k, **kw):
                    cwd=kw["src"],
                )
                self.end_msg("Ok")
-           except Errors.WafError, e:
+           except Errors.WafError as e:
                self.end_msg("Failed, make sure patch %s was already applied" % patch)
     return k, kw
 

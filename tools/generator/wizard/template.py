@@ -1,3 +1,4 @@
+from builtins import str
 from PyQt4 import QtCore, QtGui
 
 class TemplatePage(QtGui.QWizardPage):
@@ -46,6 +47,6 @@ class TemplatePage(QtGui.QWizardPage):
         self.template = None
         self.ready = False
         self.completeChanged.emit()
-        for base in self.templates.keys():
+        for base in list(self.templates.keys()):
           self.view.addItem(base)
 
