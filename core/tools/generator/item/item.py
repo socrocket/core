@@ -1,3 +1,4 @@
+from builtins import object
 from PyQt4 import QtCore, QtGui
 
 class Item(object):

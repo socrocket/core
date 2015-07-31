@@ -43,13 +43,13 @@ When using this tool, the wscript will look like:
         # add include files, because they aren't usually built
         bld(features='cpplint', source=bld.path.ant_glob('**/*.hpp'))
 '''
-
+from __future__ import absolute_import
 import sys, re
 import logging
 import threading
 from waflib import Task, Context, Build, TaskGen, Logs, Utils
 try:
-    from tools.cpplint import ProcessFile, _cpplint_state, _line_length
+    from core.tools.cpplint import ProcessFile, _cpplint_state, _line_length
 except ImportError:
     pass
 
@@ -68,7 +68,7 @@ CPPLINT_RE = {
 
 def init_env_from_options(env):
     from waflib.Options import options
-    for key, value in options.__dict__.items():
+    for key, value in list(options.__dict__.items()):
         if not key.startswith('CPPLINT_') or env[key]:
             continue
         env[key] = value
@@ -215,7 +215,6 @@ def options(opt):
 def configure(self):
     self.start_msg('Checking cpplint')
     try:
-        import cpplint
         self.end_msg('ok')
         self.env.CPPLINT_FILTERS = ','.join((
         #    '-whitespace/newline',      # c++11 lambda

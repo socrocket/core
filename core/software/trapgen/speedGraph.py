@@ -35,6 +35,9 @@
 #
 ####################################################################################
 
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import sys, os, csv
 from pyx import *
 
@@ -62,7 +65,7 @@ if __name__ == "__main__":
 
     graphPoints = []
     if SAMPLE and len(graphPointsTemp) > 20:
-        reduceFactor = 20.0/len(graphPointsTemp)
+        reduceFactor = old_div(20.0,len(graphPointsTemp))
     else:
         reduceFactor = 1.0
 

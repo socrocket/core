@@ -200,7 +200,7 @@ def check_boost(self,*k,**kw):
 	if not self.env['CXX']:
 		self.fatal('load a c++ compiler first, conf.load("compiler_cxx")')
 	params={'lib':k and k[0]or kw.get('lib',None)}
-	for key,value in self.options.__dict__.items():
+	for key,value in list(self.options.__dict__.items()):
 		if not key.startswith('boost_'):
 			continue
 		key=key[len('boost_'):]
@@ -251,7 +251,7 @@ def check_boost(self,*k,**kw):
 					self.end_msg("ok: winning cxxflags combination: %s"%(self.env["CXXFLAGS_%s"%var]))
 					exc=None
 					break
-				except Errors.ConfigurationError ,e:
+				except Errors.ConfigurationError as e:
 					self.env.revert()
 					exc=e
 			if exc is not None:
@@ -264,7 +264,7 @@ def check_boost(self,*k,**kw):
 		self.start_msg('Checking for boost linkage')
 		try:
 			try_link()
-		except Errors.ConfigurationError ,e:
+		except Errors.ConfigurationError as e:
 			self.end_msg("Could not link against boost libraries using supplied options")
 			self.fatal('The configuration failed')
 		self.end_msg('ok')
