@@ -7,7 +7,7 @@ out = 'build'
 
 import sys
 from waflib.Tools import waf_unit_test  
-from core.waf.logger import Logger
+#from core.waf.logger import Logger
 
 LOAD = [
     'compiler_c',
@@ -45,9 +45,9 @@ def configure(self):
     
 def build(self):
     self.load(LOAD) # reload python2 and configuration
-    logger = Logger("%s/build.log" % self.bldnode.abspath())
-    sys.stdout = logger
-    sys.stderr = logger
+    #logger = Logger("%s/build.log" % self.bldnode.abspath())
+    #sys.stdout = logger
+    #sys.stderr = logger
     
     self.recurse_all()
     self.recurse_all_tests()
