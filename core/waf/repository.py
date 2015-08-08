@@ -210,8 +210,6 @@ class repo(SubcommandContext):
             print("  Adding dependency %s" % dep_params[0])
             self.add_repo("add", dep_params)
         
-    def add_ignore(self, cmd, params):
-        
     def mv_cmd(self, cmd, params):
         if len(params) != 2:
             print("mv takes 2 parameters:")
@@ -315,7 +313,6 @@ class repo(SubcommandContext):
             'diff': self.git_cmd,
             'status': self.git_cmd,
             'add': self.add_repo, 
-            'add_ignore': self.add_ignore, 
             'del': self.del_repo, 
             'mv': self.mv_cmd,
             'show': self.show_repo,
