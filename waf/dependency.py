@@ -44,13 +44,13 @@ def fetch(self, *k, **kw):
         fetch_path = os.path.join(kw["BASE_PATH_FETCH"], kw["base"])
         if not os.path.isdir(fetch_path):
             self.cmd_and_log(
-                [self.env.GIT, "clone", git_url, fetch_path], 
+                [Utils.subst_vars('${GIT}',self.env), "clone", git_url, fetch_path], 
                 output=Context.BOTH,
                 cwd=kw["BASE_PATH_FETCH"]
             )
             if "git_checkout" in kw:
                 self.cmd_and_log(
-                    [self.env.GIT, "checkout", kw["git_checkout"]],
+                    [Utils.subst_vars('${GIT}',self.env), "checkout", kw["git_checkout"]],
                     output=Context.BOTH,
                     cwd=fetch_path
                 )
@@ -69,13 +69,13 @@ def fetch(self, *k, **kw):
         if not os.path.exists(os.path.join(kw["BASE_PATH_FETCH"], kw["tar"])):
             if self.env.WGET:
                 self.cmd_and_log(
-                    [self.env.WGET, tar_url, "-q", "-O", kw["tar"]], 
+                    [Utils.subst_vars('${WGET}',self.env), tar_url, "-q", "-O", kw["tar"]], 
                     output=Context.BOTH, 
                     cwd=kw["BASE_PATH_FETCH"]
                 )
             else:
                 self.cmd_and_log(
-                    [self.env.CURL, tar_url, "-o", kw["tar"]],
+                    [Utils.subst_vars('${CURL}',self.env), tar_url, "-o", kw["tar"]],
                     output=Context.BOTH,
                     cwd=kw["BASE_PATH_FETCH"]
                 )
@@ -96,7 +96,7 @@ def fetch(self, *k, **kw):
             self.fatal(msg % {"tar": kw["tar"], "path": kw["BASE_PATH_FETCH"]})
         if not os.path.isdir(kw["src"]):
             self.cmd_and_log(
-                [self.env.TAR, "-xf", fetch_path], 
+                [Utils.subst_vars('${TAR}',self.env), "-xf", fetch_path], 
                 output=Context.BOTH, 
                 cwd=os.path.dirname(kw["src"])
             )
@@ -114,7 +114,7 @@ def fetch(self, *k, **kw):
            try:
                self.start_msg("Patching %s with %s" % (kw["name"], patch))
                self.cmd_and_log(
-                   [self.env.PATCH, "-p1", "-Nsi", patch, "-d", kw["src"]],
+                   [Utils.subst_vars('${PATCH}',self.env), "-p1", "-Nsi", patch, "-d", kw["src"]],
                    output=Context.BOTH,
                    cwd=kw["src"],
                )
@@ -139,8 +139,8 @@ def dep_build(self, *k, **kw):
     self.start_msg("Building %s" % kw["name"])
     if not os.path.isdir(kw["prefix"]):
         config_cmd = kw.get("config_cmd", "%(src)s/configure --prefix=%(prefix)s")
-        build_cmd = kw.get("build_cmd", "%s %s" % (self.env.MAKE, self.env.JOBS))
-        install_cmd = kw.get("install_cmd", "%s %s install" % (self.env.MAKE, self.env.JOBS))
+        build_cmd = kw.get("build_cmd", "%s %s" % (Utils.subst_vars('${MAKE}',self.env), self.env.JOBS))
+        install_cmd = kw.get("install_cmd", "%s %s install" % (Utils.subst_vars('${MAKE}',self.env), self.env.JOBS))
         self.end_msg("...")
 
         if not os.path.exists(kw["build"]):
@@ -149,7 +149,8 @@ def dep_build(self, *k, **kw):
 
             self.start_msg("  Configure %s" % kw["name"])
             self.cmd_and_log(
-                    (config_cmd % kw).split(' '), 
+                config_cmd % kw, 
+                #(config_cmd % kw).split(' '), 
                 output=Context.BOTH, 
                 shell=True,
                 cwd=kw.get("config_cwd",kw["build"]) % kw
@@ -158,8 +159,8 @@ def dep_build(self, *k, **kw):
 
             self.start_msg("  Compile %s" % kw["name"])
             self.cmd_and_log(
-            #    (build_cmd % kw).split(' '), 
                 build_cmd % kw, 
+                #(build_cmd % kw).split(' '), 
                 output=Context.BOTH, 
                 shell=True,
                 cwd=kw.get("build_cwd",kw["build"]) % kw
@@ -169,8 +170,8 @@ def dep_build(self, *k, **kw):
         if not os.path.exists(kw["prefix"]):
             self.start_msg("  Install %s" % kw["name"])
             self.cmd_and_log(
-                #(install_cmd % kw).split(' '), 
                 install_cmd % kw, 
+                #(install_cmd % kw).split(' '), 
                 output=Context.BOTH, 
                 shell=True,
                 cwd=kw.get("install_cwd",kw["build"]) % kw

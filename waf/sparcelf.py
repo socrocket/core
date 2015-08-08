@@ -49,8 +49,8 @@ def find(self, path = None):
     #    # If the path was not specified look in the search PATH
     #    crossar = self.find_program(self.options.sparc_prefix + 'ar')
 
-    self.env['CC'] = self.env['LINK_CC'] = [crosscc]
-    self.env['CXX'] = self.env['LINK_CXX'] = [crossxx]
+    self.env['CC'] = self.env['LINK_CC'] = crosscc
+    self.env['CXX'] = self.env['LINK_CXX'] = crossxx
     #self.env['AR'] = [crossar]
 
     sparcFlags = ['-Wall', '-static', '-O3']
