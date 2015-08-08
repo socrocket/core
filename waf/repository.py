@@ -18,7 +18,12 @@ REPOS = {}
 
 def read_repos():
     """Read the repository database file"""
-    if os.path.isfile(Context.out_dir+os.sep+WAF_REPO_LOCK):
+    if os.path.isfile(Context.top_dir+os.sep+WAF_REPO_LOCK):
+        with open(Context.top_dir+os.sep+WAF_REPO_LOCK, "r") as jsonfile:
+            obj = json.load(jsonfile)
+            jsonfile.close()
+            return obj
+    elif os.path.isfile(Context.out_dir+os.sep+WAF_REPO_LOCK):
         with open(Context.out_dir+os.sep+WAF_REPO_LOCK, "r") as jsonfile:
             obj = json.load(jsonfile)
             jsonfile.close()
@@ -29,10 +34,9 @@ def read_repos():
 
 def write_repos(repos):
     """Write the repository database file"""
-    with open(Context.out_dir+os.sep+WAF_REPO_LOCK, "w") as jsonfile:
+    with open(Context.top_dir+os.sep+WAF_REPO_LOCK, "w") as jsonfile:
         json.dump(repos, jsonfile, sort_keys=True, indent=2, separators=(',', ': '))
         jsonfile.close()
-
 
 def get_repo_vals(directory):
     """Return configuration key value pairs for a repository directory"""
@@ -55,7 +59,7 @@ def get_repo_vals(directory):
         return result
 
 # for python 2.6 compatibility
-if "check_output" not in dir( subprocess ): # duck punch it in!
+if "check_output" not in dir(subprocess): # duck punch it in!
     def f(*popenargs, **kwargs):
         if 'stdout' in kwargs:
             raise ValueError('stdout argument not allowed, it will be overridden.')
@@ -125,6 +129,7 @@ class repo(SubcommandContext):
 
     def add_repo(self, cmd, params):
         import shutil
+        global REPOS
 
         if len(params) < 1:
             print("add takes 2 parameters:")
@@ -171,6 +176,30 @@ class repo(SubcommandContext):
             return
         shutil.move(tempdir, directory)
         REPOS[directory] = repository
+
+        # Adding repo to the right .git/info/exclude
+        base = ""
+        rest = directory
+        for repodir, url in REPOS.items():
+            if directory.startswith(repodir) and directory != repodir and repodir != "core":
+                base = repodir
+                rest = os.path.relpath(directory, base)
+        exfile = os.path.join(base, ".git", "info", "exclude")
+        with open(exfile) as f:
+            linelist = []
+            found = False
+            for item in f:
+                linelist.append(item)
+                rmitem = re.match(rest, item)
+                if type(rmitem) != type(None):
+                    found = True
+            if not found:
+                linelist.append(rest+"\n")
+            with open(exfile, "w") as f:
+                f.truncate()
+                for line in linelist:
+                    f.writelines(line)
+        # Adding repo to repository file
         for dep_params in vals.get("deps", {}).items():
             print("  Adding dependency %s" % dep_params[0])
             self.add_repo("add", dep_params)
@@ -180,6 +209,8 @@ class repo(SubcommandContext):
         for dep_params in vals.get("deps", {}).items():
             print("  Adding dependency %s" % dep_params[0])
             self.add_repo("add", dep_params)
+        
+    def add_ignore(self, cmd, params):
         
     def mv_cmd(self, cmd, params):
         if len(params) != 2:
@@ -228,6 +259,25 @@ class repo(SubcommandContext):
                 continue
             del(REPOS[directory])
             shutil.rmtree(directory)
+            
+            # Adding repo to the right .git/info/exclude
+            base = ""
+            rest = directory
+            for repodir, url in REPOS.items():
+                if directory.startswith(repodir) and directory != repodir and repodir != "core":
+                    base = repodir
+                    rest = os.path.relpath(directory, base)
+            exfile = os.path.join(base, ".git", "info", "exclude")
+            with open(exfile) as f:
+                linelist = []
+                for item in f:
+                    rmitem = re.match(rest, item)
+                    if type(rmitem) == type(None):
+                        linelist.append(item)
+                with open(exfile, "w") as f:
+                    f.truncate()
+                    for line in linelist:
+                        f.writelines(line)
 
     def show_repo(self, cmd, params):
         global REPOS
@@ -265,6 +315,7 @@ class repo(SubcommandContext):
             'diff': self.git_cmd,
             'status': self.git_cmd,
             'add': self.add_repo, 
+            'add_ignore': self.add_ignore, 
             'del': self.del_repo, 
             'mv': self.mv_cmd,
             'show': self.show_repo,
