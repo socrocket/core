@@ -11,9 +11,10 @@ gmon.out
 ._.DS_Store
 
 # waf files
-.lock-*
+.lock*
 .waf*
 build
+build?.?
 deps
 bigbuckbunny_small.m2v
 # Mkprom2
