@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # vim: set expandtab:ts=4:sw=4:setfiletype python
 import os
+from waflib import Utils
 
 def options(self):
     self.add_option(
@@ -96,15 +97,8 @@ def configure(self):
             git_checkout = "ecfee38aebe09f91d1affd82ca03581a2bba3662",
             patch        = [os.path.join(self.path.abspath(), "core", "waf", "greenlib-2013-12-02.patch"),
                             os.path.join(self.path.abspath(), "core", "waf", "greenlib-2014-10-17.rmeyer.patch")],
-            config_cmd   = "%(cmake)s %%(src)s -DSYSTEMC_PREFIX=%(systemc)s -DTLM_HOME=%(tlm)s -DCMAKE_INSTALL_PREFIX=%%(prefix)s" % {
-              "cmake":self.env.CMAKE, 
-              "systemc":self.env.HOME_SYSTEMC, 
-              "tlm": "%s/include" % self.env.HOME_TLM,
-            },
-            build_cmd = "%(make)s %(jobs)s || %(make)s %(jobs)s" % {
-              "make" : self.env.MAKE,
-              "jobs" : self.env.JOBS,
-            }
+            config_cmd   = Utils.subst_vars("${CMAKE} %(src)s -DSYSTEMC_PREFIX=${HOME_SYSTEMC} -DTLM_HOME=${HOME_TLM} -DCMAKE_INSTALL_PREFIX=%(prefix)s", self.env),
+            build_cmd    = Utils.subst_vars("${MAKE} ${JOBS} || ${MAKE} ${JOBS}", self.env)
         )
         find(self, self.dep_path(name, version))
 
