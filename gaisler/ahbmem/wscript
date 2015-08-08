@@ -9,7 +9,6 @@ def build(self):
     source          = 'ahbmem.cpp', 
     export_includes = self.top_dir,
     includes        = self.top_dir,
-    uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
-    use             = ' signalkit common memory',
+    use             = 'memory common BOOST SYSTEMC TLM AMBA GREENSOCS',
     install_path    = '${PREFIX}/lib',
   )

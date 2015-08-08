@@ -5,8 +5,8 @@ top = '../..'
 def build(self):
   self.recurse('trapgen')
   self(
-    target          = 'common',
-    features        = 'cxx cxxstlib pyembed',
+    target          = 'base',
+    features        = 'cxx cxxstlib',
     source          = [
                        'memdevice.cpp',
                        'clkdevice.cpp',
@@ -19,14 +19,15 @@ def build(self):
                        ],
     export_includes = self.top_dir,
     includes        = self.top_dir,
-    uselib          = 'sr_registry sr_register sr_report BOOST SYSTEMC TLM AMBA GREENSOCS',
+    use             = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     install_path    = '${PREFIX}/lib',
   )
   self(
-    name            = 'signalkit',
+    target          = 'common',
+    features        = 'cxx cxxstlib',
     export_includes = self.top_dir,
-    uselib          = 'BOOST SYSTEMC',
-    use             = 'common',
+    includes        = self.top_dir,
+    use             = 'sr_registry sr_register sr_report base BOOST SYSTEMC TLM AMBA GREENSOCS',
     install_path    = '${PREFIX}/lib',
   )
   self.install_files('${PREFIX}/include', self.path.ant_glob('**/*.h', excl=['**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']), relative_trick=True)

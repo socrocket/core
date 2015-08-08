@@ -9,7 +9,6 @@ def build(bld):
     source         = ['ahbctrl.cpp'],
     export_includes = '.',
     includes       = '.',
-    uselib         = 'SYSTEMC TLM AMBA GREENSOCS',
-    use            = ' common',
+    use            = 'common SYSTEMC TLM AMBA GREENSOCS',
     install_path   = '${PREFIX}/lib',
   )

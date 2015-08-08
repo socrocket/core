@@ -9,7 +9,6 @@ def build(self):
     source          = 'mctrl.cpp', 
     export_includes = self.top_dir,
     includes        = self.top_dir,
-    uselib          = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
-    use             = 'memory  signalkit common',
+    use             = 'memory common BOOST_PROGRAM_OPTIONS SYSTEMC TLM AMBA GREENSOCS',
     install_path    = '${PREFIX}/lib',
   )

@@ -9,7 +9,6 @@ def build(self):
     source          = 'apbuart.cpp tcpio.cpp reportio.cpp', 
     export_includes = self.top_dir,
     includes        = self.top_dir,
-    uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
-    use             = 'common signalkit ',
+    use             = 'common BOOST SYSTEMC TLM AMBA GREENSOCS',
     install_path    = '${PREFIX}/lib',
   )

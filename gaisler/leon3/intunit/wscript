@@ -17,8 +17,7 @@ def build(bld):
     """
     #    externalPorts.cpp
 
-    uselib = 'GREENSOCS ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
-    use = ' signalkit common trap'
+    use = 'common trap GREENSOCS ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
 
     bld.install_files('${PREFIX}/include/', bld.path.parent.ant_glob(['leon3.funclt.h','leon3.funclt/*.hpp']), cwd=bld.path.parent, relative_trick=True)
 
@@ -27,7 +26,6 @@ def build(bld):
         features        = 'cxx cxxstlib',
         export_includes = '..',
         includes        = '..',
-        uselib          = uselib,
         use             = use,
         source          = sources,
         install_path    = '${PREFIX}/lib',
@@ -40,7 +38,6 @@ def build(bld):
         includes = '..',
         defines = 'LEON3_STANDALONE', 
         source = sources, 
-        uselib = uselib, 
         use = use, 
     )
 """

@@ -10,7 +10,6 @@ def build(self):
     source          = 'arraystorage.cpp mapstorage.cpp basememory.cpp memory.cpp memorypower.cpp', 
     export_includes = self.top_dir,
     includes        = self.top_dir,
-    uselib          = 'BOOST_PROGRAM_OPTIONS SYSTEMC TLM GREENSOCS',
-    use             = ' signalkit common',
+    use             = 'common BOOST_PROGRAM_OPTIONS SYSTEMC TLM GREENSOCS',
     install_path    = '${PREFIX}/lib',
   )

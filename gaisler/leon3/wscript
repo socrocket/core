@@ -21,7 +21,6 @@ def build(self):
                           ],
         export_includes = self.top_dir,
         includes        = self.top_dir,
-        uselib          = 'SYSTEMC TLM AMBA AMBAMEM GREENSOCS',
         use             = 'common',
         install_path    = '${PREFIX}/lib',
     )
@@ -31,8 +30,7 @@ def build(self):
         features        = 'cxx cxxstlib',
         export_includes = self.top_dir,
         includes        = self.top_dir,
-        uselib          = 'GREENSOCS ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM',
-        use             = 'signalkit common trap',
+        use             = 'mmucache trap common',
         source          = [
                             'intunit/instructions.cpp',
                             'intunit/registers.cpp',
