@@ -147,7 +147,7 @@ class repo(SubcommandContext):
                 print("Target directory does already exist '%s'" % directory)
                 return
 
-        tempdir = os.path("build", "repo-%x" % int(time.time()))
+        tempdir = os.path.join("build", "repo-%x" % int(time.time()))
 
         try:
             print("Fetching repository %s" % repository)
