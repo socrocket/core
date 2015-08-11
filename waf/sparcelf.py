@@ -81,11 +81,10 @@ def find(self, path = None):
     #    self.check_cxx(cxxflags=self.env['CXXFLAGS'], mandatory=True, msg='Checking for C++ compilation flags')
     if self.env['LINKFLAGS']:
         self.check_cc(linkflags=self.env['LINKFLAGS'], mandatory=True, msg='Checking for link flags')
-    #self.setenv('')
+    self.setenv('')
     
     
 def configure(self):
-    env = self.get_env()
     try:
         if self.options.sparcelfdir:
             find(self, self.options.sparcelfdir)
@@ -105,8 +104,7 @@ def configure(self):
         # There is a build for windows as well in bcc/bin/win/%(tar)s but no for MacOSX but we can get the sources
         # Which only extend the GNU gcc sources and does not provide any compile instructions.
         find(self, self.dep_path(name, version))
-        #self.setenv('')
-    self.set_env(env)
+        self.setenv('')
 
 @TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('sparc')
