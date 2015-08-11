@@ -3,6 +3,7 @@
 # vim: set expandtab:ts=4:sw=4:setfiletype python
 import os
 from waflib import Utils
+from waflib.Errors import ConfigurationError
 
 def options(self):
     self.add_option(
@@ -14,8 +15,13 @@ def options(self):
     )
 
 def find(self, path = None):
-    incpath = os.path.join(path, "include")
-    libpath = os.path.join(path, "lib")
+    if path:
+        incpath = os.path.join(path, "include")
+        libpath = os.path.join(path, "lib")
+
+    else:
+        incpath = []
+        libpath = []
 
     self.check_cxx(
       header_name   = "greensocket/initiator/single_socket.h",
@@ -87,7 +93,7 @@ def configure(self):
             find(self, self.options.greenlibdir)
         else:
             find(self)
-    except:
+    except ConfigurationError as e:
         name    = "greenlib"
         version = "trunk"
         self.dep_build(

@@ -139,8 +139,8 @@ def dep_build(self, *k, **kw):
     self.start_msg("Building %s" % kw["name"])
     if not os.path.isdir(kw["prefix"]):
         config_cmd = kw.get("config_cmd", "%(src)s/configure --prefix=%(prefix)s")
-        build_cmd = kw.get("build_cmd", "%s %s" % (Utils.subst_vars('${MAKE}',self.env), self.env.JOBS))
-        install_cmd = kw.get("install_cmd", "%s %s install" % (Utils.subst_vars('${MAKE}',self.env), self.env.JOBS))
+        build_cmd = kw.get("build_cmd", Utils.subst_vars('${MAKE} ${JOBS}',self.env))
+        install_cmd = kw.get("install_cmd", Utils.subst_vars('${MAKE} ${JOBS} install', self.env))
         self.end_msg("...")
 
         if not os.path.exists(kw["build"]):

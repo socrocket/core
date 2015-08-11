@@ -3,6 +3,7 @@
 # vim: set expandtab:ts=4:sw=4:setfiletype python
 import os
 from waflib import TaskGen
+from waflib.Errors import ConfigurationError
 
 def options(self):
     self.add_option(
@@ -90,7 +91,7 @@ def configure(self):
             find(self, self.options.sparcelfdir)
         else:
             find(self)
-    except:
+    except ConfigurationError as e:
         self.setenv('')
         name    = "sparc-elf"
         version = "4.4.2"
@@ -104,8 +105,8 @@ def configure(self):
         # There is a build for windows as well in bcc/bin/win/%(tar)s but no for MacOSX but we can get the sources
         # Which only extend the GNU gcc sources and does not provide any compile instructions.
         find(self, self.dep_path(name, version))
-        self.setenv('')
-        #self.set_env(env)
+        #self.setenv('')
+    self.set_env(env)
 
 @TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('sparc')
