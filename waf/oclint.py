@@ -4,6 +4,7 @@
 from __future__ import print_function
 import os
 from waflib import TaskGen, Context, Build
+from waflib.Errors import ConfigurationError
 
 def options(self):
     self.add_option(
@@ -33,7 +34,7 @@ def configure(self):
             find(self, self.options.oclintdir)
         else:
             find(self)
-    except:
+    except ConfigurationError as e:
         name    = "oclint"
         version = "0.7-x86_64-linux-ubuntu-12.04"
         self.dep_fetch(
