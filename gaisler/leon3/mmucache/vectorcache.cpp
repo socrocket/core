@@ -1122,7 +1122,13 @@ void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time&
         if (((*m_snoop_cacheline).tag.atag) == tag) {
 
           // Delete the valid bit
-          ((*m_snoop_cacheline).tag.valid &= (~offset2valid(offset)));
+          //((*m_snoop_cacheline).tag.valid &= (~offset2valid(offset))); Old expression
+      	  // is changed by ABBAS because previously the valid bit "valid[0]" was not reset
+      	  if(!m_new_linefetch_en){
+      		((*m_snoop_cacheline).tag.valid &= (~offset2valid(offset)));
+      	  }else{
+           (*m_snoop_cacheline).tag.valid = 0;
+      	  }
         }
       }
     }
