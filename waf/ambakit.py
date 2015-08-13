@@ -64,12 +64,14 @@ def configure(self):
         else:
             find(self)
     except ConfigurationError as e:
-        name    = "ambakit"
-        version = "trunk"
-        self.dep_fetch(
-            name    = name, 
-            version = version,
-            git_url = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/ambakit.git",
-            tar     = "ambakit-1.1.0.tar.gz"
-        )
-        find(self, self.dep_path(name, version))
+        name    = "amba_socket"
+        version = "1.0.15"
+        try:
+            self.dep_fetch(
+                name    = name,
+                version = version, 
+                tar     = "amba_socket-1.0.15.tgz"
+            )
+            find(self, self.dep_path(name, version).rstrip("-"+version))
+        except:
+            self.fatal("failed\nYou have to register at Carbon Design Systems IP Exchange and download %s-%s.tgz via this URL https://portal.carbondesignsystems.com/Model/Carbon/TLM-2.0-AMBA. Please place the downloaded file under %s" % (name,version,os.path.join(self.path.abspath(),'build','.conf_check_deps','fetch')))

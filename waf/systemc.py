@@ -208,9 +208,10 @@ def configure(self):
         self.dep_build(
             name    = name, 
             version = version,
-            git_url = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/systemc.git",
-            tar     = "systemc-2.3.1.tar.gz",
-            install_cmd = "ln -sf %(src)s %(prefix)s"
+            tar_url     = "http://accellera.org/images/downloads/standards/systemc/systemc-2.3.0.tgz",
+            install_cmd = "make install && ln -sf %(build)s %(prefix)s"
+            #install_cmd = "./configure --prefix=%(prefix)s && make && make install"
+
         )
         find(self, self.dep_path(name, version))
 
