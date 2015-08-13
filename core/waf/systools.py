@@ -120,8 +120,8 @@ def make_systest(self):
         romtgen = self.bld.get_tgen_by_name(romname)
         rom = romtgen.path.find_or_declare(romname)
 
-        exec_list = [system.abspath(), "--option", 
-            "conf.mctrl.prom.elf=%s" % (rom.abspath())]
+        exec_list = [system.abspath(), "--loadelf", 
+            "rom=%s" % (rom.abspath())]
         deps_list = [system, rom]
         filename = ""
 
@@ -129,10 +129,10 @@ def make_systest(self):
             sdramtgen = self.bld.get_tgen_by_name(sdramname)
             sdram = sdramtgen.path.find_or_declare(sdramname)
 
-            exec_list.append("--option")
-            exec_list.append("conf.mctrl.ram.sdram.elf=%s" % (sdram.abspath()))
-            exec_list.append("--option")
-            exec_list.append("conf.system.osemu=%s" % (sdram.abspath()))
+            exec_list.append("--loadelf")
+            exec_list.append("sdram=%s" % (sdram.abspath()))
+            exec_list.append("--intrinsics")
+            exec_list.append("'leon3_0=%s(standard)'" % (sdram.abspath()))
             exec_list.append("--option")
             exec_list.append("conf.system.log=%s-%s" % (sdram.abspath(), atstr))
 
@@ -144,10 +144,10 @@ def make_systest(self):
             sramtgen = self.bld.get_tgen_by_name(sramname)
             sram = sramtgen.path.find_or_declare(sramname)
 
-            exec_list.append("--option")
-            exec_list.append("conf.mctrl.ram.sram.elf=%s" % (sram.abspath()))
-            exec_list.append("--option")
-            exec_list.append("conf.system.osemu=%s" % (sram.abspath()))
+            exec_list.append("--loadelf")
+            exec_list.append("sram=%s" % (sram.abspath()))
+            exec_list.append("--intrinsics")
+            exec_list.append("'leon3_0=%s(standard)'" % (sram.abspath()))
             exec_list.append("--option")
             exec_list.append("conf.system.log=%s-%s" % (sram.abspath(), atstr))
 
