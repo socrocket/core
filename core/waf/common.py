@@ -206,4 +206,3 @@ def export_has_define(self):
   defines += ["HAVE_" + self.target.replace(".", "_").upper()]
   setattr(self, "export_defines", defines)
 
-
