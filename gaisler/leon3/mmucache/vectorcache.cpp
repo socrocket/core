@@ -315,6 +315,15 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
         v::debug << this->name() << "ASI force cache miss" << v::endl;
 
+	// -------------------------------------------------------	
+	//added by ABBAS: Inoder to avoide the wrong data read/write specialy when repl=3 (RANDOM), needed to invalidate the exsiting cache line with the same tag.
+       
+	 if ((*m_current_cacheline[i]).tag.atag == tag) {
+        	(m_new_linefetch_en == false) ? (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset, len) : (*m_current_cacheline[i]).tag.valid = 0;
+                 break; //no need further search when the cache line is already found
+            }
+	// -------------------------------------------------------	
+
       }
     }
 
