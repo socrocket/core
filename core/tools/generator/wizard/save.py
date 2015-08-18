@@ -1,3 +1,4 @@
+from builtins import str
 from PyQt4 import QtCore, QtGui
 import os
 

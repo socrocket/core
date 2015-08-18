@@ -4,6 +4,7 @@
 import os
 import sys
 import glob
+from waflib.Errors import ConfigurationError
 
 DEPENDS = ['common', 'pthreads']
 
@@ -201,7 +202,7 @@ def configure(self):
             find(self, self.options.systemcdir, self.options.tlmdir)
         else:
             find(self)
-    except:
+    except ConfigurationError as e:
         name    = "systemc"
         version = "2.3.0"
         self.dep_build(

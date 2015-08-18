@@ -3,7 +3,7 @@
 /// @{
 /// @file leon3processor.h
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the 
@@ -15,9 +15,9 @@
 #include "core/common/clkdevice.h"
 #include "core/common/systemc.h"
 
-#include "core/models/leon3/mmucache/mmu_cache.h"
-#include "core/models/leon3/intunit.h"
-#include "core/models/extern/LEON3/simulatorSources/leon3.funcat.h"
+#include "gaisler/leon3/mmucache/mmu_cache.h"
+#include "gaisler/leon3/intunit.h"
+#include "gaisler/extern/LEON3/simulatorSources/leon3.funcat.h"
 
 class Leon3Processor : public sc_core::sc_module, public CLKDevice {
   public:

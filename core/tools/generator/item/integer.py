@@ -1,7 +1,10 @@
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
 from PyQt4 import QtCore, QtGui
 from copy import copy, deepcopy
-from item import Item
-from null import NullItem
+from .item import Item
+from .null import NullItem
 import sys
 
 class Null(NullItem):
@@ -46,8 +49,8 @@ class IntegerItem(Item):
           r = str(QtCore.QVariant(range_).toString()).split('..')
           if len(r)<2:
             r = ["-2147483648","2147483647"]
-          self.min = long(r[0], 0)
-          self.max = long(r[1], 0)
+          self.min = int(r[0], 0)
+          self.max = int(r[1], 0)
           
           self.name_label = QtGui.QLabel("Name: ", self.widget)
           self.name_obj = QtGui.QLabel(self.name, self.widget)
@@ -130,12 +133,12 @@ class IntegerItem(Item):
         if len(self.childItems)>0:
             return [self.numbers[n].save() for n in range(self.value.toInt()[0])]
         else:
-            return long(str(self.value.toString()), 0)
+            return int(str(self.value.toString()), 0)
 
     def load(self, data):
         ownData = data.get(str(self.var), None)
         if ownData!=None:
-            if isinstance(ownData, long) or isinstance(ownData, int):
+            if isinstance(ownData, int) or isinstance(ownData, int):
                 self.setData(QtCore.QVariant(ownData))
             elif len(ownData)>0:
                 self.setData(QtCore.QVariant(len(ownData)))

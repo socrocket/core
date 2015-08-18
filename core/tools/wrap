@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+LINK=$(basename ${0})
+EXEC=$(basename $(readlink -f ${0}))
+PYVER=""
+if [ "${LINK}" != "${EXEC}" ] ; then
+    PYVER=${LINK:${#EXEC}}
+fi
+
+export PYTHON=$(which python${PYVER})
+${PYTHON} ./waf -o build${PYVER} ${@}

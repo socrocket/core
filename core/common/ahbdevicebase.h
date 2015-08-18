@@ -4,12 +4,12 @@
 /// @file ahbdevicebase.h
 ///
 ///
-/// @date 2013-2014
+/// @date 2013-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
-/// @author
+/// @author Rolf Meyer
 ///
 
 #ifndef MODELS_UTILS_AHBDEVICEBASE_H_

@@ -1,3 +1,5 @@
+from builtins import range
+from builtins import object
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import re
@@ -16,7 +18,7 @@ def ProcessRegister(lineArray, registerPosition, CommentBlocks):
   bitfollow_ex = re.compile("^(?P<start>\W*(\*|///)?\W*)(?P<desc>.*)$")
   endreg_ex = re.compile("^(?P<start>\W*(\*|///)?\W*)(@|\\|/)endregister\W*$")
 
-  class Proxy:
+  class Proxy(object):
     def __call__(self, res):
       self.__res = res
       return res
@@ -24,7 +26,7 @@ def ProcessRegister(lineArray, registerPosition, CommentBlocks):
     def __getattr__(self, name):
       return getattr(self.__res,name)
 
-  class Empty:
+  class Empty(object):
     pass
 
   lines = []

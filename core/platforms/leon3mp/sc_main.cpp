@@ -14,7 +14,7 @@
 #include "pysc/usi.h"
 #endif
 
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/systemc.h"
 #include <string.h>
 #include <sys/time.h>
@@ -30,20 +30,20 @@
 #include <stdexcept>
 
 #include "core/common/verbose.h"
-#include "core/models/leon3/leon3.h"
-#include "core/models/ahbin/ahbin.h"
-#include "core/models/memory/memory.h"
-#include "core/models/apbctrl/apbctrl.h"
-#include "core/models/ahbmem/ahbmem.h"
-#include "core/models/mctrl/mctrl.h"
-#include "core/models/leon3/mmucache/defines.h"
-#include "core/models/gptimer/gptimer.h"
-#include "core/models/apbuart/apbuart.h"
-#include "core/models/apbuart/tcpio.h"
-#include "core/models/apbuart/reportio.h"
-#include "core/models/irqmp/irqmp.h"
-#include "core/models/ahbctrl/ahbctrl.h"
-#include "core/models/ahbprof/ahbprof.h"
+#include "gaisler/leon3/leon3.h"
+#include "gaisler/ahbin/ahbin.h"
+#include "gaisler/memory/memory.h"
+#include "gaisler/apbctrl/apbctrl.h"
+#include "gaisler/ahbmem/ahbmem.h"
+#include "gaisler/mctrl/mctrl.h"
+#include "gaisler/leon3/mmucache/defines.h"
+#include "gaisler/gptimer/gptimer.h"
+#include "gaisler/apbuart/apbuart.h"
+#include "gaisler/apbuart/tcpio.h"
+#include "gaisler/apbuart/reportio.h"
+#include "gaisler/irqmp/irqmp.h"
+#include "gaisler/ahbctrl/ahbctrl.h"
+#include "gaisler/ahbprof/ahbprof.h"
 #include <boost/filesystem.hpp>
 
 #ifdef HAVE_SOCWIRE
@@ -104,7 +104,7 @@ void grethVPHYHook(char* dev_name)
 
 class irqmp_rst_stimuli : sc_core::sc_module {
   public:
-    signalkit::signal_out<bool, Irqmp> irqmp_rst;
+    sr_signal::signal_out<bool, Irqmp> irqmp_rst;
     irqmp_rst_stimuli(sc_core::sc_module_name mn) : 
         sc_core::sc_module(mn), 
         irqmp_rst("rst") {
@@ -134,13 +134,13 @@ int sc_main(int argc, char** argv) {
 #ifdef HAVE_USI
     // Initialize Python
     USI_HAS_MODULE(systemc);
-    USI_HAS_MODULE(registry);
+    USI_HAS_MODULE(sr_registry);
     USI_HAS_MODULE(delegate);
     USI_HAS_MODULE(intrinsics);
     USI_HAS_MODULE(greensocket);
     USI_HAS_MODULE(scireg);
     USI_HAS_MODULE(amba);
-    USI_HAS_MODULE(report);
+    USI_HAS_MODULE(sr_report);
     USI_HAS_MODULE(cci);
     USI_HAS_MODULE(mtrace);
     usi_init(argc, argv);
@@ -150,7 +150,7 @@ int sc_main(int argc, char** argv) {
     // Core APIs will be loaded by usi_init:
     // usi, usi.systemc, usi.api.delegate, usi.api.report
     usi_load("usi.api.greensocket");
-    usi_load("usi.api.scireg");
+    usi_load("sr_register.scireg");
     usi_load("usi.api.amba");
 
     usi_load("usi.log.console_reporter");
@@ -479,7 +479,7 @@ int sc_main(int argc, char** argv) {
       ahbin->set_clk(p_system_clock, SC_NS);
 
       // Connect interrupt out
-      signalkit::connect(irqmp.irq_in, ahbin->irq, p_ahbin_irq);
+      sr_signal::connect(irqmp.irq_in, ahbin->irq, p_ahbin_irq);
     }
 
     // CREATE LEON3 Processor
@@ -632,7 +632,7 @@ int sc_main(int argc, char** argv) {
 
       // Connecting Interrupts
       for(int i=0; i < 8; i++) {
-        signalkit::connect(irqmp.irq_in, gptimer->irq, p_gptimer_pirq + i);
+        sr_signal::connect(irqmp.irq_in, gptimer->irq, p_gptimer_pirq + i);
       }
 
     }
@@ -672,7 +672,7 @@ int sc_main(int argc, char** argv) {
       // Connecting APB Slave
       apbctrl.apb(apbuart->apb);
       // Connecting Interrupts
-      signalkit::connect(irqmp.irq_in, apbuart->irq, p_apbuart_irq);
+      sr_signal::connect(irqmp.irq_in, apbuart->irq, p_apbuart_irq);
       // Set clock
       apbuart->set_clk(p_system_clock,SC_NS);
       // ******************************************
@@ -710,7 +710,7 @@ int sc_main(int argc, char** argv) {
       // Connecting APB Slave
       apbctrl.apb(apbuart1->apb);
       // Connecting Interrupts
-      signalkit::connect(irqmp.irq_in, apbuart1->irq, p_apbuart1_irq);
+      sr_signal::connect(irqmp.irq_in, apbuart1->irq, p_apbuart1_irq);
       // Set clock
       apbuart1->set_clk(p_system_clock,SC_NS);
       // ******************************************

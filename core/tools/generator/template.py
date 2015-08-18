@@ -1,10 +1,15 @@
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from builtins import object
 import os
-from model import TreeModel 
+from .model import TreeModel 
 from xml.parsers.expat import ExpatError
 import shutil
 from string import Template as sTemplate
 
-class File:
+class File(object):
     pass
 
 class FileGen(File):
@@ -38,7 +43,7 @@ class SystemCGen(FileGen):
         result += gen('', model.rootItem.child(0))
         return "#ifndef %(file)s\n#define %(file)s\n\n%(content)s\n\n#endif // %(file)s\n" % { "file": self.name.replace('.', '_').upper(), "content" : result}
         
-class Template:
+class Template(object):
     def __init__(self, base, file):
         from xml.dom.minidom import parse
         self.base = base
@@ -49,7 +54,7 @@ class Template:
         try:
             self.dom = parse(file)
         except ExpatError:
-            print "'%s' is not a valid template for a platform." % file
+            print("'%s' is not a valid template for a platform." % file)
         if hasattr(self, 'dom'):
             self.root = self.dom.documentElement
             self.name = self.root.getAttribute("name")
@@ -220,7 +225,7 @@ class TemplateCollection(dict):
         if isinstance(value, Template):
           self._template = value
         else:
-          if self.has_key(value):
+          if value in self:
             self._template = self[value]
 
     def getTemplate(self):

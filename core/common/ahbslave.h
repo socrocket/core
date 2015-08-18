@@ -4,7 +4,7 @@
 /// @file ahbslave.h
 ///
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
@@ -16,7 +16,7 @@
 
 #include "core/common/systemc.h"
 #include <tlm.h>
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/amba.h"
 #include <stdint.h>
 
@@ -105,10 +105,10 @@ class AHBSlave : public AHBDevice<BASE> {
 
   protected:
     /// Stores the number of Bytes read from the device
-    gs::gs_config<uint64_t> m_reads;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_reads;  // NOLINT(runtime/int)
 
     /// Stores the number of Bytes written from the device
-    gs::gs_config<uint64_t> m_writes;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_writes;  // NOLINT(runtime/int)
 };
 
 #include "core/common/ahbslave.tpp"

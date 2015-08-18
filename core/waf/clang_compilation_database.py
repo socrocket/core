@@ -13,7 +13,6 @@ Usage:
         ...
         conf.load('clang_compilation_database')
 """
-
 import sys, os, json, shlex, pipes
 from waflib import Logs, TaskGen
 from waflib.Tools import c, cxx

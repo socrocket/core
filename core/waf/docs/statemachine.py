@@ -1,3 +1,9 @@
+from __future__ import print_function
+from builtins import filter
+from builtins import chr
+from builtins import str
+from builtins import range
+from builtins import object
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -52,23 +58,23 @@ def IsAcceptableCharacter(ch):
 	return ch in AcceptableCharacters
 
 def SanitiseDotLink(dotlink):
-	return filter(IsAcceptableCharacter, dotlink)
+	return list(filter(IsAcceptableCharacter, dotlink))
 
 def DebugPrintCases(Cases):
 	for case in Cases:
-		print "{"
-		for key in case.keys():
+		print("{")
+		for key in list(case.keys()):
 			if type(case[key]) == type(""):
-				print "\t'" + key + "': '" + case[key] + "'"
+				print("\t'" + key + "': '" + case[key] + "'")
 			elif type(case[key]) == type([]):
-				print "\t'" + key + "':"
-				print "\t["
+				print("\t'" + key + "':")
+				print("\t[")
 				for item in case[key]:
-					print "\t\t" + item + ","
-				print "\t]"
+					print("\t\t" + item + ",")
+				print("\t]")
 			else:
-				print "\t'" + key + "': " + str(case[key])
-		print "}"
+				print("\t'" + key + "': " + str(case[key]))
+		print("}")
 
 def ProcessStateCases(Cases, GlobalStates, InitialLines, FunctionName=None):
 	# Cases includes keys:
@@ -238,7 +244,7 @@ def ProcessStateCases(Cases, GlobalStates, InitialLines, FunctionName=None):
 				for state in [Source, Destination]:
 					m = QueryRE.match(state)
 					if m is not None:
-						if case['QueryStates'].has_key(state):
+						if state in case['QueryStates']:
 							# It's not a new state,
 							NewStateName = case['QueryStates'][state]
 						else:
@@ -261,7 +267,7 @@ def ProcessStateCases(Cases, GlobalStates, InitialLines, FunctionName=None):
 					else:
 						ReportError("'continue' used with multiple following states in state '%s': %s" % (case['State'], case['FollowingStates']))
 				else:
-					if Destination not in (case['FollowingStates'] + case['QueryStates'].values() + case['OtherStates'] + GlobalStates):
+					if Destination not in (case['FollowingStates'] + list(case['QueryStates'].values()) + case['OtherStates'] + GlobalStates):
 						ReportError("Erroneous state link from state %s to state %s" % (case['State'], Destination))
 
 				LinkSources.append(Source)

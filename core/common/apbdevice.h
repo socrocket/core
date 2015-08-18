@@ -6,7 +6,7 @@
 /// It implements the the device information register needed for the plug and
 /// play interface.
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
@@ -98,16 +98,16 @@ class APBDevice : public BASE , public APBDeviceBase {
     /// Impementation of the device register file.
     uint32_t m_register[2];
 
-    gs::cnf::gs_config<uint32_t> g_pindex;
-    gs::cnf::gs_config<uint8_t> g_pvendorid;
-    gs::cnf::gs_config<uint16_t> g_pdeviceid;
-    gs::cnf::gs_config<uint8_t> g_pversion;
-    gs::cnf::gs_config<uint8_t> g_pirq;
-    gs::cnf::gs_config<uint32_t> g_paddr;
-    gs::cnf::gs_config<uint32_t> g_pmask;
-    gs::cnf::gs_config<uint32_t> g_ptype;
-    gs::cnf::gs_config<bool> g_pcacheable;
-    gs::cnf::gs_config<bool> g_pprefetchable;
+    sr_param<uint32_t> g_pindex;
+    sr_param<uint8_t> g_pvendorid;
+    sr_param<uint16_t> g_pdeviceid;
+    sr_param<uint8_t> g_pversion;
+    sr_param<uint8_t> g_pirq;
+    sr_param<uint32_t> g_paddr;
+    sr_param<uint32_t> g_pmask;
+    sr_param<uint32_t> g_ptype;
+    sr_param<bool> g_pcacheable;
+    sr_param<bool> g_pprefetchable;
 };
 
 #include "core/common/apbdevice.tpp"

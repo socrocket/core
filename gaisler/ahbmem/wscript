@@ -1,0 +1,14 @@
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '../..'
+
+def build(self):
+  self(
+    target          = 'ahbmem',
+    features        = 'cxx cxxstlib',
+    source          = 'ahbmem.cpp', 
+    export_includes = self.top_dir,
+    includes        = self.top_dir,
+    use             = 'memory common BOOST SYSTEMC TLM AMBA GREENSOCS',
+    install_path    = '${PREFIX}/lib',
+  )

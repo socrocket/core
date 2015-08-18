@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+TOP = '../../../../..'
+import os
+
+def build(bld):
+    sources = """
+        instructions.cpp
+        registers.cpp
+        alias.cpp
+        processor.cpp
+        interface.cpp
+        decoder.cpp
+        memory.cpp
+        irqPorts.cpp
+        externalPins.cpp
+    """
+    #    externalPorts.cpp
+
+    use = 'common trap GREENSOCS ELF_LIB BOOST BOOST_PROGRAM_OPTIONS BOOST_THREAD BOOST_FILESYSTEM BOOST_SYSTEM SYSTEMC TLM'
+
+    bld.install_files('${PREFIX}/include/', bld.path.parent.ant_glob(['leon3.funclt.h','leon3.funclt/*.hpp']), cwd=bld.path.parent, relative_trick=True)
+
+    bld(
+        target          = 'leon3.funclt',
+        features        = 'cxx cxxstlib',
+        export_includes = '..',
+        includes        = '..',
+        use             = use,
+        source          = sources,
+        install_path    = '${PREFIX}/lib',
+        defines         = 'ENABLE_HISTORY', 
+    )
+"""
+    sources = sources + 'main.cpp'
+    bld.program(
+        target = 'leon3.funclt.platform',
+        includes = '..',
+        defines = 'LEON3_STANDALONE', 
+        source = sources, 
+        use = use, 
+    )
+"""

@@ -4,7 +4,7 @@
 /// @file powermonitor.h
 /// Demonstration of a power monitor for the SoCRocket Virtual Platform
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/systemc.h"
 #include "core/common/verbose.h"
 

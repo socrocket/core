@@ -1,8 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # vim: set expandtab:ts=4:sw=4:setfiletype python
+from __future__ import print_function
 import os
 from waflib import TaskGen, Context, Build
+from waflib.Errors import ConfigurationError
 
 def options(self):
     self.add_option(
@@ -32,7 +34,7 @@ def configure(self):
             find(self, self.options.oclintdir)
         else:
             find(self)
-    except:
+    except ConfigurationError as e:
         name    = "oclint"
         version = "0.7-x86_64-linux-ubuntu-12.04"
         self.dep_fetch(
@@ -77,9 +79,9 @@ def oclint(self):
             exit_code = subprocess.call(oclint_invocation, shell=True)
             sys.exit(exit_code)
         else:
-            print "Error: compile_commands.json not found at current location."
+            print("Error: compile_commands.json not found at current location.")
     else:
-        print "Error: OCLint executable file not found."
+        print("Error: OCLint executable file not found.")
 
 setattr(Context.g_module, 'oclint', oclint)
 class OCLint(Build.BuildContext):

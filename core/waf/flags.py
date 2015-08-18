@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # vim: set expandtab:ts=4:sw=4:setfiletype python
+from __future__ import print_function
 import os
 import sys
 from waflib.Build import BuildContext
@@ -222,13 +223,13 @@ def coverage(self):
     """If configured with -G and lcov and gcof are installed it generates a code coverage report"""
     from subprocess import call, STDOUT
     if self.env["gcov"] and self.env["gcov"] != "" and self.env["lcov"] and self.env["lcov"] != "":
-        print call([self.env['lcov'], '-b', '.', '-t', 'SoCRocket', '-o', 'lcov_all.info', '-d', 'models', '-d', '../models', '-c'], shell=False, cwd=self.bldnode.apbspath(), stderr=STDOUT)
-        print call(["%s -r lcov_all.info 'amba*' 'ahbin*' 'ahbout*' 'ahbprof*' 'apbuart*' 'c++*' 'green*' 'boost*' 'TLM*' 'sysc*' 'test*' 'extern*' 'tools*' 'utils*' 'usr*' > lcov.info" % self.env['lcov']], shell=True, cwd=self.bldnode.abspath(), stderr=STDOUT)
+        print(call([self.env['lcov'], '-b', '.', '-t', 'SoCRocket', '-o', 'lcov_all.info', '-d', 'models', '-d', '../models', '-c'], shell=False, cwd=self.bldnode.apbspath(), stderr=STDOUT))
+        print(call(["%s -r lcov_all.info 'amba*' 'ahbin*' 'ahbout*' 'ahbprof*' 'apbuart*' 'c++*' 'green*' 'boost*' 'TLM*' 'sysc*' 'test*' 'extern*' 'tools*' 'utils*' 'usr*' > lcov.info" % self.env['lcov']], shell=True, cwd=self.bldnode.abspath(), stderr=STDOUT))
         if self.env['genhtml'] and self.env['genhtml'] != "":
-            print call([self.env['genhtml'], '-s', '--demangle-cpp', '-o', 'coverage', 'lcov.info'], shell=False, cwd=self.bldnode.abspath(), stderr=STDOUT)
-            print "Code coverage report generated: %s/coverage/index.html" % (self.bldnode.abspath())
+            print(call([self.env['genhtml'], '-s', '--demangle-cpp', '-o', 'coverage', 'lcov.info'], shell=False, cwd=self.bldnode.abspath(), stderr=STDOUT))
+            print("Code coverage report generated: %s/coverage/index.html" % (self.bldnode.abspath()))
     else:
-      print "To use the coverage pleas install gcov and lcov and configure the library with -G"
+      print("To use the coverage pleas install gcov and lcov and configure the library with -G")
       sys.exit(0)
 
 

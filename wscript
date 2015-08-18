@@ -7,7 +7,7 @@ out = 'build'
 
 import sys
 from waflib.Tools import waf_unit_test  
-from core.waf.logger import Logger
+#from core.waf.logger import Logger
 
 LOAD = [
     'compiler_c',
@@ -18,40 +18,9 @@ LOAD = [
 
 TOOLS = [
     'common',
-    'repo'
+    'dependency',
+    'repository'
 ]
-"""
-#    'swig',
-    'flags',
-#    'virtualenv',
-    'pthreads',
-    'boosting',
-    'endian',
-#    'grlib',
-#    'modelsim',
-    'systools',
-    'libelf',
-    'systemc',
-    'cmake',
-    'winsocks',
-#    'trap',
-#    'sdl',
-#    'mpeg3',
-    'lua',
-#    'blas',
-#    'lapack',
-    'greenlib',
-    'ambakit',
-    'socrocket',
-    'wizard',
-    'docs',
-#    'shell',
-    'cpplint',
-    'oclint',
-    'clang_compilation_database',
-    'sparcelf',
-]
-"""
 
 def options(self): 
     self.load(LOAD)
@@ -76,9 +45,9 @@ def configure(self):
     
 def build(self):
     self.load(LOAD) # reload python2 and configuration
-    logger = Logger("%s/build.log" % self.bldnode.abspath())
-    sys.stdout = logger
-    sys.stderr = logger
+    #logger = Logger("%s/build.log" % self.bldnode.abspath())
+    #sys.stdout = logger
+    #sys.stderr = logger
     
     self.recurse_all()
     self.recurse_all_tests()

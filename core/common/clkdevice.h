@@ -5,7 +5,7 @@
 /// header file defining the clkdevice base class The clkdevice is the base for
 /// all devices using an internal clk.
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
@@ -17,7 +17,7 @@
 #define MODELS_UTILS_CLKDEVICE_H_
 
 #include "core/common/systemc.h"
-#include "core/common/signalkit.h"
+#include "core/common/sr_signal.h"
 
 
 /// @details The class CLKDevice is used to consistently distribute 
@@ -32,7 +32,7 @@
 /// of the class.
 class CLKDevice {
   public:
-    SK_HAS_SIGNALS(CLKDevice);
+    SR_HAS_SIGNALS(CLKDevice);
 
     /// Reset input signal
     signal<bool>::in rst;
