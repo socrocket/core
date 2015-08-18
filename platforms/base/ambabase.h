@@ -2,7 +2,7 @@
 /// @addtogroup platform
 /// @{
 /// @file amba.h
-/// @date 2014-2014
+/// @date 2014-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
@@ -14,9 +14,9 @@
 #include <systemc>
 
 #include "core/common/clkdevice.h"
-#include "core/models/ahbctrl/ahbctrl.h"
-#include "core/models/apbctrl/apbctrl.h"
-#include "core/models/irqmp/irqmp.h"
+#include "gaisler/ahbctrl/ahbctrl.h"
+#include "gaisler/apbctrl/apbctrl.h"
+#include "gaisler/irqmp/irqmp.h"
 
 class AMBABasePlatform : public sc_core::sc_module, public CLKDevice {
   public:

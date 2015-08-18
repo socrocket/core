@@ -16,7 +16,7 @@ def build(self):
           'debugger/GDBConnectionManager.cpp',
         ],
         export_includes = ['.','utils',self.top_dir],
-        includes = ['.','utils',self.top_dir],
-        uselib          = 'BOOST SYSTEMC TLM AMBA GREENSOCS ELF_LIB',
+        includes        = ['.','utils',self.top_dir],
+        use             = 'BOOST SYSTEMC TLM AMBA GREENSOCS ELF_LIB',
         install_path    = '${PREFIX}/lib',
     )

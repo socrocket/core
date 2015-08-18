@@ -3,7 +3,15 @@
 top = '..'
 REPOSITORY_PATH = "core"
 REPOSITORY_NAME = "SoCRocket Main Repository"
+REPOSITORY_VERSION = [3,0,0]
 REPOSITORY_DESC = """SoCRocket Main Repository"""
+REPOSITORY_DEPS = {
+  "core/common/sr_registry": "https://github.com/socrocket/sr_registry.git",
+  "core/common/sr_register": "https://github.com/socrocket/sr_register.git",
+  "core/common/sr_report": "https://github.com/socrocket/sr_report.git",
+  "core/common/sr_param": "https://github.com/socrocket/sr_param.git",
+  "core/common/sr_signal": "https://github.com/socrocket/sr_signal.git",
+}
 REPOSITORY_TOOLS = [
     'pthreads',
     'flags',

@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 from PyQt4 import QtCore, QtGui
-from item import *
+from .item import *
 
 class TreeModel(QtCore.QAbstractItemModel):
     def __init__(self, node, widget, parent=None):

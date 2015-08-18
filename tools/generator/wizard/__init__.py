@@ -1,11 +1,13 @@
+from __future__ import print_function
+from __future__ import absolute_import
 from PyQt4 import QtGui
-from intro import IntroPage
-from license import LicensePage
-from template import TemplatePage
-from load import LoadPage
-from config import ConfigPage
-from save import SavePage
-from generate import GeneratePage
+from .intro import IntroPage
+from .license import LicensePage
+from .template import TemplatePage
+from .load import LoadPage
+from .config import ConfigPage
+from .save import SavePage
+from .generate import GeneratePage
 from ..template import TemplateCollection
 
 class Wizard(QtGui.QWizard):
@@ -30,16 +32,16 @@ class Wizard(QtGui.QWizard):
 def main(template, configuration):
     templates = TemplateCollection()
     if template:
-      if template in templates.keys():
+      if template in list(templates.keys()):
         templates.setTemplate(template)
         if configuration:
           if configuration in templates.listConfigurations():
             templates.loadConfiguration(configuration)
           else:
-            print "Configuration %s for template %s not found" % (configuration, template)
+            print("Configuration %s for template %s not found" % (configuration, template))
         templates.generate()
       else: 
-        print "Template %s not found" % template
+        print("Template %s not found" % template)
     else:
       app = QtGui.QApplication([])
       wizard = Wizard(templates)

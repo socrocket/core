@@ -4,7 +4,7 @@
 /// @file systemc.h
 /// A wrapper to all systemc dependencies. This wrapper should encapsulate all external systemc dependencies.
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the

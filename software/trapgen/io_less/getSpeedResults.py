@@ -41,6 +41,10 @@
 # double. A part from the cycles executed, all the other information is
 # taken from the profiling result.
 
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from past.utils import old_div
 import sys, os, csv
 
 commandLine = '--cycles_range main-_exit --profiler profOut --prof_range main-_exit -n'
@@ -92,7 +96,7 @@ if __name__ == "__main__":
         profResFile.close()
 
         # finally we can store the summary on the output file
-        fileHandle.write(benchmark + ' ' + str(cycles) + ' ' + str(instructions) + ' ' + str(load) + ' ' + str(store) + ' ' + str(float(doubleOps)/float(load + store)) + '\n')
+        fileHandle.write(benchmark + ' ' + str(cycles) + ' ' + str(instructions) + ' ' + str(load) + ' ' + str(store) + ' ' + str(old_div(float(doubleOps),float(load + store))) + '\n')
         fileHandle.flush()
 
     fileHandle.close()

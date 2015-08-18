@@ -3,6 +3,7 @@
 # vim: set expandtab:ts=4:sw=4:setfiletype python
 import os
 from waflib import TaskGen
+from waflib.Errors import ConfigurationError
 
 def options(self):
     self.add_option(
@@ -49,8 +50,8 @@ def find(self, path = None):
     #    # If the path was not specified look in the search PATH
     #    crossar = self.find_program(self.options.sparc_prefix + 'ar')
 
-    self.env['CC'] = self.env['LINK_CC'] = [crosscc]
-    self.env['CXX'] = self.env['LINK_CXX'] = [crossxx]
+    self.env['CC'] = self.env['LINK_CC'] = crosscc
+    self.env['CXX'] = self.env['LINK_CXX'] = crossxx
     #self.env['AR'] = [crossar]
 
     sparcFlags = ['-Wall', '-static', '-O3']
@@ -80,17 +81,16 @@ def find(self, path = None):
     #    self.check_cxx(cxxflags=self.env['CXXFLAGS'], mandatory=True, msg='Checking for C++ compilation flags')
     if self.env['LINKFLAGS']:
         self.check_cc(linkflags=self.env['LINKFLAGS'], mandatory=True, msg='Checking for link flags')
-    #self.setenv('')
+    self.setenv('')
     
     
 def configure(self):
-    env = self.get_env()
     try:
         if self.options.sparcelfdir:
             find(self, self.options.sparcelfdir)
         else:
             find(self)
-    except:
+    except ConfigurationError as e:
         self.setenv('')
         name    = "sparc-elf"
         version = "4.4.2"
@@ -105,7 +105,6 @@ def configure(self):
         # Which only extend the GNU gcc sources and does not provide any compile instructions.
         find(self, self.dep_path(name, version))
         self.setenv('')
-        #self.set_env(env)
 
 @TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('sparc')

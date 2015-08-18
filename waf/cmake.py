@@ -3,6 +3,7 @@
 # vim: set expandtab:ts=4:sw=4:setfiletype python
 import os
 import subprocess
+from waflib.Errors import ConfigurationError
 
 if "check_output" not in dir( subprocess ): # duck punch it in!
     def f(*popenargs, **kwargs):
@@ -37,7 +38,7 @@ def find(self, path = None):
     if "CMAKE" in self.env:
         self.start_msg("Checking cmake version")
         cmake_version_str = subprocess.check_output(["cmake", "--version"])
-        cmake_version_str = cmake_version_str.split('\n')[0]
+        cmake_version_str = cmake_version_str.decode('utf-8').split('\n')[0]
         cmake_version = [int(v) for v in cmake_version_str.split(" ")[2].split(".")]
         cmake_version = cmake_version[0] * 1000000 + cmake_version[1] * 10000 + cmake_version[2] * 100
 
@@ -53,7 +54,7 @@ def configure(self):
             find(self, self.options.cmakedir)
         else:
             find(self)
-    except:
+    except ConfigurationError as e:
         name    = "cmake"
         version = "2.8.12"
         self.dep_build(

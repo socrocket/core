@@ -19,7 +19,7 @@ def get_json_attr(jsonfile, attrname = None):
     for idx in attrname.split('.') or []:
       obj = obj[idx]
 
-  if isinstance(obj, str) or isinstance(obj, unicode):
+  if isinstance(obj, str) or isinstance(obj, str):
     return obj
 
   else:

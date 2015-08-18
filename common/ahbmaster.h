@@ -4,7 +4,7 @@
 /// @file ahbmaster.h
 ///
 ///
-/// @date 2010-2014
+/// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
@@ -16,7 +16,7 @@
 #define MODELS_UTILS_AHBMASTER_H_
 
 #include <stdint.h>
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 #include "core/common/amba.h"
 #include "core/common/systemc.h"
 #include <tlm.h>
@@ -149,10 +149,10 @@ class AHBMaster : public AHBDevice<BASE> {
     AbstractionLayer m_ambaLayer;
 
     /// Stores the number of Bytes read from the device
-    gs::gs_config<uint64_t> m_reads;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_reads;  // NOLINT(runtime/int)
 
     /// Stores the number of Bytes written from the device
-    gs::gs_config<uint64_t> m_writes;  // NOLINT(runtime/int)
+    sr_param<uint64_t> m_writes;  // NOLINT(runtime/int)
 
     // Indicates a TLM response error
     bool response_error;

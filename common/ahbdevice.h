@@ -4,19 +4,20 @@
 /// @file ahbdevice.h
 ///
 ///
-/// @date 2013-2014
+/// @date 2013-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
-/// @author
+/// @author Rolf Meyer
+/// @author Thomas Schuster
 ///
 
 #ifndef MODELS_UTILS_AHBDEVICE_H_
 #define MODELS_UTILS_AHBDEVICE_H_
 
 #include "core/common/ahbdevicebase.h"
-#include "core/common/gs_config.h"
+#include "core/common/sr_param.h"
 
 /// @brief This class is a base class for grlib models. It implements the device plug and play informations.
 /// Together with the AHBCtrl class it implements the plug and play feature of the grlib.
@@ -158,31 +159,31 @@ class AHBDevice : public BASE, public AHBDeviceBase {
     ParameterArray g_bar1;
     ParameterArray g_bar2;
     ParameterArray g_bar3;
-    gs::cnf::gs_config<uint32_t> g_hindex;
-    gs::cnf::gs_config<uint8_t> g_hvendorid;
-    gs::cnf::gs_config<uint16_t> g_hdeviceid;
-    gs::cnf::gs_config<uint8_t> g_hversion;
-    gs::cnf::gs_config<uint8_t> g_hirq;
-    gs::cnf::gs_config<uint32_t> g_bar0haddr;
-    gs::cnf::gs_config<uint32_t> g_bar0hmask;
-    gs::cnf::gs_config<uint32_t> g_bar0htype;
-    gs::cnf::gs_config<bool> g_bar0hcacheable;
-    gs::cnf::gs_config<bool> g_bar0hprefetchable;
-    gs::cnf::gs_config<uint32_t> g_bar1haddr;
-    gs::cnf::gs_config<uint32_t> g_bar1hmask;
-    gs::cnf::gs_config<uint32_t> g_bar1htype;
-    gs::cnf::gs_config<bool> g_bar1hcacheable;
-    gs::cnf::gs_config<bool> g_bar1hprefetchable;
-    gs::cnf::gs_config<uint32_t> g_bar2haddr;
-    gs::cnf::gs_config<uint32_t> g_bar2hmask;
-    gs::cnf::gs_config<uint32_t> g_bar2htype;
-    gs::cnf::gs_config<bool> g_bar2hcacheable;
-    gs::cnf::gs_config<bool> g_bar2hprefetchable;
-    gs::cnf::gs_config<uint32_t> g_bar3haddr;
-    gs::cnf::gs_config<uint32_t> g_bar3hmask;
-    gs::cnf::gs_config<uint32_t> g_bar3htype;
-    gs::cnf::gs_config<bool> g_bar3hcacheable;
-    gs::cnf::gs_config<bool> g_bar3hprefetchable;
+    sr_param<uint32_t> g_hindex;
+    sr_param<uint8_t> g_hvendorid;
+    sr_param<uint16_t> g_hdeviceid;
+    sr_param<uint8_t> g_hversion;
+    sr_param<uint8_t> g_hirq;
+    sr_param<uint32_t> g_bar0haddr;
+    sr_param<uint32_t> g_bar0hmask;
+    sr_param<uint32_t> g_bar0htype;
+    sr_param<bool> g_bar0hcacheable;
+    sr_param<bool> g_bar0hprefetchable;
+    sr_param<uint32_t> g_bar1haddr;
+    sr_param<uint32_t> g_bar1hmask;
+    sr_param<uint32_t> g_bar1htype;
+    sr_param<bool> g_bar1hcacheable;
+    sr_param<bool> g_bar1hprefetchable;
+    sr_param<uint32_t> g_bar2haddr;
+    sr_param<uint32_t> g_bar2hmask;
+    sr_param<uint32_t> g_bar2htype;
+    sr_param<bool> g_bar2hcacheable;
+    sr_param<bool> g_bar2hprefetchable;
+    sr_param<uint32_t> g_bar3haddr;
+    sr_param<uint32_t> g_bar3hmask;
+    sr_param<uint32_t> g_bar3htype;
+    sr_param<bool> g_bar3hcacheable;
+    sr_param<bool> g_bar3hprefetchable;
 };
 
 #include "core/common/ahbdevice.tpp"

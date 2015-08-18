@@ -4,13 +4,13 @@
 /// @file sc_find.h
 ///
 ///
-/// @date 2013-2014
+/// @date 2013-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
-/// @author
-///
+/// @author Marcus Bartholomeu GreenSocs Ltd
+/// @author Rolf Meyer
 #ifndef COMMON_SC_FIND_H_
 #define COMMON_SC_FIND_H_
 

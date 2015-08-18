@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # vim: set expandtab:ts=4:sw=4:setfiletype python
 import os
+from waflib import Utils
+from waflib.Errors import ConfigurationError
 
 def options(self):
     self.add_option(
@@ -13,8 +15,13 @@ def options(self):
     )
 
 def find(self, path = None):
-    incpath = os.path.join(path, "include")
-    libpath = os.path.join(path, "lib")
+    if path:
+        incpath = os.path.join(path, "include")
+        libpath = os.path.join(path, "lib")
+
+    else:
+        incpath = []
+        libpath = []
 
     self.check_cxx(
       header_name   = "greensocket/initiator/single_socket.h",
@@ -86,7 +93,7 @@ def configure(self):
             find(self, self.options.greenlibdir)
         else:
             find(self)
-    except:
+    except ConfigurationError as e:
         name    = "greenlib"
         version = "trunk"
         self.dep_build(
@@ -96,15 +103,8 @@ def configure(self):
             git_checkout = "ecfee38aebe09f91d1affd82ca03581a2bba3662",
             patch        = [os.path.join(self.path.abspath(), "core", "waf", "greenlib-2013-12-02.patch"),
                             os.path.join(self.path.abspath(), "core", "waf", "greenlib-2014-10-17.rmeyer.patch")],
-            config_cmd   = "%(cmake)s %%(src)s -DSYSTEMC_PREFIX=%(systemc)s -DTLM_HOME=%(tlm)s -DCMAKE_INSTALL_PREFIX=%%(prefix)s" % {
-              "cmake":self.env.CMAKE, 
-              "systemc":self.env.HOME_SYSTEMC, 
-              "tlm": "%s/include" % self.env.HOME_TLM,
-            },
-            build_cmd = "%(make)s %(jobs)s || %(make)s %(jobs)s" % {
-              "make" : self.env.MAKE,
-              "jobs" : self.env.JOBS,
-            }
+            config_cmd   = Utils.subst_vars("${CMAKE} %(src)s -DSYSTEMC_PREFIX=${HOME_SYSTEMC} -DTLM_HOME=${HOME_TLM} -DCMAKE_INSTALL_PREFIX=%(prefix)s", self.env),
+            build_cmd    = Utils.subst_vars("${MAKE} ${JOBS} || ${MAKE} ${JOBS}", self.env)
         )
         find(self, self.dep_path(name, version))
 
