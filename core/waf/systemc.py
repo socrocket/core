@@ -24,13 +24,14 @@ def options(self):
         default=os.environ.get("TLM_HOME")
     )
 
-def find(self, scpath = None, tlmpath = None):
+def find(self, scpath = "/usr", tlmpath = None):
     """
     Is SystemC compiled? Check for SystemC library
     Notice that we can't rely on lib-linux, therefore I have to find the actual platform...
     """
     if scpath and not tlmpath:
         tlmpath = scpath
+
 
     # First I set the clafgs needed by TLM 2.0  and GreenSocs for including systemc dynamic process
     # creation and so on
@@ -39,7 +40,8 @@ def find(self, scpath = None, tlmpath = None):
     self.env.append_unique('DEFINES', 'SC_INCLUDE_DYNAMIC_PROCESSES')
     if scpath:
         scinc = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(scpath, 'include'))))]
-        sclib = glob.glob(os.path.join(os.path.abspath(os.path.expanduser(os.path.expandvars(scpath))), 'lib-*'))
+        # 2.3.0 installs it into 'lib-linux64', 2.3.1 installs it into 'lib'
+        sclib = glob.glob(os.path.join(os.path.abspath(os.path.expanduser(os.path.expandvars(scpath))), 'lib*'))
     else:
         scinc = []
         sclib = []
