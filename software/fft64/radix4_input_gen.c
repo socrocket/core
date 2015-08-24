@@ -100,7 +100,7 @@ void socw_transfer(unsigned int address, unsigned int length) {
 
   // Write TX descriptor to mem
   unsigned int * descriptor_base;
-  descriptor_base = 0xa0001000;
+  descriptor_base = (unsigned int *)0xa0001000;
   *descriptor_base = 0x00070000 | (length & 0xffff);
   *(descriptor_base + 1) = address;
 
@@ -110,7 +110,7 @@ void socw_transfer(unsigned int address, unsigned int length) {
 
   // Start transmission
   unsigned int * socw_addr;
-  socw_addr = 0x80000a00;
+  socw_addr = (unsigned int *)0x80000a00;
 
   // Init Transmit descriptor pointer reg
   *(socw_addr+5) = (unsigned int)descriptor_base;
@@ -141,7 +141,7 @@ int main() {
   // Install interrupt handlers
   for(i=1;i<16;i++) {
 
-    catch_interrupt(irqhandler_f, i);
+    catch_interrupt((int)irqhandler_f, i);
 
   }
 
