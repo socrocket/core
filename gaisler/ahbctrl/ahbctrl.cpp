@@ -454,14 +454,14 @@ void AHBCtrl::b_transport(uint32_t id,
     //}
 
     // Broadcast master_id and address for dcache snooping
-    if (trans.get_command() == tlm::TLM_WRITE_COMMAND) {
+   /* if (trans.get_command() == tlm::TLM_WRITE_COMMAND) { //Commented out By ABBAS Snooping is too early (in address phase) which can cause a coherence problem, snooping must be done later(after data phase). 
       snoopy.master_id  = id;
       snoopy.address = addr;
       snoopy.length = length;
 
       // Send to signal socket
       snoop.write(snoopy);
-    }
+    }*/
 
     // Power event start
     // const char *event_name = "ahb_trans";
@@ -481,7 +481,15 @@ void AHBCtrl::b_transport(uint32_t id,
 
     wait(delay);
     delay = SC_ZERO_TIME;
+    // Broadcast master_id and address for dcache snooping
+    if (trans.get_command() == tlm::TLM_WRITE_COMMAND) { // By ABBAS 
+      snoopy.master_id  = id;
+      snoopy.address = addr;
+      snoopy.length = length;
 
+      // Send to signal socket
+      snoop.write(snoopy);
+    }
     busy = false;
     return;
   } else {
