@@ -21,7 +21,7 @@ def options(self):
         default=os.environ.get("SPARCELF_PREFIX", "sparc-elf-")
     )
 
-def find(self, path = None):
+def find(self, path = ""):
     """Search and configure SPARC compiler"""
 
     if path:
