@@ -10,11 +10,13 @@ The `waf` executable is located in the root directory of the library.
 Execute `./waf –h` to get an overview of and help on all available commands and options:
 
     waf [commands] [options]
-
+    
     Main commands (example: ./waf build -j4)
+      bash     :
       build    : executes the build
       clean    : cleans the project
       configure: configures the project
+      coverage :
       cpplint  : Use cpplint to check all files
       dist     : makes a tarball for redistributing the sources
       distcheck: checks if the project compiles (tarball from 'dist')
@@ -26,15 +28,19 @@ Execute `./waf –h` to get an overview of and help on all available commands an
       macclean : Clean garbage files from the source tree
       oclint   : Use oclint to check all files
       repo     :
+           The repo Context
+           In here all work with the repositories is done.
+           The database handlers are extern so the repository database is read in other contextes too.
+    
       step     : executes tasks in a step-by-step fashion, for debugging
       uninstall: removes the targets installed
-      update   : updates the plugins from the *waflib/extras* directory
 
 @section install2 Building the library
 
 Building the project requires following steps:
+1. *Execute `./waf repo init` to checkout the rest of the core repositories.*
 
-1. *Execute `./waf configure` to configure the build environment*
+2. *Execute `./waf configure` to configure the build environment*
 
    The configuration step succeeds in case all the required software packages are available. 
    Otherwise, it fails and shows the broken dependency. 
@@ -52,16 +58,19 @@ Building the project requires following steps:
   The highest verbosity is bound to level 5. 
   It displays a message for each state-change of a transaction, which tremendously slows down simulation and is therefore only recommended for debugging.
   (Add the `–G` switch to the configure command in case you plan on running coverage calculation. This will have a penalty on the system performance.)
+  
+  When the configure process finished, you have to run `./waf configure` again, since there is an issue with `virtualenv`.
 
-2. *Compile library and run unit tests*
+3. *Compile library and run unit tests*
 
   Execute `./waf` to compile all targets. Optionally, the `–jN` flag can be used to define to maximum number of parallel threads. 
   If co-simulation is configured make sure you have enough licenses to execute N instances of Modelsim.
   As an alternative, you may select a specific target (test or library) for compilation. 
-  A list of targets can be generated with `./waf list`. Selective compile is done using `./waf –targets=”comma,separated,list,of,targets”`.
+  A list of targets can be generated with `./waf list`. Selective compile is done using `./waf build --target=”comma,separated,list,of,targets”`.
+  A good starting point is `./waf build --target=leon3mp.platform,sdram.prom,hello.sparc`.
   After successful compilation the system automatically starts the respective unit test(s) and displays the result on the screen.
 
-3. *Optional Doxygen and Gcov*
+4. *Optional Doxygen and Gcov*
 
   In the final step you may generate additional documentation using Doxygen (`./waf docs`) or perform a test coverage calculation using Gcov/Lcov (`./waf coverage`). 
   The configuration step does not check the presence of these tools. 
