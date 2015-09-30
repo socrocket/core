@@ -153,7 +153,7 @@ int sc_main(int argc, char** argv) {
     usi_load("sr_register.scireg");
     usi_load("usi.api.amba");
 
-    usi_load("usi.log.console_reporter");
+    usi_load("usi.log");
     usi_load("usi.tools.args");
     usi_load("usi.cci");
     //usi_load("tools.python.power");
@@ -1032,20 +1032,18 @@ int sc_main(int argc, char** argv) {
 #endif
     cstart = cend = clock();
     cstart = clock();
-    //mtrace();
+//    mtrace();
 #ifdef HAVE_USI
     usi_start();
 #else
     sc_core::sc_start();
 #endif
-    //muntrace();
+//    muntrace();
     cend = clock();
 
-    v::info << "Summary" << "Start: " << dec << cstart << v::endl;
-    v::info << "Summary" << "End:   " << dec << cend << v::endl;
-    v::info << "Summary" << "Delta: " << dec << setprecision(4) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
-
-    std::cout << "End of sc_main" << std::endl << std::flush;
+    v::report << "Summary" << "Start: " << dec << cstart << v::endl;
+    v::report << "Summary" << "End:   " << dec << cend << v::endl;
+    v::report << "Summary" << "Delta: " << dec << setprecision(4) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
     return first_leon->cpu.getInterface().getExitValue();
 }
 /// @}

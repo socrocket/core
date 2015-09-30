@@ -1,5 +1,6 @@
 #include "core/common/sr_iss/intrinsics/platformintrinsic.h"
 #include "core/common/sr_registry.h"
+#include "core/common/sr_report.h"
 
 #include <map>
 #include <string>
@@ -1055,6 +1056,18 @@ class mainIntrinsic : public PlatformIntrinsic<wordSize> {
     }
 };
 
+template<class wordSize>
+class notifyIntrinsic : public PlatformIntrinsic<wordSize> {
+  public:
+    notifyIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
+    bool operator()() {
+      this->m_processor->preCall();
+      srCommand("notifyIntrinsic")("command");
+      this->m_processor->postCall();
+      return false;
+    }
+};
+
 /*
  *  sysconf values per IEEE Std 1003.1, 2004 Edition
  */
@@ -1296,6 +1309,8 @@ typedef utimesIntrinsic<unsigned int> utimesIntrinsic32;
 SR_HAS_INTRINSIC(utimesIntrinsic32);
 typedef mainIntrinsic<unsigned int> mainIntrinsic32;
 SR_HAS_INTRINSIC(mainIntrinsic32);
+typedef notifyIntrinsic<unsigned int> notifyIntrinsic32;
+SR_HAS_INTRINSIC(notifyIntrinsic32);
 
 void IntrinsicBase::correct_flags(int &val){
     int flags = 0;
