@@ -25,22 +25,7 @@ Furthermore some bootcode is needed to start up the system and execute the progr
 This can be achieved via setting of commandline options.
 The simulation can then be started as follows:
     
-    $ ./build/core/platforms/leon3mp/leon3mp.platform \
-    --option conf.mctrl.prom.elf=build/core/software/prom/sdram/sdram.prom \
-    --option conf.mctrl.ram.sdram.elf=build/core/software/grlib_tests/hello.sparc \
-    --option conf.apbuart.en=1
+    $ core/tools/execute leon3mp sdram hello
 
-You are eventually asked to connect a terminal a startup. 
-In this case open another terminal and enter (Linux):
-
-    $ telnet localhost <PORT NUMBER>.
-
-If you want to see the output of hello.sparc in the same terminal as the output of the simulation you can use the following command:
-
-    $ ./build/core/platforms/leon3mp/leon3mp.platform \
-    --option conf.mctrl.prom.elf=build/core/software/prom/sdram/sdram.prom \
-    --option conf.mctrl.ram.sdram.elf=build/core/software/grlib_tests/hello.sparc \
-    --option conf.system.osemu=build/core/software/grlib_tests/hello.sparc
-
-*Hint: Call `leon3mp.platform --help` to see all available command line options.*
+*Hint: Call `build/core/platforms/leon3mp/leon3mp.platform --help` to see all available command line options.*
 
