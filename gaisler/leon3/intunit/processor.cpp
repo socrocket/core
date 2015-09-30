@@ -354,7 +354,8 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
       swi_power("swi_power", 0.0, power), // Switching power of module
       power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
       dyn_instr_energy("dyn_instr_energy", 0.0, power), // average instruction energy
-      dyn_instr("dyn_instr", 0ull, power) // number of instructions
+      dyn_instr("dyn_instr", 0ull, power), // number of instructions
+      numInstructions("instruction_count", 0ull)
       
 {
     this->resetCalled = false;
