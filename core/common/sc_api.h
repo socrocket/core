@@ -15,9 +15,9 @@
 #include <systemc>
 
 #ifdef SYSTEMC_API
-#if SYSTEMC_API != 210 && SYSTEMC_API != 220 && SYSTEMC_API != 230
-#error "The SYSTEMC_API macro is set to an unknown value. Accepted values are 210 or 220."
-#error "Please, see the source code gs_sc_api_detection.h for more information."
+#if SYSTEMC_API != 210 && SYSTEMC_API != 220 && SYSTEMC_API != 230 && SYSTEMC_API != 231
+#error "The SYSTEMC_API macro is set to an unknown value. Accepted values are 210, 220, 230 or 231."
+#error "Please, see the source code gs_sc_api_detection.h (greenlib) for more information."
 #endif
 #else
 // OSCI SystemC 2.1
@@ -29,8 +29,12 @@
 #define SYSTEMC_API 220
 #endif
 // OSCI SystemC 2.3.0
-#if SYSTEMC_VERSION == 20120701
+#if SYSTEMC_VERSION == 20111121 || SYSTEMC_VERSION == 20120701
 #define SYSTEMC_API 230
+#endif
+// OSCI SystemC 2.3.0
+#if SYSTEMC_VERSION == 20140417
+#define SYSTEMC_API 231
 #endif
 // SystemC API to use must be defined at this point
 // include the detection above for other SystemC vendors to
