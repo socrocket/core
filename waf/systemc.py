@@ -39,7 +39,7 @@ def find(self, scpath = None, tlmpath = None):
     self.env.append_unique('DEFINES', 'SC_INCLUDE_DYNAMIC_PROCESSES')
     if scpath:
         scinc = [os.path.abspath(os.path.expanduser(os.path.expandvars(os.path.join(scpath, 'include'))))]
-        sclib = glob.glob(os.path.join(os.path.abspath(os.path.expanduser(os.path.expandvars(scpath))), 'lib-*'))
+        sclib = glob.glob(os.path.join(os.path.abspath(os.path.expanduser(os.path.expandvars(scpath))), 'lib*'))
     else:
         scinc = []
         sclib = []
@@ -98,8 +98,6 @@ def find(self, scpath = None, tlmpath = None):
 
             extern "C" {
                 int sc_main(int argc, char** argv) {
-                    wif_trace_file trace("");
-                    trace.set_time_unit(1, SC_NS);
                     return 0;
                 };
             }
@@ -124,8 +122,6 @@ def find(self, scpath = None, tlmpath = None):
 
             extern "C" {
                 int sc_main(int argc, char** argv) {
-                    wif_trace_file trace("");
-                    trace.set_time_unit(1, SC_NS);
                     return 0;
                 };
             }
