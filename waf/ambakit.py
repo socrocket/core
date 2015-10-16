@@ -70,7 +70,9 @@ def configure(self):
             self.dep_fetch(
                 name    = name,
                 version = version, 
-                tar     = "amba_socket-1.0.15.tgz"
+                tar     = "amba_socket-1.0.15.tgz",
+                base    = name,
+                patch   = [os.path.join(self.path.abspath(), "core", "waf", "ambakit-2015-10-16-rmeyer.patch")]
             )
             find(self, self.dep_path(name, version).rstrip("-"+version))
         except:
