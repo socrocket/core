@@ -200,14 +200,12 @@ def configure(self):
             find(self)
     except ConfigurationError as e:
         name    = "systemc"
-        version = "2.3.0"
+        version = "2.3.1"
         self.dep_build(
             name    = name, 
             version = version,
-            tar_url     = "http://accellera.org/images/downloads/standards/systemc/systemc-2.3.0.tgz",
+            tar_url     = "http://accellera.org/images/downloads/standards/systemc/systemc-2.3.1.tgz",
             install_cmd = "make install && ln -sf %(build)s %(prefix)s"
-            #install_cmd = "./configure --prefix=%(prefix)s && make && make install"
-
         )
         find(self, self.dep_path(name, version))
 
