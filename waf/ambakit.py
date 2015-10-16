@@ -71,9 +71,10 @@ def configure(self):
                 name    = name,
                 version = version, 
                 tar     = "amba_socket-1.0.15.tgz",
+                tar_url = "amba_socket-1.0.15.tgz",
                 base    = name,
                 patch   = [os.path.join(self.path.abspath(), "core", "waf", "ambakit-2015-10-16-rmeyer.patch")]
             )
             find(self, self.dep_path(name, version).rstrip("-"+version))
         except:
-            self.fatal("failed\nYou have to register at Carbon Design Systems IP Exchange and download %s-%s.tgz via this URL https://portal.carbondesignsystems.com/Model/Carbon/TLM-2.0-AMBA. Please place the downloaded file under %s" % (name,version,os.path.join(self.path.abspath(),'build','.conf_check_deps','fetch')))
+            self.fatal("failed\nYou have to register at Carbon Design Systems IP Exchange and download %s-%s.tgz via this URL https://portal.carbondesignsystems.com/Model/Carbon/TLM-2.0-AMBA. Please place the downloaded file in the socrocket src root directory")

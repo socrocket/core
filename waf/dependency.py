@@ -67,7 +67,9 @@ def fetch(self, *k, **kw):
         tar_url = kw.get("tar_url", "") % kw
         self.start_msg("Fetching %s" % kw["name"])
         if not os.path.exists(os.path.join(kw["BASE_PATH_FETCH"], kw["tar"])):
-            if self.env.WGET:
+            if os.path.exists(tar_url):
+                shutil.copyfile(tar_url, os.path.join(kw["BASE_PATH_FETCH"], kw["tar"]))
+            elif self.env.WGET:
                 self.cmd_and_log(
                     [Utils.subst_vars('${WGET}',self.env), tar_url, "-q", "-O", kw["tar"]], 
                     output=Context.BOTH, 
