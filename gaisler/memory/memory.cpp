@@ -59,19 +59,15 @@ Memory::Memory(ModuleName name,
   GC_REGISTER_TYPED_PARAM_CALLBACK(&m_writes, gs::cnf::pre_read, Memory, m_writes_cb);
 
   // Module configuration report
-  v::info << this->name() << " ******************************************************************************* " <<
-    v::endl;
-  v::info << this->name() << " * Created Memory with following parameters: " << v::endl;
-  v::info << this->name() << " * ------------------------------------------------ " << v::endl;
-  v::info << this->name() << " * device_type (ROM, IO, SRAM, SDRAM): " << get_type_name() << v::endl;
-  v::info << this->name() << " * banks: " << banks << v::endl;
-  v::info << this->name() << " * bsize (bytes): " << bsize << v::endl;
-  v::info << this->name() << " * bit width: " << bits << v::endl;
-  v::info << this->name() << " * cols (SD only): " << cols << v::endl;
-  v::info << this->name() << " * implementation type: " << implementation << v::endl;
-  v::info << this->name() << " * pow_mon: " << powmon << v::endl;
-  v::info << this->name() << " ******************************************************************************* " <<
-    v::endl;
+  srInfo()
+    ("device_type", get_type_name())
+    ("banks", banks)
+    ("bsize", bsize)
+    ("bit_width", bits)
+    ("cols", cols)
+    ("implementation", implementation)
+    ("pow_mon", powmon)
+    ("Ceated a Memory with this parameters");
 }
 
 Memory::~Memory() {
