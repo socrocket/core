@@ -106,7 +106,7 @@ class vectorcache : public DefaultBase, public cache_if {
   }
 
   inline unsigned get_idx( unsigned address ) {
-    return ((address << m_tagwidth) >> (m_tagwidth + m_offset_bits));
+    return (address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits);
   }
 
   inline unsigned get_offset( unsigned address ) {
