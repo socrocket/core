@@ -229,15 +229,18 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
                            unsigned int * debug, bool is_dbg, bool &cacheable,
                            bool is_lock) {
 
-  unsigned tag = address >> (m_idx_bits + m_offset_bits);
-  unsigned idx = (address << m_tagwidth) >> (m_tagwidth + m_offset_bits);
-  unsigned offset = (address << (32 - m_offset_bits)) >> (32 - m_offset_bits);
+  unsigned tag = get_tag(address);
+  unsigned idx = get_idx(address);
+  unsigned offset = get_offset(address);
   unsigned byt = (address & 0x3);
-  int set_select = -1;
   int cache_hit = -1;
+  int set_select = -1;
 
-  unsigned burst_address = 0;
-  unsigned burst_len = 0;
+  unsigned ahb_address = 0;
+  unsigned ahb_len = 0;
+  // Data for refilling a cache line of maximum size
+  unsigned char ahb_data[32];
+
   unsigned replacer_limit = 0;
 
   /// --------------------------------------------------------------------------
@@ -336,7 +339,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
 #if 0
         // -------------------------------------------------------
-        //added by ABBAS: Inoder to avoide the wrong data read/write specialy when repl=3 (RANDOM), needed to invalidate the exsiting cache line with the same tag.
+        //added by ABBAS: Inoder to avoide the wrong data read/write specialy when repl=3 (RANDOM), needed to invalidate the xsiting cache line with the same tag.
        
          if (line->tag.atag == tag) {
                 (m_new_linefetch_en == false) ? (line->tag.valid &= ~offset2valid(offset, len) : (line->tag.valid = 0;
@@ -366,33 +369,32 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       if ((m_burst_en && (m_mmu_cache->read_ccr(true) & 0x10000))||(m_new_linefetch_en)) {
 
         if (m_new_linefetch_en) {
-          burst_address = ((address >> (m_linesize+2)) << (m_linesize+2));  // Beginning of cache line
-          burst_len     = m_bytesperline;
+          ahb_address = ((address >> (m_linesize+2)) << (m_linesize+2));  // Beginning of cache line
+          ahb_len     = m_bytesperline;
         } else {
-          burst_address = ((address >> 2) << 2);
-          burst_len = m_bytesperline - ((offset >> 2) << 2);
+          ahb_address = ((address >> 2) << 2);
+          ahb_len = m_bytesperline - ((offset >> 2) << 2);
           replacer_limit = m_bytesperline - 4;
         }
 
       } else {
-
-        burst_address = ((address >> 2) << 2);
+        ahb_address = ((address >> 2) << 2);
 
         if (len == 8) {
-          // 64bit
-          burst_len = 8;
+          // len = 64bit
+          ahb_len = 8;
           replacer_limit = offset+4;
         } else {
-          // 32bit or below
-          burst_len =  4;
+          // len <= 32bit
+          ahb_len =  4;
           replacer_limit = offset;
         }
       }
 
-      srDebug()("addr", address)("burst address", burst_address)("burst length", burst_len)("Cache read miss will issue memory read");
+      srDebug()("addr", address)("burst address", ahb_address)("burst length", ahb_len)("Cache read miss will issue memory read");
 
       // Access ahb interface or mmu - return true if data is cacheable
-      if (m_tlb_adaptor->mem_read(burst_address, asi, ahb_data, burst_len, delay, debug, is_dbg, cacheable, is_lock)) {
+      if (m_tlb_adaptor->mem_read(ahb_address, asi, ahb_data, ahb_len, delay, debug, is_dbg, cacheable, is_lock)) {
         srDebug()("Address", address)("Cache read cacheable");
 
         // Check for unvalid data which can be replaced without harm
@@ -434,16 +436,16 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
           // fill in the new data (always the complete word)
           if (!m_new_linefetch_en) {
             memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2],
-                   ahb_data, burst_len);
+                   ahb_data, ahb_len);
           } else {
             memcpy(&(*m_current_cacheline[set_select]).entry[0], ahb_data, m_bytesperline);
           }
 
           if (m_pow_mon) {
             // Write access to data ram
-            /// BUG: This will give +2 for burst_len = 4 and +3 for burst_len = 8
-            /// Should be: dyn_data_writes += (burst_len-1) >> 2  + 1;
-            dyn_data_writes += (burst_len >> 2) + 1;
+            /// BUG: This will give +2 for ahb_len = 4 and +3 for ahb_len = 8
+            /// Should be: dyn_data_writes += (ahb_len-1) >> 2  + 1;
+            dyn_data_writes += (ahb_len >> 2) + 1;
             // Write to tag ram (replacement or setting valid bits)
             dyn_tag_writes++;
           }
@@ -518,14 +520,14 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
             // fill in the new data (always the complete word)
             if (!m_new_linefetch_en) {
-              memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, burst_len);
+              memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, ahb_len);
             } else {
               memcpy(&(*m_current_cacheline[set_select]).entry[0], ahb_data, m_bytesperline);
             }
 
             if (m_pow_mon) {
               // Write access to data ram
-              dyn_data_writes += (burst_len >> 2) + 1;
+              dyn_data_writes += (ahb_len >> 2) + 1;
               // Write to tag ram (valid bits)
               dyn_tag_writes++;
             }
@@ -625,9 +627,9 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
                             unsigned int len, sc_core::sc_time * delay,
                             unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
 
-  unsigned tag = address >> (m_idx_bits + m_offset_bits);
-  unsigned idx = (address << m_tagwidth) >> (m_tagwidth + m_offset_bits);
-  unsigned offset = (address << (32 - m_offset_bits)) >> (32 - m_offset_bits);
+  unsigned tag = get_tag(address);
+  unsigned idx = get_idx(address);
+  unsigned offset = get_offset(address);
   bool is_hit = false;
 
   /// --------------------------------------------------------------------------
@@ -814,7 +816,7 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
 
   unsigned tmp;
   unsigned idx = (address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits);
-  unsigned way = (address >> (m_idx_bits + m_offset_bits)) & 0x3;
+  unsigned way = (get_tag(address)) & 0x3;
 
   // find the required cache line
   m_current_cacheline[way] = lookup(way, idx);
@@ -864,7 +866,7 @@ void vectorcache::write_cache_tag(unsigned int address, unsigned int * data,
   #endif
 
   unsigned idx = (address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits);
-  unsigned way = (address >> (m_idx_bits + m_offset_bits)) & 0x3;
+  unsigned way = (get_tag(address)) & 0x3;
 
   // find the required cache line
   m_current_cacheline[way] = lookup(way, idx);
@@ -906,7 +908,7 @@ void vectorcache::read_cache_entry(unsigned int address, unsigned int * data,
 
   unsigned idx = (address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits);
   unsigned sb = (address << (32 - m_offset_bits) >> (34 - m_offset_bits));
-  unsigned way = (address >> (m_idx_bits + m_offset_bits)) & 0x3;
+  unsigned way = (get_tag(address)) & 0x3;
 
   // find the required cache line
   m_current_cacheline[way] = lookup(way, idx);
@@ -939,7 +941,7 @@ void vectorcache::write_cache_entry(unsigned int address, unsigned int * data,
 
   unsigned idx = (address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits);
   unsigned sb = (address << (32 - m_offset_bits) >> (34 - m_offset_bits));
-  unsigned way = (address >> (m_idx_bits + m_offset_bits)) & 0x3;
+  unsigned way = (get_tag(address)) & 0x3;
 
   // find the required cache line
   m_current_cacheline[way] = lookup(way, idx);
@@ -1027,9 +1029,9 @@ void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time&
 
     for (address = snoop.address; address < snoop.address + snoop.length; address += 4) {
       // Extract index and tag from address
-      tag    = address >> (m_idx_bits + m_offset_bits);
-      idx    = (address << m_tagwidth) >> (m_tagwidth + m_offset_bits);
-      offset = (address << (32 - m_offset_bits)) >> (32 - m_offset_bits);
+      tag    = get_tag(address);
+      idx    = get_idx(address);
+      offset = get_offset(address);
       way    = 0;
 
       // Lookup all cachesets
@@ -1229,6 +1231,57 @@ void vectorcache::lru_update(unsigned int way_select) {
   }
 
 } // vectorcache::lru_update()
+
+/// ----------------------------------------------------------------------------
+
+/// Searches for a cache line in all cache ways. Returns found way, otherwise -1.
+int vectorcache::locate_line(unsigned int const tag,
+                             unsigned int const idx,
+                             unsigned int const offset,
+                             unsigned int const len,
+                             sc_core::sc_time * delay) {
+  unsigned way = 0;
+  bool found = false;
+
+  // Lookup all cache ways
+  for (; way <= m_sets; way++) {
+
+    m_current_cacheline[way] = lookup(way, idx);
+    t_cache_line* line = m_current_cacheline[way];
+
+    // Check the cache tag
+    if (line->tag.atag == tag) {
+
+      //v::debug << this->name() <<  "Correct atag found in set " << i << v::endl;
+
+      // Check the valid bit
+      if ((!m_new_linefetch_en && (line->tag.valid & offset2valid(offset, len)) == offset2valid(offset, len))
+      || (m_new_linefetch_en && (line->tag.valid & 0x1))) {
+
+        srDebug()("way", way)
+                 ("valid", line->tag.valid)
+                 ("valid mask",offset2valid(offset, len))
+                 ("Cache hit in current way");
+        found = true;
+        break;
+      } else {
+
+        srDebug()("way", way)
+                 ("valid", line->tag.valid)
+                 ("valid mask",offset2valid(offset, len))
+                 ("Cache hit but invalid data in current way");
+
+      } // Cache hit but invalid
+    } else {
+      srDebug()("way", way)("Cache miss in current way");
+    }
+  } // loop m_sets
+
+  if (found)
+    return way;
+
+  return -1;
+} // vectorcache::locate_line()
 
 // internal behavioral functions
 // -----------------------------

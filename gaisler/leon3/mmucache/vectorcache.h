@@ -100,6 +100,25 @@ class vectorcache : public DefaultBase, public cache_if {
   /// updates the lrr bits for every line replacement
   void lrr_update(unsigned int set_select);
 
+ private:
+  inline unsigned get_tag( unsigned address ) {
+    return (address >> (m_idx_bits + m_offset_bits));
+  }
+
+  inline unsigned get_idx( unsigned address ) {
+    return ((address << m_tagwidth) >> (m_tagwidth + m_offset_bits));
+  }
+
+  inline unsigned get_offset( unsigned address ) {
+    return ((address << (32 - m_offset_bits)) >> (32 - m_offset_bits));
+  }
+
+  int locate_line(unsigned int const tag,
+                             unsigned int const idx,
+                             unsigned int const offset,
+                             unsigned int const len,
+                             sc_core::sc_time * delay);
+
  protected:
   // constructor
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
