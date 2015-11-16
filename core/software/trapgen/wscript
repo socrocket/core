@@ -23,7 +23,7 @@ def build(bld):
       ram         = 'aes.sparc',
       args        = '--option conf.ahbmem.elf=%s' % (ahbmem.abspath())
   )
-  
+  """ 
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -31,7 +31,7 @@ def build(bld):
       ram         = 'aes.sparc',
       at       = True,
   )
-  
+  """
   # bcnt.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -49,7 +49,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'bcnt.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -57,7 +57,7 @@ def build(bld):
       ram         = 'bcnt.sparc',
       at          = True,
   )
-
+  """
   # blit.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -75,7 +75,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'blit.sparc',
   )
-  
+  """ 
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -83,7 +83,7 @@ def build(bld):
       ram         = 'blit.sparc',
       at          = True,
   )
-
+  """
   # crc.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -101,7 +101,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'crc.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -109,7 +109,7 @@ def build(bld):
       ram         = 'crc.sparc',
       at          = True,
   )
-
+  """
   # des.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -127,7 +127,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'des.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -135,7 +135,7 @@ def build(bld):
       ram         = 'des.sparc',
       at          = True,
   )
-
+  """
   # dhry.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -153,7 +153,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'dhry.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -161,7 +161,7 @@ def build(bld):
       ram         = 'dhry.sparc',
       at          = True,
   )
-
+  """
   # engine.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -179,7 +179,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'engine.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -187,7 +187,7 @@ def build(bld):
       ram         = 'engine.sparc',
       at          = True,
   )
-
+  """
   # fft.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -205,7 +205,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'fft.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -213,7 +213,7 @@ def build(bld):
       ram         = 'fft.sparc',
       at          = True,
   )
-
+  """
   # fib.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -231,7 +231,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'fib.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -239,7 +239,7 @@ def build(bld):
       ram         = 'fib.sparc',
       at          = True,
   )
-
+  """
   # fir2.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -257,7 +257,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'fir2.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -265,7 +265,7 @@ def build(bld):
       ram         = 'fir2.sparc',
       at          = True,
   )
-
+  """
   # gamma.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -283,7 +283,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'gamma.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -291,7 +291,7 @@ def build(bld):
       ram         = 'gamma.sparc',
       at          = True,
   )
-
+  """
   # hanoi.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -309,7 +309,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'hanoi.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -317,7 +317,7 @@ def build(bld):
       ram         = 'hanoi.sparc',
       at          = True,
   )
-
+  """
   # heapsort.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -335,7 +335,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'heapsort.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -343,7 +343,7 @@ def build(bld):
       ram         = 'heapsort.sparc',
       at          = True,
   )
-
+  """
   # jpeg.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -361,7 +361,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'jpeg.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -369,7 +369,7 @@ def build(bld):
       ram         = 'jpeg.sparc',
       at          = True,
   )
-
+  """
   # lms.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -387,7 +387,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'lms.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -395,7 +395,7 @@ def build(bld):
       ram         = 'lms.sparc',
       at          = True,
   )
-
+  """
   # matrix.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -413,7 +413,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'matrix.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -421,7 +421,7 @@ def build(bld):
       ram         = 'matrix.sparc',
       at          = True,
   )
-
+  """
   # mdrall.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -439,7 +439,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'mdrall.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -447,7 +447,7 @@ def build(bld):
       ram         = 'mdrall.sparc',
       at          = True,
   )
-
+  """
   # pocsag.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -465,7 +465,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'pocsag.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -473,7 +473,7 @@ def build(bld):
       ram         = 'pocsag.sparc',
       at          = True,
   )
-
+  """
   # queens.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -571,7 +571,7 @@ def build(bld):
                      '--option', 'conf.mmu_cache.dc.linesize=4',
                     ],
   )
-   
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -579,7 +579,7 @@ def build(bld):
       ram         = 'queens.sparc',
       at          = True,
   )
-
+  """
   # quicksort.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -597,7 +597,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'quicksort.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -605,6 +605,7 @@ def build(bld):
       ram         = 'quicksort.sparc',
       at          = True,
   )
+  """
   """
   # tolstoy.sparc
   bld(
@@ -649,7 +650,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'v42.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -657,7 +658,7 @@ def build(bld):
       ram         = 'v42.sparc',
       at          = True,
   )
-
+  """
   # wavelt.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -675,7 +676,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'wavelt.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -683,7 +684,7 @@ def build(bld):
       ram         = 'wavelt.sparc',
       at          = True,
   )
-
+  """
   # whets.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -701,7 +702,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'whets.sparc',
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -709,4 +710,4 @@ def build(bld):
       ram         = 'whets.sparc',
       at          = True,
   )
-
+  """

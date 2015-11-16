@@ -1,0 +1,22 @@
+diff --git a/src/amba_slave_socket.tpp b/src/amba_slave_socket.tpp
+--- a/src/amba_slave_socket.tpp	2010-12-07 18:50:38.000000000 +0100
++++ b/src/amba_slave_socket.tpp	2015-10-16 08:23:03.380501797 +0200
+@@ -1030,7 +1030,6 @@
+ {
+   payload_index_event* index_payload=NULL;
+   sc_core::sc_time t;
+-  unsigned int index=0;
+   mm_extension mm_ext;
+   bool mm_was_added=false;
+   tlm::tlm_phase ph;
+@@ -1047,8 +1046,8 @@
+       }
+       m_curr_LT_to_AT_txn=index_payload->payload;
+       t=sc_core::SC_ZERO_TIME;
+-      index=index_payload->index; //cannot have been changed while we kept it in our PEQ
+-                                  //but can change when we do the call, so we better copy it
++      // index_payload->index; //cannot have been changed while we kept it in our PEQ
++                               //but can change when we do the call, so we better copy it
+       ph=tlm::BEGIN_REQ;
+       tlm::tlm_sync_enum retVal;
+       if (m_nb_peq){

@@ -100,8 +100,6 @@ def find(self, scpath = "/usr", tlmpath = None):
 
             extern "C" {
                 int sc_main(int argc, char** argv) {
-                    wif_trace_file trace("");
-                    trace.set_time_unit(1, SC_NS);
                     return 0;
                 };
             }
@@ -126,8 +124,6 @@ def find(self, scpath = "/usr", tlmpath = None):
 
             extern "C" {
                 int sc_main(int argc, char** argv) {
-                    wif_trace_file trace("");
-                    trace.set_time_unit(1, SC_NS);
                     return 0;
                 };
             }
@@ -206,13 +202,12 @@ def configure(self):
             find(self)
     except ConfigurationError as e:
         name    = "systemc"
-        version = "2.3.0"
+        version = "2.3.1"
         self.dep_build(
             name    = name, 
             version = version,
-            git_url = "git@brauhaus.c3e.cs.tu-bs.de:socrocket/systemc.git",
-            tar     = "systemc-2.3.1.tar.gz",
-            install_cmd = "ln -sf %(src)s %(prefix)s"
+            tar_url     = "http://accellera.org/images/downloads/standards/systemc/systemc-2.3.1.tgz",
+            install_cmd = "make install && ln -sf %(build)s %(prefix)s"
         )
         find(self, self.dep_path(name, version))
 

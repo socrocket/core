@@ -163,30 +163,29 @@ Mctrl::Mctrl(
   // mem_cfg.treat_unknown_as_ignorable();
   mem.set_config(mem_cfg);
   // Module configuration report
-  v::info << this->name() << " ******************************************************************************* " <<
-  v::endl;
-  v::info << this->name() << " * Created MCTRL with following parameters: " << v::endl;
-  v::info << this->name() << " * ---------------------------------------- " << v::endl;
-  v::info << this->name() << " * romasel: " << _romasel << v::endl;
-  v::info << this->name() << " * sdrasel: " << _sdrasel << v::endl;
-  v::info << this->name() << " * romaddr/rommask: " << hex << _romaddr << "/" << _rommask << v::endl;
-  v::info << this->name() << " * ioaddr/iomask: " << hex << _ioaddr << "/" << _iomask << v::endl;
-  v::info << this->name() << " * ramaddr/rammask: " << hex << _ramaddr << "/" << _rammask << v::endl;
-  v::info << this->name() << " * paddr/pmask: " << hex << _paddr << "/" << _pmask << v::endl;
-  v::info << this->name() << " * wprot: " << _wprot << v::endl;
-  v::info << this->name() << " * srbanks: " << _srbanks << v::endl;
-  v::info << this->name() << " * ram8: " << _ram8 << v::endl;
-  v::info << this->name() << " * ram16: " << _ram16 << v::endl;
-  v::info << this->name() << " * sepbus: " << _sepbus << v::endl;
-  v::info << this->name() << " * sdbits: " << _sdbits << v::endl;
-  v::info << this->name() << " * mobile: " << _mobile << v::endl;
-  v::info << this->name() << " * sden: " << _sden << v::endl;
-  v::info << this->name() << " * hindex: " << hindex << v::endl;
-  v::info << this->name() << " * pindex: " << pindex << v::endl;
-  v::info << this->name() << " * pow_mon: " << powermon << v::endl;
-  v::info << this->name() << " * abstractionLayer (LT = 8 / AT = 4): " << ambaLayer << v::endl;
-  v::info << this->name() << " ******************************************************************************* " <<
-  v::endl;
+  srInfo()
+    ("romasel", _romasel)
+    ("sdrasel", _sdrasel)
+    ("romaddr", _romaddr)
+    ("rommask", _rommask)
+    ("ioaddr", _ioaddr)
+    ("iomask", _iomask)
+    ("ramaddr", _ramaddr)
+    ("rammask", _rammask)
+    ("paddr", _paddr)
+    ("pmask", _pmask)
+    ("wprot", _wprot)
+    ("srbanks", _srbanks)
+    ("ram8", _ram8)
+    ("ram16", _ram16)
+    ("sepbus", _sepbus)
+    ("sdbits", _sdbits)
+    ("mobile", _mobile)
+    ("sden", _sden)
+    ("pindex", pindex)
+    ("hindex", hindex)
+    ("pow_mon", powermon)
+    ("Ceated an Irqmp with this parameters");
 }
 
 // destructor unregisters callbacks

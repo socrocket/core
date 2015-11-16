@@ -1,5 +1,3 @@
-from builtins import range
-from builtins import object
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import re
