@@ -3,7 +3,7 @@
 /// @{
 /// @file vectorcache.cpp
 /// Class definition of a virtual cache model. The cache can be configured
-/// direct mapped or set associative. Set-size, line-size and replacement
+/// direct mapped or set associative. Way-size, line-size and replacement
 /// strategy can be defined through constructor arguments.
 ///
 /// @date 2010-2014
@@ -16,8 +16,14 @@
 
 #include "gaisler/leon3/mmucache/vectorcache.h"
 
-// constructor
-// args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in words, replacement strategy
+
+/*******************************************************************************
+*  Generic Cache Memory and Controller Module
+*******************************************************************************/
+/// @name Constructors and Destructors
+/// @{
+/// Constructor
+// args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of ways, waysize in kb, linesize in words, replacement strategy
 vectorcache::vectorcache(ModuleName name,
                          mmu_cache_if * _mmu_cache, mem_if *_tlb_adaptor,
                          unsigned int mmu_en, unsigned int burst_en,
@@ -34,20 +40,20 @@ vectorcache::vectorcache(ModuleName name,
     m_new_linefetch_en(new_linefetch_en),
     m_pseudo_rand(0),
     m_sets(sets-1),
-    m_setsize((unsigned int)log2((double)setsize)),
+    m_setsize((unsigned)log2((double)setsize)),
     m_setlock(setlock),
-    m_linesize((unsigned int)log2((double)linesize)),
+    m_linesize((unsigned)log2((double)linesize)), // linesize [word]
     m_wordsperline(linesize),
     m_bytesperline(m_wordsperline << 2),
-    m_offset_bits((unsigned int)log2((double)m_bytesperline)),
-    m_number_of_vectors(setsize*256/linesize),
-    m_idx_bits(m_setsize + 8 - m_linesize),
+    m_offset_bits((unsigned)log2((double)m_bytesperline)),
+    m_number_of_vectors(setsize*256/linesize), // sets = lines per way; waysize[kB]/linesize[word]*[256word]/[kB]
+    m_idx_bits(m_setsize + 8 - m_linesize), // set index = log2 (sets)
     m_tagwidth(32 - m_idx_bits - m_offset_bits),
     m_repl(repl),
     m_mmu_en(mmu_en),
     m_lram(lram),
     m_lramstart(lramstart),
-    m_lramsize((unsigned int)log2((double)lramsize)),
+    m_lramsize((unsigned)log2((double)lramsize)),
     m_performance_counters("performance_counters"),
     rhits("read_hits", sets, m_performance_counters),
     rmisses("read_misses", 0ull, m_performance_counters),
@@ -68,47 +74,38 @@ vectorcache::vectorcache(ModuleName name,
     // initialize cache line allocator
     memset(&m_default_cacheline, 0, sizeof(t_cache_line));
 
-    // Cache may have 1 to 4 sets
+    // Cache may have 1 to 4 ways
     if ((m_sets < 0)||(m_sets>3)) {
-
-      v::error << this->name() << "Cache may have 1-4 sets (not " << m_sets + 1 << ")!" << v::endl;
+      srError()("ways", m_sets+1)("Cache may have 1-4 ways");
       assert(0);
-
     }
 
     // Linesize may be 4 or 8 words
     if ((linesize!=4)&&(linesize!=8)) {
-
-      v::error << this->name() << "Cache line size may be 4 or 8 words (not " << linesize << ")!" << v::endl;
+      srError()("linesize", linesize)("Cache line size may be 4 or 8 words");
       assert(0);
-
     }
 
-    // Set size may be 1 to 256 kb
+    // Way size may be 1 to 256 kb
     if ((setsize < 1)||(setsize > 256)) {
-
-      v::error << this->name() << "Size of cache set must be between 1 and 225 kb (not " << setsize << ")!" << v::endl;
+      srError()("waysize", setsize)("Size of cache way must be between 1 and 225 kb");
       assert(0);
-
     }
 
     // LRR replacement may only be selected for two-way caches
-    if ((m_repl==2)&(m_sets!=1)) {
-
-      v::error << this->name() << "LRR replacement may only be selected for two-way associative caches!" << v::endl;
+    if ((m_repl==2) && (m_sets!=1)) {
+      srError()("LRR replacement may only be selected for two-way associative caches");
       assert(0);
-
     }
 
     // Direct mapped cache (replacement) only allowed for one-way caches
     if ((m_sets > 0) && (m_repl == 0)) {
-
-      v::error << this->name() << "Replacement policy not valid. Direct mapped only allowed for one-way caches!" << v::endl;
+      srError()("Invalid replacement policy. Direct mapped only allowed for one-way caches");
       assert(0);
-
     }
 
-    // create the cache sets
+    // Create the cache sets
+    srDebug()("Creating cache memory");
     for (unsigned int i = 0; i <= m_sets; i++) {
 
         v::debug << this->name() << "Create cache set " << i << v::endl;
@@ -128,15 +125,15 @@ vectorcache::vectorcache(ModuleName name,
     v::info << this->name() << " * ----------------------------------------------- " << v::endl;
     v::info << this->name() << " * mmu_en: " << mmu_en << v::endl;
     v::info << this->name() << " * burst_en: " << burst_en << v::endl;
-    v::info << this->name() << " * sets: " << sets << v::endl;
-    v::info << this->name() << " * setsize: " << setsize << v::endl;
-    v::info << this->name() << " * setlock: " << m_setlock << v::endl;
+    v::info << this->name() << " * ways: " << sets << v::endl;
+    v::info << this->name() << " * waysize: " << setsize << v::endl;
+    v::info << this->name() << " * waylock: " << m_setlock << v::endl;
     v::info << this->name() << " * linesize: " << linesize << v::endl;
-    v::info << this->name() << " * repl (0-Direct Mapped, 1-LRU, 2-LRR, 3-RANDOM): " << m_repl << v::endl;
+    v::info << this->name() << " * repl (0-Direct Mapped, 1-LRU, 2-LRR, 3-Random): " << m_repl << v::endl;
     v::info << this->name() << " * ---------------------------------------------------------- " << v::endl;
-    v::info << this->name() << " * Size of each cache set " << (unsigned int)pow(2, (double)m_setsize) << " kb" << v::endl;
+    v::info << this->name() << " * Size of each cache way " << (unsigned)pow(2, (double)m_setsize) << " kb" << v::endl;
     v::info << this->name() << " * Bytes per line " << m_bytesperline << " (offset bits: " << m_offset_bits << ")" << v::endl;
-    v::info << this->name() << " * Number of cache lines per set " << m_number_of_vectors << " (index bits: " << m_idx_bits <<" )" << v::endl;
+    v::info << this->name() << " * Number of sets (cache lines per way) " << m_number_of_vectors << " (index bits: " << m_idx_bits <<" )" << v::endl;
     v::info << this->name() << " * Width of cache tag in bits " << m_tagwidth << v::endl;
     v::info << this->name() << " ******************************************************************************* "  << v::endl;
 
@@ -173,9 +170,9 @@ vectorcache::vectorcache(ModuleName name,
     CACHE_CONFIG_REG |= ((m_linesize & 0x7) << 16);
     CACHE_CONFIG_REG |= ((m_lram & 0x1) << 19);
 
-    // setsize must be between 1 and 256 kb (m_setsize 1 - 8)
+    // waysize must be between 1 and 256 kb (m_waysize 1 - 8)
     assert((m_setsize>=0)&&(m_setsize<=8));
-    // enter setsize
+    // enter waysize
     CACHE_CONFIG_REG |= ((m_setsize & 0xf) << 20);
 
     CACHE_CONFIG_REG |= ((m_sets & 0x7) << 24);
@@ -192,7 +189,7 @@ vectorcache::vectorcache(ModuleName name,
     CACHE_CONFIG_REG |= ((m_repl & 0x3) << 28);
 
     // Reset statistics
-    for(uint32_t i = 0; i<sets; i++) {
+    for (uint32_t i = 0; i < sets; i++) {
 
       rhits[i] = 0;
       whits[i] = 0;
@@ -203,42 +200,53 @@ vectorcache::vectorcache(ModuleName name,
     wmisses = 0;
     bypassops = 0;
 
-}
+} // vectorcache::vectorcache()
 
-// Destructor
+/// Destructor
 vectorcache::~vectorcache() {
-}
+} // vectorcache::~vectorcache()
 
-// external interface functions
-// ----------------------------
+/// @} Constructors and Destructors
+/// ****************************************************************************
+/// @name Interface Data Methods
+/// @{
 
-/// read from cache
+/// mem_if::Read from cache
+/** @details
+*   The behavior is as follows:
+*   (!bypass-mmu && (enabled || frozen))
+*   ? read_cache
+*     (forced-miss || !found)
+*     ? read_mem
+*       found? update_cache
+*            : (!frozen && cacheable)? allocate_cache
+*   : bypass-mmu
+*     ? read_mem(phys)
+*     : disabled? read_mem
+*/
 bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char *data,
                            unsigned int len, sc_core::sc_time *delay,
-                           unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
+                           unsigned int * debug, bool is_dbg, bool &cacheable,
+                           bool is_lock) {
 
+  unsigned tag = address >> (m_idx_bits + m_offset_bits);
+  unsigned idx = (address << m_tagwidth) >> (m_tagwidth + m_offset_bits);
+  unsigned offset = (address << (32 - m_offset_bits)) >> (32 - m_offset_bits);
+  unsigned byt = (address & 0x3);
   int set_select = -1;
   int cache_hit = -1;
 
-  unsigned int burst_len = 0;
-  unsigned int burst_address = 0;
-  unsigned int replacer_limit = 0;
+  unsigned burst_address = 0;
+  unsigned burst_len = 0;
+  unsigned replacer_limit = 0;
 
-//  unsigned char correct_data[32];
-//  m_tlb_adaptor->mem_read(address, asi, correct_data, len, delay, debug, is_dbg, cacheable, is_lock);
-//  return true;
+  /// --------------------------------------------------------------------------
+  /// !Bypass MMU && (Enabled || Frozen): Search cache
 
-  // Is the cache enabled (0b11) or frozen (0b01) ?
-  if (((!is_dbg) && (check_mode() & 0x1)) && asi != 0x1c) {
-  //if (1==2) {
+  if (!is_dbg && (asi != 0x1c) /* not bypass MMU */
+  && (check_mode() & 0x1) /* enabled (0b11) or frozen (0b01) */) {
 
-    srAnalyse()("Address", address)("Cache READ ACCESS");
-
-    // extract index and tag from address
-    unsigned int tag = (address >> (m_idx_bits + m_offset_bits));
-    unsigned int idx = ((address << m_tagwidth) >> (m_tagwidth + m_offset_bits));
-    unsigned int offset = ((address << (32 - m_offset_bits)) >> (32 - m_offset_bits));
-    unsigned int byt = (address & 0x3);
+    srAnalyse()("addr", address)("Cache READ ACCESS");
 
     // space for data to refill a cache line of maximum size
     unsigned char ahb_data[32];
@@ -247,6 +255,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
     for (unsigned int i = 0; i <= m_sets; i++) {
 
       m_current_cacheline[i] = lookup(i, idx);
+      t_cache_line* line = m_current_cacheline[i];
 
       // ASIs 0-3 force cache miss
       /// BUG: Not a bug, but why is this check inside the loop?
@@ -259,13 +268,13 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
         if (m_pow_mon) dyn_tag_reads++;
 
         // Check the cache tag
-        if ((*m_current_cacheline[i]).tag.atag == tag) {
+        if (line->tag.atag == tag) {
 
           //v::debug << this->name() <<  "Correct atag found in set " << i << v::endl;
 
           // Check the valid bit
-          if ((!m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) ||
-              (m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & 0x1))) {
+          if ((!m_new_linefetch_en && (line->tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) ||
+              (m_new_linefetch_en && (line->tag.valid & 0x1))) {
 
             srAnalyse()("Address", address)("Cache READ HIT");
 
@@ -278,7 +287,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             }
 
             // write data pointer
-            memcpy(data, &(*m_current_cacheline[i]).entry[offset >> 2].c[byt], len);
+            memcpy(data, &line->entry[offset >> 2].c[byt], len);
 
             // Read access to data ram that produced the hit
             /// BUG: Same as for dyn_tag_reads
@@ -305,16 +314,14 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             /// it, we'll set the valid bits anyway, methinks.
             if (len == 8) {
               // dword - make sure to disable both words
-              (m_new_linefetch_en == false) ? (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset, len) : (*m_current_cacheline[i]).tag.valid = 0;
+              (m_new_linefetch_en == false) ? line->tag.valid &= ~offset2valid(offset, len) : line->tag.valid = 0;
 
             }
 
           }
 
         } else {
-
-          srAnalyse()("Address", address)("Cache READ MISS");
-
+          srAnalyse()("addr", address)("Cache READ MISS");
         }
 
       } else {
@@ -325,14 +332,14 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       /// calculations for an ASI forced miss should include cache lookup.
       /// (Possibly just the tags though, not the data?)
 
-        srAnalyse()("Address", address)("Cache forced ASI READ MISS");
+        srAnalyse()("addr", address)("Cache forced ASI READ MISS");
 
 #if 0
         // -------------------------------------------------------
         //added by ABBAS: Inoder to avoide the wrong data read/write specialy when repl=3 (RANDOM), needed to invalidate the exsiting cache line with the same tag.
        
-         if ((*m_current_cacheline[i]).tag.atag == tag) {
-                (m_new_linefetch_en == false) ? (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset, len) : (*m_current_cacheline[i]).tag.valid = 0;
+         if (line->tag.atag == tag) {
+                (m_new_linefetch_en == false) ? (line->tag.valid &= ~offset2valid(offset, len) : (line->tag.valid = 0;
                  break; //no need further search when the cache line is already found
             }
         // -------------------------------------------------------
@@ -382,7 +389,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
         }
       }
 
-      srDebug()("Burst Length", burst_len)("Burst Address", burst_address)("Address", address)("Cache read miss will issue memory read");
+      srDebug()("addr", address)("burst address", burst_address)("burst length", burst_len)("Cache read miss will issue memory read");
 
       // Access ahb interface or mmu - return true if data is cacheable
       if (m_tlb_adaptor->mem_read(burst_address, asi, ahb_data, burst_len, delay, debug, is_dbg, cacheable, is_lock)) {
@@ -394,8 +401,10 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
         /// valid or not), not allocate a new one (even if we have a free/invalid one).
         for (unsigned int i = 0; i <= m_sets; i++) {
 
-          if ((!m_new_linefetch_en && ((((*m_current_cacheline[i]).tag.valid) & offset2valid(offset, len)) == 0)) ||
-              (m_new_linefetch_en && ((((*m_current_cacheline[i]).tag.valid) & 0x1) == 0))) {
+          t_cache_line* line = m_current_cacheline[i];
+
+          if ((!m_new_linefetch_en && (((line->tag.valid) & offset2valid(offset, len)) == 0)) ||
+              (m_new_linefetch_en && (((line->tag.valid) & 0x1) == 0))) {
 
             // select unvalid data for replacement
             set_select = i;
@@ -534,7 +543,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
             //v::debug << name() << "All sets occupied - frozen miss" << v::endl;
 
-            // update debug information
+            // Update debug information
             FROZENMISS_SET(*debug);
 
           }
@@ -543,215 +552,225 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
         srDebug()("Address", address)("Cache read not cacheable");
       }
 
-      // update debug information
-      CACHEREADMISS_SET(*debug, set_select);
-
-      // copy the data requested by the processor
+      // Copy data
       if (!m_new_linefetch_en) {
+        // ahb_data starts at beginning of requested word
         memcpy(data, ahb_data + byt, len);
       } else {
+        // ahb_data contains whole cache line
         memcpy(data, ahb_data + offset, len);
       }
-    }
 
-/*    bool equal = true;
-    for (int i = 0; i < len; i++) {
-      if (correct_data[i] != data[i]) {
-        //data[i] = ahb_data[i];
-        equal = false;
-      }
-    }
-    if (equal == false) {
-      v::warn << name() << "cache and direct read deliver non equal data! addr: " << hex << address << v::endl;
-    } else {
-      v::debug << name() << "cache und direct read equal" << v::endl;
-    }*/
+      // Update debug information
+      CACHEREADMISS_SET(*debug, set_select);
+
+    } // Cache miss
+
+  /// --------------------------------------------------------------------------
+  /// Bypass MMU || Disabled: Read from memory
 
   } else {
 
-    srAnalyse()("Address", address)("Cache READ BYPASS");
+    srAnalyse()("addr", address)("Cache READ BYPASS");
 
-    // Increment bypass counter
-    bypassops++;
+    // Increment time
+    *delay += clockcycle;
 
-    // Cache is disabled
-    // Forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
+    // Read data from mem
     m_tlb_adaptor->mem_read(address, asi, data, len, delay, debug, is_dbg, cacheable, is_lock);
 
-    // update debug information
+    // Update debug information
+    bypassops++;
     CACHEBYPASS_SET(*debug);
 
-    // increment time
-    *delay += clockcycle;
-    /*bool equal = true;
-    for (int i = 0; i < len; i++) {
-      if (correct_data[i] != data[i]) {
-        //data[i] = ahb_data[i];
-        equal = false;
-      }
-    }
-    if (equal == false) {
-      v::warn << name() << "bypass cache and direct read deliver non equal data! addr: " << hex << address << v::endl;
-    } else {
-      v::debug << name() << "cache und direct read equal" << v::endl;
-    }*/
+  } // Bypass MMU || Disabled
 
-  }
-
-  // always return true - cacheability only matters on bus mem_if
+  // Always return true; cacheability only matters on bus mem_if
   return true;
-}
+} //vectorcache::mem_read()
 
-// write to/through cache:
-// -----------------------
-// The write policy for stores is write-through with no-allocate on write miss.
-// - on hits it writes to cache and main memory;
-// - on misses it updates the block in main memory not bringing that block to the cache;
-//   Subsequent writes to the block will update main memory because Write Through policy is employed.
-//   So, some time is saved not bringing the block in the cache on a miss because it appears useless anyway.
+/// ----------------------------------------------------------------------------
 
+/// mem_if::Write cache
+/** @details
+*   The behavior depends on the write_policy and write_alloc chosen:
+*   - A cache hit:
+*     - updates the copy in the cache;
+*     - and either
+*       - updates the memory for write-through; or
+*       - does not update the memory for write-back.
+*   - A cache miss:
+*     - either
+*       - allocates a new cache entry for write-allocate; or
+*       - does not allocate a new cache entry for non-write-allocate;
+*     - and either
+*       - updates the memory for write-through or non-write-allocate; or
+*       - does not update the memory for write-back and write-allocate.
+*   NOTE: write-through is usually combined with non-write-allocate (allocating
+*   does not help since memory will be written anyway), while write-back is
+*   combined with write-allocate (allocating results in hits for subsequent writes
+*   to the same block).
+*   NOTE: The standard LEON3 cache is write-through + non-write-allocate.
+*   The behavior is as follows:
+*   (!bypass-mmu && (enabled || frozen))
+*   ? read_cache
+*     found? update_cache
+*          : (!frozen && write-allocate && cacheable)? allocate_cache; found = true
+*     (!found || write-through)? write_mem
+*   : bypass-mmu
+*     ? write_mem(phys)
+*     : disabled? write_mem
+*/
 void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned char * data,
                             unsigned int len, sc_core::sc_time * delay,
                             unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock) {
 
-    // is the cache enabled (0x11) or frozen (0x01)
-    if (((check_mode() & 0x1) && asi != 0x1c)) {
-    //if (1==2) {
-        srAnalyse()("Address", address)("Cache WRITE ACCESS");
+  unsigned tag = address >> (m_idx_bits + m_offset_bits);
+  unsigned idx = (address << m_tagwidth) >> (m_tagwidth + m_offset_bits);
+  unsigned offset = (address << (32 - m_offset_bits)) >> (32 - m_offset_bits);
+  bool is_hit = false;
 
-        // extract index and tag from address
-        unsigned int tag    = (address >> (m_idx_bits + m_offset_bits));
-        unsigned int idx    = ((address << m_tagwidth) >> (m_tagwidth + m_offset_bits));
-        unsigned int offset = ((address << (32 - m_offset_bits)) >> (32 - m_offset_bits));
-        unsigned int byt    = (address & 0x3);
+  /// --------------------------------------------------------------------------
+  /// !Bypass MMU && (Enabled || Frozen): Search cache
 
-        bool is_hit = false;
-        /// BUG: Power information missing for all branches
+  if ((asi != 0x1c) /* not bypass MMU */
+  && (check_mode() & 0x1) /* enabled (0b11) or frozen (0b01) */) {
 
-        // lookup all cachesets
-        for (unsigned int i = 0; i <= m_sets; i++) {
+    srAnalyse()("addr", address)("Cache WRITE ACCESS");
 
-            m_current_cacheline[i] = lookup(i, idx);
 
-            //v::debug << this->name() <<  "Set :" << i << " atag: " << (*m_current_cacheline[i]).tag.atag << " valid: " << (*m_current_cacheline[i]).tag.valid << " entry: " << (*m_current_cacheline[i]).entry[offset>>2].i << v::endl;
+    /// BUG: Power information missing for all branches
 
-            // Check the cache tag
-            if ((*m_current_cacheline[i]).tag.atag == tag) {
+    // lookup all cachesets
+    for (unsigned int i = 0; i <= m_sets; i++) {
 
-              //v::debug << this->name() << "Correct atag found in set " << i << v::endl;
+      m_current_cacheline[i] = lookup(i, idx);
+      t_cache_line* line = m_current_cacheline[i];
 
-                // Check the valid bits
-              if ((!m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) ||
-                  (m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & 0x1))) {
+      // Check the cache tag
+      if (line->tag.atag == tag) {
 
-                srAnalyse()("Address", address)("Cache WRITE HIT");
+        // Check the valid bits
+        if ((!m_new_linefetch_en && (line->tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) ||
+            (m_new_linefetch_en && (line->tag.valid & 0x1))) {
 
-                // update lru history
-                if (m_repl == 1) {
-                  lru_update(i);
-                }
+          srAnalyse()("Address", address)("Cache WRITE HIT");
 
-                // update debug information
-                CACHEWRITEHIT_SET(*debug, i);
-                is_hit = true;
+          // update lru history
+          if (m_repl == 1) {
+            lru_update(i);
+          }
 
-                if (len != 8) {
-                  // write data to cache
-                  for (unsigned int j = 0; j < len; j++) {
-                    (*m_current_cacheline[i]).entry[offset >> 2].c[byt + j] = *(data + j);
-                  }
+          // update debug information
+          CACHEWRITEHIT_SET(*debug, i);
+          is_hit = true;
 
-                } else {
-                  // is 64 bit
-
-                  // write data to cache
-                  for (unsigned int j = 0; j < 8; j++) {
-                    (*m_current_cacheline[i]).entry[(offset+j) >> 2].c[(j % 4)] = *(data + j);
-                  }
-                 }
-
-                // Increment hit counter
-                whits[i]++;
-
-                // valid is already set
-                break;
-
-              } else {
-
-                srDebug()("Address", address)("Cache write hit but invalid data");
-
-                // For 64bit access invalidate the upper word
-                /// BUG: Again, as in mem_read, why are we invalidating? Shouldn't be
-                /// bundled with updating the cache line? Is it so that we use this same
-                /// line for replacement? Doesn't seem the best way for achieving this...
-                if (len == 8) {
-
-                  if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset+4)) != 0) {
-
-                    v::debug << this->name() << "64bit invalidate" << v::endl;
-                    (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset+4);
-
-                  }
-                }
-              }
-
-            } else {
-
-              srAnalyse()("Address", address)("Cache WRITE MISS");
+          if (len != 8) {
+            // write data to cache
+            for (unsigned int j = 0; j < len; j++) {
+              unsigned int byt    = (address & 0x3);
+              line->entry[offset >> 2].c[byt + j] = *(data + j);
             }
 
-            // increment time
-            /// BUG: 1) This will be +0 for len <=4 and +1 for len == 8 (same bug as in mem_read)
-            ///      2) Result from 1) is multiplied by searched ways; wrong logic, since all ways are read in parallel (same in mem_read)
-            ///      3) This statement runs for cache misses too, which doesn't make sense because then the delay should not depend on the data length.
-            /// Suggestion: delay should be incremented by one for misses and by (1 + (len - 1) >> 2) * clockcycle for hits. Perhaps not necessary
-            /// to wait for writes but simplifies the pipeline. Then no more waiting for mem writes because of the write buffer.
-            *delay += ((len - 1) >> 2)*clockcycle;
+          } else {
+            // is 64 bit
 
+            // write data to cache
+            for (unsigned int j = 0; j < 8; j++) {
+              line->entry[(offset+j) >> 2].c[(j % 4)] = *(data + j);
+            }
+          }
+
+          // Increment hit counter
+          whits[i]++;
+
+          // valid is already set
+          break;
+
+        } else {
+
+          srDebug()("Address", address)("Cache write hit but invalid data");
+
+          // For 64bit access invalidate the upper word
+          /// BUG: Again, as in mem_read, why are we invalidating? Shouldn't be
+          /// bundled with updating the cache line? Is it so that we use this same
+          /// line for replacement? Doesn't seem the best way for achieving this...
+          if (len == 8) {
+
+            if ((line->tag.valid & offset2valid(offset+4)) != 0) {
+
+              v::debug << this->name() << "64bit invalidate" << v::endl;
+              line->tag.valid &= ~offset2valid(offset+4);
+
+            }
+          }
         }
 
-        // update debug information
-        if (!is_hit) {
+      } else {
 
-            CACHEWRITEMISS_SET(*debug);
-//            v::debug << name() << "ACCESS IS WRITEMISS " << hex << *debug << v::endl;
-            wmisses++;
-        }
+        srAnalyse()("Address", address)("Cache WRITE MISS");
+      }
 
-        // write data to main memory
-        // todo: - implement byte access
-        //       - implement write buffer
+      // increment time
+      /// BUG: 1) This will be +0 for len <=4 and +1 for len == 8 (same bug as in mem_read)
+      ///      2) Result from 1) is multiplied by searched ways; wrong logic, since all ways are read in parallel (same in mem_read)
+      ///      3) This statement runs for cache misses too, which doesn't make sense because then the delay should not depend on the data length.
+      /// Suggestion: delay should be incremented by one for misses and by (1 + (len - 1) >> 2) * clockcycle for hits. Perhaps not necessary
+      /// to wait for writes but simplifies the pipeline. Then no more waiting for mem writes because of the write buffer.
+      *delay += ((len - 1) >> 2)*clockcycle;
 
-        // The write buffer (WRB) consists of 3x32bit registers. It is used to temporarily
-        // hold store data until it is sent to the destination device. For half-word
-        // or byte stores, the data has to be properly aligned for writing to word-
-        // addressed device, before writing the WRB.
-
-        m_tlb_adaptor->mem_write(address, asi, data, len, delay, debug, is_dbg, cacheable, is_lock);
-
-    } else {
-
-        srAnalyse()("Address", address)("Cache WRITE BYPASS");
-
-        // increment bypass counter
-        bypassops++;
-
-        // cache is disabled
-        // forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
-        m_tlb_adaptor->mem_write(address, asi, data, len, delay, debug, is_dbg, cacheable, is_lock);
-
-        // update debug information
-        CACHEBYPASS_SET(*debug);
-
-        *delay += clockcycle;
     }
-}
 
-// read cache configuration register
+    // update debug information
+    if (!is_hit) {
+
+      CACHEWRITEMISS_SET(*debug);
+//      v::debug << name() << "ACCESS IS WRITEMISS " << hex << *debug << v::endl;
+      wmisses++;
+    }
+
+    // write data to main memory
+    // todo: - implement byte access
+    //       - implement write buffer
+
+    // The write buffer (WRB) consists of 3x32bit registers. It is used to temporarily
+    // hold store data until it is sent to the destination device. For half-word
+    // or byte stores, the data has to be properly aligned for writing to word-
+    // addressed device, before writing the WRB.
+
+    m_tlb_adaptor->mem_write(address, asi, data, len, delay, debug, is_dbg, cacheable, is_lock);
+
+  /// --------------------------------------------------------------------------
+  /// Bypass MMU || Disabled
+
+  } else {
+
+    srAnalyse()("addr", address)("Cache WRITE BYPASS");
+
+    // Increment time
+    *delay += clockcycle;
+
+    // Write data to mem
+    m_tlb_adaptor->mem_write(address, asi, data, len, delay, debug, is_dbg, cacheable, is_lock);
+
+    // Update debug information
+    bypassops++;
+    CACHEBYPASS_SET(*debug);
+
+  } // Bypass MMU || Disabled
+} // vectorcache::mem_write()
+
+/// @} Interface Data Methods
+/// ****************************************************************************
+/// @name Interface Control Methods
+/// @{
+
+/// cache_if::Read cache configuration register
 unsigned int vectorcache::read_config_reg(sc_core::sc_time *t) {
 
-  unsigned int tmp = CACHE_CONFIG_REG;
-  v::debug << this->name() << "read_config_reg 0x" << tmp <<  v::endl;
+  unsigned tmp = CACHE_CONFIG_REG;
+
+  srDebug()("CACHE_CONFIG_REG", tmp)("Read cache configuration register");
 
   *t += clockcycle;
 
@@ -761,8 +780,9 @@ unsigned int vectorcache::read_config_reg(sc_core::sc_time *t) {
 
   return (tmp);
 
-}
+} // vectorcache::read_config_reg()
 
+/// ----------------------------------------------------------------------------
 
 // ------------------------------
 // About diagnostic cache access:
@@ -781,57 +801,61 @@ unsigned int vectorcache::read_config_reg(sc_core::sc_time *t) {
 //
 // A[13:12] = 1 (WAY); A[11:5] = 2 (TAG) -> TAG Address = 0x1040
 
-// read data cache tags (ASI 0xe)
-// -------------------------------------
-// Diagnostic read of tags is possible by executing an LDA instruction with ASI = 0xC for
-// instruction cache tags and ASI = 0xe for data cache tags. A cache line and set are indexed by
-// the address bits making up the cache offset and the least significant bits of the address bits
-// making up the address tag.
-
+/// cache_if::Read cache tags (ASI 0xe)
+/** @details
+*   Diagnostic read of tags is possible by executing an LDA instruction with
+*   ASI = 0xC for instruction cache tags and ASI = 0xe for data cache tags.
+*   A cache line and way are indexed by the address bits making up the cache
+*   offset and the least significant bits of the address bits making up the
+*   address tag.
+*/
 void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
                                  sc_core::sc_time *t) {
 
-    unsigned int tmp;
+  unsigned tmp;
+  unsigned idx = (address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits);
+  unsigned way = (address >> (m_idx_bits + m_offset_bits)) & 0x3;
 
-    unsigned int set = ((address >> (m_idx_bits + m_offset_bits)) & 0x3);
-    unsigned int idx = ((address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits));
+  // find the required cache line
+  m_current_cacheline[way] = lookup(way, idx);
+  t_cache_line* line = m_current_cacheline[way];
 
-    // find the required cache line
-    m_current_cacheline[set] = lookup(set, idx);
+  // build bitmask from tag fields
+  // (! The atag field starts bit 10. It is not MSB aligned as in the actual tag layout.)
+  tmp = line->tag.atag << 10;
+  tmp |= line->tag.lrr << 9;
+  tmp |= line->tag.lock << 8;
+  tmp |= line->tag.valid;
 
-    v::debug << name() << "ATAG: " << hex << (*m_current_cacheline[set]).tag.atag << v::endl;
+  srDebug()("tag", line->tag.atag)
+           ("idx", idx)
+           ("way", way)
+           ("Diagnostic read cache tag");
 
-    // build bitmask from tag fields
-    // (! The atag field starts bit 10. It is not MSB aligned as in the actual tag layout.)
-    tmp = (*m_current_cacheline[set]).tag.atag << 10;
-    tmp |= (*m_current_cacheline[set]).tag.lrr << 9;
-    tmp |= (*m_current_cacheline[set]).tag.lock << 8;
-    tmp |= (*m_current_cacheline[set]).tag.valid;
+  #ifdef LITTLE_ENDIAN_BO
+  swap_Endianess(tmp);
+  #endif
 
-    v::debug << this->name() << "Diagnostic tag read set: " << hex << set
-             << " idx: " << hex << idx << " - tag: " << hex << v::setw(8) << tmp
-             << v::endl;
+  // handover bitmask pointer (the tag)
+  *data = tmp;
 
-    #ifdef LITTLE_ENDIAN_BO
-    swap_Endianess(tmp);
-    #endif
+  // increment time
+  *t += clockcycle;
 
-    // handover bitmask pointer (the tag)
-    *data = tmp;
+} // vectorcache::read_cache_tag()
 
-    // increment time
-    *t += clockcycle;
+/// ----------------------------------------------------------------------------
 
-}
-
-// write data cache tags (ASI 0xe)
-// --------------------------------------
-// The tags can be directly written by executing a STA instruction with ASI = 0xC for the instruction
-// cache tags and ASI = 0xE for the data cache tags. The cache line and set are indexed by the
-// address bits making up the cache offset and the least significant bits of the address bits making
-// up the address tag. D[31:10] is written into the ATAG field and the valid bits are written with
-// the D[7:0] of the write data. Bit D[9] is written into the LRR bit (if enabled) and D[8] is
-// written into the lock bit (if enabled).
+/// cache_if::Write data cache tags (ASI 0xe)
+/** @details
+*   The tags can be directly written by executing a STA instruction with
+*   ASI = 0xC for the instruction cache tags and ASI = 0xE for the data cache
+*   tags. The cache line and set are indexed by the address bits making up the
+*   cache offset and the least significant bits of the address bits making up
+*   the address tag. D[31:10] is written into the ATAG field and the valid bits
+*   are written with the D[7:0] of the write data. Bit D[9] is written into the
+*   LRR bit (if enabled) and D[8] is written into the lock bit (if enabled).
+*/
 void vectorcache::write_cache_tag(unsigned int address, unsigned int * data,
                                   sc_core::sc_time *t) {
 
@@ -839,182 +863,214 @@ void vectorcache::write_cache_tag(unsigned int address, unsigned int * data,
   swap_Endianess(*data);
   #endif
 
-  unsigned int set = ((address >> (m_idx_bits + m_offset_bits)) & 0x3);
-  unsigned int idx = ((address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits));
+  unsigned idx = (address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits);
+  unsigned way = (address >> (m_idx_bits + m_offset_bits)) & 0x3;
 
   // find the required cache line
-  m_current_cacheline[set] = lookup(set, idx);
+  m_current_cacheline[way] = lookup(way, idx);
+  t_cache_line* line = m_current_cacheline[way];
 
   // update the tag with write data
   // (! The atag field is expected to start at bit 10. Not MSB aligned as in tag layout.)
-  (*m_current_cacheline[set]).tag.atag = *data >> 10;
-  (*m_current_cacheline[set]).tag.lrr = ((*data & 0x100) >> 9);
+  line->tag.atag = *data >> 10;
+  line->tag.lrr = (*data & 0x100) >> 9;
   // lock bit can only be set, if line locking is enabled
-  // locking only works in multi-set configurations. the last set may never be locked.
-  (*m_current_cacheline[set]).tag.lock
-          = ((m_setlock) && (set != m_sets))? ((*data & 0x100) >> 8) : 0;
-  (*m_current_cacheline[set]).tag.valid = (*data & 0xff);
+  // locking only works in multi-way configurations. the last way must never be locked.
+  line->tag.lock = ((m_setlock) && (way != m_sets))? ((*data & 0x100) >> 8) : 0;
+  line->tag.valid = (*data & 0xff);
 
-  v::debug  << this->name() << "Diagnostic tag write set: " << hex << set
-           << " idx: " << hex << idx << " atag: " << hex
-           << (*m_current_cacheline[set]).tag.atag << " lrr: " << hex
-           << (*m_current_cacheline[set]).tag.lrr << " lock: " << hex
-           << (*m_current_cacheline[set]).tag.lock << " valid: " << hex
-           << (*m_current_cacheline[set]).tag.valid << v::endl;
+  srDebug()("tag", line->tag.atag)
+           ("idx", idx)
+           ("way", way)
+           ("lrr", line->tag.lrr)
+           ("lock", line->tag.lock)
+           ("valid", line->tag.valid)
+           ("Diagnostic write cache tag");
 
   // increment time
   *t += clockcycle;
 
-}
+} // vectorcache::write_cache_tag()
 
-// read data cache entry/data (ASI 0xf)
-// -------------------------------------------
-// Similar to instruction tag read, a data sub-block may be read by executing an LDA instruction
-// with ASI = 0xD for instruction cache data and ASI = 0xF for data cache data.
-// The sub-block to be read in the indexed cache line and set is selected by A[4:2].
+/// ----------------------------------------------------------------------------
+
+/// cache_if::Read data cache entry/data (ASI 0xf)
+/** @details
+*   Similar to instruction tag read, a data sub-block may be read by executing
+*   an LDA instruction with ASI = 0xD for instruction cache data and ASI = 0xF
+*   for data cache data. The sub-block to be read in the indexed cache line and
+*   set is selected by A[4:2].
+*/
 void vectorcache::read_cache_entry(unsigned int address, unsigned int * data,
                                    sc_core::sc_time *t) {
 
-  unsigned int set = ((address >> (m_idx_bits + m_offset_bits)) & 0x3);
-  unsigned int idx = ((address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits));
-  unsigned int sb = (address << (32 - m_offset_bits) >> (34 - m_offset_bits));
+  unsigned idx = (address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits);
+  unsigned sb = (address << (32 - m_offset_bits) >> (34 - m_offset_bits));
+  unsigned way = (address >> (m_idx_bits + m_offset_bits)) & 0x3;
 
   // find the required cache line
-  m_current_cacheline[set] = lookup(set, idx);
+  m_current_cacheline[way] = lookup(way, idx);
+  t_cache_line* line = m_current_cacheline[way];
 
-  *data = (*m_current_cacheline[set]).entry[sb].i;
+  *data = line->entry[sb].i;
 
-  v::debug << this->name() << "Diagnostic data read set: " << hex << set
-           << " idx: " << hex << idx << " sub-block: " << sb
-           << " - data: " << hex << *data << v::endl;
+  srDebug()("idx", idx)
+           ("subblock", sb)
+           ("way", way)
+           ("data", *data)
+           ("Diagnostic read cache entry");
 
   // increment time
   *t += clockcycle;
 
-}
+} // vectorcache::read_cache_entry()
 
-/// write data cache entry/data (ASI 0xd)
-// --------------------------------------------
-// A data sub-block can be directly written by executing a STA instruction with ASI = 0xD for the
-// instruction cache data and ASI = 0xF for the data cache data. The sub-block to be read in
-// indexed cache line and set is selected by A[4:2].
+/// ----------------------------------------------------------------------------
+
+/// cache_if::Write data cache entry/data (ASI 0xd)
+/** @details
+*   A data sub-block can be directly written by executing a STA instruction with
+*   ASI = 0xD for the instruction cache data and ASI = 0xF for the data cache
+*   data. The sub-block to be read in indexed cache line and set is selected by
+*   A[4:2].
+*/
 void vectorcache::write_cache_entry(unsigned int address, unsigned int * data,
                                     sc_core::sc_time *t) {
 
-    unsigned int set = ((address >> (m_idx_bits + m_offset_bits)) & 0x3);
-    unsigned int idx = ((address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits));
-    unsigned int sb = (address << (32 - m_offset_bits) >> (34 - m_offset_bits));
+  unsigned idx = (address << (32 - (m_idx_bits + m_offset_bits))) >> (32 - m_idx_bits);
+  unsigned sb = (address << (32 - m_offset_bits) >> (34 - m_offset_bits));
+  unsigned way = (address >> (m_idx_bits + m_offset_bits)) & 0x3;
 
-    // find the required cache line
-    m_current_cacheline[set] = lookup(set, idx);
+  // find the required cache line
+  m_current_cacheline[way] = lookup(way, idx);
+  t_cache_line* line = m_current_cacheline[way];
 
-    (*m_current_cacheline[set]).entry[sb].i = *data;
+  line->entry[sb].i = *data;
 
-    v::debug << this->name() << "Diagnostic data write set: " << hex << set
-            << " idx: " << hex << idx << " sub-block: " << sb
-            << " - data: " << hex << *data << v::endl;
+  srDebug()("idx", idx)
+           ("subblock", sb)
+           ("way", way)
+           ("data", *data)
+           ("Diagnostic write cache entry");
 
-    // increment time
-    *t += clockcycle;
+  // increment time
+  *t += clockcycle;
 
-}
+} // vectorcache::write_cache_entry()
 
+/// ----------------------------------------------------------------------------
 
-// call to flush cache
+/// cache_if::Flush cache
 void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) {
 
-//    unsigned int addr;
-//    bool cacheable = false;
+//  unsigned addr;
+//  bool cacheable = false;
 
-    v::debug << name() << "Cache flush!" << v::endl;
+  v::debug << name() << "Cache flush!" << v::endl;
 
-    // for all cache sets
-    for (unsigned int set = 0; set <= m_sets; set++) {
+  // for all cache lines
+  for (unsigned int way = 0; way <= m_sets; way++) {
+    t_cache_line* line = m_current_cacheline[way];
 
-        // and all cache lines
-        for (unsigned int line = 0; line < m_number_of_vectors; line++) {
+    // and all cache lines
+    for (unsigned i_line = 0; i_line < m_number_of_vectors; i_line++) {
 
-            m_current_cacheline[set] = lookup(set, line);
+      m_current_cacheline[way] = lookup(way, i_line);
 
-            // it's a write-through cache. we should never need the following code
-/*            // and all cache line entries
-            for (unsigned int entry = 0; entry < m_wordsperline; entry++) {
+      // it's a write-through cache. we should never need the following code
+/*      // and all cache line entries
+      for (unsigned int entry = 0; entry < m_wordsperline; entry++) {
 
-                // check for valid data
-                if ((*m_current_cacheline[set]).tag.valid & (1 << entry)) {
+        // check for valid data
+        if (line->tag.dirty && line->tag.valid & (1 << entry)) {
 
-                    // construct address from tag
-                    addr = ((*m_current_cacheline[set]).tag.atag << (m_idx_bits
-                            + m_offset_bits));
-                    addr |= (line << m_offset_bits);
-                    addr |= (entry << 2);
+          // construct address from tag
+          addr = (line->tag.atag << (m_idx_bits + m_offset_bits));
+          addr |= (i_line << m_offset_bits);
+          addr |= (entry << 2);
 
-                    v::debug << this->name() << "FLUSH set: " << set
-                            << " line: " << line << " addr: " << hex
-                            << addr << " data: " << hex
-                            << (*m_current_cacheline[set]).entry[entry].i
-                            << v::endl;
+          v::debug << this->name() << "FLUSH set: " << set
+                   << " line: " << i_line << " addr: " << hex
+                   << addr << " data: " << hex
+                   << line->entry[entry].i
+                   << v::endl;
 
-                    m_tlb_adaptor->mem_write(addr, 0x8,(unsigned char *)&(*m_current_cacheline[set]).entry[entry],
-                                             4, t, debug, is_dbg, cacheable, false);
+          m_tlb_adaptor->mem_write(addr, 0x8,(unsigned char*)&(line->entry[entry]),
+                                   4, t, debug, is_dbg, cacheable, false);
 
-                }
-            } */
-            // invalidate all entries
-            (*m_current_cacheline[set]).tag.valid = 0;
         }
+      }*/
+      // invalidate all entries
+      line->tag.valid = 0;
     }
+  }
 
-    // Update debug information
-    CACHEFLUSH_SET(*debug);
+  // Update debug information
+  CACHEFLUSH_SET(*debug);
+  srDebug()("flush set", *debug)("Finished cache flush");
 
-    v::debug << name() << "FLUSH SET DEBUG: " << hex << *debug << v::endl;
-    v::debug << name() << "cache flush" << v::endl;
-}
+} // vectorcache::flush()
+
+/// ----------------------------------------------------------------------------
 
 /// Snooping function (invalidates cache lines)
 void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time& delay) {
 
-  unsigned int address;
-  unsigned int tag;
-  unsigned int idx;
-  unsigned int offset;
+  unsigned address;
+  unsigned tag;
+  unsigned idx;
+  unsigned offset;
+  unsigned way;
 
   // Is the cache enabled
   if ((check_mode() & 0x3) == 0x3) {
 
-    for (address = snoop.address; address < snoop.address + snoop.length; address+=4) {
-
+    for (address = snoop.address; address < snoop.address + snoop.length; address += 4) {
       // Extract index and tag from address
-      tag    = (address >> (m_idx_bits + m_offset_bits));
-      idx    = ((address << m_tagwidth) >> (m_tagwidth + m_offset_bits));
-      offset = ((address << (32 - m_offset_bits)) >> (32 - m_offset_bits));
+      tag    = address >> (m_idx_bits + m_offset_bits);
+      idx    = (address << m_tagwidth) >> (m_tagwidth + m_offset_bits);
+      offset = (address << (32 - m_offset_bits)) >> (32 - m_offset_bits);
+      way    = 0;
 
       // Lookup all cachesets
-      for (unsigned int i = 0; i <= m_sets; i++) {
+      for (; way <= m_sets; way++) {
 
-        m_snoop_cacheline = lookup(i, idx);
+        m_snoop_cacheline = lookup(way, idx);
+        t_cache_line* line = m_snoop_cacheline;
 
         // Check the cache tag
-        if (((*m_snoop_cacheline).tag.atag) == tag) {
+        if ((line->tag.atag) == tag) {
 
           // Delete the valid bit
-          //((*m_snoop_cacheline).tag.valid &= (~offset2valid(offset))); Old expression
-                // is changed by ABBAS because previously the valid bit "valid[0]" was not reset
-                if(!m_new_linefetch_en){
-                      ((*m_snoop_cacheline).tag.valid &= (~offset2valid(offset)));
-                }else{
-           (*m_snoop_cacheline).tag.valid = 0;
-                }
+          //(line->tag.valid &= (~offset2valid(offset))); Old expression
+          // is changed by ABBAS because previously the valid bit "valid[0]" was not reset
+          if (!m_new_linefetch_en) {
+            line->tag.valid &= ~offset2valid(offset);
+          } else {
+            line->tag.valid = 0;
+          }
         }
       }
     }
   }
-}
+} // vectorcache::snoop_invalidate()
 
+/// @} Interface Control Methods
+/// ****************************************************************************
+/// @name Internal Methods
+/// @{
 
-// Transforms a cache-line offset into a valid mask
-inline unsigned int vectorcache::offset2valid(unsigned int offset, unsigned int len) {
+/// Transforms a cache-line offset into a valid mask
+/** @details
+*   Cache lines can hold either 16 bytes or 32 bytes. Valid bits are defined for
+*   each word, hence 4 or 8 bits per cache line.
+*   The len parameter is the number of bytes to be accessed from the cache line
+*   and defaults to 4. Offset is in bytes and is first divided by 4 to give the
+*   word offset. Since lines can have a max of 8 words, we mask an 8-bit valid
+*   field to find out whether the data at the calculated word offset is valid.
+*   NOTE: This function does not perform alignment checks.
+*/
+unsigned int vectorcache::offset2valid(unsigned int offset, unsigned int len) {
 
   if (len != 8) {
 
@@ -1045,152 +1101,134 @@ inline unsigned int vectorcache::offset2valid(unsigned int offset, unsigned int 
       return 0x00;
     }
   }
-}
+} // vectorcache::offset2valid()
 
-/// select cache line to be replaced according to replacement policy
+/// ----------------------------------------------------------------------------
+
+/// Selects way to be refilled depending on replacement strategy
 unsigned int vectorcache::replacement_selector(unsigned int mode) {
 
-    unsigned int set_select = 0;
-    int min_lru;
+  unsigned way = 0, way_select = 0;
+  int min_lru;
 
-    // LRU - least recently used
-    switch (mode) {
+  switch (mode) {
 
-        // direct mapped
-        case 0:
+    // Direct mapped
+    case 0:
 
-            // There is only one set
-            set_select = 0;
-            break;
+      // There is only one way.
+      way_select = 0;
+      break;
 
-            // LRU - least recently used
-        case 1:
+    // LRU - least-recently used
+    case 1:
 
-            // LRU replaces the line, which hasn't been used for the longest time.
+      // LRU replaces the line, which hasn't been used for the longest time.
+      // The LRU algorithm needs extra "flip-flops" per cache line to store
+      // access history. Within the TLM model the LRU bits will be attached to
+      // the tag ram.
 
-            // The LRU algorithm needs extra "flip-flops"
-            // per cache line to store access history.
-            // Within the TLM model the LRU bits will be
-            // attached to tag ram.
+      // Find the cache line with the lowest LRU value.
+      min_lru = m_max_lru;
 
-            // Find the cache line with the lowest LRU value
-            min_lru = m_max_lru;
+      for (; way <= m_sets; way++) {
+        t_cache_line* line = m_current_cacheline[way];
 
-            for (unsigned int i = 0; i <= m_sets; i++) {
+        // The last way will never be locked.
+        if ((line->tag.lru <= min_lru) && (line->tag.lock == 0)) {
+          min_lru = line->tag.lru;
+          way_select = way;
+        }
+      }
+      srDebug()("selected way", way_select)("LRU Replacement");
+      break;
 
-                v::debug << this->name() << "LRU Replacer Check Set: " << i
-                        << v::endl;
+    // LRR - least recently replaced
+    case 2:
 
-                // the last set will never be locked
-                if (((*m_current_cacheline[i]).tag.lru <= min_lru)
-                        && ((*m_current_cacheline[i]).tag.lock == 0)) {
+      // The LRR algorithm uses one extra bit in tag rams to store replacement
+      // history. Supossed to work only for 2-way associative caches.
 
-                    v::debug << this->name() << "LRU Replacer Select Set: " << i
-                            << v::endl;
-                    min_lru = (*m_current_cacheline[i]).tag.lru;
-                    set_select = i;
+      // The last way (way 1) will never be locked.
+      way_select = 1;
 
-                }
-            }
+      for (; way < 2; way++) {
+        t_cache_line* line = m_current_cacheline[way];
 
-            break;
+        if ((line->tag.lrr == 0) && (line->tag.lock == 0)) {
 
-            // LRR - least recently replaced
-        case 2:
+          srDebug()("selected way", way)("LRR Replacement");
+          way_select = way;
+          break;
+        }
+      }
+      break;
 
-            // The LRR algorithm uses one extra bit in tag rams
-            // to store replacement history. Supossed to work
-            // only for 2-way associative caches.
+    // Pseudo-random
+    default:
 
-            // default: set 1 (the highest) can not be locked
-            set_select = 1;
+      // Random replacement is implemented through modulo-N counter that selects
+      // the line to be evicted on cache miss.
 
-            for (unsigned int i = 0; i < 2; i++) {
+      do {
 
-                v::debug << this->name() << "LRR Replacer Check Set: " << i
-                        << v::endl;
-
-                if (((*m_current_cacheline[i]).tag.lrr == 0)
-                        && ((*m_current_cacheline[i]).tag.lock == 0)) {
-
-                    v::debug << this->name() << "LRR Replacer Select Set: " << i
-                            << v::endl;
-                    set_select = i;
-                    break;
-                }
-            }
-
-            break;
-
-            // pseudo - random
-        default:
-
-            // Random replacement is implemented through
-            // modulo-N counter that selects the line to be
-            // evicted on cache miss.
-
-            do {
-
-                set_select = m_pseudo_rand % (m_sets + 1);
-                m_pseudo_rand++;
-
-            }
-
-            // check line lock: the last sets will never be locked!!
-            while ((*m_current_cacheline[set_select]).tag.lock != 0);
-
-    }
-
-    return set_select;
-
-}
-
-/// LRR replacement history updater
-void vectorcache::lrr_update(unsigned int set_select) {
-
-    // ! LRR may only be used for 2-way
-    for (unsigned int i = 0; i < 2; i++) {
-
-        // switch on lrr bit off selected set, switch off the other one
-        (*m_current_cacheline[i]).tag.lrr = (i == set_select)? 1 : 0;
-        v::debug << this->name() << "Set " << i << " lrr: "
-                << (*m_current_cacheline[i]).tag.lrr << v::endl;
-
-    }
-
-}
-
-/// LRU replacement history updater
-void vectorcache::lru_update(unsigned int set_select) {
-
-  uint32_t tmp;
-
-  for (unsigned int i = 0; i <= m_sets; i++) {
-
-    // LRU: Counter for each line of a set
-    // (2 way - 1 bit, 3 way - 3 bit, 4 way - 5 bit)
-
-    tmp = (*m_current_cacheline[i]).tag.lru;
-
-    if (i == set_select) {
-
-      (*m_current_cacheline[i]).tag.lru = m_max_lru;
-
-    } else {
-
-      if (tmp > 0) {
-
-        (*m_current_cacheline[i]).tag.lru--;
+        way_select = m_pseudo_rand % (m_sets + 1);
+        m_pseudo_rand++;
 
       }
-    }
+      // The last way will never be locked.
+      while ((*m_current_cacheline[way_select]).tag.lock != 0);
 
-    v::debug << this->name() << "Set " << i << " lru: "
-                << (*m_current_cacheline[i]).tag.lru << v::endl;
+      srDebug()("selected way", way_select)("Pseudo Random Replacement");
+  }
+
+  return way_select;
+
+} // vectorcache::replacement_selector()
+
+/// ----------------------------------------------------------------------------
+
+/// Updates the LRR bits for every line replacement
+void vectorcache::lrr_update(unsigned int way_select) {
+
+// LRR may only be used for 2-way associative caches.
+  for (unsigned way = 0; way < 2; way++) {
+
+    t_cache_line* line = m_current_cacheline[way];
+
+    // Switch the lrr bit on for the selected way and off for the remaining.
+    line->tag.lrr = (way == way_select)? 1 : 0;
+
+    srDebug()("way", way)("LRR", line->tag.lrr)("LRR update");
 
   }
 
-}
+} // vectorcache::lrr_update()
+
+/// ----------------------------------------------------------------------------
+
+/// Updates the LRU counters for every cache hit
+void vectorcache::lru_update(unsigned int way_select) {
+
+  unsigned lru;
+
+  for (unsigned way = 0; way <= m_sets; way++) {
+    t_cache_line* line = m_current_cacheline[way];
+    lru = line->tag.lru;
+
+    // LRU: Counter for each line of a way
+    // (2 way - 1 bit, 3 way - 3 bit, 4 way - 5 bit)
+    if (way == way_select) {
+      line->tag.lru = m_max_lru;
+    } else if (lru > 0) {
+      line->tag.lru--;
+    }
+
+    srDebug()("way", way)("old LRU", lru)("new LRU", line->tag.lru)("LRU update");
+
+  }
+
+} // vectorcache::lru_update()
 
 // internal behavioral functions
 // -----------------------------
@@ -1215,55 +1253,56 @@ inline t_cache_line * vectorcache::lookup(unsigned int set, unsigned int idx) {
 
 }
 
-// debug and helper functions
-// --------------------------
+/// @} Internal Methods
+/// ****************************************************************************
+/// @name Diagnostic Methods
+/// @{
 
-// displays cache lines at stdout for debug
-void vectorcache::dbg_out(unsigned int line) {
+/// Displays cache lines for debugging
+void vectorcache::dbg_out(unsigned int idx) {
 
   #ifdef LITTLE_ENDIAN_BO
 
-  swap_Endianess(line);
+  swap_Endianess(idx);
 
   #endif
 
   t_cache_line dbg_cacheline;
 
-  for (unsigned int i = 0; i <= m_sets; i++) {
-
-    // read the cacheline from set
-    dbg_cacheline = (*cache_mem[i])[line];
+  for (unsigned way = 0; way <= m_sets; way++) {
+    dbg_cacheline = (*cache_mem[way])[idx];
+    t_cache_line* line = &dbg_cacheline;
 
     // display the tag
-    std::cout << "SET: " << i << " ATAG: 0x" << hex
-              << dbg_cacheline.tag.atag << " VALID: 0x" << hex
-              << dbg_cacheline.tag.valid << v::endl;
-
-    std::cout << "Byte:       0 1 2 3" << v::endl;
-    std::cout << "-------------------" << v::endl;
+    srDebug()("tag", line->tag.atag)
+             ("way", way)
+             ("valid", line->tag.valid)
+             ("Diagnostic cache line display (big-endian)");
 
     // display all entries
-    for (unsigned int j = 0; j < m_wordsperline; j++) {
+    for (unsigned j = 0; j < m_wordsperline; j++) {
 
       std::cout << "Entry: " << j << " - ";
 
-      for (unsigned int k = 0; k < 4; k++) {
-
-        std::cout << hex << std::setw(2) << (unsigned int)dbg_cacheline.entry[j].c[k];
-
+      for (unsigned k = 0; k < 4; k++) {
+        std::cout << hex << std::setw(2) << (unsigned)line->entry[j].c[k];
       }
 
       std::cout << " " << std::endl;
     }
   }
-}
+} // vectorcache::debug_out()
 
-// Helper for setting clock cycle latency using sc_clock argument
+/// ----------------------------------------------------------------------------
+
+/// Sets clock cycle latency using sc_clock argument
 void vectorcache::clkcng(sc_core::sc_time &clk) {
   clockcycle = clk;
-}
+} // vectorcache::clkcng
 
-// Print execution statistic at end of simulation
+/// ----------------------------------------------------------------------------
+
+/// Print execution statistic at end of simulation
 void vectorcache::end_of_simulation() {
 
   uint64_t total_rhits = 0;
@@ -1273,9 +1312,9 @@ void vectorcache::end_of_simulation() {
   v::report << name() << " * Caching statistic:                        " << v::endl;
   v::report << name() << " * -------------------" << v::endl;
 
-  for (uint32_t i=0;i<=m_sets;i++) {
+  for (uint32_t i=0; i<=m_sets; i++) {
 
-    v::report << name() << " * Read hits set" << i << ": " << rhits[i] << v::endl;
+    v::report << name() << " * Read hits way" << i << ": " << rhits[i] << v::endl;
 
     total_rhits += rhits[i];
 
@@ -1291,9 +1330,9 @@ void vectorcache::end_of_simulation() {
 
   }
 
-  for (uint32_t i=0;i<=m_sets;i++) {
+  for (uint32_t i = 0; i <= m_sets; i++) {
 
-    v::report << name() << " * Write hits set" << i << ": " << whits[i] << v::endl;
+    v::report << name() << " * Write hits way" << i << ": " << whits[i] << v::endl;
 
     total_whits += whits[i];
 
@@ -1312,5 +1351,8 @@ void vectorcache::end_of_simulation() {
   v::report << name() << " * Bypass ops:   " << bypassops << v::endl;
   v::report << name() << " ******************************************** " << v::endl;
 
-}
-/// @}
+} // vectorcache::end_of_simulation()
+
+/// @name Diagnostic Methods
+/// ****************************************************************************
+///@} mmu_cache
