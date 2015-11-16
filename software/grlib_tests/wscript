@@ -29,7 +29,7 @@ def build(bld):
       rom         = 'sdram.prom',
       ram         = 'hello.sparc',
   )
-  
+  """ 
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -37,7 +37,7 @@ def build(bld):
       ram         = 'hello.sparc',
       at          = True,
   )
-  
+  """
   # forever.sparc
   bld(
      features     = 'c cprogram sparc',
@@ -274,7 +274,7 @@ def build(bld):
       ram         = 'argstest.sparc',
       args        = 'one two three four'
   )
-  
+  """
   bld(
       features    = 'systest',
       system      = 'leon3mp.platform',
@@ -283,7 +283,7 @@ def build(bld):
       at          = True,
       args        = 'one two three four'
   )
-  
+  """
   # amba.sparc
   #bld(
   #   features     = 'c cprogram sparc',

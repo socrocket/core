@@ -16,18 +16,29 @@ def options(self):
 
 def find(self, path = None):
     if path:
-        incpath = os.path.join(path, "include")
-        libpath = os.path.join(path, "lib")
+        socincpath = os.path.join(path, "include")
+        ctlincpath = os.path.join(path, "include")
+        self.check_cxx(
+          header_name   = "greenlib/gs_sc_api_detection.h",
+          uselib_store  = 'GREENSOCS',
+          mandatory     = True,
+          includes      = socincpath,
+          uselib        = 'BOOST SYSTEMC TLM',
+          okmsg         = "ok",
+        )
+        if not os.path.exists(os.path.join(socincpath, "greensocket")):
+            socincpath = os.path.join(path, "greensocket", "include")
+            ctlincpath = os.path.join(path, "greencontrol", "include")
 
     else:
-        incpath = []
-        libpath = []
+        socincpath = []
+        ctlincpath = []
 
     self.check_cxx(
       header_name   = "greensocket/initiator/single_socket.h",
       uselib_store  = 'GREENSOCS',
       mandatory     = True,
-      includes      = incpath,
+      includes      = socincpath,
       uselib        = 'BOOST SYSTEMC TLM',
       okmsg         = "ok",
       fragment      = '''
@@ -46,7 +57,7 @@ def find(self, path = None):
       header_name   = "greensocket/target/single_socket.h",
       uselib_store  = 'GREENSOCS',
       mandatory     = True,
-      includes      = incpath,
+      includes      = socincpath,
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
       okmsg         = "ok",
       fragment      = '''
@@ -67,7 +78,7 @@ def find(self, path = None):
       header_name   = "greencontrol/config.h",
       uselib_store  = 'GREENSOCS',
       mandatory     = True,
-      includes      = incpath,
+      includes      = ctlincpath,
       uselib        = 'GREENSOCS BOOST SYSTEMC TLM',
       okmsg         = "ok",
       fragment      = '''
@@ -96,15 +107,12 @@ def configure(self):
     except ConfigurationError as e:
         name    = "greenlib"
         version = "trunk"
-        self.dep_build(
+        self.dep_fetch(
             name         = name, 
             version      = version,
-            git_url      = "http://git.greensocs.com/greenlib/greenlib.git",
-            git_checkout = "ecfee38aebe09f91d1affd82ca03581a2bba3662",
-            patch        = [os.path.join(self.path.abspath(), "core", "waf", "greenlib-2013-12-02.patch"),
-                            os.path.join(self.path.abspath(), "core", "waf", "greenlib-2014-10-17.rmeyer.patch")],
-            config_cmd   = Utils.subst_vars("${CMAKE} %(src)s -DSYSTEMC_PREFIX=${HOME_SYSTEMC} -DTLM_HOME=${HOME_TLM} -DCMAKE_INSTALL_PREFIX=%(prefix)s", self.env),
-            build_cmd    = Utils.subst_vars("${MAKE} ${JOBS} || ${MAKE} ${JOBS}", self.env)
+            git_url      = "https://github.com/socrocket/greenlib.git",
+            #config_cmd   = Utils.subst_vars("${CMAKE} %(src)s -DSYSTEMC_PREFIX=${HOME_SYSTEMC} -DTLM_HOME=${HOME_TLM} -DCMAKE_INSTALL_PREFIX=%(prefix)s", self.env),
+            #build_cmd    = Utils.subst_vars("${MAKE} ${JOBS} || ${MAKE} ${JOBS}", self.env)
         )
         find(self, self.dep_path(name, version))
 

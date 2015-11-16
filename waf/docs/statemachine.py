@@ -1,9 +1,3 @@
-from __future__ import print_function
-from builtins import filter
-from builtins import chr
-from builtins import str
-from builtins import range
-from builtins import object
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
