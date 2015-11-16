@@ -21,12 +21,12 @@
 vectorcache::vectorcache(ModuleName name,
                          mmu_cache_if * _mmu_cache, mem_if *_tlb_adaptor,
                          unsigned int mmu_en, unsigned int burst_en,
-			 bool new_linefetch_en,
+                         bool new_linefetch_en,
                          unsigned int sets, unsigned int setsize,
                          unsigned int setlock, unsigned int linesize,
                          unsigned int repl, unsigned int lram,
                          unsigned int lramstart, unsigned int lramsize,
-			 bool pow_mon) :
+                         bool pow_mon) :
     sc_module(name),
     m_mmu_cache(_mmu_cache),
     m_tlb_adaptor(_tlb_adaptor),
@@ -265,7 +265,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
           // Check the valid bit
           if ((!m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) ||
-	      (m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & 0x1))) {
+              (m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & 0x1))) {
 
             srAnalyse()("Address", address)("Cache READ HIT");
 
@@ -328,14 +328,14 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
         srAnalyse()("Address", address)("Cache forced ASI READ MISS");
 
 #if 0
-	// -------------------------------------------------------	
-	//added by ABBAS: Inoder to avoide the wrong data read/write specialy when repl=3 (RANDOM), needed to invalidate the exsiting cache line with the same tag.
+        // -------------------------------------------------------
+        //added by ABBAS: Inoder to avoide the wrong data read/write specialy when repl=3 (RANDOM), needed to invalidate the exsiting cache line with the same tag.
        
-	 if ((*m_current_cacheline[i]).tag.atag == tag) {
-        	(m_new_linefetch_en == false) ? (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset, len) : (*m_current_cacheline[i]).tag.valid = 0;
+         if ((*m_current_cacheline[i]).tag.atag == tag) {
+                (m_new_linefetch_en == false) ? (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset, len) : (*m_current_cacheline[i]).tag.valid = 0;
                  break; //no need further search when the cache line is already found
             }
-	// -------------------------------------------------------	
+        // -------------------------------------------------------
 #endif
       }
     }
@@ -358,18 +358,18 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       // until the end of the line.
       if ((m_burst_en && (m_mmu_cache->read_ccr(true) & 0x10000))||(m_new_linefetch_en)) {
 
-	if (m_new_linefetch_en) {
-	  burst_address = ((address >> (m_linesize+2)) << (m_linesize+2));  // Beginning of cache line
-	  burst_len     = m_bytesperline;
-	} else {
-	  burst_address = ((address >> 2) << 2);
-	  burst_len = m_bytesperline - ((offset >> 2) << 2);
-	  replacer_limit = m_bytesperline - 4;
-	}
+        if (m_new_linefetch_en) {
+          burst_address = ((address >> (m_linesize+2)) << (m_linesize+2));  // Beginning of cache line
+          burst_len     = m_bytesperline;
+        } else {
+          burst_address = ((address >> 2) << 2);
+          burst_len = m_bytesperline - ((offset >> 2) << 2);
+          replacer_limit = m_bytesperline - 4;
+        }
 
       } else {
 
-	burst_address = ((address >> 2) << 2);
+        burst_address = ((address >> 2) << 2);
 
         if (len == 8) {
           // 64bit
@@ -395,7 +395,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
         for (unsigned int i = 0; i <= m_sets; i++) {
 
           if ((!m_new_linefetch_en && ((((*m_current_cacheline[i]).tag.valid) & offset2valid(offset, len)) == 0)) ||
-	      (m_new_linefetch_en && ((((*m_current_cacheline[i]).tag.valid) & 0x1) == 0))) {
+              (m_new_linefetch_en && ((((*m_current_cacheline[i]).tag.valid) & 0x1) == 0))) {
 
             // select unvalid data for replacement
             set_select = i;
@@ -423,12 +423,12 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
           }
 
           // fill in the new data (always the complete word)
-	  if (!m_new_linefetch_en) {
-	    memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2],
-		   ahb_data, burst_len);
-	  } else {
-	    memcpy(&(*m_current_cacheline[set_select]).entry[0], ahb_data, m_bytesperline);
-	  }
+          if (!m_new_linefetch_en) {
+            memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2],
+                   ahb_data, burst_len);
+          } else {
+            memcpy(&(*m_current_cacheline[set_select]).entry[0], ahb_data, m_bytesperline);
+          }
 
           if (m_pow_mon) {
             // Write access to data ram
@@ -449,19 +449,19 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             (*m_current_cacheline[set_select]).tag.valid = 0;
 
             // .. and switch on the ones for the new entries
-	    if (!m_new_linefetch_en) {
+            if (!m_new_linefetch_en) {
           /// BUG: For unaligned offsets && burst fetches the last word in the
           /// line will not be set to valid. Example:
           /// m_bytesperline = 16, offset = 6 => replacer_limit = 12
           /// The loop will run for i = {6; 10} but not for 14.
           /// Either i = (offset >> 2) << 2 or we should get rid of replacement_limit
           /// altogether and use m_bytesperline directly (cleaner anyway).
-	      for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-		((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
-	      }
-	    } else {
-	      (*m_current_cacheline[set_select]).tag.valid = 0x1;
-	    }
+              for (unsigned int i = offset; i <= replacer_limit; i += 4) {
+                ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
+              }
+            } else {
+              (*m_current_cacheline[set_select]).tag.valid = 0x1;
+            }
 
             // reset lru
             /// BUG: Shouldn't we rather call lru_update to decrement the other ways too?
@@ -474,14 +474,14 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
           } else {
 
-	    if (!m_new_linefetch_en) {
-	      // switch on the valid bits for the new entries
-	      for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-		((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
-	      }
-	    } else {
-	      (*m_current_cacheline[set_select]).tag.valid = 0x1;
-	    }
+            if (!m_new_linefetch_en) {
+              // switch on the valid bits for the new entries
+              for (unsigned int i = offset; i <= replacer_limit; i += 4) {
+                ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
+              }
+            } else {
+              (*m_current_cacheline[set_select]).tag.valid = 0x1;
+            }
           }
 
         } else {
@@ -508,11 +508,11 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             //v::debug << name() << "Found set for replacing: " << set_select << v::endl;
 
             // fill in the new data (always the complete word)
-	    if (!m_new_linefetch_en) {
-	      memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, burst_len);
-	    } else {
-	      memcpy(&(*m_current_cacheline[set_select]).entry[0], ahb_data, m_bytesperline);
-	    }
+            if (!m_new_linefetch_en) {
+              memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, burst_len);
+            } else {
+              memcpy(&(*m_current_cacheline[set_select]).entry[0], ahb_data, m_bytesperline);
+            }
 
             if (m_pow_mon) {
               // Write access to data ram
@@ -521,14 +521,14 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
               dyn_tag_writes++;
             }
 
-	    if (!m_new_linefetch_en) {
-	      // switch on the valid bits for the new entries
-	      for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-		((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
-	      }
+            if (!m_new_linefetch_en) {
+              // switch on the valid bits for the new entries
+              for (unsigned int i = offset; i <= replacer_limit; i += 4) {
+                ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
+              }
             } else {
-	      (*m_current_cacheline[set_select]).tag.valid = 0x1;
-	    }
+              (*m_current_cacheline[set_select]).tag.valid = 0x1;
+            }
 
           } else {
 
@@ -548,9 +548,9 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
       // copy the data requested by the processor
       if (!m_new_linefetch_en) {
-	memcpy(data, ahb_data + byt, len);
+        memcpy(data, ahb_data + byt, len);
       } else {
-	memcpy(data, ahb_data + offset, len);
+        memcpy(data, ahb_data + offset, len);
       }
     }
 
@@ -638,66 +638,66 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
             // Check the cache tag
             if ((*m_current_cacheline[i]).tag.atag == tag) {
 
-	      //v::debug << this->name() << "Correct atag found in set " << i << v::endl;
+              //v::debug << this->name() << "Correct atag found in set " << i << v::endl;
 
                 // Check the valid bits
-	      if ((!m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) ||
-		  (m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & 0x1))) {
+              if ((!m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) ||
+                  (m_new_linefetch_en && ((*m_current_cacheline[i]).tag.valid & 0x1))) {
 
-		srAnalyse()("Address", address)("Cache WRITE HIT");
+                srAnalyse()("Address", address)("Cache WRITE HIT");
 
-		// update lru history
-		if (m_repl == 1) {
-		  lru_update(i);
-		}
+                // update lru history
+                if (m_repl == 1) {
+                  lru_update(i);
+                }
 
-		// update debug information
-		CACHEWRITEHIT_SET(*debug, i);
-		is_hit = true;
+                // update debug information
+                CACHEWRITEHIT_SET(*debug, i);
+                is_hit = true;
 
-		if (len != 8) {
-		  // write data to cache
-		  for (unsigned int j = 0; j < len; j++) {
-		    (*m_current_cacheline[i]).entry[offset >> 2].c[byt + j] = *(data + j);
-		  }
+                if (len != 8) {
+                  // write data to cache
+                  for (unsigned int j = 0; j < len; j++) {
+                    (*m_current_cacheline[i]).entry[offset >> 2].c[byt + j] = *(data + j);
+                  }
 
-		} else {
-		  // is 64 bit
+                } else {
+                  // is 64 bit
 
-		  // write data to cache
-		  for (unsigned int j = 0; j < 8; j++) {
-		    (*m_current_cacheline[i]).entry[(offset+j) >> 2].c[(j % 4)] = *(data + j);
-		  }
- 		}
+                  // write data to cache
+                  for (unsigned int j = 0; j < 8; j++) {
+                    (*m_current_cacheline[i]).entry[(offset+j) >> 2].c[(j % 4)] = *(data + j);
+                  }
+                 }
 
-		// Increment hit counter
-		whits[i]++;
+                // Increment hit counter
+                whits[i]++;
 
-		// valid is already set
-		break;
+                // valid is already set
+                break;
 
-	      } else {
+              } else {
 
-		srDebug()("Address", address)("Cache write hit but invalid data");
+                srDebug()("Address", address)("Cache write hit but invalid data");
 
-		// For 64bit access invalidate the upper word
-		/// BUG: Again, as in mem_read, why are we invalidating? Shouldn't be
-		/// bundled with updating the cache line? Is it so that we use this same
-		/// line for replacement? Doesn't seem the best way for achieving this...
-		if (len == 8) {
+                // For 64bit access invalidate the upper word
+                /// BUG: Again, as in mem_read, why are we invalidating? Shouldn't be
+                /// bundled with updating the cache line? Is it so that we use this same
+                /// line for replacement? Doesn't seem the best way for achieving this...
+                if (len == 8) {
 
-		  if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset+4)) != 0) {
+                  if (((*m_current_cacheline[i]).tag.valid & offset2valid(offset+4)) != 0) {
 
-		    v::debug << this->name() << "64bit invalidate" << v::endl;
-		    (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset+4);
+                    v::debug << this->name() << "64bit invalidate" << v::endl;
+                    (*m_current_cacheline[i]).tag.valid &= ~offset2valid(offset+4);
 
-		  }
-		}
-	      }
+                  }
+                }
+              }
 
             } else {
 
-	      srAnalyse()("Address", address)("Cache WRITE MISS");
+              srAnalyse()("Address", address)("Cache WRITE MISS");
             }
 
             // increment time
@@ -714,9 +714,9 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
         if (!is_hit) {
 
             CACHEWRITEMISS_SET(*debug);
-//	    v::debug << name() << "ACCESS IS WRITEMISS " << hex << *debug << v::endl;
-	    wmisses++;
-	}
+//            v::debug << name() << "ACCESS IS WRITEMISS " << hex << *debug << v::endl;
+            wmisses++;
+        }
 
         // write data to main memory
         // todo: - implement byte access
@@ -733,8 +733,8 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
         srAnalyse()("Address", address)("Cache WRITE BYPASS");
 
-	// increment bypass counter
-	bypassops++;
+        // increment bypass counter
+        bypassops++;
 
         // cache is disabled
         // forward request to ahb interface (?? does it matter whether mmu is enabled or not ??)
@@ -809,7 +809,7 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
     tmp |= (*m_current_cacheline[set]).tag.valid;
 
     v::debug << this->name() << "Diagnostic tag read set: " << hex << set
-	     << " idx: " << hex << idx << " - tag: " << hex << v::setw(8) << tmp
+             << " idx: " << hex << idx << " - tag: " << hex << v::setw(8) << tmp
              << v::endl;
 
     #ifdef LITTLE_ENDIAN_BO
@@ -1000,12 +1000,12 @@ void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time&
 
           // Delete the valid bit
           //((*m_snoop_cacheline).tag.valid &= (~offset2valid(offset))); Old expression
-      	  // is changed by ABBAS because previously the valid bit "valid[0]" was not reset
-      	  if(!m_new_linefetch_en){
-      		((*m_snoop_cacheline).tag.valid &= (~offset2valid(offset)));
-      	  }else{
+                // is changed by ABBAS because previously the valid bit "valid[0]" was not reset
+                if(!m_new_linefetch_en){
+                      ((*m_snoop_cacheline).tag.valid &= (~offset2valid(offset)));
+                }else{
            (*m_snoop_cacheline).tag.valid = 0;
-      	  }
+                }
         }
       }
     }
@@ -1249,7 +1249,7 @@ void vectorcache::dbg_out(unsigned int line) {
 
       for (unsigned int k = 0; k < 4; k++) {
 
-	std::cout << hex << std::setw(2) << (unsigned int)dbg_cacheline.entry[j].c[k];
+        std::cout << hex << std::setw(2) << (unsigned int)dbg_cacheline.entry[j].c[k];
 
       }
 
