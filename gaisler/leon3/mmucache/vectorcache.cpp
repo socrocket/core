@@ -254,26 +254,23 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
     cache_hit = locate_line(tag, idx, offset, len, delay); // if hit, returns way
 
     // Update power information
-    // Read access to all tag ram (parallel sets)
-    /// BUG: Tag lines are read in parallel for all ways (GRLIB IP 71.3.2).
-    /// This should be moved outside the loop (since the loop might break
-    /// before completion): if (m_pow_mon) dyn_tag_reads += m_sets+1;
-    if (m_pow_mon) dyn_tag_reads += m_sets;
+    // Read all cache data lines in parallel
+    /// NOTE: This should possibly go to locate_line. locate_line is also used
+    /// by mem_write, however. It is unclear whether a cache lookup in mem_write
+    /// also (unnecessarily) reads the data lines or just the tag lines. I've
+    /// assumed the latter.
+    if (m_pow_mon) dyn_tag_reads += m_sets + 1;
 
     // ASIs 0-3 force cache miss
     /// !Forced miss && In cache: Read from cache
     if (cache_hit != -1 && asi > 3 /* not forced cache miss */) {
-
-      m_current_cacheline[cache_hit] = lookup(cache_hit, idx);
-      t_cache_line* line = m_current_cacheline[cache_hit];
-
       srAnalyse()("addr", address)("Cache READ HIT");
 
       // Read data from cache line
-      memcpy(data, &(line->entry[offset >> 2].c[byt]), len);
+      memcpy(data, &(lookup_line(idx, cache_hit)->entry[offset >> 2].c[byt]), len);
 
       // Update flags
-      if (m_repl == 1) lru_update(cache_hit);
+      if (m_repl == 1) lru_update(idx, cache_hit);
 
       // Increment time
       // One 32-bit load/store can be served per cycle (GRLIB IP 71.3.1).
@@ -361,13 +358,15 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
         srDebug()("addr", address)("Cache read miss will update cache line");
 
-        if (((*m_current_cacheline[cache_hit]).tag.atag == tag)) {
+        t_cache_line* line = m_current_cacheline[cache_hit];
+
+        if ((line->tag.atag == tag)) {
 
           // fill in the new data (always the complete word)
           if (!m_new_linefetch_en) {
-            memcpy(&(*m_current_cacheline[cache_hit]).entry[offset >> 2], ahb_data, ahb_len);
+            memcpy(&line->entry[offset >> 2], ahb_data, ahb_len);
           } else {
-            memcpy(&(*m_current_cacheline[cache_hit]).entry[0], ahb_data, m_bytesperline);
+            memcpy(&line->entry[0], ahb_data, m_bytesperline);
           }
 
           if (m_pow_mon) {
@@ -380,10 +379,10 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
           if (!m_new_linefetch_en) {
             // switch on the valid bits for the new entries
             for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-              ((*m_current_cacheline[cache_hit]).tag.valid |= offset2valid(i));
+              line->tag.valid |= offset2valid(i);
             }
           } else {
-            (*m_current_cacheline[cache_hit]).tag.valid = 0x1;
+            line->tag.valid = 0x1;
           }
 
         }
@@ -450,7 +449,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
             // update lrr history
             if (m_repl == 2) {
-              lrr_update(cache_hit);
+              lrr_update(idx, cache_hit);
             };
 
           } else {
@@ -572,12 +571,11 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
       srDebug()("addr", address)("Cache write hit will update cache line");
 
-      m_current_cacheline[cache_hit] = lookup(cache_hit, idx);
-      t_cache_line* line = m_current_cacheline[cache_hit];
+      t_cache_line* line = &(*lookup_line(idx, cache_hit));
 
       // update lru history
       if (m_repl == 1) {
-        lru_update(cache_hit);
+        lru_update(idx, cache_hit);
       }
 
       if (len != 8) {
@@ -618,8 +616,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
     // lookup all cachesets
     for (unsigned int i = 0; i <= m_sets; i++) {
 
-      m_current_cacheline[i] = lookup(i, idx);
-      t_cache_line* line = m_current_cacheline[i];
+      t_cache_line* line = &(*lookup_line(idx, i));
 
       // Check the cache tag
       if (line->tag.atag == tag)
@@ -726,8 +723,7 @@ void vectorcache::read_cache_tag(unsigned int address, unsigned int * data,
   unsigned way = get_tag(address) & 0x3;
 
   // find the required cache line
-  m_current_cacheline[way] = lookup(way, idx);
-  t_cache_line* line = m_current_cacheline[way];
+  t_cache_line* line = &(*lookup_line(idx, way));
 
   // build bitmask from tag fields
   // (! The atag field starts bit 10. It is not MSB aligned as in the actual tag layout.)
@@ -776,8 +772,7 @@ void vectorcache::write_cache_tag(unsigned int address, unsigned int * data,
   unsigned way = get_tag(address) & 0x3;
 
   // find the required cache line
-  m_current_cacheline[way] = lookup(way, idx);
-  t_cache_line* line = m_current_cacheline[way];
+  t_cache_line* line = &(*lookup_line(idx, way));
 
   // update the tag with write data
   // (! The atag field is expected to start at bit 10. Not MSB aligned as in tag layout.)
@@ -818,8 +813,7 @@ void vectorcache::read_cache_entry(unsigned int address, unsigned int * data,
   unsigned way = get_tag(address) & 0x3;
 
   // find the required cache line
-  m_current_cacheline[way] = lookup(way, idx);
-  t_cache_line* line = m_current_cacheline[way];
+  t_cache_line* line = &(*lookup_line(idx, way));
 
   *data = line->entry[sb].i;
 
@@ -851,8 +845,7 @@ void vectorcache::write_cache_entry(unsigned int address, unsigned int * data,
   unsigned way = get_tag(address) & 0x3;
 
   // find the required cache line
-  m_current_cacheline[way] = lookup(way, idx);
-  t_cache_line* line = m_current_cacheline[way];
+  t_cache_line* line = &(*lookup_line(idx, way));
 
   line->entry[sb].i = *data;
 
@@ -944,15 +937,11 @@ void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time&
       // Lookup all cachesets
       for (; way <= m_sets; way++) {
 
-        m_snoop_cacheline = lookup(way, idx);
-        t_cache_line* line = m_snoop_cacheline;
+        t_cache_line* line = lookup(way, idx);
 
         // Check the cache tag
         if ((line->tag.atag) == tag) {
 
-          // Delete the valid bit
-          //(line->tag.valid &= (~offset2valid(offset))); Old expression
-          // is changed by ABBAS because previously the valid bit "valid[0]" was not reset
           if (!m_new_linefetch_en) {
             line->tag.valid &= ~offset2valid(offset);
           } else {
@@ -1015,7 +1004,7 @@ unsigned int vectorcache::offset2valid(unsigned int offset, unsigned int len) {
 /// ----------------------------------------------------------------------------
 
 /// Selects way to be refilled depending on replacement strategy
-unsigned int vectorcache::replacement_selector(unsigned int mode) {
+unsigned int vectorcache::replacement_selector(unsigned int idx, unsigned int mode) {
 
   unsigned way = 0, way_select = 0;
   int min_lru;
@@ -1061,7 +1050,7 @@ unsigned int vectorcache::replacement_selector(unsigned int mode) {
       // The last way (way 1) will never be locked.
       way_select = 1;
 
-      for (; way < 2; way++) {
+      for (; way <= 2; way++) {
         t_cache_line* line = m_current_cacheline[way];
 
         if ((line->tag.lrr == 0) && (line->tag.lock == 0)) {
@@ -1098,7 +1087,7 @@ unsigned int vectorcache::replacement_selector(unsigned int mode) {
 /// ----------------------------------------------------------------------------
 
 /// Updates the LRR bits for every line replacement
-void vectorcache::lrr_update(unsigned int way_select) {
+void vectorcache::lrr_update(unsigned int idx, unsigned int way_select) {
 
 // LRR may only be used for 2-way associative caches.
   for (unsigned way = 0; way < 2; way++) {
@@ -1117,7 +1106,7 @@ void vectorcache::lrr_update(unsigned int way_select) {
 /// ----------------------------------------------------------------------------
 
 /// Updates the LRU counters for every cache hit
-void vectorcache::lru_update(unsigned int way_select) {
+void vectorcache::lru_update(unsigned int idx, unsigned int way_select) {
 
   unsigned lru;
 
@@ -1216,6 +1205,13 @@ int vectorcache::locate_line(unsigned int const tag,
 // internal behavioral functions
 // -----------------------------
 
+std::vector<t_cache_line>::iterator vectorcache::lookup_line( unsigned int idx, unsigned int way ) {
+  m_current_cacheline[way] = lookup(way, idx);
+  helper.clear();
+  helper.push_back( *m_current_cacheline[way] );
+  return helper.begin();
+}
+
 /// reads a cache line from a cache set
 inline t_cache_line * vectorcache::lookup(unsigned int set, unsigned int idx) {
 
@@ -1270,7 +1266,7 @@ int vectorcache::allocate_line (unsigned const tag,
   // Otherwise choose depending on replacement strategy.
   if (!found) {
     // select set according to replacement strategy (TODO: late binding)
-    way = replacement_selector(m_repl);
+    way = replacement_selector(idx, m_repl);
     srDebug()("way", way)("Allocate cache line: Found cache line by replacement selector");
   }
 

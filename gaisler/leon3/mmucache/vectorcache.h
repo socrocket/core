@@ -94,11 +94,11 @@ class vectorcache : public DefaultBase, public cache_if {
   /// reads a cache line from a cache set
   inline t_cache_line * lookup(unsigned int set, unsigned int idx);
   /// returns number of the set to be refilled - depending on replacement strategy
-  unsigned int replacement_selector(unsigned int);
+  unsigned int replacement_selector(unsigned int idx, unsigned int mode);
   /// updates the lru counters for every cache hit
-  void lru_update(unsigned int set_select);
+  void lru_update(unsigned int idx, unsigned int way_select);
   /// updates the lrr bits for every line replacement
-  void lrr_update(unsigned int set_select);
+  void lrr_update(unsigned int idx, unsigned int way_select);
 
  private:
   inline unsigned get_tag( unsigned address ) {
@@ -125,6 +125,8 @@ class vectorcache : public DefaultBase, public cache_if {
                                 unsigned const len,
                                 unsigned char* const data,
                                 sc_core::sc_time * delay, unsigned int * debug, bool& cacheable, bool is_dbg);
+
+  std::vector<t_cache_line>::iterator lookup_line( unsigned int idx, unsigned int way );
 
  protected:
   // constructor
@@ -189,7 +191,7 @@ class vectorcache : public DefaultBase, public cache_if {
   // helpers for cache handling
   t_cache_line m_default_cacheline;
   std::vector<t_cache_line*> m_current_cacheline;
-  t_cache_line* m_snoop_cacheline;
+  std::vector<t_cache_line> helper;
 
   /// indicates whether the cache can be put in burst mode or not
   unsigned int m_burst_en;
