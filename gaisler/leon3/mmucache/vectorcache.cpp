@@ -234,7 +234,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
   unsigned offset = get_offset(address);
   unsigned byt = (address & 0x3);
   int cache_hit = -1;
-  int set_select = -1;
+  bool cacheable_local;
 
   unsigned ahb_address = 0;
   unsigned ahb_len = 0;
@@ -253,51 +253,53 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
     cache_hit = locate_line(tag, idx, offset, len, delay); // if hit, returns way
 
+    // Update power information
+    // Read access to all tag ram (parallel sets)
+    /// BUG: Tag lines are read in parallel for all ways (GRLIB IP 71.3.2).
+    /// This should be moved outside the loop (since the loop might break
+    /// before completion): if (m_pow_mon) dyn_tag_reads += m_sets+1;
+    if (m_pow_mon) dyn_tag_reads += m_sets;
+
     // ASIs 0-3 force cache miss
-    if (asi > 3) {
+    /// !Forced miss && In cache: Read from cache
+    if (cache_hit != -1 && asi > 3 /* not forced cache miss */) {
 
-      // Read access to all tag ram (parallel sets)
-      /// BUG: Tag lines are read in parallel for all ways (GRLIB IP 71.3.2).
-      /// This should be moved outside the loop (since the loop might break
-      /// before completion): if (m_pow_mon) dyn_tag_reads += m_sets+1;
-      if (m_pow_mon) dyn_tag_reads += m_sets;
+      m_current_cacheline[cache_hit] = lookup(cache_hit, idx);
+      t_cache_line* line = m_current_cacheline[cache_hit];
 
-      // Check the valid bit
-      if (cache_hit != -1 ) {
-        m_current_cacheline[cache_hit] = lookup(cache_hit, idx);
-        t_cache_line* line = m_current_cacheline[cache_hit];
+      srAnalyse()("addr", address)("Cache READ HIT");
 
-        srAnalyse()("Address", address)("Cache READ HIT");
+      // Read data from cache line
+      memcpy(data, &(line->entry[offset >> 2].c[byt]), len);
 
-        // write data pointer
-        memcpy(data, &line->entry[offset >> 2].c[byt], len);
+      // Update flags
+      if (m_repl == 1) lru_update(cache_hit);
 
-        // Update flags
-        if (m_repl == 1) lru_update(cache_hit);
+      // Increment time
+      // One 32-bit load/store can be served per cycle (GRLIB IP 71.3.1).
+      // If len > 4B, 1 cycle per 4B is added.
+      *delay += ((len - 1) >> 2) * clockcycle;
 
-        // Increment time
-        // One 32-bit load/store can be served per cycle (GRLIB IP 71.3.1).
-        // If len > 4B, 1 cycle per 4B is added.
-        *delay += ((len - 1) >> 2) * clockcycle;
+      // Read access to data ram that produced the hit
+      /// BUG: Same as for dyn_tag_reads
+      if (m_pow_mon) dyn_data_reads++;
 
-        // Read access to data ram that produced the hit
-        /// BUG: Same as for dyn_tag_reads
-        if (m_pow_mon) dyn_data_reads++;
+      // Update debug information
+      rhits[cache_hit]++;
+      CACHEREADHIT_SET(*debug, cache_hit);
 
-        // Update debug information
-        rhits[cache_hit]++;
-        CACHEREADHIT_SET(*debug, cache_hit);
-      }
+    /// ------------------------------------------------------------------------
+    /// Forced miss || !In cache: Read from memory
     } else {
-      /// BUG: Forced miss still reads the cache because GRLIB IP 71.3.5
-      /// specifies that a cache hit combined with an ASI forced  miss will result
-      /// in a cache line update (as opposed to allocate), which requires having
-      /// first checked for the existence of the data in the cache. So power
-      /// calculations for an ASI forced miss should include cache lookup.
-      /// (Possibly just the tags though, not the data?)
 
+      if (asi <= 3) {
+        /// NOTE: Forced miss still reads the cache because GRLIB IP 71.3.5
+        /// specifies that a cache hit combined with an ASI forced  miss will result
+        /// in a cache line update (as opposed to allocate), which requires having
+        /// first checked for the existence of the data in the cache. So power
+        /// calculations for an ASI forced miss should include cache lookup.
+        /// (Possibly just the tags though, not the data?)
         srAnalyse()("addr", address)("Cache forced ASI READ MISS");
-
 #if 0
         // -------------------------------------------------------
         //added by ABBAS: Inoder to avoide the wrong data read/write specialy when repl=3 (RANDOM), needed to invalidate the xsiting cache line with the same tag.
@@ -308,13 +310,10 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             }
         // -------------------------------------------------------
 #endif
+      } else {
+        srAnalyse()("addr", address)("Cache READ MISS");
       }
 
-    // In case no matching tag was found or data is not valid:
-    // -------------------------------------------------------
-    // read miss - On a data cache read miss to a cacheable location 4 bytes of data
-    // are loaded into the cache from main memory.
-    if (cache_hit == -1) {
 
       // Increment time
       *delay += clockcycle;
@@ -353,47 +352,57 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
       srDebug()("addr", address)("burst address", ahb_address)("burst length", ahb_len)("Cache read miss will issue memory read");
 
-      // Access ahb interface or mmu - return true if data is cacheable
-      if (m_tlb_adaptor->mem_read(ahb_address, asi, ahb_data, ahb_len, delay, debug, is_dbg, cacheable, is_lock)) {
-        srDebug()("Address", address)("Cache read cacheable");
+      // Read data from mem: Returns true if data is cacheable.
+      cacheable_local = m_tlb_adaptor->mem_read(ahb_address, asi, ahb_data, ahb_len,
+      delay, debug, is_dbg, cacheable, is_lock);
 
-        // Check for unvalid data which can be replaced without harm
-        /// BUG: This is wrong behavior for ASI foced miss combined with a cache
-        /// hit. In such a case, we should update the found cache line (whether
-        /// valid or not), not allocate a new one (even if we have a free/invalid one).
-        for (unsigned int i = 0; i <= m_sets; i++) {
+      /// In cache (&& Forced miss): Update cache
+      if (cache_hit != -1) {
 
-          t_cache_line* line = m_current_cacheline[i];
+        srDebug()("addr", address)("Cache read miss will update cache line");
 
-          if ((!m_new_linefetch_en && (((line->tag.valid) & offset2valid(offset, len)) == 0)) ||
-              (m_new_linefetch_en && (((line->tag.valid) & 0x1) == 0))) {
+        if (((*m_current_cacheline[cache_hit]).tag.atag == tag)) {
 
-            // select unvalid data for replacement
-            set_select = i;
-            v::debug << this->name() << "Set " << set_select
-                     << " has no valid data - will use for refill."
-                     << v::endl;
-            break;
+          // fill in the new data (always the complete word)
+          if (!m_new_linefetch_en) {
+            memcpy(&(*m_current_cacheline[cache_hit]).entry[offset >> 2], ahb_data, ahb_len);
+          } else {
+            memcpy(&(*m_current_cacheline[cache_hit]).entry[0], ahb_data, m_bytesperline);
           }
+
+          if (m_pow_mon) {
+            // Write access to data ram
+            dyn_data_writes += (ahb_len >> 2) + 1;
+            // Write to tag ram (valid bits)
+            dyn_tag_writes++;
+          }
+
+          if (!m_new_linefetch_en) {
+            // switch on the valid bits for the new entries
+            for (unsigned int i = offset; i <= replacer_limit; i += 4) {
+              ((*m_current_cacheline[cache_hit]).tag.valid |= offset2valid(i));
+            }
+          } else {
+            (*m_current_cacheline[cache_hit]).tag.valid = 0x1;
+          }
+
         }
+      } // Update cache line
 
-        // Check for cache freeze
-        if (check_mode() & 0x2) {
+      /// !In cache && !Frozen && Cacheable: Allocate cache line
+      // If cache is not frozen, we can use whichever way we found according to
+      // replacement strategy. If cache is frozen, it is kept in sync with main
+      // memory, but no new lines are allocated on read miss.
 
-          // Cache not frozen !!
+      else if ((check_mode() & 0x2) /* enabled (0b11) */ && cacheable_local) {
 
-          // in case there is no free set anymore
-          if (set_select == -1) {
+        srDebug()("addr", address)("Cache read miss will allocate cache line");
 
-            // select set according to replacement strategy (todo: late binding)
-            set_select = replacement_selector(m_repl);
-            v::debug << this->name() << "Set " << set_select
-                     << " selected for refill by replacement selector."
-                     << v::endl;
+        cache_hit = allocate_line(get_tag(ahb_address), get_idx(ahb_address),
+                                  get_offset(ahb_address), ahb_len,
+                                  ahb_data, delay, debug, cacheable, is_dbg);
 
-          }
-
-          t_cache_line* line = m_current_cacheline[set_select];
+          t_cache_line* line = m_current_cacheline[cache_hit];
 
           // fill in the new data (always the complete word)
           if (!m_new_linefetch_en) {
@@ -441,7 +450,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
             // update lrr history
             if (m_repl == 2) {
-              lrr_update(set_select);
+              lrr_update(cache_hit);
             };
 
           } else {
@@ -456,64 +465,16 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             }
           }
 
-        } else {
+      } // Allocate cache line
+      /// !In cache && (Frozen || !Cacheable)
+      else {
+        srDebug()("addr", address)("Cache read not cacheable");
+        if (!(check_mode() & 0x2) /* frozen (0b01) */) {
 
-          // Cache is frozen !!
-
-          // Cache is kept in sync with main memory, but no new lines are allocated on read miss:
-          // The new data will only be filled in as long there is unvalid data in one of the sets (set_select != -1)
-          // && the new data does not change the atag, because this would invalidate all the other entries
-          // in the line (tag.atag == tag).
-          /// BUG: Not sure whether this is the correct behavior. Think frozen rather means:
-          /// read hit -> read from cache, same as non-frozen
-          /// read miss -> no allocation (would think not even in invalid lines)
-          /// write hit -> update line
-          /// write miss -> there's no write-allocation anyway, so no change
-          /// Using invalid lines on read misses is efficient of course, just
-          /// not sure it conforms to spec. Not so important though.
-          //v::debug << name() << "Cache is frozen" << v::endl;
-
-          if ((set_select != -1) && ((*m_current_cacheline[set_select]).tag.atag == tag)) {
-              /// BUG: Missing delay update for line update (1cc/32bits)
-              /// Should also call lru_update
-
-            //v::debug << name() << "Found set for replacing: " << set_select << v::endl;
-
-            // fill in the new data (always the complete word)
-            if (!m_new_linefetch_en) {
-              memcpy(&(*m_current_cacheline[set_select]).entry[offset >> 2], ahb_data, ahb_len);
-            } else {
-              memcpy(&(*m_current_cacheline[set_select]).entry[0], ahb_data, m_bytesperline);
-            }
-
-            if (m_pow_mon) {
-              // Write access to data ram
-              dyn_data_writes += (ahb_len >> 2) + 1;
-              // Write to tag ram (valid bits)
-              dyn_tag_writes++;
-            }
-
-            if (!m_new_linefetch_en) {
-              // switch on the valid bits for the new entries
-              for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-                ((*m_current_cacheline[set_select]).tag.valid |= offset2valid(i));
-              }
-            } else {
-              (*m_current_cacheline[set_select]).tag.valid = 0x1;
-            }
-
-          } else {
-
-            //v::debug << name() << "All sets occupied - frozen miss" << v::endl;
-
-            // Update debug information
-            FROZENMISS_SET(*debug);
-
-          }
+          // Update debug information
+          FROZENMISS_SET(*debug);
         }
-      } else {
-        srDebug()("Address", address)("Cache read not cacheable");
-      }
+      } // No cache update or allocate
 
       // Copy data
       if (!m_new_linefetch_en) {
@@ -526,7 +487,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
       // Update debug information
       rmisses++;
-      CACHEREADMISS_SET(*debug, set_select);
+      CACHEREADMISS_SET(*debug, cache_hit);
 
     } // Cache miss
 
@@ -925,31 +886,31 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) 
 
       m_current_cacheline[way] = lookup(way, i_line);
 
-      // it's a write-through cache. we should never need the following code
-/*      // and all cache line entries
-      for (unsigned int entry = 0; entry < m_wordsperline; entry++) {
+// it's a write-through cache. we should never need the following code
+/*    for (unsigned entry = 0; entry < m_wordsperline; entry++) {
 
-        // check for valid data
-        if (line->tag.dirty && line->tag.valid & (1 << entry)) {
+      // check for valid data
+      if (line->tag.dirty && line->tag.valid & (1 << entry)) {
 
-          // construct address from tag
-          addr = (line->tag.atag << (m_idx_bits + m_offset_bits));
-          addr |= (i_line << m_offset_bits);
-          addr |= (entry << 2);
+        // construct address from tag
+        addr = (line->tag.atag << (m_idx_bits + m_offset_bits));
+        addr |= (i_line << m_offset_bits);
+        addr |= (entry << 2);
 
-          v::debug << this->name() << "FLUSH set: " << set
-                   << " line: " << i_line << " addr: " << hex
-                   << addr << " data: " << hex
-                   << line->entry[entry].i
-                   << v::endl;
+        srDebug()("addr", addr)
+                 ("line", i_line)
+                 ("idx", i_line/(m_sets+1))
+                 ("way", i_line%(m_sets+1))
+                 ("data", line->entry[entry].i)
+                 ("Cache flush");
 
-          m_tlb_adaptor->mem_write(addr, 0x8,(unsigned char*)&(line->entry[entry]),
-                                   4, t, debug, is_dbg, cacheable, false);
+        m_tlb_adaptor->mem_write(addr, 0x8,(unsigned char*)&(line->entry[entry]),
+                                 4, t, debug, is_dbg, cacheable, false);
 
-        }
-      }*/
-      // invalidate all entries
-      line->tag.valid = 0;
+      }
+    }*/
+    // invalidate all entries
+    line->tag.valid = 0;
     }
   }
 
@@ -1270,10 +1231,51 @@ inline t_cache_line * vectorcache::lookup(unsigned int set, unsigned int idx) {
 
     memset(&m_default_cacheline, 0, sizeof(t_cache_line));
     return (&m_default_cacheline);
+  }
+}
 
+/// Reads data from memory and inserts it into cache.
+/// Returns the allocated way, otherwise -1.
+/// Used by mem_read() and mem_write() with write-allocate.
+int vectorcache::allocate_line (unsigned const tag,
+                                unsigned const idx,
+                                unsigned const offset,
+                                unsigned const len,
+                                unsigned char* const data,
+                                sc_core::sc_time * delay, unsigned int * debug, bool& cacheable, bool is_dbg) {
+
+  unsigned way = 0;
+  bool found = false;
+
+  // lookup all cachesets
+  for (; way <= m_sets; way++) {
+
+    m_current_cacheline[way] = lookup(way, idx);
+    t_cache_line* line = m_current_cacheline[way];
+
+ // Check the cache tag
+//  if (line->tag.atag == tag)
+//    if ((!m_new_linefetch_en && (line->tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) ||
+//        (m_new_linefetch_en && (line->tag.valid & 0x1)))
+
+    if ((!m_new_linefetch_en && (line->tag.valid & offset2valid(offset, len)) == 0)
+    || (m_new_linefetch_en && (line->tag.valid & 0x1) == 0)) {
+
+      srDebug()("way", way)("Allocate cache line: Found invalid cache line; will use for refill");
+      found = true;
+      break;
+    }
   }
 
-}
+  // Otherwise choose depending on replacement strategy.
+  if (!found) {
+    // select set according to replacement strategy (TODO: late binding)
+    way = replacement_selector(m_repl);
+    srDebug()("way", way)("Allocate cache line: Found cache line by replacement selector");
+  }
+
+  return way;
+} // vectorcache::allocate_line()
 
 /// @} Internal Methods
 /// ****************************************************************************

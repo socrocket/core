@@ -119,6 +119,13 @@ class vectorcache : public DefaultBase, public cache_if {
                              unsigned int const len,
                              sc_core::sc_time * delay);
 
+  int allocate_line (unsigned const tag,
+                                unsigned const idx,
+                                unsigned const offset,
+                                unsigned const len,
+                                unsigned char* const data,
+                                sc_core::sc_time * delay, unsigned int * debug, bool& cacheable, bool is_dbg);
+
  protected:
   // constructor
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
