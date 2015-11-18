@@ -198,7 +198,6 @@ class vectorcache : public DefaultBase, public cache_if {
 
   // helpers for cache handling
   t_cache_line m_default_cacheline;
-  std::vector<t_cache_line*> m_current_cacheline;
 
   /// indicates whether the cache can be put in burst mode or not
   unsigned int m_burst_en;
