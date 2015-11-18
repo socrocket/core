@@ -351,23 +351,17 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             dyn_tag_writes++;
           }
 
-        if (line->tag.atag == tag) {
-
-          // fill in the new data (always the complete word)
-          if (!m_new_linefetch_en) {
-            memcpy(&line->entry[offset >> 2], ahb_data, ahb_len);
-          } else {
-            memcpy(&line->entry[0], ahb_data, m_bytesperline);
-          }
-
-          if (!m_new_linefetch_en) {
-            // switch on the valid bits for the new entries
-            line->tag.valid |= offset2valid(get_offset(ahb_address), ahb_len);
-          } else {
-            line->tag.valid = 0x1;
-          }
-
+        // fill in the new data (always the complete word)
+        if (!m_new_linefetch_en) {
+          memcpy(&line->entry[offset >> 2], ahb_data, ahb_len);
+        } else {
+          memcpy(&line->entry[0], ahb_data, m_bytesperline);
         }
+
+        cache_hit = update_line(get_tag(ahb_address), get_idx(ahb_address),
+                                get_offset(ahb_address), cache_hit, ahb_len,
+                                ahb_data, delay, debug, cacheable, is_dbg);
+
       } // Update cache line
 
       /// !In cache && !Frozen && Cacheable: Allocate cache line
@@ -383,47 +377,14 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
                                   get_offset(ahb_address), ahb_len,
                                   ahb_data, delay, debug, cacheable, is_dbg);
 
-          if (m_pow_mon) {
-            // Write access to data ram
-            /// BUG: This will give +2 for ahb_len = 4 and +3 for ahb_len = 8
-            /// Should be: dyn_data_writes += (ahb_len-1) >> 2  + 1;
-            dyn_data_writes += (ahb_len >> 2) + 1;
-            // Write to tag ram (replacement or setting valid bits)
-            dyn_tag_writes++;
-          }
-
-          m_current_cacheline[cache_hit] = lookup(cache_hit, idx);
-          t_cache_line* line = m_current_cacheline[cache_hit];
-
-          // fill in the new data (always the complete word)
-          if (!m_new_linefetch_en) {
-            memcpy(&line->entry[offset >> 2], ahb_data, ahb_len);
-          } else {
-            memcpy(&line->entry[0], ahb_data, m_bytesperline);
-          }
-
-          // has the tag changed?
-          if (line->tag.atag != tag) {
-
-            // fill in the new tag
-            line->tag.atag = tag;
-
-            // switch off all the valid bits ...
-            line->tag.valid = 0;
-
-            // reset lru
-            /// BUG: Shouldn't we rather call lru_update to decrement the other ways too?
-            line->tag.lru = m_max_lru;
-
-            // update lrr history
-            if (m_repl == 2) lrr_update(idx, cache_hit);
-          }
-
-          if (!m_new_linefetch_en) {
-            line->tag.valid |= offset2valid(get_offset(ahb_address), ahb_len);
-          } else {
-            line->tag.valid = 0x1;
-          }
+        if (m_pow_mon) {
+          // Write access to data ram
+          /// BUG: This will give +2 for ahb_len = 4 and +3 for ahb_len = 8
+          /// Should be: dyn_data_writes += (ahb_len-1) >> 2  + 1;
+          dyn_data_writes += (ahb_len >> 2) + 1;
+          // Write to tag ram (replacement or setting valid bits)
+          dyn_tag_writes++;
+        }
 
       } // Allocate cache line
       /// !In cache && (Frozen || !Cacheable)
@@ -535,9 +496,6 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
       m_current_cacheline[cache_hit] = lookup(cache_hit, idx);
       t_cache_line* line = m_current_cacheline[cache_hit];
 
-      // update lru history
-      if (m_repl == 1) lru_update(idx, cache_hit);
-
       if (len != 8) {
         // write data to cache
         for (unsigned int j = 0; j < len; j++) {
@@ -553,6 +511,9 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
           line->entry[(offset+j) >> 2].c[(j % 4)] = *(data + j);
         }
       }
+
+      cache_hit = update_line(tag, idx, offset, cache_hit, len,
+                              data, delay, debug, cacheable, is_dbg);
 
       // Update debug information
       whits[cache_hit]++;
@@ -1155,6 +1116,52 @@ int vectorcache::locate_line(unsigned int const tag,
 
 /// ----------------------------------------------------------------------------
 
+/// Allocates a cache line in a given cache way.
+int vectorcache::update_line (unsigned const tag,
+                              unsigned const idx,
+                              unsigned const offset,
+                              unsigned const way,
+                              unsigned const len,
+                              unsigned char* const data,
+                              sc_core::sc_time * delay,
+                              unsigned int * debug,
+                              bool& cacheable, bool is_dbg) {
+
+
+    m_current_cacheline[way] = lookup(way, idx);
+    t_cache_line* line = m_current_cacheline[way];
+
+    // Update tag and flags for line allocate
+    if (line->tag.atag != tag) {
+
+      line->tag.atag = tag;
+
+      if (m_repl == 2) lrr_update(idx, way);
+
+      line->tag.valid = 0;
+
+    }
+
+    // Update flags for line allocate or update
+    if (!m_new_linefetch_en) {
+      line->tag.valid |= offset2valid(offset, len);
+    } else {
+      line->tag.valid = 0x1;
+    }
+    if (m_repl == 1) lru_update(idx, way);
+
+    srDebug()("tag", tag)
+             ("idx", idx)
+             ("offset", offset)
+             ("way", way)
+             ("data", *data)
+             ("Updated cache line");
+
+    return way;
+} // vectorcache::update_line()
+
+/// ----------------------------------------------------------------------------
+
 /// reads a cache line from a cache set
 inline t_cache_line * vectorcache::lookup(unsigned int set, unsigned int idx) {
 
@@ -1213,7 +1220,17 @@ int vectorcache::allocate_line (unsigned const tag,
     srDebug()("way", way)("Allocate cache line: Found cache line by replacement selector");
   }
 
-  return way;
+  m_current_cacheline[way] = lookup(way, idx);
+  t_cache_line* line = m_current_cacheline[way];
+
+  // fill in the new data (always the complete word)
+  if (!m_new_linefetch_en) {
+    memcpy(&line->entry[offset >> 2], data, len);
+  } else {
+    memcpy(&line->entry[0], data, m_bytesperline);
+  }
+
+  return update_line(tag, idx, offset, way, len, data, delay, debug, cacheable, is_dbg);
 } // vectorcache::allocate_line()
 
 /// @} Internal Methods
