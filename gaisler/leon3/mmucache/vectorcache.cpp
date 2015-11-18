@@ -71,9 +71,6 @@ vectorcache::vectorcache(ModuleName name,
 
     m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
-    // initialize cache line allocator
-    memset(&m_default_cacheline, 0, sizeof(t_cache_line));
-
     // Cache may have 1 to 4 ways
     if ((m_sets < 0)||(m_sets>3)) {
       srError()("ways", m_sets+1)("Cache may have 1-4 ways");
@@ -106,6 +103,9 @@ vectorcache::vectorcache(ModuleName name,
 
     // Create the cache sets
     srDebug()("Creating cache memory");
+
+    // initialize cache line allocator
+    memset(&m_default_cacheline, 0, sizeof(t_cache_line));
     for (unsigned int i = 0; i <= m_sets; i++) {
 
         v::debug << this->name() << "Create cache set " << i << v::endl;
@@ -259,7 +259,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
     /// assumed the latter.
     if (m_pow_mon) dyn_tag_reads += m_sets + 1;
 
-    // ASIs 0-3 force cache miss
     /// !Forced miss && In cache: Read from cache
     if (cache_hit != -1 && asi > 3 /* not forced cache miss */) {
 
@@ -320,14 +319,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       // double-word.
       } else {
         ahb_address = ((address >> 2) << 2);
-
-        if (len == 8) {
-          // len = 64bit
-          ahb_len = 8;
-        } else {
-          // len <= 32bit
-          ahb_len =  4;
-        }
+        ahb_len = (len == 8) ? 8 /* len == 64bit */ : 4 /* len <= 32bit */;
       }
 
       srDebug()("addr", address)("burst address", ahb_address)("burst length", ahb_len)("Cache read miss will issue memory read");
@@ -797,12 +789,10 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) 
 
   // for all cache lines
   for (unsigned int way = 0; way <= m_sets; way++) {
-    t_cache_line* line = m_current_cacheline[way];
-
-    // and all cache lines
     for (; i_line < m_number_of_vectors; i_line++) {
 
       m_current_cacheline[way] = lookup(way, i_line);
+      t_cache_line* line = m_current_cacheline[way];
 
 // it's a write-through cache. we should never need the following code
 /*    for (unsigned entry = 0; entry < m_wordsperline; entry++) {
@@ -943,6 +933,7 @@ unsigned int vectorcache::replacement_selector(unsigned int idx, unsigned int mo
       min_lru = m_max_lru;
 
       for (; way <= m_sets; way++) {
+        m_current_cacheline[way] = lookup(way, idx);
         t_cache_line* line = m_current_cacheline[way];
 
         // The last way will never be locked.
@@ -964,6 +955,7 @@ unsigned int vectorcache::replacement_selector(unsigned int idx, unsigned int mo
       way_select = 1;
 
       for (; way <= 2; way++) {
+        m_current_cacheline[way] = lookup(way, idx);
         t_cache_line* line = m_current_cacheline[way];
 
         if ((line->tag.lrr == 0) && (line->tag.lock == 0)) {
@@ -985,7 +977,7 @@ unsigned int vectorcache::replacement_selector(unsigned int idx, unsigned int mo
 
         way_select = m_pseudo_rand % (m_sets + 1);
         m_pseudo_rand++;
-
+        m_current_cacheline[way_select] = lookup(way_select, idx);
       }
       // The last way will never be locked.
       while ((*m_current_cacheline[way_select]).tag.lock != 0);
@@ -1005,6 +997,7 @@ void vectorcache::lrr_update(unsigned int idx, unsigned int way_select) {
 // LRR may only be used for 2-way associative caches.
   for (unsigned way = 0; way < 2; way++) {
 
+    m_current_cacheline[way] = lookup(way, idx);
     t_cache_line* line = m_current_cacheline[way];
 
     // Switch the lrr bit on for the selected way and off for the remaining.
@@ -1024,6 +1017,7 @@ void vectorcache::lru_update(unsigned int idx, unsigned int way_select) {
   unsigned lru;
 
   for (unsigned way = 0; way <= m_sets; way++) {
+    m_current_cacheline[way] = lookup(way, idx);
     t_cache_line* line = m_current_cacheline[way];
     int pivot = line->tag.lru;
     lru = line->tag.lru;
