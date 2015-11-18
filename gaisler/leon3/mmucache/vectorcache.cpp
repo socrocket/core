@@ -224,14 +224,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
     cache_hit = locate_line(tag, idx, offset, len, delay); // if hit, returns way
 
-    // Update power information
-    // Read all cache data lines in parallel
-    /// NOTE: This should possibly go to locate_line. locate_line is also used
-    /// by mem_write, however. It is unclear whether a cache lookup in mem_write
-    /// also (unnecessarily) reads the data lines or just the tag lines. I've
-    /// assumed the latter.
-    if (m_pow_mon) dyn_tag_reads += m_sets + 1;
-
     /// !Forced miss && In cache: Read from cache
     if (cache_hit != -1 && asi > 3 /* not forced cache miss */) {
       srAnalyse()("addr", address)("Cache READ HIT");
@@ -247,9 +239,8 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       // If len > 4B, 1 cycle per 4B is added.
       *delay += ((len - 1) >> 2) * clockcycle;
 
-      // Read access to data ram that produced the hit
-      /// BUG: Same as for dyn_tag_reads
-      if (m_pow_mon) dyn_data_reads++;
+      // If len > 4B, 1 data read per 4B is added.
+      if (m_pow_mon) dyn_data_reads += 1 + ((len - 1) >> 2);
 
       // Update debug information
       rhits[cache_hit]++;
@@ -302,13 +293,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
         srDebug()("addr", address)("Cache read miss will update cache line");
 
-        if (m_pow_mon) {
-          // Write access to data ram
-          dyn_data_writes += (ahb_len >> 2) + 1;
-          // Write to tag ram (valid bits)
-          dyn_tag_writes++;
-        }
-
         cache_hit = update_line(get_tag(ahb_address), get_idx(ahb_address),
                                 get_offset(ahb_address), cache_hit, ahb_len,
                                 ahb_data, delay, debug, cacheable, is_dbg);
@@ -327,15 +311,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
         cache_hit = allocate_line(get_tag(ahb_address), get_idx(ahb_address),
                                   get_offset(ahb_address), ahb_len,
                                   ahb_data, delay, debug, cacheable, is_dbg);
-
-        if (m_pow_mon) {
-          // Write access to data ram
-          /// BUG: This will give +2 for ahb_len = 4 and +3 for ahb_len = 8
-          /// Should be: dyn_data_writes += (ahb_len-1) >> 2  + 1;
-          dyn_data_writes += (ahb_len >> 2) + 1;
-          // Write to tag ram (replacement or setting valid bits)
-          dyn_tag_writes++;
-        }
 
       } // Allocate cache line
       /// !In cache && (Frozen || !Cacheable)
@@ -435,7 +410,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
     srAnalyse()("addr", address)("Cache WRITE ACCESS");
 
-    /// BUG: Power information missing for all branches
+    // Power information for reading cache tag lines is updated in locate_line()
     cache_hit = locate_line(tag, idx, offset, len, delay);
 
     /// In cache: Update cache
@@ -487,17 +462,11 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
     }
 
-    // The write buffer (WRB) consists of 3x32bit registers. It is used to temporarily
-    // hold store data until it is sent to the destination device. For half-word
-    // or byte stores, the data has to be properly aligned for writing to word-
-    // addressed device, before writing the WRB.
-
       srDebug()("addr", address)("Cache will issue memory write");
 
       /// TODO: Implement write buffer
       // Write data to mem
       m_tlb_adaptor->mem_write(address, asi, data, len, delay, debug, is_dbg, cacheable, is_lock);
-
 
   /// --------------------------------------------------------------------------
   /// Bypass MMU || Disabled
@@ -985,6 +954,10 @@ int vectorcache::locate_line(unsigned int const tag,
     }
   } // loop m_sets
 
+  // Update power information
+  // Read all cache tag lines in parallel
+  if (m_pow_mon) dyn_tag_reads += m_sets+1;
+
   if (found)
     return way;
 
@@ -1033,6 +1006,14 @@ int vectorcache::update_line (unsigned const tag,
     }
     if (m_repl == 1) lru_update(idx, way);
 
+    // Update power information
+    if (m_pow_mon) {
+      // Write access to data ram
+      dyn_data_writes += 1 + ((len - 1) >> 2);
+      // Write to tag ram (replacement or setting valid bits)
+      dyn_tag_writes++;
+    }
+
     srDebug()("tag", tag)
              ("idx", idx)
              ("offset", offset)
@@ -1062,12 +1043,7 @@ int vectorcache::allocate_line (unsigned const tag,
   for (std::vector<t_cache_line>::iterator line = lookup_line(idx, 0);
        way <= m_sets; line++, way++) {
 
- // Check the cache tag
-//  if (line->tag.atag == tag)
-//    if ((!m_new_linefetch_en && (line->tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) ||
-//        (m_new_linefetch_en && (line->tag.valid & 0x1)))
-
-    if ((!m_new_linefetch_en && (line->tag.valid & offset2valid(offset, len)) == 0)
+    if ((!m_new_linefetch_en && (line->tag.valid & offset2valid(offset, len)) == 0 /* == offset2valid(offset, len) instead of 0? */)
     || (m_new_linefetch_en && (line->tag.valid & 0x1) == 0)) {
 
       srDebug()("way", way)("Allocate cache line: Found invalid cache line; will use for refill");
