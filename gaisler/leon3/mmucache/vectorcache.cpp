@@ -124,20 +124,7 @@ vectorcache::vectorcache(ModuleName name,
     v::info << this->name() << " ******************************************************************************* "  << v::endl;
 
     // lru counter saturation
-    switch (m_sets) {
-
-        case 1:
-            m_max_lru = 1;
-            break;
-        case 2:
-            m_max_lru = 7;
-            break;
-        case 3:
-            m_max_lru = 31;
-            break;
-        default:
-            m_max_lru = 0;
-    }
+    m_max_lru = (1 << m_sets) - 1;
 
     // set up configuration register
     // =============================
@@ -315,14 +302,15 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
         srDebug()("addr", address)("Cache read miss will update cache line");
 
+        if (m_pow_mon) {
+          // Write access to data ram
+          dyn_data_writes += (ahb_len >> 2) + 1;
+          // Write to tag ram (valid bits)
+          dyn_tag_writes++;
+        }
+
         t_cache_line* line = &(*lookup_line(idx, cache_hit));
 
-          if (m_pow_mon) {
-            // Write access to data ram
-            dyn_data_writes += (ahb_len >> 2) + 1;
-            // Write to tag ram (valid bits)
-            dyn_tag_writes++;
-          }
 
         // fill in the new data (always the complete word)
         if (!m_new_linefetch_en) {
