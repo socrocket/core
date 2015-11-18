@@ -309,16 +309,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
           dyn_tag_writes++;
         }
 
-        t_cache_line* line = &(*lookup_line(idx, cache_hit));
-
-
-        // fill in the new data (always the complete word)
-        if (!m_new_linefetch_en) {
-          memcpy(&line->entry[offset >> 2], ahb_data, ahb_len);
-        } else {
-          memcpy(&line->entry[0], ahb_data, m_bytesperline);
-        }
-
         cache_hit = update_line(get_tag(ahb_address), get_idx(ahb_address),
                                 get_offset(ahb_address), cache_hit, ahb_len,
                                 ahb_data, delay, debug, cacheable, is_dbg);
@@ -454,24 +444,6 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
       srDebug()("addr", address)("Cache write hit will update cache line");
 
-      t_cache_line* line = &(*lookup_line(idx, cache_hit));
-
-      if (len != 8) {
-        // write data to cache
-        for (unsigned int j = 0; j < len; j++) {
-          unsigned int byt    = (address & 0x3);
-          line->entry[offset >> 2].c[byt + j] = *(data + j);
-        }
-
-      } else {
-        // is 64 bit
-
-        // write data to cache
-        for (unsigned int j = 0; j < 8; j++) {
-          line->entry[(offset+j) >> 2].c[(j % 4)] = *(data + j);
-        }
-      }
-
       cache_hit = update_line(tag, idx, offset, cache_hit, len,
                               data, delay, debug, cacheable, is_dbg);
 
@@ -570,23 +542,6 @@ unsigned int vectorcache::read_config_reg(sc_core::sc_time *t) {
 } // vectorcache::read_config_reg()
 
 /// ----------------------------------------------------------------------------
-
-// ------------------------------
-// About diagnostic cache access:
-// ------------------------------
-// Tags and data in the instruction and data cache can be accessed throuch ASI address space
-// 0xC, 0xD, 0xE and 0xf by executing LDA and STA instructions. Address bits making up the cache
-// offset will be used to index the tag to be accessed while the least significant bits of the
-// bits making up the address tag will be used to index the cache set.
-//
-// In multi-way caches, the address of the tags and data of the ways are concatenated. The address
-// of a tag or data is thus:
-//
-// ADDRESS = WAY & LINE & DATA & "00"
-//
-// Example: the tag for line 2 in way 1 of a 2x4 Kbyte cache with 16 byte line would be.
-//
-// A[13:12] = 1 (WAY); A[11:5] = 2 (TAG) -> TAG Address = 0x1040
 
 /// cache_if::Read cache tags (ASI 0xe)
 /** @details
@@ -977,7 +932,6 @@ void vectorcache::lru_update(unsigned int idx, unsigned int way_select) {
     lru = line->tag.lru;
 
     // LRU: Counter for each line of a way
-    // (2 way - 1 bit, 3 way - 3 bit, 4 way - 5 bit)
     if (way == way_select) {
       line->tag.lru = m_max_lru;
     } else if (line->tag.lru > pivot) {
@@ -1025,29 +979,6 @@ int vectorcache::locate_line(unsigned int const tag,
                  ("valid mask",offset2valid(offset, len))
                  ("Cache hit but invalid data in current way");
 
-// mem_read
-        /// BUG: Or question: Why are we invalidating in the first place?
-        /// We're trying to read and found invalid data. If/when we replace
-        /// it, we'll set the valid bits anyway, methinks.
-//        if (len == 8) {
-          // dword - make sure to disable both words
-//          (m_new_linefetch_en == false) ? line->tag.valid &= ~offset2valid(offset, len) : line->tag.valid = 0;
-//        }
-
-// mem_write
-          // For 64bit access invalidate the upper word
-          /// BUG: Again, as in mem_read, why are we invalidating? Shouldn't be
-          /// bundled with updating the cache line? Is it so that we use this same
-          /// line for replacement? Doesn't seem the best way for achieving this...
-//          if (len == 8) {
-
-//            if ((line->tag.valid & offset2valid(offset+4)) != 0) {
-
-//              v::debug << this->name() << "64bit invalidate" << v::endl;
-//              line->tag.valid &= ~offset2valid(offset+4);
-
-//            }
-//          }
       } // Cache hit but invalid
     } else {
       srDebug()("way", way)("Cache miss in current way");
@@ -1074,6 +1005,14 @@ int vectorcache::update_line (unsigned const tag,
                               bool& cacheable, bool is_dbg) {
 
     t_cache_line* line = &(*lookup_line(idx, way));
+
+    // Update data in cache
+    // This is written generically to serve both aligned reads and non-aligned
+    // writes.
+    unsigned b0 = offset & 0x3;
+    for (unsigned b = 0; b < len; b++) {
+      line->entry[(offset+b) >> 2].c[(b0+b) % 4] = *(data+b);
+    }
 
     // Update tag and flags for line allocate
     if (line->tag.atag != tag) {
@@ -1142,15 +1081,6 @@ int vectorcache::allocate_line (unsigned const tag,
     // select set according to replacement strategy (TODO: late binding)
     way = replacement_selector(idx, m_repl);
     srDebug()("way", way)("Allocate cache line: Found cache line by replacement selector");
-  }
-
-  t_cache_line* line = &(*lookup_line(idx, way));
-
-  // fill in the new data (always the complete word)
-  if (!m_new_linefetch_en) {
-    memcpy(&line->entry[offset >> 2], data, len);
-  } else {
-    memcpy(&line->entry[0], data, m_bytesperline);
   }
 
   return update_line(tag, idx, offset, way, len, data, delay, debug, cacheable, is_dbg);
