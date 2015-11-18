@@ -136,6 +136,12 @@ class vectorcache : public DefaultBase, public cache_if {
                               unsigned int * debug,
                               bool& cacheable, bool is_dbg);
 
+  std::vector<t_cache_line>::iterator lookup_line( unsigned idx, unsigned way ) {
+    helper.clear();
+    helper.push_back( *lookup(way, idx) );
+    return helper.begin();
+  }
+
  protected:
   // constructor
   // args: sysc module name, pointer to AHB read/write methods (of parent), delay on read hit, delay on read miss (incr), number of sets, setsize in kb, linesize in b, replacement strategy
@@ -194,11 +200,13 @@ class vectorcache : public DefaultBase, public cache_if {
   unsigned int CACHE_CONFIG_REG;
 
   /// the actual cache memory
-  std::vector<std::vector<t_cache_line>*> cache_mem;
+  std::vector<std::vector<t_cache_line>*> cache_mem_old;
+  std::vector<t_cache_line> helper; // remove me
+  
+  std::vector<t_cache_line> * cache_mem;
 
   // helpers for cache handling
   t_cache_line m_default_cacheline;
-  std::vector<t_cache_line*> m_current_cacheline;
 
   /// indicates whether the cache can be put in burst mode or not
   unsigned int m_burst_en;
