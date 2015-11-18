@@ -254,11 +254,12 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
     cache_hit = locate_line(tag, idx, offset, len, delay); // if hit, returns way
 
     // Update power information
-    // Read access to all tag ram (parallel sets)
-    /// BUG: Tag lines are read in parallel for all ways (GRLIB IP 71.3.2).
-    /// This should be moved outside the loop (since the loop might break
-    /// before completion): if (m_pow_mon) dyn_tag_reads += m_sets+1;
-    if (m_pow_mon) dyn_tag_reads += m_sets;
+    // Read all cache data lines in parallel
+    /// NOTE: This should possibly go to locate_line. locate_line is also used
+    /// by mem_write, however. It is unclear whether a cache lookup in mem_write
+    /// also (unnecessarily) reads the data lines or just the tag lines. I've
+    /// assumed the latter.
+    if (m_pow_mon) dyn_tag_reads += m_sets + 1;
 
     // ASIs 0-3 force cache miss
     /// !Forced miss && In cache: Read from cache
@@ -273,7 +274,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       memcpy(data, &(line->entry[offset >> 2].c[byt]), len);
 
       // Update flags
-      if (m_repl == 1) lru_update(cache_hit);
+      if (m_repl == 1) lru_update(idx, cache_hit);
 
       // Increment time
       // One 32-bit load/store can be served per cycle (GRLIB IP 71.3.1).
@@ -436,7 +437,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
             // update lrr history
             if (m_repl == 2) {
-              lrr_update(cache_hit);
+              lrr_update(idx, cache_hit);
             };
 
           } else {
@@ -563,7 +564,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
 
       // update lru history
       if (m_repl == 1) {
-        lru_update(cache_hit);
+        lru_update(idx, cache_hit);
       }
 
       if (len != 8) {
@@ -879,7 +880,7 @@ void vectorcache::flush(sc_core::sc_time *t, unsigned int * debug, bool is_dbg) 
 
         // construct address from tag
         addr = (line->tag.atag << (m_idx_bits + m_offset_bits));
-        addr |= (i_line << m_offset_bits);
+        addr |= ((i_line/(m_sets+1)) << m_offset_bits);
         addr |= (entry << 2);
 
         srDebug()("addr", addr)
@@ -959,36 +960,26 @@ void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time&
 *   NOTE: This function does not perform alignment checks.
 */
 unsigned int vectorcache::offset2valid(unsigned int offset, unsigned int len) {
-
-  if (len != 8) {
-
-    switch(offset>>2) {
-
-    case 0x0: return 0x01;
-    case 0x1: return 0x02;
-    case 0x2: return 0x04;
-    case 0x3: return 0x08;
-    case 0x4: return 0x10;
-    case 0x5: return 0x20;
-    case 0x6: return 0x40;
-    case 0x7: return 0x80;
-    default: v::warn << name() << "Odd offset for calculation of valid mask!" << v::endl;
-      return 0x00;
-
-    }
-
-  } else {
-
-    switch(offset>>2) {
-
-    case 0x0: return 0x03;
-    case 0x2: return 0x0c;
-    case 0x4: return 0x30;
-    case 0x6: return 0xc0;
-    default: v::warn << name() << "Odd offset for calculation of valid mask (dword)!" << v::endl;
-      return 0x00;
-    }
+  // checks
+  if (!len || (offset+len) > m_bytesperline) {
+    srWarn()("Invalid offset/len for calculation of valid mask");
+    return 0;
   }
+
+  // Byte, half-word or word access
+  unsigned ret = 0x1 << (offset >> 2);
+
+  // Multi-word access
+  for (int i_word = (len>>2)-1; i_word > 0; i_word--) {
+    ret |= ret << 1;
+  }
+
+  // Unaligned access
+  if ((offset & 3) || (len & 3)) {
+    ret |= ret << 1;
+  }
+
+  return ret;
 } // vectorcache::offset2valid()
 
 /// ----------------------------------------------------------------------------
@@ -1077,7 +1068,7 @@ unsigned int vectorcache::replacement_selector(unsigned int idx, unsigned int mo
 /// ----------------------------------------------------------------------------
 
 /// Updates the LRR bits for every line replacement
-void vectorcache::lrr_update(unsigned int way_select) {
+void vectorcache::lrr_update(unsigned int idx, unsigned int way_select) {
 
 // LRR may only be used for 2-way associative caches.
   for (unsigned way = 0; way < 2; way++) {
@@ -1096,19 +1087,20 @@ void vectorcache::lrr_update(unsigned int way_select) {
 /// ----------------------------------------------------------------------------
 
 /// Updates the LRU counters for every cache hit
-void vectorcache::lru_update(unsigned int way_select) {
+void vectorcache::lru_update(unsigned int idx, unsigned int way_select) {
 
   unsigned lru;
 
   for (unsigned way = 0; way <= m_sets; way++) {
     t_cache_line* line = m_current_cacheline[way];
+    int pivot = line->tag.lru;
     lru = line->tag.lru;
 
     // LRU: Counter for each line of a way
     // (2 way - 1 bit, 3 way - 3 bit, 4 way - 5 bit)
     if (way == way_select) {
       line->tag.lru = m_max_lru;
-    } else if (lru > 0) {
+    } else if (line->tag.lru > pivot) {
       line->tag.lru--;
     }
 

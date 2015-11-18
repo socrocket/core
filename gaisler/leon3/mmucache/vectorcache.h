@@ -96,9 +96,9 @@ class vectorcache : public DefaultBase, public cache_if {
   /// returns number of the set to be refilled - depending on replacement strategy
   unsigned int replacement_selector(unsigned int idx, unsigned int mode);
   /// updates the lru counters for every cache hit
-  void lru_update(unsigned int set_select);
+  void lru_update(unsigned int idx, unsigned int way_select);
   /// updates the lrr bits for every line replacement
-  void lrr_update(unsigned int set_select);
+  void lrr_update(unsigned int idx, unsigned int way_select);
 
  private:
   inline unsigned get_tag( unsigned address ) {
