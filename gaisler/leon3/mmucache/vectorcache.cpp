@@ -241,8 +241,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
   // Data for refilling a cache line of maximum size
   unsigned char ahb_data[32];
 
-  unsigned replacer_limit = 0;
-
   /// --------------------------------------------------------------------------
   /// !Bypass MMU && (Enabled || Frozen): Search cache
 
@@ -317,7 +315,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       } else if (m_burst_en && (m_mmu_cache->read_ccr(true) & 0x10000)) {
         ahb_address = ((address >> 2) << 2);
         ahb_len = m_bytesperline - ((offset >> 2) << 2);
-        replacer_limit = m_bytesperline - 4;
 
       // Word fetch: Fill only missed word (for byte, half or word reads) or
       // double-word.
@@ -327,11 +324,9 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
         if (len == 8) {
           // len = 64bit
           ahb_len = 8;
-          replacer_limit = offset+4;
         } else {
           // len <= 32bit
           ahb_len =  4;
-          replacer_limit = offset;
         }
       }
 
@@ -346,7 +341,15 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
         srDebug()("addr", address)("Cache read miss will update cache line");
 
+        m_current_cacheline[cache_hit] = lookup(cache_hit, idx);
         t_cache_line* line = m_current_cacheline[cache_hit];
+
+          if (m_pow_mon) {
+            // Write access to data ram
+            dyn_data_writes += (ahb_len >> 2) + 1;
+            // Write to tag ram (valid bits)
+            dyn_tag_writes++;
+          }
 
         if (line->tag.atag == tag) {
 
@@ -357,18 +360,9 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             memcpy(&line->entry[0], ahb_data, m_bytesperline);
           }
 
-          if (m_pow_mon) {
-            // Write access to data ram
-            dyn_data_writes += (ahb_len >> 2) + 1;
-            // Write to tag ram (valid bits)
-            dyn_tag_writes++;
-          }
-
           if (!m_new_linefetch_en) {
             // switch on the valid bits for the new entries
-            for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-              line->tag.valid |= offset2valid(i);
-            }
+            line->tag.valid |= offset2valid(get_offset(ahb_address), ahb_len);
           } else {
             line->tag.valid = 0x1;
           }
@@ -389,15 +383,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
                                   get_offset(ahb_address), ahb_len,
                                   ahb_data, delay, debug, cacheable, is_dbg);
 
-          t_cache_line* line = m_current_cacheline[cache_hit];
-
-          // fill in the new data (always the complete word)
-          if (!m_new_linefetch_en) {
-            memcpy(&line->entry[offset >> 2], ahb_data, ahb_len);
-          } else {
-            memcpy(&line->entry[0], ahb_data, m_bytesperline);
-          }
-
           if (m_pow_mon) {
             // Write access to data ram
             /// BUG: This will give +2 for ahb_len = 4 and +3 for ahb_len = 8
@@ -405,6 +390,16 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             dyn_data_writes += (ahb_len >> 2) + 1;
             // Write to tag ram (replacement or setting valid bits)
             dyn_tag_writes++;
+          }
+
+          m_current_cacheline[cache_hit] = lookup(cache_hit, idx);
+          t_cache_line* line = m_current_cacheline[cache_hit];
+
+          // fill in the new data (always the complete word)
+          if (!m_new_linefetch_en) {
+            memcpy(&line->entry[offset >> 2], ahb_data, ahb_len);
+          } else {
+            memcpy(&line->entry[0], ahb_data, m_bytesperline);
           }
 
           // has the tag changed?
@@ -416,40 +411,18 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
             // switch off all the valid bits ...
             line->tag.valid = 0;
 
-            // .. and switch on the ones for the new entries
-            if (!m_new_linefetch_en) {
-          /// BUG: For unaligned offsets && burst fetches the last word in the
-          /// line will not be set to valid. Example:
-          /// m_bytesperline = 16, offset = 6 => replacer_limit = 12
-          /// The loop will run for i = {6; 10} but not for 14.
-          /// Either i = (offset >> 2) << 2 or we should get rid of replacement_limit
-          /// altogether and use m_bytesperline directly (cleaner anyway).
-              for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-                line->tag.valid |= offset2valid(i);
-              }
-            } else {
-              line->tag.valid = 0x1;
-            }
-
             // reset lru
             /// BUG: Shouldn't we rather call lru_update to decrement the other ways too?
             line->tag.lru = m_max_lru;
 
             // update lrr history
-            if (m_repl == 2) {
-              lrr_update(idx, cache_hit);
-            };
+            if (m_repl == 2) lrr_update(idx, cache_hit);
+          }
 
+          if (!m_new_linefetch_en) {
+            line->tag.valid |= offset2valid(get_offset(ahb_address), ahb_len);
           } else {
-
-            if (!m_new_linefetch_en) {
-              // switch on the valid bits for the new entries
-              for (unsigned int i = offset; i <= replacer_limit; i += 4) {
-                line->tag.valid |= offset2valid(i);
-              }
-            } else {
-              line->tag.valid = 0x1;
-            }
+            line->tag.valid = 0x1;
           }
 
       } // Allocate cache line
@@ -563,9 +536,7 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
       t_cache_line* line = m_current_cacheline[cache_hit];
 
       // update lru history
-      if (m_repl == 1) {
-        lru_update(idx, cache_hit);
-      }
+      if (m_repl == 1) lru_update(idx, cache_hit);
 
       if (len != 8) {
         // write data to cache
