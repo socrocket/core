@@ -240,7 +240,7 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       *delay += ((len - 1) >> 2) * clockcycle;
 
       // If len > 4B, 1 data read per 4B is added.
-      if (m_pow_mon) dyn_data_reads += 1 + ((len - 1) >> 2);
+      if (m_pow_mon) dyn_data_reads += (len - 1) >> 2;
 
       // Update debug information
       rhits[cache_hit]++;
