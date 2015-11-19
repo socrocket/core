@@ -27,12 +27,11 @@
 vectorcache::vectorcache(ModuleName name,
                          mmu_cache_if * _mmu_cache, mem_if *_tlb_adaptor,
                          unsigned int mmu_en, unsigned int burst_en,
-                         bool new_linefetch_en,
-                         unsigned int sets, unsigned int setsize,
-                         unsigned int setlock, unsigned int linesize,
-                         unsigned int repl, unsigned int lram,
-                         unsigned int lramstart, unsigned int lramsize,
-                         bool pow_mon) :
+                         bool new_linefetch_en, unsigned int sets,
+                         unsigned int setsize, unsigned int setlock,
+                         unsigned int linesize, unsigned int repl,
+                         unsigned int lram, unsigned int lramstart,
+                         unsigned int lramsize, bool pow_mon) :
     sc_module(name),
     m_mmu_cache(_mmu_cache),
     m_tlb_adaptor(_tlb_adaptor),
@@ -224,6 +223,14 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
 
     cache_hit = locate_line(tag, idx, offset, len, delay); // if hit, returns way
 
+    // Update power information
+    // Read all cache data lines in parallel
+    /// NOTE: This should possibly go to locate_line. locate_line is also used
+    /// by mem_write, however. It is unclear whether a cache lookup in mem_write
+    /// also (unnecessarily) reads the data lines or just the tag lines. I've
+    /// assumed the latter.
+    if (m_pow_mon) dyn_data_reads += m_sets + 1;
+
     /// !Forced miss && In cache: Read from cache
     if (cache_hit != -1 && asi > 3 /* not forced cache miss */) {
       srAnalyse()("addr", address)("Cache READ HIT");
@@ -255,10 +262,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       } else {
         srAnalyse()("addr", address)("Cache READ MISS");
       }
-
-
-      // Increment time
-      *delay += clockcycle;
 
       // Read data from mem: Calculate transfer parameters.
       // Line fetch: Fill whole cache line.
@@ -303,7 +306,6 @@ bool vectorcache::mem_read(unsigned int address, unsigned int asi, unsigned char
       // If cache is not frozen, we can use whichever way we found according to
       // replacement strategy. If cache is frozen, it is kept in sync with main
       // memory, but no new lines are allocated on read miss.
-
       else if ((check_mode() & 0x2) /* enabled (0b11) */ && cacheable_local) {
 
         srDebug()("addr", address)("Cache read miss will allocate cache line");
@@ -440,27 +442,6 @@ void vectorcache::mem_write(unsigned int address, unsigned int asi, unsigned cha
       CACHEWRITEMISS_SET(*debug);
 
     } // Cache miss
-
-    // lookup all cachesets
-    for (unsigned int i = 0; i <= m_sets; i++) {
-
-      t_cache_line* line = &(*lookup_line(idx, i));
-
-      // Check the cache tag
-      if (line->tag.atag == tag)
-        if ((!m_new_linefetch_en && (line->tag.valid & offset2valid(offset, len)) == offset2valid(offset, len)) ||
-            (m_new_linefetch_en && (line->tag.valid & 0x1)))
-          break;
-
-      // increment time
-      /// BUG: 1) This will be +0 for len <=4 and +1 for len == 8 (same bug as in mem_read)
-      ///      2) Result from 1) is multiplied by searched ways; wrong logic, since all ways are read in parallel (same in mem_read)
-      ///      3) This statement runs for cache misses too, which doesn't make sense because then the delay should not depend on the data length.
-      /// Suggestion: delay should be incremented by one for misses and by (1 + (len - 1) >> 2) * clockcycle for hits. Perhaps not necessary
-      /// to wait for writes but simplifies the pipeline. Then no more waiting for mem writes because of the write buffer.
-      *delay += ((len - 1) >> 2)*clockcycle;
-
-    }
 
       srDebug()("addr", address)("Cache will issue memory write");
 
@@ -723,7 +704,7 @@ void vectorcache::snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time&
   unsigned way;
 
   // Is the cache enabled
-  if ((check_mode() & 0x3) == 0x3) {
+  if (check_mode() & 0x3) {
 
     for (address = snoop.address; address < snoop.address + snoop.length; address += 4) {
       // Extract index and tag from address
@@ -954,6 +935,9 @@ int vectorcache::locate_line(unsigned int const tag,
     }
   } // loop m_sets
 
+  // Increment time
+  *delay += clockcycle;
+
   // Update power information
   // Read all cache tag lines in parallel
   if (m_pow_mon) dyn_tag_reads += m_sets+1;
@@ -1006,6 +990,11 @@ int vectorcache::update_line (unsigned const tag,
     }
     if (m_repl == 1) lru_update(idx, way);
 
+    // Increment time
+    // One 32-bit load/store can be served per cycle (GRLIB IP 71.3.1). We
+    // therefore calculate 1cc for len <= 4B and 1cc for every additional 4B.
+    *delay += (1 + ((len - 1) >> 2)) * clockcycle;
+
     // Update power information
     if (m_pow_mon) {
       // Write access to data ram
@@ -1054,7 +1043,7 @@ int vectorcache::allocate_line (unsigned const tag,
 
   // Otherwise choose depending on replacement strategy.
   if (!found) {
-    // select set according to replacement strategy (TODO: late binding)
+    // TODO: late binding
     way = replacement_selector(idx, m_repl);
     srDebug()("way", way)("Allocate cache line: Found cache line by replacement selector");
   }
