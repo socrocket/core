@@ -19,7 +19,7 @@ GRLIB*             | 1.0.21     | Aeroflex Gaisler          | `$GRLIB_HOME` – 
 
 On a Debian/Ubuntu (64bit) System you can install most of the dependencies with `apt-get`:
 
-    $ sudo apt-get install build-essential python2.7-dev libboost-dev libboost-thread-dev libboost-regex-dev libboost-program-options-dev libboost-filesystem-dev libreadline-dev libc6-i386 lib32z1 lib32ncurses5 lib32bz2-1.0 swig
+    $ sudo apt-get install build-essential python2.7-dev libboost-dev libboost-thread-dev libboost-regex-dev libboost-program-options-dev libboost-filesystem-dev libreadline-dev libc6-i386 lib32z1 lib32ncurses5 lib32bz2-1.0 swig gfortran libatlas-base-dev libhdf5-dev
 
 Please make sure that all the software packages mentioned above are properly installed, before proceeding with building the library. 
 
