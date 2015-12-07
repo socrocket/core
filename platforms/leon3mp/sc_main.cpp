@@ -922,6 +922,9 @@ int sc_main(int argc, char** argv) {
     // ******************************************
 
 #ifdef HAVE_AHBDISPLAY
+    int frameWidth = 960;
+    int frameHeight = 720;
+    
     // AHBDisplay - AHBMaster
     // ==================
     gs::gs_param_array p_ahbdisplay("ahbdisplay", p_conf);
@@ -935,7 +938,8 @@ int sc_main(int argc, char** argv) {
         p_ahbdisplay_hindex,  // ahb index
         p_ahbdisplay_pindex,  // apb index
         p_ahbdisplay_paddr,  // apb address
-        p_ahbdisplay_pmask  // apb mask
+        p_ahbdisplay_pmask,  // apb mask
+        frameWidth, frameHeight
       );
 
       // Connecting APB Slave
@@ -960,6 +964,7 @@ int sc_main(int argc, char** argv) {
         p_ahbcamera_pindex,  // apb index
         p_ahbcamera_paddr,   // apb addr
         p_ahbcamera_pmask,   // apb make
+        frameWidth, frameHeight,
         ((std::string)p_ahbcamera_video).c_str(),
         ambaLayer
       );
@@ -973,6 +978,18 @@ int sc_main(int argc, char** argv) {
 #ifdef HAVE_AHBSHUFFLER
     // AHBShuffler - AHBMaster
     // ==================
+    int inX = 0;
+    int inY = 0;
+    int outX = 320;
+    int outY = 0;
+    int videoWidth = 320;
+    uint8_t p_ahbshuffler_matrix[16] = { 
+      1,0,2,12,
+      4,5,14,8,
+      3,9,10,11,
+      7,13,6,15,
+    };
+
     gs::gs_param_array p_ahbshuffler("ahbshuffler", p_conf);
     gs::gs_param<bool> p_ahbshuffler_en("en", false, p_ahbshuffler);
     gs::gs_param<unsigned int> p_ahbshuffler_hindex("hindex", 4, p_ahbshuffler);
@@ -985,8 +1002,12 @@ int sc_main(int argc, char** argv) {
         p_ahbshuffler_pindex,  // apb index
         p_ahbshuffler_paddr,   // apb addr
         p_ahbshuffler_pmask,   // apb make
-        ambaLayer,
-        true
+        p_ahbshuffler_matrix,
+        inX, inY,
+        outX, outY,
+        videoWidth,
+        frameWidth, frameHeight,
+        ambaLayer
       );
 
       // Connecting APB Slave
