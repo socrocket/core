@@ -25,6 +25,8 @@ class ArrayStorage : public Storage {
 
     void set_size(const uint32_t &size);
 
+    uint64_t get_size() const;
+
     void write(const uint32_t &addr, const uint8_t &byte);
 
     uint8_t read(const uint32_t &addr) const;
@@ -40,6 +42,8 @@ class ArrayStorage : public Storage {
     bool allow_dmi_rw();
   private:
     uint8_t *data;
+  protected:
+    uint64_t m_size;
 };
 
 #endif  // MODELS_MEMORY_ARRAYSTORAGE_H_

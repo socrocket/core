@@ -41,6 +41,8 @@ class Storage : public sc_core::sc_object {
 
     virtual void set_size(const uint32_t &size) = 0;
 
+    virtual uint64_t get_size() const = 0;
+
     virtual void write(const uint32_t &addr, const uint8_t &byte) = 0;
 
     virtual uint8_t read(const uint32_t &addr) const = 0;
@@ -54,6 +56,9 @@ class Storage : public sc_core::sc_object {
     virtual uint8_t *get_dmi_ptr() { return NULL; }
 
     virtual bool allow_dmi_rw() { return false; }
+
+  protected:
+    uint64_t m_size;
 };
 
 #endif  // MODELS_MEMORY_STORAGE_H_

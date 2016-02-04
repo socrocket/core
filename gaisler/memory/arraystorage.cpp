@@ -13,10 +13,11 @@
 ///
 
 #include "gaisler/memory/arraystorage.h"
+#include "core/common/sr_report.h"
 
 SR_HAS_MEMORYSTORAGE(ArrayStorage);
 
-ArrayStorage::ArrayStorage(sc_core::sc_module_name mn) : Storage(mn), data(NULL) {
+ArrayStorage::ArrayStorage(sc_core::sc_module_name mn) : Storage(mn), data(NULL), m_size(0) {
 }
 
 ArrayStorage::~ArrayStorage() {
@@ -28,6 +29,18 @@ void ArrayStorage::set_size(const uint32_t &size) {
     delete data;
   }
   data = new uint8_t[size];
+  m_size = size;
+  srInfo()
+    ("size", m_size)
+    ("set_size");
+
+}
+
+uint64_t ArrayStorage::get_size() const {
+  srInfo()
+    ("size", m_size)
+    ("get_size");
+  return m_size;
 }
 
 void ArrayStorage::write(const uint32_t &addr, const uint8_t &byte) {
