@@ -16,13 +16,18 @@
 
 SR_HAS_MEMORYSTORAGE(MapStorage);
 
-MapStorage::MapStorage(sc_core::sc_module_name mn) : Storage(mn) {
+MapStorage::MapStorage(sc_core::sc_module_name mn) : Storage(mn), m_size(0) {
 }
 
 MapStorage::~MapStorage() {
 }
 
 void MapStorage::set_size(const uint32_t &size) {
+  m_size = size;
+}
+
+uint64_t MapStorage::get_size() const {
+  return m_size;
 }
 
 void MapStorage::write(const uint32_t &addr, const uint8_t &byte) {

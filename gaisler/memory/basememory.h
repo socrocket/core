@@ -70,7 +70,7 @@ class BaseMemory : public scireg_ns::scireg_region_if {
 
     /// Get bit width and byte width of this region
     virtual sc_dt::uint64 scireg_get_bit_width() const {
-      return 8;
+      return m_storage->get_size() * 8;
     }
 
     /// If this region is a register field, these functions return low bit and high bit positions:
