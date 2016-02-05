@@ -1,33 +1,33 @@
 /***************************************************************************\
  *
- *   
+ *
  *         _/        _/_/_/_/    _/_/    _/      _/   _/_/_/
  *        _/        _/        _/    _/  _/_/    _/         _/
  *       _/        _/_/_/    _/    _/  _/  _/  _/     _/_/
  *      _/        _/        _/    _/  _/    _/_/         _/
  *     _/_/_/_/  _/_/_/_/    _/_/    _/      _/   _/_/_/
- *   
  *
  *
- *   
+ *
+ *
  *   This file is part of LEON3.
- *   
+ *
  *   LEON3 is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation; either version 3 of the License, or
  *   (at your option) any later version.
- *   
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- *   
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the
  *   Free Software Foundation, Inc.,
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *   or see <http://www.gnu.org/licenses/>.
- *   
+ *
  *
  *
  *   (c) Luca Fossati, fossati.l@gmail.com
@@ -138,7 +138,7 @@ namespace leon3_funclt_trap{
 
       /// ******************************************************************
       /// Power Modeling Parameters
-      
+
       /// Normalized static power input
       sr_param<double> sta_power_norm;
 
@@ -162,13 +162,13 @@ namespace leon3_funclt_trap{
 
       /// Power frame starting time
       sr_param<sc_core::sc_time> power_frame_starting_time;
-      
+
       /// Average dynamic energy per instruction
       sr_param<double> dyn_instr_energy;
 
       /// Number of instructions processed in time frame
       sr_param<uint64_t> dyn_instr;
-      
+
       /// Number of instructions processed
       sr_param<uint64_t> numInstructions;
     };

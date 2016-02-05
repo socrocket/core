@@ -1,33 +1,33 @@
 /***************************************************************************\
  *
- *   
+ *
  *         _/        _/_/_/_/    _/_/    _/      _/   _/_/_/
  *        _/        _/        _/    _/  _/_/    _/         _/
  *       _/        _/_/_/    _/    _/  _/  _/  _/     _/_/
  *      _/        _/        _/    _/  _/    _/_/         _/
  *     _/_/_/_/  _/_/_/_/    _/_/    _/      _/   _/_/_/
- *   
  *
  *
- *   
+ *
+ *
  *   This file is part of LEON3.
- *   
+ *
  *   LEON3 is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation; either version 3 of the License, or
  *   (at your option) any later version.
- *   
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- *   
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the
  *   Free Software Foundation, Inc.,
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *   or see <http://www.gnu.org/licenses/>.
- *   
+ *
  *
  *
  *   (c) Luca Fossati, fossati.l@gmail.com
@@ -107,7 +107,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                 } else if(startMet && curPC == this->profEndAddr){
                     this->profTimeEnd = sc_time_stamp();
                 }
-                
+
                 int instrId = 0;
                 unsigned int bitString = this->instrMem.read_instr(curPC, 0x8 | (PSR[key_S]? 1 : 0),0);
                 if(raisedException) {
@@ -121,7 +121,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                     curInstrPtr = cachedInstr->second.instr;
                     // I can call the instruction, I have found it
                     if(curInstrPtr == NULL) {
-                        curCount = &cachedInstr->second.count; 
+                        curCount = &cachedInstr->second.count;
                         instrId = this->decoder.decode(bitString);
                         curInstrPtr = this->INSTRUCTIONS[instrId];
                         curInstrPtr->setParams(bitString);
@@ -248,7 +248,7 @@ void leon3_funclt_trap::Processor_leon3_funclt::resetOp(){
 
 // Calculate power/energy values from normalized input data
 void leon3_funclt_trap::Processor_leon3_funclt::power_model() {
-  
+
   // Static power calculation (pW)
   sta_power = sta_power_norm;
 
@@ -288,9 +288,9 @@ void leon3_funclt_trap::Processor_leon3_funclt::start_of_simulation() {
 
   // Initialize power model
   if (m_pow_mon) {
-    
+
     power_model();
-    
+
   }
 }
 
@@ -336,11 +336,11 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
     MemoryInterface *memory,
     sc_time latency,
     bool pow_mon ) :
-      sc_module(name), 
+      sc_module(name),
       mem(memory),
-      instrMem(*mem), 
-      dataMem(*mem), 
-      latency(latency), 
+      instrMem(*mem),
+      dataMem(*mem),
+      latency(latency),
       IRQ_port("IRQ_IRQ", IRQ),
       irqAck("irqAck_PIN"),
       historyEnabled("historyEnabled", false),
@@ -355,8 +355,9 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
       power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
       dyn_instr_energy("dyn_instr_energy", 0.0, power), // average instruction energy
       dyn_instr("dyn_instr", 0ull, power), // number of instructions
-      numInstructions("instruction_count", 0ull)
-      
+      numInstructions("instruction_count", 0ull),
+      PC("PC")
+
 {
     this->resetCalled = false;
     Processor_leon3_funclt::numInstances++;
@@ -708,7 +709,7 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
     this->profTimeEnd = SC_ZERO_TIME;
     this->profStartAddr = (unsigned int)-1;
     this->profEndAddr = (unsigned int)-1;
-    this->historyEnabled = false; 
+    this->historyEnabled = false;
     this->undumpedHistElems = 0;
     this->numInstructions = 0;
     this->ENTRY_POINT = 0;
@@ -733,7 +734,7 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
 }
 
 leon3_funclt_trap::Processor_leon3_funclt::~Processor_leon3_funclt(){
-    
+
     GC_UNREGISTER_CALLBACKS();
 
     Processor_leon3_funclt::numInstances--;

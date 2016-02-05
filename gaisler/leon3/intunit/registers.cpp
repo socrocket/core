@@ -1,33 +1,33 @@
 /***************************************************************************\
  *
- *   
+ *
  *         _/        _/_/_/_/    _/_/    _/      _/   _/_/_/
  *        _/        _/        _/    _/  _/_/    _/         _/
  *       _/        _/_/_/    _/    _/  _/  _/  _/     _/_/
  *      _/        _/        _/    _/  _/    _/_/         _/
  *     _/_/_/_/  _/_/_/_/    _/_/    _/      _/   _/_/_/
- *   
  *
  *
- *   
+ *
+ *
  *   This file is part of LEON3.
- *   
+ *
  *   LEON3 is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation; either version 3 of the License, or
  *   (at your option) any later version.
- *   
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- *   
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the
  *   Free Software Foundation, Inc.,
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *   or see <http://www.gnu.org/licenses/>.
- *   
+ *
  *
  *
  *   (c) Luca Fossati, fossati.l@gmail.com
@@ -55,6 +55,10 @@ void leon3_funclt_trap::Register::clockCycle() throw(){
 }
 
 leon3_funclt_trap::Register::Register() : sc_register<unsigned int, SC_REG_RW_ACCESS>(sc_core::sc_gen_unique_name("reg"), 0) {
+
+}
+
+leon3_funclt_trap::Register::Register(const char *name) : sc_register<unsigned int, SC_REG_RW_ACCESS>(name, 0) {
 
 }
 
@@ -1723,6 +1727,14 @@ unsigned int leon3_funclt_trap::Reg32_3::readNewValue() throw(){
     return this->m_cur_val;
 }
 
+//const unsigned int& leon3_funclt_trap::Reg32_3::read() const {
+//  return this->m_cur_val;
+//}
+//
+//void leon3_funclt_trap::Reg32_3::write(unsigned int &value) {
+//  this->m_cur_val = value;
+//}
+
 unsigned int leon3_funclt_trap::Reg32_3::operator ~() throw(){
     return ~(this->m_cur_val);
 }
@@ -2022,6 +2034,10 @@ std::ostream & leon3_funclt_trap::Reg32_3::operator <<( std::ostream & stream ) 
 }
 
 leon3_funclt_trap::Reg32_3::Reg32_3(){
+    this->m_cur_val = 0;
+}
+
+leon3_funclt_trap::Reg32_3::Reg32_3(const char *name) : Register(name){
     this->m_cur_val = 0;
 }
 

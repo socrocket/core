@@ -1,33 +1,33 @@
 /***************************************************************************\
  *
- *   
+ *
  *         _/        _/_/_/_/    _/_/    _/      _/   _/_/_/
  *        _/        _/        _/    _/  _/_/    _/         _/
  *       _/        _/_/_/    _/    _/  _/  _/  _/     _/_/
  *      _/        _/        _/    _/  _/    _/_/         _/
  *     _/_/_/_/  _/_/_/_/    _/_/    _/      _/   _/_/_/
- *   
  *
  *
- *   
+ *
+ *
  *   This file is part of LEON3.
- *   
+ *
  *   LEON3 is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation; either version 3 of the License, or
  *   (at your option) any later version.
- *   
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- *   
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the
  *   Free Software Foundation, Inc.,
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *   or see <http://www.gnu.org/licenses/>.
- *   
+ *
  *
  *
  *   (c) Luca Fossati, fossati.l@gmail.com
@@ -109,6 +109,7 @@ namespace leon3_funclt_trap{
     class Register : public sc_register<unsigned int, SC_REG_RW_ACCESS> {
       public:
         Register( const Register & other );
+        explicit Register(const char *name);
         Register();
 
         virtual void immediateWrite( const unsigned int & m_cur_val ) throw() = 0;
@@ -153,6 +154,19 @@ namespace leon3_funclt_trap{
         virtual Register & operator >>=( const Register & other ) throw() = 0;
         virtual std::ostream & operator <<( std::ostream & other ) const throw() = 0;
         virtual operator unsigned int() const throw() = 0;
+
+  protected:
+    void execute_callbacks(const scireg_ns::scireg_callback_type &type) const {
+      scireg_ns::scireg_callback* p;
+      ::std::vector<scireg_ns::scireg_callback*>::const_iterator it;
+      for (it = scireg_callback_vec.begin(); it != scireg_callback_vec.end(); ++it)
+      {
+        p = *it;
+        if (p->type == type) {
+          p->do_callback(*const_cast<scireg_ns::scireg_region_if *>(static_cast<const scireg_ns::scireg_region_if *>(this)));
+        }
+      }
+    }
     };
 
 };
@@ -1320,15 +1334,20 @@ namespace leon3_funclt_trap{
 
         private:
         InnerField_Empty field_empty;
-        unsigned int m_cur_val;
 
         public:
         Reg32_3();
+        explicit Reg32_3(const char *name);
+
         inline InnerField & operator []( int bitField ) throw(){
             return this->field_empty;
         }
         void immediateWrite( const unsigned int & m_cur_val ) throw();
         unsigned int readNewValue() throw();
+
+        //const unsigned int& read() const;
+        //void write(unsigned int &value);
+
         unsigned int operator ~() throw();
         Reg32_3 & operator =( const unsigned int & other ) throw();
         Reg32_3 & operator +=( const unsigned int & other ) throw();
@@ -1390,7 +1409,12 @@ namespace leon3_funclt_trap{
         Reg32_3 & operator ^=( const Register & other ) throw();
         Reg32_3 & operator <<=( const Register & other ) throw();
         Reg32_3 & operator >>=( const Register & other ) throw();
+        //inline operator unsigned int() throw(){
+        //    execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
+        //    return this->m_cur_val;
+        //}
         inline operator unsigned int() const throw(){
+            execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
             return this->m_cur_val;
         }
         std::ostream & operator <<( std::ostream & stream ) const throw();
