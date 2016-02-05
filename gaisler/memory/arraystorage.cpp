@@ -30,14 +30,14 @@ void ArrayStorage::set_size(const uint32_t &size) {
   }
   data = new uint8_t[size];
   m_size = size;
-  srInfo()
+  srDebug()
     ("size", m_size)
     ("set_size");
 
 }
 
 uint64_t ArrayStorage::get_size() const {
-  srInfo()
+  srDebug()
     ("size", m_size)
     ("get_size");
   return m_size;

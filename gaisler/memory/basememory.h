@@ -21,6 +21,7 @@
 #include "gaisler/memory/mapstorage.h"
 #include "gaisler/memory/storage.h"
 #include "core/common/scireg.h"
+#include "core/common/sr_report.h"
 
 class BaseMemory : public scireg_ns::scireg_region_if {
   public:
@@ -86,6 +87,19 @@ class BaseMemory : public scireg_ns::scireg_region_if {
       return scireg_ns::SCIREG_UNSUPPORTED;
     }
 
+    scireg_ns::scireg_response scireg_add_callback(scireg_ns::scireg_callback &cb) {
+      callback_vector.push_back(&cb);
+      return scireg_ns::SCIREG_SUCCESS;
+    }
+
+    scireg_ns::scireg_response scireg_remove_callback(scireg_ns::scireg_callback& cb) {
+      ::std::vector<scireg_ns::scireg_callback*>::iterator it;
+      it = find(callback_vector.begin(), callback_vector.end(), &cb);
+      if (it != callback_vector.end())
+        callback_vector.erase(it);
+      return scireg_ns::SCIREG_SUCCESS;
+    }
+
     /// byte read count
     unsigned long long reads;
 
@@ -99,7 +113,22 @@ class BaseMemory : public scireg_ns::scireg_region_if {
     unsigned long long writes32;
 
   protected:
+    void execute_callbacks(const scireg_ns::scireg_callback_type &type, const uint32_t &offset, const uint32_t &size) {
+      scireg_ns::scireg_callback* p;
+      ::std::vector<scireg_ns::scireg_callback*>::iterator it;
+      for (it = callback_vector.begin(); it != callback_vector.end(); ++it)
+      {
+        p = *it;
+        if (p->type == type) {
+          p->offset = offset;
+          p->size = size;
+          p->do_callback(*this);
+        }
+      }
+    }
+
     Storage *m_storage;
+    ::std::vector<scireg_ns::scireg_callback*> callback_vector;
 };
 
 #endif  // MODELS_MEMORY_BASEMEMORY_H_

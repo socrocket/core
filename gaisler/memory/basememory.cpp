@@ -42,6 +42,7 @@ void BaseMemory::set_storage(std::string implementation, uint32_t size) {
 uint8_t BaseMemory::read(const uint32_t &addr) {
   reads++;
   reads32++;
+  this->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS, addr, 4);
   return this->read_dbg(addr);
 }
 
@@ -49,6 +50,7 @@ void BaseMemory::write(const uint32_t &addr, const uint8_t &byte) {
   writes++;
   writes32++;
   this->write_dbg(addr, byte);
+  this->execute_callbacks(scireg_ns::SCIREG_WRITE_ACCESS, addr, 4);
 }
 
 uint8_t BaseMemory::read_dbg(const uint32_t &addr) {
@@ -71,6 +73,7 @@ void BaseMemory::write_block(const uint32_t &addr, uint8_t *data, const uint32_t
   writes += len;
   writes32 += ((len - 1) >> 2) + 1;
   write_block_dbg(addr, data, len);
+  this->execute_callbacks(scireg_ns::SCIREG_WRITE_ACCESS, addr, len);
 }
 
 void BaseMemory::write_block_dbg(const uint32_t &addr, const uint8_t *data, const uint32_t &len) {
@@ -81,6 +84,7 @@ void BaseMemory::read_block(const uint32_t &addr, uint8_t *data, const uint32_t 
   reads += len;
   reads32 += ((len - 1) >> 2) + 1;
   read_block_dbg(addr, data, len);
+  this->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS, addr, len);
 }
 
 void BaseMemory::read_block_dbg(const uint32_t &addr, uint8_t *data, const uint32_t &len) const {
