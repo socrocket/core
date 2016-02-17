@@ -709,7 +709,6 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
     this->profTimeEnd = SC_ZERO_TIME;
     this->profStartAddr = (unsigned int)-1;
     this->profEndAddr = (unsigned int)-1;
-    this->historyEnabled = false;
     this->undumpedHistElems = 0;
     this->numInstructions = 0;
     this->ENTRY_POINT = 0;
