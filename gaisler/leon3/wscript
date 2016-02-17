@@ -17,11 +17,12 @@ def build(self):
                             'mmucache/dvectorcache.cpp',
                             'mmucache/mmu.cpp', 
                             'mmucache/mmu_cache.cpp',
-                            'mmucache/mmu_cache_base.cpp'
+                            'mmucache/mmu_cache_base.cpp',
+                            'mmucache/defines.cpp'
                           ],
         export_includes = self.top_dir,
         includes        = self.top_dir,
-        use             = 'common',
+        use             = 'common sr_register',
         install_path    = '${PREFIX}/lib',
     )
 

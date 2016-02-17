@@ -9,7 +9,7 @@
 /// @date 2010-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
@@ -23,6 +23,7 @@ localram::localram(ModuleName name,
                    unsigned int lrstart,
 		   bool pow_mon) :
                    sc_module(name),
+       m_default_entry("default_entry", 1),
 		   m_lrsize(lrsize<<10),
 		   m_lrstart(lrstart << 24),
 		   m_pow_mon(pow_mon),
@@ -54,10 +55,10 @@ localram::localram(ModuleName name,
     m_api = gs::cnf::GCnf_Api::getApiInstance(this);
 
     // Initialize allocator
-    m_default_entry.i = 0;
+    m_default_entry.set_int(0, 0);
 
     // Create the actual ram
-    scratchpad = new t_cache_data[m_lrsize>>2];
+    scratchpad = new t_cache_data("scratchpad", m_lrsize>>2);
 
     // Register power callback functions
     if (m_pow_mon) {
@@ -103,7 +104,8 @@ bool localram::mem_read(unsigned int addr, unsigned int asi, unsigned char *data
 
   // Copy data to payload pointer
   for (unsigned int i = 0; i < len; i++) {
-    *(data + i) = scratchpad[(addr - m_lrstart) >> 2].c[byt + i];
+    //*(data + i) = scratchpad[(addr - m_lrstart) >> 2].c[byt + i];
+    *(data + i) = scratchpad->get_char((addr - m_lrstart) >> 2, byt + i);
     sreads_byte++;
   }
 
@@ -136,7 +138,8 @@ void localram::mem_write(unsigned int addr, unsigned int asi, unsigned char *dat
 
   // memcpy ??
   for (unsigned int i = 0; i < len; i++) {
-    scratchpad[(addr - m_lrstart) >> 2].c[byt + i] = *(data + i);
+    //scratchpad[(addr - m_lrstart) >> 2].c[byt + i] = *(data + i);
+    scratchpad->set_char((addr - m_lrstart) >> 2, byt + i, *(data + i));
     swrites_byte++;
   }
 

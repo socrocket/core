@@ -18,6 +18,9 @@
 #define __VECTORCACHE_H__
 
 #include <vector>
+#include <stdio.h>
+#include <string>
+#include <sstream>
 #include "core/common/base.h"
 #include "core/common/systemc.h"
 #include "core/common/sr_param.h"
@@ -30,10 +33,12 @@
 #include "gaisler/leon3/mmucache/tlb_adaptor.h"
 #include "gaisler/leon3/mmucache/mem_if.h"
 #include "core/common/vendian.h"
+#include "core/common/sr_register/scireg.h"
 
 // implementation of cache memory and controller
 /// @brief virtual cache model, contain common functionality of instruction and data cache
-class vectorcache : public DefaultBase, public cache_if {
+class vectorcache : public DefaultBase, public cache_if, public scireg_ns::scireg_region_if
+{
 
   /// --------------------------------------------------------------------------
   /// @name Interface Data Methods
@@ -75,6 +80,29 @@ public:
   /// Snooping function (invalidates cache line(s))
   virtual void snoop_invalidate(const t_snoop& snoop, const sc_core::sc_time& delay);
 
+  virtual scireg_ns::scireg_response scireg_get_region_type(scireg_ns::scireg_region_type& t) const {
+    t = scireg_ns::SCIREG_BANK;
+    return scireg_ns::SCIREG_SUCCESS;
+  }
+
+  /// Get parent SystemC modules associated with this region
+  virtual scireg_ns::scireg_response scireg_get_parent_modules(std::vector<sc_core::sc_module*>& v) const {
+    v.push_back(&const_cast<vectorcache&>(*this));
+    return scireg_ns::SCIREG_SUCCESS;
+  }
+
+  /// Get child regions mapped into this region, by returning a mapped region object representing each mapping.
+  /// The size and offset parameters can be used to constrain the range of the search
+  virtual scireg_ns::scireg_response scireg_get_child_regions(
+      std::vector<scireg_ns::scireg_mapped_region>& mapped_regions,
+      sc_dt::uint64 size=sc_dt::uint64(-1), sc_dt::uint64 offset=0) const {
+   for (std::vector<scireg_ns::scireg_mapped_region*>::const_iterator i = this->mapped_regions->begin();
+       i != this->mapped_regions->end(); ++i) {
+     mapped_regions.push_back(**i);
+   }
+    return scireg_ns::SCIREG_SUCCESS;
+  }
+
   /// @} Interface Control Methods
   /// --------------------------------------------------------------------------
   /// @name Internal Methods
@@ -105,7 +133,7 @@ protected:
   /// Reads a cache line from a given cache way.
   /// Returns an iterator to found line (more useful than pointer for looping through ways of a given index).
   /// Returns null for incorrect parameters.
-  inline std::vector<t_cache_line>::iterator lookup_line(unsigned idx, unsigned way) {return cache_mem->begin()+(idx*(m_sets+1)+way);}
+  inline std::vector<t_cache_line*>::iterator lookup_line(unsigned idx, unsigned way) {return (cache_mem->begin())+(idx*(m_sets+1)+way);}
 
   /// Searches for a cache tag in all cache ways. Updates power information for reading tags.
   /// Returns found way if tag matches and data is valid, otherwise -1.
@@ -206,7 +234,10 @@ protected:
   unsigned int CACHE_CONFIG_REG;
 
   /// The actual cache memory
-  std::vector<t_cache_line>* cache_mem;
+  std::vector<t_cache_line*> *cache_mem;
+
+  /// The children scireg_reagion_ifs
+  std::vector<scireg_ns::scireg_mapped_region*> *mapped_regions;
 
   /// Indicates whether the cache can be put in burst mode or not
   unsigned int m_burst_en;

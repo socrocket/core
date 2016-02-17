@@ -22,6 +22,16 @@ def build(bld):
      source       = ['hello.c'],
      install_path = None,
   )
+ 
+  bld(
+     features     = 'c cprogram sparc',
+     target       = 'deadbeef.sparc',
+     cflags       = '-static -g -O1 -mno-fpu',
+     linkflags    = '-static -g -O1 -mno-fpu',
+     lib          = 'm',
+     source       = ['deadbeef.c'],
+     install_path = None,
+  )
 
   bld(
       features    = 'systest',

@@ -7,7 +7,7 @@
 /// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
@@ -16,6 +16,10 @@
 #define __DEFINES_H__
 
 #include <tlm.h>
+#include "core/common/sr_register/scireg.h"
+#include "core/common/sr_report.h"
+#include "core/common/sr_register.h"
+#include "core/common/base.h"
 
 // Structure of a cache tag
 // ========================
@@ -38,16 +42,220 @@ typedef struct {
 } t_cache_tag;
 
 // single cache data entry
-typedef union {
-        unsigned int i;
-        unsigned char c[4];
-} t_cache_data;
+
+class t_cache_data : public sc_object, public scireg_ns::scireg_region_if {
+  public:
+    t_cache_data(sc_module_name name, uint32_t size) :
+      sc_object(name),
+      scireg_ns::scireg_region_if() {
+        i = new uint32_t[size];
+        c = reinterpret_cast<uint8_t*>(&i[0]);
+        this->size = size;
+      srInfo()
+        ("size", size)
+        ("get_bit_width");
+      };
+
+    ~t_cache_data() {
+      srDebug()
+        ("deleting cache data");
+      delete[] i;
+    }
+
+    uint32_t get_int(const int32_t &index) const {
+      srDebug()
+        ("index", index)
+        ("get_int");
+      this->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS, (index << 2), 4);
+      return i[index];
+    }
+
+    void set_int(const uint32_t &index, const uint32_t &data) {
+      srDebug()
+        ("index", index)
+        ("set_int");
+      i[index] = data;
+      this->execute_callbacks(scireg_ns::SCIREG_WRITE_ACCESS, (index << 2), 4);
+    }
+
+    void copy_from_dbg(void *destination, const size_t num, const uint32_t index, const uint32_t position) const {
+      srDebug()
+        ("length", num)
+        ("index", index)
+        ("position", position)
+        ("copy_from_dbg");
+      memcpy(destination, &c[(index << 2) + position], num);
+    }
+
+    void copy_from(void *destination, const size_t num, const uint32_t index, const uint32_t position) const {
+      this->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS, (index << 2) + position, num);
+      copy_from_dbg(destination, num, index, position);
+    }
+
+    void copy_to_dbg(const void *source, const size_t num, const uint32_t index, const uint32_t position) {
+      srDebug()
+        ("length", num)
+        ("index", index)
+        ("position", position)
+        ("copy_to_dbg");
+
+      memcpy(&c[(index << 2) + position], source, num);
+    }
+
+    void copy_to(const void *source, const size_t num, const uint32_t index, const uint32_t position) {
+      copy_to_dbg(source, num, index, position);
+      this->execute_callbacks(scireg_ns::SCIREG_WRITE_ACCESS, (index << 2) + position, num);
+    }
+
+    uint8_t get_char(const uint32_t &index, const uint32_t &position) const {
+      srDebug()
+        ("position", position)
+        ("index", index)
+        ("get_char");
+      this->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS, (index << 2)+position, 1);
+      return c[(index << 2) + position];
+    }
+
+    void set_char(const uint32_t &index, const uint32_t &position, const uint8_t &data) {
+      srDebug()
+        ("position", position)
+        ("index", index)
+        ("set_char");
+      c[(index << 2) + position] = data;
+      this->execute_callbacks(scireg_ns::SCIREG_WRITE_ACCESS, (index << 2)+position, 1);
+    }
+
+    /// Get the region_type of this region:
+    virtual scireg_ns::scireg_response scireg_get_region_type(scireg_ns::scireg_region_type& t) const {
+      t = scireg_ns::SCIREG_REGISTER;
+      return scireg_ns::SCIREG_SUCCESS;
+    }
+
+    /// Write a vector of "size" bytes at given offset in this region:
+    virtual scireg_ns::scireg_response scireg_write(const scireg_ns::vector_byte& v, sc_dt::uint64 size, sc_dt::uint64 offset=0) {
+      copy_to_dbg(static_cast<const uint8_t *>(&v[0]), size, 0, offset);
+      return scireg_ns::SCIREG_SUCCESS;
+    }
+
+    /// Read a vector of "size" bytes at given offset in this region:
+    virtual scireg_ns::scireg_response scireg_read(scireg_ns::vector_byte& v, sc_dt::uint64 size, sc_dt::uint64 offset=0) const {
+      copy_from_dbg(static_cast<uint8_t *>(&v[0]), size, 0, offset);
+      return scireg_ns::SCIREG_SUCCESS;
+    }
+
+    virtual sc_dt::uint64 scireg_get_bit_width() const {
+      return this->size * 4 * 8;
+    }
+
+    scireg_ns::scireg_response scireg_add_callback(scireg_ns::scireg_callback &cb) {
+      callback_vector.push_back(&cb);
+      return scireg_ns::SCIREG_SUCCESS;
+    }
+
+    scireg_ns::scireg_response scireg_remove_callback(scireg_ns::scireg_callback& cb) {
+      ::std::vector<scireg_ns::scireg_callback*>::iterator it;
+      it = find(callback_vector.begin(), callback_vector.end(), &cb);
+      if (it != callback_vector.end())
+        callback_vector.erase(it);
+      return scireg_ns::SCIREG_SUCCESS;
+    }
+
+    virtual scireg_ns::scireg_response scireg_get_string_attribute(const char *& s, scireg_ns::scireg_string_attribute_type t) const {
+      switch (t) {
+        case scireg_ns::SCIREG_NAME:
+          s = name();
+          return scireg_ns::SCIREG_SUCCESS;
+
+        case scireg_ns::SCIREG_DESCRIPTION:
+          return scireg_ns::SCIREG_UNSUPPORTED;
+
+        case scireg_ns::SCIREG_STRING_VALUE:
+          return scireg_ns::SCIREG_UNSUPPORTED;
+      }
+
+      return scireg_ns::SCIREG_FAILURE;
+    }
+
+  private:
+    uint8_t size;
+    ::std::vector<scireg_ns::scireg_callback*> callback_vector;
+    uint32_t *i;
+    uint8_t *c;
+
+    void execute_callbacks(const scireg_ns::scireg_callback_type &type, const uint32_t &offset, const uint32_t &size) const {
+      scireg_ns::scireg_callback* p;
+      ::std::vector<scireg_ns::scireg_callback*>::const_iterator it;
+      for (it = callback_vector.begin(); it != callback_vector.end(); ++it)
+      {
+        p = *it;
+        if (p->type == type) {
+          p->offset = offset;
+          p->size = size;
+          p->do_callback(*(const_cast<t_cache_data*>(this)));
+        }
+      }
+    }
+};
 
 // cacheline consists of tag and up to 8 entries (depending on configuration)
-typedef struct {
-        t_cache_tag tag;
-        t_cache_data entry[8];
-} t_cache_line;
+//typedef struct {
+class t_cache_line : public sc_module, public scireg_ns::scireg_region_if {
+  public:
+        sr_register_bank<uint32_t, uint32_t> tag;
+        t_cache_data entry;
+
+        t_cache_line(sc_core::sc_object &parent, sc_module_name name, const uint32_t linesize) :
+          sc_module(name),
+          scireg_ns::scireg_region_if(),
+          tag("tag"),
+          entry("entry", linesize) {
+            this->parent = &parent;
+            tag.create_register(
+                "valid",      // name
+                VALID,        // addr
+                0,            // init value
+                0xFFFFFFFF); // write mask
+            tag.create_register(
+                "atag",       // name
+                ATAG,         // addr
+                0,            // init value
+                0xFFFFFFFF); // write mask
+            tag.create_register(
+                "lrr",        // name
+                LRR,          // addr
+                0,            // init value
+                0xFFFFFFFF); // write mask
+            tag.create_register(
+                "lru",        // name
+                LRU,          // addr
+                0,            // init value
+                0xFFFFFFFF); // write mask
+            tag.create_register(
+                "lock",       // name
+                LOCK,         // addr
+                0,            // init value
+                0xFFFFFFFF); // write mask
+            srDebug()("name", name)("create");
+          }
+
+        /// Get the region_type of this region:
+        virtual scireg_ns::scireg_response scireg_get_region_type(scireg_ns::scireg_region_type& t) const {
+          t = scireg_ns::SCIREG_BANK;
+          return scireg_ns::SCIREG_SUCCESS;
+        }
+
+        static const uint32_t VALID ;
+        static const uint32_t ATAG  ;
+        static const uint32_t LRR   ;
+        static const uint32_t LRU   ;
+        static const uint32_t LOCK  ;
+
+  protected:
+        sc_core::sc_object *parent;
+
+};
+
+//} t_cache_line;
 
 // structure of a tlb entry (page descriptor cache entry)
 // ========================
