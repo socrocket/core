@@ -193,6 +193,15 @@ vectorcache::vectorcache(ModuleName name,
 
 /// Destructor
 vectorcache::~vectorcache() {
+  for (std::vector<t_cache_line*>::iterator it = cache_mem->begin() ; it != cache_mem->end(); ++it) {
+    delete (*it);
+  }
+  for (std::vector<scireg_ns::scireg_mapped_region*>::iterator it = mapped_regions->begin() ; it != mapped_regions->end(); ++it) {
+    delete (*it);
+  }
+  delete cache_mem;
+  delete mapped_regions;
+
 } // vectorcache::~vectorcache()
 
 /// @} Constructors and Destructors
