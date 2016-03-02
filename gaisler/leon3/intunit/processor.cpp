@@ -60,6 +60,9 @@
 using namespace leon3_funclt_trap;
 using namespace trap;
 void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
+    wait(SC_ZERO_TIME); // wait for SystemC infrastructure.
+                        // if you don't wait the register callbacks will crash
+
     bool startMet = false;
     vmap< unsigned int, CacheElem >::iterator instrCacheEnd = this->instrCache.end();
 
@@ -337,6 +340,7 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
     sc_time latency,
     bool pow_mon ) :
       sc_module(name),
+      PC("PC"),
       mem(memory),
       instrMem(*mem),
       dataMem(*mem),
@@ -355,8 +359,7 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
       power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, power),
       dyn_instr_energy("dyn_instr_energy", 0.0, power), // average instruction energy
       dyn_instr("dyn_instr", 0ull, power), // number of instructions
-      numInstructions("instruction_count", 0ull),
-      PC("PC")
+      numInstructions("instruction_count", 0ull)
 
 {
     this->resetCalled = false;

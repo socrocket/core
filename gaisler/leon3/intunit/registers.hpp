@@ -166,9 +166,8 @@ namespace leon3_funclt_trap{
           p->do_callback(*const_cast<scireg_ns::scireg_region_if *>(static_cast<const scireg_ns::scireg_region_if *>(this)));
         }
       }
-    }
     };
-
+  };
 };
 
 namespace leon3_funclt_trap{
@@ -1414,8 +1413,8 @@ namespace leon3_funclt_trap{
         //    return this->m_cur_val;
         //}
         inline operator unsigned int() const throw(){
-            execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
-            return this->m_cur_val;
+          execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
+          return this->m_cur_val;
         }
         std::ostream & operator <<( std::ostream & stream ) const throw();
     };

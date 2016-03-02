@@ -1741,6 +1741,7 @@ unsigned int leon3_funclt_trap::Reg32_3::operator ~() throw(){
 
 Reg32_3 & leon3_funclt_trap::Reg32_3::operator =( const unsigned int & other ) throw(){
     this->m_cur_val = other;
+    execute_callbacks(scireg_ns::SCIREG_WRITE_ACCESS);
     return *this;
 }
 
@@ -2033,7 +2034,7 @@ std::ostream & leon3_funclt_trap::Reg32_3::operator <<( std::ostream & stream ) 
     return stream;
 }
 
-leon3_funclt_trap::Reg32_3::Reg32_3(){
+leon3_funclt_trap::Reg32_3::Reg32_3() : Register(){
     this->m_cur_val = 0;
 }
 
