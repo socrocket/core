@@ -91,7 +91,10 @@
 #define key_WIM_30 44
 #define key_TBA 45
 #define key_TT 46
+
 namespace leon3_funclt_trap{
+
+    class Register;
 
     class InnerField{
 
@@ -100,6 +103,9 @@ namespace leon3_funclt_trap{
         virtual InnerField & operator =( const unsigned int & other ) throw() = 0;
         virtual operator unsigned int() const throw() = 0;
         virtual ~InnerField();
+
+        protected:
+            Register *parent;
     };
 
 };
@@ -155,8 +161,7 @@ namespace leon3_funclt_trap{
         virtual std::ostream & operator <<( std::ostream & other ) const throw() = 0;
         virtual operator unsigned int() const throw() = 0;
 
-  protected:
-    void execute_callbacks(const scireg_ns::scireg_callback_type &type) const {
+    inline void execute_callbacks(const scireg_ns::scireg_callback_type &type) const {
       scireg_ns::scireg_callback* p;
       ::std::vector<scireg_ns::scireg_callback*>::const_iterator it;
       for (it = scireg_callback_vec.begin(); it != scireg_callback_vec.end(); ++it)
@@ -179,9 +184,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_VER( unsigned int & m_cur_val );
+            InnerField_VER( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0xf000000) >> 24;
             }
             virtual ~InnerField_VER();
@@ -192,9 +198,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_ICC_z( unsigned int & m_cur_val );
+            InnerField_ICC_z( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x400000) >> 22;
             }
             virtual ~InnerField_ICC_z();
@@ -205,9 +212,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_ICC_v( unsigned int & m_cur_val );
+            InnerField_ICC_v( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x200000) >> 21;
             }
             virtual ~InnerField_ICC_v();
@@ -218,9 +226,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_EF( unsigned int & m_cur_val );
+            InnerField_EF( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x1000) >> 12;
             }
             virtual ~InnerField_EF();
@@ -231,9 +240,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_EC( unsigned int & m_cur_val );
+            InnerField_EC( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x2000) >> 13;
             }
             virtual ~InnerField_EC();
@@ -244,9 +254,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_ICC_n( unsigned int & m_cur_val );
+            InnerField_ICC_n( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x800000) >> 23;
             }
             virtual ~InnerField_ICC_n();
@@ -257,9 +268,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_S( unsigned int & m_cur_val );
+            InnerField_S( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x80) >> 7;
             }
             virtual ~InnerField_S();
@@ -270,9 +282,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_ET( unsigned int & m_cur_val );
+            InnerField_ET( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x20) >> 5;
             }
             virtual ~InnerField_ET();
@@ -283,9 +296,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_ICC_c( unsigned int & m_cur_val );
+            InnerField_ICC_c( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x100000) >> 20;
             }
             virtual ~InnerField_ICC_c();
@@ -296,9 +310,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_PS( unsigned int & m_cur_val );
+            InnerField_PS( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x40) >> 6;
             }
             virtual ~InnerField_PS();
@@ -309,9 +324,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_PIL( unsigned int & m_cur_val );
+            InnerField_PIL( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0xf00) >> 8;
             }
             virtual ~InnerField_PIL();
@@ -322,9 +338,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_CWP( unsigned int & m_cur_val );
+            InnerField_CWP( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x1f);
             }
             virtual ~InnerField_CWP();
@@ -335,9 +352,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_IMPL( unsigned int & m_cur_val );
+            InnerField_IMPL( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0xf0000000L) >> 28;
             }
             virtual ~InnerField_IMPL();
@@ -349,6 +367,7 @@ namespace leon3_funclt_trap{
             InnerField_Empty();
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return 0;
             }
             virtual ~InnerField_Empty();
@@ -373,6 +392,8 @@ namespace leon3_funclt_trap{
 
         public:
         Reg32_0();
+        explicit Reg32_0(const char *name);
+
         inline InnerField & operator []( int bitField ) throw(){
             switch(bitField){
                 case key_VER:{
@@ -497,6 +518,7 @@ namespace leon3_funclt_trap{
         Reg32_0 & operator <<=( const Register & other ) throw();
         Reg32_0 & operator >>=( const Register & other ) throw();
         inline operator unsigned int() const throw(){
+            execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
             return this->m_cur_val;
         }
         std::ostream & operator <<( std::ostream & stream ) const throw();
@@ -513,9 +535,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_28( unsigned int & m_cur_val );
+            InnerField_WIM_28( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x10000000) >> 28;
             }
             virtual ~InnerField_WIM_28();
@@ -526,9 +549,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_29( unsigned int & m_cur_val );
+            InnerField_WIM_29( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x20000000) >> 29;
             }
             virtual ~InnerField_WIM_29();
@@ -539,9 +563,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_24( unsigned int & m_cur_val );
+            InnerField_WIM_24( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x1000000) >> 24;
             }
             virtual ~InnerField_WIM_24();
@@ -552,9 +577,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_25( unsigned int & m_cur_val );
+            InnerField_WIM_25( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x2000000) >> 25;
             }
             virtual ~InnerField_WIM_25();
@@ -565,9 +591,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_26( unsigned int & m_cur_val );
+            InnerField_WIM_26( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x4000000) >> 26;
             }
             virtual ~InnerField_WIM_26();
@@ -578,9 +605,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_27( unsigned int & m_cur_val );
+            InnerField_WIM_27( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x8000000) >> 27;
             }
             virtual ~InnerField_WIM_27();
@@ -591,9 +619,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_20( unsigned int & m_cur_val );
+            InnerField_WIM_20( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x100000) >> 20;
             }
             virtual ~InnerField_WIM_20();
@@ -604,9 +633,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_21( unsigned int & m_cur_val );
+            InnerField_WIM_21( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x200000) >> 21;
             }
             virtual ~InnerField_WIM_21();
@@ -617,9 +647,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_22( unsigned int & m_cur_val );
+            InnerField_WIM_22( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x400000) >> 22;
             }
             virtual ~InnerField_WIM_22();
@@ -630,9 +661,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_23( unsigned int & m_cur_val );
+            InnerField_WIM_23( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x800000) >> 23;
             }
             virtual ~InnerField_WIM_23();
@@ -643,9 +675,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_9( unsigned int & m_cur_val );
+            InnerField_WIM_9( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x200) >> 9;
             }
             virtual ~InnerField_WIM_9();
@@ -656,9 +689,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_8( unsigned int & m_cur_val );
+            InnerField_WIM_8( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x100) >> 8;
             }
             virtual ~InnerField_WIM_8();
@@ -669,9 +703,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_1( unsigned int & m_cur_val );
+            InnerField_WIM_1( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x2) >> 1;
             }
             virtual ~InnerField_WIM_1();
@@ -682,9 +717,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_0( unsigned int & m_cur_val );
+            InnerField_WIM_0( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x1);
             }
             virtual ~InnerField_WIM_0();
@@ -695,9 +731,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_3( unsigned int & m_cur_val );
+            InnerField_WIM_3( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x8) >> 3;
             }
             virtual ~InnerField_WIM_3();
@@ -708,9 +745,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_2( unsigned int & m_cur_val );
+            InnerField_WIM_2( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x4) >> 2;
             }
             virtual ~InnerField_WIM_2();
@@ -721,9 +759,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_5( unsigned int & m_cur_val );
+            InnerField_WIM_5( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x20) >> 5;
             }
             virtual ~InnerField_WIM_5();
@@ -734,9 +773,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_4( unsigned int & m_cur_val );
+            InnerField_WIM_4( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x10) >> 4;
             }
             virtual ~InnerField_WIM_4();
@@ -747,9 +787,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_7( unsigned int & m_cur_val );
+            InnerField_WIM_7( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x80) >> 7;
             }
             virtual ~InnerField_WIM_7();
@@ -760,9 +801,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_6( unsigned int & m_cur_val );
+            InnerField_WIM_6( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x40) >> 6;
             }
             virtual ~InnerField_WIM_6();
@@ -773,9 +815,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_11( unsigned int & m_cur_val );
+            InnerField_WIM_11( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x800) >> 11;
             }
             virtual ~InnerField_WIM_11();
@@ -786,9 +829,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_10( unsigned int & m_cur_val );
+            InnerField_WIM_10( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x400) >> 10;
             }
             virtual ~InnerField_WIM_10();
@@ -799,9 +843,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_13( unsigned int & m_cur_val );
+            InnerField_WIM_13( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x2000) >> 13;
             }
             virtual ~InnerField_WIM_13();
@@ -812,9 +857,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_12( unsigned int & m_cur_val );
+            InnerField_WIM_12( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x1000) >> 12;
             }
             virtual ~InnerField_WIM_12();
@@ -825,9 +871,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_15( unsigned int & m_cur_val );
+            InnerField_WIM_15( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x8000) >> 15;
             }
             virtual ~InnerField_WIM_15();
@@ -838,9 +885,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_14( unsigned int & m_cur_val );
+            InnerField_WIM_14( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x4000) >> 14;
             }
             virtual ~InnerField_WIM_14();
@@ -851,9 +899,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_17( unsigned int & m_cur_val );
+            InnerField_WIM_17( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x20000) >> 17;
             }
             virtual ~InnerField_WIM_17();
@@ -864,9 +913,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_16( unsigned int & m_cur_val );
+            InnerField_WIM_16( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x10000) >> 16;
             }
             virtual ~InnerField_WIM_16();
@@ -877,9 +927,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_19( unsigned int & m_cur_val );
+            InnerField_WIM_19( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x80000) >> 19;
             }
             virtual ~InnerField_WIM_19();
@@ -890,9 +941,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_18( unsigned int & m_cur_val );
+            InnerField_WIM_18( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x40000) >> 18;
             }
             virtual ~InnerField_WIM_18();
@@ -903,9 +955,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_31( unsigned int & m_cur_val );
+            InnerField_WIM_31( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x80000000L) >> 31;
             }
             virtual ~InnerField_WIM_31();
@@ -916,9 +969,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_WIM_30( unsigned int & m_cur_val );
+            InnerField_WIM_30( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0x40000000) >> 30;
             }
             virtual ~InnerField_WIM_30();
@@ -930,6 +984,7 @@ namespace leon3_funclt_trap{
             InnerField_Empty();
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return 0;
             }
             virtual ~InnerField_Empty();
@@ -973,6 +1028,8 @@ namespace leon3_funclt_trap{
 
         public:
         Reg32_1();
+        explicit Reg32_1(const char *name);
+
         inline InnerField & operator []( int bitField ) throw(){
             switch(bitField){
                 case key_WIM_28:{
@@ -1173,6 +1230,7 @@ namespace leon3_funclt_trap{
         Reg32_1 & operator <<=( const Register & other ) throw();
         Reg32_1 & operator >>=( const Register & other ) throw();
         inline operator unsigned int() const throw(){
+            execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
             return this->m_cur_val;
         }
         std::ostream & operator <<( std::ostream & stream ) const throw();
@@ -1189,9 +1247,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_TBA( unsigned int & m_cur_val );
+            InnerField_TBA( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0xfffff000L) >> 12;
             }
             virtual ~InnerField_TBA();
@@ -1202,9 +1261,10 @@ namespace leon3_funclt_trap{
             unsigned int & m_cur_val;
 
             public:
-            InnerField_TT( unsigned int & m_cur_val );
+            InnerField_TT( unsigned int & m_cur_val, Register *reg );
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return (this->m_cur_val & 0xff0) >> 4;
             }
             virtual ~InnerField_TT();
@@ -1216,6 +1276,7 @@ namespace leon3_funclt_trap{
             InnerField_Empty();
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return 0;
             }
             virtual ~InnerField_Empty();
@@ -1229,6 +1290,7 @@ namespace leon3_funclt_trap{
 
         public:
         Reg32_2();
+        explicit Reg32_2(const char *name);
         inline InnerField & operator []( int bitField ) throw(){
             switch(bitField){
                 case key_TBA:{
@@ -1309,6 +1371,7 @@ namespace leon3_funclt_trap{
         Reg32_2 & operator <<=( const Register & other ) throw();
         Reg32_2 & operator >>=( const Register & other ) throw();
         inline operator unsigned int() const throw(){
+            execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
             return this->m_cur_val;
         }
         std::ostream & operator <<( std::ostream & stream ) const throw();
@@ -1326,6 +1389,7 @@ namespace leon3_funclt_trap{
             InnerField_Empty();
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return 0;
             }
             virtual ~InnerField_Empty();
@@ -1431,6 +1495,7 @@ namespace leon3_funclt_trap{
             InnerField_Empty();
             InnerField & operator =( const unsigned int & other ) throw();
             inline operator unsigned int() const throw(){
+                parent->execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
                 return 0;
             }
             virtual ~InnerField_Empty();
@@ -1442,6 +1507,8 @@ namespace leon3_funclt_trap{
 
         public:
         Reg32_3_const_0();
+        explicit Reg32_3_const_0(const char *name);
+
         inline InnerField & operator []( int bitField ) throw(){
             return this->field_empty;
         }
@@ -1509,6 +1576,7 @@ namespace leon3_funclt_trap{
         Reg32_3_const_0 & operator <<=( const Register & other ) throw();
         Reg32_3_const_0 & operator >>=( const Register & other ) throw();
         inline operator unsigned int() const throw(){
+            execute_callbacks(scireg_ns::SCIREG_READ_ACCESS);
             return 0;
         }
         std::ostream & operator <<( std::ostream & stream ) const throw();
