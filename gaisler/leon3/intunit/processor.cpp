@@ -346,6 +346,7 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
       Y("Y"),
       PC("PC"),
       NPC("NPC"),
+#if !defined(MTI_SYSTEMC) and !defined(NC_SYSTEMC)
       WINREGS{
         Reg32_3("WINREG0"), Reg32_3("WINREG1"), Reg32_3("WINREG2"),
         Reg32_3("WINREG3"), Reg32_3("WINREG4"), Reg32_3("WINREG5"),
@@ -401,6 +402,7 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
         Reg32_3("ASR23"), Reg32_3("ASR24"), Reg32_3("ASR25"),
         Reg32_3("ASR26"), Reg32_3("ASR27"), Reg32_3("ASR28"),
         Reg32_3("ASR29"), Reg32_3("ASR30"), Reg32_3("ASR31")},
+#endif
       mem(memory),
       instrMem(*mem),
       dataMem(*mem),
