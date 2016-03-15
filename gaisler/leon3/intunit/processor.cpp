@@ -340,7 +340,67 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
     sc_time latency,
     bool pow_mon ) :
       sc_module(name),
+      PSR("PSR"),
+      WIM("WIM"),
+      TBR("TBR"),
+      Y("Y"),
       PC("PC"),
+      NPC("NPC"),
+      WINREGS{
+        Reg32_3("WINREG0"), Reg32_3("WINREG1"), Reg32_3("WINREG2"),
+        Reg32_3("WINREG3"), Reg32_3("WINREG4"), Reg32_3("WINREG5"),
+        Reg32_3("WINREG6"), Reg32_3("WINREG7"), Reg32_3("WINREG8"),
+        Reg32_3("WINREG9"), Reg32_3("WINREG10"), Reg32_3("WINREG11"),
+        Reg32_3("WINREG12"), Reg32_3("WINREG13"), Reg32_3("WINREG14"),
+        Reg32_3("WINREG15"), Reg32_3("WINREG16"), Reg32_3("WINREG17"),
+        Reg32_3("WINREG18"), Reg32_3("WINREG19"), Reg32_3("WINREG20"),
+        Reg32_3("WINREG21"), Reg32_3("WINREG22"), Reg32_3("WINREG23"),
+        Reg32_3("WINREG24"), Reg32_3("WINREG25"), Reg32_3("WINREG26"),
+        Reg32_3("WINREG27"), Reg32_3("WINREG28"), Reg32_3("WINREG29"),
+        Reg32_3("WINREG30"), Reg32_3("WINREG31"), Reg32_3("WINREG32"),
+        Reg32_3("WINREG33"), Reg32_3("WINREG34"), Reg32_3("WINREG35"),
+        Reg32_3("WINREG36"), Reg32_3("WINREG37"), Reg32_3("WINREG38"),
+        Reg32_3("WINREG39"), Reg32_3("WINREG40"), Reg32_3("WINREG41"),
+        Reg32_3("WINREG42"), Reg32_3("WINREG43"), Reg32_3("WINREG44"),
+        Reg32_3("WINREG45"), Reg32_3("WINREG46"), Reg32_3("WINREG47"),
+        Reg32_3("WINREG48"), Reg32_3("WINREG49"), Reg32_3("WINREG50"),
+        Reg32_3("WINREG51"), Reg32_3("WINREG52"), Reg32_3("WINREG53"),
+        Reg32_3("WINREG54"), Reg32_3("WINREG55"), Reg32_3("WINREG56"),
+        Reg32_3("WINREG57"), Reg32_3("WINREG58"), Reg32_3("WINREG59"),
+        Reg32_3("WINREG60"), Reg32_3("WINREG61"), Reg32_3("WINREG62"),
+        Reg32_3("WINREG63"), Reg32_3("WINREG64"), Reg32_3("WINREG65"),
+        Reg32_3("WINREG66"), Reg32_3("WINREG67"), Reg32_3("WINREG68"),
+        Reg32_3("WINREG69"), Reg32_3("WINREG70"), Reg32_3("WINREG71"),
+        Reg32_3("WINREG72"), Reg32_3("WINREG73"), Reg32_3("WINREG74"),
+        Reg32_3("WINREG75"), Reg32_3("WINREG76"), Reg32_3("WINREG77"),
+        Reg32_3("WINREG78"), Reg32_3("WINREG79"), Reg32_3("WINREG80"),
+        Reg32_3("WINREG81"), Reg32_3("WINREG82"), Reg32_3("WINREG83"),
+        Reg32_3("WINREG84"), Reg32_3("WINREG85"), Reg32_3("WINREG86"),
+        Reg32_3("WINREG87"), Reg32_3("WINREG88"), Reg32_3("WINREG89"),
+        Reg32_3("WINREG90"), Reg32_3("WINREG91"), Reg32_3("WINREG92"),
+        Reg32_3("WINREG93"), Reg32_3("WINREG94"), Reg32_3("WINREG95"),
+        Reg32_3("WINREG96"), Reg32_3("WINREG97"), Reg32_3("WINREG98"),
+        Reg32_3("WINREG99"), Reg32_3("WINREG100"), Reg32_3("WINREG101"),
+        Reg32_3("WINREG102"), Reg32_3("WINREG103"), Reg32_3("WINREG104"),
+        Reg32_3("WINREG105"), Reg32_3("WINREG106"), Reg32_3("WINREG107"),
+        Reg32_3("WINREG108"), Reg32_3("WINREG109"), Reg32_3("WINREG110"),
+        Reg32_3("WINREG111"), Reg32_3("WINREG112"), Reg32_3("WINREG113"),
+        Reg32_3("WINREG114"), Reg32_3("WINREG115"), Reg32_3("WINREG116"),
+        Reg32_3("WINREG117"), Reg32_3("WINREG118"), Reg32_3("WINREG119"),
+        Reg32_3("WINREG120"), Reg32_3("WINREG121"), Reg32_3("WINREG122"),
+        Reg32_3("WINREG123"), Reg32_3("WINREG124"), Reg32_3("WINREG125"),
+        Reg32_3("WINREG126"), Reg32_3("WINREG127")},
+      ASR{
+        Reg32_3("ASR0"), Reg32_3("ASR1"), Reg32_3("ASR2"),
+        Reg32_3("ASR3"), Reg32_3("ASR4"), Reg32_3("ASR5"), Reg32_3("ASR6"),
+        Reg32_3("ASR7"), Reg32_3("ASR8"), Reg32_3("ASR9"), Reg32_3("ASR10"),
+        Reg32_3("ASR11"), Reg32_3("ASR12"), Reg32_3("ASR13"),
+        Reg32_3("ASR14"), Reg32_3("ASR15"), Reg32_3("ASR16"),
+        Reg32_3("ASR17"), Reg32_3("ASR18"), Reg32_3("ASR19"),
+        Reg32_3("ASR20"), Reg32_3("ASR21"), Reg32_3("ASR22"),
+        Reg32_3("ASR23"), Reg32_3("ASR24"), Reg32_3("ASR25"),
+        Reg32_3("ASR26"), Reg32_3("ASR27"), Reg32_3("ASR28"),
+        Reg32_3("ASR29"), Reg32_3("ASR30"), Reg32_3("ASR31")},
       mem(memory),
       instrMem(*mem),
       dataMem(*mem),
@@ -360,7 +420,6 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
       dyn_instr_energy("dyn_instr_energy", 0.0, power), // average instruction energy
       dyn_instr("dyn_instr", 0ull, power), // number of instructions
       numInstructions("instruction_count", 0ull)
-
 {
     this->resetCalled = false;
     Processor_leon3_funclt::numInstances++;
@@ -663,14 +722,14 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
     // Initialization of the standard registers
     // Initialization of the register banks
     this->GLOBAL.setSize(8);
-    this->GLOBAL.setNewRegister(0, new Reg32_3_const_0());
-    this->GLOBAL.setNewRegister(1, new Reg32_3());
-    this->GLOBAL.setNewRegister(2, new Reg32_3());
-    this->GLOBAL.setNewRegister(3, new Reg32_3());
-    this->GLOBAL.setNewRegister(4, new Reg32_3());
-    this->GLOBAL.setNewRegister(5, new Reg32_3());
-    this->GLOBAL.setNewRegister(6, new Reg32_3());
-    this->GLOBAL.setNewRegister(7, new Reg32_3());
+    this->GLOBAL.setNewRegister(0, new Reg32_3_const_0("GLOBAL0"));
+    this->GLOBAL.setNewRegister(1, new Reg32_3("GLOBAL1"));
+    this->GLOBAL.setNewRegister(2, new Reg32_3("GLOBAL2"));
+    this->GLOBAL.setNewRegister(3, new Reg32_3("GLOBAL3"));
+    this->GLOBAL.setNewRegister(4, new Reg32_3("GLOBAL4"));
+    this->GLOBAL.setNewRegister(5, new Reg32_3("GLOBAL5"));
+    this->GLOBAL.setNewRegister(6, new Reg32_3("GLOBAL6"));
+    this->GLOBAL.setNewRegister(7, new Reg32_3("GLOBAL7"));
     // Initialization of the aliases (plain and banks)
     this->REGS[0].updateAlias(this->GLOBAL[0]);
     this->REGS[1].updateAlias(this->GLOBAL[1]);
