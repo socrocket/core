@@ -112,6 +112,10 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
     /// Generates execution statistic at end of simulation
     void end_of_simulation();
 
+    const char* get_name() const {
+      return this->name();
+    }
+
   private:
     /// AHB slave base address and size
     const uint32_t ahbBaseAddress;

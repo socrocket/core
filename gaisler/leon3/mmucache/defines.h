@@ -127,7 +127,7 @@ class t_cache_data : public sc_object, public scireg_ns::scireg_region_if {
 
     /// Get the region_type of this region:
     virtual scireg_ns::scireg_response scireg_get_region_type(scireg_ns::scireg_region_type& t) const {
-      t = scireg_ns::SCIREG_REGISTER;
+      t = scireg_ns::SCIREG_MEMORY;
       return scireg_ns::SCIREG_SUCCESS;
     }
 

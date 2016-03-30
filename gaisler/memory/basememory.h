@@ -100,6 +100,22 @@ class BaseMemory : public scireg_ns::scireg_region_if {
       return scireg_ns::SCIREG_SUCCESS;
     }
 
+    virtual const char* get_name() const = 0;
+
+    virtual scireg_ns::scireg_response scireg_get_string_attribute(const char *& s, scireg_ns::scireg_string_attribute_type t) const {
+       switch (t) {
+       case scireg_ns::SCIREG_NAME:
+         s = get_name();
+         return scireg_ns::SCIREG_SUCCESS;
+       case scireg_ns::SCIREG_STRING_VALUE:
+         return scireg_ns::SCIREG_FAILURE;
+       default:
+         return scireg_ns::SCIREG_FAILURE;
+       }
+
+       return scireg_ns::SCIREG_FAILURE;
+     }
+
     /// byte read count
     unsigned long long reads;
 

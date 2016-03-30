@@ -67,7 +67,7 @@ class Memory : public MemoryPower {
 
     /// write counter callback
     gs::cnf::callback_return_type m_writes_cb(gs::gs_param_base &changed_param, gs::cnf::callback_type reason);
-    
+
     void before_end_of_elaboration();
 
     /// SystemC end of simulation
@@ -79,6 +79,10 @@ class Memory : public MemoryPower {
     /// TLM 2.0 debug transport function
     unsigned int transport_dbg(tlm::tlm_generic_payload &gp);
     bool get_direct_mem_ptr(tlm::tlm_generic_payload& trans, tlm::tlm_dmi& dmi_data);
+
+    const char* get_name() const {
+      return this->name();
+    }
 
     sr_param<uint64_t> m_writes;
     sr_param<uint64_t> m_reads;
