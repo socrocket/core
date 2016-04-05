@@ -10,7 +10,7 @@
 /// @date 2010-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
@@ -25,10 +25,10 @@ SR_HAS_MODULE(Leon3);
 /// Constructor
 Leon3::Leon3(
       ModuleName name,
-      bool icen, 
-      uint32_t irepl, 
+      bool icen,
+      uint32_t irepl,
       uint32_t isets,
-      uint32_t ilinesize, 
+      uint32_t ilinesize,
       uint32_t isetsize,
       uint32_t isetlock,
       uint32_t dcen,
@@ -56,10 +56,10 @@ Leon3::Leon3(
      AbstractionLayer abstractionLayer) :
   mmu_cache_base(
       name,
-      icen, 
-      irepl, 
+      icen,
+      irepl,
       isets,
-      ilinesize, 
+      ilinesize,
       isetsize,
       isetlock,
       dcen,
@@ -120,7 +120,7 @@ Leon3::Leon3(
     // TODO(rmeyer): This looks a lot like gs_configs!!!
     cpu.ENTRY_POINT   = 0x0;
     cpu.MPROC_ID      = (hindex) << 28;
-    
+
     GC_REGISTER_TYPED_PARAM_CALLBACK(&g_gdb, gs::cnf::post_write, Leon3, g_gdb_callback);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&g_args, gs::cnf::post_write, Leon3, g_args_callback);
     Leon3::init_generics();
@@ -187,6 +187,10 @@ void Leon3::init_generics(){
     ("vhdl_name","mmupgsz");
     g_hindex.add_properties()
     ("vhdl_name","hindex");
+}
+
+void Leon3::start_of_simulation() {
+  g_args_callback(g_args, gs::cnf::no_callback);
 }
 
 void Leon3::clkcng() {
@@ -289,7 +293,7 @@ sc_dt::uint64 Leon3::read_dword(
     return datum;
 }
 
-// Read data word 
+// Read data word
 uint32_t Leon3::read_word(
     const uint32_t &address,
     const uint32_t asi,
@@ -343,7 +347,7 @@ uint16_t Leon3::read_half(
     sc_time delay = this->cpu.quantKeeper.get_local_time();
     uint32_t debug = 0;
     tlm::tlm_response_status response = tlm::TLM_INCOMPLETE_RESPONSE;
-    
+
     exec_data(
         tlm::TLM_READ_COMMAND,
         address,
@@ -381,7 +385,7 @@ uint8_t Leon3::read_byte(
     sc_time delay = this->cpu.quantKeeper.get_local_time();
     uint32_t debug = 0;
     tlm::tlm_response_status response = tlm::TLM_INCOMPLETE_RESPONSE;
-    
+
     exec_data(
         tlm::TLM_READ_COMMAND,
         address,
@@ -406,7 +410,7 @@ uint8_t Leon3::read_byte(
 
 // Write dword
 void Leon3::write_dword(
-    const uint32_t & address, 
+    const uint32_t & address,
     sc_dt::uint64 datum,
     const uint32_t asi,
     const uint32_t flush,
@@ -424,7 +428,7 @@ void Leon3::write_dword(
     sc_time delay = this->cpu.quantKeeper.get_local_time();
     uint32_t debug = 0;
     tlm::tlm_response_status response = tlm::TLM_INCOMPLETE_RESPONSE;
-    
+
     exec_data(
         tlm::TLM_WRITE_COMMAND,
         address,
@@ -446,7 +450,7 @@ void Leon3::write_dword(
 }
 
 void Leon3::write_word(
-  const unsigned int &address, 
+  const unsigned int &address,
   unsigned int datum,
   const unsigned int asi,
   const unsigned int flush,
@@ -463,7 +467,7 @@ void Leon3::write_word(
     sc_time delay = this->cpu.quantKeeper.get_local_time();
     unsigned int debug = 0;
     tlm::tlm_response_status response = tlm::TLM_INCOMPLETE_RESPONSE;
-    
+
     exec_data(
         tlm::TLM_WRITE_COMMAND,
         address,
@@ -476,7 +480,7 @@ void Leon3::write_word(
         delay,
         false,
         response);
-    
+
     v::debug << name() << "Wrote word:0x" << hex << v::setw(8) << v::setfill('0')
              << datum << ", at:0x" << hex << v::setw(8) << v::setfill('0')
              << address << endl;
@@ -490,7 +494,7 @@ void Leon3::write_word(
 
 // write half word
 void Leon3::write_half(
-    const uint32_t &address, 
+    const uint32_t &address,
     uint16_t datum,
     uint32_t asi,
     uint32_t flush,
@@ -507,7 +511,7 @@ void Leon3::write_half(
     sc_time delay = this->cpu.quantKeeper.get_local_time();
     uint32_t debug = 0;
     tlm::tlm_response_status response = tlm::TLM_INCOMPLETE_RESPONSE;
-    
+
     exec_data(
         tlm::TLM_WRITE_COMMAND,
         address,
@@ -520,7 +524,7 @@ void Leon3::write_half(
         delay,
         false,
         response);
-    
+
     // Now lets keep track of time
     this->cpu.quantKeeper.set(delay);
     if(this->cpu.quantKeeper.need_sync()){
@@ -530,7 +534,7 @@ void Leon3::write_half(
 
 // write byte
 void Leon3::write_byte(
-    const uint32_t &address, 
+    const uint32_t &address,
     uint8_t datum,
     uint32_t asi,
     uint32_t flush,
@@ -542,7 +546,7 @@ void Leon3::write_byte(
     sc_time delay = this->cpu.quantKeeper.get_local_time();
     uint32_t debug = 0;
     tlm::tlm_response_status response = tlm::TLM_INCOMPLETE_RESPONSE;
-    
+
     exec_data(
         tlm::TLM_WRITE_COMMAND,
         address,
@@ -588,7 +592,7 @@ sc_dt::uint64 Leon3::read_dword_dbg(const uint32_t &address) throw() {
     uint32_t datum2 = (uint32_t)(datum >> 32);
     swapEndianess(datum2);
     datum = datum1 | (((sc_dt::uint64)datum2) << 32);
-    
+
     return datum;
 }
 
@@ -677,7 +681,7 @@ void Leon3::write_dword_dbg(const uint32_t &address, sc_dt::uint64 datum) throw(
     sc_time delay = this->cpu.quantKeeper.get_local_time();
     uint32_t debug = 0;
     tlm::tlm_response_status response = tlm::TLM_INCOMPLETE_RESPONSE;
-    
+
     exec_data(
         tlm::TLM_WRITE_COMMAND,
         address,
@@ -701,7 +705,7 @@ void Leon3::write_word_dbg(const uint32_t &address, uint32_t datum) throw() {
     uint32_t debug = 0;
     sc_time delay = this->cpu.quantKeeper.get_local_time();
     tlm::tlm_response_status response = tlm::TLM_INCOMPLETE_RESPONSE;
-    
+
     exec_data(
         tlm::TLM_WRITE_COMMAND,
         address,
@@ -724,7 +728,7 @@ void Leon3::write_half_dbg(const uint32_t &address, uint16_t datum) throw() {
     uint32_t debug = 0;
     sc_time delay = this->cpu.quantKeeper.get_local_time();
     tlm::tlm_response_status response = tlm::TLM_INCOMPLETE_RESPONSE;
-    
+
     exec_data(
         tlm::TLM_WRITE_COMMAND,
         address,
@@ -743,7 +747,7 @@ void Leon3::write_byte_dbg(const uint32_t &address, uint8_t datum) throw() {
     uint32_t debug = 0;
     sc_time delay = this->cpu.quantKeeper.get_local_time();
     tlm::tlm_response_status response = tlm::TLM_INCOMPLETE_RESPONSE;
-    
+
     exec_data(
         tlm::TLM_WRITE_COMMAND,
         address,
@@ -771,7 +775,7 @@ void Leon3::trigger_exception(unsigned int exception) {
   v::info << name() << "Going to trigger exception " << exception << v::endl;
   cpu.triggerException(exception);
   v::info << name() << "Returned from trigger exception " << v::endl;
-  
+
 }
 
 

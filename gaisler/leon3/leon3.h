@@ -10,7 +10,7 @@
 /// @date 2010-2015
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
@@ -94,6 +94,7 @@ class Leon3 :
       // Destructor
       ~Leon3();
       void init_generics();
+      void start_of_simulation();
       virtual void clkcng();
       gs::cnf::callback_return_type g_gdb_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
       gs::cnf::callback_return_type g_history_callback(gs::gs_param_base& changed_param, gs::cnf::callback_type reason);
