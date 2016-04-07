@@ -1,33 +1,33 @@
 /***************************************************************************\
  *
- *   
+ *
  *         _/        _/_/_/_/    _/_/    _/      _/   _/_/_/
  *        _/        _/        _/    _/  _/_/    _/         _/
  *       _/        _/_/_/    _/    _/  _/  _/  _/     _/_/
  *      _/        _/        _/    _/  _/    _/_/         _/
  *     _/_/_/_/  _/_/_/_/    _/_/    _/      _/   _/_/_/
- *   
  *
  *
- *   
+ *
+ *
  *   This file is part of LEON3.
- *   
+ *
  *   LEON3 is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation; either version 3 of the License, or
  *   (at your option) any later version.
- *   
+ *
  *   This program is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *   GNU General Public License for more details.
- *   
+ *
  *   You should have received a copy of the GNU General Public License
  *   along with this program; if not, write to the
  *   Free Software Foundation, Inc.,
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *   or see <http://www.gnu.org/licenses/>.
- *   
+ *
  *
  *
  *   (c) Luca Fossati, fossati.l@gmail.com
@@ -85,7 +85,7 @@ namespace leon3_funclt_trap{
             Reg32_1 & WIM, Reg32_2 & TBR, Reg32_3 & Y, Reg32_3 & PC, Reg32_3 & NPC, RegisterBankClass \
             & GLOBAL, Reg32_3 * WINREGS, Reg32_3 * ASR, Alias & FP, Alias & LR, Alias & SP, Alias \
             & PCR, Alias * REGS, bool & instrExecuting, sc_event & instrEndEvent );
-            
+
         bool isLittleEndian() const throw();
         int getProcessorID() const throw();
         bool isInstrExecuting() const throw();
@@ -119,6 +119,7 @@ namespace leon3_funclt_trap{
         unsigned char readCharMem( const unsigned int & address );
         void writeMem( const unsigned int & address, unsigned int datum );
         void writeCharMem( const unsigned int & address, unsigned char datum );
+        MemoryInterface& get_data_memory();
         virtual ~LEON3_ABIIf();
     };
 

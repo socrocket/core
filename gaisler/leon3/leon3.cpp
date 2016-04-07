@@ -116,7 +116,8 @@ Leon3::Leon3(
   g_tlb_rep("tlb_rep", tlb_rep, m_generics),
   g_mmupgsz("mmupgsz", mmupgsz, m_generics),
   //g_hindex("hindex", hindex, m_generics),
-  g_args("args", m_generics) {
+  g_args("args", m_generics),
+  g_stdout_filename("stdout_filename", "", m_generics) {
     // TODO(rmeyer): This looks a lot like gs_configs!!!
     cpu.ENTRY_POINT   = 0x0;
     cpu.MPROC_ID      = (hindex) << 28;

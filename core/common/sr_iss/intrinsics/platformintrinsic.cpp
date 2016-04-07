@@ -1,6 +1,9 @@
 #include "core/common/sr_iss/intrinsics/platformintrinsic.h"
 #include "core/common/sr_registry.h"
 #include "core/common/sr_report.h"
+#include "gaisler/leon3/intunit/processor.hpp"
+#include "gaisler/leon3/intunit/interface.hpp"
+#include "gaisler/leon3/leon3.h"
 
 #include <map>
 #include <string>
@@ -233,7 +236,30 @@ class readIntrinsic : public PlatformIntrinsic<wordSize> {
 template<class wordSize>
 class writeIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
-    writeIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
+    writeIntrinsic(sc_core::sc_module_name mn) :
+      PlatformIntrinsic<wordSize>(mn),
+      stdout_log_file(-1) {
+    }
+
+    virtual void setProcessor(trap::ABIIf<wordSize> *processor) {
+      PlatformIntrinsic<wordSize>::setProcessor(processor);
+      Leon3 *cpu;
+      cpu = dynamic_cast<Leon3*>(&dynamic_cast<leon3_funclt_trap::LEON3_ABIIf*>(processor)->get_data_memory());
+      if (cpu != NULL) {
+        if (((std::string)cpu->g_stdout_filename).length() > 0) {
+          this->stdout_log_file = open(((std::string)cpu->g_stdout_filename).c_str(), O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+        } else {
+          this->stdout_log_file = -1;
+        }
+      }
+    }
+
+    ~writeIntrinsic() {
+      if (this->stdout_log_file > 0) {
+          close(this->stdout_log_file);
+      }
+    }
+
     bool operator()() {
       this->m_processor->preCall();
       // Lets get the system call arguments
@@ -250,8 +276,14 @@ class writeIntrinsic : public PlatformIntrinsic<wordSize> {
       }
 #ifdef __GNUC__
       int ret = ::write(fd, buf, count);
+      if ((fd == STDOUT_FILENO) && (this->stdout_log_file > 0)) {
+        ::write(this->stdout_log_file, buf, count);
+      }
 #else
       int ret = ::_write(fd, buf, count);
+      if ((fd == STDOUT_FILENO) && (this->stdout_log_file > 0)) {
+        ::_write(this->stdout_log_file, buf, count);
+      }
 #endif
       this->m_processor->setRetVal(ret);
       this->m_processor->returnFromCall();
@@ -264,6 +296,9 @@ class writeIntrinsic : public PlatformIntrinsic<wordSize> {
 
       return true;
     }
+
+  protected:
+    int stdout_log_file;
 };
 
 template<class wordSize>
@@ -1335,7 +1370,7 @@ void IntrinsicBase::correct_flags(int &val){
         flags |= CORRECT_O_NONBLOCK;
 
     val = flags;
-} 
+}
 
 void IntrinsicBase::set_environ(const std::string name, const std::string value){
     env[name] = value;
@@ -1350,9 +1385,9 @@ void IntrinsicBase::set_program_args(const std::vector<std::string> args){
 }
 
 void IntrinsicBase::reset(){
-    this->programArgs.clear();    
-    this->sysconfmap.clear();    
-    this->programArgs.clear();    
+    this->programArgs.clear();
+    this->sysconfmap.clear();
+    this->programArgs.clear();
     this->heapPointer = 0;
 }
 

@@ -166,6 +166,7 @@ class Leon3 :
     sr_param<uint32_t> g_mmupgsz;
     //sr_param<uint32_t> g_hindex;
     sr_param<std::vector<std::string> > g_args;
+    sr_param<std::string> g_stdout_filename;
 };
 
 #endif //__MMU_CACHE_H__
