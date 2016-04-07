@@ -11,9 +11,9 @@
 #include "core/common/sr_iss/intrinsics/platformintrinsic.h"
 
 template<class issueWidth>
-class IntrinsicManager : 
-    public sc_core::sc_object, 
-    public trap::ToolsIf<issueWidth>, 
+class IntrinsicManager :
+    public sc_core::sc_object,
+    public trap::ToolsIf<issueWidth>,
     public IntrinsicBase {
   private:
     typedef typename vmap<issueWidth, PlatformIntrinsic<issueWidth> *> syscallcb_map_t;
@@ -38,7 +38,7 @@ class IntrinsicManager :
       programsCount++;
 
       // First of all I initialize the heap pointer according to the group it belongs to
-      this->heapPointer = (unsigned int)this->processorInstance.getCodeLimit() + sizeof (issueWidth); 
+      this->heapPointer = (unsigned int)this->processorInstance.getCodeLimit() + sizeof (issueWidth);
     }
 
     bool register_intrinsic(issueWidth addr, PlatformIntrinsic<issueWidth> &callBack) {
@@ -98,6 +98,12 @@ class IntrinsicManager :
     }
     // The destructor calls the reset method
     ~IntrinsicManager() {
+      typename syscallcb_map_t::iterator allCallIter, allCallEnd;
+      for (allCallIter = this->syscCallbacks.begin(), allCallEnd = this->syscCallbacks.end();
+        allCallIter != allCallEnd;
+        allCallIter++) {
+          delete allCallIter->second;
+      }
       reset();
     }
 };
