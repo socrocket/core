@@ -290,7 +290,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_mctrl_prom_mask("mask", 0xE00, p_mctrl_prom);
     gs::gs_param<unsigned int> p_mctrl_prom_asel("asel", 28, p_mctrl_prom);
     gs::gs_param<unsigned int> p_mctrl_prom_banks("banks", 2, p_mctrl_prom);
-    gs::gs_param<unsigned int> p_mctrl_prom_bsize("bsize", 256, p_mctrl_prom);
+    gs::gs_param<unsigned int> p_mctrl_prom_bsize("bsize", 2, p_mctrl_prom);
     gs::gs_param<unsigned int> p_mctrl_prom_width("width", 32, p_mctrl_prom);
     gs::gs_param<unsigned int> p_mctrl_io_addr("addr", 0x200, p_mctrl_io);
     gs::gs_param<unsigned int> p_mctrl_io_mask("mask", 0xE00, p_mctrl_io);
@@ -305,7 +305,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_mctrl_ram_sram_bsize("bsize", 128, p_mctrl_ram_sram);
     gs::gs_param<unsigned int> p_mctrl_ram_sram_width("width", 32, p_mctrl_ram_sram);
     gs::gs_param<unsigned int> p_mctrl_ram_sdram_banks("banks", 2, p_mctrl_ram_sdram);
-    gs::gs_param<unsigned int> p_mctrl_ram_sdram_bsize("bsize", 256, p_mctrl_ram_sdram);
+    gs::gs_param<unsigned int> p_mctrl_ram_sdram_bsize("bsize", 16, p_mctrl_ram_sdram);
     gs::gs_param<unsigned int> p_mctrl_ram_sdram_width("width", 32, p_mctrl_ram_sdram);
     gs::gs_param<unsigned int> p_mctrl_ram_sdram_cols("cols", 16, p_mctrl_ram_sdram);
     gs::gs_param<unsigned int> p_mctrl_index("index", 0u, p_mctrl);
@@ -354,7 +354,7 @@ int sc_main(int argc, char** argv) {
     Memory rom( "rom",
                      MEMDevice::ROM,
                      p_mctrl_prom_banks,
-                     p_mctrl_prom_bsize * 1024 * 1024,
+                     p_mctrl_prom_bsize * 1024,
                      p_mctrl_prom_width,
                      0,
                      "ArrayStorage",
@@ -366,7 +366,7 @@ int sc_main(int argc, char** argv) {
     rom.set_clk(p_system_clock, SC_NS);
 
     // IO memory instantiation
-    Memory io( "io",
+    /*Memory io( "io",
                MEMDevice::IO,
                p_mctrl_prom_banks,
                p_mctrl_prom_bsize * 1024 * 1024,
@@ -381,10 +381,10 @@ int sc_main(int argc, char** argv) {
     io.set_clk(p_system_clock, SC_NS);
 
     // ELF loader from leon (Trap-Gen)
-    gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);
+    gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);*/
 
     // SRAM instantiation
-    Memory sram( "sram",
+    /*Memory sram( "sram",
                  MEMDevice::SRAM,
                  p_mctrl_ram_sram_banks,
                  p_mctrl_ram_sram_bsize * 1024 * 1024,
@@ -399,7 +399,7 @@ int sc_main(int argc, char** argv) {
     sram.set_clk(p_system_clock, SC_NS);
 
     // ELF loader from leon (Trap-Gen)
-    gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
+    gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);*/
 
     // SDRAM instantiation
     Memory sdram( "sdram",
@@ -429,7 +429,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param_array p_ahbmem("ahbmem", p_conf);
     gs::gs_param<bool> p_ahbmem_en("en", true, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_addr("addr", 0xA00, p_ahbmem);
-    gs::gs_param<unsigned int> p_ahbmem_mask("mask", 0xFFF, p_ahbmem);
+    gs::gs_param<unsigned int> p_ahbmem_mask("mask", 0xFF0, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_index("index", 1, p_ahbmem);
     gs::gs_param<bool> p_ahbmem_cacheable("cacheable", 1, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_waitstates("waitstates", 0u, p_ahbmem);
