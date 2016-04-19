@@ -1028,6 +1028,47 @@ class unlinkIntrinsic : public PlatformIntrinsic<wordSize> {
 };
 
 template<class wordSize>
+class renameIntrinsic : public PlatformIntrinsic<wordSize> {
+  public:
+    renameIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
+    bool operator()() {
+      this->m_processor->preCall();
+      // Lets get the system call arguments
+      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+
+      char pathname_old[256];
+      for (int i = 0; i < 256; i++) {
+        pathname_old[i] = (char)this->m_processor->readCharMem(callArgs[0] + i);
+        if (pathname_old[i] == '\x0') {
+          break;
+        }
+      }
+
+      char pathname_new[256];
+      for (int i = 0; i < 256; i++) {
+        pathname_new[i] = (char)this->m_processor->readCharMem(callArgs[1] + i);
+        if (pathname_new[i] == '\x0') {
+          break;
+        }
+      }
+#ifdef __GNUC__
+      int ret = ::rename((char *)pathname_old, (char *)pathname_new);
+#else
+      int ret = ::_rename((char *)pathname_old, (char *)pathname_new);
+#endif
+      this->m_processor->setRetVal(ret);
+      this->m_processor->returnFromCall();
+      this->m_processor->postCall();
+
+      if (this->latency.to_double() > 0) {
+        wait(this->latency);
+      }
+
+      return true;
+    }
+};
+
+template<class wordSize>
 class usleepIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     usleepIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
