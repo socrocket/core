@@ -15,8 +15,10 @@
 #include <map>
 
 boost::filesystem::path findPath(std::string file, std::string start);
+#if not (defined(MTI_SYSTEMC) and defined(NC_SYSTEMC))
 std::map<std::string, std::string> *readLockFile(std::string top);
 std::map<std::string, std::string> *getWafConfig(std::string top = "");
+#endif
 
 #endif  // COMMON_WAF_H_
 /// @}
