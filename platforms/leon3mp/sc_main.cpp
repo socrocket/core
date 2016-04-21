@@ -163,6 +163,7 @@ int sc_main(int argc, char** argv) {
 
     usi_start_of_initialization();
 #endif  // HAVE_USI
+
     // Build GreenControl Configuration Namespace
     // ==========================================
     gs::gs_param_array p_conf("conf");
@@ -1055,6 +1056,7 @@ int sc_main(int argc, char** argv) {
     cstart = clock();
 //    mtrace();
 #ifdef HAVE_USI
+    usi_end_of_initialization();
     usi_start();
 #else
     sc_core::sc_start();
