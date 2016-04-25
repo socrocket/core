@@ -43,6 +43,7 @@
 
 using namespace leon3_funclt_trap;
 using namespace trap;
+/*
 sc_dt::uint64 leon3_funclt_trap::MemoryInterface::read_dword_dbg( const unsigned \
     int & address ){
     return this->read_dword(address, 0x8, 0, 0);
@@ -86,6 +87,7 @@ void leon3_funclt_trap::MemoryInterface::write_byte_dbg( const unsigned int & ad
 leon3_funclt_trap::MemoryInterface::~MemoryInterface(){
 
 }
+*/
 void leon3_funclt_trap::LocalMemory::setDebugger( MemoryToolsIf< unsigned int > * \
     debugger ){
     this->debugger = debugger;

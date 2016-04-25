@@ -22,14 +22,14 @@ class mem_if {
     public:
 
         // amba master interface functions
-        virtual void mem_write(unsigned int addr, unsigned int asi, unsigned char * data,
-                               unsigned int length, sc_core::sc_time * t,
-                               unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock = false) {
+        virtual void mem_write(uint32_t addr, uint32_t asi, uint8_t * data,
+                               uint32_t length, sc_core::sc_time * t,
+                               uint32_t * debug, bool is_dbg, bool &cacheable, bool is_lock = false) {
         };
 
-        virtual bool mem_read(unsigned int addr, unsigned int asi, unsigned char * data,
-                              unsigned int length, sc_core::sc_time * t,
-                              unsigned int * debug, bool is_dbg, bool &cacheable, bool is_lock = false) {
+        virtual bool mem_read(uint32_t addr, uint32_t asi, uint8_t * data,
+                              uint32_t length, sc_core::sc_time * t,
+                              uint32_t * debug, bool is_dbg, bool &cacheable, bool is_lock = false) {
 	  return true;
 
         };
