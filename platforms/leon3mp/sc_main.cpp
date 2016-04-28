@@ -305,7 +305,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_mctrl_ram_sram_bsize("bsize", 128, p_mctrl_ram_sram);
     gs::gs_param<unsigned int> p_mctrl_ram_sram_width("width", 32, p_mctrl_ram_sram);
     gs::gs_param<unsigned int> p_mctrl_ram_sdram_banks("banks", 2, p_mctrl_ram_sdram);
-    gs::gs_param<unsigned int> p_mctrl_ram_sdram_bsize("bsize", 16, p_mctrl_ram_sdram);
+    gs::gs_param<unsigned int> p_mctrl_ram_sdram_bsize("bsize", 256, p_mctrl_ram_sdram);
     gs::gs_param<unsigned int> p_mctrl_ram_sdram_width("width", 32, p_mctrl_ram_sdram);
     gs::gs_param<unsigned int> p_mctrl_ram_sdram_cols("cols", 16, p_mctrl_ram_sdram);
     gs::gs_param<unsigned int> p_mctrl_index("index", 0u, p_mctrl);
@@ -366,7 +366,7 @@ int sc_main(int argc, char** argv) {
     rom.set_clk(p_system_clock, SC_NS);
 
     // IO memory instantiation
-    /*Memory io( "io",
+    Memory io( "io",
                MEMDevice::IO,
                p_mctrl_prom_banks,
                p_mctrl_prom_bsize * 1024 * 1024,
@@ -381,10 +381,10 @@ int sc_main(int argc, char** argv) {
     io.set_clk(p_system_clock, SC_NS);
 
     // ELF loader from leon (Trap-Gen)
-    gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);*/
+    gs::gs_param<std::string> p_mctrl_io_elf("elf", "", p_mctrl_io);
 
     // SRAM instantiation
-    /*Memory sram( "sram",
+    Memory sram( "sram",
                  MEMDevice::SRAM,
                  p_mctrl_ram_sram_banks,
                  p_mctrl_ram_sram_bsize * 1024 * 1024,
@@ -399,7 +399,7 @@ int sc_main(int argc, char** argv) {
     sram.set_clk(p_system_clock, SC_NS);
 
     // ELF loader from leon (Trap-Gen)
-    gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);*/
+    gs::gs_param<std::string> p_mctrl_ram_sram_elf("elf", "", p_mctrl_ram_sram);
 
     // SDRAM instantiation
     Memory sdram( "sdram",
@@ -1055,7 +1055,7 @@ int sc_main(int argc, char** argv) {
     cstart = clock();
 //    mtrace();
 #ifdef HAVE_USI
-    usi_start();
+    usi_start(SC_ZERO_TIME);
 #else
     sc_core::sc_start();
 #endif
