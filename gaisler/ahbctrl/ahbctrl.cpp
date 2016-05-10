@@ -496,9 +496,9 @@ void AHBCtrl::b_transport(uint32_t id,
     other_socket = ahbIN.get_other_side(id, a);
     mstobj = other_socket->get_parent();
 
-    v::error << name() << "AHB Request 0x" << hex << v::setfill('0')
+    /*v::error << name() << "AHB Request 0x" << hex << v::setfill('0')
              << v::setw(8) << trans.get_address() << ", from master:"
-             << mstobj->name() << ": Unmapped address space." << endl;
+             << mstobj->name() << ": Unmapped address space." << endl;*/
     srWarn()("addr", trans.get_address())("master", mstobj->name())("AHBRequest, b_transport to unmapped address space");
 
     // Invalid index

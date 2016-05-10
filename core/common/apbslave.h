@@ -14,6 +14,7 @@
 
 #include "core/common/systemc.h"
 #include "core/common/sr_register.h"
+#include "core/common/sr_report.h"
 #include "core/common/apbdevicebase.h"
 #include "core/common/apbdevice.h"
 
@@ -59,10 +60,12 @@ class sr_register_amba_socket : public ::amba::amba_slave_socket<BUSWIDTH>, publ
             *data <<= (byteaddr << 3);
             break;
           case 2:
-            SC_REPORT_FATAL(this->name(), "APBSlave Socket: 2byte access is not implementet correctly\n");
+            //SC_REPORT_FATAL(this->name(), "APBSlave Socket: 2byte access is not implementet correctly\n");
+            srFatal()("APBSlave Socket: 2byte access is not implemented correctly");
             break;
           case 3:
-            SC_REPORT_FATAL(this->name(), "APBSlave Socket: 3byte access is not implementet correctly\n");
+            //SC_REPORT_FATAL(this->name(), "APBSlave Socket: 3byte access is not implementet correctly\n");
+            srFatal()("APBSlave Socket: 2byte access is not implemented correctly");
             break;
           default:
             #ifdef LITTLE_ENDIAN_BO

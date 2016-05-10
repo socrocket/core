@@ -580,7 +580,8 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
           rmw = false;
           if (gp.is_write()) {
             if (!r[MCFG1].bit(11)) {
-              v::error << name() << "Invalid memory access: Writing to PROM is disabled." << v::endl;
+              /*v::error << name() << "Invalid memory access: Writing to PROM is disabled." << v::endl;*/
+              srWarn()("Invalid memory access: Writing to PROM is disabled.");
               gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
               return 0;
             }
@@ -706,11 +707,12 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
           port.addr = port.addr & ~(mem_width - 1);
         } else if (length < mem_width) {
           // Error in case of subword access
-          v::error << name() <<
+          /*v::error << name() <<
           "Invalid memory access: Transaction width is not compatible with memory width (Transaction-Width: "
                    << width << ", Memory-Width: " << mem_width << ", Data-Length: " << length <<
           ". Please change width or enable Read-Modify-Write Transactions."
-                   << v::endl;
+                   << v::endl;*/
+          srError()("Transaction-Width",width)("Memory-Width",mem_width)("Data-Length",length)("Invalid memory access: Transaction width is not compatible with memory width. Please change width or enable Read-Modify-Write Transactions.");
           gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
           return 0;
         }
@@ -746,8 +748,9 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
     }
   } else {
     // no memory device at given address
-    v::error << name() << "Invalid memory access: No device at address "
-             << v::uint32 << addr << "." << v::endl;
+    /*v::error << name() << "Invalid memory access: No device at address "
+             << v::uint32 << addr << "." << v::endl;*/
+    srWarn()("addr", addr)("Invalid memory access: No device at address");
     gp.set_response_status(TLM_ADDRESS_ERROR_RESPONSE);
     return 0;
   }
@@ -1044,8 +1047,9 @@ uint32_t Mctrl::transport_dbg(tlm_generic_payload &gp) {  // NOLINT(runtime/refe
     }
   } else {
     // no memory device at given address
-    v::error << name() << "Invalid memory access: No device at address"
-             << v::uint32 << addr << "." << v::endl;
+    /*v::error << name() << "Invalid memory access: No device at address"
+             << v::uint32 << addr << "." << v::endl;*/
+    srWarn()("addr", addr)("Invalid memory access: No device at address");
     gp.set_response_status(TLM_ADDRESS_ERROR_RESPONSE);
     return 0;
   }
