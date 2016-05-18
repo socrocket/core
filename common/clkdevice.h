@@ -32,6 +32,7 @@
 /// of the class.
 class CLKDevice {
   public:
+#ifndef SWIG
     SR_HAS_SIGNALS(CLKDevice);
 
     /// Reset input signal
@@ -61,6 +62,7 @@ class CLKDevice {
     /// @param value Value of the clock.
     /// @param time  Delay to the current simulation time. Is not used in this callback.
     virtual void onclk(const sc_core::sc_time &value, const sc_core::sc_time &time);
+#endif
 
     /// Set the clockcycle length.
     ///
@@ -68,7 +70,9 @@ class CLKDevice {
     ///  The clockcycle is useed to calculate internal delays and waiting times to trigger the timer core functionality.
     ///
     /// @param clk An sc_clk instance. The function will extract the clockcycle length from the instance.
+#ifndef SWIG
     void set_clk(sc_core::sc_clock &clk);  // NOLINT(runtime/references)
+#endif
 
     /// Set the clockcycle length.
     ///
@@ -87,11 +91,14 @@ class CLKDevice {
     /// @param base   The unit of the clockcycle length stored in period.
     void set_clk(double period, sc_core::sc_time_unit base);
 
+    sc_core::sc_time &get_clk();
+#ifndef SWIG
     virtual void dorst();
     virtual void clkcng() {}
 
   protected:
     sc_core::sc_time clock_cycle;
+#endif
 };
 
 #endif  // MODELS_UTILS_CLKDEVICE_H_

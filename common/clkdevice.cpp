@@ -16,8 +16,8 @@
 #include "core/common/verbose.h"
 
 CLKDevice::CLKDevice() :
-  rst(&CLKDevice::onrst, "Reset"),
-  clk(&CLKDevice::onclk, "Clock"),
+  rst(&CLKDevice::onrst, "rst"),
+  clk(&CLKDevice::onclk, "clk"),
   clock_cycle(10, sc_core::SC_NS) {
 }
 
@@ -55,6 +55,11 @@ void CLKDevice::set_clk(sc_core::sc_time period) {
 void CLKDevice::set_clk(double period, sc_core::sc_time_unit base) {
   clock_cycle = sc_time(period, base);
   clkcng();
+}
+
+// Extract basic cycle rate from a clock period in double
+sc_core::sc_time &CLKDevice::get_clk() {
+  return clock_cycle;
 }
 
 void CLKDevice::dorst() {
