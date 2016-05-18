@@ -12,7 +12,7 @@ def build(bld):
                         'socwire', 'socw_socket', 'mctrl', 'ahbin', 'ahbprof', 'greth', 'ahbgpgpu', 
                         'usi',
                         'ahbdisplay', 'ahbcamera', 'ahbshuffler', 'leon3', 'trap',
-                        'sr_registry', 'sr_register', 'sr_report', 'common',
+                        'sr_registry', 'sr_register', 'sr_report', 'sr_signal', 'common',
                         'AMBA', 'GREENSOCS', 'TLM', 'SYSTEMC', 'BOOST'
                        ],
     )
