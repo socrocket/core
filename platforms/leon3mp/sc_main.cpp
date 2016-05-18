@@ -141,6 +141,7 @@ int sc_main(int argc, char** argv) {
     USI_HAS_MODULE(scireg);
     USI_HAS_MODULE(amba);
     USI_HAS_MODULE(sr_report);
+    USI_HAS_MODULE(sr_signal);
     USI_HAS_MODULE(cci);
     USI_HAS_MODULE(mtrace);
     usi_init(argc, argv);
@@ -151,6 +152,7 @@ int sc_main(int argc, char** argv) {
     // usi, usi.systemc, usi.api.delegate, usi.api.report
     usi_load("usi.api.greensocket");
     usi_load("sr_register.scireg");
+    usi_load("sr_signal.sr_signal");
     usi_load("usi.api.amba");
 
     usi_load("usi.log");
