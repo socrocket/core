@@ -185,7 +185,7 @@ Mctrl::Mctrl(
     ("pindex", pindex)
     ("hindex", hindex)
     ("pow_mon", powermon)
-    ("Ceated an Irqmp with this parameters");
+    ("Created an Mctrl with this parameters");
 }
 
 // destructor unregisters callbacks
