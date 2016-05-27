@@ -60,6 +60,6 @@ void leon3_funclt_trap::IntrTLMPort_32::callbackMethod( const std::pair<unsigned
 
 leon3_funclt_trap::IntrTLMPort_32::IntrTLMPort_32( sc_module_name portName, unsigned \
     int & irqSignal ) : sc_module(portName), irqSignal(irqSignal),
-    irq_signal(&IntrTLMPort_32::callbackMethod, portName){
+    irq_signal(&IntrTLMPort_32::callbackMethod, "irq"){
     end_module();
 }
