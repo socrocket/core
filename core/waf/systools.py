@@ -170,7 +170,6 @@ def make_systest(self):
         test.atstr = atstr
         test.filename = filename
         test.ut_exec = exec_list + param
-        print(' '.join(test.ut_exec))
 
 from waflib.TaskGen import feature, after_method, before_method, task_gen
 feature('systest')(make_systest)
