@@ -112,14 +112,14 @@ def configure(self):
     #self.env.append_unique('LINKFLAGS', '-lmudflap')
     #self.env.append_unique('CXXFLAGS', '-fmudflap')
     #self.env.append_unique('CCFLAGS', '-fmudflap')
-    testFlags = ['-O1', '-march=native', '-pipe', '-finline-functions', '-ftracer', '-fomit-frame-pointer', '-fpermissive']
+    testFlags = ['-O1', '-march=native', '-pipe', '-finline-functions', '-ftracer', '-fomit-frame-pointer', '-fpermissive', '-fPIC']
     if self.check_cxx(cxxflags=testFlags, msg='Checking for g++ optimization flags', mandatory=False) and self.check_cc(cflags=testFlags, msg='Checking for gcc optimization flags'):
         self.env.append_unique('CXXFLAGS', testFlags)
         self.env.append_unique('CCFLAGS', testFlags)
         if not self.options.debug:
           self.env.append_unique('DEFINES', 'NDEBUG')
     else:
-        testFlags = ['-O1', '-pipe', '-finline-functions', '-fomit-frame-pointer', '-fpermissive']
+        testFlags = ['-O1', '-pipe', '-finline-functions', '-fomit-frame-pointer', '-fpermissive', '-fPIC']
         if self.check_cxx(cxxflags=testFlags, msg='Checking for g++ optimization flags') and self.check_cc(cflags=testFlags, msg='Checking for gcc optimization flags'):
             self.env.append_unique('CXXFLAGS', testFlags)
             self.env.append_unique('CCFLAGS', testFlags)
