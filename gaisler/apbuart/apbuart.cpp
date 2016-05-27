@@ -44,26 +44,21 @@ APBUART::APBUART(ModuleName name,
   level_int = false;
   // TODO(all) Implement and Test interrupt thread
   // Display APB slave information
-  v::info << this->name() << "APB slave @0x" << hex << v::setw(8)
-          << v::setfill('0') << apb.get_base_addr() << " size: 0x" << hex
-          << v::setw(8) << v::setfill('0') << apb.get_size() << " byte"
-          << endl;
+  srInfo("/configuration/apbuart/apbslave")
+     ("addr", (uint64_t)apb.get_base_addr())
+     ("size", (uint64_t)apb.get_size())
+     ("APB Slave Configuration");
 
   init_registers();
 
-
-  // Configuration report
-  v::info << this->name() << " ******************************************************************************* " <<
-  v::endl;
-  v::info << this->name() << " * Created UART with following parameters: " << v::endl;
-  v::info << this->name() << " * ------------------------------------------ " << v::endl;
-  v::info << this->name() << " * pindex: " << pindex << v::endl;
-  v::info << this->name() << " * paddr/pmask: " << hex << paddr << "/" << pmask << v::endl;
-  v::info << this->name() << " * pirq: " << pirq << v::endl;
-  v::info << this->name() << " * console: " << console << v::endl;
-  v::info << this->name() << " * pow_mon: " << powmon << v::endl;
-  v::info << this->name() << " ******************************************************************************* " <<
-  v::endl;
+  /*srInfo()
+    ("pindex", pindex)
+    ("paddr", paddr)
+    ("pmask", pmask)
+    ("pirq", pirq)
+    //("console", console)
+    //("pow_mon", powmon)
+    ("An APBUART is created with these generics");*/
 }
 
 // Destructor: Unregister Register Callbacks.
