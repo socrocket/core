@@ -85,7 +85,7 @@ Leon3::Leon3(
       hindex,
       pow_mon,
       abstractionLayer),
-  cpu("leon3", this, sc_core::sc_time(10, sc_core::SC_NS), pow_mon),
+  cpu("cpu", this, sc_core::sc_time(10, sc_core::SC_NS), pow_mon),
   debugger(NULL),
   m_intrinsics("intrinsics", *(cpu.abiIf)),
   g_gdb("gdb", 0, m_generics),
