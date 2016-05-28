@@ -20,6 +20,8 @@
 #include "core/common/verbose.h"
 #include "core/common/sr_report.h"
 
+SR_HAS_MODULE(APBCtrl);
+
 /// Constructor of class APBCtrl
 APBCtrl::APBCtrl(
     ModuleName nm,  // SystemC name
