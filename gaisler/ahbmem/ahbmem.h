@@ -54,7 +54,19 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
       uint32_t slave_id = 0,
       bool cacheable = 1,
       uint32_t wait_states = 0,
-      bool pow_mon = false);
+      bool pow_mon = false
+    ) __attribute__ ((deprecated));
+
+    AHBMem(
+      const ModuleName nm,
+      AbstractionLayer ambaLayer,
+      uint16_t haddr_ = 0,
+      uint16_t hmask_ = 0,
+      uint32_t slave_id = 0,
+      bool cacheable = 1,
+      uint32_t wait_states = 0,
+      bool pow_mon = false
+    );
 
     /// Destructor
     ~AHBMem();
