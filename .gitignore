@@ -17,5 +17,12 @@ build
 build?.?
 deps
 bigbuckbunny_small.m2v
+
 # Mkprom2
 xdump.s
+
+# virtualenv activate symlink
+activate
+
+# AmbaKit Source for recompilation
+amba_socket*.tgz
