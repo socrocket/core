@@ -28,6 +28,7 @@ def find(self, path = ""):
         path = os.path.abspath(os.path.expanduser(path))
     self.setenv('sparc-elf')
     self.load('compiler_c')
+    self.load('compiler_cxx')
     # Check if the compiler is present
 
     crosscc = crossxx = crossar = None
@@ -111,5 +112,3 @@ def configure(self):
 def feature_sparcelf(self):
   env = self.bld.all_envs['sparc-elf'].derive()
   self.env = env
-
-

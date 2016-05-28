@@ -293,7 +293,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_mctrl_prom_mask("mask", 0xE00, p_mctrl_prom);
     gs::gs_param<unsigned int> p_mctrl_prom_asel("asel", 28, p_mctrl_prom);
     gs::gs_param<unsigned int> p_mctrl_prom_banks("banks", 2, p_mctrl_prom);
-    gs::gs_param<unsigned int> p_mctrl_prom_bsize("bsize", 256, p_mctrl_prom);
+    gs::gs_param<unsigned int> p_mctrl_prom_bsize("bsize", 2, p_mctrl_prom);
     gs::gs_param<unsigned int> p_mctrl_prom_width("width", 32, p_mctrl_prom);
     gs::gs_param<unsigned int> p_mctrl_io_addr("addr", 0x200, p_mctrl_io);
     gs::gs_param<unsigned int> p_mctrl_io_mask("mask", 0xE00, p_mctrl_io);
@@ -357,7 +357,7 @@ int sc_main(int argc, char** argv) {
     Memory rom( "rom",
                      MEMDevice::ROM,
                      p_mctrl_prom_banks,
-                     p_mctrl_prom_bsize * 1024 * 1024,
+                     p_mctrl_prom_bsize * 1024,
                      p_mctrl_prom_width,
                      0,
                      "ArrayStorage",
@@ -432,7 +432,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param_array p_ahbmem("ahbmem", p_conf);
     gs::gs_param<bool> p_ahbmem_en("en", true, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_addr("addr", 0xA00, p_ahbmem);
-    gs::gs_param<unsigned int> p_ahbmem_mask("mask", 0xFFF, p_ahbmem);
+    gs::gs_param<unsigned int> p_ahbmem_mask("mask", 0xFF0, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_index("index", 1, p_ahbmem);
     gs::gs_param<bool> p_ahbmem_cacheable("cacheable", 1, p_ahbmem);
     gs::gs_param<unsigned int> p_ahbmem_waitstates("waitstates", 0u, p_ahbmem);
