@@ -9,7 +9,7 @@
 ///            Any reproduction, use, distribution or disclosure of this
 ///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
-/// @author Thomas Schuster
+/// @author Rolf Meyer
 ///
 
 #ifndef MODELS_APBUART_IO_IF_H_
