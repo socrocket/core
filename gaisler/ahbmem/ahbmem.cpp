@@ -43,8 +43,6 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
       0,
       ambaLayer,
       BAR(AHBMEM, hmask, cacheable, 0, haddr)),
-    ahbBaseAddress(static_cast<uint32_t>((hmask) & haddr) << 20),
-    ahbSize(~(static_cast<uint32_t>(hmask) << 20) + 1),
     g_haddr("haddr", haddr, m_generics),
     g_hmask("hmask", hmask, m_generics),
     //g_hindex("hindex", hindex, m_generics),
@@ -108,8 +106,6 @@ AHBMem::AHBMem(
       0,
       ambaLayer,
       BAR(AHBMEM, hmask, cacheable, 0, haddr)),
-    ahbBaseAddress(static_cast<uint32_t>((hmask) & haddr) << 20),
-    ahbSize(~(static_cast<uint32_t>(hmask) << 20) + 1),
     g_haddr("haddr", haddr, m_generics),
     g_hmask("hmask", hmask, m_generics),
     //g_hindex("hindex", hindex, m_generics),
@@ -217,8 +213,12 @@ uint32_t AHBMem::exec_func(
     // Warn if access exceeds slave memory region
     if ((trans.get_address() + trans.get_data_length()) >
 
-        (ahbBaseAddress + ahbSize)) {
+        (get_ahb_bar_addr(0) + get_ahb_bar_size(0))) {
       srWarn(name())
+        ("base", get_ahb_bar_addr(0))
+        ("size", get_ahb_bar_size(0))
+        ("addr", trans.get_address())
+        ("length", trans.get_data_length())
         ("Transaction exceeds slave memory region");
     }
     trans.set_dmi_allowed(m_storage->allow_dmi_rw());
@@ -295,7 +295,7 @@ void AHBMem::writeByteDBG(const uint32_t address, const uint8_t byte) {
   write_dbg(address, byte);
 }
 
-void AHBMem::before_end_of_elaboration() {
+void AHBMem::end_of_elaboration() {
   set_storage(g_storage_type, get_ahb_bar_size(0));
 }
 
