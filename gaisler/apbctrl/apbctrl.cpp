@@ -43,8 +43,8 @@ APBCtrl::APBCtrl(
   m_AcceptPEQ("AcceptPEQ"),
   m_TransactionPEQ("TransactionPEQ"),
   m_pnpbase(0xFF000),
-  g_haddr("haddr", haddr, m_generics),
-  g_hmask("hmask", hmask, m_generics),
+  //g_haddr("haddr", haddr, m_generics),
+  //g_hmask("hmask", hmask, m_generics),
   g_mcheck("mcheck", mcheck, m_generics),
   g_pow_mon("pow_mon", pow_mon, m_generics),
   m_ambaLayer(ambaLayer),
@@ -280,6 +280,13 @@ uint32_t APBCtrl::exec_func(
 }
 
 void APBCtrl::end_of_elaboration() {
+  srInfo()
+    ("haddr", get_ahb_bar_base(0))
+    ("hmask", get_ahb_bar_mask(0))
+    ("hindex", get_ahb_hindex())
+    ("mcheck", g_mcheck)
+    ("Created an APBCtrl with this parameters");
+
   // Register power monitor
   if (g_pow_mon) {
     GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, APBCtrl, sta_power_cb);

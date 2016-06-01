@@ -570,7 +570,11 @@ void AHBCtrl::b_transport(uint32_t id,
       busy = false;
       return;
     } else {
-      v::error << name() << " Forbidden write to AHBCTRL configuration area (PNP)!" << v::endl;
+      srError()
+        ("addr", trans.get_address())
+        ("size", trans.get_data_length())
+        ("master", mstobj->name())
+        ("Forbidden write to AHBCTRL configuration area (PNP)!");
       trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
       delay = SC_ZERO_TIME;
@@ -637,9 +641,9 @@ void AHBCtrl::b_transport(uint32_t id,
     other_socket = ahbIN.get_other_side(id, a);
     mstobj = other_socket->get_parent();
 
-    v::error << name() << "AHB Request 0x" << hex << v::setfill('0')
-             << v::setw(8) << trans.get_address() << ", from master:"
-             << mstobj->name() << ": Unmapped address space." << endl;
+    //v::error << name() << "AHB Request 0x" << hex << v::setfill('0')
+    //         << v::setw(8) << trans.get_address() << ", from master:"
+    //         << mstobj->name() << ": Unmapped address space." << endl;
     srWarn()("addr", trans.get_address())("master", mstobj->name())("AHBRequest, b_transport to unmapped address space");
 
     // Invalid index
@@ -1165,8 +1169,11 @@ void AHBCtrl::start_of_simulation() {
   assert(num_of_master_bindings <= 16);
 
   v::info << name() << "******************************************************************************* " << v::endl;
-  v::info << name() << "* AHB DECODER INITIALIZATION " << v::endl;
   v::info << name() << "* -------------------------- " << v::endl;
+  srInfo()
+    ("slaves", num_of_slave_bindings)
+    ("masters", num_of_master_bindings)
+    ("AHB decoder initialization");
 
   // Iterate/detect the registered slaves
   // ------------------------------------
@@ -1182,8 +1189,6 @@ void AHBCtrl::start_of_simulation() {
     // Valid slaves implement the AHBDeviceBase interface
     AHBDeviceBase *slave = dynamic_cast<AHBDeviceBase *>(obj);
 
-    v::info << name() << "* SLAVE name: " << obj->name() << v::endl;
-
     // Slave is valid (implements AHBDeviceBase)
     if (slave) {
       // Get pointer to device information
@@ -1192,7 +1197,6 @@ void AHBCtrl::start_of_simulation() {
       // Get bus id (hindex oder master id)
       const uint32_t sbusid = slave->get_ahb_hindex();
       assert(sbusid < 16);
-      v::info << name() << "* SLAVE id: " << sbusid << v::endl;
 
       // Map device information into PNP region
       if (g_fpnpen) {
@@ -1207,22 +1211,30 @@ void AHBCtrl::start_of_simulation() {
           uint32_t addr = slave->get_ahb_bar_base(j);
           uint32_t mask = slave->get_ahb_bar_mask(j);
 
-          v::info << name() << "* BAR" << dec << j << " with MSB addr: 0x" << hex << addr << " and mask: 0x" << hex <<
-            mask <<  v::endl;
+          srInfo()
+            ("bar", j)
+            ("addr", addr)
+            ("mask", mask)
+            ("name", obj->name())
+            ("index", sbusid)
+            ("Binding BAR of Slave to AHB Address");
 
           // Insert slave region into memory map
           setAddressMap(i + j, sbusid, addr, mask);
         } else {
-          v::info << name() << "* BAR" << dec << j << " not used." << v::endl;
+          srDebug()
+            ("bar", j)
+            ("name", obj->name())
+            ("index", sbusid)
+            ("BAR of Slave unbound");
         }
       }
     } else {
-      v::error << name() << "Slave bound to socket 'ahbOUT' is not a valid AHBDeviceBase (no plug & play information)!" <<
-        v::endl;
+      srError()
+        ("name", obj->name())
+        ("Slave bound to socket 'ahbOUT' is not a valid AHBDeviceBase (no plug & play information)!");
       assert(0);
     }
-
-    v::info << name() << "******************************************************************************* " << v::endl;
   }
 
   // Iterate/detect the registered masters
@@ -1239,8 +1251,6 @@ void AHBCtrl::start_of_simulation() {
     // valid masters implement the AHBDeviceBase interface
     AHBDeviceBase *master = dynamic_cast<AHBDeviceBase *>(obj);
 
-    v::info << name() << "* Master name: " << obj->name() << v::endl;
-
     // master is valid (implements AHBDeviceBase)
     if (master) {
       // Get pointer to device information
@@ -1249,7 +1259,6 @@ void AHBCtrl::start_of_simulation() {
       // Get id of the master
       const uint32_t mbusid = master->get_ahb_hindex();
       assert(mbusid < 16);
-      v::info << name() << "* Master id: " << mbusid << v::endl;
 
       // Map device information into PNP region
       if (g_fpnpen) {
@@ -1264,20 +1273,28 @@ void AHBCtrl::start_of_simulation() {
           uint32_t addr = master->get_ahb_bar_base(j);
           uint32_t mask = master->get_ahb_bar_mask(j);
 
-          v::info << name() << "* BAR" << dec << j << " with MSB addr: 0x" << hex << addr << " and mask: 0x" << hex <<
-            mask <<  v::endl;
+          srInfo()
+            ("bar", j)
+            ("addr", addr)
+            ("mask", mask)
+            ("name", obj->name())
+            ("index", mbusid)
+            ("Binding BAR of Master to AHB Address");
         } else {
-          v::info << name() << "* BAR" << dec << j << " not used." << v::endl;
+          srDebug()
+            ("bar", j)
+            ("name", obj->name())
+            ("index", mbusid)
+            ("BAR of Master unbound");
         }
       }
     } else {
-      v::error << name() << "Master bound to socket 'ahbin' is not a valid AHBDeviceBase" << v::endl;
+      srError()
+        ("name", obj->name())
+        ("Master bound to socket 'ahbin' is not a valid AHBDeviceBase");
       assert(0);
     }
   }
-
-  // End of decoder initialization
-  v::info << name() << "******************************************************************************* " << v::endl;
 
   // Check memory map for overlaps
   if (g_mcheck) {

@@ -148,8 +148,8 @@ class APBCtrl : public AHBSlave<>, public CLKDevice {
     /// 0xFF000
     const uint32_t m_pnpbase;
     
-    sr_param<uint32_t> g_haddr;
-    sr_param<uint32_t> g_hmask;
+    //sr_param<uint32_t> g_haddr;
+    //sr_param<uint32_t> g_hmask;
     /// Check if there are any intersections between APB slave memory regions
     sr_param<bool> g_mcheck;
 
