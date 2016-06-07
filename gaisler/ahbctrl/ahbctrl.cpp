@@ -1168,8 +1168,6 @@ void AHBCtrl::start_of_simulation() {
   // Max. 16 AHB masters allowed
   assert(num_of_master_bindings <= 16);
 
-  v::info << name() << "******************************************************************************* " << v::endl;
-  v::info << name() << "* -------------------------- " << v::endl;
   srInfo()
     ("slaves", num_of_slave_bindings)
     ("masters", num_of_master_bindings)
@@ -1464,7 +1462,7 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return length;
     } else {
-      v::error << name() << " Forbidden write to AHBCTRL configuration area (PNP)!" << v::endl;
+      srError()("Forbidden write to AHBCTRL configuration area (PNP)!");
       trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
       return 0;
     }
@@ -1479,17 +1477,21 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
     other_socket = ahbOUT.get_other_side(index, a);
     sc_core::sc_object *obj = other_socket->get_parent();
 
-    v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
-             << v::setw(8) << trans.get_address() << ", from master:"
-             << mstobj->name() << ", forwarded to slave:" << obj->name() << endl;
-    // --------------------
+    srDebug()
+      ("addr", trans.get_address())
+      ("length", trans.get_data_length())
+      ("master", mstobj->name())
+      ("slave", obj->name())
+      ("AHB Request");
 
     // Forward request to the selected slave
     return ahbOUT[index]->transport_dbg(trans);
   } else {
-    v::warn << name() << "AHB Request@0x" << hex << v::setfill('0')
-            << v::setw(8) << trans.get_address() << ", from master:"
-            << mstobj->name() << ": Unmapped address space." << endl;
+    srWarn()
+      ("addr", trans.get_address())
+      ("length", trans.get_data_length())
+      ("master", mstobj->name())
+      ("AHB Request at unmapped address space");
 
     // Invalid index
     trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
