@@ -12,7 +12,7 @@
 #ifndef COMMON_SR_REGISTRY_H__
 #define COMMON_SR_REGISTRY_H__
 
-#include "core/common/sr_registry/sr_registry.h"
+#include "core/sr_registry/sr_registry.h"
 
 #endif  // COMMON_SR_REGISTRY_H__
 /// @}

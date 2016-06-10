@@ -23,7 +23,7 @@
 #ifndef CORE_COMMON_SCIREG_H__
 #define CORE_COMMON_SCIREG_H__
 
-#include "core/common/sr_register/scireg.h"
+#include "core/sr_register/scireg.h"
 
 #endif  // CORE_COMMON_SCIREG_H__
 ///@}

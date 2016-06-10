@@ -24,6 +24,7 @@
 #include "core/common/base.h"
 #include "core/common/systemc.h"
 #include "core/common/sr_param.h"
+#include "core/common/scireg.h"
 
 #include "math.h"
 #include "core/common/verbose.h"
@@ -33,7 +34,6 @@
 #include "gaisler/leon3/mmucache/tlb_adaptor.h"
 #include "gaisler/leon3/mmucache/mem_if.h"
 #include "core/common/vendian.h"
-#include "core/common/sr_register/scireg.h"
 
 // implementation of cache memory and controller
 /// @brief virtual cache model, contain common functionality of instruction and data cache

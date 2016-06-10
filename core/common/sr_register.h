@@ -13,7 +13,7 @@
 #ifndef CORE_COMMON_SR_REGISTER_H_
 #define CORE_COMMON_SR_REGISTER_H_ 
 
-#include "core/common/sr_register/sr_register.h"
+#include "core/sr_register/sr_register.h"
 
 #endif  // CORE_COMMON_SR_REGISTER_H_ 
 /// @}

@@ -14,7 +14,7 @@
 #ifndef COMMON_SR_PARAM_H_
 #define COMMON_SR_PARAM_H_
 
-#include "core/common/sr_param/sr_param.h"
+#include "core/sr_param/sr_param.h"
 
 #endif  // COMMON_SR_PARAM_H_
 /// @}
