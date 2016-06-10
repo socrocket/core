@@ -28,7 +28,7 @@
 #ifndef CORE_COMMON_SR_SIGNAL_H__
 #define CORE_COMMON_SR_SIGNAL_H__
 
-#include "core/common/sr_signal/sr_signal.h"
+#include "core/sr_signal/sr_signal.h"
 
 #endif  // CORE_COMMON_SIGNAL_H__
 /// @}

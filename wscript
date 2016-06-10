@@ -6,11 +6,11 @@ REPOSITORY_NAME = "SoCRocket Main Repository"
 REPOSITORY_VERSION = [3,0,0]
 REPOSITORY_DESC = """SoCRocket Main Repository"""
 REPOSITORY_DEPS = {
-  "core/common/sr_registry": "https://github.com/socrocket/sr_registry.git",
-  "core/common/sr_register": "https://github.com/socrocket/sr_register.git",
-  "core/common/sr_report": "https://github.com/socrocket/sr_report.git",
-  "core/common/sr_param": "https://github.com/socrocket/sr_param.git",
-  "core/common/sr_signal": "https://github.com/socrocket/sr_signal.git",
+  "core/sr_registry": "https://github.com/socrocket/sr_registry.git",
+  "core/sr_register": "https://github.com/socrocket/sr_register.git",
+  "core/sr_report": "https://github.com/socrocket/sr_report.git",
+  "core/sr_param": "https://github.com/socrocket/sr_param.git",
+  "core/sr_signal": "https://github.com/socrocket/sr_signal.git",
   "pysc": "https://github.com/socrocket/pysc.git",
 }
 REPOSITORY_TOOLS = [
