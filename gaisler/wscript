@@ -5,22 +5,9 @@ top = '..'
 def build(self):
   self.recurse_all()
   self.recurse_all_tests()
-  """
   self(
         target       = 'sr_gaisler',
         features     = 'cxx cxxshlib',
-        #source       = ['ahbctrl',
-        #                'ahbmem',
-        #                'irqmp',
-        #                'gptimer',
-        #                'apbctrl',
-        #                'apbuart',
-        #                'reset_irqmp',
-        #                'mctrl',
-        #                'ahbin',
-        #                'ahbprof', 
-        #                'leon3',
-        #               ],
         source = [
             'ahbctrl/ahbctrl.cpp',
             'ahbin/ahbin.cpp',
@@ -65,5 +52,5 @@ def build(self):
                         'sr_registry', 'sr_register', 'sr_report', 'sr_signal', 'common',
                         'AMBA', 'GREENSOCS', 'TLM', 'SYSTEMC', 'BOOST'
                        ],
+        idx=99,
   )
-  """
