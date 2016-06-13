@@ -5,6 +5,7 @@ top = '..'
 def build(self):
   self.recurse_all()
   self.recurse_all_tests()
+  """
   self(
         target       = 'sr_gaisler',
         features     = 'cxx cxxshlib',
@@ -64,4 +65,5 @@ def build(self):
                         'sr_registry', 'sr_register', 'sr_report', 'sr_signal', 'common',
                         'AMBA', 'GREENSOCS', 'TLM', 'SYSTEMC', 'BOOST'
                        ],
-    )
+  )
+  """

@@ -1,8 +1,11 @@
 #! /usr/bin/env python
 # vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
 import os
+import sys
 import shutil
-from waflib import Errors, Context, Utils
+from waflib import Errors, Context, Utils, Logs
+from waflib.Logs import debug, error
+from waflib.Tools import c_preproc
 from core.waf.common import conf
 
 def base(self, *k, **kw):

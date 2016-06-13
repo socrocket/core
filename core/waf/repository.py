@@ -350,7 +350,12 @@ def loadrepos(self):
         directory = os.path.join(os.getcwd(),d)
         vals = get_repo_vals(directory)
         waf = os.path.join(directory, "waf")
-        self.load(vals.get("tools", []), tooldir=[waf])
+        for val in vals.get("tools", []):
+            try:
+                self.load(val, tooldir=[waf])
+            except (ImportError, self.errors.ConfigurationError):
+                self.load(val, tooldir=None)
+
 
 conf(loadrepos)
 
