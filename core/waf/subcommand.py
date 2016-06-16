@@ -7,10 +7,8 @@
     $ ./waf repo init
 """
 import os
-from waflib import Context,Scripting,TaskGen
 from waflib.Configure import ConfigurationContext
-from waflib import ConfigSet,Utils,Options,Logs,Context,Build,Errors
-from core.waf.common import conf
+from waflib import Logs,Context,Build
 
 COMMANDS = {}
 
@@ -21,17 +19,20 @@ def init(self):
         Remove all other arguments from the list.
         This ensures that ./waf <comand> can handle its own sub commands and arguments.
     """
+    from waflib import Options
     global COMMANDS
     if Options.commands[0] in COMMANDS:
         del(Options.commands[1:])
 
-setattr(Context.g_module, 'init', init) # Detect repo argument
+if Context.g_module:
+    setattr(Context.g_module, 'init', init) # Detect repo argument
 
 def subcommand(context):
     """Register subcommand"""
     global COMMANDS
     COMMANDS[context.cmd] = context
-    setattr(Context.g_module, context.cmd, context)
+    if Context.g_module:
+        setattr(Context.g_module, context.cmd, context)
     return context
 
 class SubcommandContext(ConfigurationContext):
