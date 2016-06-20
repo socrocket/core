@@ -42,53 +42,13 @@
 #include "core/common/trapgen/utils/trap_utils.hpp"
 #include "core/common/systemc.h"
 
+#include "gaisler/leon3/mmucache/cpu_if.h"
+
 #define FUNC_MODEL
 #define LT_IF
 using namespace trap;
 namespace leon3_funclt_trap{
-
-    class MemoryInterface {
-      public:
-        virtual sc_dt::uint64 read_dword( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
-        virtual unsigned int read_word( const unsigned int & address , const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
-        virtual unsigned short int read_half( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
-        virtual unsigned char read_byte( const unsigned int & address, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
-        virtual unsigned int read_instr( const unsigned int & address, const unsigned int asi, const unsigned int flush) throw() = 0;
-        virtual sc_dt::uint64 read_dword_dbg( const unsigned int & address );
-        virtual unsigned int read_word_dbg( const unsigned int & address );
-        virtual unsigned short int read_half_dbg( const unsigned int & address );
-        virtual unsigned char read_byte_dbg( const unsigned int & address );
-        virtual void write_dword( const unsigned int & address, sc_dt::uint64 datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
-        virtual void write_word( const unsigned int & address, unsigned int datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
-        virtual void write_half( const unsigned int & address, unsigned short int datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) \
-            throw() = 0;
-        virtual void write_byte( const unsigned int & address, unsigned char datum, const unsigned int asi, const unsigned int flush, const unsigned int lock ) throw() = 0;
-        virtual void write_dword_dbg( const unsigned int & address, sc_dt::uint64 datum );
-        virtual void write_word_dbg( const unsigned int & address, unsigned int datum );
-        virtual void write_half_dbg( const unsigned int & address, unsigned short int datum );
-        virtual void write_byte_dbg( const unsigned int & address, unsigned char datum );
-        virtual void lock() = 0;
-        virtual void unlock() = 0;
-        inline void swapEndianess( unsigned int & datum ) const throw(){
-            unsigned char helperByte = 0;
-            for(unsigned int i = 0; i < sizeof(unsigned int)/2; i++){
-                helperByte = ((unsigned char *)&datum)[i];
-                ((unsigned char *)&datum)[i] = ((unsigned char *)&datum)[sizeof(unsigned int) -1 -i];
-                ((unsigned char *)&datum)[sizeof(unsigned int) -1 -i] = helperByte;
-            }
-        }
-        inline void swapEndianess( unsigned short int & datum ) const throw(){
-            unsigned char helperByte = 0;
-            for(unsigned int i = 0; i < sizeof(unsigned short int)/2; i++){
-                helperByte = ((unsigned char *)&datum)[i];
-                ((unsigned char *)&datum)[i] = ((unsigned char *)&datum)[sizeof(unsigned short int) \
-                    -1 -i];
-                ((unsigned char *)&datum)[sizeof(unsigned short int) -1 -i] = helperByte;
-            }
-        }
-        virtual ~MemoryInterface();
-    };
-
+    class MemoryInterface : public cpu_if {};
 };
 
 namespace leon3_funclt_trap{

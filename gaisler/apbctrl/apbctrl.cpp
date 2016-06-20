@@ -20,6 +20,8 @@
 #include "core/common/verbose.h"
 #include "core/common/sr_report.h"
 
+SR_HAS_MODULE(APBCtrl);
+
 /// Constructor of class APBCtrl
 APBCtrl::APBCtrl(
     ModuleName nm,  // SystemC name
@@ -41,8 +43,8 @@ APBCtrl::APBCtrl(
   m_AcceptPEQ("AcceptPEQ"),
   m_TransactionPEQ("TransactionPEQ"),
   m_pnpbase(0xFF000),
-  g_haddr("haddr", haddr, m_generics),
-  g_hmask("hmask", hmask, m_generics),
+  //g_haddr("haddr", haddr, m_generics),
+  //g_hmask("hmask", hmask, m_generics),
   g_mcheck("mcheck", mcheck, m_generics),
   g_pow_mon("pow_mon", pow_mon, m_generics),
   m_ambaLayer(ambaLayer),
@@ -221,12 +223,16 @@ uint32_t APBCtrl::exec_func(
       sc_core::sc_object *obj = other_socket->get_parent();
 
       v::debug << name() << "Forwarding request to APB slave:" << obj->name()
-	       << "@0x" << hex << v::setfill('0') << v::setw(8)
-	       << ((ahb_gp.get_address() & 0x000fffff)+i) << endl;
+         << "@0x" << hex << v::setfill('0') << v::setw(8)
+         << ((ahb_gp.get_address() & 0x000fffff)+i) << endl;
       // --------------------
 
       // Take APB transaction from pool
       apb_gp = apb.get_transaction();
+      if(!apb_gp) {
+        srError()("Cannot allocate transaction object");
+        assert(apb_gp);
+      }
 
       // Build APB transaction from incoming AHB transaction:
       // ----------------------------------------------------
@@ -239,26 +245,26 @@ uint32_t APBCtrl::exec_func(
 
       if (!debug) {
 
-	// Power event start
-	//PM::send(this,"apb_trans", 1, sc_time_stamp(), (unsigned int)apb_gp->get_data_ptr(), g_pow_mon);
+        // Power event start
+        //PM::send(this,"apb_trans", 1, sc_time_stamp(), (unsigned int)apb_gp->get_data_ptr(), g_pow_mon);
 
-	// Forward request to the selected slave
+        // Forward request to the selected slave
 
-	apb[index]->b_transport(*apb_gp, delay);
+        apb[index]->b_transport(*apb_gp, delay);
 
-	// Add delay for APB setup cycle
-	delay += clock_cycle;
+        // Add delay for APB setup cycle
+        delay += clock_cycle;
 
-	// Power Calculation
-	if (g_pow_mon) {
-	  if (ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
-	    dyn_reads += (ahb_gp.get_data_length() >> 2) + 1;
-	  } else {
-	    dyn_writes += (ahb_gp.get_data_length() >> 2) + 1;
-	  }
-	}
+        // Power Calculation
+        if (g_pow_mon) {
+          if (ahb_gp.get_command() == tlm::TLM_READ_COMMAND) {
+            dyn_reads += (ahb_gp.get_data_length() >> 2) + 1;
+          } else {
+            dyn_writes += (ahb_gp.get_data_length() >> 2) + 1;
+          }
+        }
       } else {
-	apb[index]->transport_dbg(*apb_gp);
+        apb[index]->transport_dbg(*apb_gp);
       }
       
       // Copy back response message
@@ -269,8 +275,6 @@ uint32_t APBCtrl::exec_func(
     } else {
       v::warn << name() << "Access to unmapped APB address space at address " << v::uint32 << addr << endl;
       ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
-      // Release transaction
-      apb.release_transaction(apb_gp);
     }
   }
 
@@ -278,6 +282,13 @@ uint32_t APBCtrl::exec_func(
 }
 
 void APBCtrl::end_of_elaboration() {
+  srInfo()
+    ("haddr", get_ahb_bar_base(0))
+    ("hmask", get_ahb_bar_mask(0))
+    ("hindex", get_ahb_hindex())
+    ("mcheck", g_mcheck)
+    ("Created an APBCtrl with this parameters");
+
   // Register power monitor
   if (g_pow_mon) {
     GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, APBCtrl, sta_power_cb);

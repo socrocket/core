@@ -36,6 +36,7 @@
 
 #include "gaisler/leon3/intunit/externalPins.hpp"
 #include "core/common/trapgen/utils/trap_utils.hpp"
+#include "core/common/sr_report.h"
 #include "core/common/verbose.h"
 
 using namespace leon3_funclt_trap;
@@ -49,7 +50,11 @@ void leon3_funclt_trap::PinTLM_out_32::on_run(const bool &run, const sc_time &de
       start.notify();
       status = true;
   }
-  v::debug << name() << "Receiving run event " << run << ", stopped=" << stopped << ", status=" << status << v::endl;
+  srInfo()
+    ("run", run)
+    ("stopped", stopped)
+    ("status", status)
+    ("Receiving run event");
 }
 
 
@@ -62,10 +67,10 @@ void leon3_funclt_trap::PinTLM_out_32::send_pin_req(const unsigned int &value) t
 leon3_funclt_trap::PinTLM_out_32::PinTLM_out_32(sc_module_name portName) : sc_module(portName),
   // In stand-alone mode do not wait for run-bit to be set
   #ifdef LEON3_STANDALONE
-    initSignal(sc_gen_unique_name(portName)), status("status"), run(&leon3_funclt_trap::PinTLM_out_32::on_run, "run"), stopped(false) {
+    initSignal("ack"), status("status"), run(&leon3_funclt_trap::PinTLM_out_32::on_run, "run"), stopped(false) {
     status.write(true);
   #else
-    initSignal(sc_gen_unique_name(portName)), status("status"), run(&leon3_funclt_trap::PinTLM_out_32::on_run, "run"), stopped(true) {
+    initSignal("ack"), status("status"), run(&leon3_funclt_trap::PinTLM_out_32::on_run, "run"), stopped(true) {
     status.write(false);
   #endif
   end_module();

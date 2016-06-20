@@ -141,6 +141,7 @@ int sc_main(int argc, char** argv) {
     USI_HAS_MODULE(scireg);
     USI_HAS_MODULE(amba);
     USI_HAS_MODULE(sr_report);
+    USI_HAS_MODULE(sr_signal);
     USI_HAS_MODULE(cci);
     USI_HAS_MODULE(mtrace);
     usi_init(argc, argv);
@@ -151,6 +152,7 @@ int sc_main(int argc, char** argv) {
     // usi, usi.systemc, usi.api.delegate, usi.api.report
     usi_load("usi.api.greensocket");
     usi_load("sr_register.scireg");
+    usi_load("sr_signal.sr_signal");
     usi_load("usi.api.amba");
 
     usi_load("usi.log");
@@ -163,6 +165,7 @@ int sc_main(int argc, char** argv) {
 
     usi_start_of_initialization();
 #endif  // HAVE_USI
+
     // Build GreenControl Configuration Namespace
     // ==========================================
     gs::gs_param_array p_conf("conf");
@@ -1055,7 +1058,8 @@ int sc_main(int argc, char** argv) {
     cstart = clock();
 //    mtrace();
 #ifdef HAVE_USI
-    usi_start(SC_ZERO_TIME);
+    usi_end_of_initialization();
+    usi_start();
 #else
     sc_core::sc_start();
 #endif

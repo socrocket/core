@@ -25,9 +25,6 @@
 #include "core/common/clkdevice.h"
 #include "core/common/sr_signal.h"
 
-/// @addtogroup irqmp IRQMP
-/// @{
-
 class Irqmp : public APBSlave, public CLKDevice {
   public:
     SC_HAS_PROCESS(Irqmp);
@@ -310,8 +307,6 @@ class Irqmp : public APBSlave, public CLKDevice {
     /// extended interrupt identification register
     static const uint32_t EXTIR_ID_DEFAULT   = 0x00000000;
 };
-
-/// @}
 
 #endif  // MODELS_IRQMP_IRQMP_H_
 /// @}

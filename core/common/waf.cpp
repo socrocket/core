@@ -24,7 +24,9 @@
 #define SYS_PLATFORM "win32"
 #endif
 
+#if not (defined(MTI_SYSTEMC) and defined(NC_SYSTEMC))
 std::map<std::string, std::string> *wafConfigMap = NULL;
+#endif
 
 boost::filesystem::path findPath(std::string filename, std::string start) {
 
@@ -41,6 +43,7 @@ boost::filesystem::path findPath(std::string filename, std::string start) {
   return path/file;
 }
 
+#if not (defined(MTI_SYSTEMC) and defined(NC_SYSTEMC))
 std::map<std::string, std::string> *readLockFile(std::string top) {
     std::string lockfile(".lock-waf_" SYS_PLATFORM "_build");
     boost::filesystem::path lockpath = findPath(lockfile, top);
@@ -85,6 +88,7 @@ std::map<std::string, std::string> *getWafConfig(std::string top) {
 
     return wafConfigMap;
 }
+#endif
 
 /// @}
 

@@ -43,8 +43,69 @@ AHBMem::AHBMem(const ModuleName nm,  // Module name
       0,
       ambaLayer,
       BAR(AHBMEM, hmask, cacheable, 0, haddr)),
-    ahbBaseAddress(static_cast<uint32_t>((hmask) & haddr) << 20),
-    ahbSize(~(static_cast<uint32_t>(hmask) << 20) + 1),
+    g_haddr("haddr", haddr, m_generics),
+    g_hmask("hmask", hmask, m_generics),
+    //g_hindex("hindex", hindex, m_generics),
+    g_cacheable("cacheable", cacheable, m_generics),
+    g_wait_states("wait_states", wait_states, m_generics),
+    g_pow_mon("pow_mon", pow_mon, m_generics),
+    g_storage_type("storage", "ArrayStorage", m_generics),
+    sta_power_norm("sta_power_norm", 1269.53125, m_power),                  // Normalized static power input
+    int_power_norm("int_power_norm", 1.61011e-12, m_power),                 // Normalized internal power input
+    dyn_read_energy_norm("dyn_read_energy_norm", 7.57408e-13, m_power),     // Normalized read energy input
+    dyn_write_energy_norm("dyn_write_energy_norm", 7.57408e-13, m_power),   // Normalized write energy iput
+    sta_power("sta_power", 0.0, m_power),           // Static power output
+    int_power("int_power", 0.0, m_power),           // Internal power of module (dyn. switching independent)
+    swi_power("swi_power", 0.0, m_power),           // Switching power of modules
+    power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, m_power),
+    dyn_read_energy("dyn_read_energy", 0.0, m_power),             // Energy per read access
+    dyn_write_energy("dyn_write_energy", 0.0, m_power),           // Energy per write access
+    dyn_reads("dyn_reads", 0ull, m_power),            // Read access counter for power computation
+    dyn_writes("dyn_writes", 0ull, m_power) {         // Write access counter for power computation
+  // haddr and hmask must be 12 bit
+  assert(!((g_haddr | g_hmask) >> 12));
+
+  // Register power callback functions
+  if (g_pow_mon) {
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, AHBMem, sta_power_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, AHBMem, int_power_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, AHBMem, swi_power_cb);
+  }
+  AHBMem::init_generics();
+  ahb.register_get_direct_mem_ptr(this, &AHBMem::get_direct_mem_ptr);
+  // Display AHB slave information
+  srInfo("/configuration/ahbmem/ahbslave")
+     ("addr", (uint64_t)get_ahb_base_addr())
+     ("size", (uint64_t)get_ahb_size())
+     ("AHB Slave Configuration");
+
+  srInfo("/configuration/ahbmem/generics")
+    ("haddr", g_haddr)
+    ("hmask", g_hmask)
+    //("hindex", g_hindex)
+    ("cacheable", g_cacheable)
+    ("wait_states", g_wait_states)
+    ("Create AHB simulation memory");
+}
+
+AHBMem::AHBMem(
+  const ModuleName nm,  // Module name
+  AbstractionLayer ambaLayer,                 // abstraction layer
+  uint16_t haddr,                                 // AMBA AHB address (12 bit)
+  uint16_t hmask,                                 // AMBA AHB address mask (12 bit)
+  uint32_t hindex,
+  bool cacheable,
+  uint32_t wait_states,
+  bool pow_mon
+  ):
+    AHBSlave<>(nm,
+      hindex,
+      0x01,                                       // Gaisler
+      0x00E,                                      // AHB Mem,
+      0,
+      0,
+      ambaLayer,
+      BAR(AHBMEM, hmask, cacheable, 0, haddr)),
     g_haddr("haddr", haddr, m_generics),
     g_hmask("hmask", hmask, m_generics),
     //g_hindex("hindex", hindex, m_generics),
@@ -152,8 +213,12 @@ uint32_t AHBMem::exec_func(
     // Warn if access exceeds slave memory region
     if ((trans.get_address() + trans.get_data_length()) >
 
-        (ahbBaseAddress + ahbSize)) {
+        (get_ahb_bar_addr(0) + get_ahb_bar_size(0))) {
       srWarn(name())
+        ("base", get_ahb_bar_addr(0))
+        ("size", get_ahb_bar_size(0))
+        ("addr", trans.get_address())
+        ("length", trans.get_data_length())
         ("Transaction exceeds slave memory region");
     }
     trans.set_dmi_allowed(m_storage->allow_dmi_rw());
@@ -230,7 +295,7 @@ void AHBMem::writeByteDBG(const uint32_t address, const uint8_t byte) {
   write_dbg(address, byte);
 }
 
-void AHBMem::before_end_of_elaboration() {
+void AHBMem::end_of_elaboration() {
   set_storage(g_storage_type, get_ahb_bar_size(0));
 }
 

@@ -54,7 +54,19 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
       uint32_t slave_id = 0,
       bool cacheable = 1,
       uint32_t wait_states = 0,
-      bool pow_mon = false);
+      bool pow_mon = false
+    ) __attribute__ ((deprecated));
+
+    AHBMem(
+      const ModuleName nm,
+      AbstractionLayer ambaLayer,
+      uint16_t haddr_ = 0,
+      uint16_t hmask_ = 0,
+      uint32_t slave_id = 0,
+      bool cacheable = 1,
+      uint32_t wait_states = 0,
+      bool pow_mon = false
+    );
 
     /// Destructor
     ~AHBMem();
@@ -107,7 +119,7 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
         gs::cnf::callback_type reason);
 
     /// Creates the memory backend
-    void before_end_of_elaboration();
+    void end_of_elaboration();
 
     /// Generates execution statistic at end of simulation
     void end_of_simulation();
@@ -117,11 +129,6 @@ class AHBMem : public AHBSlave<>, public CLKDevice, public BaseMemory{
     }
 
   private:
-    /// AHB slave base address and size
-    const uint32_t ahbBaseAddress;
-    // size is saved in bytes
-    const uint32_t ahbSize;
-
     /// Parent array for generics
     gs::cnf::gs_param_array g_conf;
 

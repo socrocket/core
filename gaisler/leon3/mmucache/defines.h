@@ -16,9 +16,9 @@
 #define __DEFINES_H__
 
 #include <tlm.h>
-#include "core/common/sr_register/scireg.h"
-#include "core/common/sr_report.h"
+#include "core/common/scireg.h"
 #include "core/common/sr_register.h"
+#include "core/common/sr_report.h"
 #include "core/common/base.h"
 
 // Structure of a cache tag

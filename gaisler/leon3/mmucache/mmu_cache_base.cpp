@@ -60,7 +60,7 @@ mmu_cache_base::mmu_cache_base(
               3,      // version
               0,      // irq
               abstractionLayer), // LT or AT
-  snoop(&mmu_cache_base::snoopingCallBack,"SNOOP"),
+  snoop(&mmu_cache_base::snoopingCallBack,"snoop"),
   irq("irq"),
   m_icen(icen),
   m_dcen(dcen),

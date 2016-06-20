@@ -126,10 +126,10 @@ class mmu_cache :
   void dcio_service_thread();
 
   /// TLB flush complete
-  virtual void tlb_flush();
+  //virtual void tlb_flush();
 
   /// TLB flush certain entry
-  virtual void tlb_flush(uint32_t vpn);
+  //virtual void tlb_flush(uint32_t vpn);
 
   // data members
   // ------------

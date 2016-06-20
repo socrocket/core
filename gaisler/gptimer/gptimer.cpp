@@ -71,7 +71,7 @@ GPTimer::GPTimer(ModuleName name, unsigned int ntimers,
   }
   
   // Configuration report
-  srInfo("/configuration/gptimer/generics")
+  srInfo()
     ("ntimers", ntimers)
     ("pindex", pindex)
     ("paddr", paddr)
@@ -83,20 +83,6 @@ GPTimer::GPTimer(ModuleName name, unsigned int ntimers,
     ("wdog", wdog)
     ("pow_mon", powmon)
     ("A GPTimer is created with these generics");
-    
-  // v::info << this->name() << " ************************************************************************** " << v::endl;
-  // v::info << this->name() << " * Created gptimer with following parameters: " << v::endl;
-  // v::info << this->name() << " * ------------------------------------------ " << v::endl;
-  // v::info << this->name() << " * ntimers: " << ntimers << v::endl;
-  // v::info << this->name() << " * pindex: " << pindex << v::endl;
-  // v::info << this->name() << " * paddr/pmask: " << hex << paddr << "/" << pmask << v::endl;
-  // v::info << this->name() << " * pirq: " << pirq << v::endl;
-  // v::info << this->name() << " * sepirq: " << sepirq << v::endl;
-  // v::info << this->name() << " * sbits: " << sbits << v::endl;
-  // v::info << this->name() << " * nbits: " << nbits << v::endl;
-  // v::info << this->name() << " * wdog: " << wdog << v::endl;
-  // v::info << this->name() << " * pow_mon: " << powmon << v::endl;
-  // v::info << this->name() << " ************************************************************************** " << v::endl;
 }
 
 // Destructor: Unregister Register Callbacks.

@@ -19,6 +19,8 @@
 #include "core/common/vendian.h"
 #include "core/common/verbose.h"
 
+SR_HAS_MODULE(AHBProf);
+
 // / Constructor
 AHBProf::AHBProf(const ModuleName nm,  // Module name
   uint32_t index,

@@ -12,9 +12,6 @@
 /// @author Rolf Meyer
 ///
 
-/// @addtogroup irqmp
-/// @{
-
 #include <string>
 #include <utility>
 
@@ -33,9 +30,11 @@ Irqmp::Irqmp(ModuleName name,
   bool powmon) :
   APBSlave(name, pindex, 0x01, 0x00D, 2, /* VER: SoCRocket default: 3, try to Mimic TSIM therefore 2 -- psiegl */
             0, APBIO, pmask, false, false, paddr),
-  cpu_rst("CPU_RESET"), cpu_stat("CPU_STAT"), irq_req("CPU_REQUEST"),
-  irq_ack(&Irqmp::acknowledged_irq, "IRQ_ACKNOWLEDGE"),
-  irq_in(&Irqmp::incomming_irq, "IRQ_INPUT"),
+  cpu_rst("cpu_rst"), 
+  cpu_stat("cpu_stat"),
+  irq_req("cpu_req"),
+  irq_ack(&Irqmp::acknowledged_irq, "irq_ack"),
+  irq_in(&Irqmp::incomming_irq, "irq_in"),
   g_ncpu("ncpu", ncpu, m_generics), 
   g_eirq("eirq", eirq, m_generics),
   m_irq_counter("irq_line_activity", 32, m_counters),
@@ -79,7 +78,7 @@ Irqmp::Irqmp(ModuleName name,
     ("ncpu", ncpu)
     ("eirq", eirq)
     ("pow_mon", powmon)
-    ("Ceated an Irqmp with this parameters");
+    ("Created an Irqmp with this parameters");
 }
 
 Irqmp::~Irqmp() {
@@ -233,6 +232,7 @@ gs::cnf::callback_return_type Irqmp::int_power_cb(
 // Process sensitive to reset signal
 void Irqmp::dorst() {
   // initialize registers with values defined above
+  srInfo()("Do Reset");
   r[IR_LEVEL]   = static_cast<uint32_t>(LEVEL_DEFAULT);
   r[IR_PENDING] = static_cast<uint32_t>(PENDING_DEFAULT);
   if (g_ncpu == 0) {
@@ -478,5 +478,4 @@ void Irqmp::pending_write() {
   e_signal.notify(1 * clock_cycle);
 }
 
-/// @}
 /// @}

@@ -162,6 +162,147 @@ AHBCtrl::AHBCtrl(
   slave_map_cache = std::pair<uint32_t, slave_info_t>(~0, tmp);
 }
 
+AHBCtrl::AHBCtrl(
+    ModuleName nm,  // SystemC name
+    AbstractionLayer ambaLayer,
+    unsigned int ioaddr,   // The MSB address of the I/O area
+    unsigned int iomask,   // The I/O area address mask
+    unsigned int cfgaddr,  // The MSB address of the configuration area (PNP)
+    unsigned int cfgmask,  // The address mask of the configuration area
+    bool rrobin,           // 1 - round robin, 0 - fixed priority arbitration (only AT)
+    bool split,            // Enable support for AHB SPLIT response (only AT)
+    unsigned int defmast,  // ID of the default master
+    bool ioen,             // AHB I/O area enable
+    bool fixbrst,          // Enable support for fixed-length bursts
+    bool fpnpen,           // Enable full decoding of PnP configuration records
+    bool mcheck,           // Check if there are any intersections between core memory regions
+    bool pow_mon           // Enable power monitoring
+  ) :
+  BaseModule<DefaultBase>(nm),
+  ahbIN("ahbIN", amba::amba_AHB, ambaLayer, false),
+  ahbOUT("ahbOUT", amba::amba_AHB, ambaLayer, false),
+  snoop("snoop"),
+  g_ioaddr("ioaddr", ioaddr, m_generics),
+  g_iomask("iomask", iomask, m_generics),
+  g_cfgaddr("cfgaddr", cfgaddr, m_generics),
+  g_cfgmask("cfgmask", cfgmask, m_generics),
+  g_rrobin("rrobin", rrobin, m_generics),
+  g_split("split", split, m_generics),
+  g_defmast("defmast", defmast, m_generics),
+  g_ioen("ioen", ioen, m_generics),
+  g_fixbrst("fixbrst", fixbrst, m_generics),
+  g_fpnpen("fpnpen", fpnpen, m_generics),
+  g_mcheck("mcheck", mcheck, m_generics),
+  g_pow_mon("pow_mon",pow_mon, m_generics),
+  arbiter_eval_delay(1, SC_PS),
+  busy(false),
+  robin(0),
+  address_bus_owner(-1),
+  m_AcceptPEQ("AcceptPEQ"),
+  m_RequestPEQ("RequestPEQ"),
+  m_ResponsePEQ("ResponsePEQ"),
+  m_EndResponsePEQ("EndResponsePEQ"),
+  num_of_slave_bindings("num_of_master_bindings", m_counters),
+  num_of_master_bindings("num_of_master_bindings", m_counters),
+  m_total_wait("total_wait", SC_ZERO_TIME, m_counters),
+  m_arbitrated("arbitrated", 0ull, m_counters),
+  m_max_wait("maximum_waiting_time", SC_ZERO_TIME, m_counters),
+  m_max_wait_master("maximum_waiting_master_id", defmast, m_counters),
+  m_idle_count("idle_cycles", 0ull, m_counters),
+  m_total_transactions("total_transactions", 0ull, m_counters),
+  m_right_transactions("successful_transactions", 0ull, m_counters),
+  m_writes("bytes_written", 0ull, m_counters),
+  m_reads("bytes_read", 0ull, m_counters),
+  is_lock(false),
+  lock_master(0),
+  m_ambaLayer(ambaLayer),
+  sta_power_norm("sta_power_norm", 10714285.71, m_power),     // Normalized static power input
+  int_power_norm("int_power_norm", 0.0, m_power),     // Normalized dyn power input (activation indep.)
+  dyn_read_energy_norm("dyn_read_energy_norm", 9.10714e-10, m_power),     // Normalized read energy input
+  dyn_write_energy_norm("dyn_write_energy_norm", 9.10714e-10, m_power),     // Normalized write energy input
+  sta_power("sta_power", 0.0, m_power),     // Static power output
+  int_power("int_power", 0.0, m_power),     // Internal power of module (dyn. switching independent)
+  swi_power("swi_power", 0.0, m_power),     // Switching power of module
+  power_frame_starting_time("power_frame_starting_time", SC_ZERO_TIME, m_power),
+  dyn_read_energy("dyn_read_energy", 0.0, m_power),     // Energy per read access
+  dyn_write_energy("dyn_write_energy", 0.0, m_power),     // Energy per write access
+  dyn_reads("dyn_reads", 0ull, m_power),     // Read access counter for power computation
+  dyn_writes("dyn_writes", 0ull, m_power) {   // Write access counter for power computation
+
+  // Initialize slave and master table
+  // (Pointers to deviceinfo fields will be set in start_of_simulation)
+  for (int i = 0; i < 64; i++) {
+    mSlaves[i] = NULL;
+    mMasters[i] = NULL;
+  }
+
+  if (ambaLayer == amba::amba_LT) {
+    // Register tlm blocking transport function
+    ahbIN.register_b_transport(this, &AHBCtrl::b_transport);
+    ahbIN.register_get_direct_mem_ptr((AHBCtrl *)this, &AHBCtrl::get_direct_mem_ptr);
+    ahbOUT.register_invalidate_direct_mem_ptr((AHBCtrl *)this, &AHBCtrl::invalidate_direct_mem_ptr);
+
+  }
+
+  // Register non blocking transport functions
+  if (ambaLayer == amba::amba_AT) {
+    memset(request_map, 0, 16 * sizeof (connection_t));
+    memset(response_map, 0, 16 * sizeof (connection_t));
+
+    // Register tlm non blocking transport forward path
+    ahbIN.register_nb_transport_fw(this, &AHBCtrl::nb_transport_fw, 0);
+    // Register tlm non blocking transport backward path
+    ahbOUT.register_nb_transport_bw(this, &AHBCtrl::nb_transport_bw, 0);
+    // Register arbiter thread
+    SC_THREAD(arbitrate);
+
+    SC_THREAD(AcceptThread);
+
+    // Register request thread
+    SC_THREAD(RequestThread);
+
+    // Register response thread
+    SC_THREAD(ResponseThread);
+
+    SC_THREAD(EndResponseThread);
+  }
+
+  // Register debug transport
+  ahbIN.register_transport_dbg(this, &AHBCtrl::transport_dbg);
+
+  // Register power callback functions
+  if (g_pow_mon) {
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&sta_power, gs::cnf::pre_read, AHBCtrl, sta_power_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&int_power, gs::cnf::pre_read, AHBCtrl, int_power_cb);
+    GC_REGISTER_TYPED_PARAM_CALLBACK(&swi_power, gs::cnf::pre_read, AHBCtrl, swi_power_cb);
+  }
+
+  requests_pending = 0;
+  AHBCtrl::init_generics();
+  srInfo()
+    ("ioaddr", ioaddr)
+    ("iomask", iomask)
+    ("cfgaddr", cfgaddr)
+    ("cfgmask", cfgmask)
+    ("rrobin", rrobin)
+    ("split", split)
+    ("defmast", defmast)
+    ("ioen", ioen)
+    ("fixbrst", fixbrst)
+    ("fpnpen", fpnpen)
+    ("mcheck", mcheck)
+    ("pow_mon", pow_mon)
+    ("ambaLayer", ambaLayer)
+    ("Created an AHBCtrl with this parameters");
+
+  // initialize the slave_map_cache with some bogus numbers which will trigger MISS
+  slave_info_t tmp;
+  tmp.hindex = 0;
+  tmp.hmask  = ~0;
+  tmp.binding = ~0;
+  slave_map_cache = std::pair<uint32_t, slave_info_t>(~0, tmp);
+}
+
 // Reset handler
 void AHBCtrl::dorst() {
   // nothing to do
@@ -429,7 +570,11 @@ void AHBCtrl::b_transport(uint32_t id,
       busy = false;
       return;
     } else {
-      v::error << name() << " Forbidden write to AHBCTRL configuration area (PNP)!" << v::endl;
+      srError()
+        ("addr", trans.get_address())
+        ("size", trans.get_data_length())
+        ("master", mstobj->name())
+        ("Forbidden write to AHBCTRL configuration area (PNP)!");
       trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
 
       delay = SC_ZERO_TIME;
@@ -496,9 +641,9 @@ void AHBCtrl::b_transport(uint32_t id,
     other_socket = ahbIN.get_other_side(id, a);
     mstobj = other_socket->get_parent();
 
-    /*v::error << name() << "AHB Request 0x" << hex << v::setfill('0')
-             << v::setw(8) << trans.get_address() << ", from master:"
-             << mstobj->name() << ": Unmapped address space." << endl;*/
+    //v::error << name() << "AHB Request 0x" << hex << v::setfill('0')
+    //         << v::setw(8) << trans.get_address() << ", from master:"
+    //         << mstobj->name() << ": Unmapped address space." << endl;
     srWarn()("addr", trans.get_address())("master", mstobj->name())("AHBRequest, b_transport to unmapped address space");
 
     // Invalid index
@@ -1023,9 +1168,10 @@ void AHBCtrl::start_of_simulation() {
   // Max. 16 AHB masters allowed
   assert(num_of_master_bindings <= 16);
 
-  v::info << name() << "******************************************************************************* " << v::endl;
-  v::info << name() << "* AHB DECODER INITIALIZATION " << v::endl;
-  v::info << name() << "* -------------------------- " << v::endl;
+  srInfo()
+    ("slaves", num_of_slave_bindings)
+    ("masters", num_of_master_bindings)
+    ("AHB decoder initialization");
 
   // Iterate/detect the registered slaves
   // ------------------------------------
@@ -1041,8 +1187,6 @@ void AHBCtrl::start_of_simulation() {
     // Valid slaves implement the AHBDeviceBase interface
     AHBDeviceBase *slave = dynamic_cast<AHBDeviceBase *>(obj);
 
-    v::info << name() << "* SLAVE name: " << obj->name() << v::endl;
-
     // Slave is valid (implements AHBDeviceBase)
     if (slave) {
       // Get pointer to device information
@@ -1051,7 +1195,6 @@ void AHBCtrl::start_of_simulation() {
       // Get bus id (hindex oder master id)
       const uint32_t sbusid = slave->get_ahb_hindex();
       assert(sbusid < 16);
-      v::info << name() << "* SLAVE id: " << sbusid << v::endl;
 
       // Map device information into PNP region
       if (g_fpnpen) {
@@ -1066,22 +1209,30 @@ void AHBCtrl::start_of_simulation() {
           uint32_t addr = slave->get_ahb_bar_base(j);
           uint32_t mask = slave->get_ahb_bar_mask(j);
 
-          v::info << name() << "* BAR" << dec << j << " with MSB addr: 0x" << hex << addr << " and mask: 0x" << hex <<
-            mask <<  v::endl;
+          srInfo()
+            ("bar", j)
+            ("addr", addr)
+            ("mask", mask)
+            ("name", obj->name())
+            ("index", sbusid)
+            ("Binding BAR of Slave to AHB Address");
 
           // Insert slave region into memory map
           setAddressMap(i + j, sbusid, addr, mask);
         } else {
-          v::info << name() << "* BAR" << dec << j << " not used." << v::endl;
+          srDebug()
+            ("bar", j)
+            ("name", obj->name())
+            ("index", sbusid)
+            ("BAR of Slave unbound");
         }
       }
     } else {
-      v::error << name() << "Slave bound to socket 'ahbOUT' is not a valid AHBDeviceBase (no plug & play information)!" <<
-        v::endl;
+      srError()
+        ("name", obj->name())
+        ("Slave bound to socket 'ahbOUT' is not a valid AHBDeviceBase (no plug & play information)!");
       assert(0);
     }
-
-    v::info << name() << "******************************************************************************* " << v::endl;
   }
 
   // Iterate/detect the registered masters
@@ -1098,8 +1249,6 @@ void AHBCtrl::start_of_simulation() {
     // valid masters implement the AHBDeviceBase interface
     AHBDeviceBase *master = dynamic_cast<AHBDeviceBase *>(obj);
 
-    v::info << name() << "* Master name: " << obj->name() << v::endl;
-
     // master is valid (implements AHBDeviceBase)
     if (master) {
       // Get pointer to device information
@@ -1108,7 +1257,6 @@ void AHBCtrl::start_of_simulation() {
       // Get id of the master
       const uint32_t mbusid = master->get_ahb_hindex();
       assert(mbusid < 16);
-      v::info << name() << "* Master id: " << mbusid << v::endl;
 
       // Map device information into PNP region
       if (g_fpnpen) {
@@ -1123,20 +1271,28 @@ void AHBCtrl::start_of_simulation() {
           uint32_t addr = master->get_ahb_bar_base(j);
           uint32_t mask = master->get_ahb_bar_mask(j);
 
-          v::info << name() << "* BAR" << dec << j << " with MSB addr: 0x" << hex << addr << " and mask: 0x" << hex <<
-            mask <<  v::endl;
+          srInfo()
+            ("bar", j)
+            ("addr", addr)
+            ("mask", mask)
+            ("name", obj->name())
+            ("index", mbusid)
+            ("Binding BAR of Master to AHB Address");
         } else {
-          v::info << name() << "* BAR" << dec << j << " not used." << v::endl;
+          srDebug()
+            ("bar", j)
+            ("name", obj->name())
+            ("index", mbusid)
+            ("BAR of Master unbound");
         }
       }
     } else {
-      v::error << name() << "Master bound to socket 'ahbin' is not a valid AHBDeviceBase" << v::endl;
+      srError()
+        ("name", obj->name())
+        ("Master bound to socket 'ahbin' is not a valid AHBDeviceBase");
       assert(0);
     }
   }
-
-  // End of decoder initialization
-  v::info << name() << "******************************************************************************* " << v::endl;
 
   // Check memory map for overlaps
   if (g_mcheck) {
@@ -1306,7 +1462,7 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
       trans.set_response_status(tlm::TLM_OK_RESPONSE);
       return length;
     } else {
-      v::error << name() << " Forbidden write to AHBCTRL configuration area (PNP)!" << v::endl;
+      srError()("Forbidden write to AHBCTRL configuration area (PNP)!");
       trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
       return 0;
     }
@@ -1321,17 +1477,21 @@ unsigned int AHBCtrl::transport_dbg(uint32_t id, tlm::tlm_generic_payload &trans
     other_socket = ahbOUT.get_other_side(index, a);
     sc_core::sc_object *obj = other_socket->get_parent();
 
-    v::debug << name() << "AHB Request@0x" << hex << v::setfill('0')
-             << v::setw(8) << trans.get_address() << ", from master:"
-             << mstobj->name() << ", forwarded to slave:" << obj->name() << endl;
-    // --------------------
+    srDebug()
+      ("addr", trans.get_address())
+      ("length", trans.get_data_length())
+      ("master", mstobj->name())
+      ("slave", obj->name())
+      ("AHB Request");
 
     // Forward request to the selected slave
     return ahbOUT[index]->transport_dbg(trans);
   } else {
-    v::warn << name() << "AHB Request@0x" << hex << v::setfill('0')
-            << v::setw(8) << trans.get_address() << ", from master:"
-            << mstobj->name() << ": Unmapped address space." << endl;
+    srWarn()
+      ("addr", trans.get_address())
+      ("length", trans.get_data_length())
+      ("master", mstobj->name())
+      ("AHB Request at unmapped address space");
 
     // Invalid index
     trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);

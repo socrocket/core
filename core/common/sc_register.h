@@ -25,9 +25,9 @@
 /// This user register register class is not part of the SCIREG API standard.
 /// Instead, this user register class is provided as an example of how the
 /// SCIREG API standard can be used.
-#ifndef CORE_COMMON_SC_REGISTER_H__
-#define CORE_COMMON_SC_REGISTER_H__ 
+#ifndef CORE_SC_REGISTER_H__
+#define CORE_SC_REGISTER_H__ 
 
-#include "core/common/sr_register/sc_register.h"
+#include "core/sr_register/sc_register.h"
 
-#endif  // CORE_COMMON_SC_REGISTER_H__
+#endif  // CORE_SC_REGISTER_H__

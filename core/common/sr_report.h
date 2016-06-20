@@ -11,7 +11,7 @@
 #ifndef COMMON_SR_REPORT_H__
 #define COMMON_SR_REPORT_H__
 
-#include "core/common/sr_report/sr_report.h"
+#include "core/sr_report/sr_report.h"
 
 #endif  // COMMON_SR_REPORT_H__
 /// @}

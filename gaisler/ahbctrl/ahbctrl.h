@@ -95,6 +95,19 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
     void print_transport_statistics(const char *name) const;
 
     /// Constructor
+    // Omitted parameters:
+    // -------------------
+    // nahbm  - Number of AHB masters
+    // nahbs  - Number of AHB slaves
+    // It is checked that the number of binding does not raise above 16.
+    // Apart from that the parameters are not required.
+    // debug  - Print configuration
+    // Not required. Use verbosity outputs instead.
+    // icheck - Check bus index
+    // Not required.
+    // enbusmon - Enable AHB bus monitor
+    // assertwarn - Enable assertions for AMBA recommendations.
+    // asserterr - Enable assertion for AMBA requirements
     AHBCtrl(
       ModuleName nm,  ///< SystemC name
       uint32_t ioaddr = 0xFFF,     ///< The MSB address of the I/O area
@@ -109,23 +122,27 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
       bool fpnpen = true,          ///< Enable full decoding of PnP configuration records.
       bool mcheck = true,          ///< Check if there are any intersections between core memory regions.
       bool pow_mon = false,        ///< Enable power monitoring
-      AbstractionLayer ambaLayer = amba::amba_LT);
+      AbstractionLayer ambaLayer = amba::amba_LT) __attribute__ ((deprecated));
+
+    AHBCtrl(
+      ModuleName nm,               ///< SystemC name
+      AbstractionLayer ambaLayer,
+      uint32_t ioaddr = 0xFFF,     ///< The MSB address of the I/O area
+      uint32_t iomask = 0xFFF,     ///< The I/O area address mask
+      uint32_t cfgaddr = 0xFF0,    ///< The MSB address of the configuration area (PNP)
+      uint32_t cfgmask = 0xFF0,    ///< The address mask of the configuration area
+      bool rrobin = false,         ///< 1 - round robin, 0 - fixed priority arbitration (only AT)
+      bool split = false,          ///< Enable support for AHB SPLIT response (only AT)
+      uint32_t defmast = 0,        ///< ID of the default master
+      bool ioen = true,            ///< AHB I/O area enable
+      bool fixbrst = false,        ///< Enable support for fixed-length bursts
+      bool fpnpen = true,          ///< Enable full decoding of PnP configuration records.
+      bool mcheck = true,          ///< Check if there are any intersections between core memory regions.
+      bool pow_mon = false         ///< Enable power monitoring
+    );
 
     /// Reset Callback
     void dorst();
-    // Omitted parameters:
-    // -------------------
-    // nahbm  - Number of AHB masters
-    // nahbs  - Number of AHB slaves
-    // It is checked that the number of binding does not raise above 16.
-    // Apart from that the parameters are not required.
-    // debug  - Print configuration
-    // Not required. Use verbosity outputs instead.
-    // icheck - Check bus index
-    // Not required.
-    // enbusmon - Enable AHB bus monitor
-    // assertwarn - Enable assertions for AMBA recommendations.
-    // asserterr - Enable assertion for AMBA requirements
 
     /// Desctructor
     ~AHBCtrl();
@@ -233,9 +250,9 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
     tlm_utils::peq_with_get<payload_t> m_EndResponsePEQ;
 
     /// The number of slaves in the system
-    unsigned int num_of_slave_bindings;
+    sr_param<unsigned int> num_of_slave_bindings;
     /// The number of masters in the system
-    unsigned int num_of_master_bindings;
+    sr_param<unsigned int> num_of_master_bindings;
 
     /// Total waiting time in arbiter
     sr_param<sc_time> m_total_wait;

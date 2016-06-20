@@ -85,7 +85,7 @@ Leon3::Leon3(
       hindex,
       pow_mon,
       abstractionLayer),
-  cpu("leon3", this, sc_core::sc_time(10, sc_core::SC_NS), pow_mon),
+  cpu("cpu", this, sc_core::sc_time(10, sc_core::SC_NS), pow_mon),
   debugger(NULL),
   m_intrinsics("intrinsics", *(cpu.abiIf)),
   g_gdb("gdb", 0, m_generics),
@@ -119,8 +119,6 @@ Leon3::Leon3(
   g_args("args", m_generics),
   g_stdout_filename("stdout_filename", "", m_generics) {
     // TODO(rmeyer): This looks a lot like gs_configs!!!
-    cpu.ENTRY_POINT   = 0x0;
-    cpu.MPROC_ID      = (hindex) << 28;
 
     GC_REGISTER_TYPED_PARAM_CALLBACK(&g_gdb, gs::cnf::post_write, Leon3, g_gdb_callback);
     GC_REGISTER_TYPED_PARAM_CALLBACK(&g_args, gs::cnf::post_write, Leon3, g_args_callback);
@@ -191,6 +189,8 @@ void Leon3::init_generics(){
 }
 
 void Leon3::start_of_simulation() {
+  cpu.ENTRY_POINT   = 0x0;
+  cpu.MPROC_ID      = (g_hindex) << 28;
   g_args_callback(g_args, gs::cnf::no_callback);
 }
 

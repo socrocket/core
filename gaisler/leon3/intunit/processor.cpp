@@ -136,8 +136,6 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                     curInstrPtr = this->INSTRUCTIONS[instrId];
                     curInstrPtr->setParams(bitString);
                 }
-                #ifdef ENABLE_HISTORY
-                //TODO(bfarkas): remove ifdef?
                 if (this->historyEnabled) {
                     srInfo()
                         ("Address",curPC)
@@ -145,7 +143,6 @@ void leon3_funclt_trap::Processor_leon3_funclt::mainLoop() {
                         ("Mnemonic",curInstrPtr->getMnemonic())
                         ("Instruction History");
                 }
-                #endif
                 try {
                     #ifndef DISABLE_TOOLS
                     if (!(this->toolManager.newIssue(curPC, curInstrPtr))) {
@@ -407,8 +404,8 @@ leon3_funclt_trap::Processor_leon3_funclt::Processor_leon3_funclt(
       instrMem(*mem),
       dataMem(*mem),
       latency(latency),
-      IRQ_port("IRQ_IRQ", IRQ),
-      irqAck("irqAck_PIN"),
+      IRQ_port("IRQ_port", IRQ),
+      irqAck("irqAck"),
       historyEnabled("historyEnabled", false),
       m_pow_mon(pow_mon),
       sta_power_norm("power.leon3.sta_power_norm", 5.27e+8, true), // norm. static power
