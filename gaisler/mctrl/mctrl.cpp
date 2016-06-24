@@ -106,7 +106,7 @@ Mctrl::Mctrl(
   init_generics();
 
   // Display APB slave information
-  srInfo("/configuration/gptimer/apbslave")
+  srInfo("/configuration/mctrl/apbslave")
      ("addr", (uint64_t)apb.get_base_addr())
      ("size", (uint64_t)apb.get_size())
      ("APB Slave Configuration");
@@ -116,41 +116,33 @@ Mctrl::Mctrl(
   // rom space in Byte: 2^(romasel + 1)
   // same for ram and sdrasel
   if ((4096 - _rommask) != (1 << (_romasel - 19))) {
-    v::error << this->name() << "Inconsistent address space parameters. "
-             << "Check romasel and (rom-addr/-mask parameter." << v::endl;
+    srError()("Inconsistent address space parameters. Check romasel and (rom-addr/-mask parameter.");
   }
   if ((4096 - _rammask) != (1 << (_sdrasel - 19))) {
-    v::error << this->name() << "Inconsistent address space parameters. "
-             << "Check sdrasel vs. ram-addr/-mask parameter." << v::endl;
+    srError()("Inconsistent address space parameters. Check sdrasel vs. ram-addr/-mask parameter.");
   }
   if ((_romaddr < _ioaddr) && ((_romaddr + 4096 - _rommask) > _ioaddr)) {
-    v::error << this->name() << "Inconsistent address space parameters. "
-             << "Check rom/io address and mask for overlaps." << v::endl;
+    srError()("Inconsistent address space parameters. Check rom/io address and mask for overlaps.");
   }
 
   if ((_romaddr < _ramaddr) && ((_romaddr + 4096 - _rommask) > _ramaddr)) {
-    v::error << this->name() << "Inconsistent address space parameters. "
-             << "Check rom/ram address and mask for overlaps." << v::endl;
+    srError()("Inconsistent address space parameters. Check rom/ram address and mask for overlaps.");
   }
 
   if ((_ioaddr  < _romaddr) && ((_ioaddr  + 4096 - _iomask)  > _romaddr)) {
-    v::error << this->name() << "Inconsistent address space parameters. "
-             << "Check io/rom address and mask for overlaps." << v::endl;
+    srError()("Inconsistent address space parameters. Check io/rom address and mask for overlaps.");
   }
 
   if ((_ioaddr  < _ramaddr) && ((_ioaddr  + 4096 - _iomask)  > _ramaddr)) {
-    v::error << this->name() << "Inconsistent address space parameters. "
-             << "Check io/ram address and mask for overlaps." << v::endl;
+    srError()("Inconsistent address space parameters. Check io/ram address and mask for overlaps.");
   }
 
   if ((_ramaddr < _romaddr) && ((_ramaddr + 4096 - _rammask) > _romaddr)) {
-    v::error << this->name() << "Inconsistent address space parameters. "
-             << "Check *ram/rom address and mask for overlaps." << v::endl;
+    srError()("Inconsistent address space parameters. Check *ram/rom address and mask for overlaps.");
   }
 
   if ((_ramaddr < _ioaddr) && ((_ramaddr + 4096 - _rammask) > _ioaddr)) {
-    v::error << this->name() << "Inconsistent address space parameters. "
-             << "Check ram/io address and mask for overlaps." << v::endl;
+    srError()("Inconsistent address space parameters. Check ram/io address and mask for overlaps.");
   }
 
   init_registers();
@@ -359,10 +351,12 @@ void Mctrl::start_of_simulation() {
           c_rom = port;
           c_rom.base_addr = get_ahb_bar_addr(0);
           uint32_t bits = (device->get_bits() >> 4) & 3;
-          v::debug << name() << "ROM-Width: " << bits << v::endl;
+          srDebug()
+            ("bits", bits)
+            ("ROM-Width: ");
           r[MCFG1] = r[MCFG1] | (bits << 8);
         } else {
-          v::error << name() << "More than one ROM is connected to the Controller!" << v::endl;
+          srError()("More than one ROM is connected to the Controller!");
         }
       } break;
       case MEMDevice::IO: {
@@ -372,7 +366,7 @@ void Mctrl::start_of_simulation() {
           uint32_t bits = (device->get_bits() >> 4) & 3;
           r[MCFG1] = r[MCFG1] | (bits << 27);
         } else {
-          v::error << name() << "More than one IO area is connected to the Controller!" << v::endl;
+          srError()("More than one IO area is connected to the Controller!");
         }
       } break;
       case MEMDevice::SRAM: {
@@ -384,7 +378,7 @@ void Mctrl::start_of_simulation() {
                      ((static_cast<int>(log2(device->get_bsize()) - 13) & 0xF) << 9) |
                      ((static_cast<int>(log2(device->get_bits()) - 3) & 0x3) << 4);
         } else {
-          v::error << name() << "More than one SRAM area is connected to the Controller!" << v::endl;
+          srError()("More than one SRAM area is connected to the Controller!");
         }
       } break;
       case MEMDevice::SDRAM: {
@@ -395,13 +389,14 @@ void Mctrl::start_of_simulation() {
                      ((static_cast<int>(log2(device->get_bsize()) - 22) & 0x7) << 23) |
                      ((static_cast<int>(log2(device->get_cols()) - 8) & 0x3) << 21);
         } else {
-          v::error << name() << "More than one SDRAM area is connected to the Controller!" << v::endl;
+          srError()("More than one SDRAM area is connected to the Controller!");
         }
       } break;
       }
     } else {
-      v::warn << name() << "There is a device connected on the mem bus which is not inherite by MEMDevice named " <<
-      obj->name() << v::endl;
+      srWarn()
+        ("name", obj->name())
+        ("There is a device connected on the mem bus which is not inheritde by MEMDevice named");
     }
   }
 
@@ -413,6 +408,7 @@ void Mctrl::start_of_simulation() {
 
 // Print execution statistic at end of simulation
 void Mctrl::end_of_simulation() {
+  //TODO: move to python
   /*sc_time nominal_time;
 
   switch_power_mode();
@@ -526,8 +522,11 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
 
   m_total_transactions++;
 
-  v::debug << name() << "Try to access memory at " << v::uint32 << addr << " of length " << length << "." <<
-  " pmode: " << static_cast<uint32_t>(m_pmode) << v::endl;
+  srDebug()
+    ("addr", addr)
+    ("len", length)
+    ("pmode", static_cast<uint32_t>(m_pmode))
+    ("Try to access memory at addr of length len: ");
 
   // Log event count for power monitoring
   if (g_pow_mon) {
@@ -548,8 +547,10 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
       // If you want use the component in another system with the need to check
       // Check for the code in an older revision around r560
       width = 4;
-      v::debug << name() << "MCFG1: " << v::uint32 << r[MCFG1].read() << ", MCFG2: " << v::uint32 << r[MCFG2].read() <<
-      v::endl;
+      srDebug()
+        ("MCFG1", r[MCFG1].read())
+        ("MCFG2", r[MCFG2].read())
+        ();
       // Get defined mem bit width from registers.
       switch (port.dev->get_type()) {
         case MEMDevice::ROM:
@@ -580,8 +581,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
           rmw = false;
           if (gp.is_write()) {
             if (!r[MCFG1].bit(11)) {
-              /*v::error << name() << "Invalid memory access: Writing to PROM is disabled." << v::endl;*/
-              srWarn()("Invalid memory access: Writing to PROM is disabled.");
+              srError()("Invalid memory access: Writing to PROM is disabled.");
               gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
               return 0;
             }
@@ -622,7 +622,7 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
           break;
         case MEMDevice::IO:
           if (!r[MCFG1].bit(19)) {
-            v::error << name() << "Invalid memory access: Access to IO is disabled." << v::endl;
+            srError()("Invalid memory access: Access to IO is disabled.");
             gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
             return 0;
           }
@@ -668,11 +668,10 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
             case 1: trans_delay += 1;
               break;                                         // Power-Down Mode Delay
             case 2: trans_delay += 1;
-              v::warn << name() << "The Controller is in Auto-Self-Refresh Mode. Transaction might not be wanted!" <<
-              v::endl;
+              srWarn()("The Controller is in Auto-Self-Refresh Mode. Transaction might not be wanted!");
               break;                    // Auto-Self Refresh
             case 5: {                 // Deep power down! No transaction possible:
-              v::error << name() << "The Controller is in Deep-Power-Down Mode. No transactions possible." << v::endl;
+              srError()("The Controller is in Deep-Power-Down Mode. No transactions possible.");
               gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
               return 0;
             }
@@ -681,18 +680,23 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
           break;
       }
 
-      v::debug << name() << "Length: " << std::dec << length << ", mem_width: " << std::dec << mem_width <<
-      ", width: " << width << v::endl;
-      v::debug << name() << "RMW Enabled: " << rmw << " Transfer Delay: " << trans_delay << " Per Word Delay: " << word_delay << v::endl;
+      srDebug()
+        ("Length", length)
+        ("mem_width", mem_width)
+        ("width", width)
+        ("RMW Enabled", rmw)
+        ("Transfer Delay", trans_delay)
+        ("Per Word Delay", word_delay)
+        ();
       if (gp.is_write()) {
         // RMW in case of subword access
         if (rmw && (length < mem_width)) {
           length = (length & ~(mem_width - 1)) + mem_width;
-          v::debug << name() << "RMW Fetch: " 
-                   << v::uint32 << (uint32_t)(port.addr & ~(mem_width - 1)) 
-                   << ", length: " << std::dec << length << ", pos: " 
-                   << v::uint32 << (uint32_t)(port.addr & (mem_width - 1)) 
-                   << v::endl;
+          srDebug()
+            ("RMW Fetch", (uint32_t)(port.addr & ~(mem_width - 1))) 
+            ("length", length)
+            ("pos", (uint32_t)(port.addr & (mem_width - 1))) 
+            ();
           // RMW enabled!
           data = new unsigned char[length];
           memgp.set_command(TLM_READ_COMMAND);
@@ -707,11 +711,6 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
           port.addr = port.addr & ~(mem_width - 1);
         } else if (length < mem_width) {
           // Error in case of subword access
-          /*v::error << name() <<
-          "Invalid memory access: Transaction width is not compatible with memory width (Transaction-Width: "
-                   << width << ", Memory-Width: " << mem_width << ", Data-Length: " << length <<
-          ". Please change width or enable Read-Modify-Write Transactions."
-                   << v::endl;*/
           srError()("Transaction-Width",width)("Memory-Width",mem_width)("Data-Length",length)("Invalid memory access: Transaction width is not compatible with memory width. Please change width or enable Read-Modify-Write Transactions.");
           gp.set_response_status(TLM_GENERIC_ERROR_RESPONSE);
           return 0;
@@ -744,12 +743,10 @@ uint32_t Mctrl::exec_func(tlm_generic_payload &gp, sc_time &delay, bool debug) {
       }
       return length;
     } else {
-      v::warn << name() << "Transaction is including a memory type border." << v::endl;
+      srWarn()("Transaction is including a memory type border.");
     }
   } else {
     // no memory device at given address
-    /*v::error << name() << "Invalid memory access: No device at address "
-             << v::uint32 << addr << "." << v::endl;*/
     srWarn()("addr", addr)("Invalid memory access: No device at address");
     gp.set_response_status(TLM_ADDRESS_ERROR_RESPONSE);
     return 0;
@@ -823,19 +820,21 @@ void Mctrl::switch_power_mode() {
   default:
     break;
   }
-  v::debug << name() << "set pmode: " << (uint32_t)((r[MCFG4] >> 16) & 0x7) << v::endl;
+  srDebug()
+    ("pmode", (uint32_t)((r[MCFG4] >> 16) & 0x7))
+    ();
   switch ((r[MCFG4] >> 16) & 0x7) {
   default:
   // None
   case 0: {
     m_pmode = 0;
-    v::debug << name() << "Power Mode: None" << v::endl;
+    srDebug()("Power Mode: None");
     // PM::send_idle(this, "idle", sc_time_stamp(), true);
   }   break;
 
   // Dont do anything in PowerDown mode!
   case 1: {
-    v::debug << name() << "Power Mode: Power Down" << v::endl;
+    srDebug()("Power Mode: Power Down");
     m_pmode = 1;
     // PM::send_idle(this, "idle_powerdown", sc_time_stamp(), true);
     m_power_down_start = sc_time_stamp();
@@ -847,7 +846,7 @@ void Mctrl::switch_power_mode() {
     m_self_refresh_start = sc_time_stamp();
     if (pasr) {
       // Delete
-      v::debug << name() << "Power Mode: Partial-Self Refresh" << v::endl;
+      srDebug()("Power Mode: Partial-Self Refresh");
       uint32_t start = 0;
       uint32_t dbanks = c_sdram.dev->get_banks();
       uint32_t dbsize = c_sdram.dev->get_bsize();
@@ -874,13 +873,13 @@ void Mctrl::switch_power_mode() {
       data = dsize;
       mem[c_sdram.id]->b_transport(gp, delay);
     } else {
-      v::debug << name() << "Power Mode: Self Refresh" << v::endl;
+      srDebug()("Power Mode: Self Refresh");
       // PM::send_idle(this, "idle_selfrefresh", sc_time_stamp(), true);
     }
   }   break;
   // deep power down: erase entire SDRAM
   case 5: {
-    v::debug << name() << "Power Mode: Deep-Power Down" << v::endl;
+    srDebug()("Power Mode: Deep-Power Down");
     // PM::send_idle(this, "idle_deeppowerdown", sc_time_stamp(), true);
     m_pmode = 5;
     uint32_t dbanks = c_sdram.dev->get_banks();
@@ -900,18 +899,19 @@ void Mctrl::mcfg1_write() {
   if ((((mcfg >> 8) & 0x3) == 0) && !g_ram8) {
     mcfg &= ~MCFG1_PROM_WIDTH;
     mcfg |= (2 << 8);
-    v::warn << name() <<
-    "PROM access with 8bit width configured in MCFG1, but RAM8 Generic is 0 so 32bit access assumed." << v::endl;
+    srWarn()("PROM access with 8bit width configured in MCFG1, but RAM8 Generic is 0 so 32bit access assumed.");
   }
   if ((((mcfg >> 8) & 0x3) == 1) && !g_ram16) {
     mcfg &= ~MCFG1_PROM_WIDTH;
     mcfg |= (2 << 8);
-    v::warn << name() <<
-    "PROM access with 16bit width configured in MCFG1, but RAM16 Generic is 0 so 32bit access assumed." << v::endl;
+    srWarn()("PROM access with 16bit width configured in MCFG1, but RAM16 Generic is 0 so 32bit access assumed.");
   }
-  v::debug << name() << "Old MCFG1: " << v::uint32 << r[MCFG1].read()
-           << " new MCFG1: " << v::uint32 << mcfg
-           << " ram8,16: " << g_ram8 << "," << g_ram16 << v::endl;
+  srDebug()
+    ("Old MCFG1", r[MCFG1].read())
+    ("new MCFG1", mcfg)
+    ("ram8", g_ram8)
+    ("ram16", g_ram16)
+    ();
   r[MCFG1].write(mcfg);
 }
 
@@ -923,18 +923,19 @@ void Mctrl::mcfg2_write() {
   if ((((mcfg >> 4) & 0x3) == 0) && !g_ram8) {
     mcfg &= ~MCFG2_RAM_WIDTH;
     mcfg |= (2 << 4);
-    v::warn << name() <<
-    "RAM access with 8bit width configured in MCFG2, but RAM8 Generic is 0 so 32bit access assumed." << v::endl;
+    srWarn()("RAM access with 8bit width configured in MCFG2, but RAM8 Generic is 0 so 32bit access assumed.");
   }
   if ((((mcfg >> 4) & 0x3) == 1) && !g_ram16) {
     mcfg &= ~MCFG2_RAM_WIDTH;
     mcfg |= (2 << 4);
-    v::warn << name() <<
-    "RAM access with 16bit width configured in MCFG2, but RAM16 Generic is 0 so 32bit access assumed." << v::endl;
+    srWarn()("RAM access with 16bit width configured in MCFG2, but RAM16 Generic is 0 so 32bit access assumed.");
   }
-  v::debug << name() << "Old MCFG2: " << v::uint32 << r[MCFG2].read()
-           << " new MCFG2: " << v::uint32 << mcfg
-           << " ram8,16: " << g_ram8 << "," << g_ram16 << v::endl;
+  srDebug()
+    ("Old MCFG2", r[MCFG2].read())
+    ("new MCFG2", mcfg)
+    ("ram8", g_ram8)
+    ("ram16", g_ram16)
+    ();
   r[MCFG2].write(mcfg);
 }
 
@@ -1042,14 +1043,12 @@ uint32_t Mctrl::transport_dbg(tlm_generic_payload &gp) {  // NOLINT(runtime/refe
       return result;
     } else {
       // Length bigger than ram type area.
-      v::error << name() << "Memory transaction excedes memory area bounderies!" << v::endl;
+      srError()("Memory transaction excedes memory area bounderies!");
       return 0;
     }
   } else {
     // no memory device at given address
-    /*v::error << name() << "Invalid memory access: No device at address"
-             << v::uint32 << addr << "." << v::endl;*/
-    srWarn()("addr", addr)("Invalid memory access: No device at address");
+    srError()("addr", addr)("Invalid memory access: No device at address");
     gp.set_response_status(TLM_ADDRESS_ERROR_RESPONSE);
     return 0;
   }
