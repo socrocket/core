@@ -78,7 +78,7 @@ using namespace socw;
 extern int exitValue;
 
 void stopSimFunction(int sig) {
-  v::warn << "main" << "Simulation interrupted by user" << std::endl;
+  srWarn("main")("Simulation interrupted by user.");
   sc_core::sc_stop();
   wait(SC_ZERO_TIME);
 }

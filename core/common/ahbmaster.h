@@ -136,7 +136,7 @@ class AHBMaster : public AHBDevice<BASE> {
     virtual void transport_statistics(tlm::tlm_generic_payload &gp) throw();  // NOLINT(runtime/references)
 
     /// Print common transport statistics.
-    virtual void print_transport_statistics(const char *name) const throw();
+    //virtual void print_transport_statistics(const char *name) const throw();
 
   protected:
     /// PEQs for response synchronization

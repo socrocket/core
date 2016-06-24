@@ -284,8 +284,10 @@ const uint8_t AHBDevice<BASE>::get_ahb_vendor_id() const throw() {
 // Output APB slave information
 template<class BASE>
 void AHBDevice<BASE>::print_ahb_device_info(char *name) const {
-  v::info << name << "AHB slave @" << v::uint32 << (uint32_t)get_ahb_base_addr_()
-          << " size: " << v::uint32 << (uint32_t)get_ahb_size_() << " byte" << v::endl;
+  srInfo()
+    ("baseaddr", get_ahb_base_addr_())
+    ("size", get_ahb_size_())
+    ("AHB slave info:");
 }
 
 // Returns the device info record of the device

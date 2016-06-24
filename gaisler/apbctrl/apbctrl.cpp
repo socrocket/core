@@ -411,7 +411,7 @@ gs::cnf::callback_return_type APBCtrl::swi_power_cb(
 
 // Print execution statistic at end of simulation
 void APBCtrl::end_of_simulation() {
-  v::report << name() << " ********************************************" << v::endl;
+  /*v::report << name() << " ********************************************" << v::endl;
   v::report << name() << " * APBCtrl Statistic:" << v::endl;
   v::report << name() << " * ------------------" << v::endl;
   v::report << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
@@ -419,7 +419,7 @@ void APBCtrl::end_of_simulation() {
   v::report << name() << " *  " << v::endl;
   v::report << name() << " * AHB Slave interface reports: " << v::endl;
   print_transport_statistics(name());
-  v::report << name() << " ******************************************** " << v::endl;
+  v::report << name() << " ******************************************** " << v::endl;*/
 }
 
 sc_core::sc_time APBCtrl::get_clock() {

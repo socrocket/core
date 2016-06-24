@@ -352,10 +352,10 @@ gs::cnf::callback_return_type AHBMem::swi_power_cb(
 
 // Automatically called at the end of the simulation
 void AHBMem::end_of_simulation() {
-  v::report << name() << " **************************************************** " << v::endl;
-  v::report << name() << " * AHBMem Statistics: " << v::endl;
-  v::report << name() << " * ------------------ " << v::endl;
-  print_transport_statistics(name());
-  v::report << name() << " * ************************************************** " << v::endl;
+ // v::report << name() << " **************************************************** " << v::endl;
+ // v::report << name() << " * AHBMem Statistics: " << v::endl;
+ // v::report << name() << " * ------------------ " << v::endl;
+ // print_transport_statistics(name());
+ // v::report << name() << " * ************************************************** " << v::endl;
 }
 /// @}

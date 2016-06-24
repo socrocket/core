@@ -73,8 +73,10 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
   sc_core::sc_time request_delay;
   sc_core::sc_time response_delay;
 
-  v::debug << this->name() << "nb_transport_fw received transaction " << hex << &trans << " with phase: " << phase <<
-  v::endl;
+  srDebug()
+    ("transaction", &trans)
+    ("phase", phase)
+    ("nb_transport_fw received transaction with phase:");
 
   if (phase == tlm::BEGIN_REQ) {
     // Increment reference counter
@@ -84,11 +86,16 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
       ahb.validate_extension<amba::amba_cacheable>(trans);
     }
 
-    v::debug << this->name() << "Acquire " << hex << &trans << " Ref-Count = " << trans.get_ref_count() << v::endl;
+    srDebug()
+      ("transaction", &trans)
+      ("refcount", trans.get_ref_count())
+      ("Acquire transaction with Ref-Count:");
 
     uint32_t address_cycle_base;
 
-    // v::debug << this->name() << "Delay before calling exec_func: " << delay << v::endl;
+    //srDebug()
+    //  ("delay", delay)
+    //  ("Delay before calling exec_func:");
 
     // Call the functional part of the model
     // ! The functional part may not call wait !
@@ -96,7 +103,7 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
     exec_func(trans, delay);
 
     if (trans.get_response_status() != tlm::TLM_OK_RESPONSE) {
-      v::warn << name() << "Target did not return tlm::TLM_OK_RESPONSE" << v::endl;
+      srWarn()("Target did not return tlm::TLM_OK_RESPONSE");
     }
 
     // The delay returned by the function model relates to the time for delivering
@@ -110,12 +117,16 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
       delay = address_cycle_base * get_clock() + sc_core::sc_time(1, SC_PS);
     }
 
-    // v::debug << this->name() << "Total delay: " << delay << v::endl;
+    // srDebug()
+    //   ("delay", delay)
+    //   ("Total delay:");
 
     // Calculating delay for sending END_REQ
     request_delay = delay - sc_core::sc_time(1, SC_PS);
 
-    v::debug << this->name() << "Request Delay: " << request_delay << v::endl;
+    srDebug()
+      ("request_delay", request_delay)
+      ("Request Delay: ");
 
     // Consume request_delay and forward to request thread
     m_RequestPEQ.notify(trans, request_delay);
@@ -123,7 +134,9 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
     // Calculating delay for sending BEGIN_REQ
     response_delay = (delay - (get_clock() * (address_cycle_base - 1)) - sc_core::sc_time(1, SC_PS));
 
-    v::debug << this->name() << "Response Delay: " << response_delay << v::endl;
+    srDebug()
+      ("response_delay", response_delay)
+      ("Responde Delay: ");
 
     // Consume response_delay and forward to response thread
     m_ResponsePEQ.notify(trans, response_delay);
@@ -135,8 +148,10 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
     return tlm::TLM_ACCEPTED;
   } else if (phase == tlm::END_RESP) {
     msclogger::return_backward(this, &ahb, &trans, tlm::TLM_COMPLETED, delay);
-    v::debug << this->name() << "Release " << &trans << " Ref-Count before calling release " << trans.get_ref_count() <<
-    v::endl;
+    srDebug()
+      ("transaction", &trans)
+      ("refcount", trans.get_ref_count())
+      ("Release Ref-Count before calling release:");
 
     // END_RESP corresponds to the end of the AHB data phase.
     // ! For this to work master must send END_RESP via forward path !
@@ -144,7 +159,7 @@ tlm::tlm_sync_enum AHBSlave<BASE>::nb_transport_fw(tlm::tlm_generic_payload &tra
 
     return tlm::TLM_COMPLETED;
   } else {
-    v::error << this->name() << "Invalid phase in call to nb_transport_fw!" << v::endl;
+    srError()("Invalid phase in call to nb_transport_fw!");
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
   }
 
@@ -171,9 +186,13 @@ void AHBSlave<BASE>::requestThread() {
     phase = tlm::END_REQ;
     delay = SC_ZERO_TIME;
 
-    v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << phase <<
-    v::endl;
-
+    srDebug()
+      ("transaction", trans)
+      ("phase", phase)
+#ifndef NDEBUG
+      ("status", status)
+#endif
+      ("Transaction call to nb_transport_bw with phase:");
     // Backward arrow for msc
     msclogger::backward(this, &ahb, trans, phase, delay);
 
@@ -204,8 +223,11 @@ void AHBSlave<BASE>::responseThread() {
     phase = tlm::BEGIN_RESP;
     delay = SC_ZERO_TIME;
 
-    v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_bw with phase " << status << phase <<
-    v::endl;
+    srDebug()
+      ("transaction", trans)
+      ("phase", phase)
+      ("status", status)
+      ("Transaction call to nb_transport_bw with phase:");
 
     // Backward arrow for msc
     msclogger::backward(this, &ahb, trans, phase, delay);
@@ -252,11 +274,11 @@ void AHBSlave<BASE>::transport_statistics(tlm::tlm_generic_payload &gp) throw() 
   }
 }
 
-template<class BASE>
+/*template<class BASE>
 void AHBSlave<BASE>::print_transport_statistics(const char *name) const throw() {
   v::report << name << " * Bytes read: " << m_reads << v::endl;
   v::report << name << " * Bytes written: " << m_writes << v::endl;
-}
+}*/
 
 /* vim: set expandtab noai ts=4 sw=4: */
 /* -*- mode: c-mode; tab-width: 4; indent-tabs-mode: nil; -*- */

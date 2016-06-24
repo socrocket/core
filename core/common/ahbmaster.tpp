@@ -54,9 +54,14 @@ tlm::tlm_sync_enum AHBMaster<BASE>::nb_transport_bw(
     tlm::tlm_generic_payload &trans,  // NOLINT(runtime/references)
     tlm::tlm_phase &phase,            // NOLINT(runtime/references)
     sc_core::sc_time &delay) {        // NOLINT(runtime/references)
-  v::debug << this->name() << "nb_transport_bw received transaction " << hex << &trans << " with phase " << phase << v::endl;
-
-  v::debug << this->name() << "Acquire " << hex << &trans << " Ref-Count before acquire (nb_transport_bw) " << trans.get_ref_count() << v::endl;
+  srDebug()
+    ("transaction", &trans)
+    ("phase", phase)
+    ("nb_transport_bw received transaction with phase:");
+  srDebug()
+    ("transaction", &trans)
+    ("refcount", trans.get_ref_count())
+    ("Acquire transaction Ref-Count before acquire (nb_transport_bw):");
   trans.acquire();
 
   if (phase == tlm::END_REQ) {
@@ -75,13 +80,16 @@ tlm::tlm_sync_enum AHBMaster<BASE>::nb_transport_bw(
     delay = data_phase_base * get_clock();
     
     // Increment reference counter
-    v::debug << this->name() << "Acquire " << hex << &trans << " Ref-Count before acquire (m_ResponsePEQ) " << trans.get_ref_count() << v::endl;
+    srDebug()
+      ("transaction", &trans)
+      ("refcount", trans.get_ref_count())
+      ("Acquire transaction Ref-Count before acquire (m_ResponsePEQ):");
     trans.acquire();
     m_ResponsePEQ.notify(trans, delay);
     delay = SC_ZERO_TIME;
 
   } else {
-    v::error << this->name() << "Invalid phase in call to nb_transport_bw!" << v::endl;
+    srError()("Invalid phase in call to nb_transport_bw!");
     trans.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
     assert(-1);
   }
@@ -89,7 +97,10 @@ tlm::tlm_sync_enum AHBMaster<BASE>::nb_transport_bw(
   // Return arrow for msc
   msclogger::return_forward(this, &ahb, &trans, tlm::TLM_ACCEPTED, delay);
 
-  v::debug << this->name() << "Release " << hex << &trans << " Ref-Count before release (nb_transport_bw) " << trans.get_ref_count() << v::endl;
+  srDebug()
+    ("transaction", &trans)
+    ("refcount", trans.get_ref_count())
+    ("Release transaction Ref-Count before release (nb_transport_bw):");
   trans.release();
 
   return tlm::TLM_ACCEPTED;
@@ -147,8 +158,10 @@ void AHBMaster<BASE>::ahbread(
   // Allocate new transactin (reference counter = 1)
   tlm::tlm_generic_payload *trans = ahb.get_transaction();
 
-  v::debug << this->name() << "Allocate new transaction: " << hex << trans << " Acquire / Ref-Count = " <<
-  trans->get_ref_count() << v::endl;
+  srDebug()
+    ("transaction", trans)
+    ("refcount", trans->get_ref_count())
+    ("Allocate new transaction:");
 
   // Initialize transaction
   trans->set_command(tlm::TLM_READ_COMMAND);
@@ -190,8 +203,10 @@ void AHBMaster<BASE>::ahbwrite(
   // Allocate new transactin (reference counter = 1)
   tlm::tlm_generic_payload *trans = ahb.get_transaction();
 
-  v::debug << this->name() << "Allocate new transaction " << hex << trans << "Acquire / Ref-Count = " <<
-  trans->get_ref_count() << v::endl;
+  srDebug()
+    ("transaction", trans)
+    ("refcount", trans->get_ref_count())
+    ("Allocate new transaction:");
 
   // Initialize transaction
   trans->set_command(tlm::TLM_WRITE_COMMAND);
@@ -226,13 +241,18 @@ void AHBMaster<BASE>::ahbaccess(tlm::tlm_generic_payload *trans) {
   sc_core::sc_time delay;
 
   // Increment reference counter
-  v::debug << this->name() << "Acquire " << trans << " Ref-Count before acquire (ahbaccess) " << trans->get_ref_count() << v::endl;
+  srDebug()
+    ("transaction", trans)
+    ("refcount", trans->get_ref_count())
+    ("Acquire Ref-Count before acquire (ahbaccess):");
   trans->acquire();
 
   if (m_ambaLayer == amba::amba_LT) {
 
-    v::debug << this->name() << "Transaction " << hex << trans << " call to b_transport" << v::endl;
-    
+    srDebug()
+      ("transaction", trans)
+      ("Transaction call to b_transport:");
+
     // Forward arrow for MSC
     msclogger::forward(this, &ahb, trans, tlm::BEGIN_REQ);
     // Start blocking transport
@@ -257,7 +277,10 @@ void AHBMaster<BASE>::ahbaccess(tlm::tlm_generic_payload *trans) {
     phase = tlm::BEGIN_REQ;
     // Forward arrow for MSC
     msclogger::forward(this, &ahb, trans, phase, delay);
-    v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase << v::endl;
+    srDebug()
+      ("transaction", trans)
+      ("phase", phase)
+      ("Transaction call to nb_transport in phase:");
 
     // Start non-blocking transaction
     status = ahb->nb_transport_fw(*trans, phase, delay);
@@ -273,14 +296,19 @@ void AHBMaster<BASE>::ahbaccess(tlm::tlm_generic_payload *trans) {
       delay = SC_ZERO_TIME;
     } else {
       // Forbidden phase
-      v::error << this->name() << "Invalid phase in return path (from call to nb_transport_fw)!" << status << v::endl;
+      srError()
+        ("status", status)
+        ("Invalid phase in return path (from call to nb_transport_fw)!");
       trans->set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
       assert(-1);
     }
   }
 
   // Decrement reference counter
-  v::debug << this->name() << "Release " << trans << " Ref-Count before release (ahbaccess) " << trans->get_ref_count() << v::endl;
+  srDebug()
+    ("transaction", trans)
+    ("refcount", trans->get_ref_count())
+    ("Release transaction with Ref-Count before release (ahbaccess):");
   trans->release();
 }
 
@@ -292,7 +320,9 @@ uint32_t AHBMaster<BASE>::ahbread_dbg(uint32_t addr, unsigned char *data, unsign
   // Allocate new transaction (reference counter = 1
   tlm::tlm_generic_payload *trans = ahb.get_transaction();
 
-  v::debug << this->name() << "Allocate new transaction " << hex << trans << v::endl;
+  srDebug()
+    ("transaction", trans)
+    ("Allocate new transaction:");
 
   // Initialize transaction
   trans->set_command(tlm::TLM_READ_COMMAND);
@@ -318,7 +348,9 @@ uint32_t AHBMaster<BASE>::ahbwrite_dbg(uint32_t addr, unsigned char *data, unsig
   // Allocate new transactin (reference counter = 1)
   tlm::tlm_generic_payload *trans = ahb.get_transaction();
 
-  v::debug << this->name() << "Allocate new transaction " << hex << trans << v::endl;
+  srDebug()
+    ("transaction", trans)
+    ("Allocate new transaction:");
 
   // Initialize transaction
   trans->set_command(tlm::TLM_WRITE_COMMAND);
@@ -357,11 +389,14 @@ void AHBMaster<BASE>::ResponseThread() {
 
     // Get transaction from PEQ
     while ((trans = m_ResponsePEQ.get_next_transaction())) {
-      v::debug << name() << "Response Thread running for transaction: " << trans << v::endl;
+      srDebug()
+        ("transaction", trans)
+        ("Response Thread running for transaction:");
 
       if (trans->get_response_status() != tlm::TLM_OK_RESPONSE) {
-        v::error << this->name() << "Error in Response for transaction: " << trans << v::endl;
-
+        srError()
+          ("transaction", trans)
+          ("Error in Response for transaction:");
         // This variable is visible within response_callback.
         // Needs to be externally resetted.
         response_error = true;
@@ -374,8 +409,10 @@ void AHBMaster<BASE>::ResponseThread() {
       phase = tlm::END_RESP;
       delay = sc_core::SC_ZERO_TIME;
 
-      v::debug << this->name() << "Transaction " << hex << trans << " call to nb_transport_fw with phase " << phase
-               << v::endl;
+      srDebug()
+        ("transaction", trans)
+        ("phase", phase)
+        ("Transaction call to nb_transport_fw with phase:");
 
       // Forward arrow for msc
       msclogger::forward(this, &ahb, trans, phase, delay);
@@ -386,8 +423,11 @@ void AHBMaster<BASE>::ResponseThread() {
       // Return value must be TLM_COMPLETED or TLM_ACCEPTED
       assert((status == tlm::TLM_COMPLETED) || (status == tlm::TLM_ACCEPTED));
 
-      v::debug << name() << "Release " << trans << " Ref-Count before calling release (ResponseThread) " << trans->get_ref_count() << " Status: "
-               << status << v::endl;
+      srDebug()
+        ("transaction", trans)
+        ("refcount", trans->get_ref_count())
+        ("status", status)
+        ("Release transaction with ref-count before calling release (ResponseThread):");
 
       // Decrement reference count
       trans->release();
@@ -404,9 +444,9 @@ void AHBMaster<BASE>::transport_statistics(tlm::tlm_generic_payload &gp) throw()
   }
 }
 
-template<class BASE>
+/*template<class BASE>
 void AHBMaster<BASE>::print_transport_statistics(const char *name) const throw() {
   v::report << name << " * Bytes read: " << m_reads << v::endl;
   v::report << name << " * Bytes written: " << m_writes << v::endl;
-}
+}*/
 /// @}

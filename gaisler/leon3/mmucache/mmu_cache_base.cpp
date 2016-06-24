@@ -1075,7 +1075,7 @@ gs::cnf::callback_return_type mmu_cache_base::swi_power_cb(gs::gs_param_base& ch
 // Displays execution statistics.
 void mmu_cache_base::end_of_simulation() {
 
-    v::report << name() << " ********************************************" << v::endl;
+    /*v::report << name() << " ********************************************" << v::endl;
     v::report << name() << " * mmu_cache_base Statistics: " << v::endl;
     v::report << name() << " * --------------------- " << v::endl;
     v::report << name() << " * Successful Transactions: " << m_right_transactions << v::endl;
@@ -1084,7 +1084,7 @@ void mmu_cache_base::end_of_simulation() {
     v::report << name() << " * AHB Master interface reports: " << v::endl;
     print_transport_statistics(name());
     v::report << name() << " ********************************************" << v::endl;
-
+*/
 }
 
 sc_core::sc_time mmu_cache_base::get_clock() {

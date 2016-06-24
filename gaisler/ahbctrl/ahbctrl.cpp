@@ -1350,7 +1350,7 @@ gs::cnf::callback_return_type AHBCtrl::swi_power_cb(
 
 // Print execution statistic at end of simulation
 void AHBCtrl::end_of_simulation() {
-  double busy_cycles;
+  /*double busy_cycles;
 
   v::report << name() << " ********************************************" << v::endl;
   v::report << name() << " * AHBCtrl Statistic:" << v::endl;
@@ -1379,6 +1379,7 @@ void AHBCtrl::end_of_simulation() {
   print_transport_statistics(name());
 
   v::report << name() << " ******************************************** " << v::endl;
+*/
 }
 
 struct ahb_check_slave_type {
@@ -1553,8 +1554,8 @@ void AHBCtrl::transport_statistics(tlm::tlm_generic_payload &gp) {  // NOLINT(ru
 }
 
 // Displays common transport statistics
-void AHBCtrl::print_transport_statistics(const char *name) const {
+/*void AHBCtrl::print_transport_statistics(const char *name) const {
   v::report << name << " * Bytes read: " << m_reads << v::endl;
   v::report << name << " * Bytes written: " << m_writes << v::endl;
-}
+}*/
 /// @}

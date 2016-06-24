@@ -92,7 +92,7 @@ class AHBCtrl : public BaseModule<DefaultBase>, public CLKDevice {
     void print_requests();
 
     /// Print common transport statistics.
-    void print_transport_statistics(const char *name) const;
+    //void print_transport_statistics(const char *name) const;
 
     /// Constructor
     // Omitted parameters:

@@ -413,7 +413,7 @@ void Mctrl::start_of_simulation() {
 
 // Print execution statistic at end of simulation
 void Mctrl::end_of_simulation() {
-  sc_time nominal_time;
+  /*sc_time nominal_time;
 
   switch_power_mode();
   v::report << name() << " ********************************************" << v::endl;
@@ -437,7 +437,7 @@ void Mctrl::end_of_simulation() {
   v::report << name() << " *  " << v::endl;
   v::report << name() << " * AHB Slave interface reports: " << v::endl;
   print_transport_statistics(name());
-  v::report << name() << " ******************************************** " << v::endl;
+  v::report << name() << " ******************************************** " << v::endl;*/
 }
 
 Mctrl::MEMPort::MEMPort(uint32_t _id, MEMDevice *_dev) : id(_id), dev(_dev), addr(0), length(0) {}

@@ -13,7 +13,7 @@
 ///
 
 #include "core/common/clkdevice.h"
-#include "core/common/verbose.h"
+#include "core/common/sr_report.h"
 
 CLKDevice::CLKDevice() :
   rst(&CLKDevice::onrst, "rst"),
@@ -29,7 +29,7 @@ void CLKDevice::onrst(const bool &value, const sc_core::sc_time &time) {
   // The reset is active while the input is false.
   // On the rising edge we want to perform the reset:
   if (value == true) {
-    v::debug << "CLKDevice" << "Initiating Reset" << v::endl;
+    srDebug("CLKDevice")("Initiating Reset");
     dorst();
   }
 }
@@ -63,7 +63,7 @@ sc_core::sc_time &CLKDevice::get_clk() {
 }
 
 void CLKDevice::dorst() {
-  v::debug << "CLKDevice" << "Doing Reset" << v::endl;
+  srDebug("CLKDevice")("Doing Reset");
 }
 
 /// @}

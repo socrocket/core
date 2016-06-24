@@ -152,8 +152,10 @@ uint8_t APBDevice<BASE>::get_apb_vendor_id() const {
 template<class BASE>
 void APBDevice<BASE>::print_apb_device_info(char *name) const {
   // Display APB slave information
-  v::info << name << "APB slave @" << v::uint32 << get_apb_base_addr_()
-          << " size: " << v::uint32 << get_apb_size_() << " byte" << v::endl;
+  srInfo()
+    ("baseaddr", get_apb_base_addr_())
+    ("size", get_apb_size_())
+    ("APB slave info:");
 }
 
 // Returns pointer to PNP device information

@@ -90,7 +90,7 @@ class AHBSlave : public AHBDevice<BASE> {
     virtual void transport_statistics(tlm::tlm_generic_payload &gp) throw();  // NOLINT(runtime/references)
 
     /// Print common transport statistics.
-    virtual void print_transport_statistics(const char *name) const throw();
+    //virtual void print_transport_statistics(const char *name) const throw();
 
     /// Event queues for AT mode
     tlm_utils::peq_with_get<tlm::tlm_generic_payload> m_RequestPEQ;
