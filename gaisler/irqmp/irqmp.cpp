@@ -181,25 +181,26 @@ void Irqmp::end_of_elaboration() {
 
 // Print execution statistic at end of simulation
 void Irqmp::end_of_simulation() {
-  v::report << name() << " ********************************************" << v::endl;
-  v::report << name() << " * IRQMP statistic:" << v::endl;
-  v::report << name() << " * ================" << v::endl;
-  uint64_t sum = 0;
-  for (int i = 1; i < 32; i++) {
-    v::report << name() << " * + IRQ Line " << std::dec << i << ":    " << m_irq_counter[i] << v::endl;
-    sum += m_irq_counter[i];
-  }
-  v::report << name() << " * -------------------------------------- " << v::endl;
-  v::report << name() << " * = Sum      :    " << sum << v::endl;
-  v::report << name() << " * " << v::endl;
-  sum = 0;
-  for (int i = 0; i < g_ncpu; i++) {
-    v::report << name() << " * + CPU Line " << std::dec << i << ":    " << m_cpu_counter[i] << v::endl;
-    sum += m_cpu_counter[i];
-  }
-  v::report << name() << " * -------------------------------------- " << v::endl;
-  v::report << name() << " * = Sum      :    " << sum << v::endl;
-  v::report << name() << " ******************************************** " << v::endl;
+  //TODO: move to python
+  //v::report << name() << " ********************************************" << v::endl;
+  //v::report << name() << " * IRQMP statistic:" << v::endl;
+  //v::report << name() << " * ================" << v::endl;
+  //uint64_t sum = 0;
+  //for (int i = 1; i < 32; i++) {
+  //  v::report << name() << " * + IRQ Line " << std::dec << i << ":    " << m_irq_counter[i] << v::endl;
+  //  sum += m_irq_counter[i];
+  //}
+  //v::report << name() << " * -------------------------------------- " << v::endl;
+  //v::report << name() << " * = Sum      :    " << sum << v::endl;
+  //v::report << name() << " * " << v::endl;
+  //sum = 0;
+  //for (int i = 0; i < g_ncpu; i++) {
+  //  v::report << name() << " * + CPU Line " << std::dec << i << ":    " << m_cpu_counter[i] << v::endl;
+  //  sum += m_cpu_counter[i];
+  //}
+  //v::report << name() << " * -------------------------------------- " << v::endl;
+  //v::report << name() << " * = Sum      :    " << sum << v::endl;
+  //v::report << name() << " ******************************************** " << v::endl;
 }
 
 void Irqmp::power_model() {
@@ -266,7 +267,9 @@ void Irqmp::incomming_irq(const std::pair<uint32_t, bool> &irq, const sc_time &t
     if((1 << line) & irq.first) {
       // Performance counter increase
       m_irq_counter[line] = m_irq_counter[line] + 1;
-      v::debug << name() << "Interrupt line " << line << " triggered" << v::endl;
+      srDebug()
+        ("line", line)
+        ("Interrupt line triggered");
 
       // If the incomming interrupt is not listed in the broadcast register
       // it goes in the pending register
@@ -307,8 +310,12 @@ void Irqmp::launch_irq() {
     for (cpu = g_ncpu - 1; cpu > -1; cpu--) {
       // Pending register for this CPU line.
       pending = (r[IR_PENDING] | r[IR_FORCE]) & r[PROC_IR_MASK(cpu)];
-      v::debug << name() << "For CPU " << cpu << " pending: " << v::uint32 << r[IR_PENDING].read() << ", force: " <<
-      v::uint32 << r[IR_FORCE].read() << ", proc_ir_mask: " << r[PROC_IR_MASK(cpu)].read() << v::endl;
+      srDebug()
+        ("CPU", cpu)
+        ("pending",  r[IR_PENDING].read())
+        ("force", r[IR_FORCE].read())
+        ("proc_ir_mask", r[PROC_IR_MASK(cpu)].read())
+        ();
 
       // All relevant interrupts for this CPU line to determ pending extended interrupts
       masked  = pending | (r[PROC_IR_FORCE(cpu)] & IR_FORCE_IF);
@@ -322,8 +329,11 @@ void Irqmp::launch_irq() {
       }
       // Recalculate relevant interrupts
       all = pending | (eirq_en << g_eirq) | (r[PROC_IR_FORCE(cpu)] & IR_FORCE_IF);
-      v::debug << name() << "For CPU " << cpu << " pending: " << v::uint32 << pending << ", all " << v::uint32 << all <<
-      v::endl;
+      srDebug()
+        ("CPU", cpu)
+        ("pending", pending)
+        ("all", all)
+        ();
 
       // Find the highes not extended interrupt on level 1
       masked = (all & r[IR_LEVEL]) & IR_PENDING_IP;
@@ -345,10 +355,16 @@ void Irqmp::launch_irq() {
       }
       // If an interrupt is selected send it out to the CPU.
       if (high != 0) {
-        v::debug << name() << "For CPU " << cpu << " send IRQ: " << high << v::endl;
+        srDebug()
+          ("CPU", cpu)
+          ("send IRQ", high)
+          ();
         std::pair<uint32_t, bool> value(0xF & high, true);
         if (value != irq_req.read(cpu)) {
-          v::debug << name() << "For CPU " << cpu << " really sent IRQ: " << high << v::endl;
+          srDebug()
+            ("CPU", cpu)
+            ("really sent IRQ", high)
+            ();
           irq_req.write(1 << cpu, value);
 
           m_cpu_counter[cpu]++;
@@ -413,7 +429,10 @@ void Irqmp::force_write() {
       }
     }
 
-    v::debug << name() << "Force " << cpu << "  write " << v::uint32 << forcereg[cpu] << " old " << v::endl;
+    srDebug()
+      ("CPU", cpu)
+      ("forcereg", forcereg[cpu])
+      ("Force write old");
     forcereg[cpu] |= reg;
 
     // write mask clears IFC bits:
@@ -421,7 +440,10 @@ void Irqmp::force_write() {
     forcereg[cpu] &= (~(forcereg[cpu] >> 16) & PROC_IR_FORCE_IF);
 
     r[PROC_IR_FORCE(cpu)] = forcereg[cpu];
-    v::debug << name() << "Force " << cpu << "  write " << v::uint32 << forcereg[cpu] << v::endl;
+    srDebug()
+      ("CPU", cpu)
+      ("forcereg", forcereg[cpu])
+      ("Force write");
     if ((g_eirq != 0) && (r[PROC_EXTIR_ID(cpu)] != 0)) {
       r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
     }
@@ -432,7 +454,10 @@ void Irqmp::force_write() {
 // process sensitive to ack_irq
 void Irqmp::acknowledged_irq(const uint32_t &irq, const uint32_t &cpu, const sc_core::sc_time &time) {
   bool f = false;
-  v::debug << name() << "Acknowledgeing IRQ " << irq << " from CPU " << cpu << v::endl;
+  srDebug()
+    ("irq", irq)
+    ("CPU", cpu)
+    ("Acknowledgeing IRQ:");
   if ((g_eirq != 0) && (r[PROC_EXTIR_ID(cpu)] != 0)) {
     r[IR_PENDING] = r[IR_PENDING] & ~(1 << r[PROC_EXTIR_ID(cpu)]);
   }
@@ -474,7 +499,7 @@ void Irqmp::mpstat_read() {
 }
 
 void Irqmp::pending_write() {
-  v::info << name() << "Pending write" << v::endl;
+  srInfo()("Pending write");
   e_signal.notify(1 * clock_cycle);
 }
 
