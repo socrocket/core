@@ -40,7 +40,9 @@ void TimingMonitor::phase_end_timing(const unsigned int id) {
 
   // Forbidden to set end timing before creating phase (calling phase_start_timing)
   if (it == timing_map.end()) {
-    v::error << "TimingMonitor" << "No such phase: " << id << v::endl;
+    srError("TimingMonitor")
+      ("id", id)
+      ("No such phase:");
   }
 
   tmp = it->second;
@@ -59,7 +61,9 @@ sc_core::sc_time TimingMonitor::phase_systime(const unsigned int id) {
 
   // Phase/key must exist in timing_map
   if (it == timing_map.end()) {
-    v::error << "TimingMonitor" << "No such phase: " << id << v::endl;
+    srError("TimingMonitor")
+      ("id", id)
+      ("No such phase:");
 
     return sc_core::sc_time(0, sc_core::SC_NS);
   }
@@ -79,7 +83,9 @@ double TimingMonitor::phase_realtime(const unsigned int id) {
 
   // Phase/key must exist in timing_map
   if (it == timing_map.end()) {
-    v::error << "TimingMonitor" << "No such phase: " << id << v::endl;
+    srError("TimingMonitor")
+      ("id", id)
+      ("No such phase:");
 
     return 0;
   }
@@ -100,7 +106,9 @@ const char *TimingMonitor::phase_get_name(const unsigned int id) {
 
   // Phase/key must exist in timing_map
   if (it == timing_map.end()) {
-    v::error << "TimingMonitor" << "No such phase: " << id << v::endl;
+    srError("TimingMonitor")
+      ("id", id)
+      ("No such phase:");
 
     return "Unknown Phase";
   }
@@ -115,7 +123,7 @@ void TimingMonitor::report_timing() {
   t_timing_it it;
 
   it = timing_map.begin();
-
+  //TODO: move to python? different format?
   v::report << "TimingMonitor" << "******************************************************************" << v::endl;
   v::report << "TimingMonitor" << "* TIMING SUMMARY " << v::endl;
   v::report << "TimingMonitor" << "* -------------- " << v::endl;

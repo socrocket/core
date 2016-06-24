@@ -21,6 +21,7 @@
 #include <map>
 
 #include "core/common/verbose.h"
+#include "core/common/sr_report.h"
 
 /// @details Timingmonitor is a support class for timing verification. Within the library 
 /// it is used in almost all testbench classes. During simulation it records the SystemC 
