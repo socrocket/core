@@ -86,12 +86,13 @@ void Memory::start_of_simulation() {
 
 // Print execution statistic at end of simulation
 void Memory::end_of_simulation() {
-  v::report << name() << " ********************************************" << v::endl;
-  v::report << name() << " * " << get_type_name() << " Memory Statistic:" << v::endl;
-  v::report << name() << " * -----------------------------------------" << v::endl;
-  v::report << name() << " * Bytes read:    " << m_reads << v::endl;
-  v::report << name() << " * Bytes written: " << m_writes << v::endl;
-  v::report << name() << " ******************************************** " << v::endl;
+  //TODO: do it in python
+  //v::report << name() << " ********************************************" << v::endl;
+  //v::report << name() << " * " << get_type_name() << " Memory Statistic:" << v::endl;
+  //v::report << name() << " * -----------------------------------------" << v::endl;
+  //v::report << name() << " * Bytes read:    " << m_reads << v::endl;
+  //v::report << name() << " * Bytes written: " << m_writes << v::endl;
+  //v::report << name() << " ******************************************** " << v::endl;
 }
 
 // read count callback
@@ -123,7 +124,7 @@ void Memory::b_transport(tlm::tlm_generic_payload &gp, sc_time &delay) {
     uint32_t end = *reinterpret_cast<uint32_t *>(gp.get_data_ptr());
 
     if (end < start) {
-      v::error << name() << "Error in erasing memory!" << v::endl;
+      srError()("Error in erasing memory!");
 
       gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
     } else {
@@ -135,7 +136,10 @@ void Memory::b_transport(tlm::tlm_generic_payload &gp, sc_time &delay) {
       // Count write operations for power calculation
       // dyn_writes += (end-start) >> 2;
 
-      v::debug << name() << "Erase memory from " << v::uint32 << start << " to " << v::uint32 << end << "." << v::endl;
+      srDebug()
+        ("start", start)
+        ("end", end)
+        ("Erase memory from start to end:");
     }
   } else {
     // Read or write transaction
@@ -185,7 +189,10 @@ unsigned int Memory::transport_dbg(tlm::tlm_generic_payload &gp) {
 
     read_block_dbg(addr, ptr, len);
 
-    v::debug << name() << "Debug read memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
+    srDebug()
+      ("addr", addr)
+      ("len", len)
+      ("Debug read memory at addr with length len:");
     gp.set_response_status(tlm::TLM_OK_RESPONSE);
     return len;
 
@@ -193,7 +200,10 @@ unsigned int Memory::transport_dbg(tlm::tlm_generic_payload &gp) {
 
     write_block_dbg(addr, ptr, len);
 
-    v::debug << name() << "Debug write memory at " << v::uint32 << addr << " with length " << len << "." << v::endl;
+    srDebug()
+      ("addr", addr)
+      ("len", len)
+      ("Debug write memory at addr with length len:");
     gp.set_response_status(tlm::TLM_OK_RESPONSE);
     return len;
 
