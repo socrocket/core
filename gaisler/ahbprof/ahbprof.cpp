@@ -41,14 +41,12 @@ AHBProf::AHBProf(const ModuleName nm,  // Module name
   assert(!((m_addr | m_mask) >> 12));
 
   // Display AHB slave information
-  v::info << name() << "********************************************************************" << v::endl;
-  v::info << name() << "* Create AHB Profiling device with following parameters:            " << v::endl;
-  v::info << name() << "* haddr/hmask: " << v::uint32 << m_addr << "/" << v::uint32 << m_mask << v::endl;
-  v::info << name() << "* Slave base address: 0x" << std::setw(8) << std::setfill('0') << hex <<
-    get_ahb_base_addr()                     << v::endl;
-  v::info << name() << "* Slave size (bytes): 0x" << std::setw(8) << std::setfill('0') << hex <<
-    get_ahb_size()                          << v::endl;
-  v::info << name() << "********************************************************************" << v::endl;
+  srInfo("/configuration/ahbprof/ahbslave")
+    ("haddr", m_addr)
+    ("hmask", m_mask)
+    ("addr", (uint64_t)get_ahb_base_addr())
+    ("size",(uint64_t)get_ahb_size())
+    ("AHB Slave Configuration");
 }
 
 // / Destructor
@@ -63,11 +61,11 @@ uint32_t AHBProf::exec_func(
   if (!((m_addr ^ (trans.get_address() >> 20)) & m_mask)) {
     uint32_t address = (trans.get_address() - ((m_addr & m_mask) << 20)) >> 2;
     if (address > 16) {
-      v::warn << name() << "Address offset bigger than 16" << v::endl;
+      srWarn()("Address offset bigger than 16");
     }
 
     if (trans.get_data_length() > 4) {
-      v::warn << name() << "Transaction exceeds slave memory region" << v::endl;
+      srWarn()("Transaction exceeds slave memory region");
     }
 
     if (trans.is_write()) {
@@ -115,7 +113,7 @@ uint32_t AHBProf::exec_func(
     }
   } else {
     // address not valid
-    v::error << name() << "Address not within permissable slave memory space" << v::endl;
+    srError()("Address not within permissable slave memory space");
     trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
   }
   return trans.get_data_length();
