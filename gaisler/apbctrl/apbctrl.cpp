@@ -159,7 +159,7 @@ uint32_t APBCtrl::getPNPReg(const uint32_t address) {
 #endif
     return result;
   } else {
-    v::debug << name() << "Access to not existing PNP Register!" << v::endl;
+    srDebug()("Access to not existing PNP Register!");
     return 0;
   }
 }
@@ -201,7 +201,7 @@ uint32_t APBCtrl::exec_func(
 
       ahb_gp.set_response_status(tlm::TLM_OK_RESPONSE);
     } else {
-      v::error << name() << " Forbidden write to APBCTRL configuration area (PNP)!" << v::endl;
+      srError()("Forbidden write to APBCTRL configuration area (PNP)!");
       ahb_gp.set_response_status(tlm::TLM_COMMAND_ERROR_RESPONSE);
     }
 
@@ -222,9 +222,10 @@ uint32_t APBCtrl::exec_func(
       socket_t *other_socket = apb.get_other_side(index, a);
       sc_core::sc_object *obj = other_socket->get_parent();
 
-      v::debug << name() << "Forwarding request to APB slave:" << obj->name()
-         << "@0x" << hex << v::setfill('0') << v::setw(8)
-         << ((ahb_gp.get_address() & 0x000fffff)+i) << endl;
+      srDebug()
+        ("name", obj->name())
+        ("addr", ((ahb_gp.get_address() & 0x000fffff)+i))
+        ("Forwarding request to APB slave:"); 
       // --------------------
 
       // Take APB transaction from pool
@@ -273,7 +274,9 @@ uint32_t APBCtrl::exec_func(
       apb.release_transaction(apb_gp);
 
     } else {
-      v::warn << name() << "Access to unmapped APB address space at address " << v::uint32 << addr << endl;
+      srWarn()
+        ("addr", addr)
+        ("Access to unmapped APB address space at address:");
       ahb_gp.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
     }
   }
@@ -305,9 +308,9 @@ void APBCtrl::start_of_simulation() {
   // max. 16 APB slaves allowed
   assert(num_of_bindings <= 16);
 
-  v::info << name() << "******************************************************************************* " << v::endl;
-  v::info << name() << "* APB DECODER INITIALIZATION " << v::endl;
-  v::info << name() << "* -------------------------- " << v::endl;
+  srInfo()
+    ("slaves", num_of_bindings)
+    ("APB decoder intialization");
 
   // iterate the registered slaves
   for (uint32_t i = 0; i < num_of_bindings; i++) {
@@ -321,8 +324,6 @@ void APBCtrl::start_of_simulation() {
 
     // valid slaves implement the APBDevice interface
     APBDeviceBase *slave = dynamic_cast<APBDeviceBase *>(obj);
-
-    v::info << name() << "* Slave name: " << obj->name() << v::endl;
 
     // slave is valid (implements APBDevice)
     if (slave) {
@@ -341,19 +342,23 @@ void APBCtrl::start_of_simulation() {
         uint32_t addr = slave->get_apb_base();
         uint32_t mask = slave->get_apb_mask();
 
-        v::info << name() << "* BAR with MSB addr: " << hex << addr << " and mask: " << mask << v::endl;
+        srInfo()
+          ("BAR", i)
+          ("MSB addr", addr)
+          ("mask", mask)
+          ("name", obj->name())
+          ("Binding BAR of slave to APB address:");
 
         // insert slave region into memory map
         setAddressMap(i, sbusid, addr, mask);
       }
     } else {
-      v::warn << name() << "Slave bound to socket 'apb' is not a valid APBDevice." << v::endl;
+      srWarn()("Slave bound to socket 'apb' is not a valid APBDevice.");
       assert(0);
     }
   }
 
   // End of decoder initialization
-  v::info << name() << "******************************************************************************* " << v::endl;
 
   // Check memory map for overlaps
   if (g_mcheck) {
@@ -463,10 +468,14 @@ void APBCtrl::checkMemMap() {
         other_socket = apb.get_other_side(iter->second.index, a);
         sc_core::sc_object *obj2 = other_socket->get_parent();
 
-        v::error << name() << "Overlap in AHB memory mapping." << v::endl;
-        v::error << name() << obj->name() << " " << v::uint32 << last.start << " - " << v::uint32 << last.end << endl;
-        v::error << name() << obj2->name() << " " << v::uint32 << iter->second.start << " - " << v::uint32 <<
-        iter->second.end << endl;
+        srError()
+          ("name_a", obj->name())
+          ("start_a", last.start)
+          ("end_a", last.end)
+          ("name_b", obj2->name())
+          ("start_b", iter->second.start)
+          ("end_b", iter->second.end)  
+          ("Overlap in AHB memory mapping:");
       }
     }
     last = iter->second;
