@@ -35,11 +35,11 @@ void GPCounter::end_of_elaboration() {
 }
 
 void GPCounter::end_of_simulation() {
-  v::report << name() << " ********************************************" << v::endl;
-  v::report << name() << " * GPCounter Statistic:" << v::endl;
-  v::report << name() << " * ----------------" << v::endl;
-  v::report << name() << " * Counter Underflows: " << m_underflows << v::endl;
-  v::report << name() << " ********************************************" << v::endl;
+  //v::report << name() << " ********************************************" << v::endl;
+  //v::report << name() << " * GPCounter Statistic:" << v::endl;
+  //v::report << name() << " * ----------------" << v::endl;
+  //v::report << name() << " * Counter Underflows: " << m_underflows << v::endl;
+  //v::report << name() << " ********************************************" << v::endl;
 }
 
 void GPCounter::ctrl_read() {
@@ -68,10 +68,10 @@ void GPCounter::ctrl_write() {
 
   // Enable
   if (p->r[GPTimer::CTRL(nr)].bit(GPTimer::CTRL_EN) && stopped) {
-    v::debug << name() << "Start_" << nr << v::endl;
+    srDebug()("Start", nr)();
     start();
   } else if ((!p->r[GPTimer::CTRL(nr)].bit(GPTimer::CTRL_EN)) && !stopped) {
-    v::debug << name() << "Stop_" << nr << v::endl;
+    srDebug()("Stop", nr)();
     stop();
   }
 }
@@ -111,7 +111,7 @@ void GPCounter::value_write() {
 
 void GPCounter::chaining() {
     chain_run = true;
-    v::debug << name() << "Chaining" << nr << v::endl;
+    srDebug()("Chaining", nr)();
     start();
 }
 
@@ -259,18 +259,18 @@ void GPCounter::calculate() {
 // Start counting imideately.
 // For example for enable, !dhalt, e_chain
 void GPCounter::start() {
-    v::debug << name() << "start: " << nr << ": stopped=" << stopped << "-"
-            << static_cast<bool>(p->r[GPTimer::CTRL(nr)].bit(GPTimer::CTRL_EN)) << "-"
-            << "-"
-            << (!p->r[GPTimer::CTRL(nr)].bit(GPTimer::CTRL_CH)
-                    || (p->r[GPTimer::CTRL(nr)].bit(GPTimer::CTRL_CH)
-                            && chain_run)) << v::endl;
+    srDebug()
+      ("start", nr) 
+      ("stopped", stopped)
+      ("CTRL_EN", static_cast<bool>(p->r[GPTimer::CTRL(nr)].bit(GPTimer::CTRL_EN)))
+      ("CTRL", (!p->r[GPTimer::CTRL(nr)].bit(GPTimer::CTRL_CH) || (p->r[GPTimer::CTRL(nr)].bit(GPTimer::CTRL_CH) && chain_run))) 
+      ();
     if (stopped && p->r[GPTimer::CTRL(nr)].bit(GPTimer::CTRL_EN)
                     // && (p->dhalt.read()!=0)
                     && (!p->r[GPTimer::CTRL(nr)].bit(GPTimer::CTRL_CH)
                     || (p->r[GPTimer::CTRL(nr)].bit(GPTimer::CTRL_CH)
                             && chain_run))) {
-        v::debug << name() << "startnow_" << nr << v::endl;
+        srDebug()("startnow", nr)();
 
         lasttime = sc_core::sc_time_stamp();
         calculate();
@@ -282,7 +282,7 @@ void GPCounter::start() {
 // For example for disableing, dhalt, e_chain
 void GPCounter::stop() {
     if (!stopped) {
-        v::debug << name() << "stop: " << nr << v::endl;
+        srDebug()("stop", nr)();
         e_wait.cancel();
         value_read();
         lastvalue = p->r[GPTimer::VALUE(nr)];
