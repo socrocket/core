@@ -750,15 +750,13 @@ tlm::tlm_sync_enum AHBCtrl::nb_transport_bw(
 
 // Helper function for printing requests
 void AHBCtrl::print_requests() {
-  v::info << name() << " ---------------------------------------------------- " << v::endl;
-  v::info << name() << "NEW ARBITER CYCLE:" << v::endl;
-
   for (int i = 0; i < 16; i++) {
-    v::info << name() << "Master " << i << " Transaction: " <<  request_map[i].trans << " State: " <<
-      request_map[i].state << v::endl;
+    srInfo()
+      ("Master", i)
+      ("Transaction", request_map[i].trans)
+      ("State", request_map[i].state)
+      ("New arbiter cycle:");
   }
-
-  v::info << name() << " ---------------------------------------------------- " << v::endl;
 }
 
 // Arbitration thread (AT only)
@@ -961,8 +959,12 @@ void AHBCtrl::AcceptThread() {
         slave_id = get_index(trans->get_address());
       }
 
-      v::debug << name() << "Decoding (" << hex << trans << ")" << " - Master: " << master_id->value << " Slave : " <<
-        dec << slave_id << " Address: " << hex << trans->get_address() << v::endl;
+      srDebug()
+        ("transaction", trans)
+        ("Master", master_id->value)
+        ("Slave", slave_id)
+        ("Address", trans->get_address())
+        ("Decoding:");
 
       if (slave_id >= 0) {
         // Initialize connection record
@@ -975,7 +977,7 @@ void AHBCtrl::AcceptThread() {
         request_map[master_id->value] = connection;
         response_map[master_id->value] = connection;
       } else {
-        v::error << name() << "DECODING ERROR" << v::endl;
+        srError()("DECODING ERROR");
       }
     }
   }
@@ -1026,8 +1028,10 @@ void AHBCtrl::RequestThread() {
       phase = tlm::END_REQ;
       delay = SC_ZERO_TIME;
 
-      v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_bw with phase " << phase <<
-        v::endl;
+      srDebug()
+        ("Transaction", trans)
+        ("Phase", phase)
+        ("call to nb_transport_bw:");
 
       // Backward arrow for msc
       msclogger::backward(this, &ahbIN, trans, phase, delay, connection.master_id);
@@ -1070,8 +1074,10 @@ void AHBCtrl::ResponseThread() {
       phase = tlm::BEGIN_RESP;
       delay = SC_ZERO_TIME;
 
-      v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_bw with phase " << phase <<
-        v::endl;
+      srDebug()
+        ("Transaction", trans)
+        ("Phase", phase)
+        ("call to nb_transport_bw:");
 
       // Backward arrow for msc
       msclogger::backward(this, &ahbIN, trans, phase, delay, connection.master_id);
@@ -1119,8 +1125,10 @@ void AHBCtrl::EndResponseThread() {
         // Data bus is now idle
         data_bus_state = IDLE;
 
-        v::debug << name() << "Release " << trans << " Ref-Count before calling release " << trans->get_ref_count() <<
-          v::endl;
+        srDebug()
+          ("transaction", trans)
+          ("Ref-Count", trans->get_ref_count())
+          ("calling release:");
 
         // Decrement reference counter
         trans->release();
@@ -1132,8 +1140,10 @@ void AHBCtrl::EndResponseThread() {
         phase = tlm::END_RESP;
         delay = SC_ZERO_TIME;
 
-        v::debug << name() << "Transaction 0x" << hex << trans << " call to nb_transport_fw with phase " << phase <<
-          v::endl;
+      srDebug()
+        ("Transaction", trans)
+        ("Phase", phase)
+        ("call to nb_transport_fw:");
 
         // Forward arrow for msc
         msclogger::forward(this, &ahbOUT, trans, phase, delay, connection.slave_id);
@@ -1145,8 +1155,10 @@ void AHBCtrl::EndResponseThread() {
         assert((status == tlm::TLM_ACCEPTED) || (status == tlm::TLM_COMPLETED));
 #endif
 
-        v::debug << name() << "Release " << trans << " Ref-Count before calling release " << trans->get_ref_count() <<
-          v::endl;
+        srDebug()
+          ("transaction", trans)
+          ("Ref-Count", trans->get_ref_count())
+          ("calling release:");
 
         // Decrement reference counter
         trans->release();
@@ -1418,10 +1430,14 @@ void AHBCtrl::checkMemMap() {
         other_socket = ahbOUT.get_other_side(iter->second.index, a);
         sc_core::sc_object *obj2 = other_socket->get_parent();
 
-        v::error << name() << "Overlap in AHB memory mapping." << v::endl;
-        v::error << name() << obj->name() << ": " << v::uint32 << last.start << " - " << v::uint32 << last.end << endl;
-        v::error << name() << obj2->name() << ": " << v::uint32 << iter->second.start << " - " << v::uint32 <<
-          iter->second.end << endl;
+        srError()
+          ("a_name", obj->name())
+          ("a_start", last.start)
+          ("a_end", last.end)
+          ("b_name", obj2->name())
+          ("b_start", iter->second.start)
+          ("b_end", iter->second.end)
+          ("Overlap in AHB memory mapping");
       }
     }
     last = iter->second;
