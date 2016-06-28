@@ -213,6 +213,7 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<bool> p_ahbctrl_mcheck("mcheck", true, p_ahbctrl);
 
     AHBCtrl ahbctrl("ahbctrl",
+		    ambaLayer,
 		    p_ahbctrl_ioaddr,                // The MSB address of the I/O area
 		    p_ahbctrl_iomask,                // The I/O area address mask
 		    p_ahbctrl_cfgaddr,               // The MSB address of the configuration area
@@ -224,8 +225,7 @@ int sc_main(int argc, char** argv) {
 		    p_ahbctrl_fixbrst,               // Enable support for fixed-length bursts (disabled)
 		    p_ahbctrl_fpnpen,                // Enable full decoding of PnP configuration records
 		    p_ahbctrl_mcheck,                // Check if there are any intersections between core memory regions
-        p_report_power,                  // Enable/disable power monitoring
-		    ambaLayer
+            p_report_power                  // Enable/disable power monitoring
     );
 
     // Set clock
@@ -441,9 +441,9 @@ int sc_main(int argc, char** argv) {
     if(p_ahbmem_en) {
 
       AHBMem *ahbmem = new AHBMem("ahbmem",
+                                  ambaLayer,
                                   p_ahbmem_addr,
                                   p_ahbmem_mask,
-                                  ambaLayer,
                                   p_ahbmem_index,
                                   p_ahbmem_cacheable,
                                   p_ahbmem_waitstates,
@@ -468,13 +468,13 @@ int sc_main(int argc, char** argv) {
     gs::gs_param<unsigned int> p_ahbin_interval("interval", 1, p_ahbin);
     if(p_ahbin_en) {
         AHBIn *ahbin = new AHBIn("ahbin",
+          ambaLayer,
           p_ahbin_index,
           p_ahbin_irq,
           p_ahbin_framesize,
           p_ahbin_frameaddr,
           sc_core::sc_time(p_ahbin_interval, SC_MS),
-          p_report_power,
-          ambaLayer
+          p_report_power
       );
 
       // Connect sensor to bus
