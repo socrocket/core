@@ -16,47 +16,6 @@
 #include "gaisler/ahbin/ahbin.h"
 
 /// Constructor
-AHBIn::AHBIn(ModuleName name,     // The SystemC name of the component
-  unsigned int hindex,                         // The master index for registering with the AHB
-  unsigned int hirq,                           // The number of the IRQ raised for available data
-  unsigned int framesize,                      // The size of the data frame to be generated
-  unsigned int frameaddr,                      // The address the data is supposed to be copied to
-  sc_core::sc_time interval,                   // The interval between data frames
-  bool pow_mon,                                // Enable power monitoring
-  AbstractionLayer ambaLayer) :            // TLM abstraction layer
-    AHBMaster<>(name,                            // SystemC name
-      hindex,                                    // Bus master index
-      0x04,                                      // Vender ID (4 = ESA)
-      0x00,                                      // Device ID (undefined)
-      0,                                         // Version
-      hirq,                                      // IRQ of device
-      ambaLayer),                                // AmbaLayer
-    irq("irq"),                                  // Initialize interrupt output
-    m_irq(0),                                    // Initialize irq number
-    m_framesize(framesize),                      // Initialize framesize
-    m_frameaddr(frameaddr),                      // Initialize frameaddr
-    m_interval(interval),                        // Initialize frame interval
-    m_master_id(hindex),                         // Initialize bus index
-    m_pow_mon(pow_mon),                          // Initialize pow_mon
-    m_abstractionLayer(ambaLayer) {              // Initialize abstraction layer
-  // Register frame_trigger thread
-  SC_THREAD(frame_trigger);
-
-  // Register thread for generating the actual data frame
-  SC_THREAD(gen_frame);
-  sensitive << new_frame;
-
-  // Allocate data frame buffer of size framesize
-  frame = new uint32_t(m_framesize);
-
-  // Module Configuration Report
-  v::info << this->name() << " ************************************************** " << v::endl;
-  v::info << this->name() << " * Created AHBIn in following configuration: " << v::endl;
-  v::info << this->name() << " * --------------------------------------------- " << v::endl;
-  v::info << this->name() << " * abstraction Layer (LT = 8 / AT = 4): " << m_abstractionLayer << v::endl;
-  v::info << this->name() << " ************************************************** " << v::endl;
-}
-
 AHBIn::AHBIn(
   ModuleName name,     // The SystemC name of the component
   AbstractionLayer ambaLayer,
@@ -93,11 +52,9 @@ AHBIn::AHBIn(
   frame = new uint32_t(m_framesize);
 
   // Module Configuration Report
-  v::info << this->name() << " ************************************************** " << v::endl;
-  v::info << this->name() << " * Created AHBIn in following configuration: " << v::endl;
-  v::info << this->name() << " * --------------------------------------------- " << v::endl;
-  v::info << this->name() << " * abstraction Layer (LT = 8 / AT = 4): " << m_abstractionLayer << v::endl;
-  v::info << this->name() << " ************************************************** " << v::endl;
+  srInfo()
+    ("abstraction Layer", m_abstractionLayer)
+    ("Created AHBIn in following configuration (LT = 8 / AT = 4): ");
 }
 
 // Rest handler
@@ -127,7 +84,7 @@ void AHBIn::gen_frame() {
   wait(1, SC_MS);
 
   while (1) {
-    v::info << name() << "Start sending new data frame!" << v::endl;
+    srInfo()("Start sending new data frame!");
 
     // Generate data frame and send to memory
     for (uint32_t i = 0; i < m_framesize; i++) {
@@ -138,7 +95,7 @@ void AHBIn::gen_frame() {
       ahbwrite((m_frameaddr << 20) + (i << 2), (unsigned char *)&tmp, 4);
     }
 
-    v::info << name() << "Transmission of frame completed" << v::endl;
+    srInfo()("Transmission of frame completed");
 
     // Notify CPU by raising an interrupt
     irq.write(std::pair<uint32_t, bool>(1 << m_irq, true));
