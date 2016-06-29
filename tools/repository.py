@@ -261,14 +261,23 @@ def show_repo(cmd, params):
     global REPOS
     for directory, repository in REPOS.items():
         vals = get_repo_vals(directory)
-        print("%s <= %s" % (directory, repository))
+        print("%s <= %s:%s" % (directory, repository['pull']['remote_url'], repository['pull']['remote_branch']))
+
+        if "push" in repository:
+            print("    upstream repository: %s:%s" % (repository['push']['remote_url'], repository['push']['remote_branch']))
         print("    name: %s" % vals.get("name", ""))
         print("    description: %s" % vals.get("desc", ""))
         print("    default path: %s" % vals.get("path", ""))
-        print("    tools: %s" % ', '.join(vals.get("tools", "")))
-        print("    dependencies:")
-        for directory, repository in vals.get("deps", {}).items():
-            print("        %s <= %s" % (directory, repository))
+
+        tools = vals.get("tools", [])
+        if len(tools) > 0:
+            print("    tools: %s" % ', '.join(tools))
+
+        dependencies = vals.get('deps', {}).items()
+        if len(dependencies) > 0:
+            print("    dependencies:")
+            for directory, repository in dependencies:
+                print("        %s <= %s" % (directory, repository))
         print("")
 
 def show_help(cmd, params):
