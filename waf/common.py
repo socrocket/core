@@ -4,6 +4,7 @@ from __future__ import print_function
 import os
 import fnmatch
 import subprocess
+from core.tools.repository import read_repos
 from waflib import Errors, Context, Utils, Options, Build, Configure, TaskGen
 
 def options(self): 
@@ -146,9 +147,12 @@ class Macclean(Build.BuildContext):
 
 def get_subdirs(self,path='.'):
     """Return a list of all subdirectories from path"""
-    return [name 
+    REPOS = read_repos(Context.top_dir)
+    result = [name
             for name in os.listdir(path) 
-                if os.path.isfile(os.path.join(path, name, "wscript")) and not os.path.isdir(os.path.join(path, name, ".git"))]
+                if os.path.isfile(os.path.join(path, name, "wscript")) and (not os.path.relpath(
+                    os.path.join(path,name), Context.top_dir) in REPOS.keys() or name == 'core') and not name.startswith('.')]
+    return result
 conf(get_subdirs)
 
 def recurse_all(self):
