@@ -1,0 +1,20 @@
+*.pyc
+*.o
+*.sparc
+*.prom
+*.log
+.*sw?
+gmon.out
+
+# Mac Files
+.DS_Store
+._.DS_Store
+
+# waf files
+.lock-*
+.waf*
+build
+deps
+bigbuckbunny_small.m2v
+# Mkprom2
+xdump.s
