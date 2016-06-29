@@ -38,14 +38,12 @@ AHBOut::AHBOut(const ModuleName nm,  // Module name
 
   outfile.open(outfile_);
   // Display AHB slave information
-  v::info << name() << "********************************************************************" << v::endl;
-  v::info << name() << "* Create AHB simulation output device with following parameters:           " << v::endl;
-  v::info << name() << "* haddr/hmask: " << v::uint32 << mhaddr << "/" << v::uint32 << mhmask << v::endl;
-  v::info << name() << "* Slave base address: 0x" << std::setw(8) << std::setfill('0') << hex <<
-  get_ahb_base_addr()                     << v::endl;
-  v::info << name() << "* Slave size (bytes): 0x" << std::setw(8) << std::setfill('0') << hex <<
-  get_ahb_size()                          << v::endl;
-  v::info << name() << "********************************************************************" << v::endl;
+  srInfo()
+    ("haddr", mhaddr)
+    ("hmask", mhmask)
+    ("Slave base address", get_ahb_base_addr())
+    ("Slave size", get_ahb_size())
+    ("Create AHB simulation output device with following parameters:");
 }
 
 /// Destructor
@@ -65,7 +63,7 @@ uint32_t AHBOut::exec_func(
     // Warn if access exceeds slave memory region
     // We only do have one register!
     if (trans.get_data_length() > 4) {
-      v::warn << name() << "Transaction exceeds slave memory region" << endl;
+      srWarn()("Transaction exceeds slave memory region");
     }
 
     if (trans.is_write()) {
@@ -73,7 +71,7 @@ uint32_t AHBOut::exec_func(
         char c = *trans.get_data_ptr();
         outfile << c;
       } else {
-        v::warn << name() << "File not open" << endl;
+        srWarn()("File not open");
       }
     } else {
       // We don't support reading. We are an output device.
@@ -88,7 +86,7 @@ uint32_t AHBOut::exec_func(
     trans.set_response_status(tlm::TLM_OK_RESPONSE);
   } else {
     // address not valid
-    v::error << name() << "Address not within permissable slave memory space" << v::endl;
+    srError()("Address not within permissable slave memory space");
     trans.set_response_status(tlm::TLM_ADDRESS_ERROR_RESPONSE);
   }
   return trans.get_data_length();
