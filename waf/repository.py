@@ -11,22 +11,30 @@ from core.waf.common import conf
 from core.tools.repository import read_repos, get_repo_vals
 from waflib import Context,TaskGen,Utils,Errors
 
+REPOS = None
+
 @TaskGen.before('process_source', 'process_rule')
 @TaskGen.feature('cxx')
 def export_have_define(self):
     """This function extends the C compiler functionality to register precompiler defines for each repository"""
+    global REPOS
     defines = getattr(self, 'defines', [])
     defines = Utils.to_list(defines)
-    REPOS = read_repos(Context.top_dir)
+    if not REPOS:
+        REPOS = read_repos(Context.top_dir)
     for repo in REPOS.keys():
         defines += ['HAVE_REPO_' + repo.replace('.', '_').replace('/', '_').upper()]
     setattr(self, 'defines', defines)
 
 def loadrepos(self):
     """Load repositories"""
-    REPOS = read_repos(Context.top_dir)
+    global REPOS
+    if not REPOS:
+        REPOS = read_repos(Context.top_dir)
     for d, repo in REPOS.items():
         directory = os.path.join(Context.top_dir,d)
+        if d == ".waf":
+            continue
         vals = get_repo_vals(directory)
         waf = os.path.join(directory, "waf")
         for val in vals.get("tools", []):
@@ -43,10 +51,12 @@ def iterrepos(self):
         It is simmilar to recurse.
         But it does not work on subdirectories but repos.
     """
-    REPOS = read_repos(Context.top_dir)
+    global REPOS
+    if not REPOS:
+        REPOS = read_repos(Context.top_dir)
     self.repositories = REPOS
     for d, repo in REPOS.items():
-        if d == "core":
+        if d == "core" or d == ".waf":
             continue
         self.repository_root = self.srcnode.find_node(str(d))
         self.recurse([self.repository_root.abspath()])

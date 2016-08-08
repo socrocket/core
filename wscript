@@ -32,7 +32,7 @@ REPOSITORY_TOOLS = [
     'cpplint',
     'oclint',
     'clang_compilation_database',
-    "sparcelf"
+    'sparcelf'
 ]
 
 def build(self):

@@ -84,12 +84,14 @@ def update_repositories(top_dir, repos):
 
 def read_repos(top_dir):
     """Read the repository database file"""
-    if os.path.isfile(top_dir+os.sep+WAF_REPO_DB):
+    if not top_dir or top_dir == '':
+        top_dir = os.getcwd()
+    if os.path.isfile(os.path.join(os.path.abspath(top_dir), WAF_REPO_DB)):
         with open(top_dir+os.sep+WAF_REPO_DB, "r") as jsonfile:
             obj = json.load(jsonfile)
             jsonfile.close()
             return obj
-    elif os.path.isfile(top_dir+os.sep+WAF_REPO_LOCK):
+    elif os.path.isfile(os.path.join(os.path.abspath(top_dir), WAF_REPO_LOCK)):
         with open(top_dir+os.sep+WAF_REPO_LOCK, "r") as jsonfile:
             old = json.load(jsonfile)
             obj = {}
