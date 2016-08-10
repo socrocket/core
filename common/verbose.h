@@ -4,20 +4,20 @@
 /// @file verbose.h
 /// @brief Implements a unified output system for messages and debunging.
 ///
-/// @details The operators defined in verbose.h can be used to filter output 
-/// messages respecting their severity. As explained in @ref install2 "Bulding the Library" the verbosity 
+/// @details The operators defined in verbose.h can be used to filter output
+/// messages respecting their severity. As explained in @ref install2 "Bulding the Library" the verbosity
 /// level of the simulations must be defined during configuration of the library:
-/// 
-///     $ ./waf configure –verbosity=1..5 
 ///
-/// Five levels may be chosen: error, 
+///     $ ./waf configure –verbosity=1..5
+///
+/// Five levels may be chosen: error,
 /// warning, report, info and debug.
-/// 
+///
 /// The operators are used in a similar way to C++ stdout:
-/// 
+///
 /// ~~~{.cpp}
-/// std::cout   << value << std::endl;  // Regular C++ stdout		
-/// 
+/// std::cout   << value << std::endl;  // Regular C++ stdout
+///
 /// v::error    << value << v::endl;    // Verbosity error stream
 /// v::warn     << value << v::endl;    // Verbosity warn stream
 /// v::report   << value << v::endl;    // Verbosity report stream
@@ -147,6 +147,13 @@ class msgstream {
   public:
     explicit msgstream(std::streambuf *sb) :
       m_stream(sb) {
+    }
+
+    inline msgstream &operator<<(const std::stringstream &in) {
+      if (level < VERBOSITY) {
+        m_stream << in.str();
+      }
+      return *this;
     }
 
     template<class T>

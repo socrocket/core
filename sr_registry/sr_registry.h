@@ -32,6 +32,7 @@ class SrModuleRegistry {
     typedef std::map<std::string, map_t> map_map_t;
     typedef sc_core::sc_object *(*factory_f)(sc_core::sc_module_name);
     typedef bool (*isinstance_f)(sc_core::sc_object *obj);
+
     SrModuleRegistry(std::string group, std::string type, factory_f factory, isinstance_f isinstance, std::string file);
     void included();
     static sc_core::sc_object *create_object_by_name(std::string group, std::string type, std::string name);

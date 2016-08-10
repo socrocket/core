@@ -19,7 +19,7 @@ def base(self, *k, **kw):
     kw["BASE_PATH_BUILD"] = kw.get("BASE_PATH_BUILD", "%(BASE_PATH)s/build") % kw
     kw["BASE_PATH_DIST"] = kw.get("BASE_PATH_DIST", "%(BASE_PATH)s/dist") % kw
 
-    kw["fdeps"] = kw.get("fallback", os.path.join(self.srcnode.abspath(), "deps"))
+    kw["fdeps"] = kw.get("fallback", os.path.join(self.srcnode.abspath()))
     kw["src"] = kw.get("src", os.path.join(kw["BASE_PATH_SRC"], kw["base"]))
     kw["build"] = kw.get("build", os.path.join(kw["BASE_PATH_BUILD"], kw["base"]))
     kw["prefix"] = kw.get("prefix", os.path.join(kw["BASE_PATH_DIST"], kw["base"]))
@@ -39,7 +39,7 @@ def fetch(self, *k, **kw):
     if "tar" in kw and os.path.isfile(os.path.join(kw['fdeps'], kw['tar'] % kw)):
         """First try the fallback ./deps folder"""
         fallback_file = os.path.join(kw['fdeps'], kw['tar'] % kw)
-        shutil.copytree(fallback_file, os.path.join(kw["BASE_PATH_FETCH"], kw['tar'] % kw))
+        shutil.copyfile(fallback_file, os.path.join(kw["BASE_PATH_FETCH"], kw['tar'] % kw))
     elif "git_url" in kw:
         """Then search for a git repo"""
         self.start_msg("Cloning %(name)s" % kw)
@@ -72,18 +72,9 @@ def fetch(self, *k, **kw):
         if not os.path.exists(os.path.join(kw["BASE_PATH_FETCH"], kw["tar"])):
             if os.path.exists(tar_url):
                 shutil.copyfile(tar_url, os.path.join(kw["BASE_PATH_FETCH"], kw["tar"]))
-            elif self.env.WGET:
-                self.cmd_and_log(
-                    [Utils.subst_vars('${WGET}',self.env), tar_url, "-q", "-O", kw["tar"]], 
-                    output=Context.BOTH, 
-                    cwd=kw["BASE_PATH_FETCH"]
-                )
             else:
-                self.cmd_and_log(
-                    [Utils.subst_vars('${CURL}',self.env), tar_url, "-o", kw["tar"]],
-                    output=Context.BOTH,
-                    cwd=kw["BASE_PATH_FETCH"]
-                )
+                import urllib
+                urllib.urlretrieve(tar_url, os.path.join(kw["BASE_PATH_FETCH"],kw["tar"]))
             self.end_msg("Ok")
         else:
             self.end_msg("Already done")

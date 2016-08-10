@@ -81,7 +81,7 @@
 extern int errno;
 #endif
 #include <sstream>
-#ifdef __GNUC__
+#if defined(__GNUC__) and not defined(_WIN32)
 #include <sys/times.h>
 #endif
 #include <ctime>
@@ -301,6 +301,7 @@ class writeIntrinsic : public PlatformIntrinsic<wordSize> {
     int stdout_log_file;
 };
 
+#if not defined(_WIN32)
 template<class wordSize>
 class isattyIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
@@ -503,6 +504,7 @@ class statIntrinsic : public PlatformIntrinsic<wordSize> {
     }
 };
 
+#endif
 template<class wordSize>
 class _exitIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
@@ -527,6 +529,7 @@ class _exitIntrinsic : public PlatformIntrinsic<wordSize> {
       return true;
     }
 };
+#if not defined(_WIN32)
 
 template<class wordSize>
 class timesIntrinsic : public PlatformIntrinsic<wordSize> {
@@ -1086,6 +1089,8 @@ class usleepIntrinsic : public PlatformIntrinsic<wordSize> {
     }
 };
 
+#endif
+
 template<class wordSize>
 class mainIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
@@ -1280,6 +1285,7 @@ class notifyIntrinsic : public PlatformIntrinsic<wordSize> {
 #define NEWLIB_SC_2_UPE                       120
 #define NEWLIB_SC_2_VERSION                   121
 
+#if not defined(_WIN32)
 template<class wordSize>
 class sysconfIntrinsic : public PlatformIntrinsic<wordSize> {
   private:
@@ -1325,7 +1331,7 @@ class sysconfIntrinsic : public PlatformIntrinsic<wordSize> {
       return true;
     }
 };
-
+#endif
 
 typedef openIntrinsic<unsigned int> openIntrinsic32;
 SR_HAS_INTRINSIC(openIntrinsic32);
@@ -1337,6 +1343,7 @@ typedef readIntrinsic<unsigned int> readIntrinsic32;
 SR_HAS_INTRINSIC(readIntrinsic32);
 typedef writeIntrinsic<unsigned int> writeIntrinsic32;
 SR_HAS_INTRINSIC(writeIntrinsic32);
+#if not defined(_WIN32)
 typedef isattyIntrinsic<unsigned int> isattyIntrinsic32;
 SR_HAS_INTRINSIC(isattyIntrinsic32);
 typedef sbrkIntrinsic<unsigned int> sbrkIntrinsic32;
@@ -1345,8 +1352,10 @@ typedef lseekIntrinsic<unsigned int> lseekIntrinsic32;
 SR_HAS_INTRINSIC(lseekIntrinsic32);
 typedef fstatIntrinsic<unsigned int> fstatIntrinsic32;
 SR_HAS_INTRINSIC(fstatIntrinsic32);
+#endif
 typedef _exitIntrinsic<unsigned int> _exitIntrinsic32;
 SR_HAS_INTRINSIC(_exitIntrinsic32);
+#if not defined(_WIN32)
 typedef timesIntrinsic<unsigned int> timesIntrinsic32;
 SR_HAS_INTRINSIC(timesIntrinsic32);
 typedef timeIntrinsic<unsigned int> timeIntrinsic32;
@@ -1383,6 +1392,7 @@ typedef lstatIntrinsic<unsigned int> lstatIntrinsic32;
 SR_HAS_INTRINSIC(lstatIntrinsic32);
 typedef utimesIntrinsic<unsigned int> utimesIntrinsic32;
 SR_HAS_INTRINSIC(utimesIntrinsic32);
+#endif
 typedef mainIntrinsic<unsigned int> mainIntrinsic32;
 SR_HAS_INTRINSIC(mainIntrinsic32);
 typedef notifyIntrinsic<unsigned int> notifyIntrinsic32;

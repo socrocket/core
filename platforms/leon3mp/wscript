@@ -13,7 +13,7 @@ def build(bld):
                         'usi',
                         'ahbdisplay', 'ahbcamera', 'ahbshuffler', 'leon3', 'trap',
                         'sr_registry', 'sr_register', 'sr_report', 'sr_signal', 'common',
-                        'AMBA', 'GREENSOCS', 'TLM', 'SYSTEMC', 'BOOST'
+                        'AMBA', 'GREENSOCS', 'TLM', 'SYSTEMC', 'BOOST', 'WINSOCK'
                        ],
     )
 

@@ -118,7 +118,7 @@ class sr_report : public sc_core::sc_report {
         const sc_core::sc_actions &actions) :
 #ifdef NC_SYSTEMC
       sc_core::sc_report(
-        severity, msg_def, msg, 
+        severity, msg_def, msg,
         verbosity_level, file, line),
 #else
       sc_core::sc_report(
@@ -145,7 +145,7 @@ class sr_report : public sc_core::sc_report {
       swap(enabled, that.enabled);
       swap(actions, that.actions);
       swap(pairs,   that.pairs);
-    } 
+    }
 
     inline void set_msg(const char *msg) {
       char* result;
@@ -207,7 +207,7 @@ class sr_report : public sc_core::sc_report {
       return *this;
     }
 
-#ifndef NC_SYSTEMC
+#if not defined(NC_SYSTEMC) and not defined(_WIN32)
     inline sr_report &operator()(const std::string &name, sc_dt::int64 value) {
       if( __builtin_expect( enabled, 0 ) ) {
         pairs.push_back(v::pair(name, (int64_t)value));
@@ -223,7 +223,7 @@ class sr_report : public sc_core::sc_report {
       return *this;
     }
 
-#ifndef NC_SYSTEMC
+#if not defined(NC_SYSTEMC) and not defined(_WIN32)
     inline sr_report &operator()(const std::string &name, sc_dt::uint64 value) {
       if( __builtin_expect( enabled, 0 ) ) {
         pairs.push_back(v::pair(name, (uint64_t)value));
@@ -238,7 +238,7 @@ class sr_report : public sc_core::sc_report {
       }
       return *this;
     }
-    
+
     inline sr_report &operator()(const std::string &name, const char value[]) {
       if( __builtin_expect( enabled, 0 ) ) {
         pairs.push_back(v::pair(name, std::string(value)));
@@ -284,12 +284,12 @@ class sr_report : public sc_core::sc_report {
 class sr_report_handler : public sc_core::sc_report_handler {
   public:
     static sr_report report(
-        sc_severity severity_, 
+        sc_severity severity_,
         const sc_core::sc_object *obj,
-        const char *msg_type_, 
-        const char *msg_, 
-        int verbosity_, 
-        const char *file_, 
+        const char *msg_type_,
+        const char *msg_,
+        int verbosity_,
+        const char *file_,
         int line_) {
 
       bool enabled = true;
@@ -313,8 +313,8 @@ class sr_report_handler : public sc_core::sc_report_handler {
         }
       }
 
-      // If the severity of the report is SC_INFO and the specified verbosity 
-      // level is greater than the maximum verbosity level of the simulator then 
+      // If the severity of the report is SC_INFO and the specified verbosity
+      // level is greater than the maximum verbosity level of the simulator then
       // return without any action.
       if ( __builtin_expect( (severity_ == sc_core::SC_INFO) && (verbosity_ > sr_report_handler::get_verbosity_level()), 1 ) ) {
         return null;

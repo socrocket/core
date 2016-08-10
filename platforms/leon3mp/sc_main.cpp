@@ -6,7 +6,7 @@
 /// @date 2010-2014
 /// @copyright All rights reserved.
 ///            Any reproduction, use, distribution or disclosure of this
-///            program, without the express, prior written consent of the 
+///            program, without the express, prior written consent of the
 ///            authors is strictly prohibited.
 /// @author Thomas Schuster
 ///
@@ -20,7 +20,6 @@
 #include <sys/time.h>
 #include <time.h>
 #include <string.h>
-#include <mcheck.h>
 #include "core/common/amba.h"
 #include "core/common/trapgen/debugger/GDBStub.hpp"
 #include <iostream>
@@ -105,8 +104,8 @@ void grethVPHYHook(char* dev_name)
 class irqmp_rst_stimuli : sc_core::sc_module {
   public:
     sr_signal::signal_out<bool, Irqmp> irqmp_rst;
-    irqmp_rst_stimuli(sc_core::sc_module_name mn) : 
-        sc_core::sc_module(mn), 
+    irqmp_rst_stimuli(sc_core::sc_module_name mn) :
+        sc_core::sc_module(mn),
         irqmp_rst("rst") {
 
     }
@@ -927,7 +926,7 @@ int sc_main(int argc, char** argv) {
 #ifdef HAVE_AHBDISPLAY
     int frameWidth = 960;
     int frameHeight = 720;
-    
+
     // AHBDisplay - AHBMaster
     // ==================
     gs::gs_param_array p_ahbdisplay("ahbdisplay", p_conf);
@@ -986,7 +985,7 @@ int sc_main(int argc, char** argv) {
     int outX = 320;
     int outY = 0;
     int videoWidth = 320;
-    uint8_t p_ahbshuffler_matrix[16] = { 
+    uint8_t p_ahbshuffler_matrix[16] = {
       1,0,2,12,
       4,5,14,8,
       3,9,10,11,
@@ -1037,7 +1036,7 @@ int sc_main(int argc, char** argv) {
         ambaLayer,
         p_nyuzi_irq
       );
-      
+
       // Connecting AHB Master
       nyuzi->ahb(ahbctrl.ahbIN);
 

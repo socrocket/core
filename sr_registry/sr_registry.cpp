@@ -2,7 +2,7 @@
 /// @addtogroup common
 /// @{
 /// @file sr_registry.cpp
-/// 
+///
 /// @date 2013-2014
 /// @author Rolf Meyer
 /// @copyright
@@ -18,7 +18,10 @@
 ///   See the License for the specific language governing permissions and
 ///   limitations under the License.
 #include "sr_registry.h"
+#ifndef _WIN32
+// Does not work under windows
 #include <dlfcn.h>
+#endif
 
 SrModuleRegistry::map_map_t *SrModuleRegistry::m_members = NULL;
 SrModuleRegistry::lib_map_t *SrModuleRegistry::m_libs = NULL;
@@ -38,7 +41,7 @@ SrModuleRegistry::map_t &SrModuleRegistry::get_group(std::string group) {
   return iter->second;
 }
 
-SrModuleRegistry::SrModuleRegistry(std::string groupname, std::string type, SrModuleRegistry::factory_f factory, SrModuleRegistry::isinstance_f isinstance, std::string file) : 
+SrModuleRegistry::SrModuleRegistry(std::string groupname, std::string type, SrModuleRegistry::factory_f factory, SrModuleRegistry::isinstance_f isinstance, std::string file) :
   m_factory(factory), m_isinstance(isinstance), m_file(file) {
   SrModuleRegistry::map_t &group = SrModuleRegistry::get_group(groupname);
   group.insert(std::make_pair(type, this));
@@ -92,6 +95,7 @@ std::set<std::string> SrModuleRegistry::get_group_names() {
 }
 
 bool SrModuleRegistry::load(std::string name) {
+#ifndef _WIN32
   if(!SrModuleRegistry::m_libs) {
     SrModuleRegistry::m_libs = new lib_map_t();
   }
@@ -103,9 +107,13 @@ bool SrModuleRegistry::load(std::string name) {
   }
   SrModuleRegistry::m_libs->insert(std::make_pair(name, handle));
   return true;
+#else
+  return false;
+#endif
 }
 
 bool SrModuleRegistry::unload(std::string name) {
+#ifndef _WIN32
   if(!SrModuleRegistry::m_libs) {
     SrModuleRegistry::m_libs = new lib_map_t();
   }
@@ -119,6 +127,9 @@ bool SrModuleRegistry::unload(std::string name) {
   }
   SrModuleRegistry::m_libs->erase(item);
   return true;
+#else
+  return false;
+#endif
 }
 
 /// @}

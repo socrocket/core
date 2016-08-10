@@ -44,6 +44,7 @@ def find(self, path = None):
     # Check for AMBAKit Headers
     self.check_cxx(
       msg          = "Checking for AMBAKit Version > 1.0.5",
+      uselib_store  = 'AMBA',
       mandatory    = True,
       execute      = True,
       rpath        = self.env.LIBPATH_SYSTEMC,
@@ -64,9 +65,9 @@ def configure(self):
         else:
             find(self)
     except ConfigurationError as e:
-        name    = "amba_socket"
-        version = "1.0.15"
-        try:
+            name    = "amba_socket"
+            version = "1.0.15"
+        #try:
             self.dep_fetch(
                 name    = name,
                 version = version, 
@@ -76,5 +77,5 @@ def configure(self):
                 patch   = [os.path.join(self.path.abspath(), "core", "waf", "ambakit-2015-10-16-rmeyer.patch")]
             )
             find(self, self.dep_path(name, version).rstrip("-"+version))
-        except:
-            self.fatal("failed\nYou have to register at Carbon Design Systems IP Exchange and download %s-%s.tgz via this URL https://portal.carbondesignsystems.com/Model/Carbon/TLM-2.0-AMBA. Please place the downloaded file in the socrocket src root directory")
+        #except:
+        #    self.fatal("failed\nYou have to register at Carbon Design Systems IP Exchange and download %s-%s.tgz via this URL https://portal.carbondesignsystems.com/Model/Carbon/TLM-2.0-AMBA. Please place the downloaded file in the socrocket src root directory")

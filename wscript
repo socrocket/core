@@ -19,7 +19,6 @@ REPOSITORY_TOOLS = [
     'boosting',
     'endian',
     'systools',
-    'libelf',
     'systemc',
     'cmake',
     'winsocks',

@@ -12,7 +12,7 @@ class sr_param<uint8_t>
     SR_PARAM_HEAD;
     // To resolve the correct = operator
     //using sr_param_t<val_type>::operator =;
-    my_type& operator = (const val_type& v) { 
+    my_type& operator = (const val_type& v) {
         //cout << "operator = (val_type) value="<<convertValueToString(v) <<endl;
         setValue(v);
         return *this;
@@ -38,7 +38,7 @@ class sr_param<uint8_t>
     /// Overloads sr_param_t<T>::convertValueToString
     std::string convertValueToString(const val_type &val) const {
         return static_convertValueToString(val);
-    }  
+    }
     inline static std::string static_convertValueToString(const val_type &val) {
         std::ostringstream ss;
         ss << (int) val;
@@ -46,7 +46,7 @@ class sr_param<uint8_t>
     }
 
     /// Static convertion function called by virtual deserialize and others (e.g. GCnf_API)
-    inline static bool static_deserialize(val_type &target_val, const std::string& str) { 
+    inline static bool static_deserialize(val_type &target_val, const std::string& str) {
         std::istringstream ss(str);
         if (ss.str().length() == 0) {
             target_val = 0;
@@ -99,7 +99,7 @@ class sr_param<int8_t>
 
     // To resolve the correct = operator
     //using sr_param_t<val_type>::operator =;
-    my_type& operator = (const val_type& v) { 
+    my_type& operator = (const val_type& v) {
         //cout << "operator = (val_type) value="<<convertValueToString(v) <<endl;
         setValue(v);
         return *this;
@@ -125,7 +125,7 @@ class sr_param<int8_t>
     /// Overloads sr_param_t<T>::convertValueToString
     std::string convertValueToString(const val_type &val) const {
         return static_convertValueToString(val);
-    }  
+    }
     inline static std::string static_convertValueToString(const val_type &val) {
         std::ostringstream ss;
         ss << (int) val;
@@ -133,7 +133,7 @@ class sr_param<int8_t>
     }
 
     /// Static convertion function called by virtual deserialize and others (e.g. GCnf_API)
-    inline static bool static_deserialize(val_type &target_val, const std::string& str) { 
+    inline static bool static_deserialize(val_type &target_val, const std::string& str) {
         std::istringstream ss(str);
         if (ss.str().length() == 0) {
             target_val = 0;
@@ -205,7 +205,7 @@ public:
     /// Overloads sr_param_t<T>::convertValueToString
     std::string convertValueToString(const val_type &val) const{
         return static_convertValueToString(val);
-    }  
+    }
     inline static std::string static_convertValueToString(const val_type &val) {
         std::ostringstream ss;
         ss << val;
@@ -213,7 +213,7 @@ public:
     }
 
     /// Static convertion function called by virtual deserialize and others (e.g. GCnf_API)
-    inline static bool static_deserialize(val_type &target_val, const std::string& str) { 
+    inline static bool static_deserialize(val_type &target_val, const std::string& str) {
         std::istringstream ss(str);
         GS_PARAM_DUMP_WITHNAME("sr_param", "deserialize: string='"<< ss.str().c_str()<<"'");
         if (ss.str().length() == 0) {
@@ -239,7 +239,7 @@ public:
         // no conversion error
         if (ss.eof() && !ss.fail() && !ss.bad()) {
             target_val = tmp;
-            GS_PARAM_DUMP_WITHNAME("sr_param", "(uint16_t) stream eof and not fail"); 
+            GS_PARAM_DUMP_WITHNAME("sr_param", "(uint16_t) stream eof and not fail");
         } else {
             std::stringstream ess;
             ess << "Conversion error: '" << str << "'";
@@ -247,7 +247,7 @@ public:
             return false;
         }
         return true;
-    }    
+    }
 };
 
 #endif  // 0
@@ -281,7 +281,7 @@ class sr_param<int16_t>
     /// Overloads sr_param_t<T>::convertValueToString
     std::string convertValueToString(const val_type &val) const{
         return static_convertValueToString(val);;
-    }  
+    }
     inline static std::string static_convertValueToString(const val_type &val) {
         std::ostringstream ss;
         ss << val;
@@ -289,7 +289,7 @@ class sr_param<int16_t>
     }
 
     /// Static convertion function called by virtual deserialize and others (e.g. GCnf_API)
-    inline static bool static_deserialize(val_type &target_val, const std::string& str) { 
+    inline static bool static_deserialize(val_type &target_val, const std::string& str) {
         std::istringstream ss(str);
         GS_PARAM_DUMP_WITHNAME("sr_param", "deserialize: string='"<< ss.str().c_str() << "'");
         if (ss.str().length() == 0) {
@@ -315,7 +315,7 @@ class sr_param<int16_t>
         // no conversion error
         if (ss.eof() && !ss.fail() && !ss.bad()) {
             target_val = tmp;
-            GS_PARAM_DUMP_WITHNAME("sr_param", "(int16_t) stream eof and not fail"); 
+            GS_PARAM_DUMP_WITHNAME("sr_param", "(int16_t) stream eof and not fail");
         } else {
             std::stringstream ess;
             ess << "Conversion error: '" << str << "'";
@@ -323,7 +323,7 @@ class sr_param<int16_t>
             return false;
         }
         return true;
-    }    
+    }
 
 };
 
@@ -360,7 +360,7 @@ public:
     /// Overloads gs_param_t<T>::convertValueToString
     std::string convertValueToString(const val_type &val) const {
         return static_convertValueToString(val);
-    }  
+    }
     inline static std::string static_convertValueToString(const val_type &val) {
         std::ostringstream ss;
         ss << val;
@@ -368,7 +368,7 @@ public:
     }
 
     /// Static convertion function called by virtual deserialize and others (e.g. GCnf_API)
-    inline static bool static_deserialize(val_type &target_val, const std::string& str) { 
+    inline static bool static_deserialize(val_type &target_val, const std::string& str) {
         std::istringstream ss(str);
         GS_PARAM_DUMP_WITHNAME("gs_param", "deserialize: string='" << ss.str().c_str() <<"'");
         if (ss.str().length() == 0) {
@@ -393,7 +393,7 @@ public:
         // no conversion error
         if (ss.eof() && !ss.fail() && !ss.bad()) {
             target_val = tmp;
-            GS_PARAM_DUMP_WITHNAME("gs_param", "(uint32_t) stream eof and not fail"); 
+            GS_PARAM_DUMP_WITHNAME("gs_param", "(uint32_t) stream eof and not fail");
         } else {
             std::stringstream ess;
             ess << "Conversion error: '" << str << "'";
@@ -434,7 +434,7 @@ class sr_param<int32_t>
     /// Overloads gs_param_t<T>::convertValueToString
     std::string convertValueToString(const val_type &val) const{
         return static_convertValueToString(val);
-    }  
+    }
     inline static std::string static_convertValueToString(const val_type &val) {
         std::ostringstream ss;
         ss << val;
@@ -442,7 +442,7 @@ class sr_param<int32_t>
     }
 
     /// Static convertion function called by virtual deserialize and others (e.g. GCnf_API)
-    inline static bool static_deserialize(val_type &target_val, const std::string& str) { 
+    inline static bool static_deserialize(val_type &target_val, const std::string& str) {
         std::istringstream ss(str);
         GS_PARAM_DUMP_WITHNAME("gs_param", "deserialize: string='"<< ss.str().c_str() << "'");
         if (ss.str().length() == 0) {
@@ -468,7 +468,7 @@ class sr_param<int32_t>
         // no conversion error
         if (ss.eof() && !ss.fail() && !ss.bad()) {
             target_val = tmp;
-            GS_PARAM_DUMP_WITHNAME("gs_param", "(int32_t) stream eof and not fail"); 
+            GS_PARAM_DUMP_WITHNAME("gs_param", "(int32_t) stream eof and not fail");
         } else {
             std::stringstream ess;
             ess << "Conversion error: '" << str << "'";
@@ -476,12 +476,13 @@ class sr_param<int32_t>
             return false;
         }
         return true;
-    }    
+    }
 
 };
 
 #endif  // 0
 
+#if not defined(_WIN32)
 /// Template specialization for sr_param<uint64_t>.
 /// Default value = 0.
 template<>
@@ -494,21 +495,21 @@ class sr_param<uint64_t>
 public:
     SR_PARAM_HEAD;
     /// Constructor with unsigned int value
-    explicit sr_param(const std::string &nam, const unsigned int &val) : sr_param_t<uint64_t>(nam         )  { sr_param_t<uint64_t>::init((uint64_t)val); }    
-    explicit sr_param(const char *nam,        const unsigned int &val) : sr_param_t<uint64_t>(std::string(nam) )  { sr_param_t<uint64_t>::init((uint64_t)val); }    
+    explicit sr_param(const std::string &nam, const unsigned int &val) : sr_param_t<uint64_t>(nam         )  { sr_param_t<uint64_t>::init((uint64_t)val); }
+    explicit sr_param(const char *nam,        const unsigned int &val) : sr_param_t<uint64_t>(std::string(nam) )  { sr_param_t<uint64_t>::init((uint64_t)val); }
     explicit sr_param(const std::string nam,  const unsigned int &val, gs_param_array* parent_array) : sr_param_t<uint64_t>(nam, false, parent_array, true) { sr_param_t<uint64_t>::init(val);}
     explicit sr_param(const char *nam,        const unsigned int &val, gs_param_array* parent_array) : sr_param_t<uint64_t>(std::string(nam), false, parent_array, true) { sr_param_t<uint64_t>::init(val);}
     explicit sr_param(const std::string nam,  const unsigned int &val, gs_param_array& parent_array) : sr_param_t<uint64_t>(nam, false, &parent_array, true) { sr_param_t<uint64_t>::init(val);}
     explicit sr_param(const char *nam,        const unsigned int &val, gs_param_array& parent_array) : sr_param_t<uint64_t>(std::string(nam), false, &parent_array, true) { sr_param_t<uint64_t>::init(val);}
 
-    explicit sr_param(const char *nam,        const unsigned long long int &val) : sr_param_t<uint64_t>(std::string(nam) )  { sr_param_t<uint64_t>::init((uint64_t)val); }    
+    explicit sr_param(const char *nam,        const unsigned long long int &val) : sr_param_t<uint64_t>(std::string(nam) )  { sr_param_t<uint64_t>::init((uint64_t)val); }
     explicit sr_param(const std::string nam,  const unsigned long long int &val, gs_param_array* parent_array) : sr_param_t<uint64_t>(nam, false, parent_array, true) { sr_param_t<uint64_t>::init(val);}
     explicit sr_param(const char *nam,        const unsigned long long int &val, gs_param_array* parent_array) : sr_param_t<uint64_t>(std::string(nam), false, parent_array, true) { sr_param_t<uint64_t>::init(val);}
     explicit sr_param(const std::string nam,  const unsigned long long int &val, gs_param_array& parent_array) : sr_param_t<uint64_t>(nam, false, &parent_array, true) { sr_param_t<uint64_t>::init(val);}
     explicit sr_param(const char *nam,        const unsigned long long int &val, gs_param_array& parent_array) : sr_param_t<uint64_t>(std::string(nam), false, &parent_array, true) { sr_param_t<uint64_t>::init(val);}
     /// Constructor with int value
-    explicit sr_param(const std::string &nam, const int &val) : sr_param_t<uint64_t>(nam         )  { sr_param_t<uint64_t>::init((uint64_t)val); }    
-    explicit sr_param(const char *nam,        const int &val) : sr_param_t<uint64_t>(std::string(nam) )  { sr_param_t<uint64_t>::init((uint64_t)val); }    
+    explicit sr_param(const std::string &nam, const int &val) : sr_param_t<uint64_t>(nam         )  { sr_param_t<uint64_t>::init((uint64_t)val); }
+    explicit sr_param(const char *nam,        const int &val) : sr_param_t<uint64_t>(std::string(nam) )  { sr_param_t<uint64_t>::init((uint64_t)val); }
     //  operators
     GC_SPECIALISATIONS_ARITHMETIC_OPERATORS;
     GC_SPECIALISATIONS_BINARY_OPERATORS;
@@ -529,7 +530,7 @@ public:
     /// Overloads sr_param_t<T>::convertValueToString
     std::string convertValueToString(const val_type &val) const {
         return static_convertValueToString(val);
-    }  
+    }
     inline static std::string static_convertValueToString(const val_type &val) {
         std::ostringstream ss;
         ss << val;
@@ -537,7 +538,7 @@ public:
     }
 
     /// Static convertion function called by virtual deserialize and others (e.g. GCnf_API)
-    inline static bool static_deserialize(val_type &target_val, const std::string& str) { 
+    inline static bool static_deserialize(val_type &target_val, const std::string& str) {
         std::istringstream ss(str);
         if (ss.str().length() == 0) {
             target_val = 0;
@@ -581,8 +582,8 @@ class sr_param<int64_t>
 public:
     SR_PARAM_HEAD;
     /// Constructor with int value
-    explicit sr_param(const std::string &nam, const int &val) : sr_param_t<int64_t>(nam         )  { sr_param_t<int64_t>::init(val); }    
-    explicit sr_param(const char *nam,        const int &val) : sr_param_t<int64_t>(std::string(nam) )  { sr_param_t<int64_t>::init(val); }    
+    explicit sr_param(const std::string &nam, const int &val) : sr_param_t<int64_t>(nam         )  { sr_param_t<int64_t>::init(val); }
+    explicit sr_param(const char *nam,        const int &val) : sr_param_t<int64_t>(std::string(nam) )  { sr_param_t<int64_t>::init(val); }
     //  operators
     GC_SPECIALISATIONS_ARITHMETIC_OPERATORS;
     GC_SPECIALISATIONS_BINARY_OPERATORS;
@@ -603,7 +604,7 @@ public:
     /// Overloads sr_param_t<T>::convertValueToString
     std::string convertValueToString(const val_type &val) const {
         return static_convertValueToString(val);
-    }  
+    }
     inline static std::string static_convertValueToString(const val_type &val) {
         std::ostringstream ss;
         ss << val;
@@ -611,7 +612,7 @@ public:
     }
 
     /// Static convertion function called by virtual deserialize and others (e.g. GCnf_API)
-    inline static bool static_deserialize(val_type &target_val, const std::string& str) { 
+    inline static bool static_deserialize(val_type &target_val, const std::string& str) {
         std::istringstream ss(str);
         if (ss.str().length() == 0) {
             target_val = 0;
@@ -656,3 +657,4 @@ public:
         return true;
     }
 };
+#endif
