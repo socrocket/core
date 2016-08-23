@@ -25,6 +25,17 @@ def find(self, path = None):
           includes      = socincpath,
           uselib        = 'BOOST SYSTEMC TLM',
           okmsg         = "ok",
+          fragment      = '''
+           #include <systemc.h>
+           #include <tlm.h>
+           #include <greenlib/gs_sc_api_detection.h>
+
+           extern "C" {
+               int sc_main(int argc, char** argv) {
+                   return 0;
+               };
+           }
+          '''
         )
         if not os.path.exists(os.path.join(socincpath, "greensocket")):
             socincpath = os.path.join(path, "greensocket", "include")
