@@ -19,8 +19,9 @@
 ///   limitations under the License.
 #include "sr_registry.h"
 #ifndef _WIN32
-// Does not work under windows
 #include <dlfcn.h>
+#else
+#include <windows.h>
 #endif
 
 SrModuleRegistry::map_map_t *SrModuleRegistry::m_members = NULL;
@@ -95,25 +96,24 @@ std::set<std::string> SrModuleRegistry::get_group_names() {
 }
 
 bool SrModuleRegistry::load(std::string name) {
-#ifndef _WIN32
   if(!SrModuleRegistry::m_libs) {
     SrModuleRegistry::m_libs = new lib_map_t();
   }
   //void * handle = dlopen(name.c_str(), RTLD_NOW | RTLD_GLOBAL);
+#ifndef _WIN32
   void * handle = dlopen(name.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+#else
+  HMODULE handle = LoadLibrary(name.c_str());
+#endif
   if(!handle) {
     std::cerr << "Could not open file: " << dlerror() << std::endl;
     return false;
   }
-  SrModuleRegistry::m_libs->insert(std::make_pair(name, handle));
+  SrModuleRegistry::m_libs->insert(std::make_pair(name, reinterpret_cast<void *>(handle)));
   return true;
-#else
-  return false;
-#endif
 }
 
 bool SrModuleRegistry::unload(std::string name) {
-#ifndef _WIN32
   if(!SrModuleRegistry::m_libs) {
     SrModuleRegistry::m_libs = new lib_map_t();
   }
@@ -121,15 +121,16 @@ bool SrModuleRegistry::unload(std::string name) {
   if(item == SrModuleRegistry::m_libs->end()) {
     return false;
   }
+#ifndef _WIN32
   int ret = dlclose(item->second);
+#else
+  bool ret FreeLibrary(reinterpret_cast<HMODULE>(item->second));
+#endif
   if(!ret) {
     return false;
   }
   SrModuleRegistry::m_libs->erase(item);
   return true;
-#else
-  return false;
-#endif
 }
 
 /// @}
