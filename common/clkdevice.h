@@ -16,7 +16,7 @@
 #ifndef MODELS_UTILS_CLKDEVICE_H_
 #define MODELS_UTILS_CLKDEVICE_H_
 
-#include "core/common/systemc.h"
+#include "core/base/systemc.h"
 #include "core/common/sr_signal.h"
 
 

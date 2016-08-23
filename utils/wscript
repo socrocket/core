@@ -4,11 +4,16 @@ top = '../..'
 
 def build(self):
   self(
-    target          = 'common',
+    target          = 'utils',
     features        = 'cxx cxxstlib',
+    source          = [
+                       'powermonitor.cpp',
+                       'timingmonitor.cpp',
+                       'msclogger.cpp',
+                       ],
     export_includes = self.top_dir,
     includes        = self.top_dir,
-    use             = 'sr_registry sr_register sr_report utils base BOOST SYSTEMC TLM GREENSOCS',
+    use             = 'BOOST SYSTEMC TLM AMBA GREENSOCS',
     install_path    = '${PREFIX}/lib',
   )
   self.install_files('${PREFIX}/include', self.path.ant_glob('**/*.h', excl=['**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']), relative_trick=True)

@@ -15,7 +15,7 @@
 ///
 
 #include "core/common/memdevice.h"
-#include "core/common/verbose.h"
+#include "core/base/verbose.h"
 
 MEMDevice::MEMDevice(sc_module_name name, MEMDevice::device_type type, uint32_t banks, uint32_t bsize, uint32_t bits, uint32_t cols) : 
   BaseModule<DefaultBase>(name),

@@ -15,20 +15,20 @@
 #endif
 
 #include "core/common/sr_param.h"
-#include "core/common/systemc.h"
+#include "core/base/systemc.h"
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
 #include <string.h>
-#include "core/common/amba.h"
-#include "core/common/trapgen/debugger/GDBStub.hpp"
+#include "amba/amba.h"
+#include "core/trapgen/debugger/GDBStub.hpp"
 #include <iostream>
 #include <vector>
 #include <cstring>
 #include <cstdlib>
 #include <stdexcept>
 
-#include "core/common/verbose.h"
+#include "core/base/verbose.h"
 #include "gaisler/leon3/leon3.h"
 #include "gaisler/ahbin/ahbin.h"
 #include "gaisler/memory/memory.h"

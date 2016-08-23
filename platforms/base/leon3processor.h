@@ -13,7 +13,7 @@
 #define PLATFORM_BASE_LEON3PROCESSOR_H_
 #include "core/platforms/base/ambabase.h"
 #include "core/common/clkdevice.h"
-#include "core/common/systemc.h"
+#include "core/base/systemc.h"
 
 #include "gaisler/leon3/mmucache/mmu_cache.h"
 #include "gaisler/leon3/intunit.h"

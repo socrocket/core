@@ -15,9 +15,9 @@
 #ifndef COMMON_COMMON_H_
 #define COMMON_COMMON_H_
 
-#include "core/common/systemc.h"
-#include "core/common/vendian.h"
-#include "core/common/verbose.h"
+#include "core/base/systemc.h"
+#include "core/base/vendian.h"
+#include "core/base/verbose.h"
 inline void vwait(sc_core::sc_time &delay) {  // NOLINT(runtime/references)
   if (delay != sc_core::SC_ZERO_TIME) {
     sc_core::wait(delay);

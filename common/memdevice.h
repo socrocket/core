@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <string>
 #include "core/common/sr_param.h"
-#include "core/common/base.h"
+#include "core/base/base.h"
 
 /// @brief This class is a base class for memory models. It implements the device plug and play informations.
 /// 

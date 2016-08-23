@@ -13,7 +13,7 @@
 ///
 
 #include "core/common/clkdevice.h"
-#include "core/common/verbose.h"
+#include "core/base/verbose.h"
 
 CLKDevice::CLKDevice() :
   rst(&CLKDevice::onrst, "rst"),

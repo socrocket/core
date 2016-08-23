@@ -10,7 +10,7 @@
 /// @author Rolf Meyer
 #include <string>
 #include <map>
-#include "core/common/base.h"
+#include "core/base/base.h"
 
 class sr_param_base : public gs::cnf::gs_param_base {
   public:
