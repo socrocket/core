@@ -74,7 +74,7 @@ def fetch(self, *k, **kw):
                 shutil.copyfile(tar_url, os.path.join(kw["BASE_PATH_FETCH"], kw["tar"]))
             else:
                 import urllib
-                urllib.urlretrieve(tar_url, os.path.join(kw["BASE_PATH_FETCH"],kw["tar"]))
+                urllib.urlretrieve(tar_url, os.path.join(kw["BASE_PATH_FETCH"], kw["tar"]))
             self.end_msg("Ok")
         else:
             self.end_msg("Already done")
