@@ -235,9 +235,9 @@ def add_repo(cmd, params):
     if os.path.isdir(directory):
         print("Target directory does already exist '%s'" % directory)
         return
-    subprocess.call(["git", "subtree", "--prefix", directory, tempdir, 'master'])
+    subprocess.call(["git", "subtree", "add", "--prefix", directory, tempdir, "master"])
     REPOS[directory] = {"pull": { "remote_url": repository, "remote_branch": 'master'}}
-    shutils.rmtree(tempdir)
+    shutil.rmtree(tempdir)
 
     # Adding repo to repository file
     for dep_params in vals.get("deps", {}).items():
