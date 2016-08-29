@@ -213,7 +213,7 @@ def add_repo(cmd, params):
     elif len(params) == 3:
         directory = params[0]
         repository = params[1]
-        branch = param[2]
+        branch = params[2]
         if os.path.isdir(directory):
             print("Target directory does already exist '%s'" % directory)
             return
