@@ -200,10 +200,20 @@ def add_repo(cmd, params):
     elif len(params) == 1:
         directory = None
         repository = params[0]
+        branch = "master"
 
     elif len(params) == 2:
         directory = params[0]
         repository = params[1]
+        branch = "master"
+        if os.path.isdir(directory):
+            print("Target directory does already exist '%s'" % directory)
+            return
+
+    elif len(params) == 3:
+        directory = params[0]
+        repository = params[1]
+        branch = param[2]
         if os.path.isdir(directory):
             print("Target directory does already exist '%s'" % directory)
             return
@@ -235,8 +245,8 @@ def add_repo(cmd, params):
     if os.path.isdir(directory):
         print("Target directory does already exist '%s'" % directory)
         return
-    subprocess.call(["git", "subtree", "add", "--prefix", directory, tempdir, "master"])
-    REPOS[directory] = {"pull": { "remote_url": repository, "remote_branch": 'master'}}
+    subprocess.call(["git", "subtree", "add", "--prefix", directory, tempdir, branch])
+    REPOS[directory] = {"pull": { "remote_url": repository, "remote_branch": branch}}
     shutil.rmtree(tempdir)
 
     # Adding repo to repository file
