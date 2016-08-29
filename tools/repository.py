@@ -262,6 +262,8 @@ def del_repo(cmd, params):
 def show_repo(cmd, params):
     global REPOS
     for directory, repository in REPOS.items():
+        if directory == '.waf':
+            continue
         vals = get_repo_vals(directory)
         print("%s <= %s:%s" % (directory, repository['pull']['remote_url'], repository['pull']['remote_branch']))
 
