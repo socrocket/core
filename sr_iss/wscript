@@ -1,0 +1,18 @@
+#! /usr/bin/env python
+# vim : set fileencoding=utf-8 expandtab noai ts=4 sw=4 filetype=python :
+top = '../..'
+
+def build(self):
+  self(
+    target          = 'sr_iss',
+    features        = 'cxx cxxstlib',
+    source          = [
+                       'intrinsics/platformintrinsic.cpp',
+                       ],
+    export_includes = self.top_dir,
+    includes        = self.top_dir,
+    use             = 'sr_registry sr_register sr_report utils base BOOST SYSTEMC TLM GREENSOCS',
+    install_path    = '${PREFIX}/lib',
+  )
+  self.install_files('${PREFIX}/include', self.path.ant_glob('**/*.h', excl=['**/tests/**', '**/extern/**', '**/contrib/**', '**/platform/**', '**/software/**', '**/.svn/**', '**/.git/**']), relative_trick=True)
+

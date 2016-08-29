@@ -1,4 +1,4 @@
-#include "core/sr_iss/platformintrinsics.h"
+#include "core/sr_iss/intrinsics/platformintrinsic.h"
 #include "core/common/sr_registry.h"
 #include "core/common/sr_report.h"
 #include "gaisler/leon3/intunit/processor.hpp"
