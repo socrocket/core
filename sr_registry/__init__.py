@@ -36,6 +36,7 @@
     >>> print ahbctrl.generics.rrobin.get()
     >>> ahbctrl.ahbOUT(apbctrl.ahb)
 """
+
 def create_module(__name__):
     """
     This function holds all module interna.
@@ -43,7 +44,7 @@ def create_module(__name__):
     """
     from builtins import object
     from . import sr_registry as api
-    from usi import sc_object
+    from usi import sc_object, on
     import abc
     import sys
 
@@ -129,6 +130,7 @@ def create_module(__name__):
             global __name__
             self.__name__ = __name__ = name
             self.__submodules__ = {}
+            self.__loaded__ = {}
             self.USIDelegateMeta = USIDelegateMeta
             self.USIDelegateBase = USIDelegateBase
             self.api = api
@@ -147,7 +149,40 @@ def create_module(__name__):
             submodule = self.__submodules__.setdefault(group, SubModule(group))
             submodule.__dict__[name] = cls
 
-    return Module(__name__)
+        def load(self, name, path=None):
+            if os.sep in name:
+                path = name
+                name = os.path.basename(name)
+                name = os.path.splitext(name)[0]
+                if name.startswith("lib"):
+                    name = name [3:]
+
+            if not name in self.__loaded__:
+                self.__loaded__[name] = path
+
+            if "SR_LIBRARY_PATH" in os.environ:
+                print("Loading ", name, " from ", path)
+                self.api.load(name)
+
+
+    module = Module(__name__)
+
+    @on('start_of_configuration')
+    def start_of_configuration(*k, **kw):
+        import os, sys
+        tdir = "build/.c"
+        environ = os.environ
+        if "SR_LIBRARY_PATH" in environ:
+            return
+        for name, path in module.__loaded__.items():
+            target = os.path.join(tdir, os.path.basename(path))
+            if not os.path.exists(target):
+                os.symlink(os.path.relpath(tdir, path), target)
+        environ["SR_LIBRARY_PATH"] = tdir
+        environ["LD_LIBRARY_PATH"] = tdir + os.pathsep + environ["LD_LIBRARY_PATH"]
+        os.execve(sys.argv[0], sys.argv, environ)
+
+    return module
 
 import sys
 sys.modules[__name__] = create_module(__name__)
