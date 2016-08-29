@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+# -*- coding: iso-8859-1 -*-
+
+import sys, os
+
+def build(bld):
+    if bld.env['LICENSE'] == 'gpl':
+        elfInclude = '../libbfd'
+    else:
+        elfInclude = '../libelf'
+
+    uselib_custom = ''
+    cppflags_custom = ''
+    if sys.platform == 'cygwin':
+        cppflags_custom = ' -D__USE_W32_SOCKETS'
+        uselib_custom = ' WINSOCK'
+
+    bld.objects(
+        target = 'debugger',
+        source = 'gdb_connection_manager.cpp',
+        includes = '. .. ' + elfInclude,
+        defines = cppflags_custom,
+        use = 'SYSTEMC BOOST BOOST_REGEX BOOST_THREAD' + uselib_custom,
+        install_path = None
+    )
+
+    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'debugger'), 'gdb_stub.hpp gdb_connection_manager.hpp breakpoint_manager.hpp watchpoint_manager.hpp')
