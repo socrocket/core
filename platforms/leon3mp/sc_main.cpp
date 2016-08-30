@@ -21,7 +21,7 @@
 #include <time.h>
 #include <string.h>
 #include "amba/amba.h"
-#include "core/trapgen/debugger/GDBStub.hpp"
+#include "core/trapgen/debugger/gdb_stub.hpp"
 #include <iostream>
 #include <vector>
 #include <cstring>
@@ -1068,6 +1068,6 @@ int sc_main(int argc, char** argv) {
     v::report << "Summary" << "Start: " << dec << cstart << v::endl;
     v::report << "Summary" << "End:   " << dec << cend << v::endl;
     v::report << "Summary" << "Delta: " << dec << setprecision(4) << ((double)(cend - cstart) / (double)CLOCKS_PER_SEC * 1000) << "ms" << v::endl;
-    return first_leon->cpu.getInterface().getExitValue();
+    return first_leon->cpu.getInterface().get_exit_value();
 }
 /// @}
