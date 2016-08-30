@@ -48,9 +48,8 @@
 #pragma warning( disable : 4244 )
 #endif
 
-#include "core/trapgen/utils/trap_utils.hpp"
-
-#include "core/trapgen/ABIIf.hpp"
+#include "common/report.hpp"
+#include "core/trapgen/modules/abi_if.hpp"
 #include "core/base/systemc.h"
 
 #include <cstdio>
@@ -93,13 +92,13 @@ class openIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     openIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
       // Lets read the name of the file to be opened
       char pathname[256];
       for (int i = 0; i < 256; i++) {
-        pathname[i] = (char)this->m_processor->readCharMem(callArgs[0] + i);
+        pathname[i] = (char)this->m_processor->read_char_mem(callArgs[0] + i);
         if (pathname[i] == '\x0') {
           break;
         }
@@ -112,9 +111,9 @@ class openIntrinsic : public PlatformIntrinsic<wordSize> {
 #else
       int ret = ::_open(pathname, flags, mode);
 #endif
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -129,13 +128,13 @@ class creatIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     creatIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
       // Lets read the name of the file to be opened
       char pathname[256];
       for (int i = 0; i < 256; i++) {
-        pathname[i] = (char)this->m_processor->readCharMem(callArgs[0] + i);
+        pathname[i] = (char)this->m_processor->read_char_mem(callArgs[0] + i);
         if (pathname[i] == '\x0') {
           break;
         }
@@ -146,9 +145,9 @@ class creatIntrinsic : public PlatformIntrinsic<wordSize> {
 #else
       int ret = ::_creat((char *)pathname, mode);
 #endif
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -163,9 +162,9 @@ class closeIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     closeIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
       int fd = callArgs[0];
       if (fd < 0) {
         THROW_EXCEPTION("File descriptor " << fd << " not valid");
@@ -175,18 +174,18 @@ class closeIntrinsic : public PlatformIntrinsic<wordSize> {
 #else
       if ((fd == _fileno(stdin)) || (fd == _fileno(stdout)) || (fd == _fileno(stderr))) {
 #endif
-        this->m_processor->setRetVal(0);
-        this->m_processor->returnFromCall();
+        this->m_processor->set_return_value(0);
+        this->m_processor->return_from_call();
       } else {
 #ifdef __GNUC__
         int ret = ::close(fd);
 #else
         int ret = ::_close(fd);
 #endif
-        this->m_processor->setRetVal(ret);
-        this->m_processor->returnFromCall();
+        this->m_processor->set_return_value(ret);
+        this->m_processor->return_from_call();
       }
-      this->m_processor->postCall();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -201,9 +200,9 @@ class readIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     readIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
       int fd = callArgs[0];
       if (fd < 0) {
         THROW_EXCEPTION("File descriptor " << fd << " not valid");
@@ -218,12 +217,12 @@ class readIntrinsic : public PlatformIntrinsic<wordSize> {
       // Now I have to write the read content into memory
       wordSize destAddress = callArgs[1];
       for (int i = 0; i < ret; i++) {
-        this->m_processor->writeCharMem(destAddress + i, buf[i]);
+        this->m_processor->write_char_mem(destAddress + i, buf[i]);
       }
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
       delete[] buf;
-      this->m_processor->postCall();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -261,9 +260,9 @@ class writeIntrinsic : public PlatformIntrinsic<wordSize> {
     }
 
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
       int fd = callArgs[0];
       if (fd < 0) {
         THROW_EXCEPTION("File descriptor " << fd << " not valid");
@@ -272,7 +271,7 @@ class writeIntrinsic : public PlatformIntrinsic<wordSize> {
       wordSize destAddress = callArgs[1];
       unsigned char *buf = new unsigned char[count];
       for (unsigned int i = 0; i < count; i++) {
-        buf[i] = this->m_processor->readCharMem(destAddress + i);
+        buf[i] = this->m_processor->read_char_mem(destAddress + i);
       }
 #ifdef __GNUC__
       int ret = ::write(fd, buf, count);
@@ -285,10 +284,10 @@ class writeIntrinsic : public PlatformIntrinsic<wordSize> {
         ::_write(this->stdout_log_file, buf, count);
       }
 #endif
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
       delete[] buf;
-      this->m_processor->postCall();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -307,18 +306,18 @@ class isattyIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     isattyIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
       int desc = callArgs[0];
 #ifdef __GNUC__
       int ret = ::isatty(desc);
 #else
       int ret = ::_isatty(desc);
 #endif
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -333,9 +332,9 @@ class sbrkIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     sbrkIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
       wordSize base = this->m_manager->heapPointer;
       long long increment = callArgs[0];
@@ -345,16 +344,16 @@ class sbrkIntrinsic : public PlatformIntrinsic<wordSize> {
       // I try to read from meory to see if it is possible to access the just allocated address;
       // In case it is not it means that I'm out of memory and I signal the error
       try {
-        this->m_processor->readMem(this->m_manager->heapPointer);
-        this->m_processor->setRetVal(base);
+        this->m_processor->read_mem(this->m_manager->heapPointer);
+        this->m_processor->set_return_value(base);
       } catch (...) {
-        this->m_processor->setRetVal(-1);
+        this->m_processor->set_return_value(-1);
         std::cerr << "SBRK: tried to allocate " << increment << " bytes of memory starting at address " << std::hex <<
         std::showbase << base << std::dec << " but it seems there is not enough memory" << std::endl;
       }
 
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -369,9 +368,9 @@ class lseekIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     lseekIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
       int fd = callArgs[0];
       if (fd < 0) {
         THROW_EXCEPTION("File descriptor " << fd << " not valid");
@@ -383,9 +382,9 @@ class lseekIntrinsic : public PlatformIntrinsic<wordSize> {
 #else
       int ret = ::_lseek(fd, offset, whence);
 #endif
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -400,9 +399,9 @@ class fstatIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     fstatIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 #ifdef __GNUC__
       struct stat buf_stat;
 #else
@@ -419,25 +418,25 @@ class fstatIntrinsic : public PlatformIntrinsic<wordSize> {
       int ret = ::_fstat(fd, &buf_stat);
 #endif
       if ((ret >= 0) && (retAddr != 0)) {
-        this->m_processor->writeMem(retAddr, buf_stat.st_dev);
-        this->m_processor->writeMem(retAddr + 2, buf_stat.st_ino);
-        this->m_processor->writeMem(retAddr + 4, buf_stat.st_mode);
-        this->m_processor->writeMem(retAddr + 8, buf_stat.st_nlink);
-        this->m_processor->writeMem(retAddr + 10, buf_stat.st_uid);
-        this->m_processor->writeMem(retAddr + 12, buf_stat.st_gid);
-        this->m_processor->writeMem(retAddr + 14, buf_stat.st_rdev);
-        this->m_processor->writeMem(retAddr + 16, buf_stat.st_size);
-        this->m_processor->writeMem(retAddr + 20, buf_stat.st_atime);
-        this->m_processor->writeMem(retAddr + 28, buf_stat.st_mtime);
-        this->m_processor->writeMem(retAddr + 36, buf_stat.st_ctime);
+        this->m_processor->write_mem(retAddr, buf_stat.st_dev);
+        this->m_processor->write_mem(retAddr + 2, buf_stat.st_ino);
+        this->m_processor->write_mem(retAddr + 4, buf_stat.st_mode);
+        this->m_processor->write_mem(retAddr + 8, buf_stat.st_nlink);
+        this->m_processor->write_mem(retAddr + 10, buf_stat.st_uid);
+        this->m_processor->write_mem(retAddr + 12, buf_stat.st_gid);
+        this->m_processor->write_mem(retAddr + 14, buf_stat.st_rdev);
+        this->m_processor->write_mem(retAddr + 16, buf_stat.st_size);
+        this->m_processor->write_mem(retAddr + 20, buf_stat.st_atime);
+        this->m_processor->write_mem(retAddr + 28, buf_stat.st_mtime);
+        this->m_processor->write_mem(retAddr + 36, buf_stat.st_ctime);
 #ifdef __GNUC__
-        this->m_processor->writeMem(retAddr + 44, buf_stat.st_blksize);
-        this->m_processor->writeMem(retAddr + 48, buf_stat.st_blocks);
+        this->m_processor->write_mem(retAddr + 44, buf_stat.st_blksize);
+        this->m_processor->write_mem(retAddr + 48, buf_stat.st_blocks);
 #endif
       }
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -452,9 +451,9 @@ class statIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     statIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
 #ifdef __GNUC__
       struct stat buf_stat;
@@ -464,7 +463,7 @@ class statIntrinsic : public PlatformIntrinsic<wordSize> {
 
       char pathname[256];
       for (int i = 0; i < 256; i++) {
-        pathname[i] = (char)this->m_processor->readCharMem(callArgs[0] + i);
+        pathname[i] = (char)this->m_processor->read_char_mem(callArgs[0] + i);
         if (pathname[i] == '\x0') {
           break;
         }
@@ -476,25 +475,25 @@ class statIntrinsic : public PlatformIntrinsic<wordSize> {
       int ret = ::_stat((char *)pathname, &buf_stat);
 #endif
       if ((ret >= 0) && (retAddr != 0)) {
-        this->m_processor->writeMem(retAddr, buf_stat.st_dev);
-        this->m_processor->writeMem(retAddr + 2, buf_stat.st_ino);
-        this->m_processor->writeMem(retAddr + 4, buf_stat.st_mode);
-        this->m_processor->writeMem(retAddr + 8, buf_stat.st_nlink);
-        this->m_processor->writeMem(retAddr + 10, buf_stat.st_uid);
-        this->m_processor->writeMem(retAddr + 12, buf_stat.st_gid);
-        this->m_processor->writeMem(retAddr + 14, buf_stat.st_rdev);
-        this->m_processor->writeMem(retAddr + 16, buf_stat.st_size);
-        this->m_processor->writeMem(retAddr + 20, buf_stat.st_atime);
-        this->m_processor->writeMem(retAddr + 28, buf_stat.st_mtime);
-        this->m_processor->writeMem(retAddr + 36, buf_stat.st_ctime);
+        this->m_processor->write_mem(retAddr, buf_stat.st_dev);
+        this->m_processor->write_mem(retAddr + 2, buf_stat.st_ino);
+        this->m_processor->write_mem(retAddr + 4, buf_stat.st_mode);
+        this->m_processor->write_mem(retAddr + 8, buf_stat.st_nlink);
+        this->m_processor->write_mem(retAddr + 10, buf_stat.st_uid);
+        this->m_processor->write_mem(retAddr + 12, buf_stat.st_gid);
+        this->m_processor->write_mem(retAddr + 14, buf_stat.st_rdev);
+        this->m_processor->write_mem(retAddr + 16, buf_stat.st_size);
+        this->m_processor->write_mem(retAddr + 20, buf_stat.st_atime);
+        this->m_processor->write_mem(retAddr + 28, buf_stat.st_mtime);
+        this->m_processor->write_mem(retAddr + 36, buf_stat.st_ctime);
 #ifdef __GNUC__
-        this->m_processor->writeMem(retAddr + 44, buf_stat.st_blksize);
-        this->m_processor->writeMem(retAddr + 48, buf_stat.st_blocks);
+        this->m_processor->write_mem(retAddr + 44, buf_stat.st_blksize);
+        this->m_processor->write_mem(retAddr + 48, buf_stat.st_blocks);
 #endif
       }
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -510,10 +509,10 @@ class _exitIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     _exitIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
-      this->m_processor->setExitValue((int)callArgs[0]);
-      std::cout << std::endl << "Program exited with value " << this->m_processor->getExitValue() << std::endl << std::endl;
+      this->m_processor->pre_call();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
+      this->m_processor->set_exit_value((int)callArgs[0]);
+      std::cout << std::endl << "Program exited with value " << this->m_processor->get_exit_value() << std::endl << std::endl;
 
       if (sc_is_running()) {
         IntrinsicBase::programsCount--;
@@ -536,9 +535,9 @@ class timesIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     timesIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
       unsigned int curSimTime = (unsigned int)(sc_time_stamp().to_double() / 1.0e+6);
       wordSize timesRetLoc = callArgs[0];
@@ -556,17 +555,17 @@ class timesIntrinsic : public PlatformIntrinsic<wordSize> {
         buf.tms_stime = curSimTime;
         buf.tms_cutime = curSimTime;
         buf.tms_cstime = curSimTime;
-        this->m_processor->writeMem(timesRetLoc, buf.tms_utime);
+        this->m_processor->write_mem(timesRetLoc, buf.tms_utime);
         timesRetLoc += 4;
-        this->m_processor->writeMem(timesRetLoc, buf.tms_stime);
+        this->m_processor->write_mem(timesRetLoc, buf.tms_stime);
         timesRetLoc += 4;
-        this->m_processor->writeMem(timesRetLoc, buf.tms_cutime);
+        this->m_processor->write_mem(timesRetLoc, buf.tms_cutime);
         timesRetLoc += 4;
-        this->m_processor->writeMem(timesRetLoc, buf.tms_cstime);
+        this->m_processor->write_mem(timesRetLoc, buf.tms_cstime);
       }
-      this->m_processor->setRetVal(curSimTime);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(curSimTime);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -585,18 +584,18 @@ class timeIntrinsic : public PlatformIntrinsic<wordSize> {
       this->initialTime = time(0);
     }
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
       int t = callArgs[0];
       int ret = this->initialTime + (int)(sc_time_stamp().to_double() / 1.0e+12);
       if (t != 0) {
-        this->m_processor->writeMem(t, ret);
+        this->m_processor->write_mem(t, ret);
       }
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -611,11 +610,11 @@ class randomIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     randomIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       int ret = ::rand();
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -630,13 +629,13 @@ class utimesIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     utimesIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
       char pathname[256];
       for (int i = 0; i < 256; i++) {
-        pathname[i] = (char)this->m_processor->readCharMem(callArgs[0] + i);
+        pathname[i] = (char)this->m_processor->read_char_mem(callArgs[0] + i);
         if (pathname[i] == '\x0') {
           break;
         }
@@ -648,16 +647,16 @@ class utimesIntrinsic : public PlatformIntrinsic<wordSize> {
         ret = ::utimes((char *)pathname, NULL);
       } else {
         struct timeval times[2];
-        times[0].tv_sec = this->m_processor->readMem(timesAddr);
-        times[0].tv_usec = this->m_processor->readMem(timesAddr + 4);
-        times[1].tv_sec = this->m_processor->readMem(timesAddr + 8);
-        times[1].tv_usec = this->m_processor->readMem(timesAddr + 12);
+        times[0].tv_sec = this->m_processor->read_mem(timesAddr);
+        times[0].tv_usec = this->m_processor->read_mem(timesAddr + 4);
+        times[1].tv_sec = this->m_processor->read_mem(timesAddr + 8);
+        times[1].tv_usec = this->m_processor->read_mem(timesAddr + 12);
         ret = ::utimes((char *)pathname, times);
       }
 
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -672,9 +671,9 @@ class lstatIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     lstatIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
 #ifdef __GNUC__
       struct stat buf_stat;
@@ -684,7 +683,7 @@ class lstatIntrinsic : public PlatformIntrinsic<wordSize> {
 
       char pathname[256];
       for (int i = 0; i < 256; i++) {
-        pathname[i] = (char)this->m_processor->readCharMem(callArgs[0] + i);
+        pathname[i] = (char)this->m_processor->read_char_mem(callArgs[0] + i);
         if (pathname[i] == '\x0') {
           break;
         }
@@ -696,25 +695,25 @@ class lstatIntrinsic : public PlatformIntrinsic<wordSize> {
       int ret = ::_lstat((char *)pathname, &buf_stat);
 #endif
       if ((ret >= 0) && (retAddr != 0)) {
-        this->m_processor->writeMem(retAddr, buf_stat.st_dev);
-        this->m_processor->writeMem(retAddr + 2, buf_stat.st_ino);
-        this->m_processor->writeMem(retAddr + 4, buf_stat.st_mode);
-        this->m_processor->writeMem(retAddr + 8, buf_stat.st_nlink);
-        this->m_processor->writeMem(retAddr + 10, buf_stat.st_uid);
-        this->m_processor->writeMem(retAddr + 12, buf_stat.st_gid);
-        this->m_processor->writeMem(retAddr + 14, buf_stat.st_rdev);
-        this->m_processor->writeMem(retAddr + 16, buf_stat.st_size);
-        this->m_processor->writeMem(retAddr + 20, buf_stat.st_atime);
-        this->m_processor->writeMem(retAddr + 28, buf_stat.st_mtime);
-        this->m_processor->writeMem(retAddr + 36, buf_stat.st_ctime);
+        this->m_processor->write_mem(retAddr, buf_stat.st_dev);
+        this->m_processor->write_mem(retAddr + 2, buf_stat.st_ino);
+        this->m_processor->write_mem(retAddr + 4, buf_stat.st_mode);
+        this->m_processor->write_mem(retAddr + 8, buf_stat.st_nlink);
+        this->m_processor->write_mem(retAddr + 10, buf_stat.st_uid);
+        this->m_processor->write_mem(retAddr + 12, buf_stat.st_gid);
+        this->m_processor->write_mem(retAddr + 14, buf_stat.st_rdev);
+        this->m_processor->write_mem(retAddr + 16, buf_stat.st_size);
+        this->m_processor->write_mem(retAddr + 20, buf_stat.st_atime);
+        this->m_processor->write_mem(retAddr + 28, buf_stat.st_mtime);
+        this->m_processor->write_mem(retAddr + 36, buf_stat.st_ctime);
 #ifdef __GNUC__
-        this->m_processor->writeMem(retAddr + 44, buf_stat.st_blksize);
-        this->m_processor->writeMem(retAddr + 48, buf_stat.st_blocks);
+        this->m_processor->write_mem(retAddr + 44, buf_stat.st_blksize);
+        this->m_processor->write_mem(retAddr + 48, buf_stat.st_blocks);
 #endif
       }
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -729,10 +728,10 @@ class getpidIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     getpidIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
-      this->m_processor->setRetVal(123);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->pre_call();
+      this->m_processor->set_return_value(123);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -747,13 +746,13 @@ class chmodIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     chmodIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
       char pathname[256];
       for (int i = 0; i < 256; i++) {
-        pathname[i] = (char)this->m_processor->readCharMem(callArgs[0] + i);
+        pathname[i] = (char)this->m_processor->read_char_mem(callArgs[0] + i);
         if (pathname[i] == '\x0') {
           break;
         }
@@ -764,9 +763,9 @@ class chmodIntrinsic : public PlatformIntrinsic<wordSize> {
 #else
       int ret = ::_chmod((char *)pathname, mode);
 #endif
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -781,9 +780,9 @@ class dupIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     dupIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
       int fd = callArgs[0];
       if (fd < 0) {
         THROW_EXCEPTION("File descriptor not valid");
@@ -793,9 +792,9 @@ class dupIntrinsic : public PlatformIntrinsic<wordSize> {
 #else
       int ret = ::_dup(fd);
 #endif
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -810,9 +809,9 @@ class dup2Intrinsic : public PlatformIntrinsic<wordSize> {
   public:
     dup2Intrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
       int fd = callArgs[0];
       if (fd < 0) {
         THROW_EXCEPTION("File descriptor not valid");
@@ -823,9 +822,9 @@ class dup2Intrinsic : public PlatformIntrinsic<wordSize> {
 #else
       int ret = ::_dup2(fd, newfd);
 #endif
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -840,23 +839,23 @@ class getenvIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     getenvIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
       char envname[256];
       int envNameAddr = callArgs[0];
       if (envNameAddr != 0) {
         for (int i = 0; i < 256; i++) {
-          envname[i] = (char)this->m_processor->readCharMem(envNameAddr + i);
+          envname[i] = (char)this->m_processor->read_char_mem(envNameAddr + i);
           if (envname[i] == '\x0') {
             break;
           }
         }
         std::map<std::string, std::string>::iterator curEnv = this->m_manager->env.find((std::string(envname)));
         if (curEnv == this->m_processor->env.end()) {
-          this->m_processor->setRetVal(0);
-          this->m_processor->returnFromCall();
+          this->m_processor->set_return_value(0);
+          this->m_processor->return_from_call();
         } else {
           // I have to allocate memory for the result on the simulated memory;
           // I then have to copy the read environment variable here and return
@@ -864,17 +863,17 @@ class getenvIntrinsic : public PlatformIntrinsic<wordSize> {
           unsigned int base = this->m_manager->heapPointer;
           this->m_manager->heapPointer += curEnv->second.size() + 1;
           for (unsigned int i = 0; i < curEnv->second.size(); i++) {
-            this->m_processor->writeCharMem(base + i, curEnv->second[i]);
+            this->m_processor->write_char_mem(base + i, curEnv->second[i]);
           }
-          this->m_processor->writeCharMem(base + curEnv->second.size(), 0);
-          this->m_processor->setRetVal(base);
-          this->m_processor->returnFromCall();
+          this->m_processor->write_char_mem(base + curEnv->second.size(), 0);
+          this->m_processor->set_return_value(base);
+          this->m_processor->return_from_call();
         }
       } else {
-        this->m_processor->setRetVal(0);
-        this->m_processor->returnFromCall();
+        this->m_processor->set_return_value(0);
+        this->m_processor->return_from_call();
       }
-      this->m_processor->postCall();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -889,22 +888,22 @@ class gettimeofdayIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     gettimeofdayIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
       int timesRetLoc = callArgs[0];
       if (timesRetLoc != 0) {
         double curSimTime = sc_time_stamp().to_double();
         unsigned int tv_sec = (unsigned int)(curSimTime / 1.0e+12);
         unsigned int tv_usec = (unsigned int)((curSimTime - tv_sec * 1.0e+12) / 1.0e+6);
-        this->m_processor->writeMem(timesRetLoc, tv_sec);
+        this->m_processor->write_mem(timesRetLoc, tv_sec);
         timesRetLoc += 4;
-        this->m_processor->writeMem(timesRetLoc, tv_usec);
+        this->m_processor->write_mem(timesRetLoc, tv_usec);
       }
-      this->m_processor->setRetVal(0);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(0);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -934,9 +933,9 @@ class errorIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     errorIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
       int status = callArgs[0];
       int errnum = callArgs[1];
@@ -949,10 +948,10 @@ class errorIntrinsic : public PlatformIntrinsic<wordSize> {
         }
       } else {
         std::cerr << "An error occurred in the execution of the program: message = " << errorString << std::endl;
-        this->m_processor->setRetVal(0);
-        this->m_processor->returnFromCall();
+        this->m_processor->set_return_value(0);
+        this->m_processor->return_from_call();
       }
-      this->m_processor->postCall();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -967,14 +966,14 @@ class chownIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     chownIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
 #ifdef __GNUC__
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
       char pathname[256];
       for (int i = 0; i < 256; i++) {
-        pathname[i] = (char)this->m_processor->readCharMem(callArgs[0] + i);
+        pathname[i] = (char)this->m_processor->read_char_mem(callArgs[0] + i);
         if (pathname[i] == '\x0') {
           break;
         }
@@ -985,9 +984,9 @@ class chownIntrinsic : public PlatformIntrinsic<wordSize> {
 #else // ifdef __GNUC__
       int ret = 0;
 #endif
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -1002,13 +1001,13 @@ class unlinkIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     unlinkIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
       char pathname[256];
       for (int i = 0; i < 256; i++) {
-        pathname[i] = (char)this->m_processor->readCharMem(callArgs[0] + i);
+        pathname[i] = (char)this->m_processor->read_char_mem(callArgs[0] + i);
         if (pathname[i] == '\x0') {
           break;
         }
@@ -1018,9 +1017,9 @@ class unlinkIntrinsic : public PlatformIntrinsic<wordSize> {
 #else
       int ret = ::_unlink((char *)pathname);
 #endif
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -1035,13 +1034,13 @@ class renameIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     renameIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
       char pathname_old[256];
       for (int i = 0; i < 256; i++) {
-        pathname_old[i] = (char)this->m_processor->readCharMem(callArgs[0] + i);
+        pathname_old[i] = (char)this->m_processor->read_char_mem(callArgs[0] + i);
         if (pathname_old[i] == '\x0') {
           break;
         }
@@ -1049,7 +1048,7 @@ class renameIntrinsic : public PlatformIntrinsic<wordSize> {
 
       char pathname_new[256];
       for (int i = 0; i < 256; i++) {
-        pathname_new[i] = (char)this->m_processor->readCharMem(callArgs[1] + i);
+        pathname_new[i] = (char)this->m_processor->read_char_mem(callArgs[1] + i);
         if (pathname_new[i] == '\x0') {
           break;
         }
@@ -1059,9 +1058,9 @@ class renameIntrinsic : public PlatformIntrinsic<wordSize> {
 #else
       int ret = ::_rename((char *)pathname_old, (char *)pathname_new);
 #endif
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -1076,10 +1075,10 @@ class usleepIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     usleepIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Since we have a single process this function doesn't do anything :-)
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);
@@ -1096,11 +1095,11 @@ class mainIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     mainIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
 
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
       if (callArgs[0] != 0) {
-        this->m_processor->postCall();
+        this->m_processor->post_call();
         return false;
       }
 
@@ -1109,8 +1108,8 @@ class mainIntrinsic : public PlatformIntrinsic<wordSize> {
       if (this->m_manager->programArgs.size() == 0) {
         mainArgs.push_back(0);
         mainArgs.push_back(0);
-        this->m_processor->setArgs(mainArgs);
-        this->m_processor->postCall();
+        this->m_processor->set_args(mainArgs);
+        this->m_processor->post_call();
         return false;
       }
 
@@ -1118,21 +1117,21 @@ class mainIntrinsic : public PlatformIntrinsic<wordSize> {
       unsigned int argNumAddr = this->m_manager->heapPointer;
       std::vector<std::string>::iterator argsIter, argsEnd;
       for (argsIter = this->m_manager->programArgs.begin(), argsEnd = this->m_manager->programArgs.end(); argsIter != argsEnd; argsIter++) {
-        this->m_processor->writeMem(argNumAddr, argAddr);
+        this->m_processor->write_mem(argNumAddr, argAddr);
         argNumAddr += 4;
         for (unsigned int i = 0; i < argsIter->size(); i++) {
-          this->m_processor->writeCharMem(argAddr + i, argsIter->c_str()[i]);
+          this->m_processor->write_char_mem(argAddr + i, argsIter->c_str()[i]);
         }
-        this->m_processor->writeCharMem(argAddr + argsIter->size(), 0);
+        this->m_processor->write_char_mem(argAddr + argsIter->size(), 0);
         argAddr += argsIter->size() + 1;
       }
-      this->m_processor->writeMem(argNumAddr, 0);
+      this->m_processor->write_mem(argNumAddr, 0);
 
       mainArgs.push_back(this->m_manager->programArgs.size());
       mainArgs.push_back(this->m_manager->heapPointer);
-      this->m_processor->setArgs(mainArgs);
+      this->m_processor->set_args(mainArgs);
       this->m_manager->heapPointer = argAddr;
-      this->m_processor->postCall();
+      this->m_processor->post_call();
       return false;
     }
 };
@@ -1142,9 +1141,9 @@ class notifyIntrinsic : public PlatformIntrinsic<wordSize> {
   public:
     notifyIntrinsic(sc_core::sc_module_name mn) : PlatformIntrinsic<wordSize>(mn) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       srCommand("notifyIntrinsic")("command");
-      this->m_processor->postCall();
+      this->m_processor->post_call();
       return false;
     }
 };
@@ -1295,9 +1294,9 @@ class sysconfIntrinsic : public PlatformIntrinsic<wordSize> {
     std::map<std::string, int> &sysconfmap,
     sc_time latency = SC_ZERO_TIME) : PlatformIntrinsic<wordSize>(processorInstance, latency), sysconfmap(sysconfmap) {}
     bool operator()() {
-      this->m_processor->preCall();
+      this->m_processor->pre_call();
       // Lets get the system call arguments
-      std::vector<wordSize> callArgs = this->m_processor->readArgs();
+      std::vector<wordSize> callArgs = this->m_processor->read_args();
 
       int argId = callArgs[0];
       int ret = -1;
@@ -1320,9 +1319,9 @@ class sysconfIntrinsic : public PlatformIntrinsic<wordSize> {
         ret = -1;
         break;
       }
-      this->m_processor->setRetVal(ret);
-      this->m_processor->returnFromCall();
-      this->m_processor->postCall();
+      this->m_processor->set_return_value(ret);
+      this->m_processor->return_from_call();
+      this->m_processor->post_call();
 
       if (this->latency.to_double() > 0) {
         wait(this->latency);

@@ -2,7 +2,7 @@
 #define CORE_COMMON_SR_ISS_INTSINSICS_PLATFORMINSTRINSIC_H
 
 #include "core/base/systemc.h"
-#include "core/trapgen/ABIIf.hpp"
+#include "core/trapgen/modules/abi_if.hpp"
 #include "core/sr_iss/intrinsics/intrinsicbase.h"
 
 ///Base class for each emulated system call;

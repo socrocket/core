@@ -5,9 +5,9 @@
 
 #include "core/base/systemc.h"
 #include "core/base/vmap.h"
-#include "core/trapgen/ABIIf.hpp"
-#include "core/trapgen/ToolsIf.hpp"
-#include "core/trapgen/instructionBase.hpp"
+#include "core/trapgen/modules/abi_if.hpp"
+#include "core/trapgen/common/tools_if.hpp"
+#include "core/trapgen/modules/instruction.hpp"
 #include "core/sr_iss/intrinsics/platformintrinsic.h"
 
 template<class issueWidth>
@@ -38,7 +38,7 @@ class IntrinsicManager :
       programsCount++;
 
       // First of all I initialize the heap pointer according to the group it belongs to
-      this->heapPointer = (unsigned int)this->processorInstance.getCodeLimit() + sizeof (issueWidth);
+      this->heapPointer = (unsigned int)this->processorInstance.get_code_limit() + sizeof (issueWidth);
     }
 
     bool register_intrinsic(issueWidth addr, PlatformIntrinsic<issueWidth> &callBack) {
@@ -66,7 +66,7 @@ class IntrinsicManager :
 
     ///Method called at every instruction issue, it returns true in case the instruction
     ///has to be skipped, false otherwise
-    bool newIssue(const issueWidth &curPC, const trap::InstructionBase *curInstr) throw() {
+    bool issue(const issueWidth &curPC, const trap::InstructionBase *curInstr) throw() {
       // I have to go over all the registered system calls and check if there is one
       // that matches the current program counter. In case I simply call the corresponding
       // callback.
@@ -79,7 +79,7 @@ class IntrinsicManager :
     ///Method called to know if the instruction at the current address has to be skipped:
     ///if true the instruction has to be skipped, otherwise the instruction can
     ///be executed
-    bool emptyPipeline(const issueWidth &curPC) const throw() {
+    bool is_pipeline_empty(const issueWidth &curPC) const throw() {
       if (this->syscCallbacks.find(curPC) != this->syscCallbacksEnd) {
         return true;
       }
