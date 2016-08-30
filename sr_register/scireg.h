@@ -20,13 +20,13 @@
 /// This file contains the SCIREG API ("SystemC Inspect Region API") which is a SystemC tool to model API
 /// that enables tools to discover and monitor the various registers, register banks, fields, and memories
 /// in a design. 
-#ifndef CORE_COMMON_SCIREG_H_
-#define CORE_COMMON_SCIREG_H_
+#ifndef NC_SYSTEMC // Only use this file if we are not running in incisiv
+#ifndef SCIREG_H_
+#define SCIREG_H_
 #include <algorithm>
 #include <vector>
 #include "systemc"
 
-#ifndef NC_SYSTEMC // Only use this file if we are not running in incisiv
 namespace scireg_ns {
 
 class scireg_region_if;
@@ -222,6 +222,6 @@ class scireg_region_if {
 
 }
 
+#endif  // SCIREG_H_
 #endif  // We do not run in incisive
-#endif  // CORE_COMMON_SCIREG_H_
 ///@}
