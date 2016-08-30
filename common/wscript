@@ -6,10 +6,6 @@ def build(self):
   self(
     target          = 'common',
     features        = 'cxx cxxstlib',
-    source          = [
-                       'clkdevice.cpp',
-                       'memdevice.cpp'
-                       ],
     export_includes = self.top_dir,
     includes        = self.top_dir,
     use             = 'sr_registry sr_register sr_report utils base BOOST SYSTEMC TLM GREENSOCS',

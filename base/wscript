@@ -7,6 +7,8 @@ def build(self):
     target          = 'base',
     features        = 'cxx cxxstlib',
     source          = [
+                       'clkdevice.cpp',
+                       'memdevice.cpp',
                        'verbose.cpp',
                        'waf.cpp'
                        ],
