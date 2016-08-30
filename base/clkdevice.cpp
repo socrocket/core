@@ -12,7 +12,7 @@
 /// @author Rolf Meyer
 ///
 
-#include "core/common/clkdevice.h"
+#include "core/base/clkdevice.h"
 #include "core/base/verbose.h"
 
 CLKDevice::CLKDevice() :
