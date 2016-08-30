@@ -971,7 +971,7 @@ class GDBStub : public ToolsIf<IssueWidth>, public MemoryToolsIf<IssueWidth>, pu
       } else if (cust_comm == "hist") {
         // Print the last n executed instructions. First find out n.
         resp.type = GDBResponse::OUTPUT_RSP;
-#ifndef ENABLE_HISTORY
+#ifdef ENABLE_HISTORY  // TODO Change back to ifndef
         resp.message = "\nInstruction history not enabled at compile time. Reconfigure the project with the --enable-history option.\n\n";
 #else
         unsigned history_len = 0;

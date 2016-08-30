@@ -20,8 +20,8 @@
 * limitations under the License.
 *
 *******************************************************************************/
-#ifndef TRAP_SCIREG_H
-#define TRAP_SCIREG_H
+#ifndef SCIREG_H_
+#define SCIREG_H_
 
 #include <algorithm>
 #include <vector>

@@ -66,13 +66,14 @@ class annul_exception : public std::runtime_error {
   annul_exception() : std::runtime_error("") {}
   annul_exception(const char* message) : std::runtime_error(message) {}
 }; // class annul_exception
+typedef annul_exception annull_exception;
 
 /// ****************************************************************************
 
 /**
  * @brief Logging
  */
-enum class LogLevel : unsigned {
+enum LogLevel {
   EXCEPTION,
   ERROR,
   WARNING,
@@ -123,15 +124,15 @@ if (level <= trap::Log::get_level()) \
 trap::Log().get_stream(level, __FILE__, __LINE__)
 
 #define THROW_EXCEPTION(msg) \
-trap::Log().get_stream(trap::LogLevel::EXCEPTION, __FILE__, __LINE__);
+trap::Log().get_stream(trap::EXCEPTION, __FILE__, __LINE__);
 
 #define THROW_ERROR(msg) \
-if (trap::LogLevel::ERROR <= trap::Log::get_level()) \
-trap::Log().get_stream(trap::LogLevel::ERROR, __FILE__, __LINE__);
+if (trap::ERROR <= trap::Log::get_level()) \
+trap::Log().get_stream(trap::ERROR, __FILE__, __LINE__);
 
 #define THROW_WARNING(msg) \
-if (trap::LogLevel::WARNING <= trap::Log::get_level()) \
-trap::Log().get_stream(trap::LogLevel::WARNING, __FILE__, __LINE__);
+if (trap::WARNING <= trap::Log::get_level()) \
+trap::Log().get_stream(trap::WARNING, __FILE__, __LINE__);
 
 } // namespace trap
 

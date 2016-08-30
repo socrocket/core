@@ -42,7 +42,7 @@
 namespace trap {
 
 std::ostream* Log::os = &std::cout;
-LogLevel Log::level = LogLevel::ERROR;
+LogLevel Log::level = ERROR;
 
 } // namespace trap
 

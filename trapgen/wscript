@@ -3,8 +3,14 @@
 
 import os
 
+REPOSITORY_PATH = 'core/trapgen'
+REPOSITORY_NAME = 'TrapGen Runtime'
+REPOSITORY_DESC = 'TrapGen Runtime branch'
+REPOSITORY_TOOLS = [
+]
+
 def build(bld):
-    if not "repository_root" in bld:
+    if not hasattr(bld, "repository_root"):
         if bld.env['LICENSE'] == 'gpl':
             bld.recurse(os.path.join('libbfd', 'elfloader'))
         else:
@@ -16,17 +22,18 @@ def build(bld):
 
     else:
         bld(
-            target  = 'trap',
+            target   = 'trap',
             features = 'cxx cxxstlib',
-            source  = [
+            #cxxflags = '-std=gnu++11',
+            source   = [
                         'osemu/osemu_base.cpp',
                         'profiler/profiler_elements.cpp',
                         'common/report.cpp',
                         'modules/register/scireg.cpp',
                         'debugger/gdb_connection_manager.cpp',
             ],
-            export_includes = [self.repository_root.abspath()],
-            includes        = [self.repository_root.abspath()],
+            export_includes = [bld.repository_root.abspath(), os.path.join(bld.repository_root.abspath(), "libelf")],
+            includes        = [bld.repository_root.abspath(), os.path.join(bld.repository_root.abspath(), "libelf")],
             use             = 'BOOST SYSTEMC TLM AMBA GREENSOCS ELF_LIB',
             install_path    = '${PREFIX}/lib',
         )
