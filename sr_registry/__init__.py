@@ -44,7 +44,7 @@ def create_module(__name__):
     """
     from builtins import object
     from . import sr_registry as api
-    from usi import sc_object, on
+    import usi
     import abc
     import sys
 
@@ -78,7 +78,7 @@ def create_module(__name__):
             if cls.__usi_class__ != "":
                 for item_name, item in cls.__dict__.items():
                     if not item_name.startswith("_"):
-                        sc_object.attach("{}.{}".format(cls.__usi_group__, cls.__usi_class__), item_name, item)
+                        usi.sc_object.attach("{}.{}".format(cls.__usi_group__, cls.__usi_class__), item_name, item)
 
             super(USIDelegateMeta, cls).__init__(name, bases, nmspc)
             cls.__new__ = staticmethod(delegate_new)
@@ -150,6 +150,7 @@ def create_module(__name__):
             submodule.__dict__[name] = cls
 
         def load(self, name, path=None):
+            import os
             if os.sep in name:
                 path = name
                 name = os.path.basename(name)
@@ -160,29 +161,33 @@ def create_module(__name__):
             if not name in self.__loaded__:
                 self.__loaded__[name] = path
 
+            print(name, path)
             if "SR_LIBRARY_PATH" in os.environ:
                 print("Loading ", name, " from ", path)
-                self.api.load(name)
+                if not self.api.load(os.path.basename(path)):
+                    print("Failed to load", name)
 
+        def initialization(self, *k, **kw):
+            import os, sys, tempfile
+            print("sr_reg, soi")
+            environ = os.environ
+            if "SR_LIBRARY_PATH" in environ:
+                print("sr_reg, soi, exit")
+                return
+            tdir = tempfile.mkdtemp(prefix='usilib-')
+            for name, path in self.__loaded__.items():
+                target = os.path.join(tdir, os.path.basename(path))
+                if not os.path.exists(target):
+                    os.symlink(os.path.abspath(path), target)
+            environ["SR_LIBRARY_PATH"] = tdir
+            if "LD_LIBRAY_PATH" in environ:
+                environ["LD_LIBRARY_PATH"] = tdir + os.pathsep + environ["LD_LIBRARY_PATH"]
+            else:
+                environ["LD_LIBRARY_PATH"] = tdir
 
-    module = Module(__name__)
-
-    @on('start_of_configuration')
-    def start_of_configuration(*k, **kw):
-        import os, sys
-        tdir = "build/.c"
-        environ = os.environ
-        if "SR_LIBRARY_PATH" in environ:
-            return
-        for name, path in module.__loaded__.items():
-            target = os.path.join(tdir, os.path.basename(path))
-            if not os.path.exists(target):
-                os.symlink(os.path.relpath(tdir, path), target)
-        environ["SR_LIBRARY_PATH"] = tdir
-        environ["LD_LIBRARY_PATH"] = tdir + os.pathsep + environ["LD_LIBRARY_PATH"]
-        os.execve(sys.argv[0], sys.argv, environ)
-
-    return module
+            print("sr_reg, soi, execv")
+            os.execve(sys.argv[0], sys.argv, environ)
+    return Module(__name__)
 
 import sys
 sys.modules[__name__] = create_module(__name__)

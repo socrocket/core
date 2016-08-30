@@ -1440,6 +1440,3 @@ void IntrinsicBase::reset(){
     this->programArgs.clear();
     this->heapPointer = 0;
 }
-
-std::vector<unsigned int> IntrinsicBase::groupIDs;
-unsigned int IntrinsicBase::programsCount = 0;
