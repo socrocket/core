@@ -1,6 +1,8 @@
 #include "core/sr_iss/intrinsics/platformintrinsic.h"
+#include "core/base/systemc.h"
 #include "core/common/sr_registry.h"
 #include "core/common/sr_report.h"
+#include "core/common/sr_param.h"
 #include "gaisler/leon3/intunit/processor.hpp"
 #include "gaisler/leon3/intunit/interface.hpp"
 #include "gaisler/leon3/leon3.h"
@@ -29,28 +31,12 @@
 #define CORRECT_O_APPEND          02000
 #define CORRECT_O_NONBLOCK        04000
 
-#define \
-  SR_HAS_INTRINSIC_GENERATOR(type, factory, isinstance) \
-  static SrModuleRegistry __sr_module_registry_##type##__("PlatformIntrinsic", #type, &factory, &isinstance, __FILE__); \
-  volatile SrModuleRegistry *__sr_module_registry_##type = &__sr_module_registry_##type##__;
-
-#define \
-  SR_HAS_INTRINSIC(type) \
-    sc_core::sc_object *create_##type(sc_core::sc_module_name mn) { \
-      return new type(mn); \
-    } \
-    bool isinstance_of_##type(sc_core::sc_object *obj) { \
-      return dynamic_cast<type *>(obj) != NULL; \
-    } \
-    SR_HAS_INTRINSIC_GENERATOR(type, create_##type, isinstance_of_##type);
-
 #ifdef _WIN32
 #pragma warning( disable : 4244 )
 #endif
 
 #include "common/report.hpp"
-#include "core/trapgen/modules/abi_if.hpp"
-#include "core/base/systemc.h"
+#include "modules/abi_if.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -242,14 +228,10 @@ class writeIntrinsic : public PlatformIntrinsic<wordSize> {
 
     virtual void setProcessor(trap::ABIIf<wordSize> *processor) {
       PlatformIntrinsic<wordSize>::setProcessor(processor);
-      Leon3 *cpu;
-      cpu = dynamic_cast<Leon3*>(&dynamic_cast<leon3_funclt_trap::LEON3_ABIIf*>(processor)->get_data_memory());
-      if (cpu != NULL) {
-        if (((std::string)cpu->g_stdout_filename).length() > 0) {
-          this->stdout_log_file = open(((std::string)cpu->g_stdout_filename).c_str(), O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-        } else {
-          this->stdout_log_file = -1;
-        }
+      if (((std::string)g_stdout_filename).length() > 0) {
+        this->stdout_log_file = open(((std::string)g_stdout_filename).c_str(), O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+      } else {
+        this->stdout_log_file = -1;
       }
     }
 
@@ -274,16 +256,19 @@ class writeIntrinsic : public PlatformIntrinsic<wordSize> {
         buf[i] = this->m_processor->read_char_mem(destAddress + i);
       }
 #ifdef __GNUC__
-      int ret = ::write(fd, buf, count);
+      int ret2 = 0, ret = ::write(fd, buf, count);
       if ((fd == STDOUT_FILENO) && (this->stdout_log_file > 0)) {
-        ::write(this->stdout_log_file, buf, count);
+        ret2 = ::write(this->stdout_log_file, buf, count);
       }
 #else
-      int ret = ::_write(fd, buf, count);
+      int ret2 = 0, ret = ::_write(fd, buf, count);
       if ((fd == STDOUT_FILENO) && (this->stdout_log_file > 0)) {
-        ::_write(this->stdout_log_file, buf, count);
+        ret2 = ::_write(this->stdout_log_file, buf, count);
       }
 #endif
+      if(ret != ret2) {
+        THROW_EXCEPTION("Output file and log file wrote different char counts!");
+      }
       this->m_processor->set_return_value(ret);
       this->m_processor->return_from_call();
       delete[] buf;
@@ -295,6 +280,8 @@ class writeIntrinsic : public PlatformIntrinsic<wordSize> {
 
       return true;
     }
+
+    sr_param<std::string> g_stdout_filename;
 
   protected:
     int stdout_log_file;
