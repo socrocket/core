@@ -161,18 +161,15 @@ def create_module(__name__):
             if not name in self.__loaded__:
                 self.__loaded__[name] = path
 
-            print(name, path)
             if "SR_LIBRARY_PATH" in os.environ:
-                print("Loading ", name, " from ", path)
+                #print("Loading ", name, " from ", path)
                 if not self.api.load(os.path.basename(path)):
-                    print("Failed to load", name)
+                    print "Failed to load", name
 
         def initialization(self, *k, **kw):
             import os, sys, tempfile
-            print("sr_reg, soi")
             environ = os.environ
             if "SR_LIBRARY_PATH" in environ:
-                print("sr_reg, soi, exit")
                 return
             tdir = tempfile.mkdtemp(prefix='usilib-')
             for name, path in self.__loaded__.items():
@@ -180,12 +177,12 @@ def create_module(__name__):
                 if not os.path.exists(target):
                     os.symlink(os.path.abspath(path), target)
             environ["SR_LIBRARY_PATH"] = tdir
+            environ["SYSTEMC_DISABLE_COPYRIGHT_MESSAGE"] = "DISABLE"
             if "LD_LIBRAY_PATH" in environ:
                 environ["LD_LIBRARY_PATH"] = tdir + os.pathsep + environ["LD_LIBRARY_PATH"]
             else:
                 environ["LD_LIBRARY_PATH"] = tdir
 
-            print("sr_reg, soi, execv")
             os.execve(sys.argv[0], sys.argv, environ)
     return Module(__name__)
 
