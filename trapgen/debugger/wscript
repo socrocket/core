@@ -24,4 +24,4 @@ def build(bld):
         install_path = None
     )
 
-    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'debugger'), 'gdb_stub.hpp gdb_connection_manager.hpp breakpoint_manager.hpp watchpoint_manager.hpp')
+    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'trap', 'debugger'), 'gdb_stub.hpp gdb_connection_manager.hpp breakpoint_manager.hpp watchpoint_manager.hpp')

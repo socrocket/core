@@ -37,8 +37,9 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_WATCHPOINTMANAGER_HPP
-#define TRAP_WATCHPOINTMANAGER_HPP
+
+#ifndef TRAP_WATCHPOINT_MANAGER_H
+#define TRAP_WATCHPOINT_MANAGER_H
 
 #ifdef __GNUC__
 #ifdef __GNUC_MINOR__
@@ -155,4 +156,4 @@ class WatchpointManager {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_WATCHPOINT_MANAGER_H

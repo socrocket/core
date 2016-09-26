@@ -37,8 +37,9 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_BREAKPOINTMANAGER_HPP
-#define TRAP_BREAKPOINTMANAGER_HPP
+
+#ifndef TRAP_BREAKPOINT_MANAGER_H
+#define TRAP_BREAKPOINT_MANAGER_H
 
 #ifdef __GNUC__
 #ifdef __GNUC_MINOR__
@@ -141,4 +142,4 @@ class BreakpointManager {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_BREAKPOINT_MANAGER_H

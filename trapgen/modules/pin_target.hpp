@@ -37,8 +37,9 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_PINTARGET_HPP
-#define TRAP_PINTARGET_HPP
+
+#ifndef TRAP_PIN_TARGET_H
+#define TRAP_PIN_TARGET_H
 
 #include "common/report.hpp"
 
@@ -104,4 +105,4 @@ class PINTarget : public sc_module {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_PIN_TARGET_H

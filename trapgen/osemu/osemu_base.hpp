@@ -37,8 +37,9 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_OSEMULATOR_BASE_H
-#define TRAP_OSEMULATOR_BASE_H
+
+#ifndef TRAP_OSEMU_BASE_H
+#define TRAP_OSEMU_BASE_H
 
 #include <map>
 #include <set>
@@ -70,4 +71,4 @@ class OSEmulatorBase {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_OSEMU_BASE_H

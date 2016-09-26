@@ -12,4 +12,4 @@ def build(bld):
         install_path = None
     )
 
-    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'elfloader'), 'elf_frontend.hpp exec_loader.hpp')
+    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'trap', 'elfloader'), 'elf_frontend.hpp exec_loader.hpp')

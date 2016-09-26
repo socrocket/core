@@ -37,8 +37,9 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_EXECLOADER_HPP
-#define TRAP_EXECLOADER_HPP
+
+#ifndef TRAP_EXEC_LOADER_H
+#define TRAP_EXEC_LOADER_H
 
 extern "C" {
 #include <bfd.h>
@@ -115,4 +116,4 @@ class ExecLoader {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_EXEC_LOADER_H

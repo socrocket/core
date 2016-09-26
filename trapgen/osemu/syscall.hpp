@@ -37,6 +37,7 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
+
 #ifndef TRAP_SYSCALL_H
 #define TRAP_SYSCALL_H
 
@@ -1524,4 +1525,4 @@ class sysconfSyscall : public Syscall<WordSize> {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_SYSCALL_H

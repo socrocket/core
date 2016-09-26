@@ -33,8 +33,9 @@
 * or see <http://www.gnu.org/licenses/>.
 *
 *******************************************************************************/
-#ifndef TRAP_REGISTER_BANK_H_
-#define TRAP_REGISTER_BANK_H_
+
+#ifndef TRAP_REGISTER_BANK_H
+#define TRAP_REGISTER_BANK_H
 
 #include "register_if.hpp"
 #include "register_register.hpp"
@@ -53,7 +54,7 @@ namespace trap {
  * Encapsulating registers in one place provides two advantages: First, it
  * greatly simplifies passing registers around (from processor to instructions,
  * ABI, tests, etc). Second, it could provide an iterable interface, so that the
- * processor or some test function can conventiently call RegisterBank::reset()
+ * processor or some test function can conveniently call RegisterBank::reset()
  * or RegisterBank::write() with no further knowledge of the stored registers.
  * If we only had registers to store, we could accomplish both goals with a
  * simple Register[] or std::vector<Register> and looping. However, we would
@@ -384,33 +385,15 @@ class RegisterBank
     for(typename register_container_type::const_iterator reg_it = this->m_regs.begin(); reg_it != this->m_regs.end(); ++reg_it) {
       if (reg_it->second == 1) {
         if ((object = dynamic_cast<sc_core::sc_object*>(reg_it->first)) != NULL)
-          os << object->name() << ": " << reg_it->first->read_dbg() << '\n';
+          os << object->name() << ": " << reg_it->first->print(os) << '\n';
       } else {
         for (unsigned i = 0; i < reg_it->second; ++i) {
           if ((object = dynamic_cast<sc_core::sc_object*>(reg_it->first+i)) != NULL)
-            os << object->name() << ": " << reg_it->first[i].read_dbg() << '\n';
+            os << object->name() << ": " << reg_it->first[i].print(os) << '\n';
         }
       }
     }
     os << std::dec;
-  }
-
-  std::ostream& operator<<(std::ostream& os) const {
-    sc_core::sc_object* object;
-    os << std::hex << std::showbase;
-    for(typename register_container_type::const_iterator reg_it = this->m_regs.begin(); reg_it != this->m_regs.end(); ++reg_it) {
-      if (reg_it->second == 1) {
-        if ((object = dynamic_cast<sc_core::sc_object*>(reg_it->first)) != NULL)
-          os << object->name() << ": " << reg_it->first->read_dbg() << '\n';
-      } else {
-        for (unsigned i = 0; i < reg_it->second; ++i) {
-          if ((object = dynamic_cast<sc_core::sc_object*>(reg_it->first+i)) != NULL)
-            os << object->name() << ": " << reg_it->first[i].read_dbg() << '\n';
-        }
-      }
-    }
-    os << std::dec;
-    return os;
   }
 
   /// @} Information and Helper Methods
@@ -429,4 +412,4 @@ class RegisterBank
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_REGISTER_BANK_H

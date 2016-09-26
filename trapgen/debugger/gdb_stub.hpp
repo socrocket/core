@@ -7,7 +7,7 @@
 *  _/      _/    _/     _/      _/    _/
 * _/      _/      _/  _/        _/   _/
 *
-* @file     gdb_stub->hpp
+* @file     gdb_stub.hpp
 * @brief    This file is part of the TRAP runtime library.
 * @details  Contains the methods necessary to communicate with GDB in order to
 *           debug software running on simulators. Source code takes inspiration
@@ -47,8 +47,9 @@
 *           still running. It seems there is a race condition with the GDB
 *           thread.
 *******************************************************************************/
-#ifndef TRAP_GDBSTUB_HPP
-#define TRAP_GDBSTUB_HPP
+
+#ifndef TRAP_GDB_STUB_H
+#define TRAP_GDB_STUB_H
 
 #include <csignal>
 #ifndef SIGTRAP
@@ -971,7 +972,7 @@ class GDBStub : public ToolsIf<IssueWidth>, public MemoryToolsIf<IssueWidth>, pu
       } else if (cust_comm == "hist") {
         // Print the last n executed instructions. First find out n.
         resp.type = GDBResponse::OUTPUT_RSP;
-#ifdef ENABLE_HISTORY  // TODO Change back to ifndef
+#ifndef ENABLE_HISTORY
         resp.message = "\nInstruction history not enabled at compile time. Reconfigure the project with the --enable-history option.\n\n";
 #else
         unsigned history_len = 0;
@@ -985,12 +986,12 @@ class GDBStub : public ToolsIf<IssueWidth>, public MemoryToolsIf<IssueWidth>, pu
           resp.message = "\nInstruction history buffer length too large, expected <=1000.\n\n";
         }
         // Print the history.
-        boost::circular_buffer<HistoryInstrType>& history_queue = processor->get_history();
+        boost::circular_buffer<HistoryInstrType>& history_instr_queue = processor->get_history();
         std::vector<std::string> history_vec;
-        boost::circular_buffer<HistoryInstrType>::const_reverse_iterator history_queue_it, history_queue_end;
+        boost::circular_buffer<HistoryInstrType>::const_reverse_iterator history_instr_queue_it, history_instr_queue_end;
         unsigned history_read = 0;
-        for (history_read = 0, history_queue_it = history_queue.rbegin(), history_queue_end = history_queue.rend(); history_queue_it != history_queue_end && history_read < history_len; history_queue_it++, history_read++) {
-          history_vec.push_back(history_queue_it->get_mnemonic());
+        for (history_read = 0, history_instr_queue_it = history_instr_queue.rbegin(), history_instr_queue_end = history_instr_queue.rend(); history_instr_queue_it != history_instr_queue_end && history_read < history_len; history_instr_queue_it++, history_read++) {
+          history_vec.push_back(history_instr_queue_it->get_mnemonic());
         }
         resp.message += "\nAddress\t\tname\t\t\tmnemonic\t\tcycle\n\n";
         std::vector<std::string>::const_reverse_iterator history_vector_it, history_vector_end;
@@ -1137,4 +1138,4 @@ class GDBStub : public ToolsIf<IssueWidth>, public MemoryToolsIf<IssueWidth>, pu
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_GDB_STUB_H

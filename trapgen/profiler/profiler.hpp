@@ -37,8 +37,9 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_PROFILER_HPP
-#define TRAP_PROFILER_HPP
+
+#ifndef TRAP_PROFILER_H
+#define TRAP_PROFILER_H
 
 #include "profiler_elements.hpp"
 #include "elfloader/elf_frontend.hpp"
@@ -391,4 +392,4 @@ class Profiler : public ToolsIf<IssueWidth> {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_PROFILER_H

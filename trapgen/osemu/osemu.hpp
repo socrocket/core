@@ -37,8 +37,9 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_OSEMULATOR_HPP
-#define TRAP_OSEMULATOR_HPP
+
+#ifndef TRAP_OSEMU_H
+#define TRAP_OSEMU_H
 
 #include "osemu_base.hpp"
 #include "syscall.hpp"
@@ -634,4 +635,4 @@ class OSEmulator : public ToolsIf<IssueWidth>, public OSEmulatorBase {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_OSEMU_H

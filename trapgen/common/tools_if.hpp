@@ -37,8 +37,9 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_TOOLSIF_HPP
-#define TRAP_TOOLSIF_HPP
+
+#ifndef TRAP_TOOLS_IF_H
+#define TRAP_TOOLS_IF_H
 
 #include "modules/instruction.hpp"
 
@@ -179,4 +180,4 @@ class ToolsManager {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_TOOLS_IF_H

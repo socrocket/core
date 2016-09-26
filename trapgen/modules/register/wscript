@@ -12,4 +12,4 @@ def build(bld):
         install_path = None
     )
 
-    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'modules', 'register'), 'scireg.h register_if.hpp register_abstraction.hpp register_field.hpp register_register.hpp register_alias.hpp register_bank.hpp')
+    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'trap', 'modules', 'register'), 'scireg.h register_if.hpp register_abstraction.hpp register_field.hpp register_register.hpp register_alias.hpp register_bank.hpp')

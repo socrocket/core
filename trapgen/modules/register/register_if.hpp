@@ -36,8 +36,9 @@
 * or see <http://www.gnu.org/licenses/>.
 *
 *******************************************************************************/
-#ifndef TRAP_REGISTER_IF_H_
-#define TRAP_REGISTER_IF_H_
+
+#ifndef TRAP_REGISTER_IF_H
+#define TRAP_REGISTER_IF_H
 
 #include "register_abstraction.hpp"
 #include "scireg.h"
@@ -212,12 +213,22 @@ class RegisterIterator {
  *
  * 3.Declaring an observer interface for attaching/detaching callbacks. This is
  *   mostly already done in scireg_region_if.
- *
- * Note that if we did not have RegisterBank, most of this interface could be
- * moved to Register instead.
  */
 template <typename DATATYPE, typename CHILDTYPE>
 class RegisterInterface
+// TODO: This inheritance leads to two RegisterAbstraction objects relating to a
+// Register, one via inheritance, the other via delegation. The inheritance is
+// obviously only artificial for saving on typing. I could either:
+// - Break it, put the access functions in RegisterInterface and the abstraction-
+//   specific ones in Register.
+// - Keep it, and come up with brand new pattern to automate delegation from
+//   Register -> Abstraction.
+//   One possibility is defining a delegate(func_ptr) function as part of
+//   RegisterInterface. Register implements it by doing return this->m_strategy
+//   ->func_ptr(), while Alias implements it as return this->m_reg->func_ptr().
+//   It's elegant, but 1) requires the caller to wrap all abstraction-related
+//   calls inside a delegate() and 2) is difficult to implement with parameters
+//   (but not impossible - boost has a whole lib of higher-order functions).
 : public RegisterAbstraction<DATATYPE> {
   /// @name Types
   /// @{
@@ -245,16 +256,6 @@ class RegisterInterface
 
   /// @} Traversal Methods
   /// --------------------------------------------------------------------------
-  /// @name Access and Modification Methods
-  /// @{
-
-  public:
-  virtual const DATATYPE read() = 0;
-
-  virtual bool write(const DATATYPE&) = 0;
-
-  /// @} Access and Modification Methods
-  /// --------------------------------------------------------------------------
   /// @name Observer Methods
   /// @{
 
@@ -270,7 +271,10 @@ class RegisterInterface
   /// sc_object style print() of field value.
   virtual void print(std::ostream& os) const = 0;
 
-  virtual std::ostream& operator<<(std::ostream& os) const = 0;
+  friend inline std::ostream& operator<<(std::ostream& os, const RegisterInterface& obj) {
+    obj.print(os);
+    return os;
+  }
 
   /// @} Information and Helper Methods
   /// --------------------------------------------------------------------------
@@ -279,4 +283,4 @@ class RegisterInterface
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_REGISTER_IF_H

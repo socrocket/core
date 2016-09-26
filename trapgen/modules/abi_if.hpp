@@ -37,11 +37,14 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_ABIIF_HPP
-#define TRAP_ABIIF_HPP
+
+#ifndef TRAP_ABI_IF_H
+#define TRAP_ABI_IF_H
 
 #include "modules/instruction.hpp"
 #include "common/report.hpp"
+
+#include "boost/circular_buffer.hpp"
 
 #include <vector>
 
@@ -55,6 +58,16 @@ class ABIIf {
 
   public:
   virtual ~ABIIf() {}
+
+  virtual unsigned num_gdb_regs() const throw() = 0;
+
+  virtual RegWidth read_gdb_reg(const unsigned& gdb_id) const throw() = 0;
+
+  virtual void set_gdb_reg(const RegWidth& new_value, const unsigned& gdb_id) throw() = 0;
+
+  virtual std::vector<RegWidth> read_args() const throw() = 0;
+
+  virtual void set_args(const std::vector<RegWidth>& args) throw() = 0;
 
   virtual RegWidth read_PC() const throw() = 0;
 
@@ -87,19 +100,9 @@ class ABIIf {
     THROW_ERROR("The FP register is not defined in the processor ABI.");
   }
 
-  virtual std::vector<RegWidth> read_args() const throw() = 0;
-
-  virtual void set_args(const std::vector<RegWidth>& args) throw() = 0;
-
   virtual RegWidth read_return_value() const throw() = 0;
 
   virtual void set_return_value(const RegWidth& new_value) throw() = 0;
-
-  virtual RegWidth read_gdb_reg(const unsigned& gdb_id) const throw() = 0;
-
-  virtual void set_gdb_reg(const RegWidth& new_value, const unsigned& gdb_id) throw() = 0;
-
-  virtual unsigned num_gdb_regs() const throw() = 0;
 
   virtual RegWidth read_mem(const RegWidth& address) = 0;
 
@@ -109,11 +112,17 @@ class ABIIf {
 
   virtual void write_char_mem(const RegWidth& address, unsigned char datum) = 0;
 
-  virtual void pre_call() throw() {
-  }
+  virtual unsigned char* get_state() const throw() = 0;
 
-  virtual void post_call() throw() {
-  }
+  virtual void set_state(unsigned char* state) throw() = 0;
+
+  virtual unsigned get_exit_value() throw() = 0;
+
+  virtual void set_exit_value(unsigned value) throw() = 0;
+
+  virtual void pre_call() throw() {}
+
+  virtual void post_call() throw() {}
 
   virtual void return_from_call() throw() {
     this->set_PC(this->read_LR());
@@ -127,19 +136,15 @@ class ABIIf {
 
   virtual bool is_routine_exit(const InstructionBase* instr) throw() = 0;
 
-  virtual unsigned char* get_state() const throw() = 0;
-
-  virtual void set_state(unsigned char* state) throw() = 0;
-
-  virtual unsigned get_exit_value() throw() = 0;
-
-  virtual void set_exit_value(unsigned value) throw() = 0;
+  virtual boost::circular_buffer<HistoryInstrType>& get_history() = 0;
 
   virtual RegWidth get_code_limit() = 0;
 
   virtual int get_id() const throw() {
     return 0;
   }
+
+  virtual bool is_little_endian() const throw() = 0;
 
   inline bool match_endian() const throw() {
 #ifdef LITTLE_ENDIAN_BO
@@ -149,10 +154,9 @@ class ABIIf {
 #endif
   }
 
-  virtual bool is_little_endian() const throw() = 0;
 }; // class ABIIf
 
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_ABI_IF_H

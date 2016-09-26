@@ -37,8 +37,9 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_ELFFRONTEND_H
-#define TRAP_ELFFRONTEND_H
+
+#ifndef TRAP_ELF_FRONTEND_H
+#define TRAP_ELF_FRONTEND_H
 
 extern "C" {
 #include <gelf.h>
@@ -190,4 +191,4 @@ class ELFFrontend {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_ELF_FRONTEND_H

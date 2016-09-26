@@ -33,8 +33,9 @@
 * or see <http://www.gnu.org/licenses/>.
 *
 *******************************************************************************/
-#ifndef TRAP_REGISTER_FIELD_H_
-#define TRAP_REGISTER_FIELD_H_
+
+#ifndef TRAP_REGISTER_FIELD_H
+#define TRAP_REGISTER_FIELD_H
 
 #include "register_if.hpp"
 
@@ -164,7 +165,7 @@ class RegisterField
   }
 
   const DATATYPE read() {
-    execute_callbacks(scireg_ns::SCIREG_READ_ACCESS, 0, this->size());
+    execute_callbacks(scireg_ns::SCIREG_READ_ACCESS, this->m_lowpos, this->size());
     return this->read_dbg();
   }
 
@@ -281,11 +282,6 @@ class RegisterField
     os << std::hex << std::showbase << this->read_dbg() << std::dec;
   }
 
-  std::ostream& operator<<(std::ostream& os) const {
-    os << std::hex << std::showbase << this->read_dbg() << std::dec;
-    return os;
-  }
-
   protected:
   // Based on lowpos, highpos, generate mask of type DATATYPE.
   void gen_mask() {
@@ -314,4 +310,4 @@ class RegisterField
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_REGISTER_FIELD_H

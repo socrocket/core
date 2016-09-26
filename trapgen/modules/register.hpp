@@ -48,8 +48,9 @@
 * or see <http://www.gnu.org/licenses/>.
 *
 *******************************************************************************/
-#ifndef TRAP_REGISTER_H_
-#define TRAP_REGISTER_H_
+
+#ifndef TRAP_REGISTER_H
+#define TRAP_REGISTER_H
 
 #include "modules/register/register_field.hpp"
 #include "modules/register/register_register.hpp"
@@ -57,4 +58,4 @@
 #include "modules/register/register_bank.hpp"
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_REGISTER_H

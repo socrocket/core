@@ -37,9 +37,11 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_HPP
-#define TRAP_HPP
+
+#ifndef TRAP_H
+#define TRAP_H
 
 #define TRAP_REVISION 825
 
-#endif
+/// ****************************************************************************
+#endif // TRAP_H

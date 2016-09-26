@@ -12,4 +12,4 @@ def build(bld):
         install_path = None
     )
 
-    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'common'), 'report.hpp tools_if.hpp')
+    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'trap', 'common'), 'report.hpp tools_if.hpp')

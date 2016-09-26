@@ -37,8 +37,11 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_SPARSE_MEMORYAT_HPP
-#define TRAP_SPARSE_MEMORYAT_HPP
+
+#ifndef TRAP_SPARSE_MEMORY_AT_H
+
+#define TRAP_SPARSE_MEMORY_AT_H
+
 
 #include "common/report.hpp"
 
@@ -65,7 +68,7 @@ class SparseMemoryAT : public sc_module {
   SparseMemoryAT(sc_module_name name, unsigned size, sc_time latency = SC_ZERO_TIME) :
     sc_module(name), size(size), latency(latency), trans_id(0),
     trans_in_progress(false), m_peq(this, &SparseMemoryAT::peq_cb) {
-    for (int i = 0; i < NUM_INITIATORS; i++) {
+    for (unsigned i = 0; i < NUM_INITIATORS; ++i) {
       this->target_socket[i] =
         new tlm_utils::simple_target_socket_tagged<SparseMemoryAT,
           sock_size>(("mem_socket_" + boost::lexical_cast<std::string>(i)).c_str());
@@ -79,7 +82,7 @@ class SparseMemoryAT : public sc_module {
   /// ..........................................................................
 
   ~SparseMemoryAT() {
-    for (int i = 0; i < NUM_INITIATORS; i++) {
+    for (unsigned i = 0; i < NUM_INITIATORS; ++i) {
       delete this->target_socket[i];
     }
   } // ~SparseMemoryAT()
@@ -146,11 +149,11 @@ class SparseMemoryAT : public sc_module {
         unsigned len = trans.get_data_length();
 
         if (cmd == tlm::TLM_READ_COMMAND) {
-          for (int i = 0; i < len; i++, ptr++) {
+          for (unsigned i = 0; i < len; ++i, ++ptr) {
             *ptr = this->mem[adr + i];
           }
         } else if (cmd == tlm::TLM_WRITE_COMMAND) {
-          for (int i = 0; i < len; i++, ptr++) {
+          for (unsigned i = 0; i < len; ++i, ++ptr) {
             this->mem[adr + i] = *ptr;
           }
         }
@@ -218,11 +221,11 @@ class SparseMemoryAT : public sc_module {
     unsigned len = trans.get_data_length();
 
     if (cmd == tlm::TLM_READ_COMMAND) {
-      for (int i = 0; i < len; i++, ptr++) {
+      for (unsigned i = 0; i < len; ++i, ++ptr) {
         *ptr = this->mem[adr + i];
       }
     } else if (cmd == tlm::TLM_WRITE_COMMAND) {
-      for (int i = 0; i < len; i++, ptr++) {
+      for (unsigned i = 0; i < len; ++i, ++ptr) {
         this->mem[adr + i] = *ptr;
       }
     }
@@ -255,4 +258,5 @@ class SparseMemoryAT : public sc_module {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_SPARSE_MEMORY_AT_H
+

@@ -37,8 +37,9 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_PROFINFO_HPP
-#define TRAP_PROFINFO_HPP
+
+#ifndef TRAP_PROFILER_ELEMENTS_H
+#define TRAP_PROFILER_ELEMENTS_H
 
 #include <systemc.h>
 
@@ -112,4 +113,4 @@ struct ProfFunction {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_PROFILER_ELEMENTS_H

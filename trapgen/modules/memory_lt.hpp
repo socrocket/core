@@ -37,8 +37,9 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_MEMORYLT_HPP
-#define TRAP_MEMORYLT_HPP
+
+#ifndef TRAP_MEMORY_LT_H
+#define TRAP_MEMORY_LT_H
 
 #include "common/report.hpp"
 
@@ -178,4 +179,4 @@ class MemoryLT : public sc_module {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_MEMORY_LT_H

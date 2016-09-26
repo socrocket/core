@@ -37,6 +37,7 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
+
 #include "osemu_base.hpp"
 #include "elfloader/elf_frontend.hpp"
 

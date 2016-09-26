@@ -15,4 +15,4 @@ def build(bld):
         use = 'ELF_LIB SYSTEMC BOOST BOOST_REGEX',
         install_path = None
     )
-    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'osemu'), 'osemu_base.hpp syscall.hpp osemu.hpp')
+    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'trap', 'osemu'), 'osemu_base.hpp syscall.hpp osemu.hpp')

@@ -37,8 +37,9 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
-#ifndef TRAP_BFDFRONTEND_H
-#define TRAP_BFDFRONTEND_H
+
+#ifndef TRAP_BFD_FRONTEND_H
+#define TRAP_BFD_FRONTEND_H
 
 extern "C" {
 #include <bfd.h>
@@ -203,4 +204,4 @@ class ELFFrontend {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_BFD_FRONTEND_H

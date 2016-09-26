@@ -17,4 +17,4 @@ def build(bld):
         install_path = None
     )
 
-    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'profiler'), 'profiler.hpp profiler_elements.hpp')
+    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'trap', 'profiler'), 'profiler.hpp profiler_elements.hpp')

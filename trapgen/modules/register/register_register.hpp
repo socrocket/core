@@ -33,8 +33,9 @@
 * or see <http://www.gnu.org/licenses/>.
 *
 *******************************************************************************/
-#ifndef TRAP_REGISTER_REGISTER_H_
-#define TRAP_REGISTER_REGISTER_H_
+
+#ifndef TRAP_REGISTER_REGISTER_H
+#define TRAP_REGISTER_REGISTER_H
 
 #include "register_if.hpp"
 #include "register_abstraction.hpp"
@@ -71,7 +72,7 @@ class Register
   typedef typename RegisterInterface<DATATYPE, RegisterField<DATATYPE> >::child_iterator field_iterator;
   typedef unsigned index_type;
   typedef std::vector<scireg_ns::scireg_callback*> callback_container_type;
-  typedef bool (*clock_cycle_func_t)();
+  typedef bool (*clock_cycle_func_t)(DATATYPE*, DATATYPE*, unsigned long long*, unsigned long long*);
 
   /// @name Constructors and Destructors
   /// @{
@@ -82,7 +83,18 @@ class Register
   // the masks are overwritten by the OR of the field masks.
   // TODO: Bundle abstraction-specific parameters in a struct. This makes the
   // interface more consistent and eases maintenance.
-  Register(std::string name, amba_layer_ids abstraction = amba_LT, unsigned num_pipe_stages = 1, bool is_const = false, unsigned offset = 0, unsigned delay = 0, const DATATYPE& reset_val = (DATATYPE)0, const DATATYPE& used_mask = (DATATYPE)~0, const DATATYPE& read_mask = (DATATYPE)~0, const DATATYPE& write_mask = (DATATYPE)~0, clock_cycle_func_t clock_cycle_func = NULL)
+  Register(std::string name,
+      amba_layer_ids abstraction = amba_LT,
+      bool is_const = false,
+      unsigned offset = 0,
+      unsigned delay = 0,
+      const DATATYPE& reset_val = (DATATYPE)0,
+      unsigned num_pipe_stages = 1,
+      clock_cycle_func_t clock_cycle_func = NULL,
+      bool is_global = false,
+      const DATATYPE& used_mask = (DATATYPE)~0,
+      const DATATYPE& read_mask = (DATATYPE)~0,
+      const DATATYPE& write_mask = (DATATYPE)~0)
     : sc_core::sc_object(name.c_str()),
       m_value(reset_val),
       m_reset_value(reset_val),
@@ -112,6 +124,8 @@ class Register
       if (is_const) {
         assert(!(delay || offset));
         this->m_strategy = new RegisterTLMConst<DATATYPE>(this->m_value, this->m_used_mask, this->m_read_mask, this->m_write_mask, this->m_reset_value);
+      } else if (is_global) {
+        this->m_strategy = new RegisterCAGlobal<DATATYPE>(this->m_value, this->m_used_mask, this->m_read_mask, this->m_write_mask, num_pipe_stages);
       } else {
         this->m_strategy = new RegisterCA<DATATYPE>(this->m_value, this->m_used_mask, this->m_read_mask, this->m_write_mask, num_pipe_stages, clock_cycle_func);
       }
@@ -253,6 +267,8 @@ class Register
   }
 
   //virtual const field_container_type& get_fields() const { return this->m_fields; }
+
+  RegisterAbstraction<DATATYPE>* get_strategy() const { return this->m_strategy; }
 
   /// @} Traversal Methods
   /// --------------------------------------------------------------------------
@@ -535,6 +551,40 @@ class Register
     }
   }
 
+  // TODO: This delegation needs rethinking. @see note in RegisterInterface.hpp.
+  void set_stage(unsigned stage) {
+    this->m_strategy->set_stage(stage);
+  }
+
+  void unset_stage() {
+    this->m_strategy->unset_stage();
+  }
+
+  virtual void stall(unsigned stage) {
+    return this->m_strategy->stall(stage);
+  }
+
+  virtual void advance() {
+    return this->m_strategy->advance();
+  }
+
+  virtual void flush(unsigned stage) {
+    return this->m_strategy->flush(stage);
+  }
+
+  // Hazard Detection Functions
+  virtual unsigned is_locked(unsigned stage, unsigned latency) {
+    return this->m_strategy->is_locked(stage, latency);
+  }
+
+  virtual bool lock(void* instr, unsigned stage, unsigned latency) {
+    return this->m_strategy->lock(instr, stage, latency);
+  }
+
+  virtual bool unlock(void* instr) {
+    return this->m_strategy->unlock(instr);
+  }
+
   /// @} Observer Methods
   /// --------------------------------------------------------------------------
   /// @name Information and Helper Methods
@@ -574,12 +624,7 @@ class Register
 
   /// sc_object style print() of register value.
   void print(std::ostream& os) const {
-    os << std::hex << std::showbase << this->read_dbg() << std::dec;
-  }
-
-  std::ostream& operator<<(std::ostream& os) const {
-    os << std::hex << std::showbase << this->read_dbg() << std::dec;
-    return os;
+    this->m_strategy->print(os);
   }
 
   /// @} Information and Helper Methods
@@ -607,4 +652,4 @@ class Register
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_REGISTER_REGISTER_H

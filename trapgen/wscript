@@ -18,7 +18,7 @@ def build(bld):
 
         bld.recurse('common debugger modules osemu profiler')
 
-        bld.install_files(os.path.join(bld.env.PREFIX, 'include'), 'trap.hpp')
+        bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'trap'), 'trap.hpp')
 
     else:
         bld(

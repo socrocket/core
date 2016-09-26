@@ -38,8 +38,8 @@
 *
 *******************************************************************************/
 
-#ifndef TRAP_INSTRUCTIONBASE_HPP
-#define TRAP_INSTRUCTIONBASE_HPP
+#ifndef TRAP_INSTRUCTION_H
+#define TRAP_INSTRUCTION_H
 
 #include <ostream>
 #include <sstream>
@@ -118,4 +118,4 @@ struct HistoryInstrType {
 } // namespace trap
 
 /// ****************************************************************************
-#endif
+#endif // TRAP_INSTRUCTION_H

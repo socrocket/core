@@ -7,4 +7,4 @@ def build(bld):
 
     bld.recurse('register')
 
-    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'modules'), 'abi_if.hpp instruction.hpp sparse_memory_at.hpp sparse_memory_lt.hpp memory_lt.hpp memory_at.hpp pin_target.hpp register.hpp')
+    bld.install_files(os.path.join(bld.env.PREFIX, 'include', 'trap', 'modules'), 'abi_if.hpp instruction.hpp sparse_memory_at.hpp sparse_memory_lt.hpp memory_lt.hpp memory_at.hpp pin_target.hpp register.hpp')

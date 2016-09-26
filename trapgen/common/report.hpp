@@ -37,6 +37,7 @@
 * (c) Luca Fossati, fossati@elet.polimi.it, fossati.l@gmail.com
 *
 *******************************************************************************/
+
 #ifndef TRAP_REPORT_HPP
 #define TRAP_REPORT_HPP
 
@@ -66,7 +67,6 @@ class annul_exception : public std::runtime_error {
   annul_exception() : std::runtime_error("") {}
   annul_exception(const char* message) : std::runtime_error(message) {}
 }; // class annul_exception
-typedef annul_exception annull_exception;
 
 /// ****************************************************************************
 
