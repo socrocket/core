@@ -262,8 +262,6 @@ def init_repo(cmd, params):
     
 def pull_repo(cmd, params):
     for directory in params:
-        if directory == "core":
-            continue
         remote_url = None
         remote_branch = None
         if directory in REPOS:
@@ -273,8 +271,6 @@ def pull_repo(cmd, params):
 
 def push_repo(cmd, params):
     for directory in params:
-        if directory == "core":
-            continue
         remote_url = None
         remote_branch = None
         if directory in REPOS:
