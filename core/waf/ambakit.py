@@ -71,7 +71,7 @@ def configure(self):
                 name    = name,
                 version = version, 
                 tar     = "amba_socket-1.0.15.tgz",
-                tar_url = "amba_socket-1.0.15.tgz",
+                tar_url = "https://git.greensocs.com/chef/amba-kit/raw/master/files/default/amba_socket-1.0.15.tgz",
                 base    = name,
                 patch   = [os.path.join(self.path.abspath(), "core", "waf", "ambakit-2015-10-16-rmeyer.patch")]
             )
