@@ -72,7 +72,7 @@ class Register
   typedef typename RegisterInterface<DATATYPE, RegisterField<DATATYPE> >::child_iterator field_iterator;
   typedef unsigned index_type;
   typedef std::vector<scireg_ns::scireg_callback*> callback_container_type;
-  typedef bool (*clock_cycle_func_t)(DATATYPE*, DATATYPE*, unsigned long long*, unsigned long long*);
+  typedef bool (*clock_cycle_func_t)(DATATYPE*, DATATYPE*, unsigned long long*, unsigned long long*, int, unsigned, unsigned);
 
   /// @name Constructors and Destructors
   /// @{
