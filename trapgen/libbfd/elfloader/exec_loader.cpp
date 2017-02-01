@@ -67,7 +67,7 @@ trap::ExecLoader::ExecLoader(std::string filename, bool plain_file) : plain_file
     if (!boost::filesystem::exists(file_path)) {
       THROW_EXCEPTION("Path " << filename << " specified in the executable loader does not exist.");
     }
-    std::ifstream plain_exec_file  ile(filename.c_str(), std::ifstream::in | std::ifstream::binary);
+    std::ifstream plain_exec_file(filename.c_str(), std::ifstream::in | std::ifstream::binary);
     if (!plain_exec_file.good())
       THROW_EXCEPTION("Cannot open file " << filename << '.');
 

@@ -43,6 +43,7 @@
 //#include <amba_parameters.h>
 
 #include <list>
+#include <tuple>
 #include <assert.h>
 #include <iomanip>
 

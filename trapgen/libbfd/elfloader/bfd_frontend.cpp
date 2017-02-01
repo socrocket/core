@@ -46,6 +46,7 @@ extern "C" {
 }
 
 #include <sys/types.h>
+#include <cstdlib>
 #include <cstdio>
 #include <cstdarg>
 
@@ -165,7 +166,7 @@ trap::ELFFrontend::ELFFrontend(std::string binary_name) {
     THROW_ERROR("Cannot get symbol table upper bound in file " << bfd_get_filename(this->exec_image) << ": " << bfd_errmsg(bfd_get_error()) << '.');
   }
   if (storage != 0)
-    this->sy = (asymbol**)malloc (storage);
+    this->sy = (asymbol**)std::malloc (storage);
   if (this->sy == NULL) {
     THROW_ERROR("Cannot allocate space for symbol storage in file " << bfd_get_filename(this->exec_image) << '.');
   }
@@ -186,7 +187,7 @@ trap::ELFFrontend::ELFFrontend(std::string binary_name) {
     delete [] sections_it->data;
   }
   this->sec_list.clear();
-  free(this->sy);
+  std::free(this->sy);
 } // ELFFrontend::ELFFrontend()
 
 /// ----------------------------------------------------------------------------
@@ -213,7 +214,7 @@ trap::ELFFrontend& trap::ELFFrontend::get_instance(std::string filename) {
 
 void trap::ELFFrontend::reset() {
   std::map<std::string, trap::ELFFrontend*>::iterator it, it_end;
-  for (it = ELFFrontend::cur_instance.begin(), it_end = ELFFrontend::cur_instance.it_end(); it != it_end; it++) {
+  for (it = ELFFrontend::cur_instance.begin(), it_end = ELFFrontend::cur_instance.end(); it != it_end; it++) {
     delete it->second;
   }
   ELFFrontend::cur_instance.clear();
