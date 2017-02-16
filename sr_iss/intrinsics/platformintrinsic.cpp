@@ -259,16 +259,19 @@ class writeIntrinsic : public PlatformIntrinsic<wordSize> {
       int ret2 = 0, ret = ::write(fd, buf, count);
       if ((fd == STDOUT_FILENO) && (this->stdout_log_file > 0)) {
         ret2 = ::write(this->stdout_log_file, buf, count);
+        if(ret != ret2) {
+          THROW_EXCEPTION("Output file and log file wrote different char counts!");
+        }
       }
 #else
       int ret2 = 0, ret = ::_write(fd, buf, count);
       if ((fd == STDOUT_FILENO) && (this->stdout_log_file > 0)) {
         ret2 = ::_write(this->stdout_log_file, buf, count);
+        if(ret != ret2) {
+          THROW_EXCEPTION("Output file and log file wrote different char counts!");
+        }
       }
 #endif
-      if(ret != ret2) {
-        THROW_EXCEPTION("Output file and log file wrote different char counts!");
-      }
       this->m_processor->set_return_value(ret);
       this->m_processor->return_from_call();
       delete[] buf;

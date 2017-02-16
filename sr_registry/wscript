@@ -20,6 +20,7 @@ def build(self):
         export_includes   = self.top_dir,
         includes          = [self.top_dir, '.', self.repository_root.abspath()],
         swig_flags        = '-c++ -python -Wall',
+        linkflags        = '-ldl',
         use               = 'usi SYSTEMC TLM PYTHON',
         install_path      = '${PREFIX}/lib',
     )
